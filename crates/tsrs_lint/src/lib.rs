@@ -33,4 +33,5 @@ mod rules {
     pub mod no_meaningless_void_operator;
     pub mod no_misused_promises;
     pub mod no_misused_spread;
+    pub mod no_mixed_enums;
 }

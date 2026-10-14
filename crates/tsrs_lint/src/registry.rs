@@ -84,6 +84,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-meaningless-void-operator"
             | "no-misused-promises"
             | "no-misused-spread"
+            | "no-mixed-enums"
     ) {
         return Ok(());
     }
@@ -148,6 +149,7 @@ pub fn create_rule(
             crate::rules::no_misused_spread::NoMisusedSpread::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
+        "no-mixed-enums" => Ok(Box::new(crate::rules::no_mixed_enums::NoMixedEnums)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

@@ -1,0 +1,5540 @@
+{
+  "Name": "strict-void-return",
+  "Suites": {
+    "TestStrictVoidReturnRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare function foo(cb: {}): void;\nfoo(() => () => []);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\ntype Void = void;\nfoo((): Void => {\n  return;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo((): ReturnType<typeof foo> => {\n  return;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: any): void;\nfoo(() => () => []);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare class Foo {\n  constructor(cb: unknown): void;\n}\nnew Foo(() => ({}));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => {}): void;\nfoo(() => 1 as any);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowReturnAny": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => {\n  throw new Error('boom');\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\ndeclare function boom(): never;\nfoo(() => boom());\nfoo(boom);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => any): void;\n};\nnew Foo(function () {\n  return 1;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => unknown): void;\n};\nnew Foo(function () {\n  return 1;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const foo: {\n  bar(cb1: () => unknown, cb2: () => void): void;\n};\nfoo.bar(\n  function () {\n    return 1;\n  },\n  function () {\n    return;\n  },\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => string | void): void;\n};\nnew Foo(() => {\n  if (maybe) {\n    return 'a';\n  } else {\n    return 'b';\n  }\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo<Cb extends (...args: any[]) => void>(cb: Cb): void;\nfoo(() => {\n  console.log('a');\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: (() => void) | (() => string)): void;\nfoo(() => {\n  label: while (maybe) {\n    for (let i = 0; i < 10; i++) {\n      switch (i) {\n        case 0:\n          continue;\n        case 1:\n          return 'a';\n      }\n    }\n  }\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: (() => void) | null): void;\nfoo(null);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Cb {\n  (): void;\n  (): string;\n}\ndeclare const Foo: {\n  new (cb: Cb): void;\n};\nnew Foo(() => {\n  do {\n    try {\n      throw 1;\n    } catch {\n      return 'a';\n    }\n  } while (maybe);\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const foo: ((cb: () => boolean) => void) | ((cb: () => void) => void);\nfoo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const foo: {\n  (cb: () => boolean): void;\n  (cb: () => void): void;\n};\nfoo(function () {\n  with ({}) {\n    return false;\n  }\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => void): void;\n  (cb: () => unknown): void;\n};\nFoo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => any): void;\n  (cb: () => void): void;\n};\nnew Foo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => boolean): void;\ndeclare function foo(cb: () => void): void;\nfoo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\ndeclare function foo(cb: () => boolean): void;\nfoo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => Promise<void>): void;\ndeclare function foo(cb: () => void): void;\nfoo(async () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(fn: () => void): void;\ndeclare function foo(fn: () => Promise<void>): void;\nfoo(async () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => 1 as any);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowReturnAny": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nconst cb = () => {};\nfoo(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(function () {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(cb);\nfunction cb() {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => undefined);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(function () {\n  return;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(function () {\n  return void 0;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => {\n  return;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\ndeclare function cb(): never;\nfoo(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare class Foo {\n  constructor(cb: () => void): any;\n}\ndeclare function cb(): void;\nnew Foo(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(cb);\nfunction cb() {\n  throw new Error('boom');\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(arg: string, cb: () => void): void;\ndeclare function cb(): undefined;\nfoo('arg', cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb?: () => void): void;\nfoo();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare class Foo {\n  constructor(cb?: () => void): void;\n}\ndeclare function cb(): void;\nnew Foo(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(...cbs: Array<() => void>): void;\nfoo(\n  () => {},\n  () => void null,\n  () => undefined,\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(...cbs: Array<() => void>): void;\ndeclare const cbs: Array<() => void>;\nfoo(...cbs);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(...cbs: [() => any, () => void, (() => void)?]): void;\nfoo(\n  async () => {},\n  () => void null,\n  () => undefined,\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nlet cb;\ncb = async () => 10;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: () => void = () => {};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): void;\nconst foo: () => void = cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: () => void = function () {\n  throw new Error('boom');\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: { (): string; (): void } = () => {\n  return 'a';\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: (() => void) | (() => number) = () => {\n  return 1;\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Foo = () => void;\nconst foo: Foo = cb;\nfunction cb() {\n  return void null;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo {\n  (): void;\n}\nconst foo: Foo = cb;\nfunction cb() {\n  return undefined;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): void;\ndeclare let foo: () => void;\nfoo = cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: () => void;\nfoo += () => 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function defaultCb(): object;\ndeclare let foo: { cb?: () => void };\nconst { cb = defaultCb } = foo;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nlet foo: (() => void) | null = null;\nfoo &&= null;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): void;\nlet foo: (() => void) | boolean = false;\nfoo ||= cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { cb: () => void }): unknown;\nconst _ = <Foo cb={() => {}} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { cb: () => void }): unknown;\nconst _ = <Foo cb=\"() => {}\" />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { cb: () => void }): unknown;\nconst _ = <Foo cb={} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { cb: () => void }): unknown;\nconst _ = <Bar children={<Foo cb={() => {}} />} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Cb = () => void;\ndeclare function Foo(props: { cb: Cb; s: string }): unknown;\nconst _ = <Foo cb={function () {}} s=\"asd\" />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Cb = () => void;\ndeclare function Foo(props: { x: number; cb?: Cb }): unknown;\nconst _ = <Foo x={123} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Cb = (() => void) | (() => number);\ndeclare function Foo(props: { cb?: Cb }): unknown;\nconst _ = (\n  <Foo\n    cb={function (arg) {\n      return 123;\n    }}\n  />\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Props {\n  cb: ((arg: unknown) => void) | boolean;\n}\ndeclare function Foo(props: Props): unknown;\nconst _ = <Foo cb />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Props {\n  cb: (() => void) | (() => Promise<void>);\n}\ndeclare function Foo(props: Props): any;\nconst _ = <Foo cb={async () => {}} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Props {\n  children: (arg: unknown) => void;\n}\ndeclare function Foo(props: Props): unknown;\ndeclare function cb(): void;\nconst _ = <Foo>{cb}</Foo>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cbs: { arg: number; cb: () => void }): void;\nfoo({ arg: 1, cb: () => undefined });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { arg?: string; cb: () => void };\nfoo = {\n  cb: () => {\n    return something;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowReturnAny": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { cb: () => void };\nfoo = {\n  cb() {\n    return something;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowReturnAny": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { cb: () => void };\nfoo = {\n  cb = () => 1,\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { cb: (n: number) => void };\nlet method = 'cb';\nfoo = {\n  [method](n) {\n    return n;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nlet foo = {\n  cb(n) {\n    return n;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo {\n  fn(): void;\n}\nlet foo: Foo = {\n  cb(n) {\n    return n;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { cb: (() => void) | number };\nfoo = {\n  cb: 0,\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): void;\nconst foo: Record<string, () => void> = {\n  cb1: cb,\n  cb2: cb,\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): string;\nconst foo: Record<string, () => void> = {\n  ...cb,\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): string;\nconst foo: Record<string, () => void> = {\n  ...cb,\n  ...{},\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): void;\nconst foo: Array<(() => void) | false> = [false, cb, () => cb()];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function cb(): void;\nconst foo: [string, () => void, (() => void)?] = ['asd', cb];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: { cbs: Array<() => void> | null } = {\n  cbs: [\n    function () {\n      return undefined;\n    },\n    () => {\n      return void 0;\n    },\n    null,\n  ],\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: { cb: () => void } = class {\n  static cb = () => {};\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  foo;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Bar {\n  foo() {}\n}\nclass Foo extends Bar {\n  foo();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Bar {\n  foo(): void;\n}\nclass Foo implements Bar {\n  get foo() {\n    return new Date();\n  }\n  set foo() {\n    return new Date('wtf');\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  foo: () => void = () => undefined;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Bar {}\nclass Foo extends Bar {\n  foo = () => 1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo extends Wtf {\n  foo = () => 1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo extends Wtf {\n  [unknown] = () => 1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  cb = () => {\n    console.log('siema');\n  };\n}\nclass Bar extends Foo {\n  cb = () => {\n    console.log('nara');\n  };\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  cb1 = () => {};\n}\nclass Bar extends Foo {\n  cb2() {}\n}\nclass Baz extends Bar {\n  cb1 = () => {\n    console.log('siema');\n  };\n  cb2() {\n    console.log('nara');\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  fn() {\n    return 'a';\n  }\n  cb() {}\n}\nvoid class extends Foo {\n  cb() {\n    if (maybe) {\n      console.log('siema');\n    } else {\n      console.log('nara');\n    }\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nabstract class Foo {\n  abstract cb(): void;\n}\nclass Bar extends Foo {\n  cb() {\n    console.log('a');\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Bar implements Foo {\n  cb = () => 1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb: () => void;\n}\nclass Bar implements Foo {\n  cb = () => {};\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb: () => void;\n}\nclass Bar implements Foo {\n  get cb() {\n    return () => {};\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb(): void;\n}\nclass Bar implements Foo {\n  cb() {\n    return undefined;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo1 {\n  cb1(): void;\n}\ninterface Foo2 {\n  cb2: () => void;\n}\nclass Bar implements Foo1, Foo2 {\n  cb1() {}\n  cb2() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Foo1 {\n  cb1(): void;\n}\ninterface Foo2 extends Foo1 {\n  cb2: () => void;\n}\nclass Bar implements Foo2 {\n  cb1() {}\n  cb2() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: () => () => void;\nfoo = () => () => {};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { f(): () => void };\nfoo = {\n  f() {\n    return () => undefined;\n  },\n};\nfunction cb() {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: { f(): () => void };\nfoo.f = function () {\n  return () => {};\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let foo: () => (() => void) | string;\nfoo = () => 'asd' + 'zxc';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => () => void): void;\nfoo(function () {\n  return () => {};\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function foo(cb: (arg: string) => () => void): void;\ndeclare function foo(cb: (arg: number) => () => boolean): void;\nfoo((arg: number) => {\n  return cb;\n});\nfunction cb() {\n  return true;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function f<T extends void>(arg: T, cb: () => T): void;\ndeclare function f<T extends string>(arg: T, cb: () => T): void;\n\nf('test', () => 'test');\nf(undefined, () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface HookFunction<T extends void | Hook = void> {\n  (fn: () => void): T;\n  (fn: () => Promise<void>): T;\n}\n\nclass Hook {}\n\ndeclare var beforeEach: HookFunction<Hook>;\n\nbeforeEach(() => {});\nbeforeEach(async () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => null);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 55,
+                "end": 59
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => (((true))));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 55,
+                "end": 65
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => {\n  if (maybe) {\n    return (((1) + 1));\n  }\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 95
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(arg: number, cb: () => void): void;\nfoo(0, () => 0);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 71,
+                "end": 72
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb?: { (): void }): void;\nfoo(() => () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 58,
+                "end": 66
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const obj: { foo(cb: () => void): void } | null;\nobj?.foo(() => JSON.parse('{}'));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 73,
+                "end": 89
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n((cb: () => void) => cb())!(() => 1);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 35,
+                "end": 36
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: { (): void }): void;\ndeclare function cb(): string;\nfoo(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 82,
+                "end": 84
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype AnyFunc = (...args: unknown[]) => unknown;\ndeclare function foo<F extends AnyFunc>(cb: F): void;\nfoo(async () => ({}));\nfoo<() => void>(async () => ({}));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 142,
+                "end": 158
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo<T extends {}>(arg: T, cb: () => T);\nfunction foo(arg: null, cb: () => void);\nfunction foo(arg: any, cb: () => any) {}\n\nfoo(null, () => Math.random());\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 149,
+                "end": 162
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo<T extends {}>(arg: T, cb: () => T): void;\ndeclare function foo(arg: any, cb: () => void): void;\n\nfoo(null, async () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 129,
+                "end": 143
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\ndeclare function foo(cb: () => any): void;\nfoo(async () => {\n  return Math.random();\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 92,
+                "end": 131
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: { (): void }): void;\nfoo(cb);\nasync function cb() {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 53,
+                "pos": 51
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo<Cb extends (...args: any[]) => void>(cb: Cb): void;\nfoo(() => {\n  console.log('a');\n  return 1;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 108,
+                "end": 117
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfunction bar<Cb extends () => number>(cb: Cb) {\n  foo(cb);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 99,
+                "end": 101
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: { (): void }): void;\nconst cb = () => dunno;\nfoo!(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 78
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const foo: {\n  (arg: boolean, cb: () => void): void;\n};\nfoo(false, () => Promise.resolve(undefined));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 108
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const foo: {\n  bar(cb1: () => any, cb2: () => void): void;\n};\nfoo.bar(\n  () => Promise.resolve(1),\n  () => Promise.resolve(1),\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 116,
+                "end": 134
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => void): void;\n};\nnew Foo(async () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 63,
+                "end": 77
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => {\n  label: while (maybe) {\n    for (const i of [1, 2, 3]) {\n      if (maybe) return null;\n      else return null;\n    }\n  }\n  return void 0;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 132,
+                "end": 144
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 156,
+                "end": 168
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(() => {\n  do {\n    try {\n      throw 1;\n    } catch (e) {\n      return null;\n    } finally {\n      console.log('finally');\n    }\n  } while (maybe);\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 8,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 125,
+                "pos": 113
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => void): void;\nfoo(async () => {\n  try {\n    await Promise.resolve();\n  } catch {\n    console.error('fail');\n  }\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 144
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => void): void;\n  (cb: () => unknown): void;\n};\nnew Foo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 103,
+                "pos": 98
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const Foo: {\n  new (cb: () => any): void;\n  (cb: () => void): void;\n};\nFoo(() => false);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 90,
+                "end": 95
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Cb {\n  (arg: string): void;\n  (arg: number): void;\n}\ndeclare function foo(cb: Cb): void;\nfoo(cb);\nfunction cb() {\n  return true;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 104,
+                "end": 106
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(\n  cb: ((arg: number) => void) | ((arg: string) => void),\n): void;\nfoo(cb);\nfunction cb() {\n  return 1 + 1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 93,
+                "end": 95
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: (() => void) | null): void;\ndeclare function cb(): boolean;\nfoo(cb);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 92,
+                "pos": 90
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(...cbs: Array<() => void>): void;\nfoo(\n  () => {},\n  () => false,\n  () => 0,\n  () => '',\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 86
+              }
+            },
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 96,
+                "end": 97
+              },
+              "kind": 0
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 107,
+                "end": 109
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(...cbs: [() => void, () => void, (() => void)?]): void;\nfoo(\n  () => {},\n  () => Math.random(),\n  () => (1).toString(),\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 103,
+                "end": 116
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 140,
+                "pos": 126
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Ev {}\ninterface EvMap {\n  DOMContentLoaded: Ev;\n}\ntype EvListOrEvListObj = EvList | EvListObj;\ninterface EvList {\n  (evt: Event): void;\n}\ninterface EvListObj {\n  handleEvent(object: Ev): void;\n}\ninterface Win {\n  addEventListener<K extends keyof EvMap>(\n    type: K,\n    listener: (ev: EvMap[K]) => any,\n  ): void;\n  addEventListener(type: string, listener: EvListOrEvListObj): void;\n}\ndeclare const win: Win;\nwin.addEventListener('DOMContentLoaded', ev => ev);\nwin.addEventListener('custom', ev => ev);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 21,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 22,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 468,
+                "end": 470
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            },
+            {
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 510,
+                "end": 512
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(x: null, cb: () => void): void;\ndeclare function foo(x: unknown, cb: () => any): void;\nfoo({}, async () => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 117,
+                "end": 131
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst arr = [1, 2];\narr.forEach(async x => {\n  console.log(x);\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 65
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n[1, 2].forEach(async x => console.log(x));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 41,
+                "pos": 16
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = () => false;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 36,
+                "pos": 31
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst { name }: () => void = function foo() {\n  return false;\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 62,
+                "pos": 49
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const foo: Record<string, () => void>;\nfoo['a' + 'b'] = () => true;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 75,
+                "pos": 71
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = async () => Promise.resolve(true);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 58
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "const cb: () => void = (): Array<number> => [];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 46
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst cb: () => void = (): Array<number> => {\n  return [];\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 28,
+                "end": 41
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "const cb: () => void = function* foo() {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 23,
+                "end": 41
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const cb: () => void = (): Promise<number> => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 64
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst cb: () => void = async (): Promise<number> => {\n  try {\n    return Promise.resolve(1);\n  } catch {}\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 108
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const cb: () => void = async (): Promise<number> => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 23,
+                "end": 70
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = async () => {\n  try {\n    return 1;\n  } catch {}\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 75
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = async (): Promise<void> => {\n  try {\n    await Promise.resolve();\n  } finally {\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 110
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = async () => {\n  try {\n    await Promise.resolve();\n  } catch (err) {\n    console.error(err);\n  }\n  console.log('ok');\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 144
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const foo: () => void = (): number => {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 34
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): boolean;\nconst foo: () => void = cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 59,
+                "pos": 57
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = function () {\n  if (maybe) {\n    return null;\n  } else {\n    return null;\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 70
+              }
+            },
+            {
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 86,
+                "end": 98
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: () => void = function () {\n  if (maybe) {\n    console.log('elo');\n    return { [1]: Math.random() };\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 112,
+                "pos": 82
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: { (arg: number): void; (arg: string): void } = arg => {\n  console.log('foo');\n  switch (typeof arg) {\n    case 'number':\n      return 0;\n    case 'string':\n      return '';\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 8,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 139,
+                "end": 148
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 174,
+                "end": 184
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: ((arg: number) => void) | ((arg: string) => void) = async () => {\n  return 1;\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 91
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Foo = () => void;\nconst foo: Foo = cb;\nfunction cb() {\n  return [1, 2, 3];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 41,
+                "end": 43
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo {\n  (): void;\n}\nconst foo: Foo = cb;\nfunction cb() {\n  return { a: 1 };\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 50
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): unknown;\ndeclare let foo: () => void;\nfoo = cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 70
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { arg?: string; cb?: () => void };\nfoo.cb = () => {\n  return 'siema';\n  console.log('siema');\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 72,
+                "end": 87
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): unknown;\nlet foo: (() => void) | null = null;\nfoo ??= cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 80
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): unknown;\nlet foo: (() => void) | boolean = false;\nfoo ||= cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 84
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): unknown;\nlet foo: (() => void) | boolean = false;\nfoo &&= cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 84
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { cb: () => void }): unknown;\nconst _ = <Foo cb={() => 1} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 84,
+                "end": 85
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { cb: () => void }): unknown;\ndeclare function getNull(): null;\nconst _ = (\n  <Foo\n    cb={() => {\n      if (maybe) return Math.random();\n      else return getNull();\n    }}\n  />\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 8,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 166,
+                "pos": 145
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx"
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 178,
+                "end": 195
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Cb = () => void;\ndeclare function Foo(props: { cb: Cb; s: string }): unknown;\nconst _ = <Foo cb={async function () {}} s=\"!@#jp2gmd\" />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 103,
+                "end": 123
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Cb = () => void;\ndeclare function Foo(props: { n: number; cb?: Cb }): unknown;\nconst _ = <Foo n={2137} cb={function* () {}} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 113,
+                "end": 128
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Cb = ((arg: string) => void) | ((arg: number) => void);\ndeclare function Foo(props: { cb?: Cb }): unknown;\nconst _ = (\n  <Foo\n    cb={async function* (arg) {\n      await arg;\n      yield arg;\n    }}\n  />\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 140,
+                "end": 203
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "react.tsx"
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Props {\n  cb: ((arg: unknown) => void) | boolean;\n}\ndeclare function Foo(props: Props): unknown;\nconst _ = <Foo cb={x => x} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 132,
+                "end": 133
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype EventHandler<E> = { bivarianceHack(event: E): void }['bivarianceHack'];\ninterface ButtonProps {\n  onClick?: EventHandler<unknown> | undefined;\n}\ndeclare function Button(props: ButtonProps): unknown;\nfunction App() {\n  return <Button onClick={x => x} />;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 8,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 253,
+                "end": 254
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cbs: { arg: number; cb: () => void }): void;\nfoo({ arg: 1, cb: () => 1 });\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 91,
+                "end": 92
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { arg?: string; cb: () => void };\nfoo = {\n  cb: () => {\n    let x = 'siema';\n    return x;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 99,
+                "end": 108
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { cb: (n: number) => void };\nfoo = {\n  cb(n) {\n    return n;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 78
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { 1234: (n: number) => void };\nfoo = {\n  1234(n) {\n    return n;\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 73,
+                "end": 82
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { '1e+21': () => void };\nfoo = {\n  1_000_000_000_000_000_000_000: () => 1,\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 90,
+                "end": 91
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { cb: (() => void) | number };\nfoo = {\n  cb: async () => {\n    if (maybe) {\n      return 'asd';\n    }\n  },\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 123
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): number;\nconst foo: Record<string, () => void> = {\n  cb1: cb,\n  cb2: cb,\n  ...cb,\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 81,
+                "end": 83
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 92,
+                "end": 94
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): number;\nconst foo: Array<(() => void) | false> = [false, cb, () => cb()];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 83
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 91,
+                "end": 95
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function cb(): number;\nconst foo: [string, () => void, (() => void)?] = ['asd', cb];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 91,
+                "pos": 89
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: { cbs: Array<() => void> | null } = {\n  cbs: [\n    function* () {\n      yield 1;\n    },\n    async () => {\n      await 1;\n    },\n    null,\n  ],\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "asyncFunc",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 98,
+                "pos": 63
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 138
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: { cb: () => void } = class {\n  static cb = () => ({});\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 61,
+                "end": 65
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  foo: () => void = () => [];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 39,
+                "end": 41
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  static foo: () => void = Math.random;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 51,
+                "pos": 40
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  cb = () => {};\n}\nclass Bar extends Foo {\n  cb = Math.random;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 74
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo = () =>\n  class {\n    cb = () => {};\n  };\nclass Bar extends foo() {\n  cb = Math.random;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 97,
+                "pos": 86
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  cb() {\n    console.log('siema');\n  }\n}\nconst method = 'cb' as const;\nclass Bar extends Foo {\n  [method]() {\n    return 'nara';\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 141,
+                "pos": 127
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Bar {\n  foo() {}\n}\nclass Foo extends Bar {\n  get foo() {\n    return () => 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": true,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {}
+        },
+        {
+          "Code": "\nclass Foo {\n  cb() {}\n}\nvoid class extends Foo {\n  cb() {\n    return Math.random();\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 84
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  cb1 = () => {};\n}\nclass Bar extends Foo {\n  cb2() {}\n}\nclass Baz extends Bar {\n  cb1 = () => Math.random();\n  cb2() {\n    return Math.random();\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 11,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 108,
+                "end": 121
+              },
+              "kind": 0
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 137,
+                "end": 158
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function f(): Promise<void>;\ninterface Foo {\n  cb: () => void;\n}\nclass Bar {\n  cb = () => {};\n}\nclass Baz extends Bar implements Foo {\n  cb: () => void = f;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 163,
+                "end": 164
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  fn() {\n    return 'a';\n  }\n  cb() {}\n}\nclass Bar extends Foo {\n  cb() {\n    if (maybe) {\n      return Promise.resolve('siema');\n    } else {\n      return Promise.resolve('nara');\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 11,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 13,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 110,
+                "end": 142
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 162,
+                "end": 193
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nabstract class Foo {\n  abstract cb(): void;\n}\nclass Bar extends Foo {\n  async cb() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 73,
+                "end": 86
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  fn() {\n    return 'a';\n  }\n  cb() {}\n}\nclass Bar extends Foo {\n  *cb() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 80,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb: () => void;\n}\nclass Bar implements Foo {\n  cb = Math.random;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 71,
+                "end": 82
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst o = { cb() {} };\ntype O = typeof o;\nclass Bar implements O {\n  cb = Math.random;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 75,
+                "end": 86
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  cb() {}\n}\nclass Bar extends Foo {\n  async*cb() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 51,
+                "end": 64
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb(): void;\n}\nclass Bar implements Foo {\n  async cb(): Promise<string> {\n    return Promise.resolve('siema');\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 132
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb(): void;\n}\nclass Bar implements Foo {\n  async cb() {\n    try {\n      return { a: ['asdf', 1234] };\n    } catch {\n      console.error('error');\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 174,
+                "pos": 62
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo {\n  cb(): void;\n}\nclass Bar implements Foo {\n  cb() {\n    if (maybe) {\n      return Promise.resolve(1);\n    } else {\n      return;\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 8,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 92,
+                "end": 118
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo1 {\n  cb1(): void;\n}\ninterface Foo2 {\n  cb2: () => void;\n}\nclass Bar implements Foo1, Foo2 {\n  async cb1() {}\n  async *cb2() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 109,
+                "end": 123
+              }
+            },
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 126,
+                "end": 141
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo1 {\n  cb1(): void;\n}\ninterface Foo2 {\n  cb2: () => void;\n}\nclass Baz {\n  cb3() {}\n}\nclass Bar extends Baz implements Foo1, Foo2 {\n  async cb1() {}\n  async *cb2() {}\n  cb3() {\n    return Math.random();\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 12,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 13,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 15,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 146,
+                "end": 160
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 163,
+                "end": 178
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 193,
+                "end": 214
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass A extends class {\n  cb() {}\n} {\n  cb() {\n    return Math.random();\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 73
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass A extends class B {\n  cb() {}\n} {\n  cb() {\n    return Math.random();\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 75
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Foo1 {\n  cb1(): void;\n}\ninterface Foo2 extends Foo1 {\n  cb2: () => void;\n}\nclass Bar implements Foo2 {\n  async cb1() {}\n  async *cb2() {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 130,
+                "pos": 116
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 148
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: () => () => void;\nfoo = () => () => 1 + 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 59
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: () => () => void;\nfoo = () => () => Math.random();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 67
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: () => () => void;\ndeclare const cb: () => null | false;\nfoo = () => cb;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 86,
+                "end": 88
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { f(): () => void };\nfoo = {\n  f() {\n    return () => cb;\n  },\n};\nfunction cb() {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 72,
+                "end": 74
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: { f(): () => void };\nfoo.f = function () {\n  return () => {\n    return null;\n  };\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 94
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare let foo: () => (() => void) | string;\nfoo = () => () => {\n  return 'asd' + 'zxc';\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 69,
+                "end": 90
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => () => void): void;\nfoo(function () {\n  return async () => {};\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "asyncFunc",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 78,
+                "end": 92
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "asyncFunc",
+                "description": "Async function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: () => () => void): void;\nfoo(() => () => {\n  if (n == 1) {\n    console.log('asd')\n    return [1].map(x => x)\n  }\n  if (n == 2) {\n    console.log('asd')\n    return -Math.random()\n  }\n  if (n == 3) {\n    console.log('asd')\n    return \"x\".toUpperCase()\n  }\n  return <i>{Math.random()}</i>\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 14,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 16,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 112,
+                "end": 134
+              }
+            },
+            {
+              "range": {
+                "pos": 182,
+                "end": 203
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx"
+            },
+            {
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 251,
+                "end": 275
+              },
+              "kind": 0,
+              "rule": "strict-void-return"
+            },
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 282,
+                "end": 311
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function foo(cb: (arg: string) => () => void): void;\ndeclare function foo(cb: (arg: number) => () => boolean): void;\nfoo((arg: string) => {\n  return cb;\n});\nasync function* cb() {\n  yield true;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidFunc",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 158,
+                "end": 160
+              },
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidFunc",
+                "description": "Value-returning function used in a context where a void function is expected."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function f<T extends void>(arg: T, cb: () => T): void;\n\nf(undefined, () => 'test');\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "nonVoidReturn",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "strict-void-return",
+              "message": {
+                "id": "nonVoidReturn",
+                "description": "Value returned in a context where a void return is expected."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 84,
+                "end": 90
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -114,6 +114,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "prefer-regexp-exec"
             | "prefer-readonly"
             | "prefer-reduce-type-parameter"
+            | "prefer-return-this-type"
     ) {
         return Ok(());
     }
@@ -213,6 +214,7 @@ pub fn create_rule(
         "prefer-regexp-exec" => Ok(Box::new(crate::rules::prefer_regexp_exec::PreferRegexpExec)),
         "prefer-readonly" => crate::rules::prefer_readonly::PreferReadonly::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "prefer-reduce-type-parameter" => Ok(Box::new(crate::rules::prefer_reduce_type_parameter::PreferReduceTypeParameter)),
+        "prefer-return-this-type" => Ok(Box::new(crate::rules::prefer_return_this_type::PreferReturnThisType)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

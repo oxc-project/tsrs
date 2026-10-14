@@ -63,5 +63,6 @@ mod rules {
     pub mod prefer_readonly_parameter_types;
     pub mod prefer_reduce_type_parameter;
     pub mod prefer_regexp_exec;
+    pub mod prefer_return_this_type;
     mod regexp_unicode;
 }

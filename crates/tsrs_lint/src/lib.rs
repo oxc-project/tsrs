@@ -30,4 +30,5 @@ mod rules {
     pub mod no_floating_promises;
     pub mod no_for_in_array;
     pub mod no_implied_eval;
+    pub mod no_meaningless_void_operator;
 }

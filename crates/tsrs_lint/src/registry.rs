@@ -81,6 +81,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-floating-promises"
             | "no-for-in-array"
             | "no-implied-eval"
+            | "no-meaningless-void-operator"
     ) {
         return Ok(());
     }
@@ -131,6 +132,12 @@ pub fn create_rule(
         }
         "no-for-in-array" => Ok(Box::new(crate::rules::no_for_in_array::NoForInArray)),
         "no-implied-eval" => Ok(Box::new(crate::rules::no_implied_eval::NoImpliedEval)),
+        "no-meaningless-void-operator" => {
+            crate::rules::no_meaningless_void_operator::NoMeaninglessVoidOperator::new(
+                &config.options,
+            )
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
+        }
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

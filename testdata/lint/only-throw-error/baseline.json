@@ -1,0 +1,3382 @@
+{
+  "Name": "only-throw-error",
+  "Suites": {
+    "TestOnlyThrowErrorPackageSpecifiers_@angular_core-extra_allow=@angular_core": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"@angular/core-extra\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@angular/core"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/@angular/core-extra/package.json": "{\"name\": \"@angular/core-extra\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@angular/core-extra/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 92,
+                "end": 97
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@angular_core_allow=@angular": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"@angular/core\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@angular"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@angular/core/package.json": "{\"name\": \"@angular/core\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@angular/core/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@angular_core_allow=@angular_core": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"@angular/core\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "package": "@angular/core",
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ]
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@angular/core/lib/index.d.ts": "export interface ErrorLike { message: string }",
+            "node_modules/@angular/core/package.json": "{\"name\": \"@angular/core\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@angularlol_core_allow=@angular": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"@angularlol/core\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@angular"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/@angularlol/core/package.json": "{\"name\": \"@angularlol/core\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@angularlol/core/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 89,
+                "end": 94
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_babel__code-frame-extra_allow=@babel_code-frame": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"@babel/code-frame-extra\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@babel/code-frame"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/babel__code-frame-extra/package.json": "{\"name\": \"@types/babel__code-frame-extra\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/babel__code-frame-extra/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 101,
+                "pos": 96
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_babel__code-frame_allow=@babel_code-frame": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"@babel/code-frame\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@babel/code-frame"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/babel__code-frame/package.json": "{\"name\": \"@types/babel__code-frame\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/babel__code-frame/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_babel__code-frame_allow=@types_babel__code-frame": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"@babel/code-frame\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@types/babel__code-frame",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/babel__code-frame/lib/index.d.ts": "export interface ErrorLike { message: string }",
+            "node_modules/@types/babel__code-frame/package.json": "{\"name\": \"@types/babel__code-frame\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_semver_allow=@types_semver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@types/semver"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/semver/package.json": "{\"name\": \"@types/semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_semver_allow=s.mver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "s.mver"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/semver/package.json": "{\"name\": \"@types/semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 79,
+                "end": 84
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_semver_allow=sem": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "sem"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/semver/package.json": "{\"name\": \"@types/semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 79,
+                "end": 84
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_semver_allow=semve": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "package": "semve",
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ]
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/semver/package.json": "{\"name\": \"@types/semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 79,
+                "end": 84
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_@types_semver_allow=semver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "semver",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/semver/package.json": "{\"name\": \"@types/semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/@types/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_my-semver_allow=semver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"my-semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "package": "semver",
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ]
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/my-semver/package.json": "{\"name\": \"my-semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/my-semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 87
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_s.mver_allow=s.mver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"s.mver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "s.mver"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/s.mver/package.json": "{\"name\": \"s.mver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/s.mver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_semver-compare_allow=semver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver-compare\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "semver",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/semver-compare/package.json": "{\"name\": \"semver-compare\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/semver-compare/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 87,
+                "end": 92
+              },
+              "kind": 0,
+              "rule": "only-throw-error"
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_semver_allow=s.mver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "package": "s.mver",
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ]
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/semver/package.json": "{\"name\": \"semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 79,
+                "end": 84
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_semver_allow=sem": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "sem"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/semver/package.json": "{\"name\": \"semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 79,
+                "end": 84
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_semver_allow=semve": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "semve",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/semver/lib/index.d.ts": "export interface ErrorLike { message: string }",
+            "node_modules/semver/package.json": "{\"name\": \"semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}"
+          },
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 79,
+                "end": 84
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_semver_allow=semver": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"semver\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "semver",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/semver/package.json": "{\"name\": \"semver\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/semver/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_typescript_allow=script": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "import type { ErrorLike } from \"typescript\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "script"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/typescript/package.json": "{\"name\": \"typescript\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/typescript/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 83,
+                "end": 88
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    },
+    "TestOnlyThrowErrorPackageSpecifiers_typescript_allow=typescript": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "import type { ErrorLike } from \"typescript\"; declare const error: ErrorLike; throw error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "typescript",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": false,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/typescript/package.json": "{\"name\": \"typescript\", \"version\": \"1.0.0\", \"types\": \"lib/index.d.ts\"}",
+            "node_modules/typescript/lib/index.d.ts": "export interface ErrorLike { message: string }"
+          },
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": []
+    },
+    "TestOnlyThrowErrorRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "throw new Error();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw new Error('error');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw Error('error');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst e = new Error();\nthrow e;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntry {\n  throw new Error();\n} catch (e) {\n  throw e;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo() {\n  return new Error();\n}\nthrow foo();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo = {\n  bar: new Error(),\n};\nthrow foo.bar;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo = {\n  bar: new Error(),\n};\n\nthrow foo['bar'];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo = {\n  bar: new Error(),\n};\n\nconst bar = 'bar';\nthrow foo[bar];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass CustomError extends Error {}\nthrow new CustomError();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass CustomError1 extends Error {}\nclass CustomError2 extends CustomError1 {}\nthrow new CustomError2();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw (foo = new Error());",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw (1, 2, new Error());",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw 'literal' && new Error();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw new Error() || 'literal';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw foo ? new Error() : new Error();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction* foo() {\n  let index = 0;\n  throw yield index++;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function foo() {\n  throw await bar;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nimport { Error } from './missing';\nthrow Error;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass CustomError<T, C> extends Error {}\nthrow new CustomError<string, string>();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass CustomError<T = {}> extends Error {}\nthrow new CustomError();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass CustomError<T extends object> extends Error {}\nthrow new CustomError();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo() {\n  throw Object.assign(new Error('message'), { foo: 'bar' });\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst foo: Error | SyntaxError = bar();\nfunction bar() {\n  throw foo;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const foo: Error | string;\nthrow foo as Error;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "throw new Error() as Error;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const nullishError: Error | undefined;\nthrow nullishError ?? new Error();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const nullishError: Error | undefined;\nthrow nullishError || new Error();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const nullishError: Error | undefined;\nthrow nullishError ? nullishError : new Error();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction fun(value: any) {\n  throw value;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction fun(value: unknown) {\n  throw value;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction fun<T extends Error>(t: T): void {\n  throw t;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nthrow undefined;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "undefined"
+                ]
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass CustomError implements Error {}\nthrow new CustomError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "CustomError"
+                ]
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nthrow new Map();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Map"
+                ]
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntry {\n} catch (e) {\n  throw e;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntry {\n} catch (eOuter) {\n  try {\n    if (Math.random() > 0.5) {\n      throw eOuter;\n    }\n  } catch (eInner) {\n    if (Math.random() > 0.5) {\n      throw eOuter;\n    } else {\n      throw eInner;\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nPromise.reject('foo').catch(e => {\n  throw e;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        import { createError } from 'errors';\n        throw createError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "errors"
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/errors/package.json": "{\n          \"name\": \"errors\",\n          \"version\": \"1.0.0\",\n          \"types\": \"index.d.ts\"\n        }",
+            "node_modules/errors/index.d.ts": "\n          export interface ErrorLike extends Error {}\n          export function createError(): ErrorLike;\n        "
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        import type { ErrorLike } from '@apollo/client/core/types';\n\n        declare const error: ErrorLike;\n        throw error;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "@apollo/client",
+                "from": "package"
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@apollo/client/package.json": "{\n          \"name\": \"@apollo/client\",\n          \"version\": \"1.0.0\",\n          \"types\": \"core/types.d.ts\"\n        }",
+            "node_modules/@apollo/client/core/types.d.ts": "\n          export interface ErrorLike extends Error {}\n        "
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        import { createError } from 'errors-like';\n        throw createError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "errors-like"
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {
+            "node_modules/@types/errors-like/index.d.ts": "\n          export interface ErrorLike extends Error {}\n          export function createError(): ErrorLike;\n        ",
+            "node_modules/@types/errors-like/package.json": "{\n          \"name\": \"@types/errors-like\",\n          \"version\": \"1.0.0\",\n          \"types\": \"index.d.ts\"\n        }"
+          },
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function foo() {\n  throw await Promise.resolve(new Error('error'));\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction *foo(): Generator<number, void, Error> {\n  throw yield 303;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "throw undefined;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "undef",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "undef",
+                "description": "Do not throw undefined."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 16
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw new String('');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 20
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw 'error';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 13
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "throw 0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 7
+              },
+              "kind": 0,
+              "rule": "only-throw-error"
+            }
+          ]
+        },
+        {
+          "Code": "throw false;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 11
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 10
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 8
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw 'a' + 'b';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 15
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst a = '';\nthrow a + 'b';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 21,
+                "end": 28
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "throw (foo = 'error');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 21
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw (new Error(), 1, 2, 3);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 28
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw 'literal' && 'not an Error';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 33
+              },
+              "kind": 0,
+              "rule": "only-throw-error"
+            }
+          ]
+        },
+        {
+          "Code": "throw 'literal' || new Error();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 6,
+                "end": 30
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "throw new Error() && 'literal';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 30
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "throw 'literal' ?? new Error();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 6,
+                "end": 30
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "throw foo ? 'not an Error' : 'literal';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 38
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw foo ? new Error() : 'literal';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 35
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "throw foo ? 'literal' : new Error();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 35
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "throw `${err}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 14
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst err = 'error';\nthrow err;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 31
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(msg) {}\nthrow foo('error');\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 40
+              },
+              "kind": 0,
+              "rule": "only-throw-error"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo = {\n  msg: 'error',\n};\nthrow foo.msg;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 40,
+                "end": 47
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo = {\n  msg: undefined,\n};\nthrow foo.msg;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "undef",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 36,
+                "end": 50
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "undef",
+                "description": "Do not throw undefined."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass CustomError {}\nthrow new CustomError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 45,
+                "pos": 28
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {}\nclass CustomError extends Foo {}\nthrow new CustomError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 70
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst Error = null;\nthrow Error;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 27,
+                "end": 32
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nimport { Error } from './class';\nthrow new Error();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 3,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 40,
+                "end": 51
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass CustomError<T extends object> extends Foo {}\nthrow new CustomError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 3,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 75
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo<T>() {\n  const res: T;\n  throw res;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 48
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo<T>(fn: () => Promise<T>) {\n  const promise = fn();\n  const res = promise.then(() => {}).catch(() => {});\n  throw res;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 5,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 127,
+                "end": 130
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo() {\n  throw Object.assign({ foo: 'foo' }, { bar: 'bar' });\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 71
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo: Error | { bar: string } = bar();\nfunction bar() {\n  throw foo;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 70,
+                "end": 73
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const foo: Error | string;\nthrow foo as string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 55,
+                "pos": 42
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction fun(value: any) {\n  throw value;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 36,
+                "end": 41
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction fun(value: unknown) {\n  throw value;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": true,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 40,
+                "end": 45
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction fun<T extends number>(t: T): void {\n  throw t;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 55
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass UnknownError implements Error {}\nthrow new UnknownError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "CustomError"
+                ]
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 64
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {\n  throw await bar;\n}\n\t\t\t",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 32,
+                "end": 41
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {\n  throw await Promise.resolve<number>(303);\n}\n\t\t\t",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 32,
+                "end": 66
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction *foo(): Generator<number, void, string> {\n  throw yield 303;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 60,
+                "end": 69
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet x = 1;\nPromise.reject('foo').catch(e => {\n  throw x;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 55,
+                "end": 56
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.reject('foo').catch((...e) => {\n  throw e;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 50
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const x: any[];\nPromise.reject('foo').catch(...x, e => {\n  throw e;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 75
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const x: any[];\nPromise.reject('foo').then(...x, e => {\n  throw e;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 73,
+                "end": 74
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const onFulfilled: any;\ndeclare const x: any[];\nPromise.reject('foo').then(onFulfilled, ...x, e => {\n  throw e;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 118,
+                "end": 119
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.reject('foo').then((...e) => {\n  throw e;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 49
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.reject('foo').then(e => {\n  throw globalThis;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 53
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nimport { createError } from 'errors-like';\nthrow createError();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "object",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "ErrorLike"
+                ],
+                "package": "errors"
+              }
+            ],
+            "allowRethrowing": true,
+            "allowThrowingAny": false,
+            "allowThrowingUnknown": false
+          },
+          "Tsx": false,
+          "Files": {
+            "node_modules/errors-like/package.json": "{\n  \"name\": \"errors-like\",\n  \"version\": \"1.0.0\",\n  \"types\": \"index.d.ts\"\n}",
+            "node_modules/errors-like/index.d.ts": "\nexport interface ErrorLike {\n  message: string;\n}\nexport function createError(): ErrorLike;\n"
+          },
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 50,
+                "end": 63
+              },
+              "kind": 0,
+              "rule": "only-throw-error",
+              "message": {
+                "id": "object",
+                "description": "Expected an error object to be thrown."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

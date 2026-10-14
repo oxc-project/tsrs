@@ -1,0 +1,3409 @@
+{
+  "Name": "no-unnecessary-type-conversion",
+  "Suites": {
+    "TestNoUnnecessaryTypeConversion": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "String(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(1).toString();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "`${1}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'' + 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "1 + '';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      let str = 1;\n      str += '';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const obj = { prop: 'asdf' }; obj.prop += '';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const arr = ['asdf']; arr[0] += '';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "Number('2');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "+'2';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~~'2';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~~1.1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~~-1.1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~~(1.5 + 2.3);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~~(1 / 3);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "Boolean(0);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "!!0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "BigInt(3);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "new String('asdf');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "new Number(2);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "new Boolean(true);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "!false;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function String(value: unknown) {\n        return value;\n      }\n      String('asdf');\n      export {};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function Number(value: unknown) {\n        return value;\n      }\n      Number(2);\n      export {};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function Boolean(value: unknown) {\n        return value;\n      }\n      Boolean(true);\n      export {};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function BigInt(value: unknown) {\n        return value;\n      }\n      BigInt(3n);\n      export {};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function toString(value: unknown) {\n        return value;\n      }\n      toString('asdf');\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      export {};\n      declare const toString: string;\n      toString.toUpperCase();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "String(...(['asdf'] as [string]));",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "String('asdf', console.log('extra'));",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'asdf'.toString(console.log('extra'));",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "String(new String());",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "new String().toString();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'' + new String();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "new String() + '';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      let str = new String();\n      str += '';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "Number(new Number());",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "+new Number();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "~~new Number();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "Boolean(new Boolean());",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "!!new Boolean();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum CustomIds {\n        Id1 = 'id1',\n        Id2 = 'id2',\n      }\n      const customId = 'id1';\n      const compareWithToString = customId === CustomIds.Id1.toString();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "String('asdf');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'asdf';"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "'asdf' satisfies string;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 6
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf'",
+                      "range": {
+                        "pos": 0,
+                        "end": 14
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf' satisfies string",
+                      "range": {
+                        "pos": 0,
+                        "end": 14
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '\"asdf\"'.",
+                  "range": {
+                    "pos": 7,
+                    "end": 13
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "'asdf'.toString();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 8,
+              "EndLine": 0,
+              "EndColumn": 18,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'asdf';"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "'asdf' satisfies string;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 7,
+                "end": 17
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf'",
+                      "range": {
+                        "pos": 0,
+                        "end": 17
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf' satisfies string",
+                      "range": {
+                        "pos": 0,
+                        "end": 17
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '\"asdf\"'.",
+                  "range": {
+                    "pos": 0,
+                    "end": 6
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        },
+        {
+          "Code": "'' + 'asdf';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'asdf';"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "'asdf' satisfies string;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 5
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf'",
+                      "range": {
+                        "pos": 0,
+                        "end": 11
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf' satisfies string",
+                      "range": {
+                        "pos": 0,
+                        "end": 11
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '\"asdf\"'.",
+                  "range": {
+                    "pos": 5,
+                    "end": 11
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "'asdf' + '';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "'asdf';"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "'asdf' satisfies string;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 11
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf'",
+                      "range": {
+                        "pos": 0,
+                        "end": 11
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "'asdf' satisfies string",
+                      "range": {
+                        "pos": 0,
+                        "end": 11
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 0,
+                    "end": 6
+                  },
+                  "label": "This expression already has type '\"asdf\"'."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        },
+        {
+          "Code": "\nlet str = 'asdf';\nstr += '';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 10,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\nlet str = 'asdf';\n\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\nlet str = 'asdf';\nstr satisfies string;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 19,
+                        "end": 29
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "str satisfies string",
+                      "range": {
+                        "pos": 19,
+                        "end": 28
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'string'.",
+                  "range": {
+                    "pos": 19,
+                    "end": 22
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 19,
+                "end": 28
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet str = 'asdf';\n'asdf' + (str += '');\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 3,
+              "EndColumn": 20,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\nlet str = 'asdf';\n'asdf' + (str);\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\nlet str = 'asdf';\n'asdf' + (str satisfies string);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 38,
+                "pos": 29
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "str",
+                      "range": {
+                        "pos": 29,
+                        "end": 38
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "str satisfies string",
+                      "range": {
+                        "end": 38,
+                        "pos": 29
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "end": 32,
+                    "pos": 29
+                  },
+                  "label": "This expression already has type 'string'."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        },
+        {
+          "Code": "Number(123);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "123;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "123 satisfies number;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 6
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "123",
+                      "range": {
+                        "pos": 0,
+                        "end": 11
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "123 satisfies number",
+                      "range": {
+                        "pos": 0,
+                        "end": 11
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 7,
+                    "end": 10
+                  },
+                  "label": "This expression already has type '123'."
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "+123;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 2,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "123;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "123 satisfies number;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 1
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "123",
+                      "range": {
+                        "pos": 0,
+                        "end": 4
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "123 satisfies number",
+                      "range": {
+                        "pos": 0,
+                        "end": 4
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '123'.",
+                  "range": {
+                    "pos": 1,
+                    "end": 4
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "~~123;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 3,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "123;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "123 satisfies number;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 2
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "123",
+                      "range": {
+                        "pos": 0,
+                        "end": 5
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "123 satisfies number",
+                      "range": {
+                        "pos": 0,
+                        "end": 5
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '123'.",
+                  "range": {
+                    "pos": 2,
+                    "end": 5
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "Boolean(true);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "true;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "true satisfies boolean;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 7
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "true",
+                      "range": {
+                        "pos": 0,
+                        "end": 13
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "true satisfies boolean",
+                      "range": {
+                        "pos": 0,
+                        "end": 13
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'true'.",
+                  "range": {
+                    "pos": 8,
+                    "end": 12
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "!!true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 3,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "true;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "true satisfies boolean;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'true'.",
+                  "range": {
+                    "pos": 2,
+                    "end": 6
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 2
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "true",
+                      "range": {
+                        "pos": 0,
+                        "end": 6
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "true satisfies boolean",
+                      "range": {
+                        "pos": 0,
+                        "end": 6
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "BigInt(3n);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "3n;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "3n satisfies bigint;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 6,
+                "pos": 0
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "3n",
+                      "range": {
+                        "pos": 0,
+                        "end": 10
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "3n satisfies bigint",
+                      "range": {
+                        "pos": 0,
+                        "end": 10
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '3n'.",
+                  "range": {
+                    "pos": 7,
+                    "end": 9
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends string>(x: T) {\n          return String(x);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 18,
+              "EndLine": 3,
+              "EndColumn": 24,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        function f<T extends string>(x: T) {\n          return x;\n        }\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        function f<T extends string>(x: T) {\n          return x satisfies string;\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 63,
+                        "end": 72
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies string",
+                      "range": {
+                        "pos": 63,
+                        "end": 72
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 70,
+                    "end": 71
+                  },
+                  "label": "This expression already has type 'string'."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 69
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends number>(x: T) {\n          return Number(x);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 18,
+              "EndLine": 3,
+              "EndColumn": 24,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        function f<T extends number>(x: T) {\n          return x;\n        }\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        function f<T extends number>(x: T) {\n          return x satisfies number;\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'number'.",
+                  "range": {
+                    "end": 71,
+                    "pos": 70
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 69
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 63,
+                        "end": 72
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies number",
+                      "range": {
+                        "pos": 63,
+                        "end": 72
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends boolean>(x: T) {\n          return Boolean(x);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 18,
+              "EndLine": 3,
+              "EndColumn": 25,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        function f<T extends boolean>(x: T) {\n          return x;\n        }\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        function f<T extends boolean>(x: T) {\n          return x satisfies boolean;\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'boolean'.",
+                  "range": {
+                    "end": 73,
+                    "pos": 72
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 71,
+                "pos": 64
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 64,
+                        "end": 74
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies boolean",
+                      "range": {
+                        "pos": 64,
+                        "end": 74
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends bigint>(x: T) {\n          return BigInt(x);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 18,
+              "EndLine": 3,
+              "EndColumn": 24,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        function f<T extends bigint>(x: T) {\n          return x;\n        }\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        function f<T extends bigint>(x: T) {\n          return x satisfies bigint;\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 69,
+                "pos": 63
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 63,
+                        "end": 72
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies bigint",
+                      "range": {
+                        "pos": 63,
+                        "end": 72
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'bigint'.",
+                  "range": {
+                    "pos": 70,
+                    "end": 71
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f<T extends string>(x: T) { return x + ''; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "function f<T extends string>(x: T) { return x; }"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "function f<T extends string>(x: T) { return x satisfies string; }"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 50
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 44,
+                        "end": 50
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies string",
+                      "range": {
+                        "pos": 44,
+                        "end": 50
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'string'.",
+                  "range": {
+                    "pos": 44,
+                    "end": 45
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f<T extends string>(x: T) { return '' + x; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "function f<T extends string>(x: T) { return x; }"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "function f<T extends string>(x: T) { return x satisfies string; }"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 44,
+                "end": 49
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "end": 50,
+                        "pos": 44
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies string",
+                      "range": {
+                        "pos": 44,
+                        "end": 50
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'string'.",
+                  "range": {
+                    "pos": 49,
+                    "end": 50
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "function f<T extends string>(x: T) {\nx += '';\nreturn x;\n}\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "function f<T extends string>(x: T) {\n\nreturn x;\n}\n"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "function f<T extends string>(x: T) {\nx satisfies string;\nreturn x;\n}\n"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 37,
+                        "end": 45
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies string",
+                      "range": {
+                        "pos": 37,
+                        "end": 44
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'string'.",
+                  "range": {
+                    "pos": 37,
+                    "end": 38
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 37,
+                "end": 44
+              }
+            }
+          ]
+        },
+        {
+          "Code": "function f<T extends number>(x: T) { return +x; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "function f<T extends number>(x: T) { return x; }"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "function f<T extends number>(x: T) { return x satisfies number; }"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 45
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 44,
+                        "end": 46
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies number",
+                      "range": {
+                        "end": 46,
+                        "pos": 44
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'number'.",
+                  "range": {
+                    "pos": 45,
+                    "end": 46
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "function f<T extends boolean>(x: T) { return !!x; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "function f<T extends boolean>(x: T) { return x; }"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "function f<T extends boolean>(x: T) { return x satisfies boolean; }"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 47
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 45,
+                        "end": 48
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies boolean",
+                      "range": {
+                        "pos": 45,
+                        "end": 48
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'boolean'.",
+                  "range": {
+                    "pos": 47,
+                    "end": 48
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f<T extends 3 | 4>(x: T) { return ~~x; }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "function f<T extends 3 | 4>(x: T) { return x; }"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "function f<T extends 3 | 4>(x: T) { return x satisfies number; }"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 45
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x",
+                      "range": {
+                        "pos": 43,
+                        "end": 46
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "x satisfies number",
+                      "range": {
+                        "end": 46,
+                        "pos": 43
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '3 | 4'.",
+                  "range": {
+                    "pos": 45,
+                    "end": 46
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        },
+        {
+          "Code": "String('a' + 'b').length;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "('a' + 'b').length;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "(('a' + 'b') satisfies string).length;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 6
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "('a' + 'b')",
+                      "range": {
+                        "pos": 0,
+                        "end": 17
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(('a' + 'b') satisfies string)",
+                      "range": {
+                        "end": 17,
+                        "pos": 0
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 7,
+                    "end": 16
+                  },
+                  "label": "This expression already has type 'string'."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "('a' + 'b').toString().length;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 13,
+              "EndLine": 0,
+              "EndColumn": 23,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "('a' + 'b').length;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "(('a' + 'b') satisfies string).length;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "('a' + 'b')",
+                      "range": {
+                        "pos": 0,
+                        "end": 22
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(('a' + 'b') satisfies string)",
+                      "range": {
+                        "pos": 0,
+                        "end": 22
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 0,
+                    "end": 11
+                  },
+                  "label": "This expression already has type 'string'."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 12,
+                "end": 22
+              }
+            }
+          ]
+        },
+        {
+          "Code": "2 * +(2 + 2);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "2 * (2 + 2);"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "2 * ((2 + 2) satisfies number);"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'number'.",
+                  "range": {
+                    "pos": 5,
+                    "end": 12
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 5
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(2 + 2)",
+                      "range": {
+                        "pos": 4,
+                        "end": 12
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "((2 + 2) satisfies number)",
+                      "range": {
+                        "pos": 4,
+                        "end": 12
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "2 * Number(2 + 2);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 11,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "2 * (2 + 2);"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "2 * ((2 + 2) satisfies number);"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(2 + 2)",
+                      "range": {
+                        "end": 17,
+                        "pos": 4
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "((2 + 2) satisfies number)",
+                      "range": {
+                        "pos": 4,
+                        "end": 17
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'number'.",
+                  "range": {
+                    "pos": 11,
+                    "end": 16
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 10,
+                "pos": 4
+              }
+            }
+          ]
+        },
+        {
+          "Code": "false && !!(false || true);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "false && (false || true);"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "false && ((false || true) satisfies boolean);"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 11
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(false || true)",
+                      "range": {
+                        "pos": 9,
+                        "end": 26
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "((false || true) satisfies boolean)",
+                      "range": {
+                        "pos": 9,
+                        "end": 26
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'true'.",
+                  "range": {
+                    "pos": 11,
+                    "end": 26
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        },
+        {
+          "Code": "false && Boolean(false || true);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "false && (false || true);"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "false && ((false || true) satisfies boolean);"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 16,
+                "pos": 9
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(false || true)",
+                      "range": {
+                        "pos": 9,
+                        "end": 31
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "((false || true) satisfies boolean)",
+                      "range": {
+                        "pos": 9,
+                        "end": 31
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type 'true'.",
+                  "range": {
+                    "pos": 17,
+                    "end": 30
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "2n * BigInt(2n + 2n);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 6,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "2n * (2n + 2n);"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "2n * ((2n + 2n) satisfies bigint);"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 5,
+                "end": 11
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(2n + 2n)",
+                      "range": {
+                        "pos": 5,
+                        "end": 20
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "((2n + 2n) satisfies bigint)",
+                      "range": {
+                        "pos": 5,
+                        "end": 20
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "end": 19,
+                    "pos": 12
+                  },
+                  "label": "This expression already has type 'bigint'."
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        let str = 'asdf';\n        String(str).length;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 3,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        let str = 'asdf';\n        str.length;\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        let str = 'asdf';\n        (str satisfies string).length;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 41,
+                "pos": 35
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "str",
+                      "range": {
+                        "pos": 35,
+                        "end": 46
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(str satisfies string)",
+                      "range": {
+                        "pos": 35,
+                        "end": 46
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 42,
+                    "end": 45
+                  },
+                  "label": "This expression already has type 'string'."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        },
+        {
+          "Code": "\n        let str = 'asdf';\n        str.toString().length;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 13,
+              "EndLine": 0,
+              "EndColumn": 23,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        let str = 'asdf';\n        str.length;\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        let str = 'asdf';\n        (str satisfies string).length;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 49,
+                "pos": 39
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "str",
+                      "range": {
+                        "pos": 35,
+                        "end": 49
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(str satisfies string)",
+                      "range": {
+                        "pos": 35,
+                        "end": 49
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "end": 38,
+                    "pos": 35
+                  },
+                  "label": "This expression already has type 'string'."
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "~~1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 3,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "1;"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "1 satisfies number;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 2,
+                "pos": 0
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "1",
+                      "range": {
+                        "pos": 0,
+                        "end": 3
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "1 satisfies number",
+                      "range": {
+                        "pos": 0,
+                        "end": 3
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '1'.",
+                  "range": {
+                    "pos": 2,
+                    "end": 3
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "~~-1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 0,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 3,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "(-1);"
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "(-1) satisfies number;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion",
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 2
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(-1)",
+                      "range": {
+                        "pos": 0,
+                        "end": 4
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(-1) satisfies number",
+                      "range": {
+                        "end": 4,
+                        "pos": 0
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '-1'.",
+                  "range": {
+                    "end": 4,
+                    "pos": 2
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const threeOrFour: 3 | 4;\n        ~~threeOrFour;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unnecessaryTypeConversion",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 11,
+              "Suggestions": [
+                {
+                  "MessageId": "suggestRemove",
+                  "Output": "\n        declare const threeOrFour: 3 | 4;\n        threeOrFour;\n      "
+                },
+                {
+                  "MessageId": "suggestSatisfies",
+                  "Output": "\n        declare const threeOrFour: 3 | 4;\n        threeOrFour satisfies number;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessaryTypeConversion",
+                "description": "This type conversion does not change the type or value of the expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 51,
+                "end": 53
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "suggestRemove",
+                    "description": "Remove the type conversion."
+                  },
+                  "fixes": [
+                    {
+                      "text": "threeOrFour",
+                      "range": {
+                        "pos": 51,
+                        "end": 64
+                      }
+                    }
+                  ]
+                },
+                {
+                  "message": {
+                    "id": "suggestSatisfies",
+                    "description": "Instead, assert that the value satisfies the primitive type."
+                  },
+                  "fixes": [
+                    {
+                      "text": "threeOrFour satisfies number",
+                      "range": {
+                        "end": 64,
+                        "pos": 51
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression already has type '3 | 4'.",
+                  "range": {
+                    "pos": 53,
+                    "end": 64
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-type-conversion"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

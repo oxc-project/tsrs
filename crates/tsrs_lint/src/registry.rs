@@ -90,6 +90,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unnecessary-condition"
             | "no-unnecessary-qualifier"
             | "no-unnecessary-template-expression"
+            | "no-unnecessary-type-conversion"
     ) {
         return Ok(());
     }
@@ -162,6 +163,7 @@ pub fn create_rule(
         "no-unnecessary-condition" => crate::rules::no_unnecessary_condition::NoUnnecessaryCondition::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "no-unnecessary-qualifier" => Ok(Box::new(crate::rules::no_unnecessary_qualifier::NoUnnecessaryQualifier::default())),
         "no-unnecessary-template-expression" => Ok(Box::new(crate::rules::no_unnecessary_template_expression::NoUnnecessaryTemplateExpression)),
+        "no-unnecessary-type-conversion" => Ok(Box::new(crate::rules::no_unnecessary_type_conversion::NoUnnecessaryTypeConversion)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

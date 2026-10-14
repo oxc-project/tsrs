@@ -1,0 +1,956 @@
+{
+  "Name": "no-unsafe-call",
+  "Suites": {
+    "TestNoUnsafeCallRule": {
+      "TSConfig": "tsconfig.noImplicitThis.json",
+      "Valid": [
+        {
+          "Code": "\nfunction foo(x: () => void) {\n  x();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: () => void }) {\n  x?.a();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: { a?: () => void }) {\n  x.a?.();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "new Map();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "String.raw`foo`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x = import('./foo');",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      let foo: any = 23;\n      String(foo); // ERROR: Unsafe call of an any typed value\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function foo<T extends any>(x: T) {\n        x();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      // create a scope since it's illegal to declare a duplicate identifier\n      // 'Function' in the global script scope.\n      {\n        type Function = () => void;\n        const notGlobalFunctionType: Function = (() => {}) as Function;\n        notGlobalFunctionType();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface SurprisinglySafe extends Function {\n  (): string;\n}\ndeclare const safe: SurprisinglySafe;\nsafe();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface CallGoodConstructBad extends Function {\n  (): void;\n}\ndeclare const safe: CallGoodConstructBad;\nsafe();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface ConstructSignatureMakesSafe extends Function {\n  new (): ConstructSignatureMakesSafe;\n}\ndeclare const safe: ConstructSignatureMakesSafe;\nnew safe();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface SafeWithNonVoidCallSignature extends Function {\n  (): void;\n  (x: string): string;\n}\ndeclare const safe: SafeWithNonVoidCallSignature;\nsafe();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      new Function('lol');\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Function('lol');\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nfunction foo(x: any) {\n  x();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 4,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 27
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x?.();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 4,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 27,
+                "pos": 26
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x.a.b.c.d.e.f.g();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 41
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x.a.b.c.d.e.f.g?.();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 41
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: any }) {\n  x.a();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 36
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: any }) {\n  x?.a();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 37
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: any }) {\n  x.a?.();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 36
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `any` typed value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  new x();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeNew",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 26,
+                "end": 33
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeNew",
+                "description": "Unsafe construction of a(n) `any` typed value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: any }) {\n  new x.a();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeNew",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeNew",
+                "description": "Unsafe construction of a(n) `any` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 42
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x`foo`;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTemplateTag",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 27,
+                "pos": 26
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeTemplateTag",
+                "description": "Unsafe use of a(n) `any` typed template tag."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { tag: any }) {\n  x.tag`foo`;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTemplateTag",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeTemplateTag",
+                "description": "Unsafe use of a(n) `any` typed template tag."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 35,
+                "end": 40
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst methods = {\n  methodA() {\n    return this.methodB()\n  },\n  methodB() {\n    return true\n  },\n  methodC() {\n    return this()\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCallThis",
+              "Line": 4,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 24,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeCallThis",
+              "Line": 10,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 16,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCallThis",
+                "description": "Unsafe call of a(n) `any` typed value. `this` is typed as `any`.\n",
+                "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 56,
+                "pos": 44
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCallThis",
+                "description": "Unsafe call of a(n) `any` typed value. `this` is typed as `any`.\n",
+                "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 124,
+                "end": 128
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: NotKnown;\nvalue();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 27,
+                "pos": 22
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `error` type typed value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst t: Function = () => {};\nt();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 31,
+                "end": 32
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `Function` typed value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst f: Function = () => {};\nf`oo`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTemplateTag",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeTemplateTag",
+                "description": "Unsafe use of a(n) `Function` typed template tag."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 31,
+                "end": 32
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const maybeFunction: unknown;\nif (typeof maybeFunction === 'function') {\n  maybeFunction('call', 'with', 'any', 'args');\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 84,
+                "end": 97
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `Function` typed value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Unsafe extends Function {}\ndeclare const unsafe: Unsafe;\nunsafe();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 74
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `Function` typed value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Unsafe extends Function {}\ndeclare const unsafe: Unsafe;\nunsafe`bad`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTemplateTag",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeTemplateTag",
+                "description": "Unsafe use of a(n) `Function` typed template tag."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 74
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Unsafe extends Function {}\ndeclare const unsafe: Unsafe;\nnew unsafe();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeNew",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeNew",
+                "description": "Unsafe construction of a(n) `Function` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 80
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface UnsafeToConstruct extends Function {\n  (): void;\n}\ndeclare const unsafe: UnsafeToConstruct;\nnew unsafe();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeNew",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeNew",
+                "description": "Unsafe construction of a(n) `Function` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 103,
+                "end": 115
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface StillUnsafe extends Function {\n  property: string;\n}\ndeclare const unsafe: StillUnsafe;\nunsafe();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeCall",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 105,
+                "pos": 99
+              },
+              "kind": 0,
+              "rule": "no-unsafe-call",
+              "message": {
+                "id": "unsafeCall",
+                "description": "Unsafe call of a(n) `Function` typed value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -45,5 +45,6 @@ mod rules {
     pub mod no_unnecessary_type_parameters;
     pub mod no_unsafe_argument;
     pub mod no_unsafe_assignment;
+    pub mod no_unsafe_call;
     pub mod no_useless_default_assignment;
 }

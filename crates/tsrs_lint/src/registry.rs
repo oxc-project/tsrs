@@ -97,6 +97,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-useless-default-assignment"
             | "no-unsafe-argument"
             | "no-unsafe-assignment"
+            | "no-unsafe-call"
     ) {
         return Ok(());
     }
@@ -176,6 +177,7 @@ pub fn create_rule(
         "no-useless-default-assignment" => Ok(Box::new(crate::rules::no_useless_default_assignment::NoUselessDefaultAssignment)),
         "no-unsafe-argument" => Ok(Box::new(crate::rules::no_unsafe_argument::NoUnsafeArgument)),
         "no-unsafe-assignment" => Ok(Box::new(crate::rules::no_unsafe_assignment::NoUnsafeAssignment)),
+        "no-unsafe-call" => Ok(Box::new(crate::rules::no_unsafe_call::NoUnsafeCall)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

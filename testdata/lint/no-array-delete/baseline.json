@@ -1,0 +1,1893 @@
+{
+  "Name": "no-array-delete",
+  "Suites": {
+    "TestNoArrayDelete": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      declare const obj: { a: 1; b: 2 };\n      delete obj.a;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const obj: { a: 1; b: 2 };\n      delete obj['a'];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const arr: { a: 1; b: 2 }[][][][];\n      delete arr[0][0][0][0].a;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const maybeArray: any;\n      delete maybeArray[0];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const maybeArray: unknown;\n      delete maybeArray[0];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare function getObject<T extends { a: 1; b: 2 }>(): T;\n      delete getObject().a;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare function getObject<T extends number>(): { a: T; b: 2 };\n      delete getObject().a;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const test: never;\n      delete test[0];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      delete console.log();\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        declare const arr: number[];\n        delete arr[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: number[];\n         arr.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 53,
+                    "end": 56
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 52
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 46,
+                        "end": 52
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 56,
+                        "end": 57
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 58,
+                        "end": 59
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[];\n        declare const key: number;\n        delete arr[key];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: number[];\n        declare const key: number;\n         arr.splice(key, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 87
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 87,
+                        "pos": 81
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "end": 92,
+                        "pos": 91
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 95,
+                        "end": 96
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 88,
+                    "end": 91
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[];\n\n        enum Keys {\n          A,\n          B,\n        }\n\n        delete arr[Keys.A];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 9,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: number[];\n\n        enum Keys {\n          A,\n          B,\n        }\n\n         arr.splice(Keys.A, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 104,
+                        "end": 110
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 114,
+                        "end": 115
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 121,
+                        "end": 122
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 111,
+                    "end": 114
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 110
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[];\n        declare function doWork(): void;\n        delete arr[(doWork(), 1)];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: number[];\n        declare function doWork(): void;\n         arr.splice((doWork(), 1), 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 87,
+                "end": 93
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 87,
+                        "end": 93
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 97,
+                        "end": 98
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 111,
+                        "end": 112
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 94,
+                    "end": 97
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: Array<number>;\n        delete arr[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: Array<number>;\n         arr.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 51,
+                "end": 57
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 51,
+                        "end": 57
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 61,
+                        "end": 62
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 63,
+                        "end": 64
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 58,
+                    "end": 61
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "delete [1, 2, 3][0];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 1,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": " [1, 2, 3].splice(0, 1);"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 6
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 0,
+                        "end": 6
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 16,
+                        "end": 17
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "end": 19,
+                        "pos": 18
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 7,
+                    "end": 16
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: unknown[];\n        delete arr[Math.random() ? 0 : 1];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: unknown[];\n         arr.splice(Math.random() ? 0 : 1, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 47,
+                        "end": 53
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 57,
+                        "end": 58
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 79,
+                        "end": 80
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 54,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 47,
+                "end": 53
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[] | string[] | boolean[];\n        delete arr[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: number[] | string[] | boolean[];\n         arr.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 76,
+                    "end": 79
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 75,
+                        "pos": 69
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "end": 80,
+                        "pos": 79
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 81,
+                        "end": 82
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[] & unknown;\n        delete arr[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: number[] & unknown;\n         arr.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 63,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 62
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 56,
+                        "end": 62
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 66,
+                        "end": 67
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 68,
+                        "end": 69
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: (number | string)[];\n        delete arr[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: (number | string)[];\n         arr.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 63
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 57,
+                        "end": 63
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 67,
+                        "end": 68
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "end": 70,
+                        "pos": 69
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 64,
+                    "end": 67
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const obj: { a: { b: { c: number[] } } };\n        delete obj.a.b.c[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const obj: { a: { b: { c: number[] } } };\n         obj.a.b.c.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 67,
+                        "end": 73
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 83,
+                        "end": 84
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 85,
+                        "end": 86
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 74,
+                    "end": 83
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 67,
+                "end": 73
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getArray<T extends number[]>(): T;\n        delete getArray()[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare function getArray<T extends number[]>(): T;\n         getArray().splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 76,
+                    "end": 86
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 69,
+                        "end": 75
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 86,
+                        "end": 87
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 88,
+                        "end": 89
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getArray<T extends number>(): T[];\n        delete getArray()[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare function getArray<T extends number>(): T[];\n         getArray().splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 69,
+                        "end": 75
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 86,
+                        "end": 87
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 88,
+                        "end": 89
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 76,
+                    "end": 86
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function deleteFromArray(a: number[]) {\n          delete a[0];\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        function deleteFromArray(a: number[]) {\n           a.splice(0, 1);\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 59,
+                "end": 65
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 59,
+                        "end": 65
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 67,
+                        "end": 68
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 69,
+                        "end": 70
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 66,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function deleteFromArray<T extends number>(a: T[]) {\n          delete a[0];\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        function deleteFromArray<T extends number>(a: T[]) {\n           a.splice(0, 1);\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 72,
+                "end": 78
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 72,
+                        "end": 78
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 80,
+                        "end": 81
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 82,
+                        "end": 83
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 79,
+                    "end": 80
+                  },
+                  "label": "This expression evaluates to an array."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function deleteFromArray<T extends number[]>(a: T) {\n          delete a[0];\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        function deleteFromArray<T extends number[]>(a: T) {\n           a.splice(0, 1);\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "end": 80,
+                    "pos": 79
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 72,
+                "end": 78
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 72,
+                        "end": 78
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 80,
+                        "end": 81
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 82,
+                        "end": 83
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const tuple: [number, string];\n        delete tuple[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const tuple: [number, string];\n         tuple.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 62
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 62,
+                        "pos": 56
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 68,
+                        "end": 69
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 70,
+                        "end": 71
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 63,
+                    "end": 68
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        delete [...a, ...a][b];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n         [...a, ...a].splice(b, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 84,
+                "pos": 78
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 84,
+                        "pos": 78
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "end": 98,
+                        "pos": 97
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 99,
+                        "end": 100
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 85,
+                    "end": 97
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        // before expression\n        delete /** multi\n        line */ a[((\n        // single-line\n        b /* inline */ /* another-inline */ )\n        ) /* another-one */ ] /* before semicolon */; /* after semicolon */\n        // after expression\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n        // before expression\n         /** multi\n        line */ a.splice(((\n        // single-line\n        b /* inline */ /* another-inline */ )\n        ) /* another-one */ , 1) /* before semicolon */; /* after semicolon */\n        // after expression\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 140,
+                    "end": 141
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 107,
+                "end": 113
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 107,
+                        "end": 113
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 141,
+                        "end": 142
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 242,
+                        "end": 243
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        delete ((a[((b))]));\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n         ((a.splice(((b)), 1)));\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 78,
+                        "end": 84
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 88,
+                        "end": 89
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 94,
+                        "end": 95
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 87,
+                    "end": 88
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 84
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const a: number[];\n        declare const b: number;\n\n        delete a[(b + 1) * (b + 2)];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const a: number[];\n        declare const b: number;\n\n         a.splice((b + 1) * (b + 2), 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 84
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 78,
+                        "end": 84
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "end": 87,
+                        "pos": 86
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 104,
+                        "end": 105
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 85,
+                    "end": 86
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: string & Array<number>;\n        delete arr[0];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArrayDelete",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": [
+                {
+                  "MessageId": "useSplice",
+                  "Output": "\n        declare const arr: string & Array<number>;\n         arr.splice(0, 1);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 60,
+                "end": 66
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "useSplice",
+                    "description": "Use `array.splice()` instead."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 60,
+                        "end": 66
+                      }
+                    },
+                    {
+                      "text": ".splice(",
+                      "range": {
+                        "pos": 70,
+                        "end": 71
+                      }
+                    },
+                    {
+                      "text": ", 1)",
+                      "range": {
+                        "pos": 72,
+                        "end": 73
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "This expression evaluates to an array.",
+                  "range": {
+                    "pos": 67,
+                    "end": 70
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-array-delete",
+              "message": {
+                "id": "noArrayDelete",
+                "description": "Using the `delete` operator with an array expression is unsafe."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

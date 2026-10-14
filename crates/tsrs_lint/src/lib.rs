@@ -22,4 +22,5 @@ mod rules {
     pub mod consistent_return;
     pub mod consistent_type_exports;
     pub mod dot_notation;
+    pub mod no_array_delete;
 }

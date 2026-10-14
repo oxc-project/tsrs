@@ -122,6 +122,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "require-await"
             | "restrict-plus-operands"
             | "restrict-template-expressions"
+            | "return-await"
     ) {
         return Ok(());
     }
@@ -230,6 +231,8 @@ pub fn create_rule(
         "require-await" => Ok(Box::new(crate::rules::require_await::RequireAwait::default())),
         "restrict-plus-operands" => crate::rules::restrict_plus_operands::RestrictPlusOperands::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "restrict-template-expressions" => crate::rules::restrict_template_expressions::RestrictTemplateExpressions::new(&config.options)
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "return-await" => crate::rules::return_await::ReturnAwait::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;

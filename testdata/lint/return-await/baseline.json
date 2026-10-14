@@ -1,0 +1,3713 @@
+{
+  "Name": "return-await",
+  "Suites": {
+    "TestRemoveAwaitSyntax": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [],
+      "Invalid": [
+        {
+          "Code": "const test = async () => await { a: 1 };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => ({ a: 1 });"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 39
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 31,
+                    "end": 31
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 39,
+                    "pos": 39
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await { a: 1 }.a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => ({ a: 1 }.a);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 41
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 31,
+                    "end": 31
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 41,
+                    "end": 41
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await ({ a: 1 });",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => ({ a: 1 });"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 41
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => (await { a: 1 });",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => ({ a: 1 });"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 40
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 32
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => (true ? await { a: 1 } : 2);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => (true ? { a: 1 } : 2);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 47
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 33,
+                    "end": 39
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await /* comment */ 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => /* comment */ 1;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 46
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await /* comment */ { a: 1 };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => /* comment */ ({ a: 1 });"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 53
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 45,
+                    "end": 45
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 53,
+                    "end": 53
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        }
+      ]
+    },
+    "TestReturnAwait": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "return;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function test() {\n        return;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function test() {\n        return 1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      async function test() {\n        return;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      async function test() {\n        return 1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const test = () => 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const test = async () => 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      async function test() {\n        return Promise.resolve(1);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      async function test() {\n        try {\n          return await Promise.resolve(1);\n        } catch (e) {\n          return await Promise.resolve(2);\n        } finally {\n          console.log('cleanup');\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst fn = (): any => null;\nasync function test() {\n  return await fn();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst fn = (): unknown => null;\nasync function test() {\n  return await fn();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function test(unknownParam: unknown) {\n  try {\n    return await unknownParam;\n  } finally {\n    console.log('In finally block');\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          if (Math.random() < 0.33) {\n            return await Promise.resolve(1);\n          } else if (Math.random() < 0.5) {\n            return Promise.resolve(2);\n          }\n\n          try {\n          } catch (e) {\n            return await Promise.resolve(3);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "error-handling-correctness-only",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      async function test() {\n        try {\n          const one = await Promise.resolve(1);\n          return one;\n        } catch (e) {\n          const two = await Promise.resolve(2);\n          return two;\n        } finally {\n          console.log('cleanup');\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test() {\n          return 1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          return 1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const test = () => 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const test = async () => 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          return Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            throw 'foo';\n          } catch (e) {\n            return Promise.resolve(1);\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            throw 'foo';\n          } catch (e) {\n            throw 'foo2';\n          } finally {\n            return Promise.resolve(1);\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            const one = await Promise.resolve(1);\n            return one;\n          } catch (e) {\n            const two = await Promise.resolve(2);\n            return two;\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          return Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "never",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const test = async () => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "never",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "never",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          return await Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const test = async () => await Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const f = (): Promise<number> => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const f = (): Promise<number> => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const f = (): Promise<number> => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "error-handling-correctness-only",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare function foo(): Promise<boolean>;\n\n        function bar(baz: boolean): Promise<boolean> | boolean {\n          if (baz) {\n            return true;\n          } else {\n            return foo();\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test(): Promise<string> {\n          const res = await Promise.resolve('{}');\n          try {\n            return JSON.parse(res);\n          } catch (error) {\n            return res;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        async function test() {\n          const res = await Promise.resolve('{}');\n          try {\n            async function nested() {\n              return Promise.resolve('ok');\n            }\n            return await nested();\n          } catch (error) {\n            return Promise.resolve('error');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function f() {\n  try {\n  } catch {\n    try {\n    } catch {\n      return Promise.reject();\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function f() {\n  try {\n  } finally {\n    try {\n    } catch {\n      return Promise.reject();\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function f() {\n  try {\n  } finally {\n    try {\n    } finally {\n      try {\n      } catch {\n        return Promise.reject();\n      }\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  using something = bleh;\n  return await Promise.resolve(2);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  await using something = bleh;\n  return await Promise.resolve(2);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  using something = bleh;\n  {\n    return await Promise.resolve(2);\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  return Promise.resolve(2);\n  using something = bleh;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  return await Promise.resolve(2);\n  using something = bleh;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function asyncFn(): Promise<unknown>;\nasync function returnAwait() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  return await asyncFn();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function asyncFn(): Promise<unknown>;\nasync function outerFunction() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  async function innerFunction() {\n    return asyncFn();\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function asyncFn(): Promise<unknown>;\nasync function outerFunction() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  const innerFunction = async () => asyncFn();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "in-try-catch",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nusing foo = 1 as any;\nreturn Promise.resolve(42);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n{\n  using foo = 1 as any;\n  return Promise.resolve(42);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function wrapper<T>(value: T) {\n  return await value;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function wrapper<T extends unknown>(value: T) {\n  return await value;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nasync function wrapper<T extends any>(value: T) {\n  return await value;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass C<T> {\n  async wrapper<T>(value: T) {\n    return await value;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass C<R> {\n  async wrapper<T extends R>(value: T) {\n    return await value;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass C<R extends unknown> {\n  async wrapper<T extends R>(value: T) {\n    return await value;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const example = () => Promise.resolve();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": "always",
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        async function test() {\n          return await 1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return 1;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 57
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          const foo = 1;\n          return await { foo };\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          const foo = 1;\n          return { foo };\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 75,
+                    "end": 81
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 75,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          const foo = 1;\n          return await foo;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          const foo = 1;\n          return foo;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 75,
+                "end": 84
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 81,
+                    "pos": 75
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => 1;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 25,
+                "end": 32
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await /* comment */ 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => /* comment */ 1;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 46
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => Promise.resolve(1);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 49
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": "error-handling-correctness-only",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 86
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 68,
+                        "end": 68
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await"
+            },
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 131,
+                "end": 149
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 131,
+                        "end": 131
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 68,
+                "end": 86
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 68,
+                        "end": 68
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 131,
+                "end": 149
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 131,
+                        "end": 131
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 86
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 68,
+                        "end": 68
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "range": {
+                "pos": 131,
+                "end": 149
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 131,
+                        "end": 131
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return await Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return Promise.resolve(1);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 74
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return await 1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return 1;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 57
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => 1;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 32,
+                "pos": 25
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => await Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => Promise.resolve(1);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 49
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return await Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return Promise.resolve(1);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 74
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return await 1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return 1;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "never",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 57
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "disallowedPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return Promise.resolve(1);\n          } catch (e) {\n            return await Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 6,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "disallowedPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            return await Promise.resolve(1);\n          } catch (e) {\n            return Promise.resolve(2);\n          } finally {\n            console.log('cleanup');\n          }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": "never",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 92
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "disallowedPromiseAwaitSuggestion",
+                    "description": "Remove `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 74,
+                        "pos": 68
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 137,
+                "end": 161
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "disallowedPromiseAwaitSuggestion",
+                    "description": "Remove `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 137,
+                        "end": 143
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return await Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return Promise.resolve(1);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "never",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 74
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return await 1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return 1;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 57,
+                "pos": 50
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 56
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          return Promise.resolve(1);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          return await Promise.resolve(1);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 50,
+                    "end": 50
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "const test = async () => Promise.resolve(1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "const test = async () => await Promise.resolve(1);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 1,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 43
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 25,
+                    "end": 25
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {}\nasync function bar() {}\nasync function baz() {}\nasync function qux() {}\nasync function buzz() {\n  return (await foo()) ? bar() : baz();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nasync function foo() {}\nasync function bar() {}\nasync function baz() {}\nasync function qux() {}\nasync function buzz() {\n  return (await foo()) ? await bar() : await baz();\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 154,
+                "end": 159
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 154,
+                    "end": 154
+                  }
+                }
+              ]
+            },
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 146,
+                "end": 151
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 146,
+                    "end": 146
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {}\nasync function bar() {}\nasync function baz() {}\nasync function qux() {}\nasync function buzz() {\n  return (await foo())\n    ? (\n      bar ? bar() : baz()\n    ) : baz ? baz() : bar();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nasync function foo() {}\nasync function bar() {}\nasync function baz() {}\nasync function qux() {}\nasync function buzz() {\n  return (await foo())\n    ? (\n      bar ? await bar() : await baz()\n    ) : baz ? await baz() : await bar();\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 200,
+                    "end": 200
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 200,
+                "end": 205
+              }
+            },
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 192,
+                "end": 197
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 192,
+                    "end": 192
+                  }
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "range": {
+                "pos": 172,
+                "end": 177
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 172,
+                    "end": 172
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 164,
+                    "end": 164
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 164,
+                "end": 169
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {}\nasync function bar() {}\nasync function buzz() {\n  return (await foo()) ? await 1 : bar();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nasync function foo() {}\nasync function bar() {}\nasync function buzz() {\n  return (await foo()) ? 1 : await bar();\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 108,
+                "end": 113
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 108,
+                    "end": 108
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 98,
+                "end": 105
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 98,
+                    "end": 104
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {}\nasync function bar() {}\nasync function baz() {}\nconst buzz = async () => ((await foo()) ? bar() : baz());\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nasync function foo() {}\nasync function bar() {}\nasync function baz() {}\nconst buzz = async () => ((await foo()) ? await bar() : await baz());\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 123,
+                "end": 128
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 123,
+                    "end": 123
+                  }
+                }
+              ]
+            },
+            {
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 115,
+                    "end": 115
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 115,
+                "end": 120
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function foo() {}\nasync function bar() {}\nconst buzz = async () => ((await foo()) ? await 1 : bar());\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nasync function foo() {}\nasync function bar() {}\nconst buzz = async () => ((await foo()) ? 1 : await bar());\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 101,
+                "end": 106
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 101,
+                    "end": 101
+                  }
+                }
+              ]
+            },
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 98,
+                "pos": 91
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 91,
+                    "end": 97
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function test<T>(): Promise<T> {\n  const res = await fetch('...');\n  try {\n    return res.json() as Promise<T>;\n  } catch (err) {\n    throw Error('Request Failed.');\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nasync function test<T>(): Promise<T> {\n  const res = await fetch('...');\n  try {\n    return await (res.json() as Promise<T>);\n  } catch (err) {\n    throw Error('Request Failed.');\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 93,
+                "end": 117
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 93,
+                        "end": 93
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 117,
+                        "end": 117
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          try {\n            const callback1 = function () {};\n            const callback2 = async function () {};\n            function callback3() {}\n            async function callback4() {}\n            const callback5 = () => {};\n            const callback6 = async () => {};\n            return Promise.resolve('try');\n          } finally {\n            return Promise.resolve('finally');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function test() {\n          try {\n            const callback1 = function () {};\n            const callback2 = async function () {};\n            function callback3() {}\n            async function callback4() {}\n            const callback5 = () => {};\n            const callback6 = async () => {};\n            return await Promise.resolve('try');\n          } finally {\n            return Promise.resolve('finally');\n          }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 330,
+                "end": 352
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 330,
+                        "end": 330
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function bar() {}\n        async function foo() {\n          try {\n            return undefined || bar();\n          } catch {}\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function bar() {}\n        async function foo() {\n          try {\n            return await (undefined || bar());\n          } catch {}\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 99,
+                "end": 117
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 99,
+                        "end": 99
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 117,
+                        "end": 117
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function bar() {}\n        async function foo() {\n          try {\n            return bar() || undefined || bar();\n          } catch {}\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        async function bar() {}\n        async function foo() {\n          try {\n            return await (bar() || undefined || bar());\n          } catch {}\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 99,
+                "end": 126
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 99,
+                        "end": 99
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 126,
+                        "end": 126
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function bar() {}\nasync function func1() {\n  try {\n    return null ?? bar();\n  } catch {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nasync function bar() {}\nasync function func1() {\n  try {\n    return await (null ?? bar());\n  } catch {}\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 69,
+                        "end": 69
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 82,
+                        "end": 82
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 82
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function bar() {}\nasync function func2() {\n  try {\n    return 1 && bar();\n  } catch {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 5,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nasync function bar() {}\nasync function func2() {\n  try {\n    return await (1 && bar());\n  } catch {}\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 69,
+                "end": 79
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 69,
+                        "end": 69
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 79,
+                        "end": 79
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst foo = {\n  bar: async function () {},\n};\nasync function func3() {\n  try {\n    return foo.bar();\n  } catch {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nconst foo = {\n  bar: async function () {},\n};\nasync function func3() {\n  try {\n    return await foo.bar();\n  } catch {}\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 91,
+                "end": 100
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 91,
+                        "end": 91
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        class X {\n          async bar() {\n            return;\n          }\n          async func2() {\n            try {\n              return this.bar();\n            } catch {}\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 8,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\n        class X {\n          async bar() {\n            return;\n          }\n          async func2() {\n            try {\n              return await this.bar();\n            } catch {}\n          }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 140,
+                "end": 150
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 140,
+                        "end": 140
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        async function test() {\n          const res = await Promise.resolve('{}');\n          try {\n            async function nested() {\n              return Promise.resolve('ok');\n            }\n            return await nested();\n          } catch (error) {\n            return await Promise.resolve('error');\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        async function test() {\n          const res = await Promise.resolve('{}');\n          try {\n            async function nested() {\n              return Promise.resolve('ok');\n            }\n            return await nested();\n          } catch (error) {\n            return Promise.resolve('error');\n          }\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 278,
+                "end": 308
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 278,
+                    "end": 284
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function f() {\n  try {\n    try {\n    } finally {\n      // affects error handling of outer catch\n      return Promise.reject();\n    }\n  } catch {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nasync function f() {\n  try {\n    try {\n    } finally {\n      // affects error handling of outer catch\n      return await Promise.reject();\n    }\n  } catch {}\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 116,
+                "end": 132
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 116,
+                        "end": 116
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await"
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function f() {\n  try {\n    try {\n    } catch {\n      // affects error handling of outer catch\n      return Promise.reject();\n    }\n  } catch {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nasync function f() {\n  try {\n    try {\n    } catch {\n      // affects error handling of outer catch\n      return await Promise.reject();\n    }\n  } catch {}\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 114,
+                "end": 130
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 114,
+                        "end": 114
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function f() {\n  try {\n  } catch {\n    try {\n    } finally {\n      try {\n      } catch {\n        return Promise.reject();\n      }\n    }\n  } finally {\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 9,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\nasync function f() {\n  try {\n  } catch {\n    try {\n    } finally {\n      try {\n      } catch {\n        return await Promise.reject();\n      }\n    }\n  } finally {\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 111,
+                "end": 127
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 111,
+                        "end": 111
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  if (cond) {\n    using something = bleh;\n    if (anotherCondition) {\n      return Promise.resolve(2);\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\ndeclare const bleh: any;\nasync function f() {\n  if (cond) {\n    using something = bleh;\n    if (anotherCondition) {\n      return await Promise.resolve(2);\n    }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 130,
+                "end": 148
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 130,
+                        "end": 130
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  if (cond) {\n    await using something = bleh;\n    if (anotherCondition) {\n      return Promise.resolve(2);\n    }\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "requiredPromiseAwaitSuggestion",
+                  "Output": "\ndeclare const bleh: any;\nasync function f() {\n  if (cond) {\n    await using something = bleh;\n    if (anotherCondition) {\n      return await Promise.resolve(2);\n    }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 136,
+                "end": 154
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "requiredPromiseAwaitSuggestion",
+                    "description": "Add `await` before the expression. Use caution as this may impact control flow."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "end": 136,
+                        "pos": 136
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const bleh: any;\nasync function f() {\n  if (cond) {\n    using something = bleh;\n  } else if (anotherCondition) {\n    return Promise.resolve(2);\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare const bleh: any;\nasync function f() {\n  if (cond) {\n    using something = bleh;\n  } else if (anotherCondition) {\n    return await Promise.resolve(2);\n  }\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "requiredPromiseAwait",
+              "Line": 7,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "always",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "end": 133,
+                    "pos": 133
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "requiredPromiseAwait",
+                "description": "Returning an awaited promise is required in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 151
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function asyncFn(): Promise<unknown>;\nasync function outerFunction() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  async function innerFunction() {\n    return await asyncFn();\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare function asyncFn(): Promise<unknown>;\nasync function outerFunction() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  async function innerFunction() {\n    return asyncFn();\n  }\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 11,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 213,
+                "end": 228
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 213,
+                    "end": 219
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare function asyncFn(): Promise<unknown>;\nasync function outerFunction() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  const innerFunction = async () => await asyncFn();\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare function asyncFn(): Promise<unknown>;\nasync function outerFunction() {\n  using _ = {\n    [Symbol.dispose]: () => {\n      console.log('dispose');\n    },\n  };\n\n  const innerFunction = async () => asyncFn();\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "disallowedPromiseAwait",
+              "Line": 10,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": "in-try-catch",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "disallowedPromiseAwait",
+                "description": "Returning an awaited promise is not allowed in this context."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 218,
+                "pos": 203
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 209,
+                    "pos": 203
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nasync function wrapper<T extends number>(value: T) {\n  return await value;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nasync function wrapper<T extends number>(value: T) {\n  return value;\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 74
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 69
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nclass C<T> {\n  async wrapper<T extends string>(value: T) {\n    return await value;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass C<T> {\n  async wrapper<T extends string>(value: T) {\n    return value;\n  }\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 71,
+                "end": 82
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 71,
+                    "end": 77
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass C<R extends number> {\n  async wrapper<T extends R>(value: T) {\n    return await value;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass C<R extends number> {\n  async wrapper<T extends R>(value: T) {\n    return value;\n  }\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "nonPromiseAwait",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 81,
+                    "end": 87
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "return-await",
+              "message": {
+                "id": "nonPromiseAwait",
+                "description": "Returning an awaited value that is not a promise is not allowed."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 92
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

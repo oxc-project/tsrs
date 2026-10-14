@@ -72,4 +72,5 @@ mod rules {
     pub mod require_await;
     pub mod restrict_plus_operands;
     pub mod restrict_template_expressions;
+    pub mod return_await;
 }

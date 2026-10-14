@@ -1,0 +1,1007 @@
+[
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café() { return /*😀*/ await /*é*/ 1; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 72,
+          "end": 86
+        },
+        "message": {
+          "id": "nonPromiseAwait",
+          "description": "Returning an awaited value that is not a promise is not allowed."
+        },
+        "file_path": "0.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 72,
+              "end": 78
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>, q: Promise<number>) { return /*😀*/ p || q; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 110,
+          "end": 116
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "1.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await (",
+            "range": {
+              "pos": 110,
+              "end": 110
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 116,
+              "end": 116
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { return /*é*/ p as Promise<number>; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 88,
+          "end": 108
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "2.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await (",
+            "range": {
+              "pos": 88,
+              "end": 88
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 108,
+              "end": 108
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>, q: Promise<number>, b: boolean) { return ((b ? /*é*/ p : /*😀*/ q)); }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 139,
+          "end": 140
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "3.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 139,
+              "end": 139
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 126,
+          "end": 127
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "3.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 126,
+              "end": 126
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { try { return /*é*/ p; } finally {} }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 94,
+          "end": 95
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "4.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 94,
+                  "end": 94
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "never",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { try { return /*😀*/ await /*é*/ p; } catch {} }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 96,
+          "end": 110
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "5.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "disallowedPromiseAwaitSuggestion",
+              "description": "Remove `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "",
+                "range": {
+                  "pos": 96,
+                  "end": 102
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "error-handling-correctness-only",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { if (true) return await p; return p; }",
+    "diagnostics": []
+  },
+  {
+    "options": "error-handling-correctness-only",
+    "source": "export {}; const 前 = \"😀\"; async function café() { return await /*😀*/ 'é'; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 63,
+          "end": 82
+        },
+        "message": {
+          "id": "nonPromiseAwait",
+          "description": "Returning an awaited value that is not a promise is not allowed."
+        },
+        "file_path": "7.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 63,
+              "end": 69
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { try { function sync() { return await p; } const f = async () => await p; async function g() { return p; } return p; } catch {} }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 138,
+          "end": 145
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "8.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 138,
+              "end": 144
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 187,
+          "end": 188
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "8.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 187,
+                  "end": 187
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { function sync() { return p; } const f = async () => /*😀*/ (p); return p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 136,
+          "end": 137
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "9.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 136,
+              "end": 136
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 147,
+          "end": 148
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "9.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 147,
+              "end": 147
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { try {} catch { return p; } }",
+    "diagnostics": []
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { try {} catch { return p; } finally { return await p; } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 96,
+          "end": 97
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "11.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 96,
+                  "end": 96
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 118,
+          "end": 125
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "11.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 118,
+              "end": 124
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { try { try {} finally { return p; } } catch {} }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 104,
+          "end": 105
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "12.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 104,
+                  "end": 104
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { using é = { [Symbol.dispose]() {} }; return p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 119,
+          "end": 120
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "13.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 119,
+                  "end": 119
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { return await p; using é = { [Symbol.dispose]() {} }; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 81,
+          "end": 88
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "14.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 81,
+              "end": 87
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { { using é = { [Symbol.dispose]() {} }; } return await p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 123,
+          "end": 130
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "15.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 123,
+              "end": 129
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { await using é = { async [Symbol.asyncDispose]() {} }; return p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 136,
+          "end": 137
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "16.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 136,
+                  "end": 136
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { using é = { [Symbol.dispose]() {} }; const f = async () => await p; async function g() { return await p; } return p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 134,
+          "end": 141
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "17.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 134,
+              "end": 140
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 171,
+          "end": 178
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "17.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 171,
+              "end": 177
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 189,
+          "end": 190
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "17.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 189,
+                  "end": 189
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "never",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { for (using é of [] as Disposable[]) { return await p; } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 120,
+          "end": 127
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "18.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "disallowedPromiseAwaitSuggestion",
+              "description": "Remove `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "",
+                "range": {
+                  "pos": 120,
+                  "end": 126
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>, n: number) { switch(n) { case 0: using é = { [Symbol.dispose]() {} }; case 1: return p; } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 158,
+          "end": 159
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "19.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 158,
+                  "end": 158
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; class Café { async m(p: Promise<number>) { return p; } get x() { return 1; } set x(p: number) { function f() { return p; } } constructor() { const f = async () => Promise.resolve('é'); } }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 82,
+          "end": 83
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "20.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 82,
+              "end": 82
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 195,
+          "end": 216
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "20.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 195,
+              "end": 195
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café<T, U extends unknown, V extends any>(t: T, u: U, v: V) { if (true) return await t; if (true) return await u; return await v; }",
+    "diagnostics": []
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café<T extends Promise<number>, U extends T>(p: U) { try { return p; } finally {} }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 113,
+          "end": 114
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "22.ts",
+        "rule": "return-await",
+        "suggestions": [
+          {
+            "message": {
+              "id": "requiredPromiseAwaitSuggestion",
+              "description": "Add `await` before the expression. Use caution as this may impact control flow."
+            },
+            "fixes": [
+              {
+                "text": "await ",
+                "range": {
+                  "pos": 113,
+                  "end": 113
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café<T extends number, U extends T>(p: U) { return /*é*/ await p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 105,
+          "end": 112
+        },
+        "message": {
+          "id": "nonPromiseAwait",
+          "description": "Returning an awaited value that is not a promise is not allowed."
+        },
+        "file_path": "23.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 105,
+              "end": 111
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number> | number) { return await p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 90,
+          "end": 97
+        },
+        "message": {
+          "id": "disallowedPromiseAwait",
+          "description": "Returning an awaited promise is not allowed in this context."
+        },
+        "file_path": "24.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "",
+            "range": {
+              "pos": 90,
+              "end": 96
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number> | number) { return p; }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 90,
+          "end": 91
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "25.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 90,
+              "end": 90
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; const café = async (p: Promise<number>, q: Promise<number>, b: boolean) => ((b ? p : q));",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 117,
+          "end": 118
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "26.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 117,
+              "end": 117
+            }
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 113,
+          "end": 114
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "26.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await ",
+            "range": {
+              "pos": 113,
+              "end": 113
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": "always",
+    "source": "export {}; const 前 = \"😀\"; async function café(p: Promise<number>) { return (/*😀*/ p!); }",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 91,
+          "end": 93
+        },
+        "message": {
+          "id": "requiredPromiseAwait",
+          "description": "Returning an awaited promise is required in this context."
+        },
+        "file_path": "27.ts",
+        "rule": "return-await",
+        "fixes": [
+          {
+            "text": "await (",
+            "range": {
+              "pos": 91,
+              "end": 91
+            }
+          },
+          {
+            "text": ")",
+            "range": {
+              "pos": 93,
+              "end": 93
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "options": null,
+    "source": "export {}; const 前 = \"😀\"; return await Promise.resolve('é');",
+    "diagnostics": []
+  }
+]

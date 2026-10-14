@@ -67,7 +67,7 @@ pub const BASELINE_RULES: &[&str] = &[
 ];
 
 pub fn require_implemented(name: &str) -> Result<(), String> {
-    if matches!(name, "await-thenable" | "consistent-return") {
+    if matches!(name, "await-thenable" | "consistent-return" | "consistent-type-exports") {
         return Ok(());
     }
     if BASELINE_RULES.contains(&name) {
@@ -84,6 +84,10 @@ pub fn create_rule(
         "await-thenable" => Ok(Box::new(crate::rules::await_thenable::AwaitThenable)),
         "consistent-return" => {
             crate::rules::consistent_return::ConsistentReturn::new(&config.options)
+                .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
+        }
+        "consistent-type-exports" => {
+            crate::rules::consistent_type_exports::ConsistentTypeExports::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         name => {

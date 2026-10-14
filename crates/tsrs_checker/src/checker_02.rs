@@ -39,7 +39,7 @@ impl Checker {
     }
 
     // checker.go:2196
-    pub(crate) fn get_immediate_aliased_symbol(&mut self, symbol: P<Symbol>) -> Option<P<Symbol>> {
+    pub fn get_immediate_aliased_symbol(&mut self, symbol: P<Symbol>) -> Option<P<Symbol>> {
         assert!(symbol.flags().intersects(SymbolFlags::Alias), "Should only get Alias here.");
         let links = self.alias_symbol_links.get(symbol);
         if links.immediate_target.get().is_none() {

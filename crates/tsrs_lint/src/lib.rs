@@ -58,4 +58,5 @@ mod rules {
     pub mod prefer_includes;
     pub mod prefer_nullish_coalescing;
     pub mod prefer_optional_chain;
+    pub mod prefer_promise_reject_errors;
 }

@@ -86,6 +86,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-misused-spread"
             | "no-mixed-enums"
             | "no-redundant-type-constituents"
+            | "no-unnecessary-boolean-literal-compare"
     ) {
         return Ok(());
     }
@@ -151,9 +152,10 @@ pub fn create_rule(
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         "no-mixed-enums" => Ok(Box::new(crate::rules::no_mixed_enums::NoMixedEnums)),
-        "no-redundant-type-constituents" => {
-            Ok(Box::new(crate::rules::no_redundant_type_constituents::NoRedundantTypeConstituents))
-        }
+        "no-redundant-type-constituents" => Ok(Box::new(
+            crate::rules::no_redundant_type_constituents::NoRedundantTypeConstituents,
+        )),
+        "no-unnecessary-boolean-literal-compare" => crate::rules::no_unnecessary_boolean_literal_compare::NoUnnecessaryBooleanLiteralCompare::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

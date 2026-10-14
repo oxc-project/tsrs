@@ -1,0 +1,1976 @@
+{
+  "Name": "no-unnecessary-boolean-literal-compare",
+  "Suites": {
+    "TestNoUnnecessaryBooleanLiteralCompareRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      declare const varAny: any;\n      varAny === true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varAny: any;\n      varAny == false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varString: string;\n      varString === false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varString: string;\n      varString === true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varObject: {};\n      varObject === true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varObject: {};\n      varObject == false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varNullOrUndefined: null | undefined;\n      varNullOrUndefined === false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varBooleanOrString: boolean | string;\n      varBooleanOrString === false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varBooleanOrString: boolean | string;\n      varBooleanOrString == true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varTrueOrStringOrUndefined: true | string | undefined;\n      varTrueOrStringOrUndefined == true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const test: <T>(someCondition: T) => void = someCondition => {\n        if (someCondition === true) {\n        }\n      };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const test: <T>(someCondition: boolean | string) => void = someCondition => {\n        if (someCondition === true) {\n        }\n      };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const varBooleanOrUndefined: boolean | undefined;\n      varBooleanOrUndefined === true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const varBooleanOrUndefined: boolean | undefined;\n        varBooleanOrUndefined === true;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": false,
+            "allowComparingNullableBooleansToTrue": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const varBooleanOrUndefined: boolean | undefined;\n        varBooleanOrUndefined === false;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": true,
+            "allowComparingNullableBooleansToTrue": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const test: <T extends boolean | undefined>(\n          someCondition: T,\n        ) => void = someCondition => {\n          if (someCondition === true) {\n          }\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": false,
+            "allowComparingNullableBooleansToTrue": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const test: <T extends boolean | undefined>(\n          someCondition: T,\n        ) => void = someCondition => {\n          if (someCondition === false) {\n          }\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": true,
+            "allowComparingNullableBooleansToTrue": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'false' === true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'true' === false;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst unconstrained: <T>(someCondition: T) => void = someCondition => {\n  if (someCondition === true) {\n  }\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst extendsUnknown: <T extends unknown>(\n  someCondition: T,\n) => void = someCondition => {\n  if (someCondition === true) {\n  }\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "true === true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "true;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 13
+              },
+              "fixes": [
+                {
+                  "text": "true",
+                  "range": {
+                    "pos": 0,
+                    "end": 13
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "false !== true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "!false;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 14
+              },
+              "fixes": [
+                {
+                  "text": "false",
+                  "range": {
+                    "pos": 0,
+                    "end": 14
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 0,
+                    "end": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (varBoolean !== false) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (varBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 56,
+                "end": 76
+              },
+              "fixes": [
+                {
+                  "text": "varBoolean",
+                  "range": {
+                    "pos": 56,
+                    "end": 76
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varTrue: true;\n        if (varTrue !== true) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varTrue: true;\n        if (!varTrue) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 66,
+                "pos": 50
+              },
+              "fixes": [
+                {
+                  "text": "varTrue",
+                  "range": {
+                    "end": 66,
+                    "pos": 50
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 50,
+                    "end": 50
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varTrueOrUndefined: true | undefined;\n        if (varTrueOrUndefined === true) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varTrueOrUndefined: true | undefined;\n        if (varTrueOrUndefined) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "comparingNullableToTrueDirect",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": true,
+            "allowComparingNullableBooleansToTrue": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToTrueDirect",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 73,
+                "end": 100
+              },
+              "fixes": [
+                {
+                  "text": "varTrueOrUndefined",
+                  "range": {
+                    "pos": 73,
+                    "end": 100
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varFalseOrNull: false | null;\n        if (varFalseOrNull !== true) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varFalseOrNull: false | null;\n        if (!varFalseOrNull) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "comparingNullableToTrueNegated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": true,
+            "allowComparingNullableBooleansToTrue": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToTrueNegated",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 88,
+                "pos": 65
+              },
+              "fixes": [
+                {
+                  "text": "varFalseOrNull",
+                  "range": {
+                    "pos": 65,
+                    "end": 88
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 65,
+                    "end": 65
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBooleanOrNull: boolean | null;\n        declare const otherBoolean: boolean;\n        if (varBooleanOrNull === false && otherBoolean) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBooleanOrNull: boolean | null;\n        declare const otherBoolean: boolean;\n        if (!(varBooleanOrNull ?? true) && otherBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "comparingNullableToFalse",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": false,
+            "allowComparingNullableBooleansToTrue": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToFalse",
+                "description": "This expression unnecessarily compares a nullable boolean value to false instead of using the ?? operator to provide a default."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 140,
+                "pos": 114
+              },
+              "fixes": [
+                {
+                  "text": "varBooleanOrNull",
+                  "range": {
+                    "pos": 114,
+                    "end": 140
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 114,
+                    "end": 114
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 114,
+                    "end": 114
+                  }
+                },
+                {
+                  "text": " ?? true)",
+                  "range": {
+                    "pos": 140,
+                    "end": 140
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBooleanOrNull: boolean | null;\n        declare const otherBoolean: boolean;\n        if (!(varBooleanOrNull === false) || otherBoolean) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBooleanOrNull: boolean | null;\n        declare const otherBoolean: boolean;\n        if ((varBooleanOrNull ?? true) || otherBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "comparingNullableToFalse",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": false,
+            "allowComparingNullableBooleansToTrue": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToFalse",
+                "description": "This expression unnecessarily compares a nullable boolean value to false instead of using the ?? operator to provide a default."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 142,
+                "pos": 116
+              },
+              "fixes": [
+                {
+                  "text": "varBooleanOrNull",
+                  "range": {
+                    "end": 143,
+                    "pos": 114
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 114,
+                    "end": 114
+                  }
+                },
+                {
+                  "text": " ?? true)",
+                  "range": {
+                    "pos": 143,
+                    "end": 143
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varTrueOrFalseOrUndefined: true | false | undefined;\n        declare const otherBoolean: boolean;\n        if (varTrueOrFalseOrUndefined !== false && !otherBoolean) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varTrueOrFalseOrUndefined: true | false | undefined;\n        declare const otherBoolean: boolean;\n        if ((varTrueOrFalseOrUndefined ?? true) && !otherBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "comparingNullableToFalse",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": false,
+            "allowComparingNullableBooleansToTrue": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToFalse",
+                "description": "This expression unnecessarily compares a nullable boolean value to false instead of using the ?? operator to provide a default."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 168
+              },
+              "fixes": [
+                {
+                  "text": "varTrueOrFalseOrUndefined",
+                  "range": {
+                    "end": 168,
+                    "pos": 133
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 133,
+                    "end": 133
+                  }
+                },
+                {
+                  "text": " ?? true)",
+                  "range": {
+                    "pos": 168,
+                    "end": 168
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (false !== varBoolean) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if ( varBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 76
+              },
+              "fixes": [
+                {
+                  "text": " varBoolean",
+                  "range": {
+                    "pos": 56,
+                    "end": 76
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (true !== varBoolean) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (! varBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 75
+              },
+              "fixes": [
+                {
+                  "text": " varBoolean",
+                  "range": {
+                    "pos": 56,
+                    "end": 75
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const x;\n        if ((x instanceof Error) === false) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const x;\n        if (!(x instanceof Error)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 38,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": "(x instanceof Error)",
+                  "range": {
+                    "pos": 38,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const x;\n        if (false === (x instanceof Error)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const x;\n        if (! (x instanceof Error)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": " (x instanceof Error)",
+                  "range": {
+                    "pos": 38,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const x;\n        if (x instanceof Error === false) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const x;\n        if (!(x instanceof Error)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "x instanceof Error",
+                  "range": {
+                    "pos": 38,
+                    "end": 66
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 66,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const x;\n        if (typeof x === 'string' === false) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const x;\n        if (!(typeof x === 'string')) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 38,
+                "end": 69
+              },
+              "fixes": [
+                {
+                  "text": "typeof x === 'string'",
+                  "range": {
+                    "pos": 38,
+                    "end": 69
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 69,
+                    "pos": 69
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const x;\n        if (x instanceof Error === (false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const x;\n        if (!(x instanceof Error)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": "x instanceof Error",
+                  "range": {
+                    "pos": 38,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 68,
+                    "end": 68
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const x;\n        if ((false) === x instanceof Error) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const x;\n        if (!( x instanceof Error)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": " x instanceof Error",
+                  "range": {
+                    "pos": 38,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 38,
+                    "end": 38
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "end": 38,
+                    "pos": 38
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 68,
+                    "end": 68
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (!(varBoolean !== false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (!varBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 78
+              },
+              "fixes": [
+                {
+                  "text": "varBoolean",
+                  "range": {
+                    "pos": 56,
+                    "end": 79
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (!(varBoolean === false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (varBoolean) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 58,
+                "end": 78
+              },
+              "fixes": [
+                {
+                  "text": "varBoolean",
+                  "range": {
+                    "pos": 56,
+                    "end": 79
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (!(varBoolean instanceof Event == false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (varBoolean instanceof Event) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 94
+              },
+              "fixes": [
+                {
+                  "text": "varBoolean instanceof Event",
+                  "range": {
+                    "pos": 56,
+                    "end": 95
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (varBoolean instanceof Event == false) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (!(varBoolean instanceof Event)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "varBoolean instanceof Event",
+                  "range": {
+                    "pos": 56,
+                    "end": 92
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 92,
+                    "end": 92
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 92
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (!((varBoolean ?? false) !== false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (!(varBoolean ?? false)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 89
+              },
+              "fixes": [
+                {
+                  "text": "(varBoolean ?? false)",
+                  "range": {
+                    "pos": 56,
+                    "end": 90
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (!((varBoolean ?? false) === false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if ((varBoolean ?? false)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 89,
+                "pos": 58
+              },
+              "fixes": [
+                {
+                  "text": "(varBoolean ?? false)",
+                  "range": {
+                    "pos": 56,
+                    "end": 90
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const varBoolean: boolean;\n        if (!((varBoolean ?? true) !== false)) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const varBoolean: boolean;\n        if (!(varBoolean ?? true)) {\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 88
+              },
+              "fixes": [
+                {
+                  "text": "(varBoolean ?? true)",
+                  "range": {
+                    "pos": 56,
+                    "end": 89
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const test: <T extends boolean>(someCondition: T) => void = someCondition => {\n          if (someCondition === true) {\n          }\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const test: <T extends boolean>(someCondition: T) => void = someCondition => {\n          if (someCondition) {\n          }\n        };\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "direct",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "direct",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 102,
+                "end": 124
+              },
+              "fixes": [
+                {
+                  "text": "someCondition",
+                  "range": {
+                    "pos": 102,
+                    "end": 124
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        const test: <T extends boolean>(someCondition: T) => void = someCondition => {\n          if (!(someCondition !== false)) {\n          }\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const test: <T extends boolean>(someCondition: T) => void = someCondition => {\n          if (!someCondition) {\n          }\n        };\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 127
+              },
+              "fixes": [
+                {
+                  "text": "someCondition",
+                  "range": {
+                    "pos": 102,
+                    "end": 128
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 102,
+                    "end": 102
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const test: <T extends boolean>(someCondition: T) => void = someCondition => {\n          if (!((someCondition ?? true) !== false)) {\n          }\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const test: <T extends boolean>(someCondition: T) => void = someCondition => {\n          if (!(someCondition ?? true)) {\n          }\n        };\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "negated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 137
+              },
+              "fixes": [
+                {
+                  "text": "(someCondition ?? true)",
+                  "range": {
+                    "pos": 102,
+                    "end": 138
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "end": 102,
+                    "pos": 102
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "negated",
+                "description": "This expression unnecessarily compares a boolean value to a boolean instead of negating it."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(): boolean {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStrictNullCheck",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "tsconfig.unstrict.json",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noStrictNullCheck",
+                "description": "This rule requires the `strictNullChecks` compiler option to be turned on to function correctly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 0
+              },
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function check(foo: boolean | null | undefined, func: (value?: true) => boolean): boolean {\n          if (func() || foo === true) {}\n          const conjunction = foo === true && func(foo);\n          const negated = !(foo !== true);\n          if ((foo === true) ?? func()) {}\n          return foo === true;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function check(foo: boolean | null | undefined, func: (value?: true) => boolean): boolean {\n          if (func() ||  foo) {}\n          const conjunction = (!!foo) && func(foo);\n          const negated = (!!foo);\n          if (((!!foo)) ?? func()) {}\n          return (!!foo);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "comparingNullableToTrueDirect",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "comparingNullableToTrueDirect",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "comparingNullableToTrueNegated",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "comparingNullableToTrueDirect",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "comparingNullableToTrueDirect",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowComparingNullableBooleansToFalse": true,
+            "allowComparingNullableBooleansToTrue": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "comparingNullableToTrueDirect",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 125,
+                "end": 137
+              },
+              "fixes": [
+                {
+                  "text": " foo",
+                  "range": {
+                    "pos": 125,
+                    "end": 137
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare"
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 172,
+                "end": 184
+              },
+              "fixes": [
+                {
+                  "text": "(!!foo)",
+                  "range": {
+                    "pos": 172,
+                    "end": 184
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToTrueDirect",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+              }
+            },
+            {
+              "message": {
+                "id": "comparingNullableToTrueNegated",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of negating it."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 227,
+                "end": 239
+              },
+              "fixes": [
+                {
+                  "text": "(!!foo)",
+                  "range": {
+                    "pos": 225,
+                    "end": 240
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare"
+            },
+            {
+              "range": {
+                "pos": 257,
+                "end": 269
+              },
+              "fixes": [
+                {
+                  "text": "(!!foo)",
+                  "range": {
+                    "pos": 257,
+                    "end": 269
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToTrueDirect",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "kind": 0,
+              "rule": "no-unnecessary-boolean-literal-compare",
+              "message": {
+                "id": "comparingNullableToTrueDirect",
+                "description": "This expression unnecessarily compares a nullable boolean value to true instead of using it directly."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 314,
+                "pos": 302
+              },
+              "fixes": [
+                {
+                  "text": "(!!foo)",
+                  "range": {
+                    "pos": 302,
+                    "end": 314
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

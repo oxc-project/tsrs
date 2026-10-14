@@ -56,4 +56,5 @@ mod rules {
     pub mod only_throw_error;
     pub mod prefer_find;
     pub mod prefer_includes;
+    pub mod prefer_optional_chain;
 }

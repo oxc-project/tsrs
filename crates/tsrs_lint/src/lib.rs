@@ -54,4 +54,5 @@ mod rules {
     pub mod no_useless_default_assignment;
     pub mod non_nullable_type_assertion_style;
     pub mod only_throw_error;
+    pub mod prefer_find;
 }

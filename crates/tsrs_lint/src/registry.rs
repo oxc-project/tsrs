@@ -105,6 +105,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unsafe-unary-minus"
             | "non-nullable-type-assertion-style"
             | "only-throw-error"
+            | "prefer-find"
     ) {
         return Ok(());
     }
@@ -193,6 +194,7 @@ pub fn create_rule(
         "non-nullable-type-assertion-style" => Ok(Box::new(crate::rules::non_nullable_type_assertion_style::NonNullableTypeAssertionStyle)),
         "only-throw-error" => crate::rules::only_throw_error::OnlyThrowError::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "prefer-find" => Ok(Box::new(crate::rules::prefer_find::PreferFind)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

@@ -1,0 +1,7 @@
+Local edge_cases.ts input preserved. Expected records refreshed from tsgolint HEAD
+8897346fff24a9bd0c719099dc1af8e7200572c1, compiler 2bd066d87f5bafd315be9f40889d0a60b9e58e0b
+with all six shipped patches; Go 1.27.1 build.
+Binary SHA-256: 4bf2bd341d7bd53b69c59228820c2045da45eb7ea0e25119a906a28524972d87
+Replayed all five option configurations together, strict ESNext, no ambient types.
+Physical fixture tree and identical source overrides. Normal, -fix, -fix-suggestions,
+and combined flags produce equal diagnostic multisets.

@@ -68,4 +68,5 @@ mod rules {
     pub mod promise_function_async;
     mod regexp_unicode;
     pub mod related_getter_setter_pairs;
+    pub mod require_array_sort_compare;
 }

@@ -1,0 +1,1076 @@
+{
+  "Name": "require-array-sort-compare",
+  "Suites": {
+    "TestRequireArraySortCompare": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      function f(a: any[]) {\n        a.sort(undefined);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: any[]) {\n        a.sort((a, b) => a - b);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: Array<string>) {\n        a.sort(undefined);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: Array<number>) {\n        a.sort((a, b) => a - b);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: { sort(): void }) {\n        a.sort();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      class A {\n        sort(): void {}\n      }\n      function f(a: A) {\n        a.sort();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      interface A {\n        sort(): void;\n      }\n      function f(a: A) {\n        a.sort();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      interface A {\n        sort(): void;\n      }\n      function f<T extends A>(a: T) {\n        a.sort();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: any) {\n        a.sort();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      namespace UserDefined {\n        interface Array {\n          sort(): void;\n        }\n        function f(a: Array) {\n          a.sort();\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: any[]) {\n        a?.sort((a, b) => a - b);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      namespace UserDefined {\n        interface Array {\n          sort(): void;\n        }\n        function f(a: Array) {\n          a?.sort();\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        ['foo', 'bar', 'baz'].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function getString() {\n          return 'foo';\n        }\n        [getString(), getString()].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const foo = 'foo';\n        const bar = 'bar';\n        const baz = 'baz';\n        [foo, bar, baz].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const x: string[];\n        x.sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a.toSorted((a, b) => a - b);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare const myArray: Array<\"A\" | \"B\">; myArray.sort();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "enum Fruit { Apple = 'apple', Banana = 'banana' }; declare const fruits: Fruit[]; fruits.sort();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: [string, number]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: [number, string]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: readonly [string, number]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: [string, ...number[]]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: [string, number?]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f(a: [string, number] | number[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function sort<T>(values: (T extends 0 ? string : string)[]) {\n        values.sort();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      interface ExternalIdRow {\n        appointment_id: string;\n        patient_id: string;\n      }\n\n      declare function acquireAdvisoryLock(key: string): Promise<void>;\n\n      async function lockRowsInDeterministicOrder<C extends keyof ExternalIdRow>(\n        ids: ExternalIdRow[C][],\n      ): Promise<void> {\n        for (const id of [...ids].sort()) {\n          await acquireAdvisoryLock(id);\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        function f(a: Array<any>) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 55,
+                "pos": 47
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 53,
+                "pos": 45
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 53,
+                "pos": 45
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number | number[]) {\n          if (Array.isArray(a)) a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 76,
+                "end": 84
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string | string[]) {\n          if (Array.isArray(a)) a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 84
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[] | string[]) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 64
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends number[]>(a: T) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 66,
+                "pos": 58
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T, U extends T[]>(a: U) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 64,
+                "pos": 56
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a?.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 54,
+                "pos": 45
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        [1, 2, 3].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 25
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function getNumber() {\n          return 1;\n        }\n        [getNumber(), getNumber()].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 70,
+                "end": 103
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const foo = 1;\n        const bar = 2;\n        const baz = 3;\n        [foo, bar, baz].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 78,
+                "end": 100
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        [2, 'bar', 'baz'].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 9,
+                "end": 33
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function getNumber() {\n          return 2;\n        }\n        [2, 3].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 70,
+                "end": 83
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const one = 1;\n        const two = 2;\n        const three = 3;\n        [one, two, three].sort();\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 80,
+                "end": 104
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: number[]) {\n          a.toSorted();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 57
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "declare const myArray: (\"A\" | \"B\" | 3)[]; myArray.sort();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 42,
+                "end": 56
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Array<[string, number]>) {\n          a.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 60,
+                "end": 68
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function sort<T>(values: (T extends 0 ? string : number)[]) {\n          values.sort();\n          values.toSorted();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 94
+              }
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 106,
+                "end": 123
+              },
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function sort<T>(values: (T extends 0 ? string : string)[]) {\n          values.sort();\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "requireCompare",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "ignoreStringArrays": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "require-array-sort-compare",
+              "message": {
+                "id": "requireCompare",
+                "description": "Require 'compare' argument."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 94
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

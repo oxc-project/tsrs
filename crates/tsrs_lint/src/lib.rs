@@ -34,4 +34,5 @@ mod rules {
     pub mod no_misused_promises;
     pub mod no_misused_spread;
     pub mod no_mixed_enums;
+    pub mod no_redundant_type_constituents;
 }

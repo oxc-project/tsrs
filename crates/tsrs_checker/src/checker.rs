@@ -1347,7 +1347,7 @@ pub struct Checker {
     pub(crate) false_type: P<Type>,
     pub(crate) regular_true_type: P<Type>,
     pub(crate) true_type: P<Type>,
-    pub(crate) boolean_type: P<Type>,
+    pub boolean_type: P<Type>,
     pub(crate) es_symbol_type: P<Type>,
     pub(crate) void_type: P<Type>,
     pub(crate) never_type: P<Type>,

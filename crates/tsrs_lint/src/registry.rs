@@ -85,6 +85,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-misused-promises"
             | "no-misused-spread"
             | "no-mixed-enums"
+            | "no-redundant-type-constituents"
     ) {
         return Ok(());
     }
@@ -150,6 +151,9 @@ pub fn create_rule(
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         "no-mixed-enums" => Ok(Box::new(crate::rules::no_mixed_enums::NoMixedEnums)),
+        "no-redundant-type-constituents" => {
+            Ok(Box::new(crate::rules::no_redundant_type_constituents::NoRedundantTypeConstituents))
+        }
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

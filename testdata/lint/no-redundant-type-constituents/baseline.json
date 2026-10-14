@@ -1,0 +1,2402 @@
+{
+  "Name": "no-redundant-type-constituents",
+  "Suites": {
+    "TestNoRedundantTypeConstituentsRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      type T = any;\n      type U = T;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type T = never;\n      type U = T;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type T = 1 | 2;\n      type U = T | 3;\n      type V = U;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = () => never;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = () => never | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = never;\n      type T = () => B | string;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = string;\n      type T = () => B | never;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = () => string | never;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = { (): string | never };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function _(): string | never {\n        return '';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const _ = (): string | never => {\n        return '';\n      };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = string;\n      type T = { (): B | never };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = { new (): string | never };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = never;\n      type T = { new (): string | B };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = unknown;\n      type T = B;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = bigint;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = bigint;\n      type T = B;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = 1n | 2n;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = 1n;\n      type T = B | 2n;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = boolean;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = boolean;\n      type T = B;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = false | true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = false;\n      type T = B | true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = true;\n      type T = B | false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = number;\n      type T = B;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = 1 | 2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = 1;\n      type T = B | 2;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = 1 | false;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = 1;\n      type T = B | false;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = string;\n      type T = B;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = 'a' | 'b';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = 'b';\n      type T = 'a' | B;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = 'a';\n      type T = B | 'b';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = bigint | null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = bigint;\n      type T = B | null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = boolean | null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = boolean;\n      type T = B | null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = number | null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = number;\n      type T = B | null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = string | null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = string;\n      type T = B | null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = bigint & null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = bigint;\n      type T = B & null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = boolean & null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = boolean;\n      type T = B & null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = number & null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = number;\n      type T = B & null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = string & null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = string;\n      type T = B & null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = `${string}` & null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type B = `${string}`;\n      type T = B & null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type T = 'a' | 1 | 'b';\n      type U = T & string;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "declare function fn(): never | 'foo';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "type T = number | any;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'any' overrides all other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 21
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = number;\n        type T = B | any;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 47,
+                "end": 50
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'any' overrides all other types in this union type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = any | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 9,
+                "end": 12
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'any' overrides all other types in this union type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = any;\n        type T = B | number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'any' overrides all other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 40,
+                "end": 41
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = number | never;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overridden",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 23
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overridden",
+                "description": "'never' is overridden by other types in this union type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = number;\n        type T = B | never;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overridden",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overridden",
+                "description": "'never' is overridden by other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 47,
+                "end": 52
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = never;\n        type T = B | number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 42,
+                "end": 43
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overridden",
+                "description": "'never' is overridden by other types in this union type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "type T = never | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "overridden",
+                "description": "'never' is overridden by other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 14
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = number | unknown;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'unknown' overrides all other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 25,
+                "pos": 18
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "type T = unknown | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'unknown' overrides all other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 16
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type ErrorTypes = NotKnown | 0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "errorTypeOverrides",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "errorTypeOverrides",
+                "description": "'NotKnown' is an 'error' type that acts as 'any' and overrides all other types in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 26
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = number | 0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 19
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = number | (0 | 1);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 | 1 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 25
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = (0 | 0) | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 16
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = 0 | 1;\n        type T = (2 | B) | number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 42,
+                "end": 49
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 | 1 | 2 is overridden by number in this union type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "type T = (0 | (1 | 2)) | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 | 1 | 2 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 22
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = (0 | 1) | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 | 1 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 16
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = (0 | (0 | 1)) | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0 | 1 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 22
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = (2 | 'other' | 3) | number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "literalOverridden",
+                "description": "2 | 3 is overridden by number in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 26
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = '' | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": " is overridden by string in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 11
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = 'b';\n        type T = B | string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "\"\\\"b\\\"\" is overridden by string in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 40,
+                "end": 41
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = `a${number}c` | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "`a${number}c` is overridden by string in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 22
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = `a${number}c`;\n        type T = B | string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "`a${number}c` is overridden by string in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 51
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = `${number}` | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 9,
+                "end": 20
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "`${number}` is overridden by string in this union type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "type T = 0n | bigint;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "0n is overridden by bigint in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 11
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = -1n | bigint;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 12,
+                "pos": 9
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "-1n is overridden by bigint in this union type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = (-1n | 1n) | bigint;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "literalOverridden",
+                "description": "1n | -1n is overridden by bigint in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 19
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = boolean;\n        type T = B | false;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "literal type is overridden by boolean in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 53
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = false | boolean;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 14
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "literal type is overridden by boolean in this union type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = true | boolean;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "literalOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "literalOverridden",
+                "description": "literal type is overridden by boolean in this union type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 13
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "type T = false & boolean;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 17,
+                "end": 24
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "boolean is overridden by the literal type in this intersection type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = false;\n        type T = B & boolean;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 53,
+                "pos": 46
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "boolean is overridden by the false in this intersection type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = true;\n        type T = B & boolean;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 45,
+                "end": 52
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "boolean is overridden by the true in this intersection type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "type T = true & boolean;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 17,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 16,
+                "end": 23
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "boolean is overridden by the literal type in this intersection type."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "type T = number & any;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 21
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'any' overrides all other types in this intersection type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = any & number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'any' overrides all other types in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 12
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type ErrorTypes = NotKnown & 0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "errorTypeOverrides",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "errorTypeOverrides",
+                "description": "'NotKnown' is an 'error' type that acts as 'any' and overrides all other types in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 26
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = number & never;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'never' overrides all other types in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 23
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = never;\n        type T = B & number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overrides",
+                "description": "'never' overrides all other types in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 42,
+                "end": 43
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = never & number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overrides",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "overrides",
+                "description": "'never' overrides all other types in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 14
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = number & unknown;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overridden",
+              "Line": 0,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overridden",
+                "description": "'unknown' is overridden by other types in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 25
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = unknown & number;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "overridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 9,
+                "end": 16
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "overridden",
+                "description": "'unknown' is overridden by other types in this intersection type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = number & 0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 10,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "number is overridden by the 0 in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 15,
+                "pos": 9
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = '' & string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "string is overridden by the  in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 14,
+                "end": 20
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type B = 0n;\n        type T = B & bigint;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 49
+              },
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "bigint is overridden by the 0n in this intersection type."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = 0n & bigint;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "bigint is overridden by the 0n in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 14,
+                "end": 20
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = -1n & bigint;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 16,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "bigint is overridden by the -1n in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 15,
+                "end": 21
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type T = 'a' | 'b';\n        type U = T & string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "\"\\\"a\\\"\" | \"\\\"b\\\"\" is overridden by the string in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 47
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        type S = 1 | 2;\n        type T = 'a' | 'b';\n        type U = S & T & string & number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "primitiveOverridden",
+              "Line": 0,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "1 | 2 is overridden by the number in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 70,
+                "end": 71
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-redundant-type-constituents",
+              "message": {
+                "id": "primitiveOverridden",
+                "description": "1 | 2 is overridden by the string in this intersection type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 75
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

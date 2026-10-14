@@ -27,4 +27,5 @@ mod rules {
     pub mod no_confusing_void_expression;
     pub mod no_deprecated;
     pub mod no_duplicate_type_constituents;
+    pub mod no_floating_promises;
 }

@@ -78,6 +78,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-confusing-void-expression"
             | "no-deprecated"
             | "no-duplicate-type-constituents"
+            | "no-floating-promises"
     ) {
         return Ok(());
     }
@@ -121,6 +122,10 @@ pub fn create_rule(
                 &config.options,
             )
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
+        }
+        "no-floating-promises" => {
+            crate::rules::no_floating_promises::NoFloatingPromises::new(&config.options)
+                .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         name => {
             require_implemented(name)?;

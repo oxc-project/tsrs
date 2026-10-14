@@ -67,4 +67,5 @@ mod rules {
     pub mod prefer_string_starts_ends_with;
     pub mod promise_function_async;
     mod regexp_unicode;
+    pub mod related_getter_setter_pairs;
 }

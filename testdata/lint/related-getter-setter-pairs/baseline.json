@@ -1,0 +1,440 @@
+{
+  "Name": "related-getter-setter-pairs",
+  "Suites": {
+    "TestRelatedGetterSetterPairs": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ninterface Example {\n  get value(): string;\n  set value(newValue: string);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  get value(): string | undefined;\n  set value();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  get value(): string | undefined;\n  set value(newValue: string, invalid: string);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  get value(): string;\n  set value(newValue: string | undefined);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  get value(): number;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  get value(): number;\n  set value();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  set value(newValue: string);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Example {\n  set value();\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Example = {\n  get value();\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Example = {\n  set value();\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  get value() {\n    return '';\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  get value() {\n    return '';\n  }\n  set value() {}\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  get value() {\n    return '';\n  }\n  set value(param) {}\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  get value() {\n    return '';\n  }\n  set value(param: number) {}\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  set value() {}\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Example = {\n  get value(): number;\n  set value(newValue: number);\n};\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ninterface Example {\n  get value(): string | undefined;\n  set value(newValue: string);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 3,
+              "Column": 16,
+              "EndLine": 3,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "related-getter-setter-pairs",
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 36,
+                "end": 54
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ninterface Example {\n  get value(): number;\n  set value(newValue: string);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 3,
+              "Column": 16,
+              "EndLine": 3,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 36,
+                "end": 42
+              },
+              "kind": 0,
+              "rule": "related-getter-setter-pairs"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Example = {\n  get value(): number;\n  set value(newValue: string);\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 3,
+              "Column": 16,
+              "EndLine": 3,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "related-getter-setter-pairs",
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 33,
+                "end": 39
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Example {\n  get value(): boolean {\n    return true;\n  }\n  set value(newValue: string) {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 3,
+              "Column": 16,
+              "EndLine": 3,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "related-getter-setter-pairs",
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 32,
+                "end": 39
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype GetType = { a: string; b: string };\n\ndeclare class Foo {\n  get a(): GetType;\n\n  set a(x: { c: string });\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 5,
+              "Column": 12,
+              "EndLine": 5,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "related-getter-setter-pairs",
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 81
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype GetType = { a: string; b: string };\n\ntype SetTypeUnused = { c: string };\n\ndeclare class Foo {\n  get a(): GetType;\n\n  set a(x: { c: string });\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 7,
+              "Column": 12,
+              "EndLine": 7,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "related-getter-setter-pairs",
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 111,
+                "end": 118
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ntype GetType = { a: string; b: string };\n\ntype SetType = { c: string };\n\ndeclare class Foo {\n  get a(): GetType;\n\n  set a(x: SetType);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatch",
+              "Line": 7,
+              "Column": 12,
+              "EndLine": 7,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "mismatch",
+                "description": "`get()` type should be assignable to its equivalent `set()` type."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 105,
+                "end": 112
+              },
+              "kind": 0,
+              "rule": "related-getter-setter-pairs"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

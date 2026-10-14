@@ -117,6 +117,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "prefer-return-this-type"
             | "prefer-string-starts-ends-with"
             | "promise-function-async"
+            | "related-getter-setter-pairs"
     ) {
         return Ok(());
     }
@@ -220,6 +221,7 @@ pub fn create_rule(
         "prefer-string-starts-ends-with" => crate::rules::prefer_string_starts_ends_with::PreferStringStartsEndsWith::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "promise-function-async" => crate::rules::promise_function_async::PromiseFunctionAsync::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "related-getter-setter-pairs" => Ok(Box::new(crate::rules::related_getter_setter_pairs::RelatedGetterSetterPairs)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

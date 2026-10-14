@@ -1,0 +1,366 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 91,
+      "end": 122
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "!",
+        "range": {
+          "pos": 91,
+          "end": 91
+        }
+      },
+      {
+        "text": ".startsWith(",
+        "range": {
+          "pos": 107,
+          "end": 116
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 121,
+          "end": 122
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 124,
+      "end": 170
+    },
+    "message": {
+      "id": "preferEndsWith",
+      "description": "Use 'String#endsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 172,
+      "end": 207
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 209,
+      "end": 237
+    },
+    "message": {
+      "id": "preferEndsWith",
+      "description": "Use 'String#endsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 239,
+      "end": 270
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "?.startsWith",
+        "range": {
+          "pos": 244,
+          "end": 257
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 263,
+          "end": 270
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 379,
+      "end": 416
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 379,
+          "end": 401
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 401,
+          "end": 401
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 414,
+          "end": 414
+        }
+      },
+      {
+        "text": "?.startsWith(\"é\\n\\x00\\\"\"",
+        "range": {
+          "pos": 414,
+          "end": 414
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 418,
+      "end": 451
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "!",
+        "range": {
+          "pos": 418,
+          "end": 418
+        }
+      },
+      {
+        "text": ".startsWith",
+        "range": {
+          "pos": 423,
+          "end": 429
+        }
+      },
+      {
+        "text": "\"é\\n\\x00\\\"\"",
+        "range": {
+          "pos": 430,
+          "end": 440
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 441,
+          "end": 451
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 492,
+      "end": 512
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 492,
+          "end": 506
+        }
+      },
+      {
+        "text": ".startsWith(\"é²\"",
+        "range": {
+          "pos": 511,
+          "end": 511
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 536,
+      "end": 572
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 536,
+          "end": 566
+        }
+      },
+      {
+        "text": ".startsWith(\"é\"",
+        "range": {
+          "pos": 571,
+          "end": 571
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 761,
+      "end": 784
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": ".startsWith(",
+        "range": {
+          "pos": 765,
+          "end": 780
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 784,
+          "end": 784
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 124,
+      "end": 149
+    },
+    "message": {
+      "id": "preferStartsWith",
+      "description": "Use 'String#startsWith' method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": ".startsWith",
+        "range": {
+          "pos": 129,
+          "end": 137
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 143,
+          "end": 149
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 151,
+      "end": 170
+    },
+    "message": {
+      "id": "preferEndsWith",
+      "description": "Use 'String#endsWith' method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 151,
+          "end": 164
+        }
+      },
+      {
+        "text": ".endsWith(\"汉\"",
+        "range": {
+          "pos": 169,
+          "end": 169
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 172,
+      "end": 196
+    },
+    "message": {
+      "id": "preferEndsWith",
+      "description": "Use 'String#endsWith' method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-string-starts-ends-with",
+    "fixes": [
+      {
+        "text": ".endsWith(",
+        "range": {
+          "pos": 177,
+          "end": 192
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 196,
+          "end": 196
+        }
+      }
+    ]
+  }
+]

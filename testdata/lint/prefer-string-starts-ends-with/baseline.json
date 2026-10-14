@@ -1,0 +1,4558 @@
+{
+  "Name": "prefer-string-starts-ends-with",
+  "Suites": {
+    "TestPreferStringStartsEndsWithRule": {
+      "TSConfig": "tsconfig.json",
+      "Valid": [
+        {
+          "Code": "\n      function f(s: string[]) {\n        s[0] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[] | null) {\n        s?.[0] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[] | undefined) {\n        s?.[0] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s[0] + 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s[1] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string | undefined) {\n        s?.[1] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string | string[]) {\n        s[0] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: any) {\n        s[0] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f<T>(s: T) {\n        s[0] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s[s.length - 1] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[] | undefined) {\n        s?.[s.length - 1] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s[s.length - 2] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string | undefined) {\n        s?.[s.length - 2] === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s.charAt(0) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[] | undefined) {\n        s?.charAt(0) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.charAt(0) + 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.charAt(1) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string | undefined) {\n        s?.charAt(1) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.charAt() === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s.charAt(s.length - 1) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string, b: string, c: string) {\n        (a + b).charAt((a + c).length - 1) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string, b: string, c: string) {\n        (a + b).charAt(c.length - 1) === 'a';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s.indexOf(needle) === 0;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string | string[]) {\n        s.indexOf(needle) === 0;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.indexOf(needle) === s.length - needle.length;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s.lastIndexOf(needle) === s.length - needle.length;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.lastIndexOf(needle) === 0;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^foo/);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/foo$/);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^foo/) + 1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/foo$/) + 1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: { match(x: any): boolean }) {\n        s.match(/^foo/) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: { match(x: any): boolean }) {\n        s.match(/foo$/) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/foo/) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^foo$/) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^foo./) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^foo|bar/) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(new RegExp('')) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(pattern) !== null; // cannot check '^'/'$'\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(new RegExp('^/!{[', 'u')) !== null; // has syntax error\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match() !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(777) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^bar/) !== undefined;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const missing = undefined;\n      function f(s: string) {\n        s.match(/^bar/) === missing;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.match(/^bar/g) !== null;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        /^bar/g.test(s);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        /bar$/y.test(s);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s.slice(0, needle.length) === needle;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string[]) {\n        s.slice(-needle.length) === needle;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(1, 4) === 'bar';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(-4, -1) === 'bar';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(1) === 'bar';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string | null) {\n        s?.slice(1) === 'bar';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        pattern.test(s);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        /^bar/.test();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(x: { test(): void }, s: string) {\n        x.test(s);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(0, -4) === 'car';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(x: string, s: string) {\n        x.endsWith('foo') && x.slice(0, -4) === 'bar';\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(0, length) === needle; // the 'length' can be different to 'needle.length'\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(-length) === needle; // 'length' can be different\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(s: string) {\n        s.slice(0, 3) === needle;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const s: string;\n        s[0] === 'a';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowSingleElementEquality": "always"
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const s: string;\n        s[s.length - 1] === 'a';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowSingleElementEquality": "always"
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        function f(s: string) {\n          s[0] === 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 55
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 55,
+                    "end": 55
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s?.[0] === 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s?.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 57
+              },
+              "fixes": [
+                {
+                  "text": "?.startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 57,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s[0] !== 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 55
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 55,
+                    "end": 55
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s?.[0] !== 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s?.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "end": 43,
+                    "pos": 43
+                  }
+                },
+                {
+                  "text": "?.startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 57,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 57
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s[0] == 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 51
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 54,
+                    "end": 54
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 54,
+                "pos": 43
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s[0] != 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 54
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 51
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 54,
+                    "end": 54
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s[0] === 'あ';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('あ');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 57
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 57,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s[0] === '👍'; // the length is 2.\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 58
+              },
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string, t: string) {\n          s[0] === t; // the length of t is unknown.\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 64
+              },
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s[s.length - 1] === 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 63
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 66,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          (s)[0] === (\"a\")\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          (s).startsWith(\"a\")\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 59
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 46,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 58,
+                    "end": 59
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(0) === 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 62,
+                    "end": 62
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 62
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(0) !== 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 62
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 62,
+                    "end": 62
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(0) == 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 61,
+                    "pos": 61
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 61
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(0) != 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 61,
+                "pos": 43
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 61,
+                    "end": 61
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(0) === 'あ';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('あ');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 64
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 64,
+                    "pos": 64
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(0) === '👍'; // the length is 2.\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 65
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string, t: string) {\n          s.charAt(0) === t; // the length of t is unknown.\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 71,
+                "pos": 54
+              },
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.charAt(s.length - 1) === 'a';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('a');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 73
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 70
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 73,
+                    "end": 73
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          (s).charAt(0) === \"a\";\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          (s).startsWith(\"a\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 64
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 46,
+                    "end": 61
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 64,
+                    "end": 64
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.indexOf(needle) === 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 66,
+                "pos": 43
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 60,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s?.indexOf(needle) === 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s?.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 67,
+                "pos": 43
+              },
+              "fixes": [
+                {
+                  "text": "?.startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 53
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 67
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.indexOf(needle) !== 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 60,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 66,
+                "pos": 43
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.indexOf(needle) == 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 65,
+                    "pos": 60
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 65,
+                "pos": 43
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.indexOf(needle) != 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 65
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 52
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 60,
+                    "end": 65
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.lastIndexOf('bar') === s.length - 3;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 80
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 80
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.lastIndexOf('bar') !== s.length - 3;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 80
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 80
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.lastIndexOf('bar') == s.length - 3;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 79
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 79
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.lastIndexOf('bar') != s.length - 3;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 79
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 79
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.lastIndexOf('bar') === s.length - 'bar'.length;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 91,
+                "pos": 43
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 91
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.lastIndexOf(needle) === s.length - needle.length;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 93
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 64,
+                    "end": 93
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/^bar/) !== null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "end": 57,
+                    "pos": 51
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s?.match(/^bar/) !== null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s?.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": "?.startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 51
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 52,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 59,
+                    "end": 68
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/^bar/) != null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/^bar/) != undefined;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 71
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 71,
+                    "pos": 58
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/bar$/) !== null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 43,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/bar$/) != null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "end": 57,
+                    "pos": 51
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/^bar/) === null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 67
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/^bar/) == null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 66
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/^bar/) == undefined;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 43,
+                "end": 71
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 71,
+                    "pos": 58
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/bar$/) === null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.endsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 67
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.match(/bar$/) == null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.endsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".endsWith",
+                  "range": {
+                    "pos": 44,
+                    "end": 50
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 51,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /^bar/;\n        function f(s: string) {\n          s.match(pattern) != null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /^bar/;\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 75,
+                "end": 99
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "end": 82,
+                    "pos": 76
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "pos": 83,
+                    "end": 90
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 91,
+                    "end": 99
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = new RegExp('^bar');\n        function f(s: string) {\n          s.match(pattern) != null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = new RegExp('^bar');\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 88,
+                    "end": 94
+                  }
+                },
+                {
+                  "text": "\"bar\"",
+                  "range": {
+                    "end": 102,
+                    "pos": 95
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 103,
+                    "end": 111
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 87,
+                "end": 111
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /^\"quoted\"/;\n        function f(s: string) {\n          s.match(pattern) != null;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /^\"quoted\"/;\n        function f(s: string) {\n          s.startsWith(\"\\\"quoted\\\"\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 80,
+                "end": 104
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 81,
+                    "end": 87
+                  }
+                },
+                {
+                  "text": "\"\\\"quoted\\\"\"",
+                  "range": {
+                    "pos": 88,
+                    "end": 95
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 96,
+                    "end": 104
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(0, 3) === 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "end": 61,
+                    "pos": 44
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 66,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s?.slice(0, 3) === 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s?.startsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "?.startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 67,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(0, 3) !== 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 61
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 66,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(0, 3) == 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 65
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 60
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 65,
+                    "end": 65
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(0, 3) != 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.startsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 65
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 60
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 65,
+                    "end": 65
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(0, needle.length) === needle;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 43,
+                "end": 79
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 73
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 79,
+                    "end": 79
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(0, needle.length) == needle; // hating implicit type conversion\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 78,
+                "pos": 43
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(-3) === 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 64,
+                    "end": 64
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 64
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(-3) !== 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          !s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 64
+              },
+              "fixes": [
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 43,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 64,
+                    "pos": 64
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(-needle.length) === needle;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 71
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 77,
+                    "end": 77
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 77
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.slice(s.length - needle.length) === needle;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 87
+              },
+              "fixes": [
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 81
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 87,
+                    "end": 87
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.substring(0, 3) === 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 70
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith(",
+                  "range": {
+                    "end": 65,
+                    "pos": 44
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 70,
+                    "end": 70
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.substring(-3) === 'bar'; // the code is probably mistake.\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 68,
+                "pos": 43
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          s.substring(s.length - 3, s.length) === 'bar';\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".endsWith(",
+                  "range": {
+                    "pos": 44,
+                    "end": 83
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 88,
+                    "end": 88
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          /^bar/.test(s);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 57
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 43,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": ".startsWith(\"bar\"",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          /^bar/?.test(s);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s?.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 58
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 43,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "?.startsWith(\"bar\"",
+                  "range": {
+                    "pos": 57,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          /bar$/.test(s);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          s.endsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferEndsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferEndsWith",
+                "description": "Use 'String#endsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 57
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 43,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": ".endsWith(\"bar\"",
+                  "range": {
+                    "pos": 56,
+                    "end": 56
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /^bar/;\n        function f(s: string) {\n          pattern.test(s);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /^bar/;\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 75,
+                "end": 90
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 75,
+                    "end": 88
+                  }
+                },
+                {
+                  "text": ".startsWith(\"bar\"",
+                  "range": {
+                    "pos": 89,
+                    "end": 89
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = new RegExp('^bar');\n        function f(s: string) {\n          pattern.test(s);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = new RegExp('^bar');\n        function f(s: string) {\n          s.startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 87,
+                "end": 102
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 87,
+                    "end": 100
+                  }
+                },
+                {
+                  "text": ".startsWith(\"bar\"",
+                  "range": {
+                    "pos": 101,
+                    "end": 101
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with"
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /^\"quoted\"/;\n        function f(s: string) {\n          pattern.test(s);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /^\"quoted\"/;\n        function f(s: string) {\n          s.startsWith(\"\\\"quoted\\\"\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 95,
+                "pos": 80
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 80,
+                    "end": 93
+                  }
+                },
+                {
+                  "text": ".startsWith(\"\\\"quoted\\\"\"",
+                  "range": {
+                    "pos": 94,
+                    "end": 94
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: string) {\n          /^bar/.test(a + b);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: string) {\n          (a + b).startsWith(\"bar\");\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 61
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 55,
+                    "pos": 43
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 55,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 60,
+                    "end": 60
+                  }
+                },
+                {
+                  "text": ".startsWith(\"bar\"",
+                  "range": {
+                    "pos": 60,
+                    "end": 60
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(s: 'a' | 'b') {\n          s.indexOf(needle) === 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(s: 'a' | 'b') {\n          s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 69
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 47,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 69
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T extends 'a' | 'b'>(s: T) {\n          s.indexOf(needle) === 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f<T extends 'a' | 'b'>(s: T) {\n          s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 59,
+                "end": 82
+              },
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 60,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 82,
+                    "pos": 76
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        type SafeString = string & { __HTML_ESCAPED__: void };\n        function f(s: SafeString) {\n          s.indexOf(needle) === 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        type SafeString = string & { __HTML_ESCAPED__: void };\n        function f(s: SafeString) {\n          s.startsWith(needle);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStartsWith",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".startsWith",
+                  "range": {
+                    "pos": 111,
+                    "end": 119
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 127,
+                    "end": 133
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-string-starts-ends-with",
+              "message": {
+                "id": "preferStartsWith",
+                "description": "Use 'String#startsWith' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 110,
+                "end": 133
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

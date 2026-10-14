@@ -64,5 +64,6 @@ mod rules {
     pub mod prefer_reduce_type_parameter;
     pub mod prefer_regexp_exec;
     pub mod prefer_return_this_type;
+    pub mod prefer_string_starts_ends_with;
     mod regexp_unicode;
 }

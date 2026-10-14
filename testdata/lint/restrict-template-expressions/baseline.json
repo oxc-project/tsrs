@@ -1,0 +1,2441 @@
+{
+  "Name": "restrict-template-expressions",
+  "Suites": {
+    "TestRestrictTemplateExpressionsRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      const msg = `arg = ${'foo'}`;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const arg = 'foo';\n      const msg = `arg = ${arg}`;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const arg = 'foo';\n      const msg = `arg = ${arg || 'default'}`;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function test<T extends string>(arg: T) {\n        return `arg = ${arg}`;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function test<T extends string & { _kind: 'MyBrandedString' }>(arg: T) {\n        return `arg = ${arg}`;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      tag`arg = ${null}`;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const arg = {};\n      tag`arg = ${arg}`;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = 123;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = 123;\n        const msg = `arg = ${arg || 'default'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = 123n;\n        const msg = `arg = ${arg || 'default'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends number>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends number & { _kind: 'MyBrandedNumber' }>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends bigint>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends string | number>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = true;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = true;\n        const msg = `arg = ${arg || 'default'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends boolean>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends string | boolean>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = [];\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = [];\n        const msg = `arg = ${arg || 'default'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends string[]>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const arg: [number, string];\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = [1, 'a'] as const;\n        const msg = `arg = ${arg || 'default'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends [string, string]>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const arg: [number | undefined, string];\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg: any = 123;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg: any = undefined;\n        const msg = `arg = ${arg || 'some-default'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const user = JSON.parse('{ \"name\": \"foo\" }');\n        const msg = `arg = ${user.name}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const user = JSON.parse('{ \"name\": \"foo\" }');\n        const msg = `arg = ${user.name || 'the user with no name'}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = null;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const arg: string | null | undefined;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends null | undefined>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends string | null>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = new RegExp('foo');\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = /foo/;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const arg: string | RegExp;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends RegExp>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test<T extends string | RegExp>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const value: never;\n        const stringy = `${value}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": true,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const arg = 'hello';\n        const msg = typeof arg === 'string' ? arg : `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": true,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function test(arg: 'one' | 'two') {\n          switch (arg) {\n            case 'one':\n              return 1;\n            case 'two':\n              return 2;\n            default:\n              throw new Error(`Unrecognized arg: ${arg}`);\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": true,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        // more variants may be added to Foo in the future\n        type Foo = { type: 'a'; value: number };\n\n        function checkFoosAreMatching(foo1: Foo, foo2: Foo) {\n          if (foo1.type !== foo2.type) {\n            // since Foo currently only has one variant, this code is never run, and `foo1.type` has type `never`.\n            throw new Error(`expected ${foo1.type}, found ${foo2.type}`);\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": true,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        type All = string | number | boolean | null | undefined | RegExp | never;\n        function test<T extends All>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": true,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${Promise.resolve()}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Promise"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        class Base {}\n        class Derived extends Base {}\n        const value = new Derived();\n        const msg = `${value}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "Base"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        class Base {}\n        class Derived extends Base {}\n        class DerivedTwice extends Derived {}\n        const value = new DerivedTwice();\n        const msg = `${value}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "Base"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        interface Base {\n          value: string;\n        }\n        interface Derived extends Base {\n          extra: number;\n        }\n        declare const value: Derived;\n        const msg = `${value}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "Base"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${new Error()}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${false}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${null}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${undefined}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${123}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const msg = `arg = ${'abc'}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        const msg = `arg = ${123}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 2,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": false,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 30,
+                "end": 33
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "end": 33,
+                    "pos": 30
+                  },
+                  "label": "Type: 123"
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const msg = `arg = ${false}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 2,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": false,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 30,
+                "end": 35
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: false",
+                  "range": {
+                    "pos": 30,
+                    "end": 35
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const msg = `arg = ${null}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 2,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": false,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 30,
+                "end": 34
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: null",
+                  "range": {
+                    "pos": 30,
+                    "end": 34
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arg: number[];\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type: number[]",
+                  "range": {
+                    "pos": 67,
+                    "end": 70
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 67,
+                "end": 70
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const msg = `arg = ${[, 2]}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 2,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": false,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 30,
+                "end": 35
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: (number | undefined)[]",
+                  "range": {
+                    "pos": 30,
+                    "end": 35
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions"
+            }
+          ]
+        },
+        {
+          "Code": "const msg = `arg = ${Promise.resolve()}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type: Promise<void>",
+                  "range": {
+                    "pos": 21,
+                    "end": 38
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 21,
+                "end": 38
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const msg = `arg = ${new Error()}`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type: Error",
+                  "range": {
+                    "pos": 21,
+                    "end": 32
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 21,
+                "end": 32
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arg: [number | undefined, string];\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": true,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": false,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 87,
+                "end": 90
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: [number | undefined, string]",
+                  "range": {
+                    "end": 90,
+                    "pos": 87
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arg: number;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": false,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 65,
+                "end": 68
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: number",
+                  "range": {
+                    "pos": 65,
+                    "end": 68
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arg: boolean;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": false,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 69,
+                "pos": 66
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: boolean",
+                  "range": {
+                    "end": 69,
+                    "pos": 66
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const arg = {};\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 57
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 54,
+                    "end": 57
+                  },
+                  "label": "Type: {}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arg: { a: string } & { b: string };\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 88,
+                "end": 91
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: { a: string; } & { b: string; }",
+                  "range": {
+                    "pos": 88,
+                    "end": 91
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function test<T extends {}>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 27,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type: {}",
+                  "range": {
+                    "end": 76,
+                    "pos": 73
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 73,
+                "end": 76
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function test<TWithNoConstraint>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 27,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": false,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 81
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: T",
+                  "range": {
+                    "pos": 78,
+                    "end": 81
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function test(arg: any) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 27,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": false,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 61,
+                "end": 64
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: any",
+                  "range": {
+                    "pos": 61,
+                    "end": 64
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        const arg = new RegExp('foo');\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 72
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 69,
+                    "end": 72
+                  },
+                  "label": "Type: RegExp"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const arg = /foo/;\n        const msg = `arg = ${arg}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 30,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 60
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 57,
+                    "end": 60
+                  },
+                  "label": "Type: RegExp"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const value: never;\n        const stringy = `${value}`;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 28,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ],
+                "from": "lib"
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 64,
+                "end": 69
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type: never",
+                  "range": {
+                    "pos": 64,
+                    "end": 69
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function test<T extends any>(arg: T) {\n          return `arg = ${arg}`;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "invalidType",
+              "Line": 3,
+              "Column": 27,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Error",
+                  "URL",
+                  "URLSearchParams"
+                ]
+              }
+            ],
+            "allowAny": true,
+            "allowArray": false,
+            "allowBoolean": true,
+            "allowNever": false,
+            "allowNullish": true,
+            "allowNumber": true,
+            "allowRegExp": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type: unknown",
+                  "range": {
+                    "pos": 74,
+                    "end": 77
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "restrict-template-expressions",
+              "message": {
+                "id": "invalidType",
+                "description": "Invalid type used in template literal expression."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 77
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

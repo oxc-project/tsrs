@@ -71,4 +71,5 @@ mod rules {
     pub mod require_array_sort_compare;
     pub mod require_await;
     pub mod restrict_plus_operands;
+    pub mod restrict_template_expressions;
 }

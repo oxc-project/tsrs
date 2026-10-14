@@ -1,0 +1,1608 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 657,
+      "end": 661
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 657,
+          "end": 661
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 689,
+      "end": 696
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [bigint, number, boolean, (string | null | undefined)?]",
+        "range": {
+          "pos": 689,
+          "end": 696
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 700,
+      "end": 706
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly (readonly string[])[]",
+        "range": {
+          "pos": 700,
+          "end": 706
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 710,
+      "end": 715
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: []",
+        "range": {
+          "pos": 710,
+          "end": 715
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 755,
+      "end": 773
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: CustomRegExp",
+        "range": {
+          "pos": 755,
+          "end": 773
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 951,
+      "end": 956
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, number]",
+        "range": {
+          "pos": 951,
+          "end": 956
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-0.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 657,
+      "end": 661
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 657,
+          "end": 661
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 689,
+      "end": 696
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [bigint, number, boolean, (string | null | undefined)?]",
+        "range": {
+          "pos": 689,
+          "end": 696
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 700,
+      "end": 706
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly (readonly string[])[]",
+        "range": {
+          "pos": 700,
+          "end": 706
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 710,
+      "end": 715
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: []",
+        "range": {
+          "pos": 710,
+          "end": 715
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 755,
+      "end": 773
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: CustomRegExp",
+        "range": {
+          "pos": 755,
+          "end": 773
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 951,
+      "end": 956
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, number]",
+        "range": {
+          "pos": 951,
+          "end": 956
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-1.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 657,
+      "end": 661
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 657,
+          "end": 661
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 689,
+      "end": 696
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [bigint, number, boolean, (string | null | undefined)?]",
+        "range": {
+          "pos": 689,
+          "end": 696
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 700,
+      "end": 706
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly (readonly string[])[]",
+        "range": {
+          "pos": 700,
+          "end": 706
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 710,
+      "end": 715
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: []",
+        "range": {
+          "pos": 710,
+          "end": 715
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 755,
+      "end": 773
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: CustomRegExp",
+        "range": {
+          "pos": 755,
+          "end": 773
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 951,
+      "end": 956
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, number]",
+        "range": {
+          "pos": 951,
+          "end": 956
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-2.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 657,
+      "end": 661
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 657,
+          "end": 661
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 665,
+      "end": 673
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: any",
+        "range": {
+          "pos": 665,
+          "end": 673
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 677,
+      "end": 685
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: string | null | undefined",
+        "range": {
+          "pos": 677,
+          "end": 685
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 689,
+      "end": 696
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [bigint, number, boolean, (string | null | undefined)?]",
+        "range": {
+          "pos": 689,
+          "end": 696
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 710,
+      "end": 715
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: []",
+        "range": {
+          "pos": 710,
+          "end": 715
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 739,
+      "end": 751
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: Custom",
+        "range": {
+          "pos": 739,
+          "end": 751
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 755,
+      "end": 773
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: CustomRegExp",
+        "range": {
+          "pos": 755,
+          "end": 773
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 777,
+      "end": 781
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: RegExp",
+        "range": {
+          "pos": 777,
+          "end": 781
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 785,
+      "end": 789
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: true",
+        "range": {
+          "pos": 785,
+          "end": 789
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 793,
+      "end": 796
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: 12n",
+        "range": {
+          "pos": 793,
+          "end": 796
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 951,
+      "end": 956
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, number]",
+        "range": {
+          "pos": 951,
+          "end": 956
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-3.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 657,
+      "end": 661
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 657,
+          "end": 661
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 710,
+      "end": 715
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: []",
+        "range": {
+          "pos": 710,
+          "end": 715
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 755,
+      "end": 773
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: CustomRegExp",
+        "range": {
+          "pos": 755,
+          "end": 773
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-4.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-5.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-5.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-5.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 739,
+      "end": 751
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-5.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: Custom",
+        "range": {
+          "pos": 739,
+          "end": 751
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-5.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-5.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 637,
+      "end": 642
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 637,
+          "end": 642
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 646,
+      "end": 653
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: unknown",
+        "range": {
+          "pos": 646,
+          "end": 653
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 657,
+      "end": 661
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: never",
+        "range": {
+          "pos": 657,
+          "end": 661
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 689,
+      "end": 696
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [bigint, number, boolean, (string | null | undefined)?]",
+        "range": {
+          "pos": 689,
+          "end": 696
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 700,
+      "end": 706
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly (readonly string[])[]",
+        "range": {
+          "pos": 700,
+          "end": 706
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 710,
+      "end": 715
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: []",
+        "range": {
+          "pos": 710,
+          "end": 715
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 719,
+      "end": 724
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, { count: number; }]",
+        "range": {
+          "pos": 719,
+          "end": 724
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 844,
+      "end": 849
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: { count: number; }",
+        "range": {
+          "pos": 844,
+          "end": 849
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 951,
+      "end": 956
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: readonly [string, number]",
+        "range": {
+          "pos": 951,
+          "end": 956
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 960,
+      "end": 964
+    },
+    "message": {
+      "id": "invalidType",
+      "description": "Invalid type used in template literal expression."
+    },
+    "file_path": "case-6.ts",
+    "labeled_ranges": [
+      {
+        "label": "Type: U",
+        "range": {
+          "pos": 960,
+          "end": 964
+        }
+      }
+    ],
+    "rule": "restrict-template-expressions"
+  }
+]

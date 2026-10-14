@@ -47,5 +47,6 @@ mod rules {
     pub mod no_unsafe_assignment;
     pub mod no_unsafe_call;
     pub mod no_unsafe_enum_comparison;
+    pub mod no_unsafe_member_access;
     pub mod no_useless_default_assignment;
 }

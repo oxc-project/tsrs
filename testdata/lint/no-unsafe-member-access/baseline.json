@@ -1,0 +1,1013 @@
+{
+  "Name": "no-unsafe-member-access",
+  "Suites": {
+    "TestNoUnsafeMemberAccessRule": {
+      "TSConfig": "tsconfig.noImplicitThis.json",
+      "Valid": [
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[y++];\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }) {\n  x.a;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: number }) {\n  x?.a;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }) {\n  x['a'];\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: number }) {\n  x?.['a'];\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: string) {\n  x[y];\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: number }, y: string) {\n  x?.[y];\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: string[]) {\n  x[1];\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass B implements FG.A {}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface B extends FG.A {}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass B implements F.S.T.A {}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface B extends F.S.T.A {}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: number }) {\n  x?.a;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: number }, y: string) {\n  x?.[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: 'a') {\n  x?.[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: NotKnown) {\n  x?.[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nfunction foo(x: any) {\n  x.a;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .a on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 29
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x.a.b.c.d.e.f.g;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .a on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 29
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: any }) {\n  x.a.b.c.d.e.f.g;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 3,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .b on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 37,
+                "end": 38
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x['a'];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access ['a'] on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 31
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: any) {\n  x['a']['b']['c'];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access ['a'] on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 31
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: NotKnown;\n\nvalue.property;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 4,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .property on an `error` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 29,
+                "end": 37
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [y] resolves to an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 47,
+                "pos": 46
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x?: { a: number }, y: any) {\n  x?.[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 49,
+                "end": 50
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [y] resolves to an `any` value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[(y += 1)];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [(y += 1)] resolves to an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 54
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[1 as any];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [1 as any] resolves to an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 54
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: any) {\n  x[y()];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [y()] resolves to an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 49
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: string[], y: any) {\n  x[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 41,
+                "end": 42
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [y] resolves to an `any` value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: NotKnown) {\n  x[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 52,
+                "pos": 51
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [y] resolves to an `error` typed value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst methods = {\n  methodA() {\n    return this.methodB()\n  },\n  methodB() {\n    const getProperty = () => Math.random() > 0.5 ? 'methodB' : 'methodC'\n    return this[getProperty()]()\n  },\n  methodC() {\n    return true\n  },\n  methodD() {\n    return (this?.methodA)?.()\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeThisMemberExpression",
+              "Line": 4,
+              "Column": 17,
+              "EndLine": 0,
+              "EndColumn": 24,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeThisMemberExpression",
+              "Line": 8,
+              "Column": 17,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeThisMemberExpression",
+              "Line": 14,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 26,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeThisMemberExpression",
+                "description": "Unsafe member access .methodB on an `any` value. `this` is typed as `any`.",
+                "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 56
+              },
+              "kind": 0
+            },
+            {
+              "range": {
+                "pos": 168,
+                "end": 181
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeThisMemberExpression",
+                "description": "Unsafe member access [getProperty()] on an `any` value. `this` is typed as `any`.",
+                "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeThisMemberExpression",
+                "description": "Unsafe member access .methodA on an `any` value. `this` is typed as `any`.",
+                "help": "You can try to fix this by turning on the `noImplicitThis` compiler option, or adding a `this` parameter to the function."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 257,
+                "end": 264
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass C {\n  getObs$: any;\n  getPopularDepartments(): void {\n    this.getObs$.pipe().subscribe(res => {\n      log(res);\n    });\n  }\n}\nfunction log(arg: unknown) {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 5,
+              "Column": 25,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 5,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 85,
+                "end": 94
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .subscribe on an `any` value."
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .pipe on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 82
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: any;\n\nvalue?.middle.inner;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 4,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 32,
+                "end": 37
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .inner on an `any` value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: any;\n\nvalue?.outer.middle.inner;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 4,
+              "Column": 14,
+              "EndLine": 0,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .middle on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 31,
+                "end": 37
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: any;\n\nvalue.outer?.middle.inner;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 26,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 4,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .inner on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 43
+              }
+            },
+            {
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .outer on an `any` value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 29
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access"
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: any;\n\nvalue.outer.middle?.inner;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeMemberExpression",
+              "Line": 4,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 29
+              },
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeMemberExpression",
+                "description": "Unsafe member access .outer on an `any` value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: { a: number }, y: NotKnown) {\n  x[y];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeComputedMemberAccess",
+              "Line": 3,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 6,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowOptionalChaining": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-member-access",
+              "message": {
+                "id": "unsafeComputedMemberAccess",
+                "description": "Computed name [y] resolves to an `error` typed value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 52,
+                "pos": 51
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

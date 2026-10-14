@@ -103,6 +103,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unsafe-return"
             | "no-unsafe-type-assertion"
             | "no-unsafe-unary-minus"
+            | "non-nullable-type-assertion-style"
     ) {
         return Ok(());
     }
@@ -188,6 +189,7 @@ pub fn create_rule(
         "no-unsafe-return" => Ok(Box::new(crate::rules::no_unsafe_return::NoUnsafeReturn)),
         "no-unsafe-type-assertion" => Ok(Box::new(crate::rules::no_unsafe_type_assertion::NoUnsafeTypeAssertion)),
         "no-unsafe-unary-minus" => Ok(Box::new(crate::rules::no_unsafe_unary_minus::NoUnsafeUnaryMinus)),
+        "non-nullable-type-assertion-style" => Ok(Box::new(crate::rules::non_nullable_type_assertion_style::NonNullableTypeAssertionStyle)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

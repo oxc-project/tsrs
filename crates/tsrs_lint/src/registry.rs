@@ -116,6 +116,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "prefer-reduce-type-parameter"
             | "prefer-return-this-type"
             | "prefer-string-starts-ends-with"
+            | "promise-function-async"
     ) {
         return Ok(());
     }
@@ -217,6 +218,8 @@ pub fn create_rule(
         "prefer-reduce-type-parameter" => Ok(Box::new(crate::rules::prefer_reduce_type_parameter::PreferReduceTypeParameter)),
         "prefer-return-this-type" => Ok(Box::new(crate::rules::prefer_return_this_type::PreferReturnThisType)),
         "prefer-string-starts-ends-with" => crate::rules::prefer_string_starts_ends_with::PreferStringStartsEndsWith::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "promise-function-async" => crate::rules::promise_function_async::PromiseFunctionAsync::new(&config.options)
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

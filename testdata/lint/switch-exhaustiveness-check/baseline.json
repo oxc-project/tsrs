@@ -1,0 +1,3943 @@
+{
+  "Name": "switch-exhaustiveness-check",
+  "Suites": {
+    "TestSwitchExhaustivenessCheckRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ntype Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\nconst day = 'Monday' as Day;\nlet result = 0;\n\nswitch (day) {\n  case 'Monday': {\n    result = 1;\n    break;\n  }\n  case 'Tuesday': {\n    result = 2;\n    break;\n  }\n  case 'Wednesday': {\n    result = 3;\n    break;\n  }\n  case 'Thursday': {\n    result = 4;\n    break;\n  }\n  case 'Friday': {\n    result = 5;\n    break;\n  }\n  case 'Saturday': {\n    result = 6;\n    break;\n  }\n  case 'Sunday': {\n    result = 7;\n    break;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Num = 0 | 1 | 2;\n\nfunction test(value: Num): number {\n  switch (value) {\n    case 0:\n      return 0;\n    case 1:\n      return 1;\n    case 2:\n      return 2;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Bool = true | false;\n\nfunction test(value: Bool): number {\n  switch (value) {\n    case true:\n      return 1;\n    case false:\n      return 0;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Mix = 0 | 1 | 'two' | 'three' | true;\n\nfunction test(value: Mix): number {\n  switch (value) {\n    case 0:\n      return 0;\n    case 1:\n      return 1;\n    case 'two':\n      return 2;\n    case 'three':\n      return 3;\n    case true:\n      return 4;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'a';\ntype B = 'b';\ntype C = 'c';\ntype Union = A | B | C;\n\nfunction test(value: Union): number {\n  switch (value) {\n    case 'a':\n      return 1;\n    case 'b':\n      return 2;\n    case 'c':\n      return 3;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst A = 'a';\nconst B = 1;\nconst C = true;\n\ntype Union = typeof A | typeof B | typeof C;\n\nfunction test(value: Union): number {\n  switch (value) {\n    case 'a':\n      return 1;\n    case 1:\n      return 2;\n    case true:\n      return 3;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\nconst day = 'Monday' as Day;\nlet result = 0;\n\nswitch (day) {\n  case 'Monday': {\n    result = 1;\n    break;\n  }\n  default: {\n    result = 42;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst day = 'Monday' as string;\nlet result = 0;\n\nswitch (day) {\n  case 'Monday': {\n    result = 1;\n    break;\n  }\n  case 'Tuesday': {\n    result = 2;\n    break;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nenum Enum {\n  A,\n  B,\n}\n\nfunction test(value: Enum): number {\n  switch (value) {\n    case Enum.A:\n      return 1;\n    case Enum.B:\n      return 2;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype ObjectUnion = { a: 1 } | { b: 2 };\n\nfunction test(value: ObjectUnion): number {\n  switch (value.a) {\n    case 1:\n      return 1;\n  }\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: number;\nswitch (value) {\n  case 0:\n    return 0;\n  case 1:\n    return 1;\n  default:\n    return -1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: string;\nswitch (value) {\n  case 'foo':\n    return 0;\n  case 'bar':\n    return 1;\n  default:\n    return -1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: number;\nswitch (value) {\n  case 0:\n    return 0;\n  case 1:\n    return 1;\n  default:\n    return -1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: bigint;\nswitch (value) {\n  case 0:\n    return 0;\n  case 1:\n    return 1;\n  default:\n    return -1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: symbol;\nconst foo = Symbol('foo');\nswitch (value) {\n  case foo:\n    return 0;\n  default:\n    return -1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: 0 | 1 | number;\nswitch (value) {\n  case 0:\n    return 0;\n  case 1:\n    return 1;\n  default:\n    return -1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: 'literal';\nswitch (value) {\n  case 'literal':\n    return 0;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: null;\nswitch (value) {\n  case null:\n    return 0;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: undefined;\nswitch (value) {\n  case undefined:\n    return 0;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: null | undefined;\nswitch (value) {\n  case null:\n    return 0;\n  case undefined:\n    return 0;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: 'literal' & { _brand: true };\nswitch (value) {\n  case 'literal':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: ('literal' & { _brand: true }) | 1;\nswitch (value) {\n  case 'literal':\n    break;\n  case 1:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: (1 & { _brand: true }) | 'literal' | null;\nswitch (value) {\n  case 'literal':\n    break;\n  case 1:\n    break;\n  case null:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  case '2':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  case '2':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  case '2':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | (number & { foo: 'bar' });\nswitch (value) {\n  case '1':\n    break;\n  case '2':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  case '2':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: number | null | undefined;\nswitch (value) {\n  case null:\n    break;\n  case undefined:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: (string & { foo: 'bar' }) | '1';\nswitch (value) {\n  case '1':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst a = Symbol('a');\ndeclare const value: typeof a | 2;\nswitch (value) {\n  case a:\n    break;\n  case 2:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: string | number;\nswitch (value) {\n  case 1:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: string | number;\nswitch (value) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: string | number;\nswitch (value) {\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: number;\ndeclare const a: number;\nswitch (value) {\n  case a:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: bigint;\nswitch (value) {\n  case 10n:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: symbol;\nconst a = Symbol('a');\nswitch (value) {\n  case a:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: symbol;\nconst a = Symbol('a');\nswitch (value) {\n  case a:\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst a = Symbol('a');\ndeclare const value: typeof a | string;\nswitch (value) {\n  case a:\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst a = Symbol('a');\ndeclare const value: typeof a | string;\nswitch (value) {\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: boolean | 1;\nswitch (value) {\n  case 1:\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: boolean | 1;\nswitch (value) {\n  case 1:\n    break;\n  case true:\n    break;\n  case false:\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nenum Aaa {\n  Foo,\n  Bar,\n}\ndeclare const value: Aaa | 1;\nswitch (value) {\n  case 1:\n    break;\n  case Aaa.Foo:\n    break;\n  case Aaa.Bar:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b';\nswitch (literal) {\n  case 'a':\n    break;\n  case 'b':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b';\nswitch (literal) {\n  case 'a':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b';\nswitch (literal) {\n  case 'a':\n    break;\n  case 'b':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nenum MyEnum {\n  Foo = 'Foo',\n  Bar = 'Bar',\n  Baz = 'Baz',\n}\n\ndeclare const myEnum: MyEnum;\n\nswitch (myEnum) {\n  case MyEnum.Foo:\n    break;\n  case MyEnum.Bar:\n    break;\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: boolean;\nswitch (value) {\n  case false:\n    break;\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: string[]) {\n  switch (x[0]) {\n    case 'hi':\n      break;\n    case undefined:\n      break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo(x: string[], y: string | undefined) {\n  const a = x[0];\n  if (typeof a === 'string') {\n    return;\n  }\n  switch (y) {\n    case 'hi':\n      break;\n    case a:\n      break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: number;\nswitch (value) {\n  case 0:\n    break;\n  case 1:\n    break;\n  // no default\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: 'a' | 'b';\nswitch (value) {\n  case 'a':\n    break;\n  // no default\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: 'a' | 'b';\nswitch (value) {\n  case 'a':\n    break;\n  // skip default\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": true,
+            "defaultCaseCommentPattern": "^skip\\sdefault",
+            "requireDefaultForNonUnion": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const value: number;\nswitch (value) {\n  case 0:\n    break;\n  case 1:\n    break;\n  // no default\n  // TODO: add another case\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const value: 'literal';\nswitch (value) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: 'literal';\nswitch (value) {\ncase \"literal\": { throw new Error('Not implemented yet: \"literal\" case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\ncase \"literal\": { throw new Error('Not implemented yet: \"literal\" case') }\n}",
+                      "range": {
+                        "pos": 48,
+                        "end": 51
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"literal\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 41,
+                "end": 46
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: 'literal' & { _brand: true };\nswitch (value) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: 'literal' & { _brand: true };\nswitch (value) {\ncase \"literal\": { throw new Error('Not implemented yet: \"literal\" case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"literal\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 60,
+                "end": 65
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\ncase \"literal\": { throw new Error('Not implemented yet: \"literal\" case') }\n}",
+                      "range": {
+                        "pos": 67,
+                        "end": 70
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: ('literal' & { _brand: true }) | 1;\nswitch (value) {\n  case 'literal':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: ('literal' & { _brand: true }) | 1;\nswitch (value) {\n  case 'literal':\n    break;\n  case 1: { throw new Error('Not implemented yet: 1 case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: 1"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 66,
+                "end": 71
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case 1: { throw new Error('Not implemented yet: 1 case') }",
+                      "range": {
+                        "pos": 103,
+                        "end": 103
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  case \"2\": { throw new Error('Not implemented yet: \"2\" case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 50,
+                "end": 55
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case \"2\": { throw new Error('Not implemented yet: \"2\" case') }",
+                      "range": {
+                        "pos": 81,
+                        "end": 81
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"2\""
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  case \"2\": { throw new Error('Not implemented yet: \"2\" case') }\n}\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: '1' | '2' | number;\nswitch (value) {\n  case '1':\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case \"2\": { throw new Error('Not implemented yet: \"2\" case') }",
+                      "range": {
+                        "pos": 81,
+                        "end": 81
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"2\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 55,
+                "pos": 50
+              }
+            },
+            {
+              "range": {
+                "pos": 50,
+                "end": 55
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "end": 81,
+                        "pos": 81
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: (string & { foo: 'bar' }) | '1';\nswitch (value) {\n  case '1':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: (string & { foo: 'bar' }) | '1';\nswitch (value) {\n  case '1':\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 94,
+                        "end": 94
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 68
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: (string & { foo: 'bar' }) | '1' | 1 | null | undefined;\nswitch (value) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: (string & { foo: 'bar' }) | '1' | 1 | null | undefined;\nswitch (value) {\ncase undefined: { throw new Error('Not implemented yet: undefined case') }\ncase null: { throw new Error('Not implemented yet: null case') }\ncase \"1\": { throw new Error('Not implemented yet: \"1\" case') }\ncase 1: { throw new Error('Not implemented yet: 1 case') }\n}\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: (string & { foo: 'bar' }) | '1' | 1 | null | undefined;\nswitch (value) {\ndefault: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: undefined | null | \"1\" | 1"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 86,
+                "end": 91
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\ncase undefined: { throw new Error('Not implemented yet: undefined case') }\ncase null: { throw new Error('Not implemented yet: null case') }\ncase \"1\": { throw new Error('Not implemented yet: \"1\" case') }\ncase 1: { throw new Error('Not implemented yet: 1 case') }\n}",
+                      "range": {
+                        "pos": 93,
+                        "end": 96
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 86,
+                "end": 91
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\ndefault: { throw new Error('default case') }\n}",
+                      "range": {
+                        "pos": 93,
+                        "end": 96
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: string | number;\nswitch (value) {\n  case 1:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: string | number;\nswitch (value) {\n  case 1:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 47,
+                "end": 52
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 76,
+                        "end": 76
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: number;\ndeclare const a: number;\nswitch (value) {\n  case a:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: number;\ndeclare const a: number;\nswitch (value) {\n  case a:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 68
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 92,
+                        "end": 92
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: bigint;\nswitch (value) {\n  case 10n:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: bigint;\nswitch (value) {\n  case 10n:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 43
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 69,
+                        "end": 69
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: symbol;\nconst a = Symbol('a');\nswitch (value) {\n  case a:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: symbol;\nconst a = Symbol('a');\nswitch (value) {\n  case a:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 61,
+                "end": 66
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "end": 90,
+                        "pos": 90
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst a = Symbol('aa');\nconst b = Symbol('bb');\ndeclare const value: typeof a | typeof b | 1;\nswitch (value) {\n  case 1:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 5,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nconst a = Symbol('aa');\nconst b = Symbol('bb');\ndeclare const value: typeof a | typeof b | 1;\nswitch (value) {\n  case 1:\n    break;\n  case a: { throw new Error('Not implemented yet: a case') }\n  case b: { throw new Error('Not implemented yet: b case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 103,
+                "end": 108
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case a: { throw new Error('Not implemented yet: a case') }\n  case b: { throw new Error('Not implemented yet: b case') }",
+                      "range": {
+                        "pos": 132,
+                        "end": 132
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: typeof a | typeof b"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst a = Symbol('a');\ndeclare const value: typeof a | string;\nswitch (value) {\n  case a:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nconst a = Symbol('a');\ndeclare const value: typeof a | string;\nswitch (value) {\n  case a:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "end": 101,
+                        "pos": 101
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 72,
+                "end": 77
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: boolean;\nswitch (value) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: boolean;\nswitch (value) {\ncase false: { throw new Error('Not implemented yet: false case') }\ncase true: { throw new Error('Not implemented yet: true case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: false | true"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 39,
+                "end": 44
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\ncase false: { throw new Error('Not implemented yet: false case') }\ncase true: { throw new Error('Not implemented yet: true case') }\n}",
+                      "range": {
+                        "end": 49,
+                        "pos": 46
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: boolean | 1;\nswitch (value) {\n  case false:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: boolean | 1;\nswitch (value) {\n  case false:\n    break;\n  case 1: { throw new Error('Not implemented yet: 1 case') }\n  case true: { throw new Error('Not implemented yet: true case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: 1 | true"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 48
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case 1: { throw new Error('Not implemented yet: 1 case') }\n  case true: { throw new Error('Not implemented yet: true case') }",
+                      "range": {
+                        "pos": 76,
+                        "end": 76
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: boolean | number;\nswitch (value) {\n  case 1:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: boolean | number;\nswitch (value) {\n  case 1:\n    break;\n  case false: { throw new Error('Not implemented yet: false case') }\n  case true: { throw new Error('Not implemented yet: true case') }\n}\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: boolean | number;\nswitch (value) {\n  case 1:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: false | true"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 53
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case false: { throw new Error('Not implemented yet: false case') }\n  case true: { throw new Error('Not implemented yet: true case') }",
+                      "range": {
+                        "pos": 77,
+                        "end": 77
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 53
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 77,
+                        "end": 77
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: object;\nswitch (value) {\n  case 1:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: object;\nswitch (value) {\n  case 1:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 43
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "end": 67,
+                        "pos": 67
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nenum Aaa {\n  Foo,\n  Bar,\n}\ndeclare const value: Aaa | 1 | string;\nswitch (value) {\n  case 1:\n    break;\n  case Aaa.Foo:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 7,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nenum Aaa {\n  Foo,\n  Bar,\n}\ndeclare const value: Aaa | 1 | string;\nswitch (value) {\n  case 1:\n    break;\n  case Aaa.Foo:\n    break;\n  case Aaa.Bar: { throw new Error('Not implemented yet: Aaa.Bar case') }\n}\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 7,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nenum Aaa {\n  Foo,\n  Bar,\n}\ndeclare const value: Aaa | 1 | string;\nswitch (value) {\n  case 1:\n    break;\n  case Aaa.Foo:\n    break;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case Aaa.Bar: { throw new Error('Not implemented yet: Aaa.Bar case') }",
+                      "range": {
+                        "pos": 131,
+                        "end": 131
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: Aaa.Bar"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 80,
+                "pos": 75
+              }
+            },
+            {
+              "range": {
+                "pos": 75,
+                "end": 80
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 131,
+                        "end": 131
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\nconst day = 'Monday' as Day;\nlet result = 0;\n\nswitch (day) {\n  case 'Monday': {\n    result = 1;\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 14,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ntype Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\nconst day = 'Monday' as Day;\nlet result = 0;\n\nswitch (day) {\n  case 'Monday': {\n    result = 1;\n    break;\n  }\n  case \"Friday\": { throw new Error('Not implemented yet: \"Friday\" case') }\n  case \"Saturday\": { throw new Error('Not implemented yet: \"Saturday\" case') }\n  case \"Sunday\": { throw new Error('Not implemented yet: \"Sunday\" case') }\n  case \"Thursday\": { throw new Error('Not implemented yet: \"Thursday\" case') }\n  case \"Tuesday\": { throw new Error('Not implemented yet: \"Tuesday\" case') }\n  case \"Wednesday\": { throw new Error('Not implemented yet: \"Wednesday\" case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"Friday\" | \"Saturday\" | \"Sunday\" | \"Thursday\" | \"Tuesday\" | \"Wednesday\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 167,
+                "end": 170
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case \"Friday\": { throw new Error('Not implemented yet: \"Friday\" case') }\n  case \"Saturday\": { throw new Error('Not implemented yet: \"Saturday\" case') }\n  case \"Sunday\": { throw new Error('Not implemented yet: \"Sunday\" case') }\n  case \"Thursday\": { throw new Error('Not implemented yet: \"Thursday\" case') }\n  case \"Tuesday\": { throw new Error('Not implemented yet: \"Tuesday\" case') }\n  case \"Wednesday\": { throw new Error('Not implemented yet: \"Wednesday\" case') }",
+                      "range": {
+                        "pos": 223,
+                        "end": 223
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nenum Enum {\n  A,\n  B,\n}\n\nfunction test(value: Enum): number {\n  switch (value) {\n    case Enum.A:\n      return 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 8,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nenum Enum {\n  A,\n  B,\n}\n\nfunction test(value: Enum): number {\n  switch (value) {\n    case Enum.A:\n      return 1;\n    case Enum.B: { throw new Error('Not implemented yet: Enum.B case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: Enum.B"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 78,
+                "pos": 73
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case Enum.B: { throw new Error('Not implemented yet: Enum.B case') }",
+                      "range": {
+                        "pos": 114,
+                        "end": 114
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'a';\ntype B = 'b';\ntype C = 'c';\ntype Union = A | B | C;\n\nfunction test(value: Union): number {\n  switch (value) {\n    case 'a':\n      return 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 8,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ntype A = 'a';\ntype B = 'b';\ntype C = 'c';\ntype Union = A | B | C;\n\nfunction test(value: Union): number {\n  switch (value) {\n    case 'a':\n      return 1;\n    case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n    case \"c\": { throw new Error('Not implemented yet: \"c\" case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\" | \"c\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 116,
+                "end": 121
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n    case \"c\": { throw new Error('Not implemented yet: \"c\" case') }",
+                      "range": {
+                        "pos": 154,
+                        "end": 154
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nconst A = 'a';\nconst B = 1;\nconst C = true;\n\ntype Union = typeof A | typeof B | typeof C;\n\nfunction test(value: Union): number {\n  switch (value) {\n    case 'a':\n      return 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 9,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nconst A = 'a';\nconst B = 1;\nconst C = true;\n\ntype Union = typeof A | typeof B | typeof C;\n\nfunction test(value: Union): number {\n  switch (value) {\n    case 'a':\n      return 1;\n    case 1: { throw new Error('Not implemented yet: 1 case') }\n    case true: { throw new Error('Not implemented yet: true case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: 1 | true"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 140,
+                "end": 145
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case 1: { throw new Error('Not implemented yet: 1 case') }\n    case true: { throw new Error('Not implemented yet: true case') }",
+                      "range": {
+                        "pos": 178,
+                        "end": 178
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype DiscriminatedUnion = { type: 'A'; a: 1 } | { type: 'B'; b: 2 };\n\nfunction test(value: DiscriminatedUnion): number {\n  switch (value.type) {\n    case 'A':\n      return 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 5,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ntype DiscriminatedUnion = { type: 'A'; a: 1 } | { type: 'B'; b: 2 };\n\nfunction test(value: DiscriminatedUnion): number {\n  switch (value.type) {\n    case 'A':\n      return 1;\n    case \"B\": { throw new Error('Not implemented yet: \"B\" case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 142,
+                "pos": 132
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case \"B\": { throw new Error('Not implemented yet: \"B\" case') }",
+                      "range": {
+                        "pos": 175,
+                        "end": 175
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"B\""
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\nconst day = 'Monday' as Day;\n\nswitch (day) {\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 13,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ntype Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\nconst day = 'Monday' as Day;\n\nswitch (day) {\ncase \"Friday\": { throw new Error('Not implemented yet: \"Friday\" case') }\ncase \"Monday\": { throw new Error('Not implemented yet: \"Monday\" case') }\ncase \"Saturday\": { throw new Error('Not implemented yet: \"Saturday\" case') }\ncase \"Sunday\": { throw new Error('Not implemented yet: \"Sunday\" case') }\ncase \"Thursday\": { throw new Error('Not implemented yet: \"Thursday\" case') }\ncase \"Tuesday\": { throw new Error('Not implemented yet: \"Tuesday\" case') }\ncase \"Wednesday\": { throw new Error('Not implemented yet: \"Wednesday\" case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 151,
+                "end": 154
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\ncase \"Friday\": { throw new Error('Not implemented yet: \"Friday\" case') }\ncase \"Monday\": { throw new Error('Not implemented yet: \"Monday\" case') }\ncase \"Saturday\": { throw new Error('Not implemented yet: \"Saturday\" case') }\ncase \"Sunday\": { throw new Error('Not implemented yet: \"Sunday\" case') }\ncase \"Thursday\": { throw new Error('Not implemented yet: \"Thursday\" case') }\ncase \"Tuesday\": { throw new Error('Not implemented yet: \"Tuesday\" case') }\ncase \"Wednesday\": { throw new Error('Not implemented yet: \"Wednesday\" case') }\n}",
+                      "range": {
+                        "pos": 156,
+                        "end": 159
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"Friday\" | \"Monday\" | \"Saturday\" | \"Sunday\" | \"Thursday\" | \"Tuesday\" | \"Wednesday\""
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst a = Symbol('a');\nconst b = Symbol('b');\nconst c = Symbol('c');\n\ntype T = typeof a | typeof b | typeof c;\n\nfunction test(value: T): number {\n  switch (value) {\n    case a:\n      return 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 9,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nconst a = Symbol('a');\nconst b = Symbol('b');\nconst c = Symbol('c');\n\ntype T = typeof a | typeof b | typeof c;\n\nfunction test(value: T): number {\n  switch (value) {\n    case a:\n      return 1;\n    case b: { throw new Error('Not implemented yet: b case') }\n    case c: { throw new Error('Not implemented yet: c case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 157,
+                "end": 162
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case b: { throw new Error('Not implemented yet: b case') }\n    case c: { throw new Error('Not implemented yet: c case') }",
+                      "range": {
+                        "pos": 193,
+                        "end": 193
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: typeof b | typeof c"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype T = 1 | 2;\n\nfunction test(value: T): number {\n  switch (value) {\n    case 1:\n      return 1;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ntype T = 1 | 2;\n\nfunction test(value: T): number {\n  switch (value) {\n    case 1:\n      return 1;\n    case 2: { throw new Error('Not implemented yet: 2 case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: 2"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 67
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case 2: { throw new Error('Not implemented yet: 2 case') }",
+                      "range": {
+                        "end": 98,
+                        "pos": 98
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype T = 1 | 2;\n\nfunction test(value: T): number {\n  switch (value) {\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ntype T = 1 | 2;\n\nfunction test(value: T): number {\n  switch (value) {\n  case 1: { throw new Error('Not implemented yet: 1 case') }\n  case 2: { throw new Error('Not implemented yet: 2 case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: 1 | 2"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 67
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\n  case 1: { throw new Error('Not implemented yet: 1 case') }\n  case 2: { throw new Error('Not implemented yet: 2 case') }\n  }",
+                      "range": {
+                        "pos": 69,
+                        "end": 74
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nexport enum Enum {\n  'test-test' = 'test-test',\n  'test' = 'test',\n}\n\nfunction test(arg: Enum): string {\n  switch (arg) {\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nexport enum Enum {\n  'test-test' = 'test-test',\n  'test' = 'test',\n}\n\nfunction test(arg: Enum): string {\n  switch (arg) {\n  case Enum['test-test']: { throw new Error('Not implemented yet: Enum[\\'test-test\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: (typeof Enum)[\"test-test\"] | Enum.test"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 116,
+                "end": 119
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\n  case Enum['test-test']: { throw new Error('Not implemented yet: Enum[\\'test-test\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }",
+                      "range": {
+                        "pos": 121,
+                        "end": 126
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nexport enum Enum {\n  '' = 'test-test',\n  'test' = 'test',\n}\n\nfunction test(arg: Enum): string {\n  switch (arg) {\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nexport enum Enum {\n  '' = 'test-test',\n  'test' = 'test',\n}\n\nfunction test(arg: Enum): string {\n  switch (arg) {\n  case Enum['']: { throw new Error('Not implemented yet: Enum[\\'\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 107,
+                "end": 110
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\n  case Enum['']: { throw new Error('Not implemented yet: Enum[\\'\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }",
+                      "range": {
+                        "pos": 112,
+                        "end": 117
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: (typeof Enum)[\"\"] | Enum.test"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nexport enum Enum {\n  '9test' = 'test-test',\n  'test' = 'test',\n}\n\nfunction test(arg: Enum): string {\n  switch (arg) {\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nexport enum Enum {\n  '9test' = 'test-test',\n  'test' = 'test',\n}\n\nfunction test(arg: Enum): string {\n  switch (arg) {\n  case Enum['9test']: { throw new Error('Not implemented yet: Enum[\\'9test\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\n  case Enum['9test']: { throw new Error('Not implemented yet: Enum[\\'9test\\'] case') }\n  case Enum.test: { throw new Error('Not implemented yet: Enum.test case') }\n  }",
+                      "range": {
+                        "pos": 117,
+                        "end": 122
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: (typeof Enum)[\"9test\"] | Enum.test"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 115
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst value: number = Math.floor(Math.random() * 3);\nswitch (value) {\n  case 0:\n    return 0;\n  case 1:\n    return 1;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nconst value: number = Math.floor(Math.random() * 3);\nswitch (value) {\n  case 0:\n    return 0;\n  case 1:\n    return 1;\n  default: { throw new Error('default case') }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: default"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 67
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  default: { throw new Error('default case') }",
+                      "range": {
+                        "pos": 118,
+                        "end": 118
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Enum {\n          'a' = 1,\n          [`key-with\n\n          new-line`] = 2,\n        }\n\n        declare const a: Enum;\n\n        switch (a) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\n        enum Enum {\n          'a' = 1,\n          [`key-with\n\n          new-line`] = 2,\n        }\n\n        declare const a: Enum;\n\n        switch (a) {\n        case Enum.a: { throw new Error('Not implemented yet: Enum.a case') }\n        case Enum['key-with\\n\\n          new-line']: { throw new Error('Not implemented yet: Enum[\\'key-with\\\\n\\\\n          new-line\\'] case') }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\n        case Enum.a: { throw new Error('Not implemented yet: Enum.a case') }\n        case Enum['key-with\\n\\n          new-line']: { throw new Error('Not implemented yet: Enum[\\'key-with\\\\n\\\\n          new-line\\'] case') }\n        }",
+                      "range": {
+                        "pos": 150,
+                        "end": 161
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: Enum.a | (typeof Enum)[\"key-with\\n\\n          new-line\"]"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 148,
+                "pos": 147
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Enum {\n          'a' = 1,\n          \"'a' `b` \\\"c\\\"\" = 2,\n        }\n\n        declare const a: Enum;\n\n        switch (a) {}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\n        enum Enum {\n          'a' = 1,\n          \"'a' `b` \\\"c\\\"\" = 2,\n        }\n\n        declare const a: Enum;\n\n        switch (a) {\n        case Enum.a: { throw new Error('Not implemented yet: Enum.a case') }\n        case Enum['\\'a\\' `b` \"c\"']: { throw new Error('Not implemented yet: Enum[\\'\\\\\\'a\\\\\\' `b` \"c\"\\'] case') }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: Enum.a | (typeof Enum)[\"'a' `b` \\\"c\\\"\"]"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 130,
+                "end": 131
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "{\n        case Enum.a: { throw new Error('Not implemented yet: Enum.a case') }\n        case Enum['\\'a\\' `b` \"c\"']: { throw new Error('Not implemented yet: Enum[\\'\\\\\\'a\\\\\\' `b` \"c\"\\'] case') }\n        }",
+                      "range": {
+                        "pos": 133,
+                        "end": 135
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype MyUnion = 'foo' | 'bar' | 'baz';\n\ndeclare const myUnion: MyUnion;\n\nswitch (myUnion) {\n  case 'foo':\n  case 'bar':\n  case 'baz': {\n    break;\n  }\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 153,
+                "end": 178
+              },
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nenum MyEnum {\n  Foo = 'Foo',\n  Bar = 'Bar',\n  Baz = 'Baz',\n}\n\ndeclare const myEnum: MyEnum;\n\nswitch (myEnum) {\n  case MyEnum.Foo:\n  case MyEnum.Bar:\n  case MyEnum.Baz: {\n    break;\n  }\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 188,
+                "end": 213
+              },
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nenum MyEnum {\n  Foo,\n  Bar,\n  Baz,\n}\n\ndeclare const myEnum: MyEnum;\n\nswitch (myEnum) {\n  case MyEnum.Foo:\n  case MyEnum.Bar:\n  case MyEnum.Baz: {\n    break;\n  }\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 164,
+                "end": 189
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const myBoolean: boolean;\n\nswitch (myBoolean) {\n  case true:\n  case false: {\n    break;\n  }\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 103,
+                "end": 128
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const myValue: undefined;\n\nswitch (myValue) {\n  case undefined: {\n    break;\n  }\n\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 93,
+                "end": 118
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const myValue: null;\n\nswitch (myValue) {\n  case null: {\n    break;\n  }\n\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 83,
+                "end": 108
+              },
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const myValue: 'foo' | boolean | undefined | null;\n\nswitch (myValue) {\n  case 'foo':\n  case true:\n  case false:\n  case undefined:\n  case null: {\n    break;\n  }\n\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 172,
+                "end": 197
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b';\n\nswitch (literal) {\n  case 'a':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const literal: 'a' | 'b';\n\nswitch (literal) {\n  case 'a':\n    break;\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  default:\n    break;\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  ",
+                      "range": {
+                        "pos": 80,
+                        "end": 80
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 51
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b';\n\nswitch (literal) {\n  case 'a':\n    break;\n}\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const literal: 'a' | 'b';\n\nswitch (literal) {\n  case 'a':\n    break;\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n}\n"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 51
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }",
+                      "range": {
+                        "pos": 77,
+                        "end": 77
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b';\n\nswitch (literal) {\n  default:\n  case 'a':\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const literal: 'a' | 'b';\n\nswitch (literal) {\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  default:\n  case 'a':\n    break;\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 51
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  ",
+                      "range": {
+                        "pos": 57,
+                        "end": 57
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b' | 'c';\n\nswitch (literal) {\n  case 'a':\n    break;\n  default:\n    break;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const literal: 'a' | 'b' | 'c';\n\nswitch (literal) {\n  case 'a':\n    break;\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  case \"c\": { throw new Error('Not implemented yet: \"c\" case') }\n  default:\n    break;\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\" | \"c\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 57
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  case \"c\": { throw new Error('Not implemented yet: \"c\" case') }\n  ",
+                      "range": {
+                        "pos": 86,
+                        "end": 86
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nenum MyEnum {\n  Foo = 'Foo',\n  Bar = 'Bar',\n  Baz = 'Baz',\n}\n\ndeclare const myEnum: MyEnum;\n\nswitch (myEnum) {\n  case MyEnum.Foo:\n    break;\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 10,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nenum MyEnum {\n  Foo = 'Foo',\n  Bar = 'Bar',\n  Baz = 'Baz',\n}\n\ndeclare const myEnum: MyEnum;\n\nswitch (myEnum) {\n  case MyEnum.Foo:\n    break;\n  case MyEnum.Bar: { throw new Error('Not implemented yet: MyEnum.Bar case') }\n  case MyEnum.Baz: { throw new Error('Not implemented yet: MyEnum.Baz case') }\n  default: {\n    break;\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: MyEnum.Bar | MyEnum.Baz"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 102,
+                "end": 108
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "case MyEnum.Bar: { throw new Error('Not implemented yet: MyEnum.Bar case') }\n  case MyEnum.Baz: { throw new Error('Not implemented yet: MyEnum.Baz case') }\n  ",
+                      "range": {
+                        "pos": 144,
+                        "end": 144
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const value: boolean;\nswitch (value) {\n  default: {\n    break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const value: boolean;\nswitch (value) {\n  case false: { throw new Error('Not implemented yet: false case') }\n  case true: { throw new Error('Not implemented yet: true case') }\n  default: {\n    break;\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: false | true"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 44,
+                "pos": 39
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "case false: { throw new Error('Not implemented yet: false case') }\n  case true: { throw new Error('Not implemented yet: true case') }\n  ",
+                      "range": {
+                        "pos": 50,
+                        "end": 50
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo(x: string[]) {\n  switch (x[0]) {\n    case 'hi':\n      break;\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\nfunction foo(x: string[]) {\n  switch (x[0]) {\n    case 'hi':\n      break;\n    case undefined: { throw new Error('Not implemented yet: undefined case') }\n  }\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "tsconfig.noUncheckedIndexedAccess.json",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: undefined"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 43,
+                "pos": 39
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n    case undefined: { throw new Error('Not implemented yet: undefined case') }",
+                      "range": {
+                        "pos": 74,
+                        "end": 74
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const myValue: 'a' | 'b';\nswitch (myValue) {\n  case 'a':\n    return 'a';\n  case 'b':\n    return 'b';\n  // no default\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "dangerousDefaultCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": false,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "dangerousDefaultCase",
+                "description": "The switch statement is exhaustive, so the default case is unnecessary."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 125
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b' | 'c';\n\nswitch (literal) {\n  case 'a':\n    break;\n  // no default\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const literal: 'a' | 'b' | 'c';\n\nswitch (literal) {\n  case 'a':\n    break;\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  case \"c\": { throw new Error('Not implemented yet: \"c\" case') }\n  // no default\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\" | \"c\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 57,
+                "pos": 50
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  case \"c\": { throw new Error('Not implemented yet: \"c\" case') }",
+                      "range": {
+                        "pos": 83,
+                        "end": 83
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const literal: 'a' | 'b' | 'c';\n\nswitch (literal) {\n  case 'a':\n    break;\n  // skip default\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\ndeclare const literal: 'a' | 'b' | 'c';\n\nswitch (literal) {\n  case 'a':\n    break;\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  case \"c\": { throw new Error('Not implemented yet: \"c\" case') }\n  // skip default\n}\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowDefaultCaseForExhaustiveSwitch": true,
+            "considerDefaultExhaustiveForUnions": false,
+            "defaultCaseCommentPattern": "^skip\\sdefault",
+            "requireDefaultForNonUnion": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: \"b\" | \"c\""
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 57
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n  case \"b\": { throw new Error('Not implemented yet: \"b\" case') }\n  case \"c\": { throw new Error('Not implemented yet: \"c\" case') }",
+                      "range": {
+                        "pos": 83,
+                        "end": 83
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check"
+            }
+          ]
+        },
+        {
+          "Code": "\n        export namespace A {\n          export enum B {\n            C,\n            D,\n          }\n        }\n        declare const foo: A.B;\n        switch (foo) {\n          case A.B.C: {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 9,
+              "Column": 17,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\n        export namespace A {\n          export enum B {\n            C,\n            D,\n          }\n        }\n        declare const foo: A.B;\n        switch (foo) {\n          case A.B.C: {\n            break;\n          }\n          case B.D: { throw new Error('Not implemented yet: B.D case') }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n          case B.D: { throw new Error('Not implemented yet: B.D case') }",
+                      "range": {
+                        "pos": 217,
+                        "end": 217
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: B.D"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 159,
+                "pos": 156
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        import { A } from './switch-exhaustiveness-check';\n        declare const foo: A.B;\n        switch (foo) {\n          case A.B.C: {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "switchIsNotExhaustive",
+              "Line": 4,
+              "Column": 17,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addMissingCases",
+                  "Output": "\n        import { A } from './switch-exhaustiveness-check';\n        declare const foo: A.B;\n        switch (foo) {\n          case A.B.C: {\n            break;\n          }\n          case B.D: { throw new Error('Not implemented yet: B.D case') }\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 108,
+                "end": 111
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addMissingCases",
+                    "description": "Add branches for missing cases."
+                  },
+                  "fixes": [
+                    {
+                      "text": "\n          case B.D: { throw new Error('Not implemented yet: B.D case') }",
+                      "range": {
+                        "pos": 169,
+                        "end": 169
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "switch-exhaustiveness-check",
+              "message": {
+                "id": "switchIsNotExhaustive",
+                "description": "Switch is not exhaustive. Cases not matched: B.D"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

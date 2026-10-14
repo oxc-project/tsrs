@@ -125,6 +125,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "return-await"
             | "strict-boolean-expressions"
             | "strict-void-return"
+            | "switch-exhaustiveness-check"
     ) {
         return Ok(());
     }
@@ -238,6 +239,7 @@ pub fn create_rule(
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "strict-boolean-expressions" => crate::rules::strict_boolean_expressions::StrictBooleanExpressions::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "strict-void-return" => crate::rules::strict_void_return::StrictVoidReturn::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "switch-exhaustiveness-check" => crate::rules::switch_exhaustiveness_check::SwitchExhaustivenessCheck::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

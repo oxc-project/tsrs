@@ -74,6 +74,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "consistent-type-exports"
             | "dot-notation"
             | "no-array-delete"
+            | "no-base-to-string"
     ) {
         return Ok(());
     }
@@ -100,6 +101,10 @@ pub fn create_rule(
         "dot-notation" => crate::rules::dot_notation::DotNotation::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "no-array-delete" => Ok(Box::new(crate::rules::no_array_delete::NoArrayDelete)),
+        "no-base-to-string" => {
+            crate::rules::no_base_to_string::NoBaseToString::new(&config.options)
+                .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
+        }
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

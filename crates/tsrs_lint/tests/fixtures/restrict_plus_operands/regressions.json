@@ -1,0 +1,646 @@
+[
+  {
+    "name": "utf8-labels",
+    "source": "export {};\nconst café = '☕'; café /* é */ + 2; 1n + 2;",
+    "options": {
+      "allowNumberAndString": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 32,
+          "end": 50
+        },
+        "message": {
+          "id": "mismatched",
+          "description": "Operands of '+' operations must be of the same type.",
+          "help": "Operands must both be a number or both be string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: string",
+            "range": {
+              "pos": 32,
+              "end": 37
+            }
+          },
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 49,
+              "end": 50
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 52,
+          "end": 58
+        },
+        "message": {
+          "id": "bigintAndNumber",
+          "description": "Numeric '+' operations must either be both bigints or both numbers."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: bigint",
+            "range": {
+              "pos": 52,
+              "end": 54
+            }
+          },
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 57,
+              "end": 58
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "invalid-order",
+    "source": "export {};\ndeclare const café: unknown; declare const π: symbol; café /* ☕ */ + π;",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 67,
+          "end": 72
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'unknown' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 85,
+          "end": 87
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'symbol' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "null-defaults",
+    "source": "export {};\ndeclare const café: any; café + true; null + 'é'; /é/ + '☕'; let π = ''; π += 1;",
+    "options": {
+      "allowAny": null,
+      "allowBoolean": null,
+      "allowNullish": null,
+      "allowNumberAndString": null,
+      "allowRegExp": null,
+      "skipCompoundAssignments": null
+    },
+    "expected": []
+  },
+  {
+    "name": "single-help",
+    "source": "export {};\ntrue + {}; /é/ + 1;",
+    "options": {
+      "allowAny": false,
+      "allowBoolean": false,
+      "allowNullish": false,
+      "allowRegExp": true,
+      "allowNumberAndString": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 11,
+          "end": 15
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'boolean' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + `RegExp`."
+        },
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 18,
+          "end": 20
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type '{}' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + `RegExp`."
+        },
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 22,
+          "end": 26
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'RegExp' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + `RegExp`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "no-help-extras",
+    "source": "export {};\n'☕' + 1;",
+    "options": {
+      "allowAny": false,
+      "allowBoolean": false,
+      "allowNullish": false,
+      "allowRegExp": false,
+      "allowNumberAndString": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 11,
+          "end": 20
+        },
+        "message": {
+          "id": "mismatched",
+          "description": "Operands of '+' operations must be of the same type.",
+          "help": "Operands must both be a number or both be string."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: string",
+            "range": {
+              "pos": 11,
+              "end": 16
+            }
+          },
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 19,
+              "end": 20
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "skip-compound",
+    "source": "export {};\nlet café = ''; café += 1; café + 1;",
+    "options": {
+      "allowNumberAndString": false,
+      "skipCompoundAssignments": true
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 39,
+          "end": 48
+        },
+        "message": {
+          "id": "mismatched",
+          "description": "Operands of '+' operations must be of the same type.",
+          "help": "Operands must both be a number or both be string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: string",
+            "range": {
+              "pos": 39,
+              "end": 44
+            }
+          },
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 47,
+              "end": 48
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "check-compound",
+    "source": "export {};\nlet café = ''; café += 1; café + 1;",
+    "options": {
+      "allowNumberAndString": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 27,
+          "end": 37
+        },
+        "message": {
+          "id": "mismatched",
+          "description": "Operands of '+' operations must be of the same type.",
+          "help": "Operands must both be a number or both be string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: string",
+            "range": {
+              "pos": 27,
+              "end": 32
+            }
+          },
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 36,
+              "end": 37
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 39,
+          "end": 48
+        },
+        "message": {
+          "id": "mismatched",
+          "description": "Operands of '+' operations must be of the same type.",
+          "help": "Operands must both be a number or both be string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: string",
+            "range": {
+              "pos": 39,
+              "end": 44
+            }
+          },
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 47,
+              "end": 48
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "constraints",
+    "source": "export {};\nfunction f<T extends U, U extends number>(café: T) { café + 1; café + 1n; } function g<T>(π: T) { π + 1; }",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 76,
+          "end": 86
+        },
+        "message": {
+          "id": "bigintAndNumber",
+          "description": "Numeric '+' operations must either be both bigints or both numbers."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: number",
+            "range": {
+              "pos": 76,
+              "end": 81
+            }
+          },
+          {
+            "label": "Type: bigint",
+            "range": {
+              "pos": 84,
+              "end": 86
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "object-intersections",
+    "source": "export {};\ndeclare const café: {x: 1} & {y: 2}; declare const π: number & {tag: true}; café + π; π + 1;",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 89,
+          "end": 94
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type '{ x: 1; } & { y: 2; }' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "regexp-identity",
+    "source": "export {};\ndeclare const café: RegExp; declare const π: RegExp & {tag: true}; café + 'é'; café + 1n; café + 1; π + 'é';",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 106,
+          "end": 111
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'RegExp' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 117,
+          "end": 119
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'RegExp & { tag: true; }' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "union-mismatch",
+    "source": "export {};\ndeclare const café: number | bigint; declare const π: string | number; café + π;",
+    "options": {
+      "allowNumberAndString": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 84,
+          "end": 94
+        },
+        "message": {
+          "id": "mismatched",
+          "description": "Operands of '+' operations must be of the same type.",
+          "help": "Operands must both be a number or both be string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: number | bigint",
+            "range": {
+              "pos": 84,
+              "end": 89
+            }
+          },
+          {
+            "label": "Type: string | number",
+            "range": {
+              "pos": 92,
+              "end": 94
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "union-invalid",
+    "source": "export {};\ndeclare const café: number | string | undefined; café + true;",
+    "options": {
+      "allowNullish": false,
+      "allowBoolean": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 61,
+          "end": 66
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'string | number | undefined' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `RegExp`."
+        },
+        "rule": "restrict-plus-operands"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 69,
+          "end": 73
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'boolean' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `RegExp`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "allowed-default",
+    "source": "export {};\ndeclare const café: boolean; declare const π: undefined | string; café + π;",
+    "options": null,
+    "expected": []
+  },
+  {
+    "name": "forbidden-boolean",
+    "source": "export {};\ndeclare const café: boolean; café + '☕';",
+    "options": {
+      "allowBoolean": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 41,
+          "end": 46
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'boolean' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "forbidden-any",
+    "source": "export {};\ndeclare const café: any; café + '☕';",
+    "options": {
+      "allowAny": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 37,
+          "end": 42
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'any' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "forbidden-regexp",
+    "source": "export {};\ndeclare const café: RegExp; café + '☕';",
+    "options": {
+      "allowRegExp": false
+    },
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 40,
+          "end": 45
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'RegExp' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "unknown-options",
+    "source": "export {};\n'☕' + 1;",
+    "options": {
+      "irrelevant": false
+    },
+    "expected": []
+  },
+  {
+    "name": "same-union",
+    "source": "export {};\ndeclare const café: number | bigint; café + café;",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 49,
+          "end": 62
+        },
+        "message": {
+          "id": "bigintAndNumber",
+          "description": "Numeric '+' operations must either be both bigints or both numbers."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: number | bigint",
+            "range": {
+              "pos": 49,
+              "end": 54
+            }
+          },
+          {
+            "label": "Type: number | bigint",
+            "range": {
+              "pos": 57,
+              "end": 62
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "never-and-void",
+    "source": "export {};\ndeclare const café: never; declare const π: void; café + π;",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 63,
+          "end": 68
+        },
+        "message": {
+          "id": "invalid",
+          "description": "Invalid operand of type 'never' for a '+' operation.",
+          "help": "Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`."
+        },
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  },
+  {
+    "name": "numeric-enums",
+    "source": "export {};\nenum É { A = 1 }; É.A + 1n; É.A + 1;",
+    "options": null,
+    "expected": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 30,
+          "end": 39
+        },
+        "message": {
+          "id": "bigintAndNumber",
+          "description": "Numeric '+' operations must either be both bigints or both numbers."
+        },
+        "labeled_ranges": [
+          {
+            "label": "Type: É",
+            "range": {
+              "pos": 30,
+              "end": 34
+            }
+          },
+          {
+            "label": "Type: bigint",
+            "range": {
+              "pos": 37,
+              "end": 39
+            }
+          }
+        ],
+        "rule": "restrict-plus-operands"
+      }
+    ]
+  }
+]

@@ -1404,7 +1404,7 @@ pub struct Checker {
     pub(crate) global_string_type: P<Type>,
     pub(crate) global_number_type: P<Type>,
     pub(crate) global_boolean_type: P<Type>,
-    pub(crate) global_reg_exp_type: P<Type>,
+    pub global_reg_exp_type: P<Type>,
     pub(crate) global_this_type: P<Type>,
     pub(crate) any_array_type: P<Type>,
     pub(crate) auto_array_type: P<Type>,

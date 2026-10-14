@@ -83,6 +83,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-implied-eval"
             | "no-meaningless-void-operator"
             | "no-misused-promises"
+            | "no-misused-spread"
     ) {
         return Ok(());
     }
@@ -141,6 +142,10 @@ pub fn create_rule(
         }
         "no-misused-promises" => {
             crate::rules::no_misused_promises::NoMisusedPromises::new(&config.options)
+                .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
+        }
+        "no-misused-spread" => {
+            crate::rules::no_misused_spread::NoMisusedSpread::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         name => {

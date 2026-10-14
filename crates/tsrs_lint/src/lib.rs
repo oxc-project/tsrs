@@ -32,4 +32,5 @@ mod rules {
     pub mod no_implied_eval;
     pub mod no_meaningless_void_operator;
     pub mod no_misused_promises;
+    pub mod no_misused_spread;
 }

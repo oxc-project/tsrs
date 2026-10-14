@@ -1,0 +1,4644 @@
+{
+  "Name": "no-misused-spread",
+  "Suites": {
+    "TestNoMisusedSpreadRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "const a = [...[1, 2, 3]];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const a = [...([1, 2, 3] as const)];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const data: any;\n      const a = [...data];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const data: unknown;\n      const a = [...data];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const a = [1, 2, 3];\n      const b = [...a];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const a = [1, 2, 3] as const;\n      const b = [...a];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare function getArray(): number[];\n      const a = [...getArray()];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare function getTuple(): readonly number[];\n      const a = [...getTuple()];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const iterator = {\n        *[Symbol.iterator]() {\n          yield 1;\n          yield 2;\n          yield 3;\n        },\n      };\n\n      const a = [...iterator];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const data: Iterable<number> | number[];\n\n      const a = [...data];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const data: Iterable<number> & number[];\n\n      const a = [...data];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare function getIterable(): Iterable<number>;\n\n      const a = [...getIterable()];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const data: Uint8Array;\n\n      const a = [...data];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const data: TypedArray;\n\n      const a = [...data];\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const o = { ...{ a: 1, b: 2 } };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const o = { ...({ a: 1, b: 2 } as const) };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const obj: any;\n\n      const o = { ...obj };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const obj: { a: number; b: number } | any;\n\n      const o = { ...obj };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const obj: { a: number; b: number } & any;\n\n      const o = { ...obj };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const obj = { a: 1, b: 2 };\n      const o = { ...obj };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const obj: { a: number; b: number };\n      const o = { ...obj };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare function getObject(): { a: number; b: number };\n      const o = { ...getObject() };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f() {}\n\n      f.prop = 1;\n\n      const o = { ...f };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const f = () => {};\n\n      f.prop = 1;\n\n      const o = { ...f };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function* generator() {}\n\n      generator.prop = 1;\n\n      const o = { ...generator };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const promiseLike: PromiseLike<number>;\n\n      const o = { ...promiseLike };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const obj = { a: 1, b: 2 };\n        const o = <div {...x} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const obj: { a: number; b: number } | any;\n        const o = <div {...x} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const promise = new Promise(() => {});\n        const o = { ...promise };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Promise"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      interface A {}\n\n      declare const a: A;\n\n      const o = { ...a };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const o = { ...'test' };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const str: string = 'test';\n        const a = [...str];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "string"
+                ],
+                "from": "lib"
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        function f() {}\n\n        const a = { ...f };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "f"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare const iterator: Iterable<string>;\n\n        const a = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "lib",
+                "name": [
+                  "Iterable"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        type BrandedString = string & { __brand: 'safe' };\n\n        declare const brandedString: BrandedString;\n\n        const spreadBrandedString = [...brandedString];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "BrandedString"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        type CustomIterable = {\n          [Symbol.iterator]: () => Generator<string>;\n        };\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "CustomIterable"
+                ],
+                "from": "file"
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        type CustomIterable = {\n          [Symbol.iterator]: () => string;\n        };\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "CustomIterable"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        declare module 'module' {\n          export type CustomIterable = {\n            [Symbol.iterator]: () => string;\n          };\n        }\n\n        import { CustomIterable } from 'module';\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "package",
+                "name": [
+                  "CustomIterable"
+                ],
+                "package": "module"
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        const a = new A();\n\n        const o = { ...a };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "A"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n        const a = {\n          ...class A {\n            static value = 1;\n          },\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "A"
+                ]
+              }
+            ]
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "const a = [...'test'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 1,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 21,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 11,
+                "end": 20
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function withText<Text extends string>(text: Text) {\n          return [...text];\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 26,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 80,
+                "end": 87
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        const test = 'hello';\n        const a = [...test];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 57,
+                "pos": 50
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const test = `he${'ll'}o`;\n        const a = [...test];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 62,
+                "pos": 55
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const test: string;\n        const a = [...test];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 63
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const test: string | number[];\n        const a = [...test];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 67,
+                "end": 74
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const test: string & { __brand: 'test' };\n        const a = [...test];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 85
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const test: number | (boolean | (string & { __brand: true }));\n        const a = [...test];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 99,
+                "end": 106
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getString(): string;\n        const a = [...getString()];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 66,
+                "end": 80
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function textIdentity(...args: string[]);\n\n        declare const text: string;\n\n        textIdentity(...text);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 6,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 118,
+                "end": 125
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function textIdentity(...args: string[]);\n\n        declare const text: string;\n\n        textIdentity(...text, 'and', ...text);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 6,
+              "Column": 22,
+              "EndLine": 0,
+              "EndColumn": 29,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "noStringSpread",
+              "Line": 6,
+              "Column": 38,
+              "EndLine": 0,
+              "EndColumn": 45,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 118,
+                "end": 125
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              }
+            },
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 134,
+                "end": 141
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function textIdentity(...args: string[]);\n\n        function withText<Text extends string>(text: Text) {\n          textIdentity(...text);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 5,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 151,
+                "pos": 144
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getString<T extends string>(): T;\n        const a = [...getString()];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 79,
+                "end": 93
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getString(): string & { __brand: 'test' };\n        const a = [...getString()];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noStringSpread",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noStringSpread",
+                "description": "Using the spread operator on a string can mishandle special characters, because it produces Unicode code points, which will break complex characters (like emojis) into multiple parts.",
+                "help": "Consider using `Intl.Segmenter` for locale-aware string decomposition. Otherwise, if you don't need to preserve emojis or other non-ASCII characters, disable this lint rule on this line or configure the 'allow' rule option."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 88,
+                "end": 102
+              }
+            }
+          ]
+        },
+        {
+          "Code": "const o = { ...[1, 2, 3] };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 1,
+              "Column": 13,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 12,
+                "end": 24
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        const arr = [1, 2, 3];\n        const o = { ...arr };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 58
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const arr = [1, 2, 3] as const;\n        const o = { ...arr };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 61,
+                "end": 67
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[];\n        const o = { ...arr };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 64
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: readonly number[];\n        const o = { ...arr };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 67,
+                "end": 73
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[] | string[];\n        const o = { ...arr };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const arr: number[] & string[];\n        const o = { ...arr };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getArray(): number[];\n        const o = { ...getArray() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 81
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getArray(): readonly number[];\n        const o = { ...getArray() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 77,
+                "end": 90
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "const o = { ...new Set([1, 2, 3]) };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 1,
+              "Column": 13,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 12,
+                "end": 33
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const set = new Set([1, 2, 3]);\n        const o = { ...set };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 61,
+                "end": 67
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const set: Set<number>;\n        const o = { ...set };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 61,
+                "end": 67
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const set: WeakSet<object>;\n        const o = { ...set };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 65,
+                "end": 71
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const set: ReadonlySet<number>;\n        const o = { ...set };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const set: Set<number> | { a: number };\n        const o = { ...set };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 77,
+                "end": 83
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getSet(): Set<number>;\n        const o = { ...getSet() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 80
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const o = {\n          ...new Map([\n            ['test-1', 1],\n            ['test-2', 2],\n          ]),\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 6,
+              "EndColumn": 13,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        const o = \n          Object.fromEntries(new Map([\n            ['test-1', 1],\n            ['test-2', 2],\n          ]))\n        ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 31,
+                "end": 110
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 19,
+                        "end": 20
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 31,
+                        "end": 34
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 110,
+                        "end": 111
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 120,
+                        "end": 121
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        const map = new Map([\n          ['test-1', 1],\n          ['test-2', 2],\n        ]);\n\n        const o = { ...map };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 7,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        const map = new Map([\n          ['test-1', 1],\n          ['test-2', 2],\n        ]);\n\n        const o =  Object.fromEntries(map) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 120,
+                "pos": 114
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 112,
+                        "end": 113
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 114,
+                        "end": 117
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 120,
+                        "end": 120
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 121,
+                        "end": 122
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number>;\n        const o = { ...map };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: Map<string, number>;\n        const o =  Object.fromEntries(map) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 75
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 67,
+                        "end": 68
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 69,
+                        "end": 72
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 75,
+                        "end": 75
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 76,
+                        "end": 77
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number>;\n        const o = { ...(map) };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 29,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: Map<string, number>;\n        const o =  Object.fromEntries((map)) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 77
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 67,
+                        "end": 68
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 69,
+                        "end": 72
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 77,
+                        "end": 77
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 79,
+                        "pos": 78
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number>;\n        const o = { ...(map, map) };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: Map<string, number>;\n        const o =  Object.fromEntries((map, map)) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 82
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 67,
+                        "end": 68
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 69,
+                        "end": 72
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 82,
+                        "end": 82
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 83,
+                        "end": 84
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number>;\n        const others = { a: 1 };\n        const o = { ...map, ...others };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: Map<string, number>;\n        const others = { a: 1 };\n        const o = { ...Object.fromEntries(map), ...others };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 102,
+                "end": 108
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 105,
+                        "end": 105
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 108,
+                        "end": 108
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number>;\n        const o = { other: 1, ...map };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 31,
+              "EndLine": 0,
+              "EndColumn": 37,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: Map<string, number>;\n        const o = { other: 1, ...Object.fromEntries(map) };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 79,
+                "end": 85
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 82,
+                        "end": 82
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 85,
+                        "end": 85
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: ReadonlyMap<string, number>;\n        const o = { ...map };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: ReadonlyMap<string, number>;\n        const o =  Object.fromEntries(map) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 77,
+                "end": 83
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 75,
+                        "end": 76
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "end": 80,
+                        "pos": 77
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 83,
+                        "end": 83
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 84,
+                        "end": 85
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: WeakMap<{ a: number }, string>;\n        const o = { ...map };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 80,
+                "end": 86
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number> | { a: number };\n        const o = { ...map };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 85,
+                "end": 91
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getMap(): Map<string, number>;\n        const o = { ...getMap() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare function getMap(): Map<string, number>;\n        const o =  Object.fromEntries(getMap()) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "end": 76,
+                        "pos": 75
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 77,
+                        "end": 80
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 88,
+                        "end": 88
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 89,
+                        "end": 90
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 77,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const a: Map<boolean, string> & Set<number>;\n        const o = { ...a };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const a: Map<boolean, string> & Set<number>;\n        const o =  Object.fromEntries(a) ;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 86
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 80,
+                        "end": 81
+                      }
+                    },
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "end": 85,
+                        "pos": 82
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 86,
+                        "end": 86
+                      }
+                    },
+                    {
+                      "text": "",
+                      "range": {
+                        "pos": 87,
+                        "end": 88
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const ref = new WeakRef({ a: 1 });\n        const o = { ...ref };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 70
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        const promise = new Promise(() => {});\n        const o = { ...promise };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        const promise = new Promise(() => {});\n        const o = { ...await promise };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 78,
+                "pos": 68
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 71,
+                        "end": 71
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const promise: Promise<{ a: 1 }>;\n        async function foo() {\n          return { ...(promise || {}) };\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 4,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 38,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        declare const promise: Promise<{ a: 1 }>;\n        async function foo() {\n          return { ...(await (promise || {})) };\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 101,
+                "end": 119
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 105,
+                        "end": 105
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "end": 118,
+                        "pos": 118
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const promise: Promise<any>;\n        async function foo() {\n          return { ...(Math.random() < 0.5 ? promise : {}) };\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 4,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 59,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        declare const promise: Promise<any>;\n        async function foo() {\n          return { ...(await (Math.random() < 0.5 ? promise : {})) };\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 96,
+                "end": 135
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await (",
+                      "range": {
+                        "pos": 100,
+                        "end": 100
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 134,
+                        "end": 134
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function withPromise<P extends Promise<void>>(promise: P) {\n          return { ...promise };\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 3,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        function withPromise<P extends Promise<void>>(promise: P) {\n          return { ...await promise };\n        }\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 91,
+                        "end": 91
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 88,
+                "end": 98
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const maybePromise: Promise<number> | { a: number };\n        const o = { ...maybePromise };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 36,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        declare const maybePromise: Promise<number> | { a: number };\n        const o = { ...await maybePromise };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 90,
+                "end": 105
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 93,
+                        "end": 93
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const promise: Promise<number> & { a: number };\n        const o = { ...promise };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        declare const promise: Promise<number> & { a: number };\n        const o = { ...await promise };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 88,
+                        "end": 88
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 95,
+                "pos": 85
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getPromise(): Promise<number>;\n        const o = { ...getPromise() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 36,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        declare function getPromise(): Promise<number>;\n        const o = { ...await getPromise() };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 77,
+                "end": 92
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 80,
+                        "end": 80
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getPromise<T extends Promise<number>>(arg: T): T;\n        const o = { ...getPromise() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 36,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        declare function getPromise<T extends Promise<number>>(arg: T): T;\n        const o = { ...await getPromise() };\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 96,
+                "end": 111
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 99,
+                        "end": 99
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f() {}\n\n        const o = { ...f };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 50
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        interface FunctionWithProps {\n          (): string;\n          prop: boolean;\n        }\n\n        type FunctionWithoutProps = () => string;\n\n        declare const obj: FunctionWithProps | FunctionWithoutProps | object;\n\n        const o = { ...obj };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 11,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 247,
+                "end": 253
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const f = () => {};\n\n        const o = { ...f };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 50,
+                "end": 54
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function f(): void;\n\n        const o = { ...f };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 62,
+                "pos": 58
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getFunction(): () => void;\n\n        const o = { ...getFunction() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 37,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 74,
+                "end": 90
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const f: () => void;\n\n        const o = { ...f };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 59,
+                "end": 63
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const f: () => void | { a: number };\n\n        const o = { ...f };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 75,
+                "end": 79
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function* generator() {}\n\n        const o = { ...generator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 33,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 55,
+                "end": 67
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const iterator = {\n          *[Symbol.iterator]() {\n            yield 'test';\n          },\n        };\n\n        const o = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 132,
+                "end": 143
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        type CustomIterable = {\n          [Symbol.iterator]: () => Generator<string>;\n        };\n\n        const iterator: CustomIterable = {\n          *[Symbol.iterator]() {\n            yield 'test';\n          },\n        };\n\n        const a = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 12,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "from": "file",
+                "name": [
+                  "AnotherIterable"
+                ]
+              }
+            ]
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 246,
+                "end": 257
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare module 'module' {\n          export type CustomIterable = {\n            [Symbol.iterator]: () => string;\n          };\n        }\n\n        import { CustomIterable } from 'module';\n\n        declare const iterator: CustomIterable;\n\n        const a = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": true,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 12,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allow": [
+              {
+                "name": [
+                  "Nothing"
+                ],
+                "package": "module",
+                "from": "package"
+              }
+            ]
+          },
+          "Tsx": false,
+          "Files": {}
+        },
+        {
+          "Code": "\n        declare const iterator: Iterable<string>;\n\n        const o = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 72,
+                "end": 83
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const iterator: Iterable<string> | { a: number };\n\n        const o = { ...iterator };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 88,
+                "end": 99
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare function getIterable(): Iterable<string>;\n\n        const o = { ...getIterable() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 37,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 96,
+                "pos": 80
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          [Symbol.iterator]() {\n            return {\n              next() {\n                return { done: true, value: undefined };\n              },\n            };\n          }\n        }\n\n        const a = { ...new A() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 12,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 227,
+                "end": 237
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const o = { ...new Date() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 2,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 34,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 21,
+                "end": 34
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare class HTMLElementLike {}\n        declare const element: HTMLElementLike;\n        const o = { ...element };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 110,
+                "end": 120
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const regex: RegExp;\n        const o = { ...regex };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 3,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 66
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n          public b = 2;\n          private c = 3;\n          protected d = 4;\n          static e = 5;\n        }\n\n        const o = { ...new A() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 10,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 167,
+                "end": 177
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        const a = new A();\n\n        const o = { ...a };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 95,
+                "end": 99
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare const a: A;\n\n        const o = { ...a };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 96,
+                "end": 100
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare function getA(): A;\n\n        const o = { ...getA() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 113
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare function getA<T extends A>(arg: T): T;\n\n        const o = { ...getA() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 123,
+                "end": 132
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        class B extends A {}\n\n        const o = { ...new B() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 97,
+                "end": 107
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare const a: A | { b: string };\n\n        const o = { ...a };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 116
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {\n          a = 1;\n        }\n\n        declare const a: A & { b: string };\n\n        const o = { ...a };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 8,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 116
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {}\n\n        const o = { ...A };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 41,
+                "end": 45
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const A = class {};\n\n        const o = { ...A };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 54
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class Declaration {\n          declaration?: boolean;\n        }\n        const Expression = class {\n          expression?: boolean;\n        };\n\n        declare const either: typeof Declaration | typeof Expression;\n\n        const o = { ...either };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 11,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 242,
+                "end": 251
+              },
+              "kind": 0,
+              "rule": "no-misused-spread"
+            }
+          ]
+        },
+        {
+          "Code": "\n        const A = Set<number>;\n\n        const o = { ...A };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 4,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 57
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const a = {\n          ...class A {\n            static value = 1;\n            nonStatic = 2;\n          },\n        };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 6,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 31,
+                "end": 112
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const a = { ...(class A { static value = 1 }) }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 2,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 54,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 21,
+                "end": 54
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const a = { ...new (class A { static value = 1; })() };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 2,
+              "Column": 21,
+              "EndLine": 0,
+              "EndColumn": 61,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 21,
+                "end": 61
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const o = <div {...[1, 2, 3]} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noArraySpreadInObject",
+              "Line": 2,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noArraySpreadInObject",
+                "description": "Using the spread operator on an array in an object will result in a list of indices."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "end": 38,
+                "pos": 24
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        class A {}\n\n        const o = <div {...A} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassDeclarationSpreadInObject",
+              "Line": 4,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassDeclarationSpreadInObject",
+                "description": "Using the spread operator on class declarations will spread only their static properties, and will lose their class prototype."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 44,
+                "end": 50
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const o = <div {...new Date()} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noClassInstanceSpreadInObject",
+              "Line": 2,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 39,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noClassInstanceSpreadInObject",
+                "description": "Using the spread operator on class instances will lose their class prototype."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "end": 39,
+                "pos": 24
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f() {}\n\n        const o = <div {...f} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noFunctionSpreadInObject",
+              "Line": 4,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 30,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 49,
+                "end": 55
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noFunctionSpreadInObject",
+                "description": "Using the spread operator on a function without additional properties can cause unexpected behavior.",
+                "help": "Did you forget to call the function?"
+              },
+              "file_path": "react.tsx"
+            }
+          ]
+        },
+        {
+          "Code": "\n        const o = <div {...new Set([1, 2, 3])} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noIterableSpreadInObject",
+              "Line": 2,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 47,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noIterableSpreadInObject",
+                "description": "Using the spread operator on an Iterable in an object can cause unexpected behavior."
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 24,
+                "end": 47
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const map: Map<string, number>;\n\n        const o = <div {...map} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 4,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 32,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceMapSpreadInObject",
+                  "Output": "\n        declare const map: Map<string, number>;\n\n        const o = <div {...Object.fromEntries(map)} />;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceMapSpreadInObject",
+                    "description": "Replace map spread in object with `Object.fromEntries()`"
+                  },
+                  "fixes": [
+                    {
+                      "text": "Object.fromEntries(",
+                      "range": {
+                        "pos": 77,
+                        "end": 77
+                      }
+                    },
+                    {
+                      "text": ")",
+                      "range": {
+                        "pos": 80,
+                        "end": 80
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 73,
+                "end": 81
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const promise = new Promise(() => {});\n\n        const o = <div {...promise} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noPromiseSpreadInObject",
+              "Line": 4,
+              "Column": 24,
+              "EndLine": 0,
+              "EndColumn": 36,
+              "Suggestions": [
+                {
+                  "MessageId": "addAwait",
+                  "Output": "\n        const promise = new Promise(() => {});\n\n        const o = <div {...await promise} />;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noPromiseSpreadInObject",
+                "description": "Using the spread operator on Promise in an object can cause unexpected behavior.",
+                "help": "Did you forget to await the promise before spreading it?"
+              },
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 72,
+                "end": 84
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addAwait",
+                    "description": "Add await operator."
+                  },
+                  "fixes": [
+                    {
+                      "text": "await ",
+                      "range": {
+                        "pos": 76,
+                        "end": 76
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const map: Map<object, string> | WeakMap<object, string>;\nconst o = { other: 1, ...map };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 23,
+              "EndLine": 0,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 89,
+                "end": 95
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass CustomWeakMap extends WeakMap<object, string> {}\ndeclare const map: CustomWeakMap;\nconst o = { ...map };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 4,
+              "Column": 13,
+              "EndLine": 0,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 108,
+                "pos": 102
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const map: WeakMap<object, string>;\nconst element = <Component {...map} />;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "noMapSpreadInObject",
+              "Line": 3,
+              "Column": 28,
+              "EndLine": 0,
+              "EndColumn": 36,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "react.tsx",
+              "range": {
+                "pos": 72,
+                "end": 80
+              },
+              "kind": 0,
+              "rule": "no-misused-spread",
+              "message": {
+                "id": "noMapSpreadInObject",
+                "description": "Using the spread operator on a Map in an object will result in an empty object.",
+                "help": "Did you mean to use `Object.fromEntries(map)` instead?"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

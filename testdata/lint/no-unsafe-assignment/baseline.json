@@ -1,0 +1,2586 @@
+{
+  "Name": "no-unsafe-assignment",
+  "Suites": {
+    "TestNoUnsafeAssignmentRule": {
+      "TSConfig": "tsconfig.noImplicitThis.json",
+      "Valid": [
+        {
+          "Code": "const x = 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: number = 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nconst x = 1,\n  y = 1;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "let x;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nlet x = 1,\n  y;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "function foo(a = 1) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  constructor(private a = 1) {}\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  private a = 1;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  accessor a = 1;\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: Set<string> = new Set();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: Set<string> = new Set<string>();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const [x] = [1];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const [x, y] = [1, 2] as number[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const [x, ...y] = [1, 2, 3, 4, 5];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const [x, ...y] = [1];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const [{ ...x }] = [{ x: 1 }] as [{ x: any }];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "function foo(x = 1) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "function foo([x] = [1]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "function foo([x, ...y] = [1, 2, 3, 4, 5]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "function foo([x, ...y] = [1]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x = new Set<any>();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x = { y: 1 };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x = { y = 1 };",
+          "Only": false,
+          "Skip": true,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {}
+        },
+        {
+          "Code": "const x = { y(){} };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: { y: number } = { y: 1 };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x = [...[1, 2, 3]];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const [{ [`x${1}`]: x }] = [{ [`x`]: 1 }] as [{ [`x`]: any }];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype T = [string, T[]];\nconst test: T = ['string', []] as T;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Props = { a: string };\ndeclare function Foo(props: Props): never;\n<Foo a={'foo'} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: string }): never;\n<Foo a=\"foo\" />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare function Foo(props: { a: string }): never;\n<Foo a={} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: unknown = y as any;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: unknown[] = y as any[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: Set<unknown> = y as Set<any>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "const x: Map<string, string> = new Map();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Foo = { bar: unknown };\nconst bar: any = 1;\nconst foo: Foo = { bar };\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const foo: any;\nlet a = 1;\n\na+= foo;\n\t\t",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "const x = 1 as any;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 18
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst x = 1 as any,\n  y = 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 19
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo(a = 1 as any) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 13,
+                "end": 25
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  constructor(private a = 1 as any) {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 27,
+                "end": 47
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  private a = 1 as any;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 15,
+                "end": 36
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Foo {\n  accessor a = 1 as any;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 15,
+                "end": 37
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst [x] = spooky;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 19
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an error typed value.",
+                "help": "Assigned value has type `error`, so the target is also inferred as `error`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst [[[x]]] = [spooky];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 8,
+                "end": 13
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an error typed value.",
+                "help": "The destructured value has type `error`, and this binding receives `error`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst {\n  x: { y: z },\n} = { x: spooky };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 14,
+                "end": 22
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an error typed value.",
+                "help": "The destructured value has type `error`, and this binding receives `error`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            },
+            {
+              "kind": 0,
+              "range": {
+                "pos": 30,
+                "end": 39
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an error typed value.",
+                "help": "Assigned value has type `error`; the target has type `{ y: any; }`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nlet value: number;\n\nvalue = spooky;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 21,
+                "end": 35
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an error typed value.",
+                "help": "Assigned value has type `error`; the target has type `number`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst [x] = 1 as any;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 21
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst [x] = [] as any[];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPattern",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 10
+              },
+              "message": {
+                "id": "unsafeArrayPattern",
+                "description": "Unsafe array destructuring of an any array value.",
+                "help": "The destructured value has type `any[]`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x: Set<string> = new Set<any>();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 0,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 37
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Set<any>`; the target has type `Set<string>`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x: Map<string, string> = new Map<string, any>();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 53
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Map<string, any>`; the target has type `Map<string, string>`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x: Set<string[]> = new Set<any[]>();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 41
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Set<any[]>`; the target has type `Set<string[]>`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x: Set<Set<Set<string>>> = new Set<Set<Set<any>>>();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 57
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Set<Set<Set<any>>>`; the target has type `Set<Set<Set<string>>>`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const [x] = [1] as [any]",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 8,
+              "EndLine": 0,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 8
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo([x] = [1] as [any]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 16,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 14,
+                "end": 15
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "([x] = [1] as [any])",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 4,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 2,
+                "end": 3
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const [[[[x]]]] = [[[[1 as any]]]]",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 10,
+                "end": 11
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo([[[[x]]]] = [[[[1 as any]]]]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 17,
+                "end": 18
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "([[[[x]]]] = [[[[1 as any]]]])",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 6,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 5,
+                "end": 6
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const [[[[x]]]] = [1 as any]",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 8,
+              "EndLine": 0,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 14
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo([[[[x]]]] = [1 as any]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 14,
+                "end": 21
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const [{x}] = [{x: 1}] as [{x: any}]",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 10,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 8,
+                "end": 9
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo([{x}] = [{x: 1}] as [{x: any}]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 16,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 15,
+                "end": 16
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "([{x}] = [{x: 1}] as [{x: any}])",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 4,
+              "EndLine": 0,
+              "EndColumn": 5,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 3,
+                "end": 4
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const [{['x']: x}] = [{['x']: 1}] as [{['x']: any}]",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 16,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 15,
+                "end": 16
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo([{['x']: x}] = [{['x']: 1}] as [{['x']: any}]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 23,
+              "EndLine": 0,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 22,
+                "end": 23
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "([{['x']: x}] = [{['x']: 1}] as [{['x']: any}])",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 10,
+                "end": 11
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const [{[`x`]: x}] = [{[`x`]: 1}] as [{[`x`]: any}]",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 16,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 15,
+                "end": 16
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo([{[`x`]: x}] = [{[`x`]: 1}] as [{[`x`]: any}]) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 23,
+              "EndLine": 0,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 22,
+                "end": 23
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "([{[`x`]: x}] = [{[`x`]: 1}] as [{[`x`]: any}])",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 10,
+                "end": 11
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "[[[[x]]]] = [1 as any];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 1,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 0,
+                "end": 22
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `[any]`; the target has type `[[[[any]]]]`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst x = [...(1 as any)];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArraySpread",
+              "Line": 2,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 12,
+                "end": 25
+              },
+              "message": {
+                "id": "unsafeArraySpread",
+                "description": "Unsafe spread of an any value in an array.",
+                "help": "The spread value has type `any`. Use a safely typed array or narrow the value before spreading it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst x = [...([] as any[])];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArraySpread",
+              "Line": 2,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 12,
+                "end": 28
+              },
+              "message": {
+                "id": "unsafeArraySpread",
+                "description": "Unsafe spread of an any value in an array.",
+                "help": "The spread value has type `any[]`. Use a safely typed array or narrow the value before spreading it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const {x} = {x: 1} as {x: any}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 8,
+              "EndLine": 0,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 7,
+                "end": 8
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo({x} = {x: 1} as {x: any}) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 15,
+              "EndLine": 0,
+              "EndColumn": 16,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 14,
+                "end": 15
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "({x} = {x: 1} as {x: any})",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 4,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 2,
+                "end": 3
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const {x: y} = {x: 1} as {x: any}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 10,
+                "end": 11
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo({x: y} = {x: 1} as {x: any}) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 17,
+                "end": 18
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "({x: y} = {x: 1} as {x: any})",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 6,
+              "EndLine": 0,
+              "EndColumn": 7,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 5,
+                "end": 6
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const {x: {y}} = {x: {y: 1}} as {x: {y: any}}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 11,
+                "end": 12
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo({x: {y}} = {x: {y: 1}} as {x: {y: any}}) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 18,
+                "end": 19
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "({x: {y}} = {x: {y: 1}} as {x: {y: any}})",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 7
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const {x: [y]} = {x: {y: 1}} as {x: [any]}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 12,
+              "EndLine": 0,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 11,
+                "end": 12
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "function foo({x: [y]} = {x: {y: 1}} as {x: [any]}) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 19,
+              "EndLine": 0,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 18,
+                "end": 19
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "({x: [y]} = {x: {y: 1}} as {x: [any]})",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeArrayPatternFromTuple",
+              "Line": 1,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 8,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 7
+              },
+              "message": {
+                "id": "unsafeArrayPatternFromTuple",
+                "description": "Unsafe array destructuring of a tuple element with an any value.",
+                "help": "The destructured value has type `any`, and this binding receives `any`. Use a safely typed source or narrow the value before destructuring it."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x = { y: 1 as any };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 13,
+              "EndLine": 0,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 12,
+                "end": 23
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x = { y: { z: 1 as any } };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 18,
+              "EndLine": 0,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 17,
+                "end": 28
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x: { y: Set<Set<Set<string>>> } = { y: new Set<Set<Set<any>>>() };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeAssignment",
+              "Line": 0,
+              "Column": 43,
+              "EndLine": 0,
+              "EndColumn": 70,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 42,
+                "end": 69
+              },
+              "message": {
+                "id": "unsafeAssignment",
+                "description": "Unsafe assignment between incompatible types.",
+                "help": "Assigned value has type `Set<Set<Set<any>>>`; the target has type `Set<Set<Set<string>>>`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "const x = { ...(1 as any) };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 0,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 6,
+                "end": 27
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Props = { a: string };\ndeclare function Foo(props: Props): never;\n<Foo a={1 as any} />;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 80,
+                "end": 88
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `string`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "react.tsx",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo() {\n  const bar = this;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignmentThis",
+              "Line": 3,
+              "Column": 9,
+              "EndLine": 0,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 26,
+                "end": 36
+              },
+              "message": {
+                "id": "anyAssignmentThis",
+                "description": "Unsafe assignment of an any value. `this` is typed as `any`.",
+                "help": "Assigned value has type `any`, so the target is also inferred as `any`. Enable `noImplicitThis` or add an explicit `this` parameter to the function."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype T = [string, T[]];\nconst test: T = ['string', []] as any;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 3,
+              "Column": 7,
+              "EndLine": 0,
+              "EndColumn": 38,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 31,
+                "end": 62
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `T`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Foo = { bar: number };\nconst bar: any = 1;\nconst foo: Foo = { bar };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 20,
+              "EndLine": 0,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 68,
+                "end": 71
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `number`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const foo: any;\ninterface Bar {\n  bar: number\n}\n\nclass Foo {\n  constructor(\n    private readonly param: Bar = Object.create(null)\n  ) {}\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 9,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 54,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 89,
+                "end": 138
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `Bar`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        },
+        {
+          "Code": "\nlet foo: { foo: 1 };\n\nfoo = { bar: 2 } as any;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "anyAssignment",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 0,
+              "EndColumn": 24,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 23,
+                "end": 46
+              },
+              "message": {
+                "id": "anyAssignment",
+                "description": "Unsafe assignment of an any value.",
+                "help": "Assigned value has type `any`; the target has type `{ foo: 1; }`. Use a safely typed value or `unknown`, and narrow it before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-assignment"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

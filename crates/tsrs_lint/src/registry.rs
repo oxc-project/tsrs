@@ -96,6 +96,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unnecessary-type-assertion"
             | "no-useless-default-assignment"
             | "no-unsafe-argument"
+            | "no-unsafe-assignment"
     ) {
         return Ok(());
     }
@@ -174,6 +175,7 @@ pub fn create_rule(
         "no-unnecessary-type-assertion" => crate::rules::no_unnecessary_type_assertion::NoUnnecessaryTypeAssertion::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "no-useless-default-assignment" => Ok(Box::new(crate::rules::no_useless_default_assignment::NoUselessDefaultAssignment)),
         "no-unsafe-argument" => Ok(Box::new(crate::rules::no_unsafe_argument::NoUnsafeArgument)),
+        "no-unsafe-assignment" => Ok(Box::new(crate::rules::no_unsafe_assignment::NoUnsafeAssignment)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

@@ -69,4 +69,5 @@ mod rules {
     mod regexp_unicode;
     pub mod related_getter_setter_pairs;
     pub mod require_array_sort_compare;
+    pub mod require_await;
 }

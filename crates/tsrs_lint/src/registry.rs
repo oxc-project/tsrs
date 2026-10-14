@@ -119,6 +119,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "promise-function-async"
             | "related-getter-setter-pairs"
             | "require-array-sort-compare"
+            | "require-await"
     ) {
         return Ok(());
     }
@@ -224,6 +225,7 @@ pub fn create_rule(
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "related-getter-setter-pairs" => Ok(Box::new(crate::rules::related_getter_setter_pairs::RelatedGetterSetterPairs)),
         "require-array-sort-compare" => crate::rules::require_array_sort_compare::RequireArraySortCompare::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "require-await" => Ok(Box::new(crate::rules::require_await::RequireAwait::default())),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

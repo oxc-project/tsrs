@@ -3090,7 +3090,7 @@ impl Checker {
     }
 
     // checker.go:19318
-    pub(crate) fn get_index_infos_of_type(&mut self, t: P<Type>) -> &'static [P<IndexInfo>] {
+    pub fn get_index_infos_of_type(&mut self, t: P<Type>) -> &'static [P<IndexInfo>] {
         let t = self.get_reduced_apparent_type(t);
         self.get_index_infos_of_structured_type(t)
     }

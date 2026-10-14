@@ -110,6 +110,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "prefer-optional-chain"
             | "prefer-nullish-coalescing"
             | "prefer-promise-reject-errors"
+            | "prefer-readonly-parameter-types"
     ) {
         return Ok(());
     }
@@ -203,6 +204,8 @@ pub fn create_rule(
         "prefer-optional-chain" => crate::rules::prefer_optional_chain::PreferOptionalChain::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "prefer-nullish-coalescing" => crate::rules::prefer_nullish_coalescing::PreferNullishCoalescing::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "prefer-promise-reject-errors" => crate::rules::prefer_promise_reject_errors::PreferPromiseRejectErrors::new(&config.options)
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "prefer-readonly-parameter-types" => crate::rules::prefer_readonly_parameter_types::PreferReadonlyParameterTypes::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;

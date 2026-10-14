@@ -3259,7 +3259,7 @@ impl TypePredicate {
 #[derive(Default)]
 pub struct IndexInfo {
     pub(crate) key_type: Cell<Option<P<Type>>>,
-    pub(crate) value_type: Cell<Option<P<Type>>>,
+    pub value_type: Cell<Option<P<Type>>>,
     pub(crate) is_readonly: Cell<bool>,
     pub(crate) declaration: Cell<Option<P<Node>>>, // IndexSignatureDeclaration
     pub(crate) index_symbol: Cell<Option<P<Symbol>>>, // Synthetic property symbol for this index signature

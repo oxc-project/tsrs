@@ -59,6 +59,7 @@ mod rules {
     pub mod prefer_nullish_coalescing;
     pub mod prefer_optional_chain;
     pub mod prefer_promise_reject_errors;
+    pub mod prefer_readonly;
     pub mod prefer_readonly_parameter_types;
     pub mod prefer_regexp_exec;
     mod regexp_unicode;

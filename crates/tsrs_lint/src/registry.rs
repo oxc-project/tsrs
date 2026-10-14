@@ -92,6 +92,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unnecessary-template-expression"
             | "no-unnecessary-type-conversion"
             | "no-unnecessary-type-arguments"
+            | "no-unnecessary-type-parameters"
     ) {
         return Ok(());
     }
@@ -166,6 +167,7 @@ pub fn create_rule(
         "no-unnecessary-template-expression" => Ok(Box::new(crate::rules::no_unnecessary_template_expression::NoUnnecessaryTemplateExpression)),
         "no-unnecessary-type-conversion" => Ok(Box::new(crate::rules::no_unnecessary_type_conversion::NoUnnecessaryTypeConversion)),
         "no-unnecessary-type-arguments" => Ok(Box::new(crate::rules::no_unnecessary_type_arguments::NoUnnecessaryTypeArguments)),
+        "no-unnecessary-type-parameters" => Ok(Box::new(crate::rules::no_unnecessary_type_parameters::NoUnnecessaryTypeParameters)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

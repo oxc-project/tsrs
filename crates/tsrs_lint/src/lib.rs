@@ -41,4 +41,5 @@ mod rules {
     pub mod no_unnecessary_template_expression;
     pub mod no_unnecessary_type_arguments;
     pub mod no_unnecessary_type_conversion;
+    pub mod no_unnecessary_type_parameters;
 }

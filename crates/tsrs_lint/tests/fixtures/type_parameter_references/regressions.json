@@ -1,0 +1,596 @@
+[
+  {
+    "name": "upstream-recursive-class",
+    "source": "export {}; declare class C { m<T>(x: { self: C; arg: T }): void; }",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 53,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 30,
+                    "end": 33
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 53,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 30,
+                    "end": 33
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "mutual-recursion",
+    "source": "export {}; declare class C { m<T>(x: { self: D; arg: T }): void; } declare class D { other: C; }",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 53,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 30,
+                    "end": 33
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 31,
+            "end": 32
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 53,
+                "end": 54
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 53,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 30,
+                    "end": 33
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "repeated-parameter",
+    "source": "export {}; declare class C { m<T>(x: { self: C; arg: T }, other: T): void; }",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "nongeneric-property",
+    "source": "export {}; declare class C { value: string; } declare function f<T>(x: { self: C; arg: T }): void;",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 65,
+            "end": 66
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 87,
+                "end": 88
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 65,
+            "end": 66
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 87,
+                "end": 88
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 65,
+            "end": 66
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 87,
+                "end": 88
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 87,
+                    "end": 88
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 64,
+                    "end": 67
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 65,
+            "end": 66
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the function signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 87,
+                "end": 88
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 87,
+                    "end": 88
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 64,
+                    "end": 67
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "generic-reference",
+    "source": "export {}; declare class Box<T> { value: T; } declare function f<U>(x: Box<U>): void;",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 29,
+            "end": 30
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the class signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 41,
+                "end": 42
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 29,
+            "end": 30
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the class signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 41,
+                "end": 42
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 29,
+            "end": 30
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the class signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 41,
+                "end": 42
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 41,
+                    "end": 42
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 29,
+            "end": 30
+          },
+          "message": {
+            "id": "sole",
+            "description": "Type parameter T is used only once in the class signature."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This is the only usage of type parameter T in the signature.",
+              "range": {
+                "pos": 41,
+                "end": 42
+              }
+            }
+          ],
+          "rule": "no-unnecessary-type-parameters",
+          "suggestions": [
+            {
+              "message": {
+                "id": "replaceUsagesWithConstraint",
+                "description": "Replace all usages of type parameter with its constraint."
+              },
+              "fixes": [
+                {
+                  "text": "unknown",
+                  "range": {
+                    "pos": 41,
+                    "end": 42
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 31
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]
+  }
+]

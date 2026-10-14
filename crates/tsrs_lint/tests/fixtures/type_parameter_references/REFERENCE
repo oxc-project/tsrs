@@ -1,0 +1,7 @@
+Rule change and first regression (adapted with an export module prefix): tsgolint 47e98b4f4caa48154d014e5c69a63a03d7a51a41.
+The other four sources are local controls for mutual recursion, repeated parameters,
+ordinary nongeneric references, and generic references with type arguments.
+All 20 mode-specific snapshots: oxlint-tsgolint 7.0.2004, darwin-arm64.
+Go build module revision: a61289117febcb1a60cf3bc75ef2b6bbccc4b665 (modified build).
+Binary SHA-256: d40de2b828d91ac188e3dc897991be8a512b29935fddae5f223a9f9bde356fb1
+The existing pinned rule case inputs and diagnostic snapshots are unchanged.

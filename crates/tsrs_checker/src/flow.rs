@@ -4043,7 +4043,7 @@ impl Checker {
     }
 
     // flow.go:2389
-    fn get_type_with_default(
+    pub fn get_type_with_default(
         &mut self,
         t: P<Type>,
         default_expression: Option<P<Node>>,
@@ -4060,7 +4060,7 @@ impl Checker {
     // For example, when a variable of type number | string | boolean is assigned a value of type number | boolean,
     // we remove type string.
     // flow.go:2399
-    fn get_assignment_reduced_type(
+    pub fn get_assignment_reduced_type(
         &mut self,
         declared_type: P<Type>,
         assigned_type: P<Type>,

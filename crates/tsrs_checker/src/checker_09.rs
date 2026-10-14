@@ -3002,11 +3002,7 @@ impl Checker {
 
     // Return the type of the given property in the given type, or nil if no such property exists
     // checker.go:19295
-    pub(crate) fn get_type_of_property_of_type(
-        &mut self,
-        t: P<Type>,
-        name: &str,
-    ) -> Option<P<Type>> {
+    pub fn get_type_of_property_of_type(&mut self, t: P<Type>, name: &str) -> Option<P<Type>> {
         let prop = self.get_property_of_type(t, name);
         if let Some(prop) = prop {
             return Some(self.get_type_of_symbol(prop));

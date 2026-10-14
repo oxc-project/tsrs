@@ -93,6 +93,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unnecessary-type-conversion"
             | "no-unnecessary-type-arguments"
             | "no-unnecessary-type-parameters"
+            | "no-unnecessary-type-assertion"
     ) {
         return Ok(());
     }
@@ -168,6 +169,7 @@ pub fn create_rule(
         "no-unnecessary-type-conversion" => Ok(Box::new(crate::rules::no_unnecessary_type_conversion::NoUnnecessaryTypeConversion)),
         "no-unnecessary-type-arguments" => Ok(Box::new(crate::rules::no_unnecessary_type_arguments::NoUnnecessaryTypeArguments)),
         "no-unnecessary-type-parameters" => Ok(Box::new(crate::rules::no_unnecessary_type_parameters::NoUnnecessaryTypeParameters)),
+        "no-unnecessary-type-assertion" => crate::rules::no_unnecessary_type_assertion::NoUnnecessaryTypeAssertion::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

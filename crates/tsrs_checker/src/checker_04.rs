@@ -2007,7 +2007,7 @@ impl Checker {
     // and requesting the contextual type might cause a circularity or other bad behaviour.
     // It sets the contextual type of the node to any before calling getTypeOfExpression.
     // checker.go:7714
-    pub(crate) fn get_context_free_type_of_expression(&mut self, node: P<Node>) -> P<Type> {
+    pub fn get_context_free_type_of_expression(&mut self, node: P<Node>) -> P<Type> {
         if let Some(&cached) = self.context_free_types.get(&node) {
             return cached;
         }

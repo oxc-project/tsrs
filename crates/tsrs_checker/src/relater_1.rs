@@ -95,7 +95,7 @@ impl Relation {
 
 impl Checker {
     // relater.go:117
-    pub(crate) fn is_type_identical_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    pub fn is_type_identical_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
         let relation = self.identity_relation;
         self.is_type_related_to(source, target, relation)
     }
@@ -143,7 +143,7 @@ impl Checker {
     }
 
     // relater.go:149
-    pub(crate) fn is_type_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    pub fn is_type_assignable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
         let relation = self.assignable_relation;
         self.is_type_related_to(source, target, relation)
     }

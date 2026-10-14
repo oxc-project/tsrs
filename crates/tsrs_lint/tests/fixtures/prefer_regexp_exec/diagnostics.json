@@ -1,0 +1,882 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 266,
+      "end": 271
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "alias.exec(café)",
+        "range": {
+          "pos": 260,
+          "end": 278
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 355,
+      "end": 358
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/é/.exec(café)",
+        "range": {
+          "pos": 349,
+          "end": 365
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 373,
+      "end": 380
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/é\\/🍰/.exec(café)",
+        "range": {
+          "pos": 367,
+          "end": 392
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 400,
+      "end": 407
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/(?<=é)(?<piece>a)\\k<piece>/.exec(café)",
+        "range": {
+          "pos": 394,
+          "end": 440
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 493,
+      "end": 498
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/\\k<unknown>/.exec(café)",
+        "range": {
+          "pos": 487,
+          "end": 514
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 593,
+      "end": 598
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/(?u)\\p{Greek}/.exec(café)",
+        "range": {
+          "pos": 587,
+          "end": 616
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 718,
+      "end": 723
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/[a-z-[b]]/.exec(café)",
+        "range": {
+          "pos": 712,
+          "end": 736
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 744,
+      "end": 749
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/(a)(?(1)b|c)/.exec(café)",
+        "range": {
+          "pos": 738,
+          "end": 765
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 802,
+      "end": 807
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/(?<\\u0061>a)\\k<9a>/.exec(café)",
+        "range": {
+          "pos": 796,
+          "end": 831
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 898,
+      "end": 903
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/a(?#comment)*/.exec(café)",
+        "range": {
+          "pos": 892,
+          "end": 920
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 928,
+      "end": 933
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/[]/.exec(café)",
+        "range": {
+          "pos": 922,
+          "end": 939
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 947,
+      "end": 952
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/\\u{61}/.exec(café)",
+        "range": {
+          "pos": 941,
+          "end": 963
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1067,
+      "end": 1072
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "RegExp(pattern).exec(text)",
+        "range": {
+          "pos": 1062,
+          "end": 1081
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1090,
+      "end": 1095
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "RegExp(pattern).exec(text)",
+        "range": {
+          "pos": 1085,
+          "end": 1112
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1121,
+      "end": 1126
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "new RegExp(pattern, undefined).exec(text)",
+        "range": {
+          "pos": 1116,
+          "end": 1158
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1167,
+      "end": 1172
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "RegExp(pattern, void 0).exec(text)",
+        "range": {
+          "pos": 1162,
+          "end": 1197
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1206,
+      "end": 1211
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "RegExp(pattern, ('i')).exec(text)",
+        "range": {
+          "pos": 1201,
+          "end": 1235
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1322,
+      "end": 1327
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "new RegExp('[', 'i').exec(text)",
+        "range": {
+          "pos": 1317,
+          "end": 1349
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1358,
+      "end": 1363
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/ as RegExp).exec(text)",
+        "range": {
+          "pos": 1353,
+          "end": 1381
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1430,
+      "end": 1435
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1425,
+          "end": 1441
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1476,
+      "end": 1481
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1471,
+          "end": 1487
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1509,
+      "end": 1514
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1504,
+          "end": 1520
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1554,
+      "end": 1559
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1549,
+          "end": 1565
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1598,
+      "end": 1603
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/é/.exec(text)",
+        "range": {
+          "pos": 1593,
+          "end": 1609
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1637,
+      "end": 1642
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/é/.exec((text || café))",
+        "range": {
+          "pos": 1621,
+          "end": 1648
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1695,
+      "end": 1700
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1690,
+          "end": 1706
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1725,
+      "end": 1730
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1720,
+          "end": 1736
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1747,
+      "end": 1752
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1742,
+          "end": 1758
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1782,
+      "end": 1787
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/é/.exec(text)",
+        "range": {
+          "pos": 1777,
+          "end": 1793
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1827,
+      "end": 1832
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "(/é/.exec(text))",
+        "range": {
+          "pos": 1822,
+          "end": 1838
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1859,
+      "end": 1864
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/é/.exec((text as string))",
+        "range": {
+          "pos": 1842,
+          "end": 1870
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 103,
+      "end": 108
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/🍰/.exec(café)",
+        "range": {
+          "pos": 97,
+          "end": 116
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 151,
+      "end": 156
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "RegExp(stringPattern).exec(café)",
+        "range": {
+          "pos": 145,
+          "end": 171
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 303,
+      "end": 308
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "new RegExp('é').exec(café)",
+        "range": {
+          "pos": 297,
+          "end": 326
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 334,
+      "end": 339
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "RegExp('é', 'i').exec(café)",
+        "range": {
+          "pos": 328,
+          "end": 358
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 366,
+      "end": 371
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "//.exec(café)",
+        "range": {
+          "pos": 360,
+          "end": 375
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 383,
+      "end": 388
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/\\c!/.exec(café)",
+        "range": {
+          "pos": 377,
+          "end": 396
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 404,
+      "end": 409
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/a{01}/.exec(café)",
+        "range": {
+          "pos": 398,
+          "end": 418
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 426,
+      "end": 431
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/[\\d-a]/.exec(café)",
+        "range": {
+          "pos": 420,
+          "end": 442
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 450,
+      "end": 455
+    },
+    "message": {
+      "id": "regExpExecOverStringMatch",
+      "description": "Use the `RegExp#exec()` method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-regexp-exec",
+    "fixes": [
+      {
+        "text": "/[a-\\p]/.exec(café)",
+        "range": {
+          "pos": 444,
+          "end": 466
+        }
+      }
+    ]
+  }
+]

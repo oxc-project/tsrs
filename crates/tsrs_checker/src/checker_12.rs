@@ -3096,7 +3096,7 @@ impl Checker {
     }
 
     // checker.go:25904
-    pub(crate) fn get_base_type_of_literal_type(&mut self, t: P<Type>) -> P<Type> {
+    pub fn get_base_type_of_literal_type(&mut self, t: P<Type>) -> P<Type> {
         let flags = t.flags();
         if flags.intersects(TypeFlags::EnumLike) {
             return self.get_base_type_of_enum_like_type(t);

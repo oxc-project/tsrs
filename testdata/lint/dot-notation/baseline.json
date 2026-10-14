@@ -1,0 +1,2227 @@
+{
+  "Name": "dot-notation",
+  "Suites": {
+    "TestDotNotation": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "a.b;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.b.c;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['12'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[b];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[0];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.b.c;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.arguments;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.let;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.yield;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.eval;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[0];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['while'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['true'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['null'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[true];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[null];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['snake_case'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPattern": "^[a-z]+(_[a-z]+)+$",
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['lots_of_snake_case'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPattern": "^[a-z]+(_[a-z]+)+$",
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[`time${range}`];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[`while`];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[`time range`];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a.null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[undefined];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[void 0];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[b()];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a[/(?<zero>0)/];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass X {\n  private priv_prop = 123;\n}\n\nconst x = new X();\nx['priv_prop'] = 123;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": true,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass X {\n  protected protected_prop = 123;\n}\n\nconst x = new X();\nx['protected_prop'] = 123;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass X {\n  prop: string;\n  [key: string]: number;\n}\n\nconst x = new X();\nx['hello'] = 3;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": true,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ninterface Nested {\n  property: string;\n  [key: string]: number | string;\n}\n\nclass Dingus {\n  nested: Nested;\n}\n\nlet dingus: Dingus | undefined;\n\ndingus?.nested.property;\ndingus?.nested['hello'];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": true,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass X {\n  private priv_prop = 123;\n}\n\nlet x: X | undefined;\nconsole.log(x?.['priv_prop']);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": true,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass X {\n  protected priv_prop = 123;\n}\n\nlet x: X | undefined;\nconsole.log(x?.['priv_prop']);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Foo = {\n  bar: boolean;\n  [key: `key_${string}`]: number;\n};\ndeclare const foo: Foo;\nfoo['key_baz'];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Key = Lowercase<string>;\ntype Foo = {\n  BAR: boolean;\n  [key: Lowercase<string>]: number;\n};\ndeclare const foo: Foo;\nfoo['bar'];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype ExtraKey = `extra${string}`;\n\ntype Foo = {\n  foo: string;\n  [extraKey: ExtraKey]: number;\n};\n\nfunction f<T extends Foo>(x: T) {\n  x['extraKey'];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype Foo = {\n  [key: string]: number;\n};\ndeclare const foo: Foo;\nfoo[`key_baz`];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['X-Amzn-Trace-Id'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['X-Amzn-Trace-Id'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": true,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['Prénom'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['π'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "a['has space'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['prot'] = 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  private _b = 0;\n  public get priv(): number {\n    return this._b;\n  }\n  private set priv(v: number) {\n    this._b = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['priv'] = 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": true,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n\n  private _b = 0;\n  public get priv(): number {\n    return this._b;\n  }\n  private set priv(v: number) {\n    this._b = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['prot'] = 1;\nobj['priv'] = 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": true,
+            "allowProtectedClassPropertyAccess": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nclass X {\n  private priv_prop = 123;\n}\n\nconst x = new X();\nx['priv_prop'] = 123;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass X {\n  private priv_prop = 123;\n}\n\nconst x = new X();\nx.priv_prop = 123;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"priv_prop\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 73
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "end": 61,
+                    "pos": 61
+                  }
+                },
+                {
+                  "text": "priv_prop",
+                  "range": {
+                    "pos": 61,
+                    "end": 74
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nclass X {\n  public pub_prop = 123;\n}\n\nconst x = new X();\nx['pub_prop'] = 123;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass X {\n  public pub_prop = 123;\n}\n\nconst x = new X();\nx.pub_prop = 123;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"pub_prop\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 60,
+                "end": 70
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 59,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": "pub_prop",
+                  "range": {
+                    "pos": 59,
+                    "end": 71
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "a['true'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.true;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useDot",
+                "description": "[\"true\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 2,
+                "end": 8
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "true",
+                  "range": {
+                    "pos": 1,
+                    "end": 9
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation"
+            }
+          ]
+        },
+        {
+          "Code": "a['time'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.time;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 2,
+                "end": 8
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "time",
+                  "range": {
+                    "pos": 1,
+                    "end": 9
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"time\"] is better written in dot notation."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "a[null];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.null;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useDot",
+                "description": "[null] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 6,
+                "pos": 2
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "null",
+                  "range": {
+                    "pos": 1,
+                    "end": 7
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation"
+            }
+          ]
+        },
+        {
+          "Code": "a[true];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.true;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 2,
+                "end": 6
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "true",
+                  "range": {
+                    "pos": 1,
+                    "end": 7
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[true] is better written in dot notation."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "a[false];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.false;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[false] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 2,
+                "end": 7
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "false",
+                  "range": {
+                    "pos": 1,
+                    "end": 8
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "a['b'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.b;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "b",
+                  "range": {
+                    "pos": 1,
+                    "end": 6
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"b\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 2,
+                "end": 5
+              }
+            }
+          ]
+        },
+        {
+          "Code": "a.b['c'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.b.c;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"c\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 7
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 3,
+                    "end": 3
+                  }
+                },
+                {
+                  "text": "c",
+                  "range": {
+                    "pos": 3,
+                    "end": 8
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "a['_dangle'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a._dangle;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPattern": "^[a-z]+(_[a-z]+)+$",
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"_dangle\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 2,
+                "end": 11
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1,
+                    "end": 1
+                  }
+                },
+                {
+                  "text": "_dangle",
+                  "range": {
+                    "pos": 1,
+                    "end": 12
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "a['SHOUT_CASE'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "a.SHOUT_CASE;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPattern": "^[a-z]+(_[a-z]+)+$",
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"SHOUT_CASE\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 14,
+                "pos": 2
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "end": 1,
+                    "pos": 1
+                  }
+                },
+                {
+                  "text": "SHOUT_CASE",
+                  "range": {
+                    "pos": 1,
+                    "end": 15
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\na\n  ['SHOUT_CASE'];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\na\n  .SHOUT_CASE;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 3,
+              "Column": 4,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useDot",
+                "description": "[\"SHOUT_CASE\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 18
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "end": 5,
+                    "pos": 5
+                  }
+                },
+                {
+                  "text": "SHOUT_CASE",
+                  "range": {
+                    "pos": 5,
+                    "end": 19
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation"
+            }
+          ]
+        },
+        {
+          "Code": "getResource()\n    .then(function(){})\n    [\"catch\"](function(){})\n    .then(function(){})\n    [\"catch\"](function(){});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "getResource()\n    .then(function(){})\n    .catch(function(){})\n    .then(function(){})\n    .catch(function(){});"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 3,
+              "Column": 6,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "useDot",
+              "Line": 5,
+              "Column": 6,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"catch\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 50
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 42,
+                    "end": 42
+                  }
+                },
+                {
+                  "text": "catch",
+                  "range": {
+                    "pos": 42,
+                    "end": 51
+                  }
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "message": {
+                "id": "useDot",
+                "description": "[\"catch\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 95,
+                "end": 102
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 94,
+                    "end": 94
+                  }
+                },
+                {
+                  "text": "catch",
+                  "range": {
+                    "pos": 94,
+                    "end": 103
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation"
+            }
+          ]
+        },
+        {
+          "Code": "\nfoo\n  .while;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nfoo\n  [\"while\"];\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useBrackets",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "dot-notation",
+              "message": {
+                "id": "useBrackets",
+                "description": ".while is a syntax error."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 8,
+                "end": 13
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 8,
+                    "pos": 7
+                  }
+                },
+                {
+                  "text": "[\"while\"]",
+                  "range": {
+                    "pos": 8,
+                    "end": 13
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "foo[/* comment */ 'bar'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo.bar;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 18,
+                "end": 23
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 3,
+                    "end": 3
+                  }
+                },
+                {
+                  "text": "bar",
+                  "range": {
+                    "pos": 3,
+                    "end": 24
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"bar\"] is better written in dot notation."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "foo['bar' /* comment */];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo.bar;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"bar\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 9
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 3,
+                    "end": 3
+                  }
+                },
+                {
+                  "text": "bar",
+                  "range": {
+                    "pos": 3,
+                    "end": 24
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "foo['bar'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo.bar;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 9
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 3,
+                    "end": 3
+                  }
+                },
+                {
+                  "text": "bar",
+                  "range": {
+                    "pos": 3,
+                    "end": 10
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"bar\"] is better written in dot notation."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "foo./* comment */ while;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo/* comment */ [\"while\"];"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useBrackets",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useBrackets",
+                "description": ".while is a syntax error."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 18,
+                "end": 23
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 3,
+                    "end": 4
+                  }
+                },
+                {
+                  "text": "[\"while\"]",
+                  "range": {
+                    "pos": 18,
+                    "end": 23
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "foo[null];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo.null;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[null] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 8
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 3,
+                    "end": 3
+                  }
+                },
+                {
+                  "text": "null",
+                  "range": {
+                    "pos": 3,
+                    "end": 9
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "foo['bar'] instanceof baz;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo.bar instanceof baz;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 3,
+                    "end": 3
+                  }
+                },
+                {
+                  "text": "bar",
+                  "range": {
+                    "pos": 3,
+                    "end": 10
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"bar\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 9
+              }
+            }
+          ]
+        },
+        {
+          "Code": "let.if();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useBrackets",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": false,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useBrackets",
+                "description": ".if is a syntax error."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 4,
+                "end": 6
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass X {\n  protected protected_prop = 123;\n}\n\nconst x = new X();\nx['protected_prop'] = 123;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass X {\n  protected protected_prop = 123;\n}\n\nconst x = new X();\nx.protected_prop = 123;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useDot",
+                "description": "[\"protected_prop\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 69,
+                "end": 85
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 68,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "protected_prop",
+                  "range": {
+                    "end": 86,
+                    "pos": 68
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation"
+            }
+          ]
+        },
+        {
+          "Code": "\nclass X {\n  prop: string;\n  [key: string]: number;\n}\n\nconst x = new X();\nx['prop'] = 'hello';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass X {\n  prop: string;\n  [key: string]: number;\n}\n\nconst x = new X();\nx.prop = 'hello';\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": true,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"prop\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 82
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "end": 75,
+                    "pos": 75
+                  }
+                },
+                {
+                  "text": "prop",
+                  "range": {
+                    "end": 83,
+                    "pos": 75
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Foo = {\n  bar: boolean;\n  [key: `key_${string}`]: number;\n};\nfoo['key_baz'];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype Foo = {\n  bar: boolean;\n  [key: `key_${string}`]: number;\n};\nfoo.key_baz;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"key_baz\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 71,
+                "end": 80
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 70,
+                    "end": 70
+                  }
+                },
+                {
+                  "text": "key_baz",
+                  "range": {
+                    "pos": 70,
+                    "end": 81
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ntype ExtraKey = `extra${string}`;\n\ntype Foo = {\n  foo: string;\n  [extraKey: ExtraKey]: number;\n};\n\nfunction f<T extends Foo>(x: T) {\n  x['extraKey'];\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype ExtraKey = `extra${string}`;\n\ntype Foo = {\n  foo: string;\n  [extraKey: ExtraKey]: number;\n};\n\nfunction f<T extends Foo>(x: T) {\n  x.extraKey;\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useDot",
+                "description": "[\"extraKey\"] is better written in dot notation."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 138,
+                "end": 148
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 137,
+                    "end": 137
+                  }
+                },
+                {
+                  "text": "extraKey",
+                  "range": {
+                    "end": 149,
+                    "pos": 137
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Foo = {\n  prop: boolean;\n  [key: string]: number | boolean;\n};\ndeclare const foo: Foo;\nfoo[`prop`];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype Foo = {\n  prop: boolean;\n  [key: string]: number | boolean;\n};\ndeclare const foo: Foo;\nfoo.prop;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "tsconfig.noPropertyAccessFromIndexSignature.json",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 97,
+                "end": 103
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 96,
+                    "end": 96
+                  }
+                },
+                {
+                  "text": "prop",
+                  "range": {
+                    "pos": 96,
+                    "end": 104
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[`prop`] is better written in dot notation."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "foo?.['bar'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "foo?.bar;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 6,
+                "end": 11
+              },
+              "fixes": [
+                {
+                  "text": "bar",
+                  "range": {
+                    "pos": 5,
+                    "end": 12
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"bar\"] is better written in dot notation."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj['prot'];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nclass Example {\n  private _a = 0;\n  public get prot(): number {\n    return this._a;\n  }\n  protected set prot(v: number) {\n    this._a = v;\n  }\n}\n\ndeclare const obj: Example;\n\nobj.prot;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "useDot",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": true
+          },
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 186,
+                "pos": 180
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 179,
+                    "end": 179
+                  }
+                },
+                {
+                  "text": "prot",
+                  "range": {
+                    "pos": 179,
+                    "end": 187
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "dot-notation",
+              "message": {
+                "id": "useDot",
+                "description": "[\"prot\"] is better written in dot notation."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -67,7 +67,10 @@ pub const BASELINE_RULES: &[&str] = &[
 ];
 
 pub fn require_implemented(name: &str) -> Result<(), String> {
-    if matches!(name, "await-thenable" | "consistent-return" | "consistent-type-exports") {
+    if matches!(
+        name,
+        "await-thenable" | "consistent-return" | "consistent-type-exports" | "dot-notation"
+    ) {
         return Ok(());
     }
     if BASELINE_RULES.contains(&name) {
@@ -90,6 +93,8 @@ pub fn create_rule(
             crate::rules::consistent_type_exports::ConsistentTypeExports::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
+        "dot-notation" => crate::rules::dot_notation::DotNotation::new(&config.options)
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

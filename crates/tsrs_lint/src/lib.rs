@@ -21,4 +21,5 @@ mod rules {
     pub mod await_thenable;
     pub mod consistent_return;
     pub mod consistent_type_exports;
+    pub mod dot_notation;
 }

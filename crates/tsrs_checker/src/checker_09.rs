@@ -955,7 +955,7 @@ fn is_type_reference_with_generic_arguments(c: &mut Checker, t: P<Type>) -> bool
 }
 
 // checker.go:17986
-fn is_non_deferred_type_reference(t: P<Type>) -> bool {
+pub fn is_non_deferred_type_reference(t: P<Type>) -> bool {
     t.object_flags().intersects(ObjectFlags::Reference)
         && t.as_type_reference().node.get().is_none()
 }
@@ -2745,7 +2745,7 @@ impl Checker {
 
     // checker.go:19231
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub(crate) fn get_property_of_type(&mut self, t: P<Type>, name: &str) -> Option<P<Symbol>> {
+    pub fn get_property_of_type(&mut self, t: P<Type>, name: &str) -> Option<P<Symbol>> {
         self.get_property_of_type_ex(
             t, name, false, /*skipObjectFunctionPropertyAugment*/
             false, /*includeTypeOnlyMembers*/
@@ -3148,11 +3148,7 @@ impl Checker {
     // Return the index type of the given kind in the given type. Creates synthetic union index types when necessary and
     // maps primitive types and type parameters are to their apparent types.
     // checker.go:19337
-    pub(crate) fn get_index_type_of_type(
-        &mut self,
-        t: P<Type>,
-        key_type: P<Type>,
-    ) -> Option<P<Type>> {
+    pub fn get_index_type_of_type(&mut self, t: P<Type>, key_type: P<Type>) -> Option<P<Type>> {
         let info = self.get_index_info_of_type(t, key_type);
         if let Some(info) = info {
             return info.value_type.get();
@@ -4031,7 +4027,7 @@ impl Checker {
 
 impl Checker {
     // checker.go:19508
-    pub(crate) fn get_base_types(&mut self, t: P<Type>) -> &'static [P<Type>] {
+    pub fn get_base_types(&mut self, t: P<Type>) -> &'static [P<Type>] {
         if !t.object_flags().intersects(ObjectFlags::ClassOrInterface | ObjectFlags::Tuple) {
             return &[];
         }

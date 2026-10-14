@@ -4,4 +4,5 @@ mod checkerpool_stealing_tests;
 mod contentmapper_test;
 mod modulespecifiers_oracle_test;
 mod program_test;
+mod programregions_test;
 mod projectreferencedtsfakinghost_region_tests;

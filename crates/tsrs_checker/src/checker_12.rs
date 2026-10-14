@@ -32,7 +32,7 @@ pub(crate) fn is_single_element_generic_tuple_type(t: P<Type>) -> bool {
 impl Checker {
     // checker.go:23966
     // Public for lint rules (tsgolint's shim exposes Checker_isArrayOrTupleType).
-    pub(crate) fn is_array_or_tuple_type(&mut self, t: P<Type>) -> bool {
+    pub fn is_array_or_tuple_type(&mut self, t: P<Type>) -> bool {
         self.is_array_type(t) || is_tuple_type(t)
     }
 
@@ -282,7 +282,7 @@ fn is_local_type_alias(symbol: P<Symbol>) -> bool {
 
 impl Checker {
     // checker.go:24131
-    pub(crate) fn get_declared_type_of_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
+    pub fn get_declared_type_of_symbol(&mut self, symbol: P<Symbol>) -> P<Type> {
         let mut result = self.try_get_declared_type_of_symbol(symbol);
         if result.is_none() {
             result = Some(self.error_type);

@@ -1341,7 +1341,7 @@ pub struct Checker {
     pub(crate) null_type: P<Type>,
     pub(crate) null_widening_type: P<Type>,
     pub(crate) string_type: P<Type>,
-    pub(crate) number_type: P<Type>,
+    pub number_type: P<Type>,
     pub(crate) bigint_type: P<Type>,
     pub(crate) regular_false_type: P<Type>,
     pub(crate) false_type: P<Type>,

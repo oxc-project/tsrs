@@ -1920,7 +1920,7 @@ impl Checker {
     //
     // This is used to reflect the runtime behavior of the `await` keyword.
     // checker.go:31742
-    pub(crate) fn get_awaited_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    pub fn get_awaited_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         self.get_awaited_type_ex(t, None, None, &[])
     }
 

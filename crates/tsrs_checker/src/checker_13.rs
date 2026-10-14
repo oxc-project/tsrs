@@ -3453,7 +3453,7 @@ impl Checker {
     }
 
     // checker.go:27906
-    pub(crate) fn get_base_constraint_of_type(&mut self, t: P<Type>) -> Option<P<Type>> {
+    pub fn get_base_constraint_of_type(&mut self, t: P<Type>) -> Option<P<Type>> {
         if t.flags().intersects(
             TypeFlags::InstantiableNonPrimitive
                 | TypeFlags::UnionOrIntersection

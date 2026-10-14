@@ -2237,7 +2237,7 @@ impl Checker {
      * @returns the contextual type of an expression.
      */
     // checker.go:29832
-    pub(crate) fn get_contextual_type(
+    pub fn get_contextual_type(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,

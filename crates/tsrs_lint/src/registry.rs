@@ -100,6 +100,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unsafe-call"
             | "no-unsafe-enum-comparison"
             | "no-unsafe-member-access"
+            | "no-unsafe-return"
     ) {
         return Ok(());
     }
@@ -182,6 +183,7 @@ pub fn create_rule(
         "no-unsafe-call" => Ok(Box::new(crate::rules::no_unsafe_call::NoUnsafeCall)),
         "no-unsafe-enum-comparison" => Ok(Box::new(crate::rules::no_unsafe_enum_comparison::NoUnsafeEnumComparison)),
         "no-unsafe-member-access" => Ok(Box::new(crate::rules::no_unsafe_member_access::NoUnsafeMemberAccess::new(&config.options)?)),
+        "no-unsafe-return" => Ok(Box::new(crate::rules::no_unsafe_return::NoUnsafeReturn)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

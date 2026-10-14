@@ -67,6 +67,9 @@ pub const BASELINE_RULES: &[&str] = &[
 ];
 
 pub fn require_implemented(name: &str) -> Result<(), String> {
+    if matches!(name, "await-thenable") {
+        return Ok(());
+    }
     if BASELINE_RULES.contains(&name) {
         Err(format!("rule not yet implemented: {name}"))
     } else {
@@ -78,6 +81,7 @@ pub fn create_rule(
     config: &crate::payload::ConfiguredRule,
 ) -> Result<Box<dyn crate::rule::Rule>, String> {
     match config.name.as_str() {
+        "await-thenable" => Ok(Box::new(crate::rules::await_thenable::AwaitThenable)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

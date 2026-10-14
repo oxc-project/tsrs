@@ -55,4 +55,5 @@ mod rules {
     pub mod non_nullable_type_assertion_style;
     pub mod only_throw_error;
     pub mod prefer_find;
+    pub mod prefer_includes;
 }

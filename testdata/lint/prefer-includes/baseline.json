@@ -1,0 +1,2966 @@
+{
+  "Name": "prefer-includes",
+  "Suites": {
+    "TestPreferIncludesRule": {
+      "TSConfig": "tsconfig.json",
+      "Valid": [
+        {
+          "Code": "\n      function f(a: string): void {\n        a.indexOf(b);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string): void {\n        a.indexOf(b) + 0;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string | { value: string }): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type UserDefined = {\n        indexOf(x: any): number; // don't have 'includes'\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type UserDefined = {\n        indexOf(x: any, fromIndex?: number): number;\n        includes(x: any): boolean; // different parameters\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type UserDefined = {\n        indexOf(x: any, fromIndex?: number): number;\n        includes(x: any, fromIndex: number): boolean; // different parameters\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type UserDefined = {\n        indexOf(x: any, fromIndex?: number): number;\n        includes: boolean; // different type\n      };\n      function f(a: UserDefined): void {\n        a.indexOf(b) !== -1;\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string): void {\n        /bar/i.test(a);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string): void {\n        /foo[rz]/.test(a);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string): void {\n        /foo|bar/.test(a);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string): void {\n        /bar/.test();\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(a: string): void {\n        something.test(a);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const pattern = new RegExp('bar');\n      function f(a) {\n        return pattern.test(a);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      const numbers = /\\d/;\n      function f(password: string): void {\n        if (numbers.test(password)) {\n          // Should not be flagged - \\d is a regex metacharacter\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(password: string): void {\n        /\\d/.test(password);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(text: string): void {\n        /\\w+/.test(text);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f(text: string): void {\n        /\\s/.test(text);\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 68
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) != -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 67
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) > -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) >= 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 66
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 66
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) === -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 49,
+                    "end": 49
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 68
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) == -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 67
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 49,
+                    "end": 49
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) <= -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 49,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 51,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 67
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 49,
+                    "end": 49
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          a.indexOf(b) < 0;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          !a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 65
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "end": 58,
+                    "pos": 51
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 65
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 49,
+                    "end": 49
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a?: string): void {\n          a?.indexOf(b) === -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a?: string): void {\n          !a?.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 70,
+                "pos": 50
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 53,
+                    "end": 60
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 70
+                  }
+                },
+                {
+                  "text": "!",
+                  "range": {
+                    "pos": 50,
+                    "end": 50
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a?: string): void {\n          a?.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a?: string): void {\n          a?.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 70
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "end": 60,
+                    "pos": 53
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 70
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /bar/.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 49,
+                "end": 62
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 60
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 62,
+                    "pos": 61
+                  }
+                },
+                {
+                  "text": ".includes('bar')",
+                  "range": {
+                    "pos": 61,
+                    "end": 61
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /bar/.test((1 + 1, a));\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          (1 + 1, a).includes('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 71
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 60
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 70,
+                    "end": 71
+                  }
+                },
+                {
+                  "text": ".includes('bar')",
+                  "range": {
+                    "end": 70,
+                    "pos": 70
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /\\\\0'\\\\\\\\\\\\n\\\\r\\\\v\\\\t\\\\f/.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes('\\\\0\\'\\\\\\\\\\\\n\\\\r\\\\v\\\\t\\\\f');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 82
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 80
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 81,
+                    "end": 82
+                  }
+                },
+                {
+                  "text": ".includes('\\\\0\\'\\\\\\\\\\\\n\\\\r\\\\v\\\\t\\\\f')",
+                  "range": {
+                    "pos": 81,
+                    "end": 81
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = new RegExp('bar');\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = new RegExp('bar');\n        function f(a: string): void {\n          a.includes('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 92,
+                "end": 107
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 92,
+                    "end": 105
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 106,
+                    "end": 107
+                  }
+                },
+                {
+                  "text": ".includes('bar')",
+                  "range": {
+                    "pos": 106,
+                    "end": 106
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /bar/;\n        function f(a: string, b: string): void {\n          pattern.test(a + b);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /bar/;\n        function f(a: string, b: string): void {\n          (a + b).includes('bar');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 91,
+                "end": 110
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 91,
+                    "end": 104
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 109,
+                    "end": 110
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 104,
+                    "end": 104
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "end": 109,
+                    "pos": 109
+                  }
+                },
+                {
+                  "text": ".includes('bar')",
+                  "range": {
+                    "pos": 109,
+                    "end": 109
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: any[]): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 50,
+                    "end": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 60,
+                    "end": 67
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: ReadonlyArray<any>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 61,
+                "end": 80
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 63,
+                    "end": 70
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 73,
+                    "end": 80
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Int8Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 71
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "end": 61,
+                    "pos": 54
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 64,
+                    "end": 71
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Int16Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Int16Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 72
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 55,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 65,
+                    "end": 72
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Int32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Int32Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 72
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 55,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 65,
+                    "end": 72
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Uint8Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Uint8Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 72
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 55,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 65,
+                    "end": 72
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Uint16Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Uint16Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 73
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 56,
+                    "end": 63
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 66,
+                    "end": 73
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Uint32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 54,
+                "end": 73
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 56,
+                    "end": 63
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 66,
+                    "end": 73
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Float32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Float32Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 55,
+                "end": 74
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "end": 64,
+                    "pos": 57
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 67,
+                    "end": 74
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Float64Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 74,
+                "pos": 55
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 57,
+                    "end": 64
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 67,
+                    "end": 74
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 70,
+                    "end": 77
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 80,
+                    "end": 87
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 68,
+                "end": 87
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f<\n          T,\n          U extends\n            | T[]\n            | ReadonlyArray<T>\n            | Int8Array\n            | Uint8Array\n            | Int16Array\n            | Uint16Array\n            | Int32Array\n            | Uint32Array\n            | Float32Array\n            | Float64Array,\n        >(a: U): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f<\n          T,\n          U extends\n            | T[]\n            | ReadonlyArray<T>\n            | Int8Array\n            | Uint8Array\n            | Int16Array\n            | Uint16Array\n            | Int32Array\n            | Uint32Array\n            | Float32Array\n            | Float64Array,\n        >(a: U): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 345,
+                    "end": 352
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 355,
+                    "end": 362
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 343,
+                "end": 362
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 166,
+                "end": 185
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 168,
+                    "end": 175
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 178,
+                    "end": 185
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: Readonly<any[]>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 77
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 60,
+                    "end": 67
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 77,
+                    "pos": 70
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f(a: any[]): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f(a: any[]): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 80,
+                    "end": 87
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 97,
+                    "pos": 90
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 78,
+                "end": 97
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f(a: ReadonlyArray<any>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f(a: ReadonlyArray<any>): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 91,
+                "end": 110
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 93,
+                    "end": 100
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 103,
+                    "end": 110
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f(a: Int8Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f(a: Int8Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 101
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 84,
+                    "end": 91
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 101,
+                    "pos": 94
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f(a: Uint32Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f(a: Uint32Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 84,
+                "end": 103
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 86,
+                    "end": 93
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 96,
+                    "end": 103
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f(a: Float64Array): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f(a: Float64Array): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 85,
+                "end": 104
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 87,
+                    "end": 94
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 97,
+                    "end": 104
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f<T>(a: T[] | ReadonlyArray<T>): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 98,
+                "end": 117
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 100,
+                    "end": 107
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 110,
+                    "end": 117
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        type UserDefined = {\n          indexOf(x: any): number;\n          includes(x: any): boolean;\n        };\n        function f(a: UserDefined): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 8,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 196,
+                "end": 215
+              },
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "end": 205,
+                    "pos": 198
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 215,
+                    "pos": 208
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare const b: any;\n        function f(a: Readonly<any[]>): void {\n          a.indexOf(b) !== -1;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare const b: any;\n        function f(a: Readonly<any[]>): void {\n          a.includes(b);\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "includes",
+                  "range": {
+                    "pos": 90,
+                    "end": 97
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 100,
+                    "end": 107
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferIncludes",
+                "description": "Use 'includes()' method instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 88,
+                "end": 107
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /word/.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 63
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 61
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 62,
+                    "end": 63
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 62,
+                    "end": 62
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /\\0'\\\\n\\r\\v\\t\\f/.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes('\\0\\'\\\\n\\r\\v\\t\\f');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 73
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 71
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 72,
+                    "end": 73
+                  }
+                },
+                {
+                  "text": ".includes('\\0\\'\\\\n\\r\\v\\t\\f')",
+                  "range": {
+                    "pos": 72,
+                    "end": 72
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = new RegExp('word');\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = new RegExp('word');\n        function f(a: string): void {\n          a.includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 108,
+                "pos": 93
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 93,
+                    "end": 106
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 107,
+                    "end": 108
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 107,
+                    "end": 107
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /word/;\n        function f(a: string, b: string): void {\n          pattern.test(a + b);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /word/;\n        function f(a: string, b: string): void {\n          (a + b).includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 92,
+                "end": 111
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 105,
+                    "pos": 92
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 110,
+                    "end": 111
+                  }
+                },
+                {
+                  "text": "(",
+                  "range": {
+                    "pos": 105,
+                    "end": 105
+                  }
+                },
+                {
+                  "text": ")",
+                  "range": {
+                    "pos": 110,
+                    "end": 110
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 110,
+                    "end": 110
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /café/.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          a.includes('café');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 64
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 64
+                  }
+                },
+                {
+                  "text": ".includes('café')",
+                  "range": {
+                    "pos": 63,
+                    "end": 63
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = new RegExp('café');\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = new RegExp('café');\n        function f(a: string): void {\n          a.includes('café');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 94,
+                "end": 109
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 94,
+                    "end": 107
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 108,
+                    "end": 109
+                  }
+                },
+                {
+                  "text": ".includes('café')",
+                  "range": {
+                    "pos": 108,
+                    "end": 108
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes"
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(a: string): void {\n          /word/.test((1 + 1, a));\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(a: string): void {\n          (1 + 1, a).includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 72
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 61
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 72,
+                    "pos": 71
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 71,
+                    "end": 71
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        const pattern = /word/;\n        function f(a: string): void {\n          pattern.test(a);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        const pattern = /word/;\n        function f(a: string): void {\n          a.includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 81,
+                "end": 96
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 81,
+                    "end": 94
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 95,
+                    "end": 96
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 95,
+                    "end": 95
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function getString(): string { return \"test\"; }\n        function f(): void {\n          /word/.test(getString());\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function getString(): string { return \"test\"; }\n        function f(): void {\n          getString().includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 4,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 96,
+                "end": 120
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 108,
+                    "pos": 96
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 119,
+                    "end": 120
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 119,
+                    "end": 119
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(obj: { value: string }): void {\n          /word/.test(obj.value);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(obj: { value: string }): void {\n          obj.value.includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 62,
+                "end": 84
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 62,
+                    "end": 74
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 83,
+                    "end": 84
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 83,
+                    "end": 83
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        function f(arr: string[]): void {\n          /word/.test(arr[0]);\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        function f(arr: string[]): void {\n          arr[0].includes('word');\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferStringIncludes",
+              "Line": 3,
+              "Column": 11,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-includes",
+              "message": {
+                "id": "preferStringIncludes",
+                "description": "Use `String#includes()` method with a string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 72
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 65,
+                    "pos": 53
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 71,
+                    "end": 72
+                  }
+                },
+                {
+                  "text": ".includes('word')",
+                  "range": {
+                    "pos": 71,
+                    "end": 71
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

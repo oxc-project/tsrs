@@ -1,0 +1,261 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 38,
+      "end": 62
+    },
+    "message": {
+      "id": "preferIncludes",
+      "description": "Use 'includes()' method instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "includes",
+        "range": {
+          "pos": 42,
+          "end": 49
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 55,
+          "end": 62
+        }
+      },
+      {
+        "text": "!",
+        "range": {
+          "pos": 38,
+          "end": 38
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 105,
+      "end": 128
+    },
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "first.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 105,
+          "end": 117
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 127,
+          "end": 128
+        }
+      },
+      {
+        "text": "(",
+        "range": {
+          "pos": 117,
+          "end": 117
+        }
+      },
+      {
+        "text": ")",
+        "range": {
+          "pos": 127,
+          "end": 127
+        }
+      },
+      {
+        "text": ".includes('café')",
+        "range": {
+          "pos": 127,
+          "end": 127
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 62,
+      "end": 78
+    },
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 62,
+          "end": 74
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 77,
+          "end": 78
+        }
+      },
+      {
+        "text": ".includes('café')",
+        "range": {
+          "pos": 77,
+          "end": 77
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 80,
+      "end": 98
+    },
+    "message": {
+      "id": "preferIncludes",
+      "description": "Use 'includes()' method instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "includes",
+        "range": {
+          "pos": 84,
+          "end": 91
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 93,
+          "end": 98
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 154,
+      "end": 170
+    },
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 154,
+          "end": 166
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 169,
+          "end": 170
+        }
+      },
+      {
+        "text": ".includes('word')",
+        "range": {
+          "pos": 169,
+          "end": 169
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 358,
+      "end": 376
+    },
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 358,
+          "end": 372
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 375,
+          "end": 376
+        }
+      },
+      {
+        "text": ".includes('\\\\[a-z\\\\]')",
+        "range": {
+          "pos": 375,
+          "end": 375
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 499,
+      "end": 522
+    },
+    "message": {
+      "id": "preferStringIncludes",
+      "description": "Use `String#includes()` method with a string instead."
+    },
+    "file_path": "second.ts",
+    "rule": "prefer-includes",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 499,
+          "end": 518
+        }
+      },
+      {
+        "text": "",
+        "range": {
+          "pos": 521,
+          "end": 522
+        }
+      },
+      {
+        "text": ".includes('\\\\[\\8-\\-\\\\]')",
+        "range": {
+          "pos": 521,
+          "end": 521
+        }
+      }
+    ]
+  }
+]

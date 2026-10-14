@@ -106,6 +106,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "non-nullable-type-assertion-style"
             | "only-throw-error"
             | "prefer-find"
+            | "prefer-includes"
     ) {
         return Ok(());
     }
@@ -195,6 +196,7 @@ pub fn create_rule(
         "only-throw-error" => crate::rules::only_throw_error::OnlyThrowError::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "prefer-find" => Ok(Box::new(crate::rules::prefer_find::PreferFind)),
+        "prefer-includes" => Ok(Box::new(crate::rules::prefer_includes::PreferIncludes)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

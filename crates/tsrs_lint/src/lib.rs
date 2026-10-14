@@ -38,4 +38,5 @@ mod rules {
     pub mod no_unnecessary_boolean_literal_compare;
     pub mod no_unnecessary_condition;
     pub mod no_unnecessary_qualifier;
+    pub mod no_unnecessary_template_expression;
 }

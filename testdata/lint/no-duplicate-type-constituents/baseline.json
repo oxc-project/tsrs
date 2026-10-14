@@ -1,0 +1,3844 @@
+{
+  "Name": "no-duplicate-type-constituents",
+  "Suites": {
+    "TestNoDuplicateTypeConstituentsRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "type T = 1 | 2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = 1 | '1';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = true & boolean;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = null | undefined;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = any | unknown;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = { a: string } | { b: string };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = { a: string; b: number } | { b: number; a: string };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = { a: string | number };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = Set<string> | Set<number>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = Class<string> | Class<number>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = string[] | number[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = string[][] | string[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = [1, 2, 3] | [1, 2, 4];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = [1, 2, 3] | [1, 2, 3, 4];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = 'A' | string[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = (() => string) | (() => void);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = () => string | void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = () => null | undefined;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = (arg: string | number) => void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = A | A;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\nconst a: A | B = 'A';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | /* comment */ B;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = 'A' | 'B';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype T = A | B | C;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = readonly string[] | string[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype D = 'D';\ntype T = (A | B) | (C | D);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = (A | B) | (A & B);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = Record<string, A | B>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = A | A;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreIntersections": false,
+            "ignoreUnions": true
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = A & A;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": {
+            "ignoreIntersections": true,
+            "ignoreUnions": false
+          },
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = Class<string> | Class<string>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "type T = A | A | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: string | undefined) => {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "export class A { constructor(readonly name?: string | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "class A { constructor(public name?: string | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "class A { constructor(protected name?: string | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "class A { constructor(private name?: string | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype U = undefined;\nclass A { constructor(private readonly name?: string | U) {} }\n",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "type T = 1 | 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = 1  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 13,
+                "end": 14
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 13,
+                    "end": 14
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 11,
+                    "end": 12
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type '1' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 10
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  1."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = true & true;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = true  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Intersection type constituent is duplicated with  true."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 16,
+                "end": 20
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 16,
+                    "end": 20
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 15,
+                    "pos": 14
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'true' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 13
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "type T = null | null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = null  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  null."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 16,
+                "end": 20
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 16,
+                    "end": 20
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 14,
+                    "end": 15
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'null' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 13
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = any | any;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = any  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 15,
+                "end": 18
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 15,
+                    "end": 18
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 13,
+                    "end": 14
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'any' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 12
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  any."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "type T = { a: string | string };",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = { a: string   };"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 23,
+                "end": 29
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 23,
+                    "end": 29
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 21,
+                    "end": 22
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "pos": 14,
+                    "end": 20
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "type T = { a: string } | { a: string };",
+          "Only": false,
+          "Skip": true,
+          "FileName": "",
+          "Output": [
+            "type T = { a: string }  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {}
+        },
+        {
+          "Code": "type T = { a: string; b: number } | { a: string; b: number };",
+          "Only": false,
+          "Skip": true,
+          "FileName": "",
+          "Output": [
+            "type T = { a: string; b: number }  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {}
+        },
+        {
+          "Code": "type T = Set<string> | Set<string>;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = Set<string>  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  Set<string>."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 23,
+                "end": 34
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 23,
+                    "end": 34
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 21,
+                    "end": 22
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'Set<string>' is first declared here.",
+                  "range": {
+                    "end": 20,
+                    "pos": 9
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype IsArray<T> = T extends any[] ? true : false;\ntype ActuallyDuplicated = IsArray<number> | IsArray<string>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype IsArray<T> = T extends any[] ? true : false;\ntype ActuallyDuplicated = IsArray<number>  ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 95,
+                "end": 110
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 95,
+                    "end": 110
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 93,
+                    "end": 94
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'IsArray<number>' is first declared here.",
+                  "range": {
+                    "pos": 77,
+                    "end": 92
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  IsArray<number>."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = string[] | string[];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = string[]  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 20,
+                    "end": 28
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 18,
+                    "end": 19
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string[]' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 17
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string[]."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 20,
+                "end": 28
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = string[][] | string[][];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = string[][]  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string[][]."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 22,
+                "end": 32
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 22,
+                    "end": 32
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 21,
+                    "pos": 20
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 9,
+                    "end": 19
+                  },
+                  "label": "Type 'string[][]' is first declared here."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = [1, 2, 3] | [1, 2, 3];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = [1, 2, 3]  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 21,
+                "end": 30
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 30,
+                    "pos": 21
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 20,
+                    "pos": 19
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type '[1, 2, 3]' is first declared here.",
+                  "range": {
+                    "end": 18,
+                    "pos": 9
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  [1, 2, 3]."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = () => string | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = () => string  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "pos": 15,
+                    "end": 21
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 30
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 30
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 22,
+                    "end": 23
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "type T = () => null | null;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = () => null  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  null."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 22,
+                "end": 26
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 26,
+                    "pos": 22
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 20,
+                    "end": 21
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'null' is first declared here.",
+                  "range": {
+                    "pos": 15,
+                    "end": 19
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type T = (arg: string | string) => void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = (arg: string  ) => void;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "end": 21,
+                    "pos": 15
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 24,
+                "end": 30
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 30,
+                    "pos": 24
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 22,
+                    "end": 23
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "type T = 'A' | 'A';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = 'A'  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type ''A'' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 12
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  'A'."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 15,
+                "end": 18
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 15,
+                    "end": 18
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 13,
+                    "end": 14
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype T = A | A;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype T = A  ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 29
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 29
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 27
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 24,
+                    "end": 25
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\nconst a: A | A = 'A';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\nconst a: A   = 'A';\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 29
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 29
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 27,
+                    "pos": 26
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 24,
+                    "end": 25
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype T = A | /* comment */ A;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype T = A  /* comment */ ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 42,
+                "end": 43
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 42,
+                    "end": 43
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 27
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "end": 25,
+                    "pos": 24
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A1 = 'A';\ntype A2 = 'A';\ntype A3 = 'A';\ntype T = A1 | A2 | A3;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A1 = 'A';\ntype A2 = 'A';\ntype A3 = 'A';\ntype T = A1    ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A1."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 60,
+                "end": 62
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 60,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 58,
+                    "end": 59
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A1' is first declared here.",
+                  "range": {
+                    "pos": 55,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents"
+            },
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A1' is first declared here.",
+                  "range": {
+                    "pos": 55,
+                    "end": 57
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A1."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 65,
+                "end": 67
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 65,
+                    "end": 67
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 64
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B | A;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B  ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 47
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 44,
+                    "end": 45
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 38,
+                    "end": 39
+                  },
+                  "label": "Type 'A' is first declared here."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 47
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B | A | B;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B    ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 47
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 44,
+                    "end": 45
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 38,
+                    "end": 39
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 47
+              }
+            },
+            {
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  B."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 50,
+                "end": 51
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 51,
+                    "pos": 50
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 48,
+                    "end": 49
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 42,
+                    "end": 43
+                  },
+                  "label": "Type 'B' is first declared here."
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B | A | A;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype T = A | B    ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 47
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 47
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 44,
+                    "end": 45
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 38,
+                    "end": 39
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              }
+            },
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 51,
+                "pos": 50
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 51
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 48,
+                    "end": 49
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 38,
+                    "end": 39
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype T = A | B | A | C;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype T = A | B   | C;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 60,
+                    "end": 61
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 59,
+                    "pos": 58
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 52,
+                    "end": 53
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 60,
+                "end": 61
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype T = (A | B) | (A | B);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype T = (A | B)  ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  (A | B)."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 55
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 48,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 47
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type '(A | B)' is first declared here.",
+                  "range": {
+                    "pos": 38,
+                    "end": 45
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype T = A | (A | A);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype T = A  ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "end": 25,
+                    "pos": 24
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 35
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 35
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 27
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype D = 'D';\ntype F = (A | B) | (A | B) | ((C | D) & (A | B)) | (A | B);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype C = 'C';\ntype D = 'D';\ntype F = (A | B)   | ((C | D) & (A | B))  ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type '(A | B)' is first declared here.",
+                  "range": {
+                    "pos": 66,
+                    "end": 73
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  (A | B)."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 76,
+                "end": 83
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 83,
+                    "pos": 76
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 74,
+                    "end": 75
+                  }
+                }
+              ]
+            },
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  (A | B)."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 115,
+                "pos": 108
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 108,
+                    "end": 115
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 106,
+                    "end": 107
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type '(A | B)' is first declared here.",
+                  "range": {
+                    "pos": 66,
+                    "end": 73
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype B = 'B';\ntype C = (A | B) | A | B | (A | B);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype B = 'B';\ntype C = (A | B)      ;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 39,
+                    "end": 40
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with A."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 49,
+                "pos": 48
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 48,
+                    "end": 49
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 47
+                  }
+                }
+              ]
+            },
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  B."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 53
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 52,
+                    "end": 53
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 51
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'B' is first declared here.",
+                  "range": {
+                    "pos": 43,
+                    "end": 44
+                  }
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 56,
+                "end": 63
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 56,
+                    "end": 63
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 54,
+                    "end": 55
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type '(A | B)' is first declared here.",
+                  "range": {
+                    "pos": 38,
+                    "end": 45
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  (A | B)."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type A = (number | string) | number | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type A = (number | string)    ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with number."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 29,
+                "end": 35
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 29,
+                    "end": 35
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 27,
+                    "end": 28
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'number' is first declared here.",
+                  "range": {
+                    "pos": 10,
+                    "end": 16
+                  }
+                }
+              ]
+            },
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 44,
+                "pos": 38
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 38,
+                    "end": 44
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 36,
+                    "end": 37
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 19,
+                    "end": 25
+                  },
+                  "label": "Type 'string' is first declared here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "type A = (number | (string | null)) | (string | (null | number));",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type A = (number | (string | null))  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type '(number | (string | null))' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 35
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  (number | (string | null))."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 64
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 38,
+                    "end": 64
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 36,
+                    "end": 37
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "type A = (number & string) & number & string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type A = (number & string)    ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 29,
+                "end": 35
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 29,
+                    "end": 35
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 28,
+                    "pos": 27
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'number' is first declared here.",
+                  "range": {
+                    "pos": 10,
+                    "end": 16
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Intersection type constituent is duplicated with number."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 38,
+                    "end": 44
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 36,
+                    "end": 37
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "pos": 19,
+                    "end": 25
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Intersection type constituent is duplicated with  string."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 44
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type A = number & string & (number & string);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type A = number & string & (  string);",
+            "type A = number & string  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Intersection type constituent is duplicated with  number."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 34
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 34
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 35,
+                    "end": 36
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'number' is first declared here.",
+                  "range": {
+                    "pos": 9,
+                    "end": 15
+                  }
+                }
+              ]
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 37,
+                "end": 43
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "pos": 18,
+                    "end": 24
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Intersection type constituent is duplicated with  string."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ntype A = 'A';\ntype T = Record<string, A | A>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ntype A = 'A';\ntype T = Record<string, A  >;\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 44
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 43,
+                    "end": 44
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 41,
+                    "end": 42
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'A' is first declared here.",
+                  "range": {
+                    "pos": 39,
+                    "end": 40
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  A."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "type T = A | A | string | string;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type T = A | A | string  ;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 32
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 32
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 25
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "pos": 17,
+                    "end": 23
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "(a?: string | undefined) => {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "(a?: string  ) => {};"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 14,
+                "end": 23
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 14,
+                    "end": 23
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 13,
+                    "pos": 12
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        type T = undefined;\n        (arg?: T | string) => {};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        type T = undefined;\n        (arg?:   string) => {};\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 45
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 44,
+                    "end": 45
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 47
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        interface F {\n          (a?: string | undefined): void;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        interface F {\n          (a?: string  ): void;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 47,
+                "end": 56
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 47,
+                    "end": 56
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 45,
+                    "end": 46
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents"
+            }
+          ]
+        },
+        {
+          "Code": "type fn = new (a?: string | undefined) => void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type fn = new (a?: string  ) => void;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 28,
+                "end": 37
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 28,
+                    "end": 37
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 26,
+                    "end": 27
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "function f(a?: string | undefined) {}",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "function f(a?: string  ) {}"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 33,
+                "pos": 24
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 24,
+                    "end": 33
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 22,
+                    "end": 23
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "f = function (a?: string | undefined) {};",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "f = function (a?: string  ) {};"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 27,
+                "end": 36
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 27,
+                    "end": 36
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 26
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "declare function f(a?: string | undefined): void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "declare function f(a?: string  ): void;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 32,
+                "end": 41
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 32,
+                    "end": 41
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 31,
+                    "pos": 30
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        declare class bb {\n          f(a?: string | undefined): void;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        declare class bb {\n          f(a?: string  ): void;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 53,
+                    "end": 62
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 51,
+                    "end": 52
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 53,
+                "end": 62
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        interface ee {\n          f(a?: string | undefined): void;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        interface ee {\n          f(a?: string  ): void;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 49,
+                "end": 58
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 49,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 47,
+                    "end": 48
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        interface ee {\n          new (a?: string | undefined): void;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        interface ee {\n          new (a?: string  ): void;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 61
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 52,
+                    "end": 61
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 50,
+                    "end": 51
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "type fn = (a?: string | undefined) => void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type fn = (a?: string  ) => void;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 33,
+                "pos": 24
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 33,
+                    "pos": 24
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 22,
+                    "end": 23
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "type fn = (a?: string | (undefined | number)) => void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type fn = (a?: string | (  number)) => void;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 34
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 25,
+                    "end": 34
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 36,
+                    "pos": 35
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "type fn = (a?: (undefined | number) | string) => void;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "type fn = (a?: (  number) | string) => void;"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 16,
+                    "end": 25
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "end": 27,
+                    "pos": 26
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 16,
+                "end": 25
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        abstract class cc {\n          abstract f(a?: string | undefined): void;\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n        abstract class cc {\n          abstract f(a?: string  ): void;\n        }\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 63,
+                "end": 72
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 63,
+                    "end": 72
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 61,
+                    "end": 62
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "class A { constructor(name?: string | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "class A { constructor(name?: string  ) {} }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "unnecessary",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "unnecessary",
+                "description": "Explicit undefined is unnecessary on an optional parameter."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 47
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 38,
+                    "end": 47
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 36,
+                    "end": 37
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "class A { constructor(readonly name?: string | string | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "class A { constructor(readonly name?: string   | undefined) {} }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  string."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 47,
+                "end": 53
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 47,
+                    "end": 53
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 45,
+                    "end": 46
+                  }
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Type 'string' is first declared here.",
+                  "range": {
+                    "pos": 38,
+                    "end": 44
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "class A { constructor(readonly name?: string | undefined | undefined) {} }",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "class A { constructor(readonly name?: string | undefined  ) {} }"
+          ],
+          "Errors": [
+            {
+              "MessageId": "duplicate",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Type 'undefined' is first declared here.",
+                  "range": {
+                    "end": 56,
+                    "pos": 47
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-duplicate-type-constituents",
+              "message": {
+                "id": "duplicate",
+                "description": "Union type constituent is duplicated with  undefined."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 59,
+                "end": 68
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 59,
+                    "end": 68
+                  }
+                },
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 57,
+                    "end": 58
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -108,6 +108,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "prefer-find"
             | "prefer-includes"
             | "prefer-optional-chain"
+            | "prefer-nullish-coalescing"
     ) {
         return Ok(());
     }
@@ -199,6 +200,7 @@ pub fn create_rule(
         "prefer-find" => Ok(Box::new(crate::rules::prefer_find::PreferFind)),
         "prefer-includes" => Ok(Box::new(crate::rules::prefer_includes::PreferIncludes)),
         "prefer-optional-chain" => crate::rules::prefer_optional_chain::PreferOptionalChain::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "prefer-nullish-coalescing" => crate::rules::prefer_nullish_coalescing::PreferNullishCoalescing::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

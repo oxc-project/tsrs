@@ -2958,7 +2958,7 @@ impl Checker {
     }
 
     // checker.go:30261
-    pub(crate) fn get_contextual_type_for_argument_at_index(
+    pub fn get_contextual_type_for_argument_at_index(
         &mut self,
         call_target: P<Node>,
         arg_index: usize,

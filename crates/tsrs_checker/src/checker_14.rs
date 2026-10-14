@@ -1703,7 +1703,7 @@ impl Checker {
 }
 
 // checker.go:29482
-pub(crate) fn get_mapped_type_modifiers(t: P<Type>) -> MappedTypeModifiers {
+pub fn get_mapped_type_modifiers(t: P<Type>) -> MappedTypeModifiers {
     let declaration = t.as_mapped_type().declaration.get().unwrap().as_mapped_type_node();
     let mut modifiers = MappedTypeModifiers::empty();
     if let Some(readonly_token) = declaration.readonly_token {
@@ -2199,7 +2199,7 @@ impl Checker {
     }
 
     // checker.go:29803
-    pub(crate) fn get_type_of_property_or_index_signature_of_type(
+    pub fn get_type_of_property_or_index_signature_of_type(
         &mut self,
         t: P<Type>,
         name: &str,

@@ -109,7 +109,7 @@ pub(crate) fn get_flow_node_of_node(node: P<Node>) -> Option<P<FlowNode>> {
 
 impl Checker {
     // flow.go:77
-    pub(crate) fn get_flow_type_of_reference(
+    pub fn get_flow_type_of_reference(
         &mut self,
         reference: P<Node>,
         declared_type: P<Type>,

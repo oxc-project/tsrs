@@ -1,0 +1,3895 @@
+{
+  "Name": "no-unsafe-enum-comparison",
+  "Suites": {
+    "TestNoUnsafeEnumComparisonRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "'a' > 'b';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'a' < 'b';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'a' == 'b';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "'a' === 'b';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "1 > 2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "1 < 2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "1 == 2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "1 === 2;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      Fruit.Apple === ({} as any);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      Fruit.Apple === undefined;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      Fruit.Apple === null;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | -1;\n      fruit === -1;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | number;\n      fruit === -1;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === 'apple';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | string;\n      fruit === 'apple';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === 'apple';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | string;\n      fruit === 'apple';\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 0;\n      fruit === 0;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | number;\n      fruit === 0;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === Math.random() > 0.5 ? 'apple' : Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 'apple';\n      fruit === Math.random() > 0.5 ? 'apple' : Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | string;\n      fruit === Math.random() > 0.5 ? 'apple' : Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | 0;\n      fruit === Math.random() > 0.5 ? 0 : Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n      }\n      declare const fruit: Fruit | number;\n      fruit === Math.random() > 0.5 ? 0 : Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n      }\n      Fruit.Apple === Fruit.Banana;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 0,\n        Banana = 1,\n      }\n      Fruit.Apple === Fruit.Banana;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple = 'apple',\n        Banana = 'banana',\n      }\n      Fruit.Apple === Fruit.Banana;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n      }\n      const fruit = Fruit.Apple;\n      fruit === Fruit.Banana;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      const vegetable = Vegetable.Asparagus;\n      vegetable === Vegetable.Beet;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n        Cherry,\n      }\n      const fruit1 = Fruit.Apple;\n      const fruit2 = Fruit.Banana;\n      fruit1 === fruit2;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      const vegetable1 = Vegetable.Asparagus;\n      const vegetable2 = Vegetable.Beet;\n      vegetable1 === vegetable2;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n        Cherry,\n      }\n      enum Fruit2 {\n        Apple2,\n        Banana2,\n        Cherry2,\n      }\n      declare const left: number | Fruit;\n      declare const right: number | Fruit2;\n      left === right;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      enum Vegetable2 {\n        Asparagus2 = 'asparagus2',\n        Beet2 = 'beet2',\n        Celery2 = 'celery2',\n      }\n      declare const left: string | Vegetable;\n      declare const right: string | Vegetable2;\n      left === right;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n        Beet = 'beet',\n        Celery = 'celery',\n      }\n      const foo = {};\n      const vegetable = Vegetable.Asparagus;\n      vegetable in foo;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n        Banana,\n        Cherry,\n      }\n      declare const fruitOrBoolean: Fruit | boolean;\n      fruitOrBoolean === true;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Str {\n        A = 'a',\n      }\n      enum Num {\n        B = 1,\n      }\n      enum Mixed {\n        A = 'a',\n        B = 1,\n      }\n\n      declare const str: Str;\n      declare const strOrString: Str | string;\n\n      declare const num: Num;\n      declare const numOrNumber: Num | number;\n\n      declare const mixed: Mixed;\n      declare const mixedOrStringOrNumber: Mixed | string | number;\n\n      function someFunction() {}\n\n      // following are all ignored due to the presence of \"| string\" or \"| number\"\n      strOrString === 'a';\n      numOrNumber === 1;\n      mixedOrStringOrNumber === 'a';\n      mixedOrStringOrNumber === 1;\n\n      // following are all ignored because the value can never be an enum value\n      str === 1;\n      num === 'a';\n      str === {};\n      num === {};\n      mixed === {};\n      str === true;\n      num === true;\n      mixed === true;\n      str === someFunction;\n      num === someFunction;\n      mixed === someFunction;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n\n      const bitShift = 1 << Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n\n      const bitShift = 1 >> Fruit.Apple;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n\n      declare const fruit: Fruit;\n\n      switch (fruit) {\n        case Fruit.Apple: {\n          break;\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n      }\n\n      declare const vegetable: Vegetable;\n\n      switch (vegetable) {\n        case Vegetable.Asparagus: {\n          break;\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Vegetable {\n        Asparagus = 'asparagus',\n      }\n\n      declare const vegetable: Vegetable;\n\n      switch (vegetable) {\n        default: {\n          break;\n        }\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      enum Fruit {\n        Apple,\n      }\n      enum Vegetable {\n        Asparagus = 'asparagus',\n      }\n      declare const numberOrBoolean: number | boolean;\n      declare const stringOrBoolean: string | boolean;\n      numberOrBoolean === Fruit.Apple;\n      stringOrBoolean === Vegetable.Asparagus;\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple < 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 57,
+                "end": 72
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit",
+                  "range": {
+                    "pos": 57,
+                    "end": 68
+                  }
+                },
+                {
+                  "range": {
+                    "pos": 71,
+                    "end": 72
+                  },
+                  "label": "Right operand: 1"
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple > 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 72
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit",
+                  "range": {
+                    "pos": 57,
+                    "end": 68
+                  }
+                },
+                {
+                  "range": {
+                    "end": 72,
+                    "pos": 71
+                  },
+                  "label": "Right operand: 1"
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple == 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit",
+                  "range": {
+                    "pos": 57,
+                    "end": 68
+                  }
+                },
+                {
+                  "range": {
+                    "pos": 72,
+                    "end": 73
+                  },
+                  "label": "Right operand: 1"
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 73
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 74,
+                "pos": 57
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit",
+                  "range": {
+                    "pos": 57,
+                    "end": 68
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 73,
+                    "end": 74
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple != 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit",
+                  "range": {
+                    "pos": 57,
+                    "end": 68
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 72,
+                    "end": 73
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 73,
+                "pos": 57
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        Fruit.Apple !== 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 74
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit",
+                  "range": {
+                    "pos": 57,
+                    "end": 68
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 73,
+                    "end": 74
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n        Fruit.Apple === 0;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n        Fruit.Apple === Fruit.Apple;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 90,
+                "end": 107
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Fruit.Apple",
+                      "range": {
+                        "pos": 106,
+                        "end": 107
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit.Apple",
+                  "range": {
+                    "end": 101,
+                    "pos": 90
+                  }
+                },
+                {
+                  "label": "Right operand: 0",
+                  "range": {
+                    "pos": 106,
+                    "end": 107
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple = 0,\n          Banana = 'banana',\n        }\n        Fruit.Banana === '';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 90,
+                "end": 109
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit.Banana",
+                  "range": {
+                    "end": 102,
+                    "pos": 90
+                  }
+                },
+                {
+                  "label": "Right operand: \"\"",
+                  "range": {
+                    "pos": 107,
+                    "end": 109
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        Vegetable.Asparagus === 'beet';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 163
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Vegetable.Asparagus",
+                  "range": {
+                    "pos": 133,
+                    "end": 152
+                  }
+                },
+                {
+                  "range": {
+                    "pos": 157,
+                    "end": 163
+                  },
+                  "label": "Right operand: \"beet\""
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry,\n        }\n        1 === Fruit.Apple;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 93,
+                "end": 110
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: 1",
+                  "range": {
+                    "pos": 93,
+                    "end": 94
+                  }
+                },
+                {
+                  "label": "Right operand: Fruit.Apple",
+                  "range": {
+                    "pos": 99,
+                    "end": 110
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        'beet' === Vegetable.Asparagus;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 163
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 133,
+                    "end": 139
+                  },
+                  "label": "Left operand: \"beet\""
+                },
+                {
+                  "label": "Right operand: Vegetable.Asparagus",
+                  "range": {
+                    "pos": 144,
+                    "end": 163
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry,\n        }\n        const fruit = Fruit.Apple;\n        fruit === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 128,
+                "end": 139
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 128,
+                    "end": 133
+                  },
+                  "label": "Left operand: Fruit.Apple"
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 138,
+                    "end": 139
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        const vegetable = Vegetable.Asparagus;\n        vegetable === 'beet';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 180,
+                "end": 200
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Vegetable.Asparagus",
+                  "range": {
+                    "pos": 180,
+                    "end": 189
+                  }
+                },
+                {
+                  "label": "Right operand: \"beet\"",
+                  "range": {
+                    "pos": 194,
+                    "end": 200
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n          Cherry,\n        }\n        const fruit = Fruit.Apple;\n        1 === fruit;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 128,
+                "end": 139
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 128,
+                    "end": 129
+                  },
+                  "label": "Left operand: 1"
+                },
+                {
+                  "range": {
+                    "pos": 134,
+                    "end": 139
+                  },
+                  "label": "Right operand: Fruit.Apple"
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        const vegetable = Vegetable.Asparagus;\n        'beet' === vegetable;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 180,
+                "end": 200
+              },
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 180,
+                    "end": 186
+                  },
+                  "label": "Left operand: \"beet\""
+                },
+                {
+                  "label": "Right operand: Vegetable.Asparagus",
+                  "range": {
+                    "pos": 191,
+                    "end": 200
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "enum Fruit { Apple, Banana, Cherry }enum Fruit2 {\n  Apple2,\n  Banana2,\n  Cherry2,\n}\n      Fruit.Apple === Fruit2.Apple2;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 90,
+                "end": 119
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit.Apple",
+                  "range": {
+                    "pos": 90,
+                    "end": 101
+                  }
+                },
+                {
+                  "label": "Right operand: Fruit2.Apple2",
+                  "range": {
+                    "pos": 106,
+                    "end": 119
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        enum Vegetable2 {\n          Asparagus2 = 'asparagus2',\n          Beet2 = 'beet2',\n          Celery2 = 'celery2',\n        }\n        Vegetable.Asparagus === Vegetable2.Asparagus2;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 264,
+                "end": 309
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Vegetable.Asparagus",
+                  "range": {
+                    "pos": 264,
+                    "end": 283
+                  }
+                },
+                {
+                  "label": "Right operand: Vegetable2.Asparagus2",
+                  "range": {
+                    "pos": 288,
+                    "end": 309
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "enum Fruit { Apple, Banana, Cherry }enum Fruit2 {\n  Apple2,\n  Banana2,\n  Cherry2,\n}\n      const fruit = Fruit.Apple;\n      fruit === Fruit2.Apple2;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Fruit.Apple",
+                  "range": {
+                    "pos": 123,
+                    "end": 128
+                  }
+                },
+                {
+                  "label": "Right operand: Fruit2.Apple2",
+                  "range": {
+                    "pos": 133,
+                    "end": 146
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 123,
+                "end": 146
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n          Celery = 'celery',\n        }\n        enum Vegetable2 {\n          Asparagus2 = 'asparagus2',\n          Beet2 = 'beet2',\n          Celery2 = 'celery2',\n        }\n        const vegetable = Vegetable.Asparagus;\n        vegetable === Vegetable2.Asparagus2;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 311,
+                "end": 346
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Vegetable.Asparagus",
+                  "range": {
+                    "pos": 311,
+                    "end": 320
+                  }
+                },
+                {
+                  "label": "Right operand: Vegetable2.Asparagus2",
+                  "range": {
+                    "pos": 325,
+                    "end": 346
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === 1;\n        mixed === 'a';\n        mixed === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === Str.A;\n        num === 1;\n        mixed === 'a';\n        mixed === 1;\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === Num.B;\n        mixed === 'a';\n        mixed === 1;\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === 1;\n        mixed === Mixed.A;\n        mixed === 1;\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          A = 'a',\n        }\n        enum Num {\n          B = 1,\n        }\n        enum Mixed {\n          A = 'a',\n          B = 1,\n        }\n\n        declare const str: Str;\n        declare const num: Num;\n        declare const mixed: Mixed;\n\n        // following are all errors because the value might be an enum value\n        str === 'a';\n        num === 1;\n        mixed === 'a';\n        mixed === Mixed.B;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 349,
+                "end": 360
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Str.A",
+                      "range": {
+                        "pos": 357,
+                        "end": 360
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Str",
+                  "range": {
+                    "pos": 349,
+                    "end": 352
+                  }
+                },
+                {
+                  "label": "Right operand: \"a\"",
+                  "range": {
+                    "end": 360,
+                    "pos": 357
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 370,
+                "end": 379
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Num.B",
+                      "range": {
+                        "end": 379,
+                        "pos": 378
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Num",
+                  "range": {
+                    "pos": 370,
+                    "end": 373
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 378,
+                    "end": 379
+                  }
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 389,
+                "end": 402
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Mixed.A",
+                      "range": {
+                        "pos": 399,
+                        "end": 402
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Mixed",
+                  "range": {
+                    "end": 394,
+                    "pos": 389
+                  }
+                },
+                {
+                  "range": {
+                    "end": 402,
+                    "pos": 399
+                  },
+                  "label": "Right operand: \"a\""
+                }
+              ],
+              "kind": 0
+            },
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 423,
+                "pos": 412
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Mixed.B",
+                      "range": {
+                        "pos": 422,
+                        "end": 423
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Mixed",
+                  "range": {
+                    "end": 417,
+                    "pos": 412
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 422,
+                    "end": 423
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple = 'apple',\n        }\n        type __String =\n          | (string & { __escapedIdentifier: void })\n          | (void & { __escapedIdentifier: void })\n          | Fruit;\n        declare const weirdString: __String;\n        weirdString === 'someArbitraryValue';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 259,
+                "end": 295
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: __String",
+                  "range": {
+                    "pos": 259,
+                    "end": 270
+                  }
+                },
+                {
+                  "label": "Right operand: \"someArbitraryValue\"",
+                  "range": {
+                    "pos": 275,
+                    "end": 295
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n\n        declare const fruit: Fruit;\n\n        switch (fruit) {\n          case 0: {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCase",
+                "description": "The case statement does not have a shared enum type with the switch predicate.",
+                "help": "Compare against a member of the same enum as the switch value, or normalize both sides to the same primitive representation first."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 122,
+                "end": 162
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Switch value: Fruit",
+                  "range": {
+                    "pos": 103,
+                    "end": 108
+                  }
+                },
+                {
+                  "label": "Case value: 0",
+                  "range": {
+                    "end": 128,
+                    "pos": 127
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n          Banana,\n        }\n\n        declare const fruit: Fruit;\n\n        switch (fruit) {\n          case Fruit.Apple: {\n            break;\n          }\n          case 1: {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCase",
+                "description": "The case statement does not have a shared enum type with the switch predicate.",
+                "help": "Compare against a member of the same enum as the switch value, or normalize both sides to the same primitive representation first."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 201,
+                "end": 241
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Switch value: Fruit",
+                  "range": {
+                    "pos": 121,
+                    "end": 126
+                  }
+                },
+                {
+                  "label": "Case value: 1",
+                  "range": {
+                    "pos": 206,
+                    "end": 207
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n        }\n\n        declare const vegetable: Vegetable;\n\n        switch (vegetable) {\n          case 'asparagus': {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCase",
+                "description": "The case statement does not have a shared enum type with the switch predicate.",
+                "help": "Compare against a member of the same enum as the switch value, or normalize both sides to the same primitive representation first."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 206,
+                "pos": 156
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Switch value: Vegetable",
+                  "range": {
+                    "pos": 133,
+                    "end": 142
+                  }
+                },
+                {
+                  "label": "Case value: \"asparagus\"",
+                  "range": {
+                    "pos": 161,
+                    "end": 172
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n        }\n\n        declare const vegetable: Vegetable;\n\n        switch (vegetable) {\n          case Vegetable.Asparagus: {\n            break;\n          }\n          case 'beet': {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "mismatchedCase",
+                "description": "The case statement does not have a shared enum type with the switch predicate.",
+                "help": "Compare against a member of the same enum as the switch value, or normalize both sides to the same primitive representation first."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 250,
+                "end": 295
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Switch value: Vegetable",
+                  "range": {
+                    "pos": 158,
+                    "end": 167
+                  }
+                },
+                {
+                  "label": "Case value: \"beet\"",
+                  "range": {
+                    "pos": 255,
+                    "end": 261
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n          Beet = 'beet',\n        }\n\n        declare const vegetable: Vegetable;\n\n        switch (vegetable) {\n          case Vegetable.Asparagus: {\n            break;\n          }\n          case 'beet': {\n            break;\n          }\n          default: {\n            break;\n          }\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCase",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Switch value: Vegetable",
+                  "range": {
+                    "end": 167,
+                    "pos": 158
+                  }
+                },
+                {
+                  "label": "Case value: \"beet\"",
+                  "range": {
+                    "pos": 255,
+                    "end": 261
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCase",
+                "description": "The case statement does not have a shared enum type with the switch predicate.",
+                "help": "Compare against a member of the same enum as the switch value, or normalize both sides to the same primitive representation first."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 250,
+                "end": 295
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Str {\n          A = 'a',\n          B = 'b',\n        }\n        declare const str: Str;\n        str === 'b';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          A = 'a',\n          B = 'b',\n        }\n        declare const str: Str;\n        str === Str.B;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 108,
+                "end": 119
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Str.B",
+                      "range": {
+                        "end": 119,
+                        "pos": 116
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Str",
+                  "range": {
+                    "pos": 108,
+                    "end": 111
+                  }
+                },
+                {
+                  "label": "Right operand: \"b\"",
+                  "range": {
+                    "pos": 116,
+                    "end": 119
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Str {\n          A = 'a',\n          AB = 'ab',\n        }\n        declare const str: Str;\n        str === 'a' + 'b';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          A = 'a',\n          AB = 'ab',\n        }\n        declare const str: Str;\n        str === Str.AB;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 110,
+                "end": 127
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Str.AB",
+                      "range": {
+                        "pos": 118,
+                        "end": 127
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "range": {
+                    "pos": 110,
+                    "end": 113
+                  },
+                  "label": "Left operand: Str"
+                },
+                {
+                  "label": "Right operand: string",
+                  "range": {
+                    "pos": 118,
+                    "end": 127
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        1 === num;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        Num.A === num;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Num.A",
+                      "range": {
+                        "pos": 104,
+                        "end": 105
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: 1",
+                  "range": {
+                    "pos": 104,
+                    "end": 105
+                  }
+                },
+                {
+                  "label": "Right operand: Num",
+                  "range": {
+                    "pos": 110,
+                    "end": 113
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 113
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        1 /* with */ === /* comment */ num;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        Num.A /* with */ === /* comment */ num;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 104,
+                "end": 138
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Num.A",
+                      "range": {
+                        "pos": 104,
+                        "end": 105
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: 1",
+                  "range": {
+                    "pos": 104,
+                    "end": 105
+                  }
+                },
+                {
+                  "label": "Right operand: Num",
+                  "range": {
+                    "pos": 135,
+                    "end": 138
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        1 + 1 === num;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Num {\n          A = 1,\n          B = 2,\n        }\n        declare const num: Num;\n        Num.B === num;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 104,
+                "end": 117
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Num.B",
+                      "range": {
+                        "pos": 104,
+                        "end": 109
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: number",
+                  "range": {
+                    "pos": 104,
+                    "end": 109
+                  }
+                },
+                {
+                  "label": "Right operand: Num",
+                  "range": {
+                    "pos": 114,
+                    "end": 117
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === Mixed.A;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 123
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Mixed.A",
+                      "range": {
+                        "end": 123,
+                        "pos": 122
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Mixed",
+                  "range": {
+                    "pos": 112,
+                    "end": 117
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 122,
+                    "end": 123
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === 'b';\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Mixed {\n          A = 1,\n          B = 'b',\n        }\n        declare const mixed: Mixed;\n        mixed === Mixed.B;\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 112,
+                "end": 125
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Mixed.B",
+                      "range": {
+                        "pos": 122,
+                        "end": 125
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Mixed",
+                  "range": {
+                    "pos": 112,
+                    "end": 117
+                  }
+                },
+                {
+                  "label": "Right operand: \"b\"",
+                  "range": {
+                    "end": 125,
+                    "pos": 122
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum StringKey {\n          'test-key' /* with comment */ = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum StringKey {\n          'test-key' /* with comment */ = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['test-key'];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 148,
+                "pos": 133
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "StringKey['test-key']",
+                      "range": {
+                        "pos": 147,
+                        "end": 148
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: StringKey",
+                  "range": {
+                    "pos": 133,
+                    "end": 142
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 147,
+                    "end": 148
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum StringKey {\n          \"key-'with-single'-quotes\" = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum StringKey {\n          \"key-'with-single'-quotes\" = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['key-\\'with-single\\'-quotes'];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "StringKey['key-\\'with-single\\'-quotes']",
+                      "range": {
+                        "pos": 144,
+                        "end": 145
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: StringKey",
+                  "range": {
+                    "pos": 130,
+                    "end": 139
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 144,
+                    "end": 145
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 130,
+                "end": 145
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum StringKey {\n          'key-\"with-double\"-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum StringKey {\n          'key-\"with-double\"-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['key-\"with-double\"-quotes'];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 145,
+                "pos": 130
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "StringKey['key-\"with-double\"-quotes']",
+                      "range": {
+                        "pos": 144,
+                        "end": 145
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: StringKey",
+                  "range": {
+                    "pos": 130,
+                    "end": 139
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 144,
+                    "end": 145
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum StringKey {\n          'key-`with-backticks`-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum StringKey {\n          'key-`with-backticks`-quotes' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['key-`with-backticks`-quotes'];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "StringKey['key-`with-backticks`-quotes']",
+                      "range": {
+                        "pos": 147,
+                        "end": 148
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: StringKey",
+                  "range": {
+                    "pos": 133,
+                    "end": 142
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 147,
+                    "end": 148
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 133,
+                "end": 148
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum ComputedKey {\n          ['test-key' /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum ComputedKey {\n          ['test-key' /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === ComputedKey['test-key'];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: ComputedKey",
+                  "range": {
+                    "pos": 141,
+                    "end": 152
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 157,
+                    "end": 158
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 141,
+                "end": 158
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "ComputedKey['test-key']",
+                      "range": {
+                        "pos": 157,
+                        "end": 158
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum ComputedKey {\n          [`test-key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum ComputedKey {\n          [`test-key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === ComputedKey[`test-key`];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 141,
+                "end": 158
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "ComputedKey[`test-key`]",
+                      "range": {
+                        "pos": 157,
+                        "end": 158
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: ComputedKey",
+                  "range": {
+                    "pos": 141,
+                    "end": 152
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 157,
+                    "end": 158
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum ComputedKey {\n          [`test-\n          key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === 1;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum ComputedKey {\n          [`test-\n          key` /* with comment */] = 1,\n        }\n        declare const computedKey: ComputedKey;\n        computedKey === ComputedKey[`test-\n          key`];\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 152,
+                "end": 169
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "ComputedKey[`test-\n          key`]",
+                      "range": {
+                        "pos": 168,
+                        "end": 169
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: ComputedKey",
+                  "range": {
+                    "pos": 152,
+                    "end": 163
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "end": 169,
+                    "pos": 168
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        declare const foo: number & {};\n        if (foo === Fruit.Apple) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 101,
+                "end": 120
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: number & {}",
+                  "range": {
+                    "pos": 101,
+                    "end": 104
+                  }
+                },
+                {
+                  "label": "Right operand: Fruit",
+                  "range": {
+                    "pos": 109,
+                    "end": 120
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Fruit {\n          Apple,\n        }\n        declare const foo: number & { __someBrand: void };\n        if (foo === Fruit.Apple) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: number & { __someBrand: void; }",
+                  "range": {
+                    "pos": 120,
+                    "end": 123
+                  }
+                },
+                {
+                  "label": "Right operand: Fruit",
+                  "range": {
+                    "pos": 128,
+                    "end": 139
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 120,
+                "end": 139
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n        }\n        declare const foo: string & {};\n        if (foo === Vegetable.Asparagus) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 123,
+                "end": 150
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: string & {}",
+                  "range": {
+                    "pos": 123,
+                    "end": 126
+                  }
+                },
+                {
+                  "range": {
+                    "end": 150,
+                    "pos": 131
+                  },
+                  "label": "Right operand: Vegetable"
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Vegetable {\n          Asparagus = 'asparagus',\n        }\n        declare const foo: string & { __someBrand: void };\n        if (foo === Vegetable.Asparagus) {\n        }\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 142,
+                "end": 169
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: string & { __someBrand: void; }",
+                  "range": {
+                    "pos": 142,
+                    "end": 145
+                  }
+                },
+                {
+                  "label": "Right operand: Vegetable",
+                  "range": {
+                    "pos": 150,
+                    "end": 169
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Str {\n          Zero = '0',\n          NegativeZero = '-0',\n        }\n        declare const str: Str;\n        str === '' + -0;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          Zero = '0',\n          NegativeZero = '-0',\n        }\n        declare const str: Str;\n        str === Str.Zero;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 138,
+                "pos": 123
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Str.Zero",
+                      "range": {
+                        "pos": 131,
+                        "end": 138
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Str",
+                  "range": {
+                    "pos": 123,
+                    "end": 126
+                  }
+                },
+                {
+                  "label": "Right operand: string",
+                  "range": {
+                    "pos": 131,
+                    "end": 138
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum Str {\n          Decimal = '100000000000000000000',\n          Exponential = '1e+20',\n        }\n        declare const str: Str;\n        str === '' + 1e20;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum Str {\n          Decimal = '100000000000000000000',\n          Exponential = '1e+20',\n        }\n        declare const str: Str;\n        str === Str.Decimal;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 148,
+                "end": 165
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "Str.Decimal",
+                      "range": {
+                        "pos": 156,
+                        "end": 165
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: Str",
+                  "range": {
+                    "pos": 148,
+                    "end": 151
+                  }
+                },
+                {
+                  "range": {
+                    "pos": 156,
+                    "end": 165
+                  },
+                  "label": "Right operand: string"
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        namespace N {\n          export enum E {\n            A = 'a',\n            B = 'b',\n          }\n        }\n        N.E.A === 'a';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        namespace N {\n          export enum E {\n            A = 'a',\n            B = 'b',\n          }\n        }\n        N.E.A === N.E.A;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 121,
+                "end": 134
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "N.E.A",
+                      "range": {
+                        "pos": 131,
+                        "end": 134
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: E.A",
+                  "range": {
+                    "pos": 121,
+                    "end": 126
+                  }
+                },
+                {
+                  "label": "Right operand: \"a\"",
+                  "range": {
+                    "pos": 131,
+                    "end": 134
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        namespace N {\n          export enum E {\n            A = 'a',\n          }\n        }\n        declare const e: N.E;\n        e === 'a';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 130,
+                "end": 139
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: E",
+                  "range": {
+                    "pos": 130,
+                    "end": 131
+                  }
+                },
+                {
+                  "label": "Right operand: \"a\"",
+                  "range": {
+                    "pos": 136,
+                    "end": 139
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum E {\n          A = 'a',\n        }\n        declare const box: { value: E };\n        box.value === 'a';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum E {\n          A = 'a',\n        }\n        declare const box: { value: E };\n        box.value === E.A;"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 96,
+                "end": 113
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "E.A",
+                      "range": {
+                        "pos": 110,
+                        "end": 113
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: E",
+                  "range": {
+                    "pos": 96,
+                    "end": 105
+                  }
+                },
+                {
+                  "label": "Right operand: \"a\"",
+                  "range": {
+                    "pos": 110,
+                    "end": 113
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum StringKey {\n          'line\\nbreak' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === 1;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "replaceValueWithEnum",
+                  "Output": "\n        enum StringKey {\n          'line\\nbreak' = 1,\n        }\n        declare const stringKey: StringKey;\n        stringKey === StringKey['line\\nbreak'];"
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 117,
+                "end": 132
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "replaceValueWithEnum",
+                    "description": "Replace with an enum value comparison."
+                  },
+                  "fixes": [
+                    {
+                      "text": "StringKey['line\\nbreak']",
+                      "range": {
+                        "pos": 131,
+                        "end": 132
+                      }
+                    }
+                  ]
+                }
+              ],
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: StringKey",
+                  "range": {
+                    "end": 126,
+                    "pos": 117
+                  }
+                },
+                {
+                  "label": "Right operand: 1",
+                  "range": {
+                    "pos": 131,
+                    "end": 132
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        enum UXSortDir {\n          asc = 'asc',\n          desc = 'desc',\n        }\n        type SortDir = 'asc' | 'desc';\n        declare const stringSortDir: string;\n        declare const unionSortDir: SortDir;\n        declare const inlineUnionSortDir: 'asc' | 'desc';\n        declare const enumSortDir: UXSortDir;\n        stringSortDir === UXSortDir.asc;\n        unionSortDir === UXSortDir.asc;\n        inlineUnionSortDir === UXSortDir.asc;\n        enumSortDir === UXSortDir.asc;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "mismatchedCondition",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 325,
+                "end": 356
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: string",
+                  "range": {
+                    "pos": 325,
+                    "end": 338
+                  }
+                },
+                {
+                  "label": "Right operand: UXSortDir.asc",
+                  "range": {
+                    "pos": 343,
+                    "end": 356
+                  }
+                }
+              ]
+            },
+            {
+              "range": {
+                "pos": 366,
+                "end": 396
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: SortDir",
+                  "range": {
+                    "pos": 366,
+                    "end": 378
+                  }
+                },
+                {
+                  "label": "Right operand: UXSortDir.asc",
+                  "range": {
+                    "pos": 383,
+                    "end": 396
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts"
+            },
+            {
+              "kind": 0,
+              "rule": "no-unsafe-enum-comparison",
+              "message": {
+                "id": "mismatchedCondition",
+                "description": "The two values in this comparison do not have a shared enum type.",
+                "help": "Compare enum values to members of the same enum, or convert both sides to the same primitive type before comparing them."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 406,
+                "end": 442
+              },
+              "labeled_ranges": [
+                {
+                  "label": "Left operand: \"asc\" | \"desc\"",
+                  "range": {
+                    "pos": 406,
+                    "end": 424
+                  }
+                },
+                {
+                  "label": "Right operand: UXSortDir.asc",
+                  "range": {
+                    "pos": 429,
+                    "end": 442
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

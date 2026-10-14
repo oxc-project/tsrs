@@ -98,6 +98,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-unsafe-argument"
             | "no-unsafe-assignment"
             | "no-unsafe-call"
+            | "no-unsafe-enum-comparison"
     ) {
         return Ok(());
     }
@@ -178,6 +179,7 @@ pub fn create_rule(
         "no-unsafe-argument" => Ok(Box::new(crate::rules::no_unsafe_argument::NoUnsafeArgument)),
         "no-unsafe-assignment" => Ok(Box::new(crate::rules::no_unsafe_assignment::NoUnsafeAssignment)),
         "no-unsafe-call" => Ok(Box::new(crate::rules::no_unsafe_call::NoUnsafeCall)),
+        "no-unsafe-enum-comparison" => Ok(Box::new(crate::rules::no_unsafe_enum_comparison::NoUnsafeEnumComparison)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

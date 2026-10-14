@@ -75,6 +75,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "dot-notation"
             | "no-array-delete"
             | "no-base-to-string"
+            | "no-confusing-void-expression"
     ) {
         return Ok(());
     }
@@ -104,6 +105,12 @@ pub fn create_rule(
         "no-base-to-string" => {
             crate::rules::no_base_to_string::NoBaseToString::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
+        }
+        "no-confusing-void-expression" => {
+            crate::rules::no_confusing_void_expression::NoConfusingVoidExpression::new(
+                &config.options,
+            )
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         name => {
             require_implemented(name)?;

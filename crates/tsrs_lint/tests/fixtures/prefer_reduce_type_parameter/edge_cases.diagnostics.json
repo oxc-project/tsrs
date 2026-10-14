@@ -1,0 +1,275 @@
+[
+  {
+    "kind": 0,
+    "range": {
+      "pos": 91,
+      "end": 123
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 93,
+          "end": 123
+        }
+      },
+      {
+        "text": "< /* 型 */ 雪>",
+        "range": {
+          "pos": 77,
+          "end": 77
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 153,
+      "end": 185
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 152,
+          "end": 169
+        }
+      },
+      {
+        "text": "< /* 型 */ 雪>",
+        "range": {
+          "pos": 139,
+          "end": 139
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 220,
+      "end": 229
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 222,
+          "end": 229
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 261,
+      "end": 270
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 263,
+          "end": 270
+        }
+      },
+      {
+        "text": "< 雪>",
+        "range": {
+          "pos": 245,
+          "end": 245
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 335,
+      "end": 344
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 337,
+          "end": 344
+        }
+      },
+      {
+        "text": "< 雪>",
+        "range": {
+          "pos": 321,
+          "end": 321
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 377,
+      "end": 386
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 379,
+          "end": 386
+        }
+      },
+      {
+        "text": "< 雪>",
+        "range": {
+          "pos": 363,
+          "end": 363
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 761,
+      "end": 770
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 763,
+          "end": 770
+        }
+      },
+      {
+        "text": "< 雪>",
+        "range": {
+          "pos": 747,
+          "end": 747
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1188,
+      "end": 1197
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 1190,
+          "end": 1197
+        }
+      },
+      {
+        "text": "< 雪>",
+        "range": {
+          "pos": 1174,
+          "end": 1174
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1407,
+      "end": 1418
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 1409,
+          "end": 1418
+        }
+      },
+      {
+        "text": "< const>",
+        "range": {
+          "pos": 1393,
+          "end": 1393
+        }
+      }
+    ]
+  },
+  {
+    "kind": 0,
+    "range": {
+      "pos": 1448,
+      "end": 1464
+    },
+    "message": {
+      "id": "preferTypeParameter",
+      "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+    },
+    "rule": "prefer-reduce-type-parameter",
+    "fixes": [
+      {
+        "text": "",
+        "range": {
+          "pos": 1447,
+          "end": 1453
+        }
+      },
+      {
+        "text": "<雪>",
+        "range": {
+          "pos": 1434,
+          "end": 1434
+        }
+      }
+    ]
+  }
+]

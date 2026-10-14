@@ -1,0 +1,948 @@
+{
+  "Name": "prefer-reduce-type-parameter",
+  "Suites": {
+    "TestPreferReduceTypeParameterRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      new (class Mine {\n        reduce() {}\n      })().reduce(() => {}, 1 as any);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      class Mine {\n        reduce() {}\n      }\n\n      new Mine().reduce(() => {}, 1 as any);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      import { Reducable } from './class';\n\n      new Reducable().reduce(() => {}, 1 as any);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "[1, 2, 3]['reduce']((sum, num) => sum + num, 0);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "[1, 2, 3][null]((sum, num) => sum + num, 0);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "[1, 2, 3]?.[null]((sum, num) => sum + num, 0);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "[1, 2, 3].reduce((sum, num) => sum + num, 0);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "[1, 2, 3].reduce<number[]>((a, s) => a.concat(s * 2), []);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "[1, 2, 3]?.reduce<number[]>((a, s) => a.concat(s * 2), []);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const tuple: [number, number, number];\n      tuple.reduce<number[]>((a, s) => a.concat(s * 2), []);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type Reducer = { reduce: (callback: (arg: any) => any, arg: any) => any };\n      declare const tuple: [number, number, number] | Reducer;\n      tuple.reduce(a => {\n        return a.concat(1);\n      }, [] as number[]);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      type Reducer = { reduce: (callback: (arg: any) => any, arg: any) => any };\n      declare const arrayOrReducer: number[] & Reducer;\n      arrayOrReducer.reduce(a => {\n        return a.concat(1);\n      }, [] as number[]);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      ['a', 'b'].reduce(\n        (accum, name) => ({\n          ...accum,\n          [name]: true,\n        }),\n        {} as Record<'a' | 'b', boolean>,\n      );\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      ['a', 'b'].reduce(\n        (accum, name) => ({\n          ...accum,\n          [name]: true,\n        }),\n        { a: true, b: false, c: true } as Record<'a' | 'b', boolean>,\n      );\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f<T extends Record<string, boolean>>() {\n        ['a', 'b'].reduce(\n          (accum, name) => ({\n            ...accum,\n            [name]: true,\n          }),\n          {} as T,\n        );\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      function f<T>() {\n        ['a', 'b'].reduce(\n          (accum, name) => ({\n            ...accum,\n            [name]: true,\n          }),\n          {} as T,\n        );\n      }\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      ['a', 'b'].reduce((accum, name) => `${accum} | hello ${name}!`);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const arr: string[];\narr.reduce<string | undefined>(acc => acc, arr.shift() as string | undefined);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare const arr: string[];\narr.reduce<string | undefined>(acc => acc, arr.shift());\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 3,
+              "Column": 44,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 73,
+                "end": 106
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 84,
+                    "end": 106
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "[1, 2, 3].reduce((a, s) => a.concat(s * 2), [] as number[]);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "[1, 2, 3].reduce< number[]>((a, s) => a.concat(s * 2), []);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 1,
+              "Column": 45,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 46,
+                    "end": 58
+                  }
+                },
+                {
+                  "text": "< number[]>",
+                  "range": {
+                    "pos": 16,
+                    "end": 16
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 58
+              }
+            }
+          ]
+        },
+        {
+          "Code": "[1, 2, 3].reduce((a, s) => a.concat(s * 2), <number[]>[]);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "[1, 2, 3].reduce<number[]>((a, s) => a.concat(s * 2),[]);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 1,
+              "Column": 45,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 44,
+                "end": 56
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 43,
+                    "end": 54
+                  }
+                },
+                {
+                  "text": "<number[]>",
+                  "range": {
+                    "pos": 16,
+                    "end": 16
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "[1, 2, 3]?.reduce((a, s) => a.concat(s * 2), [] as number[]);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "[1, 2, 3]?.reduce< number[]>((a, s) => a.concat(s * 2), []);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 1,
+              "Column": 46,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 59
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 47,
+                    "end": 59
+                  }
+                },
+                {
+                  "text": "< number[]>",
+                  "range": {
+                    "pos": 17,
+                    "end": 17
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "[1, 2, 3]?.reduce((a, s) => a.concat(s * 2), <number[]>[]);",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "[1, 2, 3]?.reduce<number[]>((a, s) => a.concat(s * 2),[]);"
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 1,
+              "Column": 46,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 57,
+                "pos": 45
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 44,
+                    "end": 55
+                  }
+                },
+                {
+                  "text": "<number[]>",
+                  "range": {
+                    "pos": 17,
+                    "end": 17
+                  }
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst names = ['a', 'b', 'c'];\n\nnames.reduce(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {} as Record<string, boolean>,\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nconst names = ['a', 'b', 'c'];\n\nnames.reduce< Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {},\n);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 9,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 109,
+                "end": 138
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 111,
+                    "end": 138
+                  }
+                },
+                {
+                  "text": "< Record<string, boolean>>",
+                  "range": {
+                    "end": 45,
+                    "pos": 45
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\n['a', 'b'].reduce(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  <Record<string, boolean>>{},\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n['a', 'b'].reduce<Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),{},\n);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 7,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 79,
+                    "end": 107
+                  }
+                },
+                {
+                  "text": "<Record<string, boolean>>",
+                  "range": {
+                    "end": 18,
+                    "pos": 18
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 109
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\n['a', 'b']['reduce'](\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {} as Record<string, boolean>,\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n['a', 'b']['reduce']< Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {},\n);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 7,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 85,
+                "end": 114
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 87,
+                    "end": 114
+                  }
+                },
+                {
+                  "text": "< Record<string, boolean>>",
+                  "range": {
+                    "end": 21,
+                    "pos": 21
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction f<T, U extends T[]>(a: U) {\n  return a.reduce(() => {}, {} as Record<string, boolean>);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nfunction f<T, U extends T[]>(a: U) {\n  return a.reduce< Record<string, boolean>>(() => {}, {});\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 3,
+              "Column": 29,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 66,
+                "end": 95
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 68,
+                    "end": 95
+                  }
+                },
+                {
+                  "text": "< Record<string, boolean>>",
+                  "range": {
+                    "end": 55,
+                    "pos": 55
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const tuple: [number, number, number];\ntuple.reduce((a, s) => a.concat(s * 2), [] as number[]);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare const tuple: [number, number, number];\ntuple.reduce< number[]>((a, s) => a.concat(s * 2), []);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 3,
+              "Column": 41,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 88,
+                "end": 102
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "end": 102,
+                    "pos": 90
+                  }
+                },
+                {
+                  "text": "< number[]>",
+                  "range": {
+                    "pos": 60,
+                    "end": 60
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const tupleOrArray: [number, number, number] | number[];\ntupleOrArray.reduce((a, s) => a.concat(s * 2), [] as number[]);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare const tupleOrArray: [number, number, number] | number[];\ntupleOrArray.reduce< number[]>((a, s) => a.concat(s * 2), []);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 3,
+              "Column": 48,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 113,
+                "end": 127
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 115,
+                    "end": 127
+                  }
+                },
+                {
+                  "text": "< number[]>",
+                  "range": {
+                    "pos": 85,
+                    "end": 85
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const tuple: [number, number, number] & number[];\ntuple.reduce((a, s) => a.concat(s * 2), [] as number[]);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\ndeclare const tuple: [number, number, number] & number[];\ntuple.reduce< number[]>((a, s) => a.concat(s * 2), []);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 3,
+              "Column": 41,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 99,
+                "end": 113
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 101,
+                    "end": 113
+                  }
+                },
+                {
+                  "text": "< number[]>",
+                  "range": {
+                    "end": 71,
+                    "pos": 71
+                  }
+                }
+              ],
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n['a', 'b'].reduce(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {} as Record<string, boolean>,\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\n['a', 'b'].reduce< Record<string, boolean>>(\n  (accum, name) => ({\n    ...accum,\n    [name]: true,\n  }),\n  {},\n);\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 7,
+              "Column": 3,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 82,
+                "end": 111
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 84,
+                    "end": 111
+                  }
+                },
+                {
+                  "text": "< Record<string, boolean>>",
+                  "range": {
+                    "pos": 18,
+                    "end": 18
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction f<T extends Record<string, boolean>>(t: T) {\n  ['a', 'b'].reduce(\n    (accum, name) => ({\n      ...accum,\n      [name]: true,\n    }),\n    t as Record<string, boolean | number>,\n  );\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [
+            "\nfunction f<T extends Record<string, boolean>>(t: T) {\n  ['a', 'b'].reduce< Record<string, boolean | number>>(\n    (accum, name) => ({\n      ...accum,\n      [name]: true,\n    }),\n    t,\n  );\n}\n      "
+          ],
+          "Errors": [
+            {
+              "MessageId": "preferTypeParameter",
+              "Line": 8,
+              "Column": 5,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "prefer-reduce-type-parameter",
+              "message": {
+                "id": "preferTypeParameter",
+                "description": "Unnecessary assertion: Array#reduce accepts a type parameter for the default value."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 148,
+                "end": 185
+              },
+              "fixes": [
+                {
+                  "text": "",
+                  "range": {
+                    "pos": 149,
+                    "end": 185
+                  }
+                },
+                {
+                  "text": "< Record<string, boolean | number>>",
+                  "range": {
+                    "pos": 74,
+                    "end": 74
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

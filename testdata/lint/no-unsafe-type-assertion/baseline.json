@@ -1,0 +1,2820 @@
+{
+  "Name": "no-unsafe-type-assertion",
+  "Suites": {
+    "TestNoUnsafeTypeAssertionRule_AnyAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const _any_: any;\n_any_ as any;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const _any_: any;\n_any_ as unknown;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const _any_: any;\n_any_ as string;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 16,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 27,
+                "end": 42
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `any`, and the assertion changes it to `string`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const _unknown_: unknown;\n_unknown_ as any;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 35,
+                "end": 51
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `unknown`, and the assertion changes it to `any`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const _any_: any;\n_any_ as Function;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 27,
+                "end": 44
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `any`, and the assertion changes it to `Function`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const _any_: any;\n_any_ as never;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 27,
+                "end": 41
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `any`, and the assertion changes it to `never`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\n'foo' as any;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 2,
+              "Column": 1,
+              "EndLine": 2,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 1,
+                "end": 13
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `\"foo\"`, and the assertion changes it to `any`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst bar = foo as number;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 2,
+              "Column": 13,
+              "EndLine": 2,
+              "EndColumn": 26,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 13,
+                "end": 26
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from error typed detected.",
+                "help": "The original expression has type `error`, and the assertion changes it to `number`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nconst bar = 'foo' as errorType;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 2,
+              "Column": 13,
+              "EndLine": 2,
+              "EndColumn": 31,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 13,
+                "end": 31
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to error typed detected.",
+                "help": "The original expression has type `\"foo\"`, and the assertion changes it to `error`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_ArrayAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const a: string[];\na as (string | number)[];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: number[];\na as unknown[];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: { hello: 'world'; foo: 'bar' }[];\na as { hello: 'world' }[];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const a: (string | number)[];\na as string[];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 39,
+                "end": 52
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'string[]' is more narrow than the original type.",
+                "help": "The original expression has type `(string | number)[]`, and the assertion changes it to `string[]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: any[];\na as number[];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 25,
+                "end": 38
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `any[]`, and the assertion changes it to `number[]`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: number[];\na as any[];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 28,
+                "end": 38
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `number[]`, and the assertion changes it to `any[]`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: unknown[];\na as number[];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 29,
+                "end": 42
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'number[]' is more narrow than the original type.",
+                "help": "The original expression has type `unknown[]`, and the assertion changes it to `number[]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: number[];\na as never[];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 28,
+                "end": 40
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'never[]' is more narrow than the original type.",
+                "help": "The original expression has type `number[]`, and the assertion changes it to `never[]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_BasicAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const a: string;\na as string | number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: string;\n<string | number>a;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: string;\na as string | number as string | number | boolean;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: string;\na as string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: { hello: 'world' };\na as { hello: string };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n'hello' as const;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction foo<T extends boolean>(a: T) {\n  return a as T | number;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const a: string | number;\na as string;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 12,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 35,
+                "end": 46
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'string' is more narrow than the original type.",
+                "help": "The original expression has type `string | number`, and the assertion changes it to `string`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: string | number;\na satisfies string as string;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 35,
+                "end": 63
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'string' is more narrow than the original type.",
+                "help": "The original expression has type `string | number`, and the assertion changes it to `string`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: string | number;\n<string>a;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 10,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 35,
+                "end": 44
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'string' is more narrow than the original type.",
+                "help": "The original expression has type `string | number`, and the assertion changes it to `string`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: string | undefined;\na as string | boolean;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 38,
+                "end": 59
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'string | boolean' is more narrow than the original type.",
+                "help": "The original expression has type `string | undefined`, and the assertion changes it to `string | boolean`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: string;\na as 'foo' as 'bar';\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 20,
+              "Suggestions": []
+            },
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 26,
+                "end": 45
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '\"bar\"' is more narrow than the original type.",
+                "help": "The original expression has type `\"foo\"`, and the assertion changes it to `\"bar\"`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            },
+            {
+              "kind": 0,
+              "range": {
+                "pos": 26,
+                "end": 36
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '\"foo\"' is more narrow than the original type.",
+                "help": "The original expression has type `string`, and the assertion changes it to `\"foo\"`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo<T extends boolean>(a: T) {\n  return a as true;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 10,
+              "EndLine": 3,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 50,
+                "end": 59
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'true' is more narrow than the original type.",
+                "help": "The original expression has type `boolean`, and the assertion changes it to `true`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: string;\na as Omit<Required<Readonly<{ hello: 'world'; foo: 'bar' }>>, 'foo'>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 69,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 26,
+                "end": 94
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'Omit<Required<Readonly<{ hello: \"world\"; foo: \"bar\"; }>>, \"foo\">' is more narrow than the original type.",
+                "help": "The original expression has type `string`, and the assertion changes it to `Omit<Required<Readonly<{ hello: \"world\"; foo: \"bar\"; }>>, \"foo\">`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const foo: readonly number[];\nconst bar = foo as number[];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 13,
+              "EndLine": 3,
+              "EndColumn": 28,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 51,
+                "end": 66
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'number[]' is more narrow than the original type.",
+                "help": "The original expression has type `readonly number[]`, and the assertion changes it to `number[]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_ClassAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\nclass Foo {}\ndeclare const a: Foo;\na as Foo | number;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {}\nclass Bar {}\ndeclare const a: Foo;\na as Bar;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar {}\ndeclare const a: Foo;\na as Bar;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar extends Foo {}\ndeclare const a: Bar;\na as Foo;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar extends Foo {}\ndeclare const a: Foo;\na as Bar;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nclass Foo {\n  hello() {}\n}\nclass Bar extends Foo {\n  world() {}\n}\ndeclare const a: Foo;\na as Bar;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 9,
+              "Column": 1,
+              "EndLine": 9,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 89,
+                "end": 97
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'Bar' is more narrow than the original type.",
+                "help": "The original expression has type `Foo`, and the assertion changes it to `Bar`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_FunctionAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const _function_: Function;\n_function_ as Function;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const _function_: Function;\n_function_ as unknown;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const _function_: Function;\n_function_ as () => void;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 37,
+                "end": 61
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '() => void' is more narrow than the original type.",
+                "help": "The original expression has type `Function`, and the assertion changes it to `() => void`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const _function_: Function;\n_function_ as any;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 37,
+                "end": 54
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `Function`, and the assertion changes it to `any`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const _function_: Function;\n_function_ as never;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 37,
+                "end": 56
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'never' is more narrow than the original type.",
+                "help": "The original expression has type `Function`, and the assertion changes it to `never`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_GenericAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ntype Obj = { foo: string };\nfunction func<T extends Obj>(a: T) {\n  const b = a as T;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction parameterExtendsOtherParameter<T extends string | number, V extends T>(\n  x: T,\n  y: V,\n) {\n  y as T;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction parameterExtendsUnconstrainedParameter<T, V extends T>(x: T, y: V) {\n  y as T;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction unconstrainedToUnknown<T>(x: T) {\n  x as unknown;\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfunction stringToWider<T extends string>(x: T) {\n  x as number | string; // allowed\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ntype Obj = { foo: string };\nfunction func<T extends Obj>() {\n  const myObj = { foo: 'hi' } as T;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 4,
+              "Column": 17,
+              "EndLine": 4,
+              "EndColumn": 35,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 78,
+                "end": 96
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `{ foo: string; }`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ntype Obj = { foo: string };\nfunction func<T extends Obj>() {\n  const o: Obj = { foo: 'hi' };\n  const myObj = o as T;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 5,
+              "Column": 17,
+              "EndLine": 5,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 110,
+                "end": 116
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `Obj`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nexport function myfunc<CustomObjectT extends string>(\n  input: number,\n): CustomObjectT {\n  const newCustomObject = input as CustomObjectT;\n  return newCustomObject;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 5,
+              "Column": 27,
+              "EndLine": 5,
+              "EndColumn": 49,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 117,
+                "end": 139
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'CustomObjectT' is more narrow than the original type.",
+                "help": "The original expression has type `number`, and the assertion changes it to `CustomObjectT`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction unknownConstraint<T extends unknown>(x: T, y: string) {\n  y as T; // banned; generic arbitrary subtype\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 68,
+                "end": 74
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `string`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction unconstrained<T>(x: T, y: string) {\n  y as T;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToUnconstrainedTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 48,
+                "end": 54
+              },
+              "message": {
+                "id": "unsafeToUnconstrainedTypeAssertion",
+                "description": "Unsafe type assertion: 'T' could be instantiated with an arbitrary type which could be unrelated to the original type.",
+                "help": "The original expression has type `string`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\n// constraint of any functions like constraint of `unknown`\n// (even the TS error message has this verbiage)\nfunction anyConstraint<T extends any>(x: T, y: string) {\n  y as T; // banned; generic arbitrary subtype\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 5,
+              "Column": 3,
+              "EndLine": 5,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 169,
+                "end": 175
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `string`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction constraintWiderThanUncastType<T extends string | number>(\n  x: T,\n  y: string,\n) {\n  y as T; // banned; assignable to constraint\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 6,
+              "Column": 3,
+              "EndLine": 6,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 95,
+                "end": 101
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `string`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction constraintEqualUncastType<T extends string>(x: T, y: string) {\n  y as T; // banned; assignable to constraint\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 75,
+                "end": 81
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `string`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction constraintNarrowerThanUncastType<T extends string>(\n  x: T,\n  y: string | number,\n) {\n  y as T; // banned; *not* assignable to constraint\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 6,
+              "Column": 3,
+              "EndLine": 6,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 98,
+                "end": 104
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'T' is more narrow than the original type.",
+                "help": "The original expression has type `string | number`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction assertFromAny<T extends string | number>(x: T, y: any) {\n  y as T; // banned; just an `any` complaint. Not a generic subtype.\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 69,
+                "end": 75
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `any`, and the assertion changes it to `T`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction parameterExtendsOtherParameter<T extends string | number, V extends T>(\n  x: T,\n  y: V,\n) {\n  x as V; // banned; assignable to constraint\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertionAssignableToConstraint",
+              "Line": 6,
+              "Column": 3,
+              "EndLine": 6,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 104,
+                "end": 110
+              },
+              "message": {
+                "id": "unsafeTypeAssertionAssignableToConstraint",
+                "description": "Unsafe type assertion: the original type is assignable to the constraint of type 'V', but 'V' could be instantiated with a different subtype of its constraint.",
+                "help": "The original expression has type `T`, and the assertion changes it to `V`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction parameterExtendsUnconstrainedParameter<T, V extends T>(x: T, y: V) {\n  x as V; // banned; unconstrained arbitrary type\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToUnconstrainedTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 81,
+                "end": 87
+              },
+              "message": {
+                "id": "unsafeToUnconstrainedTypeAssertion",
+                "description": "Unsafe type assertion: 'V' could be instantiated with an arbitrary type which could be unrelated to the original type.",
+                "help": "The original expression has type `T`, and the assertion changes it to `V`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction twoUnconstrained<T, V>(x: T, y: V) {\n  y as T;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToUnconstrainedTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 9,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 49,
+                "end": 55
+              },
+              "message": {
+                "id": "unsafeToUnconstrainedTypeAssertion",
+                "description": "Unsafe type assertion: 'T' could be instantiated with an arbitrary type which could be unrelated to the original type.",
+                "help": "The original expression has type `V`, and the assertion changes it to `T`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction toNarrower<T>(x: T, y: string) {\n  x as string; // banned; ordinary 'string' narrower than 'T'.\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 45,
+                "end": 56
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'string' is more narrow than the original type.",
+                "help": "The original expression has type `T`, and the assertion changes it to `string`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction unconstrainedToAny<T>(x: T) {\n  x as any;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 42,
+                "end": 50
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `T`, and the assertion changes it to `any`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction stringToAny<T extends string>(x: T) {\n  x as any;\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 50,
+                "end": 58
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `T`, and the assertion changes it to `any`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction stringToNarrower<T extends string>(x: T) {\n  x as 'a' | 'b';\n}\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 17,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 55,
+                "end": 69
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '\"a\" | \"b\"' is more narrow than the original type.",
+                "help": "The original expression has type `T`, and the assertion changes it to `\"a\" | \"b\"`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_NeverAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const _never_: never;\n_never_ as never;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const _never_: never;\n_never_ as unknown;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const _never_: never;\n_never_ as any;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 15,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 31,
+                "end": 45
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `never`, and the assertion changes it to `any`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const _string_: string;\n_string_ as never;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 33,
+                "end": 50
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'never' is more narrow than the original type.",
+                "help": "The original expression has type `string`, and the assertion changes it to `never`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_ObjectAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n// additional properties should be allowed\nexport const foo = { bar: 1, bazz: 1 } as {\n  bar: number;\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: { hello: string } & { world: string };\na as { hello: string };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: { hello: any };\na as { hello: unknown };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: { hello: string };\na as { hello?: string };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: { hello: string };\na satisfies Record<string, string> as { hello?: string };\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nvar foo = {} as {\n  bar: number;\n  bas: string;\n};\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 2,
+              "Column": 11,
+              "EndLine": 5,
+              "EndColumn": 2,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 11,
+                "end": 50
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '{ bar: number; bas: string; }' is more narrow than the original type.",
+                "help": "The original expression has type `{}`, and the assertion changes it to `{ bar: number; bas: string; }`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: { hello: string };\na satisfies Record<string, string> as { hello: string; world: string };\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 71,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 37,
+                "end": 107
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '{ hello: string; world: string; }' is more narrow than the original type.",
+                "help": "The original expression has type `{ hello: string; }`, and the assertion changes it to `{ hello: string; world: string; }`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: { hello?: string };\na as { hello: string };\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 38,
+                "end": 60
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '{ hello: string; }' is more narrow than the original type.",
+                "help": "The original expression has type `{ hello?: string | undefined; }`, and the assertion changes it to `{ hello: string; }`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_PromiseAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const a: Promise<string>;\na as Promise<string | number>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: Promise<number>;\na as Promise<unknown>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: Promise<{ hello: 'world'; foo: 'bar' }>;\na as Promise<{ hello: 'world' }>;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: Promise<string>;\na as Promise<string> | string;\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const a: Promise<string | number>;\na as Promise<string>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 21,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 44,
+                "end": 64
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'Promise<string>' is more narrow than the original type.",
+                "help": "The original expression has type `Promise<string | number>`, and the assertion changes it to `Promise<string>`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: Promise<any>;\na as Promise<number>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 21,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 32,
+                "end": 52
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `Promise<any>`, and the assertion changes it to `Promise<number>`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: Promise<number>;\na as Promise<any>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 18,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 35,
+                "end": 52
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `Promise<number>`, and the assertion changes it to `Promise<any>`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: Promise<number[]>;\na as Promise<any[]>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 37,
+                "end": 56
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `Promise<number[]>`, and the assertion changes it to `Promise<any[]>`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: Promise<unknown>;\na as Promise<number>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 21,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 36,
+                "end": 56
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'Promise<number>' is more narrow than the original type.",
+                "help": "The original expression has type `Promise<unknown>`, and the assertion changes it to `Promise<number>`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: Promise<number>;\na as Promise<never>;\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 20,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 35,
+                "end": 54
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type 'Promise<never>' is more narrow than the original type.",
+                "help": "The original expression has type `Promise<number>`, and the assertion changes it to `Promise<never>`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    },
+    "TestNoUnsafeTypeAssertionRule_TupleAssertions": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\ndeclare const a: [string];\na as [string | number];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: [string, number];\na as [string, string | number];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: [string];\na as [unknown];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const a: [{ hello: 'world'; foo: 'bar' }];\na as [{ hello: 'world' }];\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\ndeclare const a: [string | number];\na as [string];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 37,
+                "end": 50
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[string]' is more narrow than the original type.",
+                "help": "The original expression has type `[string | number]`, and the assertion changes it to `[string]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [string, number];\na as [string, string];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 36,
+                "end": 57
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[string, string]' is more narrow than the original type.",
+                "help": "The original expression has type `[string, number]`, and the assertion changes it to `[string, string]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [string];\na as [string, number];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 28,
+                "end": 49
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[string, number]' is more narrow than the original type.",
+                "help": "The original expression has type `[string]`, and the assertion changes it to `[string, number]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [string, number];\na as [string];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 36,
+                "end": 49
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[string]' is more narrow than the original type.",
+                "help": "The original expression has type `[string, number]`, and the assertion changes it to `[string]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [any];\na as [number];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 25,
+                "end": 38
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `[any]`, and the assertion changes it to `[number]`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [number, any];\na as [number, number];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeOfAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 22,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 33,
+                "end": 54
+              },
+              "message": {
+                "id": "unsafeOfAnyTypeAssertion",
+                "description": "Unsafe assertion from `any` detected.",
+                "help": "The original expression has type `[number, any]`, and the assertion changes it to `[number, number]`. Use a type guard to check the value before asserting its type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [number];\na as [any];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeToAnyTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 11,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 28,
+                "end": 38
+              },
+              "message": {
+                "id": "unsafeToAnyTypeAssertion",
+                "description": "Unsafe assertion to `any` detected.",
+                "help": "The original expression has type `[number]`, and the assertion changes it to `[any]`. Keep the original type or use `unknown` and narrow the value before use."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [unknown];\na as [number];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 14,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 29,
+                "end": 42
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[number]' is more narrow than the original type.",
+                "help": "The original expression has type `[unknown]`, and the assertion changes it to `[number]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [number];\na as [never];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 13,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 28,
+                "end": 40
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[never]' is more narrow than the original type.",
+                "help": "The original expression has type `[number]`, and the assertion changes it to `[never]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const a: [Promise<string | number>];\na as [Promise<string>];\n        ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unsafeTypeAssertion",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "range": {
+                "pos": 46,
+                "end": 68
+              },
+              "message": {
+                "id": "unsafeTypeAssertion",
+                "description": "Unsafe type assertion: type '[Promise<string>]' is more narrow than the original type.",
+                "help": "The original expression has type `[Promise<string | number>]`, and the assertion changes it to `[Promise<string>]`. Use a type guard to narrow the value before asserting a more specific type."
+              },
+              "file_path": "file.ts",
+              "rule": "no-unsafe-type-assertion"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

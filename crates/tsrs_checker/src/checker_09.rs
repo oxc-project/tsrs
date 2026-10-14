@@ -2003,7 +2003,7 @@ impl Checker {
     }
 
     // checker.go:18699
-    pub(crate) fn get_widened_type(&mut self, t: P<Type>) -> P<Type> {
+    pub fn get_widened_type(&mut self, t: P<Type>) -> P<Type> {
         self.get_widened_type_with_context(t, None /*context*/)
     }
 

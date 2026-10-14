@@ -28,4 +28,5 @@ mod rules {
     pub mod no_deprecated;
     pub mod no_duplicate_type_constituents;
     pub mod no_floating_promises;
+    pub mod no_for_in_array;
 }

@@ -79,6 +79,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-deprecated"
             | "no-duplicate-type-constituents"
             | "no-floating-promises"
+            | "no-for-in-array"
     ) {
         return Ok(());
     }
@@ -127,6 +128,7 @@ pub fn create_rule(
             crate::rules::no_floating_promises::NoFloatingPromises::new(&config.options)
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
+        "no-for-in-array" => Ok(Box::new(crate::rules::no_for_in_array::NoForInArray)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

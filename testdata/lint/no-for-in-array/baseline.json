@@ -1,0 +1,796 @@
+{
+  "Name": "no-for-in-array",
+  "Suites": {
+    "TestNoForInArray": {
+      "TSConfig": "tsconfig.json",
+      "Valid": [
+        {
+          "Code": "\nfor (const x of [3, 4, 5]) {\n  console.log(x);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\nfor (const x in { a: 1, b: 2, c: 3 }) {\n  console.log(x);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const nullish: null | undefined;\n// @ts-expect-error\nfor (const k in nullish) {\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const obj: {\n  [key: number]: number;\n};\n\nfor (const key in obj) {\n  console.log(key);\n}\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nfor (const x in [3, 4, 5]) {\n  console.log(x);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 2,
+              "Column": 1,
+              "EndLine": 2,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 1,
+                "end": 27
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst z = [3, 4, 5];\nfor (const x in z) {\n  console.log(x);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 3,
+              "Column": 1,
+              "EndLine": 3,
+              "EndColumn": 19,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 22,
+                "end": 40
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst fn = (arr: number[]) => {\n  for (const x in arr) {\n    console.log(x);\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 35,
+                "end": 55
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nconst fn = (arr: number[] | string[]) => {\n  for (const x in arr) {\n    console.log(x);\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 46,
+                "end": 66
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst fn = <T extends any[]>(arr: T) => {\n  for (const x in arr) {\n    console.log(x);\n  }\n};\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 45,
+                "end": 65
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfor (const x\n  in\n    (\n      (\n        (\n          [3, 4, 5]\n        )\n      )\n    )\n  )\n  // weird\n  /* spot for a */\n  // comment\n  /* ) */\n  /* ( */\n  {\n  console.log(x);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 2,
+              "Column": 1,
+              "EndLine": 11,
+              "EndColumn": 4,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 1,
+                "end": 90
+              },
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfor (const x\n  in\n    (\n      (\n        (\n          [3, 4, 5]\n        )\n      )\n    )\n  )\n  // weird\n  /* spot for a */\n  // comment\n  /* ) */\n  /* ( */\n\n  ((((console.log('body without braces ')))));\n\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 2,
+              "Column": 1,
+              "EndLine": 11,
+              "EndColumn": 4,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 1,
+                "end": 90
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array: string[] | null;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 40,
+                "end": 64
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array: number[] | undefined;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 69,
+                "pos": 45
+              },
+              "kind": 0,
+              "rule": "no-for-in-array"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array: boolean[] | { a: 1; b: 2; c: 3 };\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 81
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array: [number, string];\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 41,
+                "end": 65
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array: [number, string] | { a: 1; b: 2; c: 3 };\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 88
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array: string[] | Record<number, string>;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 58,
+                "end": 82
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nconst arrayLike = /fe/.exec('foo');\n\nfor (const x in arrayLike) {\n  console.log(x);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 38,
+                "end": 64
+              },
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const arrayLike: HTMLCollection;\n\nfor (const x in arrayLike) {\n  console.log(x);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 43,
+                "end": 69
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const arrayLike: NodeList;\n\nfor (const x in arrayLike) {\n  console.log(x);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 4,
+              "Column": 1,
+              "EndLine": 4,
+              "EndColumn": 27,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 37,
+                "end": 63
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nfunction foo() {\n  for (const a in arguments) {\n    console.log(a);\n  }\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 3,
+              "Column": 3,
+              "EndLine": 3,
+              "EndColumn": 29,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 20,
+                "end": 46
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array:\n  | (({ a: string } & string[]) | Record<string, boolean>)\n  | Record<number, string>;\n\nfor (const key in array) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 6,
+              "Column": 1,
+              "EndLine": 6,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 110,
+                "end": 134
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const array:\n  | (({ a: string } & RegExpExecArray) | Record<string, boolean>)\n  | Record<number, string>;\n\nfor (const key in array) {\n  console.log(k);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 6,
+              "Column": 1,
+              "EndLine": 6,
+              "EndColumn": 25,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 117,
+                "end": 141
+              },
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const obj: {\n  [key: number]: number;\n  length: 1;\n};\n\nfor (const key in obj) {\n  console.log(key);\n}\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "forInViolation",
+              "Line": 7,
+              "Column": 1,
+              "EndLine": 7,
+              "EndColumn": 23,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 64,
+                "end": 86
+              },
+              "kind": 0,
+              "rule": "no-for-in-array",
+              "message": {
+                "id": "forInViolation",
+                "description": "For-in loops over arrays skips holes, returns indices as strings, and may visit the prototype chain or other enumerable properties.",
+                "help": "Use a more robust iteration method such as for-of or array.forEach instead."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

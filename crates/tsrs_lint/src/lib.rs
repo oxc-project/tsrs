@@ -43,5 +43,6 @@ mod rules {
     pub mod no_unnecessary_type_assertion;
     pub mod no_unnecessary_type_conversion;
     pub mod no_unnecessary_type_parameters;
+    pub mod no_unsafe_argument;
     pub mod no_useless_default_assignment;
 }

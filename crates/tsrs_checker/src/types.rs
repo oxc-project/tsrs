@@ -2464,6 +2464,10 @@ impl TupleType {
         self.fixed_length.get()
     }
     #[inline]
+    pub fn combined_flags(&self) -> ElementFlags {
+        self.combined_flags.get()
+    }
+    #[inline]
     pub fn is_readonly(&self) -> bool {
         self.readonly.get()
     }

@@ -39,5 +39,6 @@ mod rules {
     pub mod no_unnecessary_condition;
     pub mod no_unnecessary_qualifier;
     pub mod no_unnecessary_template_expression;
+    pub mod no_unnecessary_type_arguments;
     pub mod no_unnecessary_type_conversion;
 }

@@ -80,6 +80,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-duplicate-type-constituents"
             | "no-floating-promises"
             | "no-for-in-array"
+            | "no-implied-eval"
     ) {
         return Ok(());
     }
@@ -129,6 +130,7 @@ pub fn create_rule(
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         "no-for-in-array" => Ok(Box::new(crate::rules::no_for_in_array::NoForInArray)),
+        "no-implied-eval" => Ok(Box::new(crate::rules::no_implied_eval::NoImpliedEval)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

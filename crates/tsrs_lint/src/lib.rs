@@ -50,5 +50,6 @@ mod rules {
     pub mod no_unsafe_member_access;
     pub mod no_unsafe_return;
     pub mod no_unsafe_type_assertion;
+    pub mod no_unsafe_unary_minus;
     pub mod no_useless_default_assignment;
 }

@@ -1,0 +1,490 @@
+{
+  "Name": "no-unsafe-unary-minus",
+  "Suites": {
+    "TestNoUnsafeUnaryMinusRule": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "+42;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "-42;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "-42n;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: number) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: bigint) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: number | bigint) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: any) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: 1 | 2) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: string) => +a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: number[]) => -a[0];",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "<T,>(t: T & number) => -t;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: { x: number }) => -a.x;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "(a: never) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "<T extends number>(t: T) => -t;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "(a: string) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is string instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 15,
+                "end": 17
+              },
+              "kind": 0,
+              "rule": "no-unsafe-unary-minus"
+            }
+          ]
+        },
+        {
+          "Code": "(a: {}) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 11,
+                "end": 13
+              },
+              "kind": 0,
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is {} instead."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "(a: number[]) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is number[] instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 19,
+                "pos": 17
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "-'hello';",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 8
+              },
+              "kind": 0,
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is \"hello\" instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "-`hello`;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is \"hello\" instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 0,
+                "end": 8
+              },
+              "kind": 0,
+              "rule": "no-unsafe-unary-minus"
+            }
+          ]
+        },
+        {
+          "Code": "(a: { x: number }) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is { x: number; } instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 22,
+                "end": 24
+              }
+            }
+          ]
+        },
+        {
+          "Code": "(a: unknown) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "end": 18,
+                "pos": 16
+              },
+              "kind": 0,
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is unknown instead."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "(a: void) => -a;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is void instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 13,
+                "end": 15
+              },
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "<T,>(t: T) => -t;",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "unaryMinus",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "no-unsafe-unary-minus",
+              "message": {
+                "id": "unaryMinus",
+                "description": "Argument of unary negation should be assignable to number | bigint but is T instead."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 16,
+                "pos": 14
+              },
+              "kind": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -123,6 +123,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "restrict-plus-operands"
             | "restrict-template-expressions"
             | "return-await"
+            | "strict-boolean-expressions"
     ) {
         return Ok(());
     }
@@ -234,6 +235,7 @@ pub fn create_rule(
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "return-await" => crate::rules::return_await::ReturnAwait::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "strict-boolean-expressions" => crate::rules::strict_boolean_expressions::StrictBooleanExpressions::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

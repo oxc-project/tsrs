@@ -73,4 +73,5 @@ mod rules {
     pub mod restrict_plus_operands;
     pub mod restrict_template_expressions;
     pub mod return_await;
+    pub mod strict_boolean_expressions;
 }

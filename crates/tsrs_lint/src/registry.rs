@@ -76,6 +76,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-array-delete"
             | "no-base-to-string"
             | "no-confusing-void-expression"
+            | "no-deprecated"
     ) {
         return Ok(());
     }
@@ -112,6 +113,8 @@ pub fn create_rule(
             )
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
+        "no-deprecated" => crate::rules::no_deprecated::NoDeprecated::new(&config.options)
+            .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

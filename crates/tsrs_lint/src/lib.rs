@@ -25,4 +25,5 @@ mod rules {
     pub mod no_array_delete;
     pub mod no_base_to_string;
     pub mod no_confusing_void_expression;
+    pub mod no_deprecated;
 }

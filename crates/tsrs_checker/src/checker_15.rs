@@ -1119,7 +1119,7 @@ impl Checker {
     // Return the contextual type for a given expression node. During overload resolution, a contextual type may temporarily
     // be "pushed" onto a node using the contextualType property.
     // checker.go:31175
-    pub(crate) fn get_apparent_type_of_contextual_type(
+    pub fn get_apparent_type_of_contextual_type(
         &mut self,
         node: P<Node>,
         context_flags: ContextFlags,

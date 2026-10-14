@@ -88,6 +88,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-redundant-type-constituents"
             | "no-unnecessary-boolean-literal-compare"
             | "no-unnecessary-condition"
+            | "no-unnecessary-qualifier"
     ) {
         return Ok(());
     }
@@ -158,6 +159,7 @@ pub fn create_rule(
         )),
         "no-unnecessary-boolean-literal-compare" => crate::rules::no_unnecessary_boolean_literal_compare::NoUnnecessaryBooleanLiteralCompare::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "no-unnecessary-condition" => crate::rules::no_unnecessary_condition::NoUnnecessaryCondition::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "no-unnecessary-qualifier" => Ok(Box::new(crate::rules::no_unnecessary_qualifier::NoUnnecessaryQualifier::default())),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

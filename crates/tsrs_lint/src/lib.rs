@@ -37,4 +37,5 @@ mod rules {
     pub mod no_redundant_type_constituents;
     pub mod no_unnecessary_boolean_literal_compare;
     pub mod no_unnecessary_condition;
+    pub mod no_unnecessary_qualifier;
 }

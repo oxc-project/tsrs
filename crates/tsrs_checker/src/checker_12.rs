@@ -3352,7 +3352,7 @@ impl Checker {
     }
 
     // checker.go:26087
-    pub(crate) fn get_union_type(&mut self, types: &[P<Type>]) -> P<Type> {
+    pub fn get_union_type(&mut self, types: &[P<Type>]) -> P<Type> {
         self.get_union_type_ex(
             types,
             UnionReduction::Literal,

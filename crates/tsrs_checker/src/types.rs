@@ -2433,6 +2433,10 @@ pub struct TupleElementInfo {
 
 impl TupleElementInfo {
     #[inline]
+    pub fn tuple_element_flags(self) -> ElementFlags {
+        self.flags
+    }
+    #[inline]
     pub fn labeled_declaration(self) -> Option<P<Node>> {
         self.labeled_declaration
     }
@@ -2451,6 +2455,10 @@ pub struct TupleType {
 embeds!(TupleType, interface_type, InterfaceType);
 
 impl TupleType {
+    #[inline]
+    pub fn min_length(&self) -> usize {
+        self.min_length.get()
+    }
     #[inline]
     pub fn fixed_length(&self) -> usize {
         self.fixed_length.get()

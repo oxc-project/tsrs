@@ -19,4 +19,5 @@ mod type_matches_specifier;
 
 mod rules {
     pub mod await_thenable;
+    pub mod consistent_return;
 }

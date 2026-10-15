@@ -80,6 +80,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "no-duplicate-type-constituents"
             | "no-floating-promises"
             | "no-for-in-array"
+            | "no-generated-empty-object-type"
             | "no-implied-eval"
             | "no-meaningless-void-operator"
             | "no-misused-promises"
@@ -177,6 +178,7 @@ pub fn create_rule(
                 .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>)
         }
         "no-for-in-array" => Ok(Box::new(crate::rules::no_for_in_array::NoForInArray)),
+        "no-generated-empty-object-type" => Ok(Box::new(crate::rules::no_generated_empty_object_type::NoGeneratedEmptyObjectType)),
         "no-implied-eval" => Ok(Box::new(crate::rules::no_implied_eval::NoImpliedEval)),
         "no-meaningless-void-operator" => {
             crate::rules::no_meaningless_void_operator::NoMeaninglessVoidOperator::new(

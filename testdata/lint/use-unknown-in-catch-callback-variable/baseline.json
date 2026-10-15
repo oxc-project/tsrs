@@ -1,0 +1,1948 @@
+{
+  "Name": "use-unknown-in-catch-callback-variable",
+  "Suites": {
+    "TestUseUnknownInCatchCallbackVariable": {
+      "TSConfig": "tsconfig.minimal.json",
+      "Valid": [
+        {
+          "Code": "\n      Promise.resolve().catch((err: unknown) => {\n        throw err;\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      let x = Math.random() ? 'ca' + 'tch' : 'catch';\n      Promise.resolve()[x]((err: Error) => {});\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().then(\n        () => {},\n        (err: unknown) => {\n          throw err;\n        },\n      );\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch(() => {\n        throw new Error();\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.reject(new Error()).catch(\"not this rule's problem\");\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const crappyHandler: (() => void) | 2;\n      Promise.reject(new Error()).catch(crappyHandler);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch((...args: [unknown]) => {\n        throw args[0];\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch((...args: [a: unknown]) => {\n        const err = args[0];\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch((...args: readonly unknown[]) => {\n        throw args[0];\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const notAPromise: { catch: (f: Function) => void };\n      notAPromise.catch((...args: [a: string, string]) => {\n        throw args[0];\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const catchArgs: [(x: unknown) => void];\n      Promise.reject(new Error()).catch(...catchArgs);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const catchArgs: [\n        string | (() => never),\n        (shouldntFlag: string) => void,\n        number,\n      ];\n      Promise.reject(new Error()).catch(...catchArgs);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const catchArgs: ['not callable'];\n      Promise.reject(new Error()).catch(...catchArgs);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const emptySpread: [];\n      Promise.reject(new Error()).catch(...emptySpread);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch(\n        (\n          ...err: [unknown, string | ((number | unknown) & { b: () => void }), string]\n        ) => {\n          throw err;\n        },\n      );\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const notAMemberExpression: (...args: any[]) => {};\n      notAMemberExpression(\n        'This helps get 100% code cov',\n        \"but doesn't test anything useful related to the rule.\",\n      );\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch((...[args]: [unknown]) => {\n        console.log(args);\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      Promise.resolve().catch((...{ find }: [unknown]) => {\n        console.log(find);\n      });\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "Promise.resolve.then();",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "Promise.resolve().then(() => {});",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const singleTupleArg: [() => void];\n      Promise.resolve().then(...singleTupleArg, (error: unknown) => {});\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\n      declare const arrayArg: (() => void)[];\n      Promise.resolve().then(...arrayArg, error => {});\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare let iPromiseImAPromise: Promise<any>;\ndeclare const catchArgs: [(x: any) => void];\niPromiseImAPromise.catch(...catchArgs);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const catchArgs: [\n  string | (() => never) | ((x: string) => void),\n  number,\n];\nPromise.reject(new Error()).catch(...catchArgs);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const you: [];\ndeclare const cannot: [];\ndeclare const fool: [];\ndeclare const me: [(x: Error) => void] | undefined;\nPromise.resolve(undefined).catch(...you, ...cannot, ...fool, ...me!);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const really: undefined[];\ndeclare const dumb: [];\ndeclare const code: (x: Error) => void;\nPromise.resolve(undefined).catch(...really, ...dumb, code);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const x: ((x: any) => string)[];\nPromise.resolve('string promise').catch(...x);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const x: any;\nPromise.resolve().catch(...x);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const thenArgs: [() => {}, (err: any) => {}];\nPromise.resolve().then(...thenArgs);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ndeclare const yoloHandler: (x: any) => void;\nPromise.reject(new Error('I will reject!')).catch(yoloHandler);\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        },
+        {
+          "Code": "\ntype InvalidHandler = (arg: any) => void;\nPromise.resolve().catch(<InvalidHandler>(\n  function (err /* awkward spot for comment */) {\n    throw err;\n  }\n));\n    ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Options": null,
+          "TSConfig": "",
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": []
+        }
+      ],
+      "Invalid": [
+        {
+          "Code": "\nPromise.resolve().catch((err: Error) => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err: unknown) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 26,
+                "end": 36
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 31,
+                        "end": 36
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\n        let method = 'catch';\n        Promise.resolve()[method]((error: Error) => {});\n      ",
+          "Only": false,
+          "Skip": true,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\n        let method = 'catch';\n        Promise.resolve()[method]((error: unknown) => {});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {}
+        },
+        {
+          "Code": "\nPromise.resolve().catch((e, ...rest: []) => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((e: unknown, ...rest: []) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 27
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": ": unknown",
+                      "range": {
+                        "pos": 27,
+                        "end": 27
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(\n  (err: string | ((number | unknown) & { b: () => void })) => {\n    throw err;\n  },\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch(\n  (err: unknown) => {\n    throw err;\n  },\n);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 83,
+                "pos": 29
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 34,
+                        "end": 83
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(\n  (\n    ...err: [\n      unknown[],\n      string | ((number | unknown) & { b: () => void }),\n      string,\n    ]\n  ) => {\n    throw err;\n  },\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 4,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongRestTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch(\n  (\n    ...err: [unknown]\n  ) => {\n    throw err;\n  },\n);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 34,
+                "end": 137
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongRestTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: [unknown]`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "[unknown]",
+                      "range": {
+                        "pos": 42,
+                        "end": 137
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(function (err: string) {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch(function (err: unknown) {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 35,
+                "end": 46
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 40,
+                        "end": 46
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(function (err /* awkward spot for comment */) {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch(function (err: unknown /* awkward spot for comment */) {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 38,
+                "pos": 35
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": ": unknown",
+                      "range": {
+                        "pos": 38,
+                        "end": 38
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(function namedCallback(err: string) {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch(function namedCallback(err: unknown) {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 53,
+                        "end": 59
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 59
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(err => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err: unknown) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 28
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 25,
+                        "end": 25
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 28,
+                        "end": 28
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().then(\n  () => {},\n  error => {},\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 0,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().then(\n  () => {},\n  (error: unknown) => {},\n);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 39,
+                "end": 44
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 39,
+                        "end": 39
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 44,
+                        "end": 44
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((err?) => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err?: unknown) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 30
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": ": unknown",
+                      "range": {
+                        "pos": 30,
+                        "end": 30
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((err?: string) => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err?: unknown) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 26,
+                "end": 38
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 32,
+                        "end": 38
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch(err/* with comment */=> {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err: unknown)/* with comment */=> {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 25,
+                        "end": 25
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 28,
+                        "end": 28
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 28
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((err = 2) => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err: unknown = 2) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "end": 33,
+                "pos": 26
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": ": unknown",
+                      "range": {
+                        "pos": 29,
+                        "end": 29
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((err: any /* comment 1 */ = /* comment 2 */ 2) => {\n  throw err;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((err: unknown /* comment 1 */ = /* comment 2 */ 2) => {\n  throw err;\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 26,
+                "end": 70
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 31,
+                        "end": 34
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((...args) => {\n  throw args[0];\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownRestTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((...args: [unknown]) => {\n  throw args[0];\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 33,
+                "pos": 26
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownRestTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: [unknown]` type annotation to the rejection callback rest variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": ": [unknown]",
+                      "range": {
+                        "end": 33,
+                        "pos": 33
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.reject(new Error('I will reject!')).catch(([err]: [unknown]) => {\n  console.log(err);\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknownArrayDestructuringPattern",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useUnknownArrayDestructuringPattern",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable. The thrown error may not be iterable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 52,
+                "end": 68
+              },
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve(' a string ').catch(\n  (a: any, b: () => any, c: (x: string & number) => void) => {},\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 3,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve(' a string ').catch(\n  (a: unknown, b: () => any, c: (x: string & number) => void) => {},\n);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 41,
+                "end": 47
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 44,
+                        "end": 47
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve('object destructuring').catch(({}) => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknownObjectDestructuringPattern",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useUnknownObjectDestructuringPattern",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable. The thrown error may be nullable, or may not have the expected shape."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 48,
+                "end": 50
+              },
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve('object destructuring').catch(function ({ gotcha }) {\n  return null;\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknownObjectDestructuringPattern",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": []
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 57,
+                "end": 67
+              },
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknownObjectDestructuringPattern",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable. The thrown error may be nullable, or may not have the expected shape."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve()['catch']((x: any) => 'return');\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve()['catch']((x: unknown) => 'return');\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 29,
+                "end": 35
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: unknown`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "unknown",
+                      "range": {
+                        "pos": 32,
+                        "end": 35
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.reject().catch((...x: any) => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongRestTypeAnnotationSuggestion",
+                  "Output": "\nPromise.reject().catch((...x: [unknown]) => {});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongRestTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: [unknown]`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "[unknown]",
+                      "range": {
+                        "pos": 31,
+                        "end": 34
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 25,
+                "end": 34
+              }
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((...[args]: [string]) => {\n  console.log(args);\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongRestTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((...[args]: [unknown]) => {\n  console.log(args);\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 26,
+                "end": 45
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongRestTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: [unknown]`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "[unknown]",
+                      "range": {
+                        "pos": 37,
+                        "end": 45
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\nPromise.resolve().catch((...{ find }: [string]) => {\n  console.log(find);\n});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 2,
+              "Column": 0,
+              "EndLine": 0,
+              "EndColumn": 0,
+              "Suggestions": [
+                {
+                  "MessageId": "wrongRestTypeAnnotationSuggestion",
+                  "Output": "\nPromise.resolve().catch((...{ find }: [unknown]) => {\n  console.log(find);\n});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "range": {
+                "pos": 26,
+                "end": 47
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "wrongRestTypeAnnotationSuggestion",
+                    "description": "Change existing type annotation to `: [unknown]`."
+                  },
+                  "fixes": [
+                    {
+                      "text": "[unknown]",
+                      "range": {
+                        "pos": 39,
+                        "end": 47
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts"
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const condition: boolean;\nPromise.resolve('foo').then(() => {}, condition ? err => {} : err => {});\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 3,
+              "Column": 51,
+              "EndLine": 3,
+              "EndColumn": 54,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\ndeclare const condition: boolean;\nPromise.resolve('foo').then(() => {}, condition ? (err: unknown) => {} : err => {});\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "useUnknown",
+              "Line": 3,
+              "Column": 63,
+              "EndLine": 3,
+              "EndColumn": 66,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\ndeclare const condition: boolean;\nPromise.resolve('foo').then(() => {}, condition ? err => {} : (err: unknown) => {});\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 85,
+                "end": 88
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "end": 85,
+                        "pos": 85
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "end": 88,
+                        "pos": 88
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable"
+            },
+            {
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "end": 100,
+                "pos": 97
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 97,
+                        "end": 97
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 100,
+                        "end": 100
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Code": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? (err => {}))\n    : (condition && (err => {})) || (err => {}),\n);\n      ",
+          "Only": false,
+          "Skip": false,
+          "FileName": "",
+          "Output": [],
+          "Errors": [
+            {
+              "MessageId": "useUnknown",
+              "Line": 6,
+              "Column": 56,
+              "EndLine": 6,
+              "EndColumn": 59,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? ((err: unknown) => {}))\n    : (condition && (err => {})) || (err => {}),\n);\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "useUnknown",
+              "Line": 7,
+              "Column": 22,
+              "EndLine": 7,
+              "EndColumn": 25,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? (err => {}))\n    : (condition && ((err: unknown) => {})) || (err => {}),\n);\n      "
+                }
+              ]
+            },
+            {
+              "MessageId": "useUnknown",
+              "Line": 7,
+              "Column": 38,
+              "EndLine": 7,
+              "EndColumn": 41,
+              "Suggestions": [
+                {
+                  "MessageId": "addUnknownTypeAnnotationSuggestion",
+                  "Output": "\ndeclare const condition: boolean;\ndeclare const maybeNullishHandler: null | ((err: any) => void);\nPromise.resolve('foo').catch(\n  condition\n    ? ((err => {}, err => {}, maybeNullishHandler) ?? (err => {}))\n    : (condition && (err => {})) || ((err: unknown) => {}),\n);\n      "
+                }
+              ]
+            }
+          ],
+          "TSConfig": "",
+          "Options": null,
+          "Tsx": false,
+          "Files": {},
+          "Diagnostics": [
+            {
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 196,
+                "end": 199
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 196,
+                        "end": 196
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 199,
+                        "end": 199
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file_path": "file.ts",
+              "range": {
+                "pos": 229,
+                "end": 232
+              },
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 229,
+                        "end": 229
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 232,
+                        "end": 232
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              }
+            },
+            {
+              "suggestions": [
+                {
+                  "message": {
+                    "id": "addUnknownTypeAnnotationSuggestion",
+                    "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+                  },
+                  "fixes": [
+                    {
+                      "text": "(",
+                      "range": {
+                        "pos": 245,
+                        "end": 245
+                      }
+                    },
+                    {
+                      "text": ": unknown)",
+                      "range": {
+                        "pos": 248,
+                        "end": 248
+                      }
+                    }
+                  ]
+                }
+              ],
+              "kind": 0,
+              "rule": "use-unknown-in-catch-callback-variable",
+              "message": {
+                "id": "useUnknown",
+                "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+              },
+              "file_path": "file.ts",
+              "range": {
+                "pos": 245,
+                "end": 248
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

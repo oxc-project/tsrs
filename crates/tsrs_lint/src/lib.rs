@@ -77,4 +77,5 @@ mod rules {
     pub mod strict_void_return;
     pub mod switch_exhaustiveness_check;
     pub mod unbound_method;
+    pub mod use_unknown_in_catch_callback_variable;
 }

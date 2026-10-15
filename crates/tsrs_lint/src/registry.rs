@@ -127,6 +127,7 @@ pub fn require_implemented(name: &str) -> Result<(), String> {
             | "strict-void-return"
             | "switch-exhaustiveness-check"
             | "unbound-method"
+            | "use-unknown-in-catch-callback-variable"
     ) {
         return Ok(());
     }
@@ -243,6 +244,7 @@ pub fn create_rule(
         "switch-exhaustiveness-check" => crate::rules::switch_exhaustiveness_check::SwitchExhaustivenessCheck::new(&config.options).map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
         "unbound-method" => crate::rules::unbound_method::UnboundMethod::new(&config.options)
             .map(|rule| Box::new(rule) as Box<dyn crate::rule::Rule>),
+        "use-unknown-in-catch-callback-variable" => Ok(Box::new(crate::rules::use_unknown_in_catch_callback_variable::UseUnknownInCatchCallbackVariable)),
         name => {
             require_implemented(name)?;
             unreachable!("registered rule factory")

@@ -1,0 +1,677 @@
+[
+  {
+    "name": "unicode-bare",
+    "options": null,
+    "source": "export {}; const text = \"😀\"; Promise.reject(\"é\").catch(錯誤 /* é😀 */ => {});",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 59,
+          "end": 65
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 59,
+                  "end": 59
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 65,
+                  "end": 65
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "async-bare",
+    "options": false,
+    "source": "export {}; Promise.reject().catch(async 錯誤 /* 😀 */ => {}); Promise.reject().catch(async (安全: unknown) => {});",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 40,
+          "end": 46
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 40,
+                  "end": 40
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 46,
+                  "end": 46
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "optional-default",
+    "options": 42,
+    "source": "export {}; Promise.reject().catch((錯誤? /* 😀 */) => {}); Promise.reject().catch((錯誤 = \"é\") => {}); Promise.reject().then(undefined, function named(錯誤?: Error) {});",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 35,
+          "end": 42
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": ": unknown",
+                "range": {
+                  "pos": 42,
+                  "end": 42
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 87,
+          "end": 100
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": ": unknown",
+                "range": {
+                  "pos": 93,
+                  "end": 93
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 158,
+          "end": 172
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "wrongTypeAnnotationSuggestion",
+              "description": "Change existing type annotation to `: unknown`."
+            },
+            "fixes": [
+              {
+                "text": "unknown",
+                "range": {
+                  "pos": 167,
+                  "end": 172
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "rest-and-patterns",
+    "options": "ignored",
+    "source": "export {}; Promise.reject().catch((...錯誤) => {}); Promise.reject().catch((...錯誤: readonly Error[]) => {}); Promise.reject().catch((...[錯誤]: [string]) => {}); Promise.reject().catch(([錯誤]) => {}); Promise.reject().catch(({message: 錯誤}) => {});",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 35,
+          "end": 44
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownRestTypeAnnotationSuggestion",
+              "description": "Add an explicit `: [unknown]` type annotation to the rejection callback rest variable."
+            },
+            "fixes": [
+              {
+                "text": ": [unknown]",
+                "range": {
+                  "pos": 44,
+                  "end": 44
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 78,
+          "end": 105
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "wrongRestTypeAnnotationSuggestion",
+              "description": "Change existing type annotation to `: [unknown]`."
+            },
+            "fixes": [
+              {
+                "text": "[unknown]",
+                "range": {
+                  "pos": 89,
+                  "end": 105
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 139,
+          "end": 160
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "wrongRestTypeAnnotationSuggestion",
+              "description": "Change existing type annotation to `: [unknown]`."
+            },
+            "fixes": [
+              {
+                "text": "[unknown]",
+                "range": {
+                  "pos": 152,
+                  "end": 160
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 194,
+          "end": 202
+        },
+        "message": {
+          "id": "useUnknownArrayDestructuringPattern",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable. The thrown error may not be iterable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 236,
+          "end": 253
+        },
+        "message": {
+          "id": "useUnknownObjectDestructuringPattern",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable. The thrown error may be nullable, or may not have the expected shape."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable"
+      }
+    ]
+  },
+  {
+    "name": "expression-branches",
+    "options": [
+      false,
+      {
+        "anything": true
+      }
+    ],
+    "source": "export {}; declare const condition: boolean; declare const handler: ((e: any) => void) | null; Promise.reject().catch(condition ? (((ignored: Error) => {}, handler) ?? (錯誤 => {})) : (condition && (錯誤 => {})) || (錯誤 => {})); Promise.reject().catch(((錯誤: any) => {}) as (e: any) => void);",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 169,
+          "end": 175
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 169,
+                  "end": 169
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 175,
+                  "end": 175
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 201,
+          "end": 207
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 201,
+                  "end": 201
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 207,
+                  "end": 207
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 220,
+          "end": 226
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 220,
+                  "end": 220
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 226,
+                  "end": 226
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "spread-boundaries",
+    "options": {
+      "ignored": true
+    },
+    "source": "export {}; declare const args: []; Promise.reject().then(...args, 錯誤 => {}); Promise.reject().then(undefined, ...args, 錯誤 => {}); Promise.reject().catch(...args, 錯誤 => {}); Promise.reject().then(undefined, 錯誤 => {}, ...args); Promise.reject().catch(錯誤 => {}, ...args);",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 218,
+          "end": 224
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `then` rejection callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 218,
+                  "end": 218
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 224,
+                  "end": 224
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 265,
+          "end": 271
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 265,
+                  "end": 265
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 271,
+                  "end": 271
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "constraints",
+    "options": {},
+    "source": "export {}; function use<T extends Promise<unknown>>(p: T) { p.catch(錯誤 => {}); } Promise.reject().catch(<T extends unknown>(錯誤: T) => {}); Promise.reject().catch((...錯誤: [unknown, Error]) => {}); Promise.reject().catch((...錯誤: readonly unknown[]) => {});",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 68,
+          "end": 74
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 68,
+                  "end": 68
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 74,
+                  "end": 74
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 128,
+          "end": 137
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "wrongTypeAnnotationSuggestion",
+              "description": "Change existing type annotation to `: unknown`."
+            },
+            "fixes": [
+              {
+                "text": "unknown",
+                "range": {
+                  "pos": 136,
+                  "end": 137
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "structural-safe",
+    "options": null,
+    "source": "export {}; declare const safe: { then(f: (x: unknown) => void): void; catch(f: (e: unknown) => void): void }; safe.catch(錯誤 => {}); safe.then((錯誤: Error) => {}); declare const fake: { then(f: number): void; catch(f: (e: any) => void): void }; fake.catch(錯誤 => {});",
+    "diagnostics": []
+  },
+  {
+    "name": "computed-access",
+    "options": [],
+    "source": "export {}; const name = \"catch\"; const computed = \"ca\" + \"tch\"; Promise.reject()[name](錯誤 => {}); Promise.reject()[computed](錯誤 => {}); Promise.reject()[`catch`](錯誤 => {});",
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 87,
+          "end": 93
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 87,
+                  "end": 87
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 93,
+                  "end": 93
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 170,
+          "end": 176
+        },
+        "message": {
+          "id": "useUnknown",
+          "description": "Prefer the safe `: unknown` for a `catch` callback variable."
+        },
+        "file_path": "",
+        "rule": "use-unknown-in-catch-callback-variable",
+        "suggestions": [
+          {
+            "message": {
+              "id": "addUnknownTypeAnnotationSuggestion",
+              "description": "Add an explicit `: unknown` type annotation to the rejection callback variable."
+            },
+            "fixes": [
+              {
+                "text": "(",
+                "range": {
+                  "pos": 170,
+                  "end": 170
+                }
+              },
+              {
+                "text": ": unknown)",
+                "range": {
+                  "pos": 176,
+                  "end": 176
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

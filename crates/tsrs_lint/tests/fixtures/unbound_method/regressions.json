@@ -1,0 +1,1424 @@
+[
+  {
+    "name": "utf8_labels",
+    "source": "export {};\nclass Café { méthode() {} annotated(this: Café) {} safe(this: void) {} }\nconst café = new Café();\nconst a = café /* λ */ .méthode;\nconst b = café.annotated;\nconst c = café.safe;\nconst { méthode: détachée } = café;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 124,
+          "end": 148
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "utf8_labels.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 140,
+              "end": 148
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 160,
+          "end": 175
+        },
+        "message": {
+          "id": "unbound",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        "file_path": "utf8_labels.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 166,
+              "end": 175
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 207,
+          "end": 215
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "utf8_labels.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "default",
+    "source": "export {};\nclass Foo { static method() {} method() {} static field = function (this: void) {}; }\nconst a = Foo.method; const b = new Foo().method; const c = Foo.field;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 107,
+          "end": 117
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "default.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 111,
+              "end": 117
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 129,
+          "end": 145
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "default.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 139,
+              "end": 145
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "ignore_static",
+    "source": "export {};\nclass Foo { static method() {} method() {} static field = function (this: void) {}; }\nconst a = Foo.method; const b = new Foo().method; const c = Foo.field;",
+    "options": {
+      "ignoreStatic": true
+    },
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 129,
+          "end": 145
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "ignore_static.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 139,
+              "end": 145
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "explicit_false",
+    "source": "export {};\nclass Foo { static method() {} method() {} static field = function (this: void) {}; }\nconst a = Foo.method; const b = new Foo().method; const c = Foo.field;",
+    "options": {
+      "ignoreStatic": false
+    },
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 107,
+          "end": 117
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "explicit_false.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 111,
+              "end": 117
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 129,
+          "end": 145
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "explicit_false.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 139,
+              "end": 145
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "null_default",
+    "source": "export {};\nclass Foo { static method() {} method() {} static field = function (this: void) {}; }\nconst a = Foo.method; const b = new Foo().method; const c = Foo.field;",
+    "options": {
+      "ignoreStatic": null
+    },
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 107,
+          "end": 117
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "null_default.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 111,
+              "end": 117
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 129,
+          "end": 145
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "null_default.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 139,
+              "end": 145
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "unknown_option",
+    "source": "export {};\nclass Foo { static method() {} method() {} static field = function (this: void) {}; }\nconst a = Foo.method; const b = new Foo().method; const c = Foo.field;",
+    "options": {
+      "unrelated": [
+        "ignored"
+      ]
+    },
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 107,
+          "end": 117
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "unknown_option.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 111,
+              "end": 117
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 129,
+          "end": 145
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "unknown_option.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 139,
+              "end": 145
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "function_properties",
+    "source": "export {};\nclass Foo { method = function (this: void) {}; arrow = () => {}; }\nconst foo = new Foo(); const a = foo.method; const b = foo.arrow;\nconst object = { safe: function (this: void) {}, bound: function (this: Foo) {}, implicit: function () {}, arrow: () => {} };\nconst { safe, bound, implicit, arrow } = object;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 284,
+          "end": 289
+        },
+        "message": {
+          "id": "unbound",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        "file_path": "function_properties.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 291,
+          "end": 299
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "function_properties.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "destructure_names",
+    "source": "export {};\nclass Foo { méthode() {} }\nconst foo = new Foo();\nconst { méthode: renamed } = foo; const { \"méthode\": ignored } = foo;\nlet a; ({ \"méthode\": a } = foo); ({ [\"méthode\"]: a } = foo);\nconst { [\"méthode\"]: computed, ...rest } = foo;\nconst b = foo[\"méthode\"];",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 70,
+          "end": 78
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "destructure_names.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 144,
+          "end": 154
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "destructure_names.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "safe_wrappers",
+    "source": "export {};\nclass Foo { method() {} }\nconst foo = new Foo();\n(foo.method)(); (foo.method as () => void)(); (foo.method!)();\nif (foo.method ?? foo.method) {}\nconst a = foo.method && foo.method;\nconst b = foo.method || foo.method;\nconst c = foo.method ? foo.method : foo.method;\nvoid foo.method; typeof foo.method; !foo.method;\nconst d = foo.method.bind(foo);",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 127,
+          "end": 137
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 131,
+              "end": 137
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 141,
+          "end": 151
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 145,
+              "end": 151
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 180,
+          "end": 190
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 184,
+              "end": 190
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 202,
+          "end": 212
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 206,
+              "end": 212
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 216,
+          "end": 226
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 220,
+              "end": 226
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 251,
+          "end": 261
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 255,
+              "end": 261
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 264,
+          "end": 274
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "safe_wrappers.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 268,
+              "end": 274
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "assignment_super",
+    "source": "export {};\nclass Foo { method() {} }\nclass Bar extends Foo { constructor() { super(); this.method = super.method; let detached; detached = super.method; } }\nconst foo = new Foo(); foo.method = foo.method; foo.method ||= foo.method;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 139,
+          "end": 151
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "assignment_super.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 145,
+              "end": 151
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 193,
+          "end": 203
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "assignment_super.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 197,
+              "end": 203
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 205,
+          "end": 215
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "assignment_super.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 209,
+              "end": 215
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 220,
+          "end": 230
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "assignment_super.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 224,
+              "end": 230
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "type_boundaries",
+    "source": "export {};\nclass Foo { method() {} }\ninterface I { method({ method }: Foo): void; }\ntype Fn = ({ method }: Foo) => void;\ndeclare function f({ method }: Foo): void;\ndeclare const { method }: Foo;\nabstract class Bar { abstract f({ method }: Foo): void; concrete({ method }: Foo) {} }\nfunction implementation({ method }: Foo) {}",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 262,
+          "end": 268
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "type_boundaries.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 308,
+          "end": 314
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "type_boundaries.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "generic_union_intersection",
+    "source": "export {};\nclass Foo { method() {} }\nfunction generic<T extends Foo>({ method }: T) {}\nfunction union({ method }: Foo | { method: () => void }) {}\nfunction intersection({ method }: Foo & { other: string }) {}\nfunction access<T extends Foo>(x: T) { const f = x.method; }",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 71,
+          "end": 77
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "generic_union_intersection.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 104,
+          "end": 110
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "generic_union_intersection.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 171,
+          "end": 177
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "generic_union_intersection.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 258,
+          "end": 266
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "generic_union_intersection.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 260,
+              "end": 266
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "nested_binding",
+    "source": "export {};\nclass Foo { method() {} }\nconst { child: { method } } = { child: new Foo() };\nfunction parameter({ child: { method } }: { child: Foo }) {}\nconst { child: { method: fallback } = new Foo() } = {} as { child?: Foo };",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 54,
+          "end": 60
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "nested_binding.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 119,
+          "end": 125
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "nested_binding.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 167,
+          "end": 173
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "nested_binding.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "native_globals",
+    "source": "export {};\nconst math = Math; const symbol = Symbol; const number = Number;\nconst a = math.floor; const b = symbol.keyFor; const c = number.parseInt;\nconst { floor } = Math; const { keyFor } = Symbol;\nconst promise = Promise.all;\nconst reflection = Reflect.get; const intl = Intl.getCanonicalLocales;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 217,
+          "end": 228
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "native_globals.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 225,
+              "end": 228
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "local_native_shadow",
+    "source": "export {};\nconst Math = { floor() {}, abs: function () {} };\nconst a = Math.floor; const { abs } = Math;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 71,
+          "end": 81
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "local_native_shadow.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 76,
+              "end": 81
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 91,
+          "end": 94
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "local_native_shadow.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "import_native_shadow",
+    "source": "export {};\nimport { Math, console } from \"./custom-globals\";\nconst a = Math.floor; const b = console.log;\nconst { floor } = Math; const { log } = console;",
+    "options": null,
+    "files": {
+      "custom-globals.ts": "export const Math = { floor() {} }; export const console = { log() {} };"
+    },
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 71,
+          "end": 81
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "import_native_shadow.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 76,
+              "end": 81
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 93,
+          "end": 104
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "import_native_shadow.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 101,
+              "end": 104
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 114,
+          "end": 119
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "import_native_shadow.ts",
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 138,
+          "end": 141
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "import_native_shadow.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "ambient_native_shadow",
+    "source": "export {};\nconst a = Math.floor; const { floor } = Math;",
+    "options": null,
+    "files": {
+      "ambient.ts": "declare namespace Math { function floor(x: string): string; }"
+    },
+    "diagnostics": []
+  },
+  {
+    "name": "native_default_pattern",
+    "source": "export {};\nclass Foo { floor() {} }\nfunction f({ floor }: Foo = Math) {}\nconst { floor: detached } = Math;\nlet floor; ({ floor } = Math);",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 49,
+          "end": 54
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "native_default_pattern.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "optional_access",
+    "source": "export {};\nclass Foo { method?(): void; }\ndeclare const foo: Foo | undefined;\nconst a = foo?.method;\nconst b = foo?.method?.();\nconst c = foo?.method!;\nif (foo?.method) {}",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 88,
+          "end": 99
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "optional_access.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 93,
+              "end": 99
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 138,
+          "end": 149
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "optional_access.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 143,
+              "end": 149
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "this_annotation_alias",
+    "source": "export {};\ntype NoThis = void;\nconst value = { method(this: NoThis) {}, exact(this: void) {} };\nconst a = value.method; const b = value.exact;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 106,
+          "end": 118
+        },
+        "message": {
+          "id": "unbound",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`."
+        },
+        "file_path": "this_annotation_alias.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 112,
+              "end": 118
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "getter_and_function_signature",
+    "source": "export {};\nclass Foo { get method() { return function () {}; } }\nconst a = new Foo().method;\ninterface I { method(): void; field: () => void; }\ndeclare const i: I; const b = i.method; const c = i.field;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 174,
+          "end": 182
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "getter_and_function_signature.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 176,
+              "end": 182
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "declare_class_binding",
+    "source": "export {};\ndeclare class Foo { method(): void; callback({ method }: Foo): void; }\nfunction f({ method }: Foo) {}",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 95,
+          "end": 101
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "declare_class_binding.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "logical_condition_branches",
+    "source": "export {};\nclass Foo { method() {} }\nconst foo = new Foo();\nwhile (foo.method || foo.method) {}\nfor (;foo.method ?? foo.method;) {}\nconst a = (foo.method && foo.method)();\nconst b = (foo.method || foo.method)();\nconst c = foo.method ?? foo.method;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 102,
+          "end": 112
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "logical_condition_branches.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 106,
+              "end": 112
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 116,
+          "end": 126
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "logical_condition_branches.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 120,
+              "end": 126
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 222,
+          "end": 232
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "logical_condition_branches.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 226,
+              "end": 232
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      },
+      {
+        "kind": 0,
+        "range": {
+          "pos": 236,
+          "end": 246
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "logical_condition_branches.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 240,
+              "end": 246
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "array_native_types",
+    "source": "export {};\nconst mutable: number[] = []; const immutable: readonly number[] = [];\nconst a = mutable.map; const b = immutable.map;\nconst { map } = mutable;\nfunction generic<T extends number[]>(x: T) { const method = x.map; }",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 115,
+          "end": 128
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "array_native_types.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 125,
+              "end": 128
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "builtin_type_recursion",
+    "source": "export {};\ninterface CustomMath extends Math {}\ndeclare const custom: CustomMath; const a = custom.floor;\ndeclare const union: Math | { floor(): void }; const b = union.floor;\ndeclare const intersection: Math & { marker: true }; const c = intersection.floor;\nfunction generic<T extends Math>(x: T) { const f = x.floor; }",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "native_custom_property",
+    "source": "export {};\ninterface CustomMath extends Math { detached(): void; }\ndeclare const custom: CustomMath; const a = custom.detached; const b = custom.floor;",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 111,
+          "end": 126
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "native_custom_property.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 118,
+              "end": 126
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "audit_ordinary_function_assignment",
+    "source": "export {}; let x:any; x = { m: function() {} };",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "audit_ordinary_method_assignment",
+    "source": "export {}; let x:any; x = { m() {} };",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "audit_ordinary_annotated_assignment",
+    "source": "export {}; let x:any; x = { m: function(this:{}) {} };",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "audit_ordinary_unicode_assignment",
+    "source": "export {}; let x:any; x = { méthode: function() {} };",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "audit_nested_assignment_default",
+    "source": "export {}; class C {m(){}}; let a:any; ({nested:{m:a}=new C()}={});",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "audit_pattern_with_function_literal",
+    "source": "export {}; let x:any; ({m:x}={m:function(){}});",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 24,
+          "end": 25
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "audit_pattern_with_function_literal.ts",
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "audit_ordinary_unbound_reference",
+    "source": "export {}; class C {m(){}}; let x:any; x={m:new C().m};",
+    "options": null,
+    "files": {},
+    "diagnostics": [
+      {
+        "kind": 0,
+        "range": {
+          "pos": 44,
+          "end": 53
+        },
+        "message": {
+          "id": "unboundWithoutThisAnnotation",
+          "description": "Avoid referencing unbound methods which may cause unintentional scoping of `this`.",
+          "help": "If your function does not access `this`, you can annotate it with `this: void`, or consider using an arrow function instead."
+        },
+        "file_path": "audit_ordinary_unbound_reference.ts",
+        "labeled_ranges": [
+          {
+            "label": "This reference may be unbound and lose `this` context",
+            "range": {
+              "pos": 52,
+              "end": 53
+            }
+          }
+        ],
+        "rule": "unbound-method"
+      }
+    ]
+  },
+  {
+    "name": "audit_ordinary_arrow_assignment",
+    "source": "export {}; let x:any; x={m:()=>{}};",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  },
+  {
+    "name": "audit_nested_literal_default",
+    "source": "export {}; let x:any; ({nested:{m:x}={m:function(){}}}={});",
+    "options": null,
+    "files": {},
+    "diagnostics": []
+  }
+]

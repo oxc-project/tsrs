@@ -1,0 +1,778 @@
+[
+  {
+    "name": "condition-astral",
+    "rule": "no-unnecessary-condition",
+    "source": "export {};declare const x:{\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1};if(x){}",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "promise-astral",
+    "rule": "no-floating-promises",
+    "source": "export {};declare const p:Promise<{\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1}>;p;",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "assignment-astral",
+    "rule": "no-unsafe-assignment",
+    "source": "export {};declare const a:any;const x:{\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1}=a;",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "return-astral",
+    "rule": "no-unsafe-return",
+    "source": "export {};declare const a:any;function f():{\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1}{return a;}",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "assertion-astral",
+    "rule": "no-unsafe-type-assertion",
+    "source": "export {};declare const a:unknown;a as {\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1};",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "condition-replacement",
+    "rule": "no-unnecessary-condition",
+    "source": "export {};declare const x:{\"a�\":1};if(x){}",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 41
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ \"a\\uFFFD\": 1; }`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 41
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ \"a\\uFFFD\": 1; }`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 41
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ \"a\\uFFFD\": 1; }`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 40,
+            "end": 41
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ \"a\\uFFFD\": 1; }`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "promise-replacement",
+    "rule": "no-floating-promises",
+    "source": "export {};declare const p:Promise<{\"a�\":1}>;p;",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 47
+          },
+          "message": {
+            "id": "floatingVoid",
+            "description": "Promises must be awaited, add void operator to ignore.",
+            "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This unhandled promise-like value has type `Promise<{ \"a\\uFFFD\": 1; }>`.",
+              "range": {
+                "pos": 46,
+                "end": 47
+              }
+            }
+          ],
+          "rule": "no-floating-promises"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 47
+          },
+          "message": {
+            "id": "floatingVoid",
+            "description": "Promises must be awaited, add void operator to ignore.",
+            "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This unhandled promise-like value has type `Promise<{ \"a\\uFFFD\": 1; }>`.",
+              "range": {
+                "pos": 46,
+                "end": 47
+              }
+            }
+          ],
+          "rule": "no-floating-promises"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 47
+          },
+          "message": {
+            "id": "floatingVoid",
+            "description": "Promises must be awaited, add void operator to ignore.",
+            "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This unhandled promise-like value has type `Promise<{ \"a\\uFFFD\": 1; }>`.",
+              "range": {
+                "pos": 46,
+                "end": 47
+              }
+            }
+          ],
+          "rule": "no-floating-promises",
+          "suggestions": [
+            {
+              "message": {
+                "id": "floatingFixVoid",
+                "description": "Add void operator to ignore."
+              },
+              "fixes": [
+                {
+                  "text": "void ",
+                  "range": {
+                    "pos": 46,
+                    "end": 46
+                  }
+                }
+              ]
+            },
+            {
+              "message": {
+                "id": "floatingFixAwait",
+                "description": "Add await operator."
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 46,
+                    "end": 46
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 46,
+            "end": 47
+          },
+          "message": {
+            "id": "floatingVoid",
+            "description": "Promises must be awaited, add void operator to ignore.",
+            "help": "The promise must end with a call to .catch, or end with a call to .then with a rejection handler, or be explicitly marked as ignored with the `void` operator."
+          },
+          "labeled_ranges": [
+            {
+              "label": "This unhandled promise-like value has type `Promise<{ \"a\\uFFFD\": 1; }>`.",
+              "range": {
+                "pos": 46,
+                "end": 47
+              }
+            }
+          ],
+          "rule": "no-floating-promises",
+          "suggestions": [
+            {
+              "message": {
+                "id": "floatingFixVoid",
+                "description": "Add void operator to ignore."
+              },
+              "fixes": [
+                {
+                  "text": "void ",
+                  "range": {
+                    "pos": 46,
+                    "end": 46
+                  }
+                }
+              ]
+            },
+            {
+              "message": {
+                "id": "floatingFixAwait",
+                "description": "Add await operator."
+              },
+              "fixes": [
+                {
+                  "text": "await ",
+                  "range": {
+                    "pos": 46,
+                    "end": 46
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "name": "assignment-replacement",
+    "rule": "no-unsafe-assignment",
+    "source": "export {};declare const a:any;const x:{\"a�\":1}=a;",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 50
+          },
+          "message": {
+            "id": "anyAssignment",
+            "description": "Unsafe assignment of an any value.",
+            "help": "Assigned value has type `any`; the target has type `{ \"a\\uFFFD\": 1; }`. Use a safely typed value or `unknown`, and narrow it before use."
+          },
+          "rule": "no-unsafe-assignment"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 50
+          },
+          "message": {
+            "id": "anyAssignment",
+            "description": "Unsafe assignment of an any value.",
+            "help": "Assigned value has type `any`; the target has type `{ \"a\\uFFFD\": 1; }`. Use a safely typed value or `unknown`, and narrow it before use."
+          },
+          "rule": "no-unsafe-assignment"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 50
+          },
+          "message": {
+            "id": "anyAssignment",
+            "description": "Unsafe assignment of an any value.",
+            "help": "Assigned value has type `any`; the target has type `{ \"a\\uFFFD\": 1; }`. Use a safely typed value or `unknown`, and narrow it before use."
+          },
+          "rule": "no-unsafe-assignment"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 36,
+            "end": 50
+          },
+          "message": {
+            "id": "anyAssignment",
+            "description": "Unsafe assignment of an any value.",
+            "help": "Assigned value has type `any`; the target has type `{ \"a\\uFFFD\": 1; }`. Use a safely typed value or `unknown`, and narrow it before use."
+          },
+          "rule": "no-unsafe-assignment"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "return-replacement",
+    "rule": "no-unsafe-return",
+    "source": "export {};declare const a:any;function f():{\"a�\":1}{return a;}",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 54,
+            "end": 63
+          },
+          "message": {
+            "id": "unsafeReturn",
+            "description": "Unsafe return of a value of type `any`.",
+            "help": "Returned expression has type `any`; the function return type is `{ \"a\\uFFFD\": 1; }`. Return a safely typed value or narrow the value before returning it."
+          },
+          "rule": "no-unsafe-return"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 54,
+            "end": 63
+          },
+          "message": {
+            "id": "unsafeReturn",
+            "description": "Unsafe return of a value of type `any`.",
+            "help": "Returned expression has type `any`; the function return type is `{ \"a\\uFFFD\": 1; }`. Return a safely typed value or narrow the value before returning it."
+          },
+          "rule": "no-unsafe-return"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 54,
+            "end": 63
+          },
+          "message": {
+            "id": "unsafeReturn",
+            "description": "Unsafe return of a value of type `any`.",
+            "help": "Returned expression has type `any`; the function return type is `{ \"a\\uFFFD\": 1; }`. Return a safely typed value or narrow the value before returning it."
+          },
+          "rule": "no-unsafe-return"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 54,
+            "end": 63
+          },
+          "message": {
+            "id": "unsafeReturn",
+            "description": "Unsafe return of a value of type `any`.",
+            "help": "Returned expression has type `any`; the function return type is `{ \"a\\uFFFD\": 1; }`. Return a safely typed value or narrow the value before returning it."
+          },
+          "rule": "no-unsafe-return"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "assertion-replacement",
+    "rule": "no-unsafe-type-assertion",
+    "source": "export {};declare const a:unknown;a as {\"a�\":1};",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 34,
+            "end": 49
+          },
+          "message": {
+            "id": "unsafeTypeAssertion",
+            "description": "Unsafe type assertion: type '{ \"a\\uFFFD\": 1; }' is more narrow than the original type.",
+            "help": "The original expression has type `unknown`, and the assertion changes it to `{ \"a\\uFFFD\": 1; }`. Use a type guard to narrow the value before asserting a more specific type."
+          },
+          "rule": "no-unsafe-type-assertion"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 34,
+            "end": 49
+          },
+          "message": {
+            "id": "unsafeTypeAssertion",
+            "description": "Unsafe type assertion: type '{ \"a\\uFFFD\": 1; }' is more narrow than the original type.",
+            "help": "The original expression has type `unknown`, and the assertion changes it to `{ \"a\\uFFFD\": 1; }`. Use a type guard to narrow the value before asserting a more specific type."
+          },
+          "rule": "no-unsafe-type-assertion"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 34,
+            "end": 49
+          },
+          "message": {
+            "id": "unsafeTypeAssertion",
+            "description": "Unsafe type assertion: type '{ \"a\\uFFFD\": 1; }' is more narrow than the original type.",
+            "help": "The original expression has type `unknown`, and the assertion changes it to `{ \"a\\uFFFD\": 1; }`. Use a type guard to narrow the value before asserting a more specific type."
+          },
+          "rule": "no-unsafe-type-assertion"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 34,
+            "end": 49
+          },
+          "message": {
+            "id": "unsafeTypeAssertion",
+            "description": "Unsafe type assertion: type '{ \"a\\uFFFD\": 1; }' is more narrow than the original type.",
+            "help": "The original expression has type `unknown`, and the assertion changes it to `{ \"a\\uFFFD\": 1; }`. Use a type guard to narrow the value before asserting a more specific type."
+          },
+          "rule": "no-unsafe-type-assertion"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "condition-recoverable-prefix",
+    "rule": "no-unnecessary-condition",
+    "source": "export {};declare const x:{\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1};if(x){}",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 625,
+            "end": 626
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 625,
+            "end": 626
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 625,
+            "end": 626
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 625,
+            "end": 626
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy.",
+            "help": "The checked value has type `{ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "promise-recoverable-prefix",
+    "rule": "no-floating-promises",
+    "source": "export {};declare const p:Promise<{\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1}>;p;",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "assignment-recoverable-prefix",
+    "rule": "no-unsafe-assignment",
+    "source": "export {};declare const a:any;const x:{\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1}=a;",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "return-recoverable-prefix",
+    "rule": "no-unsafe-return",
+    "source": "export {};declare const a:any;function f():{\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1}{return a;}",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "assertion-recoverable-prefix",
+    "rule": "no-unsafe-type-assertion",
+    "source": "export {};declare const a:unknown;a as {\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1};",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "promise-invalid-handler",
+    "rule": "no-floating-promises",
+    "source": "export {};declare const handler:{\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1};Promise.resolve(1).catch(handler);",
+    "expected": [
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "name": "self-explanatory-literal",
+    "rule": "no-unnecessary-condition",
+    "source": "export {};if(\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\"){}",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 13,
+            "end": 479
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 13,
+            "end": 479
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 13,
+            "end": 479
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 13,
+            "end": 479
+          },
+          "message": {
+            "id": "alwaysTruthy",
+            "description": "Unnecessary conditional, value is always truthy."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ]
+    ]
+  },
+  {
+    "name": "joined-property-types-recover",
+    "rule": "no-unnecessary-condition",
+    "source": "export {};declare const x:{a:{\"𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":1},b:{\"b𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀\":2}}|null;declare const k:\"a\"|\"b\";x?.[k]?.toString();",
+    "expected": [
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 1000,
+            "end": 1016
+          },
+          "message": {
+            "id": "neverOptionalChain",
+            "description": "Unnecessary optional chain on a non-nullish value.",
+            "help": "The checked value has type `{ 𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀���... | { b𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀...`. Remove the optional chain; the value cannot be `null` or `undefined`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 1000,
+            "end": 1016
+          },
+          "message": {
+            "id": "neverOptionalChain",
+            "description": "Unnecessary optional chain on a non-nullish value.",
+            "help": "The checked value has type `{ 𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀���... | { b𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀...`. Remove the optional chain; the value cannot be `null` or `undefined`."
+          },
+          "rule": "no-unnecessary-condition"
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 1000,
+            "end": 1016
+          },
+          "message": {
+            "id": "neverOptionalChain",
+            "description": "Unnecessary optional chain on a non-nullish value.",
+            "help": "The checked value has type `{ 𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀���... | { b𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀...`. Remove the optional chain; the value cannot be `null` or `undefined`."
+          },
+          "rule": "no-unnecessary-condition",
+          "suggestions": [
+            {
+              "message": {
+                "id": "suggestRemoveOptionalChain",
+                "description": "Remove unnecessary optional chain"
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1006,
+                    "end": 1008
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "kind": 0,
+          "range": {
+            "pos": 1000,
+            "end": 1016
+          },
+          "message": {
+            "id": "neverOptionalChain",
+            "description": "Unnecessary optional chain on a non-nullish value.",
+            "help": "The checked value has type `{ 𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀���... | { b𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀𐐀...`. Remove the optional chain; the value cannot be `null` or `undefined`."
+          },
+          "rule": "no-unnecessary-condition",
+          "suggestions": [
+            {
+              "message": {
+                "id": "suggestRemoveOptionalChain",
+                "description": "Remove unnecessary optional chain"
+              },
+              "fixes": [
+                {
+                  "text": ".",
+                  "range": {
+                    "pos": 1006,
+                    "end": 1008
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]
+  }
+]

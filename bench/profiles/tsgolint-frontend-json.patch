@@ -1,0 +1,21 @@
+diff --git a/apps/oxlint/src/output_formatter/json.rs b/apps/oxlint/src/output_formatter/json.rs
+index 8a4d88ec42..eabbeb43f1 100644
+--- a/apps/oxlint/src/output_formatter/json.rs
++++ b/apps/oxlint/src/output_formatter/json.rs
+@@ -137,6 +137,8 @@ impl JsonReporter {
+ 
+ /// <https://github.com/fregante/eslint-formatters/tree/ae1fd9748596447d1fd09625c33d9e7ba9a3d06d/packages/eslint-formatter-json>
+ fn format_json(diagnostics: &mut Vec<Error>) -> String {
++    let profile_start = std::time::Instant::now();
++    let profile_count = diagnostics.len();
+     let handler = JSONReportHandler::new();
+     let mut output = String::from("[");
+     for (index, error) in diagnostics.drain(..).enumerate() {
+@@ -146,6 +148,7 @@ fn format_json(diagnostics: &mut Vec<Error>) -> String {
+         handler.render_report(&mut output, error.as_ref()).unwrap();
+     }
+     output.push(']');
++    eprintln!("OXC_PHASE {{\"event\":\"json_render\",\"wall_ns\":{},\"diagnostics\":{},\"bytes\":{}}}", profile_start.elapsed().as_nanos(), profile_count, output.len());
+     output
+ }
+ 

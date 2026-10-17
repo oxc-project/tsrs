@@ -1,0 +1,365 @@
+diff --git a/crates/tsrs_lint/src/engine.rs b/crates/tsrs_lint/src/engine.rs
+index 3da6610d..f180b071 100644
+--- a/crates/tsrs_lint/src/engine.rs
++++ b/crates/tsrs_lint/src/engine.rs
+@@ -17,6 +17,7 @@ use tsrs_core::{
+ use tsrs_tsoptions::{ParseConfigHost, ParsedCommandLine};
+ use tsrs_vfs::{FS, bundled, cachedvfs, osvfs, wrapvfs};
+ 
++use crate::profile;
+ use crate::payload::{ConfiguredRule, Payload};
+ use crate::protocol::{self, Diagnostic, MessageType, Range, RuleMessage};
+ use crate::rule::{RuleContext, visit_lint_nodes};
+@@ -101,10 +102,12 @@ struct ProgramOwner(&'static Program);
+ 
+ impl Drop for ProgramOwner {
+     fn drop(&mut self) {
++        let free_start = profile::mark();
+         // SAFETY: each program is created once here, is never shared with another version, and all checker handles have been dropped.
+         unsafe {
+             tsrs_compiler::free_unshared_program(self.0);
+         }
++        profile::record("program_free", free_start, []);
+     }
+ }
+ 
+@@ -121,6 +124,7 @@ fn run_in_region(
+     let mut unmatched = Vec::new();
+     let mut file_configs = BTreeMap::new();
+     let mut timings: BTreeMap<String, (u64, u64)> = BTreeMap::new();
++    let index_start = profile::mark();
+     for config in &payload.configs {
+         for path in &config.file_paths {
+             file_configs.insert(tspath::normalize_slashes(path), config.rules.as_slice());
+@@ -131,6 +135,8 @@ fn run_in_region(
+             crate::registry::require_implemented(&rule.name)?;
+         }
+     }
++    profile::record("config_index", index_start, []);
++    let discovery_start = profile::mark();
+     let mut config_cache = FxHashMap::default();
+     for path in file_configs.keys() {
+         let resolved = tspath::get_normalized_absolute_path(path, cwd);
+@@ -141,7 +147,9 @@ fn run_in_region(
+         }
+     }
+     drop(config_cache);
++    profile::record("discovery", discovery_start, [("programs", profile::number(programs.len() as u64)), ("unmatched", profile::number(unmatched.len() as u64))]);
+     for (config_path, files) in programs {
++        let parse_start = profile::mark();
+         let (config, diagnostics) = tsrs_tsoptions::get_parsed_command_line_of_config_file(
+             &config_path,
+             None,
+@@ -149,6 +157,7 @@ fn run_in_region(
+             host,
+             None,
+         );
++        profile::record("config_parse", parse_start, [("config", Value::String(config_path.clone()))]);
+         if !diagnostics.is_empty() {
+             for diagnostic in diagnostics {
+                 report_config_error(diagnostic, &config_path, false, writer)?;
+@@ -169,7 +178,9 @@ fn run_in_region(
+             true,
+         );
+         let program_ref = program.0;
++        let diagnostics_start = profile::mark();
+         let diagnostics = program_ref.get_program_diagnostics();
++        profile::record("program_diagnostics", diagnostics_start, []);
+         if !diagnostics.is_empty() && !options.suppress_program_diagnostics {
+             for diagnostic in diagnostics {
+                 report_config_error(diagnostic, &config_path, true, writer)?;
+@@ -262,12 +273,15 @@ fn create_program(
+     cwd: &str,
+     references: bool,
+ ) -> ProgramOwner {
++    let create_start = profile::mark();
+     let host = tsrs_compiler::new_compiler_host(cwd, fs, &bundled::lib_path(), None, None, None);
+     let host = Arc::new(crate::compiler_host::LintCompilerHost(host));
+     let mut options = ProgramOptions::new(P::new(config), host);
+     options.use_source_of_project_reference = references;
+     options.single_threaded = Tristate::True;
+-    ProgramOwner(tsrs_compiler::new_program(options))
++    let program = ProgramOwner(tsrs_compiler::new_program(options));
++    profile::record("create_program", create_start, [("cwd", Value::String(cwd.into()))]);
++    program
+ }
+ 
+ fn run_program(
+@@ -280,7 +294,9 @@ fn run_program(
+     timings: &mut BTreeMap<String, (u64, u64)>,
+     worker_regions: &mut Vec<tsrs_core::arena::Region>,
+ ) -> Result<(), String> {
++    let bind_start = profile::mark();
+     program.bind_source_files();
++    profile::record("bind", bind_start, [("files", profile::number(files.len() as u64)), ("first", Value::String(files[0].clone()))]);
+     let lint_files = files
+         .iter()
+         .filter(|name| {
+@@ -315,6 +331,7 @@ fn run_program(
+             workers,
+         );
+     }
++    let serial_start = profile::mark();
+     let context = Context::default();
+     let lint_region = payload
+         .report_semantic
+@@ -357,6 +374,7 @@ fn run_program(
+             emit(diagnostic, writer)?;
+         }
+     }
++    profile::record("serial_files", serial_start, [("files", profile::number(files.len() as u64)), ("first", Value::String(files[0].clone()))]);
+     Ok(())
+ }
+ 
+@@ -442,81 +460,81 @@ fn run_program_parallel(
+     worker_regions: &mut Vec<tsrs_core::arena::Region>,
+     workers: usize,
+ ) -> Result<(), String> {
++    let parallel_start = profile::mark();
+     let results = std::thread::scope(|scope| {
+         let mut handles = Vec::new();
+-        for chunk in files.chunks(files.len().div_ceil(workers)) {
++        for (worker, chunk) in files.chunks(files.len().div_ceil(workers)).enumerate() {
+             let region = tsrs_core::arena::Region::new_scratch(1 << 20);
+             worker_regions.push(region.clone());
+-            handles.push(
+-                std::thread::Builder::new()
+-                    .name("tsrs-lint-worker".into())
+-                    .stack_size(512 * 1024 * 1024)
+-                    .spawn_scoped(scope, move || {
+-                        let _scope = region.enter();
+-                        let context = Context::default();
+-                        let mut semantic_checker = None;
+-                        let mut lint_checker = None;
+-                        let mut output = Vec::new();
+-                        let mut timings = BTreeMap::new();
+-                        for name in chunk {
+-                            let file = program.get_source_file(name).ok_or_else(|| {
+-                                format!("Expected file '{name}' to be in program")
+-                            })?;
+-                            if payload.report_syntactic {
+-                                for diagnostic in
+-                                    program.get_syntactic_diagnostics(&context, Some(file))
+-                                {
+-                                    report_type_error(diagnostic, file, &mut output)?;
+-                                }
+-                            }
+-                            if payload.report_semantic {
+-                                let checker = semantic_checker
+-                                    .get_or_insert_with(|| tsrs_checker::new_checker(program));
+-                                let diagnostics = program
+-                                    .get_semantic_diagnostics_with_checker(&context, checker, file);
+-                                for diagnostic in
+-                                    tsrs_compiler::sort_and_deduplicate_diagnostics(&diagnostics)
+-                                {
+-                                    report_type_error(diagnostic, file, &mut output)?;
+-                                }
+-                            }
+-                            let configured = file_configs.get(name).copied().unwrap_or_default();
+-                            if configured.is_empty() {
+-                                continue;
+-                            }
+-                            let checker = lint_checker
+-                                .get_or_insert_with(|| tsrs_checker::new_checker(program));
+-                            for diagnostic in lint_file(
+-                                program,
+-                                file,
+-                                configured,
+-                                options,
+-                                checker,
+-                                &mut timings,
+-                            )? {
+-                                emit(&diagnostic, &mut output)?;
+-                            }
++            handles.push(std::thread::Builder::new()
++                .name("tsrs-lint-worker".into()).stack_size(512 * 1024 * 1024)
++                .spawn_scoped(scope, move || {
++                    let worker_start = profile::mark();
++                    let mut wall = [0u64; 4]; let mut cpu = [0u64; 4];
++                    let mut file_times = Vec::new();
++                    let _scope = region.enter();
++                    let context = Context::default();
++                    let mut semantic_checker = None; let mut lint_checker = None;
++                    let mut output = Vec::new(); let mut timings = BTreeMap::new();
++                    for name in chunk {
++                        let file_start = profile::mark();
++                        let file = program.get_source_file(name).ok_or_else(|| format!("Expected file '{name}' to be in program"))?;
++                        if payload.report_syntactic {
++                            let phase = profile::mark();
++                            let diagnostics = program.get_syntactic_diagnostics(&context, Some(file));
++                            profile::add(&mut wall, &mut cpu, 0, phase);
++                            let phase = profile::mark();
++                            for diagnostic in diagnostics { report_type_error(diagnostic, file, &mut output)?; }
++                            profile::add(&mut wall, &mut cpu, 3, phase);
+                         }
+-                        Ok::<_, String>((output, timings))
+-                    })
+-                    .map_err(|error| format!("could not start lint worker: {error}"))?,
+-            );
++                        if payload.report_semantic {
++                            let phase = profile::mark();
++                            let checker = semantic_checker.get_or_insert_with(|| tsrs_checker::new_checker(program));
++                            let diagnostics = program.get_semantic_diagnostics_with_checker(&context, checker, file);
++                            let diagnostics = tsrs_compiler::sort_and_deduplicate_diagnostics(&diagnostics);
++                            profile::add(&mut wall, &mut cpu, 1, phase);
++                            let phase = profile::mark();
++                            for diagnostic in diagnostics { report_type_error(diagnostic, file, &mut output)?; }
++                            profile::add(&mut wall, &mut cpu, 3, phase);
++                        }
++                        let configured = file_configs.get(name).copied().unwrap_or_default();
++                        if !configured.is_empty() {
++                            let phase = profile::mark();
++                            let checker = lint_checker.get_or_insert_with(|| tsrs_checker::new_checker(program));
++                            let diagnostics = lint_file(program, file, configured, options, checker, &mut timings)?;
++                            profile::add(&mut wall, &mut cpu, 2, phase);
++                            let phase = profile::mark();
++                            for diagnostic in diagnostics { emit(&diagnostic, &mut output)?; }
++                            profile::add(&mut wall, &mut cpu, 3, phase);
++                        }
++                        let (file_wall, file_cpu) = profile::elapsed(file_start);
++                        file_times.push((file_cpu, file_wall, name));
++                    }
++                    file_times.sort_unstable_by_key(|x| std::cmp::Reverse(x.0));
++                    let slow = file_times.iter().take(5).map(|(cpu, wall, name)| protocol::object([
++                        ("file", Value::String((*name).clone())), ("cpu_ns", profile::number(*cpu)), ("wall_ns", profile::number(*wall)),
++                    ])).collect();
++                    profile::record("worker", worker_start, [
++                        ("worker", profile::number(worker as u64)), ("first", Value::String(chunk[0].clone())),
++                        ("files", profile::number(chunk.len() as u64)), ("bytes", profile::number(output.len() as u64)),
++                        ("phase_wall_ns", Value::Array(wall.into_iter().map(profile::number).collect())),
++                        ("phase_cpu_ns", Value::Array(cpu.into_iter().map(profile::number).collect())), ("slow_files", Value::Array(slow)),
++                    ]);
++                    Ok::<_, String>((output, timings))
++                }).map_err(|error| format!("could not start lint worker: {error}"))?);
+         }
+-        handles
+-            .into_iter()
+-            .map(|handle| handle.join().unwrap())
+-            .collect::<Result<Vec<_>, String>>()
++        handles.into_iter().map(|handle| handle.join().unwrap()).collect::<Result<Vec<_>, String>>()
+     })?;
++    profile::record("workers_join", parallel_start, [("files", profile::number(files.len() as u64)), ("workers", profile::number(workers as u64))]);
++    let flush_start = profile::mark();
++    let bytes: usize = results.iter().map(|r| r.0.len()).sum();
+     for (output, local_timings) in results {
+-        writer
+-            .write_all(&output)
+-            .map_err(|error| error.to_string())?;
++        writer.write_all(&output).map_err(|error| error.to_string())?;
+         for (name, (duration, calls)) in local_timings {
+-            let entry = timings.entry(name).or_default();
+-            entry.0 = entry.0.saturating_add(duration);
+-            entry.1 += calls;
++            let entry = timings.entry(name).or_default(); entry.0 = entry.0.saturating_add(duration); entry.1 += calls;
+         }
+     }
++    profile::record("output_write", flush_start, [("bytes", profile::number(bytes as u64))]);
+     Ok(())
+ }
+ 
+diff --git a/crates/tsrs_lint/src/lib.rs b/crates/tsrs_lint/src/lib.rs
+index 070c8cbc..d7123e44 100644
+--- a/crates/tsrs_lint/src/lib.rs
++++ b/crates/tsrs_lint/src/lib.rs
+@@ -77,3 +77,5 @@ mod rules {
+     pub mod unbound_method;
+     pub mod use_unknown_in_catch_callback_variable;
+ }
++
++pub mod profile;
+diff --git a/crates/tsrs_lint/src/main.rs b/crates/tsrs_lint/src/main.rs
+index d48ca508..e6d5b5b8 100644
+--- a/crates/tsrs_lint/src/main.rs
++++ b/crates/tsrs_lint/src/main.rs
+@@ -1,6 +1,6 @@
+ use std::io::{self, Read, Write};
+ 
+-use tsrs_lint::{engine, payload, protocol};
++use tsrs_lint::{engine, payload, profile, protocol};
+ 
+ #[global_allocator]
+ static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+@@ -16,6 +16,7 @@ fn allow_transparent_huge_pages() {
+ }
+ 
+ fn main() {
++    profile::record("process_start", profile::mark(), []);
+     #[cfg(target_os = "linux")]
+     allow_transparent_huge_pages();
+     let result = std::thread::Builder::new()
+@@ -80,16 +81,23 @@ fn run() -> i32 {
+     }
+     let mut writer = io::BufWriter::new(io::stdout().lock());
+     let result = (|| {
++        let input_start = profile::mark();
+         let mut input = String::new();
+         io::stdin()
+             .read_to_string(&mut input)
+             .map_err(|e| format!("error reading from stdin: {e}"))?;
++        profile::record("input_read", input_start, []);
++        let parse_start = profile::mark();
+         let payload = payload::deserialize_payload(&input)
+             .map_err(|e| format!("error parsing config: {e}"))?;
++        profile::record("payload_parse", parse_start, []);
+         let cwd =
+             std::env::current_dir().map_err(|e| format!("error getting current directory: {e}"))?;
+-        engine::run(&payload, options, &cwd.to_string_lossy(), &mut writer)
+-            .map_err(|e| format!("error running linter: {e}"))
++        let engine_start = profile::mark();
++        let result = engine::run(&payload, options, &cwd.to_string_lossy(), &mut writer)
++            .map_err(|e| format!("error running linter: {e}"));
++        profile::record("engine", engine_start, []);
++        result
+     })();
+     let code = match result {
+         Ok(()) => 0,
+@@ -100,9 +108,11 @@ fn run() -> i32 {
+             1
+         }
+     };
++    let flush_start = profile::mark();
+     if let Err(error) = writer.flush() {
+         eprintln!("could not flush output: {error}");
+         return 1;
+     }
++    profile::record("final_flush", flush_start, []);
+     code
+ }
+diff --git a/crates/tsrs_lint/src/profile.rs b/crates/tsrs_lint/src/profile.rs
+new file mode 100644
+--- /dev/null
++++ b/crates/tsrs_lint/src/profile.rs
+@@ -0,0 +1,33 @@
++use std::sync::OnceLock;
++use std::time::Instant;
++use tsrs_core::json::{self, Value};
++static CLOCK: OnceLock<Instant> = OnceLock::new();
++pub fn cpu() -> u64 {
++    #[repr(C)]
++    struct Timespec { tv_sec: i64, tv_nsec: i64 }
++    unsafe extern "C" { fn clock_gettime(id: i32, tp: *mut Timespec) -> i32; }
++    let mut ts = Timespec { tv_sec: 0, tv_nsec: 0 };
++    // SAFETY: the writable timespec is initialized and clock_gettime retains no pointer.
++    assert_eq!(unsafe { clock_gettime(16, &raw mut ts) }, 0);
++    ts.tv_sec as u64 * 1_000_000_000 + ts.tv_nsec as u64
++}
++pub fn mark() -> (Instant, u64) {
++    CLOCK.get_or_init(Instant::now);
++    (Instant::now(), cpu())
++}
++pub fn elapsed(start: (Instant, u64)) -> (u64, u64) {
++    (start.0.elapsed().as_nanos() as u64, cpu() - start.1)
++}
++pub fn number(n: u64) -> Value { Value::Integer(n as i64) }
++pub fn record(event: &str, start: (Instant, u64), fields: impl IntoIterator<Item=(&'static str, Value)>) {
++    let (wall, cpu) = elapsed(start);
++    let fields = [
++        ("event", Value::String(event.into())),
++        ("t_ns", number(CLOCK.get().unwrap().elapsed().as_nanos() as u64)),
++        ("wall_ns", number(wall)), ("cpu_ns", number(cpu)),
++    ].into_iter().chain(fields);
++    eprintln!("TSRS_PHASE {}", json::marshal(&crate::protocol::object(fields)).unwrap());
++}
++pub fn add(wall: &mut [u64; 4], cpu: &mut [u64; 4], index: usize, start: (Instant, u64)) {
++    let (w, c) = elapsed(start); wall[index] += w; cpu[index] += c;
++}

@@ -201,6 +201,43 @@ def native_platform() -> str:
     return f"{sys.platform}-{arch}"
 
 
+def resolve_tsgo(pkgcfg: dict, version: str | None = None) -> dict:
+    """The exact npm release a run measures: `version` when given (--tsgo-version), else `pkgcfg`'s pinned
+    `version`, else whatever its dist-tag (`next`, the nightly) points at now. Returns the package, the tag, the
+    version, the TypeScript commit it was published from (`gitHead`) and its publish time, as recorded in results."""
+    pkg = pkgcfg["package"]
+    spec = version or pkgcfg.get("version") or pkgcfg["tag"]
+    out: list[str] = []
+    retry(f"npm view {pkg}@{spec}", lambda: out.append(subprocess.run(
+        ["npm", "view", "--json", f"{pkg}@{spec}"], capture_output=True, text=True, check=True).stdout))
+    meta = json.loads(out[-1])
+    if isinstance(meta, list):  # a range matching several versions
+        meta = meta[-1]
+    resolved = meta["version"]
+    if version is None and pkgcfg.get("version") and resolved != pkgcfg["version"]:
+        sys.exit(f"npm resolved {pkg}@{spec} to {resolved}")
+    return {"package": pkg, "tag": None if version or pkgcfg.get("version") else pkgcfg["tag"], "version": resolved,
+            "commit": meta.get("gitHead"), "published": (meta.get("time") or {}).get(resolved)}
+
+
+def tsgo_binary_info(exe: Path) -> dict:
+    """What a --tsgo binary is: only its `--version` is known."""
+    out = subprocess.run([str(exe), "--version"], capture_output=True, text=True, check=True).stdout.strip()
+    return {"package": None, "tag": None, "version": out.removeprefix("Version "), "commit": None, "published": None}
+
+
+def tsgo_text(tsgo: dict) -> str:
+    """`typescript@<version>` with the dist-tag, the TypeScript commit and the publish date when the result has them
+    (some results record only the version)."""
+    text = f"npm `{tsgo.get('package') or 'typescript'}@{tsgo['version']}`"
+    extra = [f"the `{tsgo['tag']}` nightly" if tsgo.get("tag") == "next" else
+             f"the `{tsgo['tag']}` tag" if tsgo.get("tag") else None,
+             f"published {tsgo['published'][:10]}" if tsgo.get("published") else None,
+             f"from microsoft/TypeScript `{tsgo['commit'][:8]}`" if tsgo.get("commit") else None]
+    extra = [e for e in extra if e]
+    return text + (f" ({', '.join(extra)})" if extra else "")
+
+
 def ensure_tsgo(pkgcfg: dict, work: Path) -> Path:
     """Installs typescript@<version> and returns the native compiler its `tsc` launcher execs.
 
@@ -787,6 +824,8 @@ def main() -> None:
     ap.add_argument("--setup-only", action="store_true", help="clone and install everything, including the reference compiler")
     ap.add_argument("--print-cache-keys", action="store_true",
                     help="print `<name>=<key>` lines (GITHUB_OUTPUT format) for the CI caches of bench/.work")
+    ap.add_argument("--print-tsgo", action="store_true",
+                    help="print the tsgo release a run would measure (`tsgo-version=<version>`, GITHUB_OUTPUT format)")
     ap.add_argument("--print-projects", action="store_true",
                     help="print the project names as a JSON list (the CI matrix: one measuring job per project)")
     ap.add_argument("--rustc", help="`rustc -V` of the toolchain that built --tsrs (default: this machine's; the CI "
@@ -825,10 +864,15 @@ def main() -> None:
     if unknown_modes := set(modes) - set(MODE_FLAGS):
         sys.exit(f"unknown modes: {', '.join(sorted(unknown_modes))}")
     work = args.work_dir.resolve()
+    tsgo_cfg = tsgo_binary_info(args.tsgo) if args.tsgo else resolve_tsgo(cfg["tsgo"], args.tsgo_version)
+    if args.print_tsgo:
+        print(f"tsgo-version={tsgo_cfg['version']}")
+        return
     if args.print_cache_keys:
         digest = lambda x: hashlib.sha256(json.dumps(x, sort_keys=True).encode()).hexdigest()[:16]
         # bench/.work/{suite,tsgo}: the suite checkout (Compiler, Compiler-Unions) and the npm compilers.
-        print(f"shared={digest([cfg['suite'], cfg['tsgo'], cfg.get('reference'), native_platform()])}")
+        tsgo_key = {"package": tsgo_cfg["package"], "version": tsgo_cfg["version"]}
+        print(f"shared={digest([cfg['suite'], tsgo_key, cfg.get('reference'), native_platform()])}")
         # bench/.work/solutions/<name>: one cache per cloned project, keyed on its commit and install command.
         for p in projects:
             if "repo" in p:
@@ -836,7 +880,8 @@ def main() -> None:
                 print(f"{p['name']}={p['commit'][:12]}-{digest(key)}")
         return
 
-    tsgo = (args.tsgo or ensure_tsgo(cfg["tsgo"], work)).resolve()
+    tsgo = (args.tsgo or ensure_tsgo(tsgo_cfg, work)).resolve()
+    log(f"tsgo: {tsgo_text(tsgo_cfg)}")
     ref_cfg = cfg.get("reference")
     if ref_cfg:
         port_commit = re.search(r'^commit = "([0-9a-f]+)"', (REPO / "Cargo.toml").read_text(), re.M)
@@ -864,7 +909,7 @@ def main() -> None:
         "machine": machine_info(args.local, args.label),
         "tsrs": {"commit": commit, "dirty": dirty, "version": tsrs_version, "build": args.tsrs_build,
                  "rustc": args.rustc or rustc_version()},
-        "tsgo": {"version": cfg["tsgo"]["version"], "binary": str(tsgo).replace(str(Path.home()), "~")},
+        "tsgo": {**tsgo_cfg, "binary": str(tsgo).replace(str(Path.home()), "~")},
         "bun": {"version": bun_version, "binary": str(bun).replace(str(Path.home()), "~")} if bun else None,
         "suite": cfg["suite"],
         "reference": ref_cfg,

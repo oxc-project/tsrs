@@ -139,6 +139,7 @@ def gib(b: float | None) -> str:
 def markdown(result: dict) -> str:
     m = result["machine"]
     v = result["versions"]
+    names = labels(result)
     lines = [
         f"## Head-to-head on {m['cpus']} threads: tsgo, tsgo reference, tsrs, bun check",
         "",
@@ -146,7 +147,8 @@ def markdown(result: dict) -> str:
         f"compiler order rotates every rep), after one untimed warm-up per compiler and project. The timed runs pass "
         f"no `--extendedDiagnostics`; the warm-up does, for the file counts.",
         "",
-        "Compilers: " + "; ".join(f"{LABELS[c]} = `{v[c]}`" for c in result["compilers"]) + ".",
+        "Compilers: " + "; ".join(f"{names[c]} = `{v[c]}`" for c in result["compilers"]) + "."
+        + (f" tsgo nightly: {rb.tsgo_text(result['tsgo'])}." if result.get("tsgo") else ""),
         "",
         "Threads: `default` passes no flag (tsgo then uses 4 checker threads, tsrs every core up to 16, then half the cores, at most 32, bun "
         "one thread per core). N passes `--checkers N` to tsgo/tsrs (checker threads; parsing still uses every core) "
@@ -166,13 +168,13 @@ def markdown(result: dict) -> str:
             for c in result["compilers"]:
                 s = cell.get(c)
                 if not s or not s["ok_runs"]:
-                    lines.append(f"| {threads} | {LABELS[c]} | **FAILED** | | | | | | | |")
+                    lines.append(f"| {threads} | {names[c]} | **FAILED** | | | | | | | |")
                     continue
                 w, rss = s["wall_s"], s["peak_rss_bytes"]
                 vs_d = f"{base_default / w['mean']:.2f}x" if base_default else "n/a"
                 vs_s = f"{same / w['mean']:.2f}x" if same else "n/a"
                 eq = {True: "yes", False: "**no**", None: "n/a"}[s.get("errors_equal_ref")]
-                lines.append(f"| {threads} | {LABELS[c]} | {w['mean']:.2f} ± {w['stdev']:.2f} | {w['median']:.2f} | "
+                lines.append(f"| {threads} | {names[c]} | {w['mean']:.2f} ± {w['stdev']:.2f} | {w['median']:.2f} | "
                              f"{w['min']:.2f} | {gib(rss['mean'])} | {vs_d} | {vs_s} | "
                              f"{'/'.join(map(str, s['error_counts']))} | {eq} |")
         files = {c: pr.get("files", {}).get(c) or pr.get("default", {}).get(c, {}).get("files") for c in result["compilers"]}
@@ -192,6 +194,9 @@ def main() -> None:
     ap.add_argument("--projects", default="vscode", help="comma-separated subset of bench/projects.json")
     ap.add_argument("--threads", default="default,4,8,16,all",
                     help="comma-separated: default, a number, or all (= os.cpu_count())")
+    ap.add_argument("--tsgo-version", default=os.environ.get(rb.TSGO_VERSION_ENV) or None,
+                    help=f"measure this exact npm version as tsgo instead of resolving bench/projects.json's tag "
+                         f"(`next`; default: ${rb.TSGO_VERSION_ENV})")
     ap.add_argument("--reps", type=int, default=20)
     ap.add_argument("--timeout", type=float, default=900)
     ap.add_argument("--work-dir", type=Path, default=rb.BENCH / ".work")
@@ -222,9 +227,11 @@ def main() -> None:
     work = args.work_dir.resolve()
     exes: dict[str, Path] = {}
     versions: dict[str, str] = {}
+    tsgo_cfg = rb.resolve_tsgo(cfg["tsgo"], args.tsgo_version) if "tsgo" in compilers else None
     for c in compilers:
         if c == "tsgo":
-            exes[c] = rb.ensure_tsgo(cfg["tsgo"], work).resolve()
+            exes[c] = rb.ensure_tsgo(tsgo_cfg, work).resolve()
+            rb.log(f"tsgo: {rb.tsgo_text(tsgo_cfg)}")
         elif c == "tsgo-dev":
             exes[c] = rb.ensure_tsgo(cfg["reference"], work).resolve()
         else:
@@ -240,7 +247,7 @@ def main() -> None:
     now = dt.datetime.now(dt.timezone.utc)
     machine = rb.machine_info(False, args.label)
     result: dict = {"date": now.strftime("%Y-%m-%d %H:%M UTC"), "machine": machine, "tsrs_commit": commit,
-                    "versions": versions, "compilers": compilers, "threads": threads, "reps": args.reps,
+                    "versions": versions, "tsgo": tsgo_cfg, "compilers": compilers, "threads": threads, "reps": args.reps,
                     "projects": {}, "raw": []}
     logs = work / "logs" / f"compare-{now.strftime('%Y%m%d-%H%M%S')}"
     t_start = time.perf_counter()

@@ -47,13 +47,14 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - parallel:
-          - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+      # Actions share GITHUB_EVENT_PATH, which the runner rewrites when a step starts.
+      # Keep action steps sequential so readers cannot observe a truncated event payload.
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
 
-          - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
-            with:
-              save-cache: ${{ github.ref_name == 'main' }}
-              cache-key: warm-test
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: ${{ github.ref_name == 'main' }}
+          cache-key: warm-test
 
       - name: Read TypeScript reference commit
         id: ts
@@ -61,9 +62,7 @@ jobs:
 
       # The conformance suite and workspace tests need the pinned upstream fixtures.
       - name: Check out TypeScript test fixtures and clients
-        id: testdata
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        background: true
         with:
           repository: microsoft/TypeScript
           ref: ${{ steps.ts.outputs.commit }}
@@ -79,8 +78,6 @@ jobs:
 
       - name: cargo check
         run: cargo check --locked --config 'build.warnings="deny"'
-
-      - wait: testdata
 
       - name: cargo test (workspace)
         run: cargo test --locked
@@ -126,15 +123,15 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - parallel:
-          - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
-            with:
-              save-cache: ${{ github.ref_name == 'main' }}
-              cache-key: warm-fourslash
+      # As above, setup and checkout actions must not race on GITHUB_EVENT_PATH.
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: ${{ github.ref_name == 'main' }}
+          cache-key: warm-fourslash
 
-          - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
-            with:
-              python-version: '3.12'
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
 
       - name: Read TypeScript reference commit
         id: ts
@@ -142,9 +139,7 @@ jobs:
           python3 -c 'import tomllib; print("commit=" + tomllib.load(open("Cargo.toml", "rb"))["workspace"]["metadata"]["typescript"]["commit"])' >> "$GITHUB_OUTPUT"
 
       - name: Check out TypeScript source and testdata
-        id: testdata
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        background: true
         with:
           repository: microsoft/TypeScript
           ref: ${{ steps.ts.outputs.commit }}
@@ -158,8 +153,6 @@ jobs:
 
       - name: Build Go Fourslash server
         run: cargo build --profile dev --locked -p tsrs_fourslash_server
-
-      - wait: testdata
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:

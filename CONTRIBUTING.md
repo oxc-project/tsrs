@@ -90,9 +90,9 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
   Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes, and regressions; `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate).
-  Source checks overlap Rust setup and Clippy in `lint`. In `test`, Node and Rust setup run in parallel,
-  and the TypeScript fixture checkout overlaps Rust checks. In `fourslash`, Rust and Python setup run in parallel,
-  and the TypeScript source checkout overlaps the server checks and build, with an explicit wait before Go setup.
+  Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`
+  run sequentially: the runner rewrites the shared GitHub event file when starting steps, so parallel actions
+  can read an incomplete payload.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.
   Auxiliary workflow definitions preserved as `.github/workflows/*.yml.bak` do not run
   automatically or by manual dispatch. Restore the original `.yml` filename to re-enable one.

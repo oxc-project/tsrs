@@ -38,7 +38,7 @@ for supported features and known gaps.
   </picture>
 </a>
 
-Renovate tracks TypeScript nightly for the benchmarks; `oxc-guard` proposes regenerated charts in a pull request.
+Renovate tracks TypeScript nightly for the benchmarks; regenerated charts are proposed in a pull request.
 
 ## Extra features
 

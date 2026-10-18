@@ -8,9 +8,9 @@ Renovate keeps `tsgo.version` in [`projects.json`](projects.json) pinned to npm'
 own group and run without the shared preset's weekly schedule or release-age delay. The `reference` compiler and
 the TypeScript metadata in `Cargo.toml` stay tied to the commit tsrs ports.
 [`.github/workflows/bench.yml`](../.github/workflows/bench.yml) runs when `projects.json` or the workflow changes on
-`main`, and by manual dispatch. It measures the new pin, then `oxc-guard` opens a PR with the reports and README charts.
-The workflow reuses the org's `oxc-guard` GitHub App (`APP_ID` and `APP_PRIVATE_KEY`, as in triage) with Contents and
-Pull requests write access. Its installation token authenticates the branch push and `gh pr create` / `gh pr edit`.
+`main`, and by manual dispatch. It measures the new pin, then opens a PR with the reports and README charts.
+The workflow reuses the org's GitHub App (`APP_ID` and `APP_PRIVATE_KEY`, as in triage) with Contents and
+Pull requests write access. Its installation token authenticates commit creation, the branch push, and `gh pr create` / `gh pr edit`.
 The outdated `bench/results/` archive has been removed from the working tree; historical runs remain in
 [Git history](https://github.com/oxc-project/tsrs/tree/94e7305f0f067e9f68570798c0498e03c7e423eb/bench/results).
 The workflow measures every project on GitHub-hosted `ubuntu-24.04` runners in four modes and in four more
@@ -304,7 +304,7 @@ checks. The workflow uses the release profile without PGO, with debug symbols re
 The benchmark workflow is built for unattended runs: one run per measured commit (the concurrency group is the commit, so a dispatch for another commit
 starts its own run on its own machines and only a re-dispatch of the same commit replaces a queued twin; until
 2026-10-07 one shared group let a later push replace the queued bench, and bursts of merges left most commits without
-a results file), never cancelled, with network steps retried. `oxc-guard` proposes results against the latest `main`
+a results file), never cancelled, with network steps retried. The workflow proposes results against the latest `main`
 on `bench/results-<measured-commit>`, updating the same PR on reruns. Commits and PR titles use `chore(bench)` without
 a CI-skip marker, so the generated PR runs CI. The README charts change when that PR merges.
 Runs overlap and finish in any order. A run older than the report already on `main` proposes only its raw results,

@@ -179,6 +179,7 @@ def main() -> None:
     ap.add_argument("--rustc", help="`rustc -V` of the toolchain that built --tsrs (default: this machine's)")
     ap.add_argument("--out-dir", type=Path, default=run.BENCH / "results")
     args = ap.parse_args()
+    run.check_tsgo_args(ap, args)
 
     cfg = json.loads((run.BENCH / "projects.json").read_text())
     p = next(p for p in cfg["projects"] if p["name"] == args.project)

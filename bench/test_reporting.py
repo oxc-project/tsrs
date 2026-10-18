@@ -14,21 +14,29 @@ import publish
 import run
 
 
+FIXTURE = Path(__file__).parent / 'fixtures/reporting-64-vcpu.json'
+
+
+def resized(historical):
+    """The 64-vCPU fixture as a 16-vCPU result, which the chart draws (its `checkers16` mode)."""
+    result = copy.deepcopy(historical)
+    result['modes'] = ['checkers16' if mode == 'checkers64' else mode for mode in result['modes']]
+    result['mode_reps']['checkers16'] = result['mode_reps'].pop('checkers64')
+    for project in result['projects'].values():
+        project['checkers16'] = project.pop('checkers64')
+        for mode in ('wide', 'checkers16'):
+            machine = project[mode]['machine']
+            machine.update(cpus=16, memory_gb=63, label='Depot CI 16 vCPU')
+    return result
+
+
 class ReportingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.historical = json.loads((Path(__file__).parent / 'fixtures/reporting-64-vcpu.json').read_text())
+        cls.historical = json.loads(FIXTURE.read_text())
 
     def resized(self):
-        result = copy.deepcopy(self.historical)
-        result['modes'] = ['checkers16' if mode == 'checkers64' else mode for mode in result['modes']]
-        result['mode_reps']['checkers16'] = result['mode_reps'].pop('checkers64')
-        for project in result['projects'].values():
-            project['checkers16'] = project.pop('checkers64')
-            for mode in ('wide', 'checkers16'):
-                machine = project[mode]['machine']
-                machine.update(cpus=16, memory_gb=63, label='Depot CI 16 vCPU')
-        return result
+        return resized(self.historical)
 
     def test_legacy_table_update_preserves_published_chart(self):
         contents = ('# Project\n\n![Benchmark](bench/large-projects.svg)\n',

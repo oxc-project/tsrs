@@ -81,7 +81,7 @@ Each checker begins the type-check pass with the files of its queue whose static
 checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
 notes/perf-heavy-first-threshold.md); `TSRS_HEAVY_SHARE_DIVISOR=<n>` changes the divisor for experiments.
 `--checkerCostCache <file>` (opt-in, locality only) balances the checkers on the previous run's per-file CPU times
-(notes/perf-balance.md); `TSRS_ASSIGNMENT_STATS=times` prints per-checker wall and CPU seconds.
+(notes/perf-balance.md).
 From 16 checkers on, the locality placement also counts the modules (files and their imports, library declaration
 files included) a group shares with each checker, then moves groups while that lowers the modules held per checker
 (notes/perf-clustered-assignment.md); `TSRS_MODULE_AFFINITY=off` restores the placement by import edges alone, and
@@ -206,13 +206,6 @@ object graph for all references to freed memory.
 The `alloc-profile` feature, heap sampler and reachability census have been removed. Older measurements in the
 [engineering notes](../notes/README.md) describe the instrumentation available at the recorded revision.
 
-## What each checker holds on the heap: the heap census
-
-`TSRS_HEAP_CENSUS=1` with `--extendedDiagnostics` prints, per checker on stderr, every hash table and vector the
-checker owns directly (cache maps, relation caches, link stores, lazy member tables, ...) with entries, capacity,
-bytes per slot, load factor and heap bytes (`crates/tsrs_checker/src/heapcensus.rs`, notes/mem-checker-heap.md).
-`TSRS_HEAP_CENSUS_MIN=<bytes>` sets the smallest row (default 1 MiB). It works in any build.
-
 ## What the resident memory is: the memory split
 
 `TSRS_MEM_SPLIT=1` (any build) prints on stderr, at `parse end`, at `check end` (every checker of the type-check pass
@@ -236,7 +229,7 @@ performance measurements). Features live on the crate that controls the instrume
 | --- | --- |
 | Creation-site counters | `-p tsrs_checker --features tsrs_checker/site-counts` |
 | Checker work census | `-p tsrs_checker --features tsrs_checker/work-census` |
-| Checker assignment statistics | `-p tsrs_checker --features tsrs_checker/assignment-stats` |
+| AST sizing | `--features tsrs_ast/ast-sizing` |
 | Shared checker graph | `--features tsrs_core/shared-graph` |
 
 The CLI and compiler aliases for these features have been removed. Creation-site counters also live entirely in
@@ -357,7 +350,7 @@ only its own declarations; on vscode 2,289 of the 2,337 leaves are predicted (99
 are parsed into the thread arenas as before. The text, the `SourceFile` and the diagnostics are kept, so the report is
 the same. It is off with declaration emit (`declaration`, `composite`), `--explainFiles`, `--incremental`, `--build`,
 `--checkerAssignment go`, in the language server, the API and the test harnesses, under the debug modes that walk
-files or checker tables after the check (`TSRS_FILE_TIMES`, `TSRS_ASSIGNMENT_STATS`, the work and heap censuses),
+files or checker tables after the check (`TSRS_FILE_TIMES` and the work census),
 and in builds without compressed pointers (`plain-ptrs`, non-unix): there a freed region's memory stays mapped and the heap its values owned is reused, so a stale read would see a live object, and nothing would be
 saved. Asking a program for one freed leaf's diagnostics after the pass panics (the tree is gone); the CLI never does.
 

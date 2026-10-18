@@ -223,12 +223,10 @@ fn global_library_files(program: &crate::program::Program) -> Vec<P<SourceFile>>
 /// them at any count; `0` turns file regions off; `keep` makes the regions (at any count) but frees nothing;
 /// `stats` reports (`stats_report`); `all` gives every TypeScript root file a region
 /// (`LeafSettings::every_file`), at any count. Off under the debug modes that walk files or checker data
-/// after the pass (`TSRS_FILE_TIMES` walks every tree; `TSRS_ASSIGNMENT_STATS`, the work and heap censuses
-/// walk checker tables). Off
+/// after the pass (`TSRS_FILE_TIMES` walks every tree; the work census walks checker tables). Off
 /// without compressed pointers on unix (`Region::retire_on_free`), whatever the value.
 pub fn leaf_settings_from_env(checkers: usize) -> LeafSettings {
-    let checker_census = crate::Checker::census_enabled() || crate::Checker::heap_census_enabled();
-    if checker_census || crate::checkerpool::file_times_path().is_some() || crate::checkerpool::assignment_stats_enabled() {
+    if crate::Checker::census_enabled() || crate::checkerpool::file_times_path().is_some() {
         return LeafSettings::default();
     }
     // Only where a freed region's pages go back to the system and its range is never reused (`Region::retire_on_free`

@@ -357,12 +357,6 @@ pub(crate) struct poolState {
     pub(crate) associations: Vec<usize>,
     // Estimated work per program file (checked_file_weights), what stealing balances.
     weights: Vec<i64>,
-    // TSRS_ASSIGNMENT_STATS only: per for_each_checker_group_do call, files each checker took from other checkers.
-    pub(crate) group_stolen: Mutex<Vec<Vec<usize>>>,
-    // TSRS_ASSIGNMENT_STATS only: per for_each_checker_group_do call, (seconds, files run) per checker.
-    pub(crate) group_runs: Mutex<Vec<Vec<(f64, usize)>>>,
-    // TSRS_ASSIGNMENT_STATS only: per for_each_checker_group_do call, thread CPU seconds per checker.
-    pub(crate) group_cpu: Mutex<Vec<Vec<f64>>>,
     // TSRS_FILE_TIMES only: (file, checker, seconds, thread CPU seconds) per checked file, in completion order.
     pub(crate) file_times: Mutex<Vec<(P<SourceFile>, usize, f64, f64)>>,
     // Cost cache only: (file, thread CPU seconds) per checked file, per checker pass.
@@ -405,8 +399,7 @@ pub(crate) fn write_file_times(program: &'static Program) {
     std::fs::write(path, out).expect("TSRS_FILE_TIMES");
 }
 
-// CPU time of the calling thread (TSRS_ASSIGNMENT_STATS): unlike wall time it does not grow when other
-// processes take the cores, so per-checker balance can be compared on a loaded machine.
+// CPU time of the calling thread: used by the per-file timing and checker-cost-cache tools.
 #[cfg(unix)]
 pub(crate) fn thread_cpu_seconds() -> f64 {
     #[repr(C)]
@@ -432,13 +425,6 @@ pub(crate) fn thread_cpu_seconds() -> f64 {
 #[cfg(not(unix))]
 pub(crate) fn thread_cpu_seconds() -> f64 {
     0.0
-}
-
-// TSRS_ASSIGNMENT_STATS=1: record per-checker group timings and, after `--extendedDiagnostics`, print the
-// per-checker assignment report (checkerpool_stats.rs). Read once; nothing is recorded when unset.
-pub fn assignment_stats_enabled() -> bool {
-    static ENABLED: OnceLock<bool> = OnceLock::new();
-    *ENABLED.get_or_init(|| std::env::var("TSRS_ASSIGNMENT_STATS").is_ok_and(|v| !v.is_empty() && v != "0"))
 }
 
 pub(crate) struct checkerPool {
@@ -756,9 +742,6 @@ impl checkerPool {
                 owners,
                 associations: associations_for_reuse,
                 weights,
-                group_stolen: Mutex::new(Vec::new()),
-                group_runs: Mutex::new(Vec::new()),
-                group_cpu: Mutex::new(Vec::new()),
                 file_times: Mutex::new(Vec::new()),
                 file_cpu: Mutex::new(Vec::new()),
                 recycle,
@@ -846,11 +829,7 @@ impl checkerPool {
         cb: &(dyn Fn(&mut Checker, usize, P<SourceFile>) + Sync),
     ) {
         let state = self.create_checkers();
-        let stats = assignment_stats_enabled();
         let n = state.checkers.len();
-        let times: Vec<Mutex<(f64, usize)>> = if stats { std::iter::repeat_with(|| Mutex::new((0.0, 0))).take(n).collect() } else { Vec::new() };
-        let cpu: Vec<Mutex<f64>> = if stats { std::iter::repeat_with(|| Mutex::new(0.0)).take(n).collect() } else { Vec::new() };
-        let stolen: Vec<std::sync::atomic::AtomicUsize> = std::iter::repeat_with(|| std::sync::atomic::AtomicUsize::new(0)).take(n).collect();
         let file_times = file_times_path().is_some();
         let cost_cache = checker_cost_cache_path().is_some() && n > 1;
         // Each checker's positions in `files`, in the order of `files` (visit_order).
@@ -916,9 +895,6 @@ impl checkerPool {
         // TSRS_MEM_SPLIT: the type-check pass reports once every checker is done and before any thread exits.
         let mem_split = (allow_steal && tsrs_core::memsplit::enabled()).then(|| std::sync::Barrier::new(if single { 1 } else { active.len() }));
         let run = |checker_idx: usize| {
-            let start = stats.then(std::time::Instant::now);
-            let cpu_start = if stats { thread_cpu_seconds() } else { 0.0 };
-            let mut count = 0;
             let mut file_cpu: Vec<(P<SourceFile>, f64)> = Vec::new();
             let mut guard = state.checkers[checker_idx].0.lock().unwrap();
             // Without `--maxMemory` the checker becomes a fork of the seed now, waiting for it; with it, at its first
@@ -940,7 +916,6 @@ impl checkerPool {
                         let cpu = thread_cpu_seconds() - cpu_start;
                         state.file_times.lock().unwrap().push((split.files[s].file, checker_idx, piece_start.elapsed().as_secs_f64(), cpu));
                     }
-                    count += 1;
                     continue;
                 }
                 let file = files[i];
@@ -950,8 +925,6 @@ impl checkerPool {
                         // Read only by later passes, after the work group joined.
                         state.owners[fi].store(checker_idx as u32, std::sync::atomic::Ordering::Relaxed);
                     }
-                    // A counter read after the work group joined.
-                    stolen[checker_idx].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 }
                 let file_start = file_times.then(std::time::Instant::now);
                 let cpu_start = if cost_cache || file_times { thread_cpu_seconds() } else { 0.0 };
@@ -971,7 +944,6 @@ impl checkerPool {
                 if cost_cache {
                     file_cpu.push((file, thread_cpu_seconds() - cpu_start));
                 }
-                count += 1;
                 if recycle && guard.relation_cache_entries() > relation_cache_limit() {
                     guard.clear_relation_caches();
                 }
@@ -998,10 +970,6 @@ impl checkerPool {
             if cost_cache {
                 state.file_cpu.lock().unwrap().extend(file_cpu);
             }
-            if let Some(start) = start {
-                *times[checker_idx].lock().unwrap() = (start.elapsed().as_secs_f64(), count);
-                *cpu[checker_idx].lock().unwrap() = thread_cpu_seconds() - cpu_start;
-            }
             // Memory peaks at the end of the type-check pass, while the last checkers still run: one that is done gives
             // back the resident, never used end of its arena chunk.
             if allow_steal && !single {
@@ -1025,11 +993,6 @@ impl checkerPool {
             tsrs_core::phases::count("Checkers: retired", state.retired.lock().unwrap().count as u64);
         }
         splitcheck::SplitFile::report_stats(&split.files);
-        if stats {
-            state.group_runs.lock().unwrap().push(times.into_iter().map(|t| t.into_inner().unwrap()).collect());
-            state.group_cpu.lock().unwrap().push(cpu.into_iter().map(|t| t.into_inner().unwrap()).collect());
-            state.group_stolen.lock().unwrap().push(stolen.into_iter().map(std::sync::atomic::AtomicUsize::into_inner).collect());
-        }
     }
 }
 

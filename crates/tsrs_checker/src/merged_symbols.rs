@@ -42,12 +42,3 @@ impl MergedSymbols {
         self.map.insert(source, target);
     }
 }
-
-impl crate::heapcensus::HeapSize for MergedSymbols {
-    fn heap_stat(&self) -> crate::heapcensus::HeapStat {
-        let mut stat = self.map.heap_stat();
-        stat.containers += 1;
-        stat.bytes += std::mem::size_of_val(&*self.filter) as u64;
-        stat
-    }
-}

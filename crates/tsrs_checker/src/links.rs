@@ -101,14 +101,6 @@ impl<K: 'static, V: 'static> LinkStore<K, V> {
     }
 }
 
-impl<K: 'static, V: 'static> LinkStore<K, V> {
-    /// Heap census: the slot table (the values are in the arena).
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        use crate::heapcensus::HeapSize;
-        vec![("slots", self.slots.heap_stat()), ("chunk list", self.chunks.heap_stat())]
-    }
-}
-
 impl<K: 'static, V: Default + LinkCopy + 'static> LinkStore<K, V> {
     /// Returns the links for `key`, creating them on first use. A hit is a probe and no call (so no saved
     /// registers where this is inlined); the first access probes again in `create`.
@@ -254,11 +246,6 @@ impl<K: 'static, V: KeyedLinks + 'static> KeyedLinkStore<K, V> {
         self.try_get(key).is_some()
     }
 
-    /// Heap census: the table of indexes (the values are in the arena).
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        use crate::heapcensus::HeapSize;
-        vec![("index slots", self.slots.heap_stat()), ("chunk list", self.chunks.heap_stat())]
-    }
 }
 
 impl<K: 'static, V: KeyedLinks + Default + LinkCopy + 'static> KeyedLinkStore<K, V> {
@@ -358,11 +345,6 @@ impl SymbolReferenceLinkStore {
         self.slots.find(Self::hash(key), |s| s.key == key).map_or(SymbolFlags::None, |s| s.kinds)
     }
 
-    /// Heap census: the slots (key and flags; nothing in the arena).
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        use crate::heapcensus::HeapSize;
-        vec![("slots (key, kinds)", self.slots.heap_stat())]
-    }
 }
 
 /// Links keyed by a node/symbol id (Go `PagedLinkStore`-backed stores).
@@ -487,36 +469,6 @@ impl<V: 'static> IdLinkStore<V> {
     #[must_use]
     pub fn fork(&'static self) -> Self {
         IdLinkStore { index: Vec::new(), wide_slots: FxHashMap::default(), chunks: Vec::new(), len: 0, parent: Some(self) }
-    }
-}
-
-impl<V: 'static> IdLinkStore<V> {
-    /// Heap census: the group index and the wide-id map (the groups and the values are in the arena; the groups are
-    /// reported with their arena bytes so that the id-to-slot cost stays visible).
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        use crate::heapcensus::{HeapSize, HeapStat};
-        let mut narrow = HeapStat { slot: 2, ..HeapStat::default() };
-        let mut dense = HeapStat { slot: 4, ..HeapStat::default() };
-        for group in self.index.iter().flatten() {
-            narrow.containers += 1;
-            narrow.cap += ID_GROUP as u64;
-            narrow.bytes += std::mem::size_of::<IdGroup>() as u64;
-            if let Some(d) = group.dense.get() {
-                dense.containers += 1;
-                dense.cap += ID_GROUP as u64;
-                dense.bytes += std::mem::size_of::<[Cell<u32>; ID_GROUP]>() as u64;
-                dense.len += d.iter().filter(|s| s.get() != 0).count() as u64;
-            } else {
-                narrow.len += group.slots.iter().filter(|s| s.get() != 0).count() as u64;
-            }
-        }
-        vec![
-            ("group index", self.index.heap_stat()),
-            ("narrow groups (arena)", narrow),
-            ("dense groups (arena)", dense),
-            ("wide ids", self.wide_slots.heap_stat()),
-            ("chunk list", self.chunks.heap_stat()),
-        ]
     }
 }
 
@@ -655,31 +607,6 @@ impl<V: 'static> InlineIdStore<V> {
         self.wide.get(&id).map(|v| v.get())
     }
 
-    /// Heap census: the block index (the tables and groups are in the arena; reported with their arena bytes so that
-    /// the id-to-value cost stays visible).
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        use crate::heapcensus::{HeapSize, HeapStat};
-        let mut tables = HeapStat { slot: 4, ..HeapStat::default() };
-        let mut groups = HeapStat { slot: std::mem::size_of::<V>() as u64, ..HeapStat::default() };
-        for block in self.blocks.iter().flatten() {
-            tables.containers += 1;
-            tables.cap += INLINE_BLOCK_GROUPS as u64;
-            tables.bytes += std::mem::size_of::<InlineBlock<V>>() as u64;
-            for group in block.get().iter().filter_map(std::cell::Cell::get) {
-                tables.len += 1;
-                groups.containers += 1;
-                groups.len += INLINE_GROUP as u64;
-                groups.cap += INLINE_GROUP as u64;
-                groups.bytes += std::mem::size_of_val(group.get()) as u64;
-            }
-        }
-        vec![
-            ("block index", self.blocks.heap_stat()),
-            ("block tables (arena)", tables),
-            ("value groups (arena)", groups),
-            ("wide ids", self.wide.heap_stat()),
-        ]
-    }
 }
 
 impl<V: Default + LinkCopy + 'static> InlineIdStore<V> {
@@ -779,10 +706,6 @@ impl<V: Default + LinkCopy + 'static> NodeLinkStore<V> {
 }
 
 impl<V: 'static> NodeLinkStore<V> {
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        self.store.heap_parts()
-    }
-
     /// `None` if no id of the node's group of 32 has links yet; otherwise the node's value, unset if the node itself
     /// never had links (`InlineIdStore`). Assigns the node an id, as Go's `TryGet` does.
     #[inline]
@@ -833,10 +756,6 @@ impl<V: Default + LinkCopy + 'static> SymbolArenaLinkStore<V> {
 }
 
 impl<V: 'static> SymbolArenaLinkStore<V> {
-    pub fn heap_parts(&self) -> Vec<(&'static str, crate::heapcensus::HeapStat)> {
-        self.store.heap_parts()
-    }
-
     #[inline]
     pub fn try_get(&self, symbol: P<Symbol>) -> Option<P<V>> {
         self.store.try_get(ast::get_symbol_id(symbol).0)

@@ -1670,8 +1670,6 @@ impl Checker {
             // Shared graph: a fork must never write an id into a frozen symbol.
             ast::get_symbol_id(s);
         }
-        #[cfg(feature = "assignment-stats")]
-        self.stats_created.1.push(s);
         s
     }
 

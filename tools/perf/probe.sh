@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Default probe for .github/workflows/perf-probe.yml: the checker-count scaling curve of tsrs on vscode with per-checker
-# CPU times, plus bun check's load/check split, on the selected runner. Experiments replace or extend this script in
+# timings, plus bun check's load/check split, on the selected runner. Experiments replace or extend this script in
 # their branch; keep everything worth keeping under $PROBE_OUT.
 #
 # Environment (set by the workflow; set them yourself to run locally):
@@ -24,7 +24,7 @@ for k in 4 8 16 32 64; do
   for rep in 1 2 3; do
     out="$PROBE_OUT/tsrs-checkers$k-rep$rep.txt"
     /usr/bin/time -f "wall %e s, maxrss %M KiB" -o "$out.time" \
-      env TSRS_ASSIGNMENT_STATS=1 "$TSRS_BIN" "${flags[@]}" --checkers "$k" > "$out" 2>&1 || true
+      "$TSRS_BIN" "${flags[@]}" --checkers "$k" > "$out" 2>&1 || true
     printf 'tsrs --checkers %-3s rep %s: %s; %s\n' "$k" "$rep" "$(cat "$out.time")" \
       "$(grep -E '^(Parse|Check|Total) time' "$out" | tr -s ' ' | tr '\n' ' ')" | tee -a "$PROBE_OUT/summary.txt"
   done

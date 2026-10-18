@@ -2853,64 +2853,6 @@ const _: () = assert!(std::mem::size_of::<LazyMemberTable>() == std::mem::size_o
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<LazyMemberTable>() == std::mem::size_of::<SymbolTable>() + 52);
 
-/// Heap census: what the lazy member tables (arena records) and lazy mapped tables (`Rc` boxes) own: their symbol
-/// tables, name lists, ordered property lists and mapped-member maps with their string keys.
-#[expect(clippy::iter_over_hash_type, reason = "sums sizes: the order does not matter")]
-pub(crate) fn lazy_member_tables_heap(c: &Checker) -> Vec<(String, crate::heapcensus::HeapStat)> {
-    use crate::heapcensus::{HeapSize, HeapStat};
-    let rc = 2 * std::mem::size_of::<usize>();
-    let mut boxes = HeapStat { slot: std::mem::size_of::<LazyMemberTable>() as u64, ..HeapStat::default() };
-    let mut declared = HeapStat { slot: 8, ..HeapStat::default() };
-    let mut unaffected = HeapStat { slot: 16, ..HeapStat::default() };
-    let mut ordered = HeapStat { slot: 4, ..HeapStat::default() };
-    for t in c.lazy_member_tables.values() {
-        boxes.containers += 1;
-        boxes.len += 1;
-        boxes.cap += 1;
-        let (len, cap, bytes) = t.declared.heap_usage();
-        declared.containers += 1;
-        declared.len += len as u64;
-        declared.cap += cap as u64;
-        declared.bytes += bytes as u64;
-        if let Some(ready) = t.ready.get() {
-            unaffected.containers += 1;
-            unaffected.len += ready.unaffected.get().len() as u64;
-            unaffected.cap += ready.unaffected.get().len() as u64;
-        }
-        if let Some(v) = t.ordered_properties.get() {
-            ordered.containers += 1;
-            ordered.len += v.get().len() as u64;
-            ordered.cap += v.get().len() as u64;
-        }
-    }
-    let mut mapped_boxes = HeapStat { slot: (rc + std::mem::size_of::<crate::checker_10::LazyMappedTable>()) as u64, ..HeapStat::default() };
-    let mut mapped_members = HeapStat::default();
-    let mut mapped_keys = HeapStat { slot: 1, ..HeapStat::default() };
-    for t in c.lazy_mapped_tables.values() {
-        mapped_boxes.containers += 1;
-        mapped_boxes.len += 1;
-        mapped_boxes.cap += 1;
-        mapped_boxes.bytes += mapped_boxes.slot;
-        let members = t.members.borrow();
-        mapped_members.add(members.heap_stat());
-        for k in members.keys() {
-            mapped_keys.containers += 1;
-            mapped_keys.len += k.len() as u64;
-            mapped_keys.cap += k.capacity() as u64;
-            mapped_keys.bytes += k.capacity() as u64;
-        }
-    }
-    vec![
-        ("lazy member tables (arena records, not heap)".to_string(), boxes),
-        ("lazy member tables (declared symbol tables)".to_string(), declared),
-        ("lazy member tables (unaffected names, arena)".to_string(), unaffected),
-        ("lazy member tables (ordered properties, arena)".to_string(), ordered),
-        ("lazy mapped tables (Rc boxes)".to_string(), mapped_boxes),
-        ("lazy mapped tables (members maps)".to_string(), mapped_members),
-        ("lazy mapped tables (member name strings)".to_string(), mapped_keys),
-    ]
-}
-
 #[derive(Clone)]
 pub(crate) struct LazyMembers {
     pub(crate) unaffected: ThinSlice<&'static str>, // sorted names of declared members that instantiate to themselves

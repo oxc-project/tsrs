@@ -1225,9 +1225,6 @@ pub struct Checker {
     pub(crate) members_resolving: u32,
     /// The last `program.get_emit_module_format_of_file` answer (`emit_module_format_of_file`).
     pub(crate) last_emit_module_format: Option<(P<SourceFile>, ModuleKind)>,
-    /// Instrumentation (feature `assignment-stats`): every type / symbol this checker created.
-    #[cfg(feature = "assignment-stats")]
-    pub(crate) stats_created: (Vec<P<Type>>, Vec<P<Symbol>>),
     pub context_free_types: FxHashMap<P<Node>, P<Type>>,
     pub any_type: P<Type>,
     pub auto_type: P<Type>,
@@ -1649,8 +1646,6 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         members_reset_epoch: 0,
         members_resolving: 0,
         last_emit_module_format: None,
-        #[cfg(feature = "assignment-stats")]
-        stats_created: Default::default(),
         context_free_types: FxHashMap::default(),
         any_type: dummy_type,
         auto_type: dummy_type,
@@ -2145,8 +2140,6 @@ impl Checker {
             intersection_recursion_ids: FxHashMap::default(),
             members_reset_epoch: 0,
             members_resolving: 0,
-            #[cfg(feature = "assignment-stats")]
-            stats_created: base.stats_created.clone(),
             context_free_types: base.context_free_types.clone(),
             any_type: base.any_type,
             auto_type: base.auto_type,
@@ -3117,24 +3110,4 @@ impl Checker {
         }
     }
 
-    /// Objects recorded for assignment statistics, or `None` without the `assignment-stats` feature.
-    #[inline]
-    #[cfg_attr(
-        feature = "assignment-stats",
-        expect(clippy::unnecessary_wraps, reason = "The optional instrumentation API returns None when recording is compiled out.")
-    )]
-    #[cfg_attr(
-        not(feature = "assignment-stats"),
-        expect(clippy::unused_self, reason = "Recorded objects belong to this checker when instrumentation is enabled.")
-    )]
-    pub fn stats_created(&self) -> Option<(&[P<Type>], &[P<Symbol>])> {
-        #[cfg(feature = "assignment-stats")]
-        {
-            Some((&self.stats_created.0, &self.stats_created.1))
-        }
-        #[cfg(not(feature = "assignment-stats"))]
-        {
-            None
-        }
-    }
 }

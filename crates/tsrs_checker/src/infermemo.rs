@@ -141,14 +141,6 @@ impl InferMemo {
     }
 }
 
-impl crate::heapcensus::HeapSize for InferMemo {
-    fn heap_stat(&self) -> crate::heapcensus::HeapStat {
-        let mut stat = self.entries.heap_stat();
-        stat.add(self.long_targets.heap_stat());
-        stat
-    }
-}
-
 #[inline]
 fn count(on: bool, counter: &AtomicU64, n: u64) {
     if on {

@@ -116,9 +116,6 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
         self.table.iter().map(|slot| slot.value)
     }
 
-    pub(crate) fn heap_stat(&self) -> crate::heapcensus::HeapStat {
-        crate::heapcensus::HeapStat::table(self.table.len(), self.table.capacity(), std::mem::size_of::<PackedSlot<K, V>>())
-    }
 }
 
 /// `GoMap` (a nil-able shared map in the arena) over a `PackedMap`, for the `CacheHashKey`-keyed instantiation maps
@@ -176,10 +173,6 @@ impl<K: PackedKey + 'static, V: Copy + 'static> GoPackedMap<K, V> {
         self.0.get().is_none_or(|m| tsrs_core::sharedgraph::with_ref(&m, PackedMap::is_empty))
     }
 
-    #[cfg(feature = "assignment-stats")]
-    pub(crate) fn heap_stat(&self) -> Option<crate::heapcensus::HeapStat> {
-        self.0.get().map(|m| m.borrow().heap_stat())
-    }
 }
 
 /// Go `c.stringLiteralTypes` (`map[string]*Type`): the literal types by their value.
@@ -239,7 +232,4 @@ impl StringLiteralTypes {
         self.table.is_empty()
     }
 
-    pub(crate) fn heap_stat(&self) -> crate::heapcensus::HeapStat {
-        crate::heapcensus::HeapStat::table(self.table.len(), self.table.capacity(), std::mem::size_of::<P<Type>>())
-    }
 }

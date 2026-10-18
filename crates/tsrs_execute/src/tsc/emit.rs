@@ -44,26 +44,9 @@ pub fn emit_and_report_statistics(input: &EmitInput) -> (CompileAndEmitResult, O
     if options.diagnostics.is_true() || options.extended_diagnostics.is_true() {
         let stats = tsrs_core::phases::time("Statistics", || statistics_from_program(input, &result.times));
         stats.report(&|t: &str| input.write(t), input.testing);
-        if tsrs_compiler::assignment_stats_enabled() {
-            input.write(&input.program.checker_assignment_report());
-        }
         if tsrs_compiler::Checker::census_enabled() {
             input.program.for_each_checker_parallel(|_, c| c.census_collect());
             tsrs_compiler::Checker::census_write_report();
-        }
-        // TSRS_HEAP_CENSUS (docs/DEBUGGING.md): the containers each checker owns, on stderr.
-        if tsrs_compiler::Checker::heap_census_enabled() {
-            let reports = std::sync::Mutex::new(Vec::new());
-            input.program.for_each_checker_parallel(|i, c| {
-                let census = c.heap_census();
-                reports.lock().unwrap().push((i, census));
-            });
-            let mut reports = reports.into_inner().unwrap();
-            reports.sort_by_key(|r| r.0);
-            let min = tsrs_compiler::Checker::heap_census_min_bytes();
-            for (i, census) in &reports {
-                eprintln!("{}", census.report(&format!("checker {i}"), min));
-            }
         }
         // TSRS_FLOW_MEMO_STATS (docs/DEBUGGING.md): one line per checker, on stderr.
         input.program.for_each_checker_parallel(|i, c| {

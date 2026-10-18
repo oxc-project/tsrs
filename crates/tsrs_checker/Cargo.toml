@@ -14,8 +14,6 @@ workspace = true
 site-counts = []
 # TSRS_WORK_CENSUS: attribute checker work to source patterns (workcensus.rs, docs/DEBUGGING.md).
 work-census = []
-# Instrumentation only (tsrs_compiler checkerpool_stats.rs): records every type/symbol the checker creates.
-assignment-stats = []
 
 [dependencies]
 tsrs_core.workspace = true

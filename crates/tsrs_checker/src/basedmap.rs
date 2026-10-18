@@ -9,7 +9,6 @@ use std::hash::Hash;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use crate::heapcensus::{HeapSize, HeapStat};
 use crate::packedmap::{PackedKey, PackedMap};
 
 pub struct Based<M: 'static, K: 'static = ()> {
@@ -37,13 +36,6 @@ impl<M: Default, K> Based<M, K> {
     }
 }
 
-impl<M: HeapSize, K> HeapSize for Based<M, K> {
-    /// The fork's own map only (the base is counted once, in the seed).
-    fn heap_stat(&self) -> HeapStat {
-        self.own.heap_stat()
-    }
-}
-
 impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
     #[inline]
     pub fn get(&self, key: &K) -> Option<V> {
@@ -63,9 +55,6 @@ impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
         self.base.into_iter().flat_map(super::packedmap::PackedMap::values).chain(self.own.values())
     }
 
-    pub(crate) fn heap_stat(&self) -> HeapStat {
-        self.own.heap_stat()
-    }
 }
 
 #[expect(clippy::implicit_hasher, reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy.")]

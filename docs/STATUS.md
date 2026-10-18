@@ -505,8 +505,8 @@ Memory: compressed 32-bit pointers on unix and scoped arenas (perf round 2, #37-
 -26 to -36%, page faults 0.9M -> 30K), and the checker-heap stack (#99, #105-#110: lazy member tables in the arena
 with one-word slices, CacheHashKey caches in a 20-byte PackedMap, a string literal cache without key copies, flat
 export indexes, 16-bit link store slot offsets): peak -3.3% / -6.4% at 1 / 8 checkers on the 38k-file codebase with
-instructions flat (-0.004% with PGO). `TSRS_HEAP_CENSUS=1` with `--extendedDiagnostics` prints what each checker
-owns; the heap sampler symbolizes on Linux. The emit print backlog is bounded at 2,048 files.
+instructions flat (-0.004% with PGO). The now-removed `TSRS_HEAP_CENSUS=1` instrumentation measured what each
+checker owned; the heap sampler symbolized on Linux. The emit print backlog is bounded at 2,048 files.
 
 Safety and build: a panic=abort crash in the arena is fixed (#103; a freed `&[T]` parameter let LLVM drop the
 free-list link) and guarded by a source check, Miri tests and an arena-safety CI job (#104, leak checking off because
@@ -735,7 +735,7 @@ The private monorepo (go -> locality, same commit 52ef5a9, medians of 3): 4 chec
 -4% to -13% peak, faster at every count; 3 checkers with locality beat Go's 4 on both axes) in the notes.
 Single-threaded unchanged (no assignment with one checker). Of the remaining multi-checker excess, most is library instantiations (zod,
 MikroORM, lib) that every checker needs. Measurements, duplication breakdown, instrumentation
-(`TSRS_ASSIGNMENT_STATS`, feature `tsrs_checker/assignment-stats`): `notes/mem-assignment.md`.
+(the now-removed `TSRS_ASSIGNMENT_STATS` instrumentation): `notes/mem-assignment.md`.
 
 ## 2026-10-01: data-layout pass (peak memory)
 

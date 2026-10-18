@@ -1632,18 +1632,6 @@ pub struct ModuleExportIndex {
     by_symbol: FxHashMap<P<Symbol>, u32>,
 }
 
-use crate::heapcensus::HeapSize;
-
-impl HeapSize for ModuleExportIndex {
-    fn heap_stat(&self) -> crate::heapcensus::HeapStat {
-        let mut stat = self.pending.heap_stat();
-        stat.add(self.by_target.heap_stat());
-        stat.add(self.files.heap_stat());
-        stat.add(self.by_symbol.heap_stat());
-        stat
-    }
-}
-
 impl ModuleExportIndex {
     const END: u32 = u32::MAX;
 
@@ -1673,14 +1661,6 @@ impl ModuleExportIndex {
                 head.insert(node);
             }
         }
-    }
-}
-
-impl HeapSize for ExportsByTarget {
-    fn heap_stat(&self) -> crate::heapcensus::HeapStat {
-        let slot = std::mem::size_of::<(P<Symbol>, P<Symbol>)>() as u64;
-        let n = self.entries.len() as u64;
-        crate::heapcensus::HeapStat { containers: 1, len: n, cap: n, slot, bytes: n * slot }
     }
 }
 

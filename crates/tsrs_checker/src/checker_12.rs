@@ -1935,15 +1935,12 @@ impl Checker {
     pub(crate) fn new_type<T: TypePayload>(&mut self, flags: TypeFlags, object_flags: ObjectFlags, data: T) -> P<Type> {
         self.type_count += 1;
         crate::sitecount::hit("type", type_kind_label(flags, object_flags));
-        let t = Type::alloc(
+        Type::alloc(
             flags,
             object_flags & !(ObjectFlags::CouldContainTypeVariablesComputed | ObjectFlags::CouldContainTypeVariables | ObjectFlags::MembersResolved | ObjectFlags::WeakTypeMemo),
             TypeId(self.type_count),
             data,
-        );
-        #[cfg(feature = "assignment-stats")]
-        self.stats_created.0.push(t);
-        t
+        )
     }
 
     // checker.go:25487

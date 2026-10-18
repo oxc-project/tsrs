@@ -42,9 +42,9 @@ pub fn to_lower_js(str: &str) -> String {
             if mapping.condition == SpecialCasingCondition::FinalSigma
                 && is_final_sigma_context(cased_before, bytes, i)
             {
-                builder.push_str(mapping.conditional_lower);
+                push_bytes(&mut builder, mapping.conditional_lower());
             } else {
-                builder.push_str(mapping.lower);
+                push_bytes(&mut builder, mapping.lower());
             }
         } else {
             push_rune(&mut builder, r);
@@ -72,7 +72,7 @@ pub fn to_upper_js(str: &str) -> String {
             // WriteRune would re-encode the surrogate as U+FFFD.
             push_bytes(&mut builder, &bytes[i..i + size]);
         } else if let Some(mapping) = special_casing_mapping(r) {
-            builder.push_str(mapping.upper);
+            push_bytes(&mut builder, mapping.upper());
         } else {
             push_rune(&mut builder, r);
         }

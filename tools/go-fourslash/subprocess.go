@@ -24,8 +24,11 @@ import (
 )
 
 type subprocessClient struct {
-	options chan *core.CompilerOptions
-	ready   chan struct{}
+	options       chan *core.CompilerOptions
+	ready         chan struct{}
+	stateListener net.Listener
+	stateEncoder  *stdjson.Encoder
+	stateDecoder  *stdjson.Decoder
 }
 
 func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerRequest ServerRequestHandler) (*LSPClient, func() error) {
@@ -41,9 +44,14 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { listener.Close() })
+	stateListener, err := net.Listen("unix", filepath.Join(dir, "state.sock"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { stateListener.Close() })
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
 	t.Cleanup(cancel)
-	cmd := exec.CommandContext(ctx, os.Getenv("TSRS_FOURSLASH_SERVER"), listener.Addr().String())
+	cmd := exec.CommandContext(ctx, os.Getenv("TSRS_FOURSLASH_SERVER"), listener.Addr().String(), stateListener.Addr().String())
 	cmd.WaitDelay = 5 * time.Second
 	stderr, err := os.Create(filepath.Join(t.TempDir(), "server.stderr"))
 	if err != nil {
@@ -67,7 +75,7 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 		t.Fatalf("start Rust LSP server: %v", err)
 	}
 	stdoutWriter.Close()
-	state := &subprocessClient{options: make(chan *core.CompilerOptions, 1), ready: make(chan struct{})}
+	state := &subprocessClient{options: make(chan *core.CompilerOptions, 1), ready: make(chan struct{}), stateListener: stateListener}
 	client := &LSPClient{
 		inputWriter: lsp.ToWriter(stdin), outputReader: lsp.ToReader(stdout),
 		pendingRequests: make(map[jsonrpc.ID]chan *lsproto.ResponseMessage),
@@ -95,6 +103,7 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 		bridgeDone <- err
 	}()
 	context.AfterFunc(ctx, func() { listener.Close() })
+	context.AfterFunc(ctx, func() { stateListener.Close() })
 	var closeOnce sync.Once
 	var closeErr error
 	closed := false
@@ -141,6 +150,19 @@ func (c *LSPClient) WaitForSubprocessInit(t *testing.T) {
 	}
 }
 
+// SubprocessState reads the snapshot after the preceding LSP request has completed.
+// State inspection has its own connection so it cannot block filesystem callbacks.
+func (c *LSPClient) SubprocessState(t *testing.T, openFiles []string, result any) {
+	t.Helper()
+	c.WaitForSubprocessInit(t)
+	if err := c.subprocess.stateEncoder.Encode(openFiles); err != nil {
+		t.Fatalf("request Rust project state: %v", err)
+	}
+	if err := c.subprocess.stateDecoder.Decode(result); err != nil {
+		t.Fatalf("read Rust project state: %v", err)
+	}
+}
+
 func (s *subprocessClient) serveFS(ctx context.Context, conn net.Conn, opts lsp.ServerOptions) error {
 	decoder, encoder := stdjson.NewDecoder(conn), stdjson.NewEncoder(conn)
 	for {
@@ -173,6 +195,14 @@ func (s *subprocessClient) serveFS(ctx context.Context, conn net.Conn, opts lsp.
 				"defaultLibraryPath": opts.DefaultLibraryPath, "caseSensitive": opts.FS.UseCaseSensitiveFileNames(),
 			}
 		case "ready":
+			stateConn, acceptErr := s.stateListener.Accept()
+			if acceptErr != nil {
+				return acceptErr
+			}
+			defer stateConn.Close()
+			stop := context.AfterFunc(ctx, func() { stateConn.Close() })
+			defer stop()
+			s.stateEncoder, s.stateDecoder = stdjson.NewEncoder(stateConn), stdjson.NewDecoder(stateConn)
 			close(s.ready)
 		default:
 			result, err = callFS(opts.FS, method, args)

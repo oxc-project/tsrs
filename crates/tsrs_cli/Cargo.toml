@@ -23,6 +23,10 @@ tsrs_execute = { path = "../tsrs_execute" }
 # whole process; main re-enables it for the arena.
 libmimalloc-sys2 = { version = "0.1.63", features = ["v3", "no_thp"] }
 libc = "0.2"
+
+[dev-dependencies]
+tsrs_project.workspace = true
+
 [features]
 noembed = ["tsrs_vfs/noembed"]
 # The system allocator instead of mimalloc, for sanitizer builds (AddressSanitizer and ThreadSanitizer track only its

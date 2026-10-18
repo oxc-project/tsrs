@@ -11,5 +11,5 @@ status=0
   --server "${TSRS_FOURSLASH_SERVER:-target/debug/examples/fourslash_server}" \
   -- -json > "$work/results.jsonl" 2> "$work/runner.log" || status=$?
 cat "$work/runner.log"
-"$python" tools/go-fourslash/summarize.py "$work/results.jsonl" --min-pass "${MIN_PASS:-4048}"
+"$python" tools/go-fourslash/summarize.py "$work/results.jsonl" --min-pass "${MIN_PASS:-4074}"
 exit "$status"

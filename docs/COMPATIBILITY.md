@@ -45,7 +45,7 @@ Updating this table (../AGENTS.md says when; commands and paths below are relati
 | `--build` (project references) | yes | 189 of 192 `tsbuild` and 191 of 223 `tsc` scenario baselines pass; the failures are CLI commands tsrs doesn't port (`--help`, `--init`, …). Uses more memory than tsgo on large graphs |
 | Multi-package emit | yes | Run on a large private monorepo |
 | Content mappers (`.vue`, `.svelte`, `.astro` via `contentMappers`) | CLI and `-b`: yes. Language server: no | all 9 content-mapper scenario baselines identical; the 15 content-mapper conformance cases are not run yet ([experiment note](../notes/contentmappers.md)) |
-| Language server (`--lsp -stdio`) | yes | 4,066 of 4,546 fourslash tests pass |
+| Language server (`--lsp -stdio`) | yes | 4,074 of 4,546 fourslash groups pass through the [Go subprocess runner](../tools/go-fourslash/README.md), including project-state baselines; eight use Go-built fixture setup. The translated release runner remains at 4,066 passes |
 | Allocation profiling (`alloc-profile` build) | no | the counting allocator, heap sampler, reachability census and checker heap census have been removed; `TSRS_MEM_SPLIT` and `TSRS_ARENA_POISON` remain ([debugging](DEBUGGING.md)) |
 | Automatic type acquisition, telemetry, profiling (language server) | no | not ported |
 | Node API server (`--api`) | yes, with gaps | upstream client test suites pass; request-filesystem Go fixtures exercise the production implementation in default tests; no profiling requests, no Windows named pipes ([Node API](NODE_API.md)) |

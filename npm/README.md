@@ -182,7 +182,7 @@ What maintainers must configure before the first release:
 
 `.github/workflows/ci.yml` runs on pushes to main, pull requests into main, merge groups and manual dispatch. Its two
 Linux jobs run Clippy/source checks and Rust checks/unit tests, build the compiler and conformance runner with the dev
-profile, and run compiler conformance in both checker modes plus regression cases.
+profile, and run compiler conformance in both checker modes, the Go Fourslash subprocess gate, and regression cases.
 
 Only CI, release, security and triage workflows are active. The full CI and other auxiliary workflows are disabled
 as `.github/workflows/*.yml.bak`; their local tools remain available.

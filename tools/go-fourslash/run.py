@@ -73,9 +73,6 @@ def prepare(reference, work):
     harness_path = "internal/fourslash/fourslash.go"
     harness = (module / harness_path).read_text()
     harness = replace_once(harness, "\ttestData := ParseTestData(t, content, fileName)", """\ttestData := ParseTestData(t, content, fileName)
-    if testData.isStateBaseliningEnabled() {
-        t.Skip("subprocess prototype: internal project-state baselines need a remote inspection hook")
-    }
     if options.ContentMapperSpawner != nil {
         t.Skip("subprocess prototype: Go content-mapper callbacks cannot cross the process boundary")
     }""")
@@ -85,6 +82,18 @@ def prepare(reference, work):
         f.client.WaitForSubprocessInit(t)
     }""")
     overlay(harness_path, harness)
+
+    # Keep Go's state comparison and formatting; substitute read-only remote snapshot views.
+    state_path = "internal/fourslash/statebaseline.go"
+    state = (module / state_path).read_text()
+    state = replace_once(state, '\t"github.com/microsoft/TypeScript/tsc/internal/compiler"\n', "")
+    state = state.replace("*compiler.Program", "*remoteProgram")
+    state = state.replace("*project.ConfigFileRegistry", "*remoteConfigFileRegistry")
+    state = state.replace("*project.Snapshot", "*remoteSnapshot")
+    state = replace_once(state, "\tsession := f.client.Server.Session()\n\tsnapshot := session.Snapshot()",
+                         "\tsnapshot := f.remoteSnapshot(t)")
+    overlay(state_path, state)
+    overlay("internal/fourslash/tsrs_remotestate.go", (HERE / "remotestate.go").read_text())
     go_env = dict(os.environ, GOTOOLCHAIN="auto", GOWORK="off")
     goroot = subprocess.check_output(["go", "env", "GOROOT"], cwd=module, env=go_env, text=True).strip()
     subprocess.run([str(Path(goroot) / "bin/gofmt"), "-w", *replacements.values()], check=True)

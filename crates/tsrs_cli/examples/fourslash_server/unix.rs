@@ -8,6 +8,9 @@ use tsrs_core::context::Context;
 use tsrs_core::json::{self, Value};
 use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 
+#[path = "state.rs"]
+mod state;
+
 struct RemoteFS {
     stream: Mutex<BufReader<UnixStream>>,
     case_sensitive: bool,
@@ -159,7 +162,9 @@ impl FS for RemoteFS {
 
 pub fn run() {
     tsrs_core::compat::use_go_history_for_tsgo_baselines();
-    let socket = std::env::args().nth(1).expect("usage: fourslash_server <Go VFS socket>");
+    let socket =
+        std::env::args().nth(1).expect("usage: fourslash_server <VFS socket> <state socket>");
+    let state_socket = std::env::args().nth(2).expect("missing project-state socket");
     let stream = UnixStream::connect(socket).expect("connect to Go VFS");
     let mut fs = RemoteFS { stream: Mutex::new(BufReader::new(stream)), case_sensitive: true };
     let config = fs.call("configure", &[]);
@@ -184,9 +189,12 @@ pub fn run() {
     let ctx = Context::background();
     server.set_compiler_options_for_inferred_projects(&ctx, Some(P::new(options)));
     let ready = server.init_complete();
+    let state_server = Arc::clone(&server);
     std::thread::spawn(move || {
         ready.wait();
+        let stream = UnixStream::connect(state_socket).expect("connect to Go state client");
         fs.call("ready", &[]);
+        state::serve(stream, &state_server, fs.case_sensitive);
     });
     server.run(&ctx).expect("LSP server failed");
 }

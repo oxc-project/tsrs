@@ -1,7 +1,7 @@
 # The language server (`tsrs --lsp -stdio`)
 
 tsrs provides diagnostics, hover, go to definition, references, rename, completions with auto-imports, code fixes
-and formatting through the TypeScript 7 language-server protocol. It passes 4,066 of 4,546 fourslash tests; see
+and formatting through the TypeScript 7 language-server protocol. It passes 4,074 of 4,546 fourslash groups; see
 [known gaps](#known-gaps) and the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
 
 ## Editor setup
@@ -74,11 +74,11 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 | `compiler` (program reuse, pluggable checker pool) | `tsrs_compiler` | `UpdateProgram` / `ReuseProgram`, `ProgramOptions.CreateCheckerPool`, the `CheckerPool` interface |
 | `cmd/tsc/lsp.go` | `tsrs_cli` (`lsp.rs`) | `tsrs --lsp -stdio` |
 
-An experimental [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
+The [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
 and assertions and drives the Rust language server over stdio. It uses a test-only server entry point and a
-filesystem bridge; internal project-state baselines and Go content-mapper callbacks are not covered. The
-Go runner also runs in Linux CI with zero failures and a floor of 4,048 exercised groups. The translated Rust
-suite supplies the compatibility counts above.
+filesystem bridge and a read-only project-state bridge. Go content-mapper callbacks remain unsupported. The
+Go runner runs in Linux CI with zero failures and a floor of 4,074 exercised groups, including all 4,066 groups
+passing in the translated Rust suite. The translated suite remains for release verification and PGO/BOLT training.
 
 ## Protocol types and JSON
 
@@ -234,6 +234,13 @@ index 0, as in Go), so `sort_symbols` uses Go's pdqsort port there (`checker::Pr
 
 ## Fourslash
 
+The Go subprocess runner passes **4,074 groups, with 0 failures and 472 skips**. Its state snapshots preserve
+the upstream project-state assertions. Go's `@tsc` setup helper builds fixtures for eight groups unsupported by
+the translated harness; their LSP requests run against Rust. See the [runner guide](../tools/go-fourslash/README.md)
+for commands and comparison results.
+
+The translated Rust runner used by release verification is retained as follows.
+
 `tools/gen-fourslash` (Go, `go/types`) converts every Go fourslash test that `go test` builds
 (`internal/fourslash/tests/*_test.go`, 4,546 `Test*` functions; files excluded by Go build constraints, such as the 13
 tests in `*_js_test.go` files that only build for GOOS=js, are skipped like `go test` skips them) into a Rust
@@ -252,7 +259,7 @@ in worker processes (`tsrs-fourslash worker`, replaced after a crash, a 120 s ti
 the process on an unrecovered panic in one of its threads, like a Go program. Recycling workers bounds retained
 test state. See [the generator mapping rules and deviations](../notes/lsp-fsgen.md).
 
-Recorded result: **4,066 pass, 63 fail and 417 skip**, out of 4,546 generated tests. The
+Recorded translated-runner result: **4,066 pass, 63 fail and 417 skip**, out of 4,546 generated tests. The
 [port log](history/LSP.md#fourslash) retains the earlier runs and verify-family breakdown.
 
 Skips: 386 known failing in Go (registry) + 31 `SkipUnsupportedCompilerOptions` (module UMD/System, moduleResolution
@@ -268,9 +275,8 @@ with the gate green no failure is a divergence in a ported feature.
   span-map branches are retained but receive no content-mapped scripts.
 - LSP-attached API sessions, automatic type acquisition, telemetry, profiling requests and localized messages
   are not ported. The standalone API server is available; see [NODE_API.md](NODE_API.md).
-- Fourslash `@tsc` command lines (8 cases) need the harness to run `tsc --build` into its test file system before
-  the session starts (`tsctests.GetFileMapWithBuild` in Go). The CLI emit and build drivers are ported; this
-  harness helper still reports `feature not ported`.
+- The translated Rust fourslash harness lacks `@tsc` setup (8 cases). The Go runner covers these using
+  `tsctests.GetFileMapWithBuild` before the Rust LSP session starts; this does not verify Rust emit or build.
 - Builtin watcher backends for Windows and Linux fanotify are not ported. Linux uses inotify, Go's fallback;
   the server enables builtin watching only with a fast-recursive backend, so Linux needs client watch support.
 

@@ -14,29 +14,21 @@ import publish
 import run
 
 
-FIXTURE = Path(__file__).parent / 'fixtures/reporting-64-vcpu.json'
-
-
-def resized(historical):
-    """The 64-vCPU fixture as a 16-vCPU result, which the chart draws (its `checkers16` mode)."""
-    result = copy.deepcopy(historical)
-    result['modes'] = ['checkers16' if mode == 'checkers64' else mode for mode in result['modes']]
-    result['mode_reps']['checkers16'] = result['mode_reps'].pop('checkers64')
-    for project in result['projects'].values():
-        project['checkers16'] = project.pop('checkers64')
-        for mode in ('wide', 'checkers16'):
-            machine = project[mode]['machine']
-            machine.update(cpus=16, memory_gb=63, label='Depot CI 16 vCPU')
-    return result
-
-
 class ReportingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.historical = json.loads(FIXTURE.read_text())
+        cls.historical = json.loads((Path(__file__).parent / 'fixtures/reporting-64-vcpu.json').read_text())
 
     def resized(self):
-        return resized(self.historical)
+        result = copy.deepcopy(self.historical)
+        result['modes'] = ['checkers16' if mode == 'checkers64' else mode for mode in result['modes']]
+        result['mode_reps']['checkers16'] = result['mode_reps'].pop('checkers64')
+        for project in result['projects'].values():
+            project['checkers16'] = project.pop('checkers64')
+            for mode in ('wide', 'checkers16'):
+                machine = project[mode]['machine']
+                machine.update(cpus=16, memory_gb=63, label='Depot CI 16 vCPU')
+        return result
 
     def test_legacy_table_update_preserves_published_chart(self):
         contents = ('# Project\n\n![Benchmark](bench/large-projects.svg)\n',
@@ -350,37 +342,6 @@ class PublishTests(unittest.TestCase):
                         del result['projects']['vscode'][mode]
                     self.assertFalse(self.publish(result))
                     self.assertEqual(latest, self.latest())
-
-
-class TsgoNightlyTests(unittest.TestCase):
-    NIGHTLY = {'package': 'typescript', 'tag': 'next', 'version': '7.1.0-dev.20261016.1',
-               'commit': 'abcbb2e69d2a86d9ffee66582a0dd0339b674733', 'published': '2026-10-16T08:21:23.515Z'}
-
-    def view(self, version):
-        meta = {'version': version, 'gitHead': self.NIGHTLY['commit'], 'time': {version: self.NIGHTLY['published']}}
-        return subprocess.CompletedProcess([], 0, stdout=json.dumps(meta))
-
-    def test_the_tag_resolves_to_one_recorded_nightly(self):
-        with patch.object(run.subprocess, 'run', return_value=self.view(self.NIGHTLY['version'])) as view:
-            self.assertEqual(self.NIGHTLY, run.resolve_tsgo({'package': 'typescript', 'tag': 'next'}))
-        self.assertEqual(['npm', 'view', '--json', 'typescript@next'], view.call_args.args[0])
-
-    def test_an_explicit_version_is_measured_instead_of_the_tag(self):
-        with patch.object(run.subprocess, 'run', return_value=self.view('7.1.0-dev.20261015.1')) as view:
-            resolved = run.resolve_tsgo({'package': 'typescript', 'tag': 'next'}, '7.1.0-dev.20261015.1')
-        self.assertEqual(['npm', 'view', '--json', 'typescript@7.1.0-dev.20261015.1'], view.call_args.args[0])
-        self.assertEqual(('7.1.0-dev.20261015.1', None), (resolved['version'], resolved['tag']))
-
-    def test_reports_name_the_nightly_and_its_commit(self):
-        historical = json.loads((Path(__file__).parent / 'results/2026-10-08-6e82c526ff8e.json').read_text())
-        old = run.markdown(historical)
-        self.assertIn('## Benchmark: tsrs vs tsgo 7.0.2', old)
-        self.assertIn('- **tsgo**: npm `typescript@7.0.2`, the official Go compiler', old)
-        result = dict(historical, tsgo=dict(self.NIGHTLY, binary='~/tsc'))
-        report = run.markdown(result)
-        self.assertIn('## Benchmark: tsrs vs tsgo 7.1.0-dev.20261016.1', report)
-        self.assertIn('- **tsgo**: npm `typescript@7.1.0-dev.20261016.1` (the `next` nightly, published 2026-10-16, '
-                      'from microsoft/TypeScript `abcbb2e6`), the official Go compiler', report)
 
 
 if __name__ == '__main__':

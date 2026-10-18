@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 120
     env:
       TSRS_TEST: target/ci/tsrs-test
-      TSRS_FOURSLASH: target/ci/tsrs-fourslash
+      TSRS_FOURSLASH_SERVER: target/ci/examples/fourslash_server
     steps:
       - name: Free disk space for builds and benchmark checkouts
         run: |
@@ -43,16 +43,6 @@ jobs:
         id: ts
         run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
 
-      # The conformance tests and the tsoptions unit tests read the reference baselines from ts-ref/tsc/testdata.
-      # The testdata checkout (~5 s) is cached per TypeScript commit. Restore it alongside the Rust toolchain; the
-      # sparse checkout below runs only on a miss.
-      - name: Restore TypeScript testdata
-        id: ts-ref
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ts-ref/tsc/testdata
-          key: ts-ref-testdata-${{ steps.ts.outputs.commit }}
-
       # This job warms one cache on main; the other Rust jobs and pull requests only restore it.
       - name: Set up Rust
         uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
@@ -60,26 +50,28 @@ jobs:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: warm
 
-      - name: Check out TypeScript testdata
-        if: steps.ts-ref.outputs.cache-hit != 'true'
+      # Conformance reads fixtures; the Go fourslash harness also compiles the pinned source.
+      - name: Check out TypeScript source and testdata
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           repository: microsoft/TypeScript
           ref: ${{ steps.ts.outputs.commit }}
           path: ts-ref
           fetch-depth: 1
-          sparse-checkout: tsc/testdata
+          sparse-checkout: tsc
           persist-credentials: false
 
-      - name: Save TypeScript testdata
-        if: steps.ts-ref.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          path: ts-ref/tsc/testdata
-          key: ${{ steps.ts-ref.outputs.cache-primary-key }}
+          go-version-file: ts-ref/tsc/go.mod
+          cache: false
+
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
 
       - name: cargo check
-        run: cargo check --workspace --exclude tsrs_fourslash --locked --config 'build.warnings="deny"'
+        run: cargo check --workspace --locked --config 'build.warnings="deny"'
 
       # Feature-only tooling must compile too. Check compressed pointers separately: --workspace --all-features
       # also enables plain-ptrs, which overrides them.
@@ -87,7 +79,7 @@ jobs:
         env:
           RUSTFLAGS: -D warnings
         run: |
-          cargo check --workspace --exclude tsrs_fourslash --all-targets --all-features --locked
+          cargo check --workspace --all-targets --all-features --locked
           cargo check -p tsrs_cli -p tsrs_checker --all-features --features tsrs_core/shared-graph,tsrs_core/checked-cells --locked
 
       - name: Request filesystem Go fixtures
@@ -101,10 +93,9 @@ jobs:
           -p tsrs_tsoptions -p tsrs_printer -p tsrs_modulespecifiers -p tsrs_compiler -p tsrs_incremental -p tsrs_execute
           -p tsrs_testrunner -p tsrs_cli
 
-      # Correctness gates do not need release's fat LTO. ci keeps release optimization but omits LTO, and compiles
-      # the generated fourslash bodies at opt-level 0; release.yml still tests the PGO release binaries.
+      # Correctness gates use release optimization without LTO; release.yml checks the PGO release binaries.
       - name: Build correctness binaries
-        run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash
+        run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server
 
       # Errors, .types and .symbols baselines, in tsgo's check history (`--checkerAssignment go`, tsrs_core::compat),
       # which the reference baselines need for byte-identity.
@@ -133,7 +124,7 @@ jobs:
         run: tools/contentmapper-e2e.sh target/ci/tsrs
 
       - name: Fourslash (language service) suite
-        run: .github/scripts/fourslash-gate.sh
+        run: .github/scripts/go-fourslash-gate.sh
 
       # Node 24 matches release.yml; the build-only TypeScript compiler in npm/package.json needs >=16.20.
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
@@ -328,7 +319,7 @@ jobs:
             target/wasm-diff/*/*/fail/**
           if-no-files-found: ignore
 
-  # docs/RUST.md: every enabled Clippy lint is denied across the full workspace, including generated Fourslash fixtures.
+  # docs/RUST.md: every enabled Clippy lint is denied across the full workspace, including test-only server examples.
   lint-ratchet:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -391,7 +382,7 @@ jobs:
         id: ts
         run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
 
-      # The generators read ast.json and the Go sources; the fourslash generator also builds the Go packages.
+      # The generators read ast.json and the Go sources.
       - name: Check out TypeScript (generator inputs)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -405,11 +396,6 @@ jobs:
             /tsc/
             !/tsc/testdata/
           persist-credentials: false
-
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: ts-ref/tsc/go.mod
-          cache-dependency-path: ts-ref/tsc/go.sum
 
       - name: Benchmark reporting tests
         run: python3 -m unittest discover -s bench -p test_reporting.py

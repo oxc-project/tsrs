@@ -99,7 +99,7 @@ jobs:
           fi
 
   # Release binaries are PGO builds with the `release` profile (fat LTO, one codegen unit; Cargo.toml): an instrumented
-  # ThinLTO build of tsrs + tsrs-test + tsrs-fourslash, the training workload (.github/scripts/pgo-train.sh: the conformance and fourslash suites
+  # ThinLTO build of tsrs + tsrs-test + fourslash_server, the training workload (.github/scripts/pgo-train.sh: the conformance and Go fourslash suites
   # and two open-source bench projects), then the final build with the merged profile. Numbers: notes/perf-pgo.md.
   # On Linux the final build is then optimized with BOLT (.github/scripts/bolt.sh; notes/perf-build-level.md), and
   # the conformance and fourslash gates run on BOLT-optimized binaries before the binary is staged.
@@ -129,16 +129,23 @@ jobs:
           # - { target: x86_64-pc-windows-msvc, os: windows-latest, experimental: true, run: true }
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
-      # The conformance suite (part of the training workload) reads its tests from ts-ref/tsc/testdata.
-      - name: Check out TypeScript testdata
+      # Training needs conformance fixtures and the Go fourslash source at the pinned commit.
+      - name: Check out TypeScript source and testdata
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: microsoft/TypeScript
           ref: ${{ needs.version.outputs.ts_commit }}
           path: ts-ref
           fetch-depth: 1
-          sparse-checkout: tsc/testdata
+          sparse-checkout: tsc
           persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ts-ref/tsc/go.mod
+          cache: false
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
       # The bench projects of the training workload install with their pinned package managers via pnpm (bench/run.py --setup-only).
       # No .npmrc: the default registry-url writes one with `_authToken=${NODE_AUTH_TOKEN}`, and yarn 1 (webpack's
       # install in the PGO training run) refuses to run while that variable is unset. Only `publish` needs the registry.
@@ -161,9 +168,9 @@ jobs:
           RUSTFLAGS: -Cprofile-generate=${{ runner.temp }}/pgo/raw -Clto=thin
           CFLAGS: ${{ runner.os == 'macOS' && '-fno-profile-generate' || '' }}
           CARGO_TARGET_DIR: ${{ runner.temp }}/pgo/target
-        # The runners explicitly mount embedded libraries; the CLI uses disk libraries.
+        # tsrs-test embeds libraries, Go supplies the example's VFS, and the CLI uses disk libraries.
         # Build together so their compiler symbols match for PGO.
-        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
       - name: Training run
         shell: bash
         env:
@@ -189,9 +196,9 @@ jobs:
           RUSTFLAGS: -Cprofile-use=${{ steps.profile.outputs.path }}${{ runner.os == 'Linux' && ' -Clink-arg=-Wl,--emit-relocs' || '' }}
           CFLAGS: ${{ runner.os == 'macOS' && '-fno-profile-use' || '' }}
         run: |
-          pkgs=(-p tsrs_cli)
-          [ "$RUNNER_OS" = Linux ] && pkgs+=(-p tsrs_testrunner -p tsrs_fourslash)
-          cargo build --release --locked "${pkgs[@]}" --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+          targets=(-p tsrs_cli)
+          [ "$RUNNER_OS" = Linux ] && targets+=(-p tsrs_testrunner --bins --example fourslash_server)
+          cargo build --release --locked "${targets[@]}" --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
       # BOLT from the LLVM release that matches rustc's LLVM. The tarball's tools need glibc 2.34 (22.04 has 2.35).
       - name: Install BOLT
         if: runner.os == 'Linux'

@@ -9,8 +9,8 @@ publish.workspace = true
 [lints]
 workspace = true
 
-# Go's testutil/contentmappertest: the in-process content mappers that the tsc/tsbuild scenario tests and the
-# fourslash harness drive through tsrs_contentmapper (notes/contentmappers.md). The spawner serves them over a Unix
+# Go's testutil/contentmappertest: the in-process content mappers that the tsc/tsbuild scenario tests
+# drive through tsrs_contentmapper (notes/contentmappers.md). The spawner serves them over a Unix
 # socket pair (tsrs_ipc::pipe).
 [dependencies]
 tsrs_core.workspace = true

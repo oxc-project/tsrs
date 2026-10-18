@@ -1,5 +1,4 @@
-// Port of testutil/lsptestutil/lspclient.go (the in-process LSP test client). Public: the fourslash harness
-// (tsrs_fourslash) drives the server through it, like Go's package lsptestutil.
+// Port of testutil/lsptestutil/lspclient.go (the in-process client for the LSP crate's unit tests).
 
 use std::collections::VecDeque;
 use std::io::{Read, Write};

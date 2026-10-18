@@ -1,7 +1,7 @@
 # Go fourslash against the Rust language server
 
-This prototype runs the pinned TypeScript Go fourslash test bodies and assertions unchanged against a separate
-Rust process. It does not compile the generated Rust tests or use `tsrs_fourslash_harness`.
+This runner executes the pinned TypeScript Go fourslash test bodies and assertions unchanged against separate
+Rust processes. It replaces the generated Rust suite, translated harness, generator, and parser oracle.
 
 Requirements: Python 3.12+, Rust, Go (with `GOTOOLCHAIN=auto`), and macOS or Linux. The TypeScript Git checkout must
 contain the commit pinned in `Cargo.toml`; `--reference` defaults to `ts-ref`.
@@ -38,7 +38,7 @@ editor requests and responses use the existing framed LSP transport.
 
 The Go harness leases Rust workers, keeping at most four idle processes. Each worker handles up to 32 cases
 before restarting, with a fresh LSP server, session, and filesystem for every case. Only the process and the
-existing immutable parse cache are shared, as in the translated Rust runner. The case limit bounds retained
+existing immutable parse cache are shared, as in the former translated Rust runner. The case limit bounds retained
 parse entries and arena allocations. Stdin/stdout carry worker commands and completion acknowledgements;
 each case has its own LSP, filesystem, and project-state sockets.
 
@@ -51,7 +51,7 @@ existing `GetFileMapWithBuild` helper, then the Rust server reads the resulting 
 
 The Go filesystem remains authoritative, including bundled libraries, symlinks, case sensitivity, writes, and
 renames. Paths are not relocated or rewritten. Compiler options use the existing Go-compatible options codec.
-The example selects the same Go checker-history mode as `tsrs-fourslash`, including its environment overrides.
+The example selects Go checker-history mode for baseline compatibility, including its environment overrides.
 File reads send a JSON byte count followed by raw UTF-8, avoiding JSON escaping of library contents. Missing
 files remain distinct from empty files, and invalid UTF-8 uses the same replacement behavior as Go's JSON encoder.
 Cleanup sends LSP shutdown, closes state inspection, and waits for the worker's completion acknowledgement
@@ -64,11 +64,12 @@ before reuse. Failed or timed-out workers are killed and discarded; `TestMain` r
 - Existing upstream skips remain intact. Skips are not counted as passes.
 - Windows transport and production CLI startup are not covered by this prototype.
 
-The Go runner supplies the Linux CI gate and current compatibility count. The translated Rust suite remains
-in place for release verification and PGO/BOLT training; those workflows are unchanged.
+The Go runner supplies the Linux CI gate and current compatibility count. PGO training drives the instrumented
+`examples/fourslash_server`; BOLT training and release verification use the corresponding instrumented and
+optimized examples. These workflows install Go and Python 3.12+ and check out the pinned `tsc` source and fixtures.
+The translated Rust suite has been removed. Release-profile PGO/BOLT verification was not run locally for this migration.
 
 The summary counts a parent with only skipped subtests as skipped: Go itself reports such a parent as passing.
-Pass `--rust-results target/fourslash-results` to the summary to compare exercised groups with the translated suite.
 
 ## CI gate
 
@@ -96,7 +97,7 @@ At pinned TypeScript commit `b85298b6a81f772d080b0455de0ca9d744cd6fd6`, on macOS
 
 | Runner | Passing groups | Failing groups | Skipped groups |
 | --- | ---: | ---: | ---: |
-| Existing translated Rust suite | 4,066 | 63 | 417 |
+| Former translated Rust suite (before removal) | 4,066 | 63 | 417 |
 | Go tests with Rust subprocess | 4,074 | 0 | 472 |
 
 All 4,066 groups passing in the translated suite are exercised successfully, including the 18 project-state
@@ -106,6 +107,8 @@ content-mapper groups. The eight additional passes exercise Rust LSP behavior wi
 
 Also checked: a child that immediately exits reports a failure promptly; fresh pinned-source extraction and
 reuse preserve the original harness and test files; the dev builds, workspace Clippy, and source checks pass.
+After removing the translated suite, the full gate also passes with a dev-built `tsrs_cli/noembed` server,
+matching the release workflow's feature selection. The retained LSP unit checks and workflow syntax checks pass.
 
 ### Runner cost
 

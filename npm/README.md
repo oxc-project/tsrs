@@ -161,7 +161,8 @@ Wire contract the server has to speak (from the pinned `tsc/cmd/tsc/api.go`, `ts
    exact version metadata and tarball to be available on npm, including platform packages skipped on a re-run.
    Dry runs skip this check. Releases publish directly, without a staged approval step.
 
-The conformance and fourslash gates run on the GNU Linux release binaries (`bolt.sh`). The macOS binary gets only the
+The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
+the BOLT-optimized `fourslash_server` example. PGO training uses the same Go harness. The macOS binary gets only the
 smoke tests; `ci.yml` (Linux) gates the source. The broader WebAssembly differential gate (`tools/wasm/gate.sh`) is
 preserved in the disabled `ci.yml.bak`; the release's WebAssembly package checks remain active.
 

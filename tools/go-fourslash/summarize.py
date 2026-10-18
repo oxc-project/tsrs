@@ -10,7 +10,6 @@ from pathlib import Path
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("results", type=Path)
-    parser.add_argument("--rust-results", type=Path, help="optional tsrs-fourslash results directory to compare")
     parser.add_argument("--min-pass", type=int, default=0, help="fail if fewer groups are exercised successfully")
     args = parser.parse_args()
     if args.min_pass < 0:
@@ -45,15 +44,6 @@ def main():
     counts = Counter(groups.values())
     print("Coverage (parents with only skipped subtests count as skipped):", dict(counts))
     print("Parents with only skipped subtests:", len(skipped_parents))
-    if args.rust_results:
-        rust_pass = set((args.rust_results / "pass.txt").read_text().splitlines())
-        go_pass = {name for name, outcome in groups.items() if outcome == "pass"}
-        print("Rust passes not exercised by this runner:", len(rust_pass - go_pass))
-        for name in sorted(rust_pass - go_pass):
-            print(" ", name)
-        print("Additional Go-runner passes:", len(go_pass - rust_pass))
-        for name in sorted(go_pass - rust_pass):
-            print(" ", name)
     failed = package_result != "pass" or "fail" in outcomes.values() or counts["pass"] < args.min_pass
     if failed:
         print(f"fourslash gate failed: package={package_result}, pass={counts['pass']} "

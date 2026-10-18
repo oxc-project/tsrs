@@ -962,38 +962,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tsrs_fourslash"
-version = "0.16.0"
-dependencies = [
- "regex",
- "tsrs_core",
- "tsrs_fourslash_harness",
- "tsrs_ls",
- "tsrs_lsproto",
- "tsrs_modulespecifiers",
-]
-
-[[package]]
-name = "tsrs_fourslash_harness"
-version = "0.16.0"
-dependencies = [
- "regex",
- "rustc-hash",
- "tsrs_compiler",
- "tsrs_contentmapper",
- "tsrs_contentmappertest",
- "tsrs_core",
- "tsrs_diagnostics",
- "tsrs_ls",
- "tsrs_lsp",
- "tsrs_lsproto",
- "tsrs_project",
- "tsrs_scanner",
- "tsrs_tsoptions",
- "tsrs_vfs",
-]
-
-[[package]]
 name = "tsrs_fswatch"
 version = "0.16.0"
 dependencies = [

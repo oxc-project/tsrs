@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Re-runs the code generators and fails if any checked-in output differs: a hand edit to a generated file would be
 # lost at the next regeneration. Needs node >= 22.18 or 23.6 (runs the .ts generators directly, with type stripping
-# on by default; CI uses 24), python3, rustfmt, Go (the fourslash generator type-checks the Go tests with `go list -export` in
-# ts-ref/tsc; GOTOOLCHAIN=auto fetches the version go.mod asks for), and ts-ref at the commit in Cargo.toml
+# on by default; CI uses 24), python3, rustfmt, and ts-ref at the commit in Cargo.toml
 # ([workspace.metadata.typescript]). CI runs it as the `generated-code` job.
 #
 #   tools/gen-check.sh           regenerate, then fail on a diff
@@ -29,8 +28,6 @@ for g in "${generators[@]}"; do
   # shellcheck disable=SC2086 # each entry is a command line
   $g > /dev/null
 done
-echo "+ tools/gen-fourslash: go run ."
-(cd tools/gen-fourslash && GOTOOLCHAIN=auto go run . > /dev/null)
 echo "+ cargo fmt --all"
 cargo fmt --all
 
@@ -47,4 +44,4 @@ if [ -n "$untracked" ]; then
   echo "$untracked"
   exit 1
 fi
-echo "generated code is up to date ($(( ${#generators[@]} + 1 )) generators)"
+echo "generated code is up to date (${#generators[@]} generators)"

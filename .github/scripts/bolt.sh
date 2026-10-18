@@ -3,18 +3,18 @@
 #
 #   bolt.sh <dist dir> <work dir> <bench work dir>
 #
-# <dist dir> holds tsrs, tsrs-test and tsrs-fourslash from the final PGO build, linked with -Wl,--emit-relocs. Each
+# <dist dir> holds tsrs, tsrs-test and examples/fourslash_server from the final PGO build, linked with -Wl,--emit-relocs. Each
 # binary is instrumented (llvm-bolt -instrument), runs its part of the PGO training workload (pgo-train.sh: tsrs on
-# xstate-main and webpack, tsrs-test on the conformance suite, tsrs-fourslash on the fourslash suite), and is
-# rewritten with the profile. The BOLT-optimized tsrs-test and tsrs-fourslash then run the conformance and fourslash
+# xstate-main and webpack, tsrs-test on the conformance suite, fourslash_server driven by the Go suite), and is
+# rewritten with the profile. The BOLT-optimized tsrs-test and fourslash_server then run the conformance and fourslash
 # gates, and the BOLT-optimized tsrs must print byte-identical output to the input tsrs on both bench projects
 # (one and four checkers). Only then is <dist dir>/tsrs replaced; the input is kept as tsrs.prebolt.
 #
-# Needs llvm-bolt and merge-fdata (LLVM release matching rustc's LLVM) on PATH, ts-ref/tsc/testdata, and the bench
+# Needs llvm-bolt and merge-fdata (LLVM release matching rustc's LLVM) on PATH, Go, Python 3.12+, ts-ref/tsc, and the bench
 # projects pgo-train.sh set up in <bench work dir>.
 #
 # BOLT_TSRS_ONLY=1 (update-benchmarks.yml): only tsrs, whose BOLT training and byte comparison are the same as
-# above; <dist dir> then needs no tsrs-test or tsrs-fourslash, and the suite gates (release.yml's job) are not run.
+# above; <dist dir> then needs no tsrs-test or fourslash_server, and the suite gates (release.yml's job) are not run.
 set -euo pipefail
 
 dist=$(cd "$1" && pwd)
@@ -28,7 +28,7 @@ flags=(-reorder-blocks=ext-tsp -reorder-functions=cdsort -split-functions -split
 # binaries therefore carry no 843419 workaround; it only matters on Cortex-A53 r0p0-r0p4 cores.
 arch_flags=()
 [ "$(uname -m)" = aarch64 ] && arch_flags=(--drop-cortex-a53-843419-veneers)
-bins=(tsrs tsrs-test tsrs-fourslash)
+bins=(tsrs tsrs-test examples/fourslash_server)
 [ "${BOLT_TSRS_ONLY:-}" = 1 ] && bins=(tsrs)
 
 for b in "${bins[@]}"; do
@@ -50,9 +50,8 @@ if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST_RESULTS="$work/train-test-results" "$work/tsrs-test.inst" run --suite all --timeout 300 > /dev/null \
     && status=0 || status=$?
   check_exit "$status" "instrumented tsrs-test run --suite all"
-  TSRS_FOURSLASH_RESULTS="$work/train-fourslash-results" "$work/tsrs-fourslash.inst" run > /dev/null \
-    && status=0 || status=$?
-  check_exit "$status" "instrumented tsrs-fourslash run"
+  TSRS_FOURSLASH_SERVER="$work/examples/fourslash_server.inst" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \
+    .github/scripts/go-fourslash-gate.sh
 fi
 
 for b in "${bins[@]}"; do
@@ -66,8 +65,8 @@ done
 # Gates on the BOLT-optimized binaries (same thresholds as ci.yml).
 if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST="$work/tsrs-test.bolt" TSRS_TEST_RESULTS="$work/test-results" .github/scripts/conformance-gate.sh | tail -1
-  TSRS_FOURSLASH="$work/tsrs-fourslash.bolt" TSRS_FOURSLASH_RESULTS="$work/fourslash-results" \
-    .github/scripts/fourslash-gate.sh | tail -1
+  TSRS_FOURSLASH_SERVER="$work/examples/fourslash_server.bolt" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \
+    .github/scripts/go-fourslash-gate.sh | tail -1
 fi
 for p in xstate-main webpack; do
   for c in 1 4; do

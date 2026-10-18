@@ -74,7 +74,7 @@ The summary counts a parent with only skipped subtests as skipped: Go itself rep
 
 ## CI gate
 
-The active Linux test job in `.github/workflows/ci.yml` checks out the pinned `tsc` source and fixtures, installs
+The independent Linux `fourslash` job in `.github/workflows/ci.yml` checks out the pinned `tsc` source and fixtures, installs
 Go from its `go.mod` and Python 3.12, builds the task server with the dev profile, and runs:
 
 ```sh
@@ -139,6 +139,6 @@ run that binary from the extracted `tsc` directory with `TSRS_FOURSLASH_SERVER=<
 and every Rust child separately in macOS `/usr/bin/time -l`, summing instructions and taking the maximum RSS;
 its wall times were 64.08 s and 26.10 s. Timing a Python launcher alone does not count child instructions.
 
-The framing checks run with `cargo test -p tsrs_fourslash_server` in the existing CI job. Local lifecycle checks additionally
+The framing checks run with `cargo test -p tsrs_fourslash_server` in the Fourslash CI job. Local lifecycle checks additionally
 repeat hover, cross-project call hierarchy, and auto-import cases 40 times under Go's race detector to cross the
 worker restart boundary, and verify that an immediate child failure is reported and the next case can launch a healthy worker.

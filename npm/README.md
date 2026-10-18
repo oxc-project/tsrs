@@ -164,7 +164,7 @@ Wire contract the server has to speak (from the pinned `tsc/cmd/tsc/api.go`, `ts
 The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
 the BOLT-optimized `fourslash_server` task binary. PGO training uses the same Go harness. The macOS binary gets only the
 smoke tests; `ci.yml` (Linux) gates the source. The broader WebAssembly differential gate (`tools/wasm/gate.sh`) is
-preserved in the disabled `ci.yml.bak`; the release's WebAssembly package checks remain active.
+available locally; the release's WebAssembly package checks remain active.
 
 `workflow_dispatch` runs the same with `pnpm publish --dry-run` by default.
 
@@ -181,12 +181,12 @@ What maintainers must configure before the first release:
 - GNU binaries are built on Ubuntu 22.04, so they need glibc >= 2.35 at most (a build on Debian 12 needed 2.34).
   Musl binaries are statically linked for Alpine/musl.
 
-`.github/workflows/ci.yml` runs on pushes to main, pull requests into main, merge groups and manual dispatch. Its two
+`.github/workflows/ci.yml` runs on pushes to main, pull requests into main, merge groups and manual dispatch. Its three
 Linux jobs run Clippy/source checks and Rust checks/unit tests, build the compiler and conformance runner with the dev
-profile, and run compiler conformance in both checker modes, the Go Fourslash subprocess gate, and regression cases.
+profile, and run compiler conformance in both checker modes and regression cases. Fourslash has its own job with
+the server framing checks, gate checks, and Go subprocess suite.
 
-Only CI, release, security and triage workflows are active. The full CI and other auxiliary workflows are disabled
-as `.github/workflows/*.yml.bak`; their local tools remain available.
+Auxiliary workflows saved as `.github/workflows/*.yml.bak` are disabled; their local tools remain available.
 
 ## Adopting it in a pnpm workspace
 

@@ -75,8 +75,7 @@ clippy cannot express:
   a protected borrow for the whole call (`noalias readonly`), so writing the free-list link into it is undefined
   behaviour; LLVM deleted that write in `panic = "abort"` builds and every such build crashed
   (`notes/fix-arena-recycle-uaf.md`). Take the block as a `P<T>`, an address or a raw slice (`*const [T]`). No
-  baseline. The `arena-safety` job saved in `.github/workflows/ci.yml.bak` adds Miri on the arena tests and conformance on a
-  `panic = "abort"` build for the forms a source check cannot see; that job is disabled for now.
+  baseline. The arena tests in `.github/workflows/miri.yml` use Miri for the forms a source check cannot see.
 
 Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
 
@@ -154,7 +153,7 @@ In place:
 | Lazy members, line maps and rare-field tails | `notes/lazy-members.md`, `notes/mem-lazy.md` | |
 | `#[cold]` slow-path splits | `notes/perf-parse.md` changes 6 to 8: parse instructions 16.66 G -> 15.07 G | oxc, Bun |
 | Instruction counts and peak memory, with regression reporting (automation disabled) | `bench/README.md` "Regression flag": single-threaded tsrs repeats to about 0.001% (instructions) and under 0.4% (peak RSS); the local tools remain available, but the saved `.yml.bak` workflows do not measure commits or comment on PRs | CodSpeed in oxc, Rolldown, Ruff, Biome, swc (simulated counts); Ruff's PR memory report |
-| Generated-code freshness check | `tools/gen-check.sh` (the `generated-code` job is disabled in `.github/workflows/ci.yml.bak`) re-runs the eight generators and fails on a diff; it found two hand edits the generators no longer reproduced | oxc, Ruff, rust-analyzer |
+| Generated-code freshness check | `tools/gen-check.sh` (run locally) re-runs the eight generators and fails on a diff; it found two hand edits the generators no longer reproduced | oxc, Ruff, rust-analyzer |
 | Unused-dependency checks in CI | `.github/workflows/autofix.yml` runs cargo-shear, updates the lock file after fixes, and rejects pending fixes in merge groups | oxc, Rolldown, Ruff, rust-analyzer |
 | Differential parser fuzzing | `tools/fuzz/parser.py` mutates conformance files and compares the AST hashes of the Go and Rust oracles (`tools/oracle/ast`); the nightly 200,000-mutant workflow is disabled as [fuzz.yml.bak](../.github/workflows/fuzz.yml.bak), while the local tool remains available. First 320,000 mutants: no divergence, no crash (inputs kept valid UTF-8; invalid UTF-8 is read lossily on purpose) | Ruff (`cargo fuzz` on its parser) |
 | Frame pointers for profiling | `docs/DEBUGGING.md` "Profiling": a `dist` build with `-C force-frame-pointers=yes` for samply / `perf` on Linux (Apple arm64 always keeps them) | Bun |
@@ -188,7 +187,7 @@ Not tried. Each needs a measurement before it is adopted; none is applied yet:
 | Candidate | Who does it | What it would give | What it needs |
 | --- | --- | --- | --- |
 | Allocation-count snapshot gate | oxc `tasks/track_memory_allocations` (`cargo allocs`, then `git diff --exit-code` in CI), Rolldown | A stray heap allocation on a hot path becomes a diff in a checked-in snapshot. Counts are exact on one thread. | A fixed corpus, one checker, and a new allocation-counting tool. |
-| Miri on all of `tsrs_core` | oxc (strict provenance, allocator and AST crates), rust-analyzer (`intern`), Bun (tree borrows, 17 crates) | Soundness of the handle and region code, where a third of the `unsafe` is. The arena free-list Miri job is preserved, disabled, in `.github/workflows/ci.yml.bak` (`arena-safety`, `notes/fix-arena-recycle-uaf.md`). | Nightly and `--features plain-ptrs` (Miri does not support the compressed handles' `PROT_NONE` reservation). |
+| Miri on all of `tsrs_core` | oxc (strict provenance, allocator and AST crates), rust-analyzer (`intern`), Bun (tree borrows, 17 crates) | Soundness of the handle and region code, where a third of the `unsafe` is. The focused arena free-list checks run in `.github/workflows/miri.yml` (`notes/fix-arena-recycle-uaf.md`). | Nightly and `--features plain-ptrs` (Miri does not support the compressed handles' `PROT_NONE` reservation). |
 | Conformance with `debug-assertions` and `overflow-checks` in an optimized profile | oxc `[profile.coverage]` | Overflow and failed debug assertions that release builds skip. | A profile and a second conformance run. |
 | A symbol order file at link time | Bun (order file from a function-entry trace) | Part of BOLT's gain without a post-link step, on every platform. | A function-entry trace and `-Wl,--symbol-ordering-file` / `-order_file`. |
 | Arena-backed temporaries | oxc (arena `Vec` and `HashMap`), Bun (hashbrown on its arenas through `allocator-api2`, the stable stand-in for the nightly `Allocator` API) | Scratch vectors and maps skip malloc and free. | A scratch allocator whose reset point is provable; scope regions were rejected (above), so per-call scratch is the experiment. |

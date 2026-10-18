@@ -3,7 +3,7 @@
 # it must match the npm version npm/build.mjs derives from Cargo.toml. The conformance and fourslash gates run here on the BOLT-optimized
 # GNU binaries (.github/scripts/bolt.sh). The macOS binary gets only the smoke tests below; nothing runs the suites
 # on macOS (.github/workflows/ci.yml, Linux only, gates the source). The broader WebAssembly differential gate
-# (tools/wasm/gate.sh) is preserved in the disabled ci.yml.bak.
+# (tools/wasm/gate.sh) remains available locally.
 #
 # Setup before the first release:
 #   - npm trusted publishers for `tsrs`, `@tsrs/wasm` and every platform package: GitHub Actions,

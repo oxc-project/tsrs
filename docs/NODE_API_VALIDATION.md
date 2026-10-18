@@ -128,11 +128,11 @@ temp project outside the repo. It then runs the installed binary through CLI pas
 and async API programs on the OS filesystem (diagnostics plus emit with `TSRS_EMIT` unset), and a nodenext
 typecheck of the published declarations that must report exactly one deliberate error.
 
-Full Node API validation is disabled for now. Its jobs are preserved in `.github/workflows/ci.yml.bak` and the
-original standalone `.github/workflows/node-api.yml.bak`; the local tools above remain available.
+Full Node API validation is disabled for now. Its jobs are preserved in the standalone
+`.github/workflows/node-api.yml.bak`; the local tools above remain available.
 The saved `parity` job runs the Go oracle (must pass), then tsrs against the same suites, generates the inventory,
 uploads the results, and fails on any tsrs failure. The saved `package` job builds, packs and runs `consumer.mjs` on
-linux-x64 and linux-arm64; `package-macos` does the same on darwin-arm64. Restore one workflow before using these jobs.
+linux-x64 and linux-arm64; `package-macos` does the same on darwin-arm64. Restore that workflow before using these jobs.
 
 ## Current evidence
 

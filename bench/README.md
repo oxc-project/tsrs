@@ -273,8 +273,9 @@ memory information from the OS and contain nondeterministic timings.
 Compiler environment overrides (`TSRS_*`, except `TSRS_BENCH_PROJECT`) are rejected, including profiling switches
 that could bypass the filesystem interface.
 
-Criterion2 3.0.4 runs five unmeasured warmups and one measured compilation. A four-job CI matrix runs one project
-per job in parallel, setting up and caching only that project's inputs. Each process uses `RAYON_NUM_THREADS=1`
+Criterion2 3.0.4 runs five unmeasured warmups and one measured compilation. CI builds the benchmark suite once
+and shares the compiled artifact with a four-job matrix. Each shard runs one project in parallel, setting up
+and caching only that project's inputs. Each process uses `RAYON_NUM_THREADS=1`
 and the CLI's large stack; process exit reclaims its seven compilations' arenas.
 `TSRS_BENCH_PROJECT` is required because Criterion2's CodSpeed adapter does not implement benchmark filters.
 The target requires the `codspeed` feature: ordinary Criterion calibration would accumulate arena allocations.

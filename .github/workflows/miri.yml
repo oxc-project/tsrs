@@ -12,27 +12,34 @@ jobs:
     name: Miri
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      RUSTUP_TOOLCHAIN: nightly-2026-10-04
+      # Keep the sysroot outside target/, which rust-cache prunes before saving.
+      MIRI_SYSROOT: ${{ runner.temp }}/miri/sysroot
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
-          toolchain: nightly-2026-10-04
-          components: miri, rust-src
+          components: miri rust-src
+          save-cache: ${{ github.ref_name == 'main' }}
+          cache-key: warm-miri
+          target-dir: ${{ runner.temp }}/miri
 
       - name: Arena safety
         env:
           # Thread arenas intentionally retain their chunks until process exit.
           MIRIFLAGS: -Zmiri-ignore-leaks
         run: |
+          cargo miri setup
           # Miri cannot model the compressed pointers' PROT_NONE reservation.
-          cargo +nightly-2026-10-04 miri test --locked -p tsrs_core --features plain-ptrs --lib arena::tests
+          cargo miri test --locked -p tsrs_core --features plain-ptrs --lib arena::tests
           # Require the known protected-borrow violation, not just any command failure.
-          if cargo +nightly-2026-10-04 miri test --locked -p tsrs_core --features plain-ptrs --lib \
-              arena::tests::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > target/miri-negative.log 2>&1; then
-            cat target/miri-negative.log
+          if cargo miri test --locked -p tsrs_core --features plain-ptrs --lib \
+              arena::tests::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > "$RUNNER_TEMP/miri-negative.log" 2>&1; then
+            cat "$RUNNER_TEMP/miri-negative.log"
             echo "::error::Miri accepted a free of a protected reference parameter"
             exit 1
           fi
-          cat target/miri-negative.log
-          grep -q 'error: Undefined Behavior:.*strongly protected' target/miri-negative.log
+          cat "$RUNNER_TEMP/miri-negative.log"
+          grep -q 'error: Undefined Behavior:.*strongly protected' "$RUNNER_TEMP/miri-negative.log"

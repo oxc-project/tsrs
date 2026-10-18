@@ -5,9 +5,12 @@ import argparse
 import json
 import os
 from pathlib import Path
+import selectors
 import subprocess
+import sys
 import tarfile
 import tempfile
+import time
 import tomllib
 
 
@@ -108,6 +111,81 @@ def prepare(reference, work):
     return module, manifest
 
 
+def run_with_progress(command, *, cwd, env):
+    """Render Go JSON events as progress, keeping diagnostics from unsuccessful cases."""
+    started = time.monotonic()
+    running = False
+    counts = dict.fromkeys(("pass", "fail", "skip"), 0)
+    output = {}
+    interactive = sys.stderr.isatty()
+
+    def write(text):
+        if interactive:
+            print("\r\033[K", end="", file=sys.stderr, flush=True)
+        print(text, end="", flush=True)
+
+    def report(*, final=False):
+        elapsed = time.monotonic() - started
+        message = "Building Go suite"
+        if running:
+            completed = sum(counts.values())
+            message = (f"Fourslash: {completed} {'group' if completed == 1 else 'groups'} completed "
+                       f"({counts['pass']} passed, {counts['fail']} failed, {counts['skip']} skipped)")
+        prefix = "\r\033[K" if interactive else ""
+        print(f"{prefix}{message} [{elapsed:.1f}s]",
+              end="\n" if final or not interactive else "", file=sys.stderr, flush=True)
+
+    def consume(line):
+        nonlocal running
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            write(line.decode(errors="replace") + "\n")
+            return
+        action = event.get("Action")
+        name = event.get("Test", "")
+        if action == "start":
+            running = True
+        if "Output" in event:
+            if name:
+                output.setdefault(name.split("/", 1)[0], []).append(event["Output"])
+            else:
+                write(event["Output"])
+        if name and "/" not in name and action in counts:
+            counts[action] += 1
+            lines = output.pop(name, [])
+            if action == "fail":
+                write("".join(lines))
+
+    report()
+    last_report = started
+    pending = b""
+    with subprocess.Popen(command, cwd=cwd, env=env, stdout=subprocess.PIPE) as process, selectors.DefaultSelector() as selector:
+        selector.register(process.stdout, selectors.EVENT_READ)
+        while True:
+            if selector.select(timeout=1):
+                chunk = os.read(process.stdout.fileno(), 65536)
+                if not chunk:
+                    if pending:
+                        consume(pending)
+                    break
+                pending += chunk
+                *lines, pending = pending.split(b"\n")
+                for line in lines:
+                    consume(line)
+            now = time.monotonic()
+            if now - last_report >= (1 if interactive else 5):
+                report()
+                last_report = now
+        returncode = process.wait()
+    if returncode:
+        # A crash may leave cases without a final event; preserve their output too.
+        for lines in output.values():
+            write("".join(lines))
+    report(final=True)
+    return returncode
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference", type=Path, default=ROOT / "ts-ref", help="Git checkout containing the pinned TypeScript commit (read only)")
@@ -117,11 +195,13 @@ def main():
     args = parser.parse_args()
     work = args.work.resolve()
     work.mkdir(parents=True, exist_ok=True)
+    print("Preparing pinned TypeScript source and Go harness...", file=sys.stderr, flush=True)
     module, manifest = prepare(args.reference.resolve(), work)
     env = dict(os.environ, GOTOOLCHAIN="auto", GOWORK="off", GOCACHE=str(work / "go-cache"))
     if args.server:
         server = args.server.resolve()
     else:
+        print("Building Rust Fourslash server...", file=sys.stderr, flush=True)
         env["CARGO_TARGET_DIR"] = str(work / "cargo")
         subprocess.run(["cargo", "build", "--profile", "dev", "-p", "tsrs_fourslash_server"], cwd=ROOT, env=env, check=True)
         server = work / "cargo/debug/fourslash_server"
@@ -131,11 +211,14 @@ def main():
     flags = args.go_args
     if flags[:1] == ["--"]:
         flags = flags[1:]
-    result = subprocess.run(
-        ["go", "test", f"-overlay={manifest}", "./internal/fourslash/tests", "-count=1", "-parallel=4", "-timeout=30m", *flags],
-        cwd=module, env=env,
-    )
-    raise SystemExit(result.returncode)
+    command = ["go", "test", f"-overlay={manifest}", "./internal/fourslash/tests", "-count=1", "-parallel=4", "-timeout=30m"]
+    native_output = any(flag.split("=", 1)[0].lstrip("-") in ("json", "v", "test.v", "list", "c") for flag in flags)
+    if native_output:
+        print("Building and running Go Fourslash suite...", file=sys.stderr, flush=True)
+        returncode = subprocess.run([*command, *flags], cwd=module, env=env).returncode
+    else:
+        returncode = run_with_progress([*command, "-json", *flags], cwd=module, env=env)
+    raise SystemExit(returncode)
 
 
 if __name__ == "__main__":

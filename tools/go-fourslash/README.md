@@ -7,6 +7,7 @@ Requirements: Python 3.12+, Rust, Go (with `GOTOOLCHAIN=auto`), and macOS or Lin
 contain the commit pinned in `Cargo.toml`; `--reference` defaults to `ts-ref`.
 
 ```sh
+python3.12 tools/go-fourslash/run.py
 python3.12 tools/go-fourslash/run.py -- -run '^TestQuickInfoAlias$' -v
 python3.12 tools/go-fourslash/run.py -- -json > target/go-fourslash/results.jsonl
 python3.12 tools/go-fourslash/summarize.py target/go-fourslash/results.jsonl
@@ -16,6 +17,10 @@ Use `--reference /path/to/TypeScript` to read another checkout, `--work /path/to
 or `--server /path/to/fourslash_server` to use a prebuilt server. These options go before `--`; ordinary `go test`
 flags go after it. The default concurrency is four, each test has a two-minute subprocess timeout, and the whole
 suite has a thirty-minute timeout. `-count=1` disables cached results.
+
+The default run shows setup stages, elapsed time, and completed Go groups with pass/fail/skip counts. Progress
+refreshes every second in a terminal, or every five seconds when redirected, and failed cases keep their diagnostic
+output. `-v` keeps Go's verbose output; `-json` keeps its JSON stream on stdout for CI and `summarize.py`.
 
 The runner extracts the pinned commit into `target/go-fourslash/reference`, then uses a Go build overlay to adapt
 four harness files and add `subprocess.go`, `worker.go`, and `remotestate.go`. It never patches the source checkout, test bodies,

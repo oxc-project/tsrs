@@ -10,14 +10,16 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_core::CompilerOptions;
+use tsrs_core::P;
 use tsrs_core::collections::{OrderedMap, Set};
 use tsrs_core::context::{self, CancelCauseFunc, CancelFunc, Context, ContextError, Locale};
-use tsrs_lsproto as lsproto;
-use tsrs_lsproto::jsonrpc::{self, MessageKind, ID};
-use tsrs_lsproto::{Error, ErrorCode, ErrorTag, Json, Message, Method, RequestMessage, ResponseMessage};
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::P;
-use tsrs_ls::{lsutil, LanguageService};
+use tsrs_ls::{LanguageService, lsutil};
+use tsrs_lsproto as lsproto;
+use tsrs_lsproto::jsonrpc::{self, ID, MessageKind};
+use tsrs_lsproto::{
+    Error, ErrorCode, ErrorTag, Json, Message, Method, RequestMessage, ResponseMessage,
+};
 use tsrs_project as project;
 use tsrs_project::logging;
 use tsrs_vfs::FS;
@@ -97,7 +99,10 @@ pub fn new_server(opts: ServerOptions) -> Arc<Server> {
 fn file_rename_filters() -> Vec<lsproto::FileOperationFilter> {
     vec![lsproto::FileOperationFilter {
         scheme: Some("file".to_string()),
-        pattern: lsproto::FileOperationPattern { glob: "**/*.{ts,tsx,js,jsx,cts,cjs,mts,mjs,json}".to_string(), ..Default::default() },
+        pattern: lsproto::FileOperationPattern {
+            glob: "**/*.{ts,tsx,js,jsx,cts,cjs,mts,mjs,json}".to_string(),
+            ..Default::default()
+        },
     }]
 }
 
@@ -130,7 +135,10 @@ struct lspWriter<W: Write> {
 const MESSAGE_MARSHAL_ERROR: ErrorTag = ErrorTag::Sentinel("messageMarshalError");
 
 fn message_marshal_error(err: &str) -> Error {
-    Error { message: format!("failed to marshal message: {err}"), tags: vec![MESSAGE_MARSHAL_ERROR, ErrorTag::Code(ErrorCode::InternalError)] }
+    Error {
+        message: format!("failed to marshal message: {err}"),
+        tags: vec![MESSAGE_MARSHAL_ERROR, ErrorTag::Code(ErrorCode::InternalError)],
+    }
 }
 
 impl<R: Read + Send> Reader for lspReader<R> {
@@ -306,16 +314,23 @@ impl responseChan {
         // Waits for the client, without holding a run slot (`runslots`).
         let mut state = tsrs_core::runslots::blocking(|| {
             let guard = self.inner.0.lock().unwrap();
-            wait_until(ctx, &self.inner.1, guard, |s| s.value.is_some() || s.closed, move || {
-                drop(inner.0.lock().unwrap());
-                inner.1.notify_all();
-            })
+            wait_until(
+                ctx,
+                &self.inner.1,
+                guard,
+                |s| s.value.is_some() || s.closed,
+                move || {
+                    drop(inner.0.lock().unwrap());
+                    inner.1.notify_all();
+                },
+            )
         })?;
         Ok(state.value.take())
     }
 }
 
-static DEFAULT_CLIENT_CAPABILITIES: LazyLock<Arc<lsproto::ResolvedClientCapabilities>> = LazyLock::new(|| Arc::new(lsproto::ResolvedClientCapabilities::default()));
+static DEFAULT_CLIENT_CAPABILITIES: LazyLock<Arc<lsproto::ResolvedClientCapabilities>> =
+    LazyLock::new(|| Arc::new(lsproto::ResolvedClientCapabilities::default()));
 
 pub(crate) type asyncWork = Box<dyn FnOnce() -> Result<(), Error> + Send>;
 
@@ -340,7 +355,10 @@ impl Server {
     }
 
     fn client_capabilities_arc(&self) -> Arc<lsproto::ResolvedClientCapabilities> {
-        self.client_capabilities.get().cloned().unwrap_or_else(|| DEFAULT_CLIENT_CAPABILITIES.clone())
+        self.client_capabilities
+            .get()
+            .cloned()
+            .unwrap_or_else(|| DEFAULT_CLIENT_CAPABILITIES.clone())
     }
 
     fn initialization_options(&self) -> &lsproto::InitializationOptions {
@@ -380,7 +398,12 @@ impl Server {
 
     // server.go:263
     // WatchFiles implements project.Client.
-    pub fn watch_files(&self, ctx: &Context, id: &str, watchers: Vec<lsproto::FileSystemWatcher>) -> Result<(), Error> {
+    pub fn watch_files(
+        &self,
+        ctx: &Context,
+        id: &str,
+        watchers: Vec<lsproto::FileSystemWatcher>,
+    ) -> Result<(), Error> {
         if let Some(builtin_watcher) = self.builtin_watcher.get() {
             if let Err(err) = builtin_watcher.watch_files(id, &watchers) {
                 return Err(Error::new(format!("failed to register file watcher: {err}")));
@@ -395,7 +418,9 @@ impl Server {
                 registrations: vec![lsproto::Registration {
                     id: id.to_string(),
                     register_options: Some(lsproto::RegisterOptions {
-                        workspace_did_change_watched_files: Some(lsproto::DidChangeWatchedFilesRegistrationOptions { watchers }),
+                        workspace_did_change_watched_files: Some(
+                            lsproto::DidChangeWatchedFilesRegistrationOptions { watchers },
+                        ),
                         ..Default::default()
                     }),
                 }],
@@ -428,7 +453,10 @@ impl Server {
                 ctx,
                 lsproto::CLIENT_UNREGISTER_CAPABILITY_INFO,
                 lsproto::UnregistrationParams {
-                    unregisterations: vec![lsproto::Unregistration { id: id.to_string(), method: Method::WorkspaceDidChangeWatchedFiles.0.to_string() }],
+                    unregisterations: vec![lsproto::Unregistration {
+                        id: id.to_string(),
+                        method: Method::WorkspaceDidChangeWatchedFiles.0.to_string(),
+                    }],
                 },
             );
             if let Err(err) = result {
@@ -446,32 +474,77 @@ impl Server {
     fn supports_content_mapper_registration(&self, id: &str) -> bool {
         let caps = self.client_capabilities();
         match id {
-            CONTENT_MAPPER_DID_OPEN_REGISTRATION_ID | CONTENT_MAPPER_DID_CHANGE_REGISTRATION_ID | CONTENT_MAPPER_DID_CLOSE_REGISTRATION_ID => {
+            CONTENT_MAPPER_DID_OPEN_REGISTRATION_ID
+            | CONTENT_MAPPER_DID_CHANGE_REGISTRATION_ID
+            | CONTENT_MAPPER_DID_CLOSE_REGISTRATION_ID => {
                 caps.text_document.synchronization.dynamic_registration
             }
-            CONTENT_MAPPER_DIAGNOSTIC_REGISTRATION_ID => caps.text_document.diagnostic.dynamic_registration,
+            CONTENT_MAPPER_DIAGNOSTIC_REGISTRATION_ID => {
+                caps.text_document.diagnostic.dynamic_registration
+            }
             CONTENT_MAPPER_HOVER_REGISTRATION_ID => caps.text_document.hover.dynamic_registration,
-            CONTENT_MAPPER_SIGNATURE_HELP_REGISTRATION_ID => caps.text_document.signature_help.dynamic_registration,
-            CONTENT_MAPPER_DEFINITION_REGISTRATION_ID => caps.text_document.definition.dynamic_registration,
-            CONTENT_MAPPER_TYPE_DEFINITION_REGISTRATION_ID => caps.text_document.type_definition.dynamic_registration,
-            CONTENT_MAPPER_IMPLEMENTATION_REGISTRATION_ID => caps.text_document.implementation.dynamic_registration,
-            CONTENT_MAPPER_REFERENCES_REGISTRATION_ID => caps.text_document.references.dynamic_registration,
-            CONTENT_MAPPER_DOCUMENT_HIGHLIGHT_REGISTRATION_ID => caps.text_document.document_highlight.dynamic_registration,
-            CONTENT_MAPPER_COMPLETION_REGISTRATION_ID => caps.text_document.completion.dynamic_registration,
+            CONTENT_MAPPER_SIGNATURE_HELP_REGISTRATION_ID => {
+                caps.text_document.signature_help.dynamic_registration
+            }
+            CONTENT_MAPPER_DEFINITION_REGISTRATION_ID => {
+                caps.text_document.definition.dynamic_registration
+            }
+            CONTENT_MAPPER_TYPE_DEFINITION_REGISTRATION_ID => {
+                caps.text_document.type_definition.dynamic_registration
+            }
+            CONTENT_MAPPER_IMPLEMENTATION_REGISTRATION_ID => {
+                caps.text_document.implementation.dynamic_registration
+            }
+            CONTENT_MAPPER_REFERENCES_REGISTRATION_ID => {
+                caps.text_document.references.dynamic_registration
+            }
+            CONTENT_MAPPER_DOCUMENT_HIGHLIGHT_REGISTRATION_ID => {
+                caps.text_document.document_highlight.dynamic_registration
+            }
+            CONTENT_MAPPER_COMPLETION_REGISTRATION_ID => {
+                caps.text_document.completion.dynamic_registration
+            }
             CONTENT_MAPPER_RENAME_REGISTRATION_ID => caps.text_document.rename.dynamic_registration,
-            CONTENT_MAPPER_SEMANTIC_TOKENS_REGISTRATION_ID => caps.text_document.semantic_tokens.dynamic_registration,
-            CONTENT_MAPPER_DOCUMENT_SYMBOL_REGISTRATION_ID => caps.text_document.document_symbol.dynamic_registration,
-            CONTENT_MAPPER_FOLDING_RANGE_REGISTRATION_ID => caps.text_document.folding_range.dynamic_registration,
-            CONTENT_MAPPER_SELECTION_RANGE_REGISTRATION_ID => caps.text_document.selection_range.dynamic_registration,
-            CONTENT_MAPPER_INLAY_HINT_REGISTRATION_ID => caps.text_document.inlay_hint.dynamic_registration,
-            CONTENT_MAPPER_CODE_LENS_REGISTRATION_ID => caps.text_document.code_lens.dynamic_registration,
-            CONTENT_MAPPER_CODE_ACTION_REGISTRATION_ID => caps.text_document.code_action.dynamic_registration,
-            CONTENT_MAPPER_FORMATTING_REGISTRATION_ID => caps.text_document.formatting.dynamic_registration,
-            CONTENT_MAPPER_RANGE_FORMATTING_REGISTRATION_ID => caps.text_document.range_formatting.dynamic_registration,
-            CONTENT_MAPPER_ON_TYPE_FORMATTING_REGISTRATION_ID => caps.text_document.on_type_formatting.dynamic_registration,
-            CONTENT_MAPPER_LINKED_EDITING_REGISTRATION_ID => caps.text_document.linked_editing_range.dynamic_registration,
-            CONTENT_MAPPER_CALL_HIERARCHY_REGISTRATION_ID => caps.text_document.call_hierarchy.dynamic_registration,
-            CONTENT_MAPPER_WILL_RENAME_FILES_REGISTRATION_ID => caps.workspace.file_operations.dynamic_registration && caps.workspace.file_operations.will_rename,
+            CONTENT_MAPPER_SEMANTIC_TOKENS_REGISTRATION_ID => {
+                caps.text_document.semantic_tokens.dynamic_registration
+            }
+            CONTENT_MAPPER_DOCUMENT_SYMBOL_REGISTRATION_ID => {
+                caps.text_document.document_symbol.dynamic_registration
+            }
+            CONTENT_MAPPER_FOLDING_RANGE_REGISTRATION_ID => {
+                caps.text_document.folding_range.dynamic_registration
+            }
+            CONTENT_MAPPER_SELECTION_RANGE_REGISTRATION_ID => {
+                caps.text_document.selection_range.dynamic_registration
+            }
+            CONTENT_MAPPER_INLAY_HINT_REGISTRATION_ID => {
+                caps.text_document.inlay_hint.dynamic_registration
+            }
+            CONTENT_MAPPER_CODE_LENS_REGISTRATION_ID => {
+                caps.text_document.code_lens.dynamic_registration
+            }
+            CONTENT_MAPPER_CODE_ACTION_REGISTRATION_ID => {
+                caps.text_document.code_action.dynamic_registration
+            }
+            CONTENT_MAPPER_FORMATTING_REGISTRATION_ID => {
+                caps.text_document.formatting.dynamic_registration
+            }
+            CONTENT_MAPPER_RANGE_FORMATTING_REGISTRATION_ID => {
+                caps.text_document.range_formatting.dynamic_registration
+            }
+            CONTENT_MAPPER_ON_TYPE_FORMATTING_REGISTRATION_ID => {
+                caps.text_document.on_type_formatting.dynamic_registration
+            }
+            CONTENT_MAPPER_LINKED_EDITING_REGISTRATION_ID => {
+                caps.text_document.linked_editing_range.dynamic_registration
+            }
+            CONTENT_MAPPER_CALL_HIERARCHY_REGISTRATION_ID => {
+                caps.text_document.call_hierarchy.dynamic_registration
+            }
+            CONTENT_MAPPER_WILL_RENAME_FILES_REGISTRATION_ID => {
+                caps.workspace.file_operations.dynamic_registration
+                    && caps.workspace.file_operations.will_rename
+            }
             _ => false,
         }
     }
@@ -481,48 +554,134 @@ impl Server {
     // synchronization and pull diagnostics for the given otherwise unsupported file extensions so the editor forwards their
     // open/change/close notifications to the server and requests diagnostics for them. It is called with the
     // full desired set each time it changes; an empty slice removes any prior registration.
-    pub fn register_content_mapper_extensions(&self, ctx: &Context, extensions: &[String]) -> Result<(), Error> {
+    pub fn register_content_mapper_extensions(
+        &self,
+        ctx: &Context,
+        extensions: &[String],
+    ) -> Result<(), Error> {
         if !self.client_capabilities().text_document.synchronization.dynamic_registration {
             return Ok(());
         }
 
-        let mut content_mapper_extensions_registered = self.content_mapper_registration_mu.lock().unwrap();
+        let mut content_mapper_extensions_registered =
+            self.content_mapper_registration_mu.lock().unwrap();
 
         if *content_mapper_extensions_registered {
-            let unregistration = |id: &str, method: Method| lsproto::Unregistration { id: id.to_string(), method: method.0.to_string() };
+            let unregistration = |id: &str, method: Method| lsproto::Unregistration {
+                id: id.to_string(),
+                method: method.0.to_string(),
+            };
             let mut unregistrations = vec![
-                unregistration(CONTENT_MAPPER_DID_OPEN_REGISTRATION_ID, Method::TextDocumentDidOpen),
-                unregistration(CONTENT_MAPPER_DID_CHANGE_REGISTRATION_ID, Method::TextDocumentDidChange),
-                unregistration(CONTENT_MAPPER_DID_CLOSE_REGISTRATION_ID, Method::TextDocumentDidClose),
-                unregistration(CONTENT_MAPPER_DIAGNOSTIC_REGISTRATION_ID, Method::TextDocumentDiagnostic),
+                unregistration(
+                    CONTENT_MAPPER_DID_OPEN_REGISTRATION_ID,
+                    Method::TextDocumentDidOpen,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_DID_CHANGE_REGISTRATION_ID,
+                    Method::TextDocumentDidChange,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_DID_CLOSE_REGISTRATION_ID,
+                    Method::TextDocumentDidClose,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_DIAGNOSTIC_REGISTRATION_ID,
+                    Method::TextDocumentDiagnostic,
+                ),
                 unregistration(CONTENT_MAPPER_HOVER_REGISTRATION_ID, Method::TextDocumentHover),
-                unregistration(CONTENT_MAPPER_SIGNATURE_HELP_REGISTRATION_ID, Method::TextDocumentSignatureHelp),
-                unregistration(CONTENT_MAPPER_DEFINITION_REGISTRATION_ID, Method::TextDocumentDefinition),
-                unregistration(CONTENT_MAPPER_TYPE_DEFINITION_REGISTRATION_ID, Method::TextDocumentTypeDefinition),
-                unregistration(CONTENT_MAPPER_IMPLEMENTATION_REGISTRATION_ID, Method::TextDocumentImplementation),
-                unregistration(CONTENT_MAPPER_REFERENCES_REGISTRATION_ID, Method::TextDocumentReferences),
-                unregistration(CONTENT_MAPPER_DOCUMENT_HIGHLIGHT_REGISTRATION_ID, Method::TextDocumentDocumentHighlight),
-                unregistration(CONTENT_MAPPER_COMPLETION_REGISTRATION_ID, Method::TextDocumentCompletion),
+                unregistration(
+                    CONTENT_MAPPER_SIGNATURE_HELP_REGISTRATION_ID,
+                    Method::TextDocumentSignatureHelp,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_DEFINITION_REGISTRATION_ID,
+                    Method::TextDocumentDefinition,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_TYPE_DEFINITION_REGISTRATION_ID,
+                    Method::TextDocumentTypeDefinition,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_IMPLEMENTATION_REGISTRATION_ID,
+                    Method::TextDocumentImplementation,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_REFERENCES_REGISTRATION_ID,
+                    Method::TextDocumentReferences,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_DOCUMENT_HIGHLIGHT_REGISTRATION_ID,
+                    Method::TextDocumentDocumentHighlight,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_COMPLETION_REGISTRATION_ID,
+                    Method::TextDocumentCompletion,
+                ),
                 unregistration(CONTENT_MAPPER_RENAME_REGISTRATION_ID, Method::TextDocumentRename),
-                unregistration(CONTENT_MAPPER_SEMANTIC_TOKENS_REGISTRATION_ID, Method::TextDocumentSemanticTokens),
-                unregistration(CONTENT_MAPPER_DOCUMENT_SYMBOL_REGISTRATION_ID, Method::TextDocumentDocumentSymbol),
-                unregistration(CONTENT_MAPPER_FOLDING_RANGE_REGISTRATION_ID, Method::TextDocumentFoldingRange),
-                unregistration(CONTENT_MAPPER_SELECTION_RANGE_REGISTRATION_ID, Method::TextDocumentSelectionRange),
-                unregistration(CONTENT_MAPPER_INLAY_HINT_REGISTRATION_ID, Method::TextDocumentInlayHint),
-                unregistration(CONTENT_MAPPER_CODE_LENS_REGISTRATION_ID, Method::TextDocumentCodeLens),
-                unregistration(CONTENT_MAPPER_CODE_ACTION_REGISTRATION_ID, Method::TextDocumentCodeAction),
-                unregistration(CONTENT_MAPPER_FORMATTING_REGISTRATION_ID, Method::TextDocumentFormatting),
-                unregistration(CONTENT_MAPPER_RANGE_FORMATTING_REGISTRATION_ID, Method::TextDocumentRangeFormatting),
-                unregistration(CONTENT_MAPPER_ON_TYPE_FORMATTING_REGISTRATION_ID, Method::TextDocumentOnTypeFormatting),
-                unregistration(CONTENT_MAPPER_LINKED_EDITING_REGISTRATION_ID, Method::TextDocumentLinkedEditingRange),
-                unregistration(CONTENT_MAPPER_CALL_HIERARCHY_REGISTRATION_ID, Method::TextDocumentPrepareCallHierarchy),
-                unregistration(CONTENT_MAPPER_WILL_RENAME_FILES_REGISTRATION_ID, Method::WorkspaceWillRenameFiles),
+                unregistration(
+                    CONTENT_MAPPER_SEMANTIC_TOKENS_REGISTRATION_ID,
+                    Method::TextDocumentSemanticTokens,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_DOCUMENT_SYMBOL_REGISTRATION_ID,
+                    Method::TextDocumentDocumentSymbol,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_FOLDING_RANGE_REGISTRATION_ID,
+                    Method::TextDocumentFoldingRange,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_SELECTION_RANGE_REGISTRATION_ID,
+                    Method::TextDocumentSelectionRange,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_INLAY_HINT_REGISTRATION_ID,
+                    Method::TextDocumentInlayHint,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_CODE_LENS_REGISTRATION_ID,
+                    Method::TextDocumentCodeLens,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_CODE_ACTION_REGISTRATION_ID,
+                    Method::TextDocumentCodeAction,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_FORMATTING_REGISTRATION_ID,
+                    Method::TextDocumentFormatting,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_RANGE_FORMATTING_REGISTRATION_ID,
+                    Method::TextDocumentRangeFormatting,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_ON_TYPE_FORMATTING_REGISTRATION_ID,
+                    Method::TextDocumentOnTypeFormatting,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_LINKED_EDITING_REGISTRATION_ID,
+                    Method::TextDocumentLinkedEditingRange,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_CALL_HIERARCHY_REGISTRATION_ID,
+                    Method::TextDocumentPrepareCallHierarchy,
+                ),
+                unregistration(
+                    CONTENT_MAPPER_WILL_RENAME_FILES_REGISTRATION_ID,
+                    Method::WorkspaceWillRenameFiles,
+                ),
             ];
-            unregistrations.retain(|registration| self.supports_content_mapper_registration(&registration.id));
-            if let Err(err) =
-                self.send_client_request(ctx, lsproto::CLIENT_UNREGISTER_CAPABILITY_INFO, lsproto::UnregistrationParams { unregisterations: unregistrations })
-            {
-                return Err(Error::wrap("failed to unregister content mapper text document sync: ", err));
+            unregistrations
+                .retain(|registration| self.supports_content_mapper_registration(&registration.id));
+            if let Err(err) = self.send_client_request(
+                ctx,
+                lsproto::CLIENT_UNREGISTER_CAPABILITY_INFO,
+                lsproto::UnregistrationParams { unregisterations: unregistrations },
+            ) {
+                return Err(Error::wrap(
+                    "failed to unregister content mapper text document sync: ",
+                    err,
+                ));
             }
             *content_mapper_extensions_registered = false;
         }
@@ -532,46 +691,61 @@ impl Server {
         }
 
         let mut filters = Vec::with_capacity(extensions.len());
-        filters.extend(extensions.iter().map(|ext| lsproto::TextDocumentFilterLanguageOrSchemeOrPattern {
-            pattern: Some(lsproto::TextDocumentFilterPattern {
-                pattern: lsproto::PatternOrRelativePattern { pattern: Some(format!("**/*{ext}")), ..Default::default() },
+        filters.extend(extensions.iter().map(|ext| {
+            lsproto::TextDocumentFilterLanguageOrSchemeOrPattern {
+                pattern: Some(lsproto::TextDocumentFilterPattern {
+                    pattern: lsproto::PatternOrRelativePattern {
+                        pattern: Some(format!("**/*{ext}")),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }),
                 ..Default::default()
-            }),
-            ..Default::default()
+            }
         }));
         let selector = lsproto::DocumentSelectorOrNull { document_selector: Some(filters) };
         let mut content_mapper_file_rename_filters = Vec::with_capacity(extensions.len());
-        content_mapper_file_rename_filters.extend(extensions.iter().map(|extension| lsproto::FileOperationFilter {
-            scheme: Some("file".to_string()),
-            pattern: lsproto::FileOperationPattern { glob: format!("**/*{extension}"), ..Default::default() },
+        content_mapper_file_rename_filters.extend(extensions.iter().map(|extension| {
+            lsproto::FileOperationFilter {
+                scheme: Some("file".to_string()),
+                pattern: lsproto::FileOperationPattern {
+                    glob: format!("**/*{extension}"),
+                    ..Default::default()
+                },
+            }
         }));
 
-        let registration = |id: &str, register_options: lsproto::RegisterOptions| lsproto::Registration {
-            id: id.to_string(),
-            register_options: Some(register_options),
+        let registration = |id: &str, register_options: lsproto::RegisterOptions| {
+            lsproto::Registration { id: id.to_string(), register_options: Some(register_options) }
         };
         let mut registrations = vec![
             registration(
                 CONTENT_MAPPER_DID_OPEN_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_did_open: Some(lsproto::TextDocumentRegistrationOptions { document_selector: selector.clone() }),
+                    text_document_did_open: Some(lsproto::TextDocumentRegistrationOptions {
+                        document_selector: selector.clone(),
+                    }),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_DID_CHANGE_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_did_change: Some(lsproto::TextDocumentChangeRegistrationOptions {
-                        document_selector: selector.clone(),
-                        sync_kind: lsproto::TextDocumentSyncKind::Incremental,
-                    }),
+                    text_document_did_change: Some(
+                        lsproto::TextDocumentChangeRegistrationOptions {
+                            document_selector: selector.clone(),
+                            sync_kind: lsproto::TextDocumentSyncKind::Incremental,
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_DID_CLOSE_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_did_close: Some(lsproto::TextDocumentRegistrationOptions { document_selector: selector.clone() }),
+                    text_document_did_close: Some(lsproto::TextDocumentRegistrationOptions {
+                        document_selector: selector.clone(),
+                    }),
                     ..Default::default()
                 },
             ),
@@ -590,7 +764,10 @@ impl Server {
             registration(
                 CONTENT_MAPPER_HOVER_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_hover: Some(lsproto::HoverRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_hover: Some(lsproto::HoverRegistrationOptions {
+                        document_selector: selector.clone(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ),
@@ -599,8 +776,12 @@ impl Server {
                 lsproto::RegisterOptions {
                     text_document_signature_help: Some(lsproto::SignatureHelpRegistrationOptions {
                         document_selector: selector.clone(),
-                        trigger_characters: Some(lsconsts::strings(&lsconsts::SIGNATURE_HELP_TRIGGER_CHARACTERS)),
-                        retrigger_characters: Some(lsconsts::strings(&lsconsts::SIGNATURE_HELP_RETRIGGER_CHARACTERS)),
+                        trigger_characters: Some(lsconsts::strings(
+                            &lsconsts::SIGNATURE_HELP_TRIGGER_CHARACTERS,
+                        )),
+                        retrigger_characters: Some(lsconsts::strings(
+                            &lsconsts::SIGNATURE_HELP_RETRIGGER_CHARACTERS,
+                        )),
                         ..Default::default()
                     }),
                     ..Default::default()
@@ -609,35 +790,56 @@ impl Server {
             registration(
                 CONTENT_MAPPER_DEFINITION_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_definition: Some(lsproto::DefinitionRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_definition: Some(lsproto::DefinitionRegistrationOptions {
+                        document_selector: selector.clone(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_TYPE_DEFINITION_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_type_definition: Some(lsproto::TypeDefinitionRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_type_definition: Some(
+                        lsproto::TypeDefinitionRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_IMPLEMENTATION_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_implementation: Some(lsproto::ImplementationRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_implementation: Some(
+                        lsproto::ImplementationRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_REFERENCES_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_references: Some(lsproto::ReferenceRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_references: Some(lsproto::ReferenceRegistrationOptions {
+                        document_selector: selector.clone(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_DOCUMENT_HIGHLIGHT_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_document_highlight: Some(lsproto::DocumentHighlightRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_document_highlight: Some(
+                        lsproto::DocumentHighlightRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
@@ -646,9 +848,13 @@ impl Server {
                 lsproto::RegisterOptions {
                     text_document_completion: Some(lsproto::CompletionRegistrationOptions {
                         document_selector: selector.clone(),
-                        trigger_characters: Some(lsconsts::strings(&lsconsts::COMPLETION_TRIGGER_CHARACTERS)),
+                        trigger_characters: Some(lsconsts::strings(
+                            &lsconsts::COMPLETION_TRIGGER_CHARACTERS,
+                        )),
                         resolve_provider: Some(true),
-                        completion_item: Some(lsproto::ServerCompletionItemOptions { label_details_support: Some(true) }),
+                        completion_item: Some(lsproto::ServerCompletionItemOptions {
+                            label_details_support: Some(true),
+                        }),
                         ..Default::default()
                     }),
                     ..Default::default()
@@ -657,48 +863,78 @@ impl Server {
             registration(
                 CONTENT_MAPPER_RENAME_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_rename: Some(lsproto::RenameRegistrationOptions { document_selector: selector.clone(), prepare_provider: Some(true), ..Default::default() }),
-                    ..Default::default()
-                },
-            ),
-            registration(
-                CONTENT_MAPPER_SEMANTIC_TOKENS_REGISTRATION_ID,
-                lsproto::RegisterOptions {
-                    text_document_semantic_tokens: Some(lsproto::SemanticTokensRegistrationOptions {
+                    text_document_rename: Some(lsproto::RenameRegistrationOptions {
                         document_selector: selector.clone(),
-                        legend: tsrs_ls::semantic_tokens_legend(&self.client_capabilities().text_document.semantic_tokens),
-                        full: Some(lsproto::BooleanOrSemanticTokensFullDelta { boolean: Some(true), ..Default::default() }),
-                        range: Some(lsproto::BooleanOrEmptyObject { boolean: Some(true), ..Default::default() }),
+                        prepare_provider: Some(true),
                         ..Default::default()
                     }),
                     ..Default::default()
                 },
             ),
             registration(
+                CONTENT_MAPPER_SEMANTIC_TOKENS_REGISTRATION_ID,
+                lsproto::RegisterOptions {
+                    text_document_semantic_tokens: Some(
+                        lsproto::SemanticTokensRegistrationOptions {
+                            document_selector: selector.clone(),
+                            legend: tsrs_ls::semantic_tokens_legend(
+                                &self.client_capabilities().text_document.semantic_tokens,
+                            ),
+                            full: Some(lsproto::BooleanOrSemanticTokensFullDelta {
+                                boolean: Some(true),
+                                ..Default::default()
+                            }),
+                            range: Some(lsproto::BooleanOrEmptyObject {
+                                boolean: Some(true),
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                },
+            ),
+            registration(
                 CONTENT_MAPPER_DOCUMENT_SYMBOL_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_document_symbol: Some(lsproto::DocumentSymbolRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_document_symbol: Some(
+                        lsproto::DocumentSymbolRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_FOLDING_RANGE_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_folding_range: Some(lsproto::FoldingRangeRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_folding_range: Some(lsproto::FoldingRangeRegistrationOptions {
+                        document_selector: selector.clone(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_SELECTION_RANGE_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_selection_range: Some(lsproto::SelectionRangeRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_selection_range: Some(
+                        lsproto::SelectionRangeRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_INLAY_HINT_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_inlay_hint: Some(lsproto::InlayHintRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_inlay_hint: Some(lsproto::InlayHintRegistrationOptions {
+                        document_selector: selector.clone(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ),
@@ -727,58 +963,85 @@ impl Server {
             registration(
                 CONTENT_MAPPER_FORMATTING_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_formatting: Some(lsproto::DocumentFormattingRegistrationOptions { document_selector: selector.clone(), ..Default::default() }),
+                    text_document_formatting: Some(
+                        lsproto::DocumentFormattingRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_RANGE_FORMATTING_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_range_formatting: Some(lsproto::DocumentRangeFormattingRegistrationOptions {
-                        document_selector: selector.clone(),
-                        ..Default::default()
-                    }),
+                    text_document_range_formatting: Some(
+                        lsproto::DocumentRangeFormattingRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_ON_TYPE_FORMATTING_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_on_type_formatting: Some(lsproto::DocumentOnTypeFormattingRegistrationOptions {
-                        document_selector: selector.clone(),
-                        first_trigger_character: "{".to_string(),
-                        more_trigger_character: Some(vec!["}".to_string(), ";".to_string(), "\n".to_string()]),
-                    }),
+                    text_document_on_type_formatting: Some(
+                        lsproto::DocumentOnTypeFormattingRegistrationOptions {
+                            document_selector: selector.clone(),
+                            first_trigger_character: "{".to_string(),
+                            more_trigger_character: Some(vec![
+                                "}".to_string(),
+                                ";".to_string(),
+                                "\n".to_string(),
+                            ]),
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_LINKED_EDITING_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_linked_editing_range: Some(lsproto::LinkedEditingRangeRegistrationOptions {
-                        document_selector: selector.clone(),
-                        ..Default::default()
-                    }),
+                    text_document_linked_editing_range: Some(
+                        lsproto::LinkedEditingRangeRegistrationOptions {
+                            document_selector: selector.clone(),
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_CALL_HIERARCHY_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    text_document_prepare_call_hierarchy: Some(lsproto::CallHierarchyRegistrationOptions { document_selector: selector, ..Default::default() }),
+                    text_document_prepare_call_hierarchy: Some(
+                        lsproto::CallHierarchyRegistrationOptions {
+                            document_selector: selector,
+                            ..Default::default()
+                        },
+                    ),
                     ..Default::default()
                 },
             ),
             registration(
                 CONTENT_MAPPER_WILL_RENAME_FILES_REGISTRATION_ID,
                 lsproto::RegisterOptions {
-                    workspace_will_rename_files: Some(lsproto::FileOperationRegistrationOptions { filters: content_mapper_file_rename_filters }),
+                    workspace_will_rename_files: Some(lsproto::FileOperationRegistrationOptions {
+                        filters: content_mapper_file_rename_filters,
+                    }),
                     ..Default::default()
                 },
             ),
         ];
-        registrations.retain(|registration| self.supports_content_mapper_registration(&registration.id));
-        if let Err(err) = self.send_client_request(ctx, lsproto::CLIENT_REGISTER_CAPABILITY_INFO, lsproto::RegistrationParams { registrations }) {
+        registrations
+            .retain(|registration| self.supports_content_mapper_registration(&registration.id));
+        if let Err(err) = self.send_client_request(
+            ctx,
+            lsproto::CLIENT_REGISTER_CAPABILITY_INFO,
+            lsproto::RegistrationParams { registrations },
+        ) {
             return Err(Error::wrap("failed to register content mapper text document sync: ", err));
         }
 
@@ -800,7 +1063,10 @@ impl Server {
         // Fire-and-forget: the client always returns null, and waiting for the response
         // can cause the server to hang if the client is slow or unresponsive.
         // Any response from the client will be silently ignored by the read loop.
-        if let Err(err) = self.send_client_request_fire_and_forget(lsproto::WORKSPACE_DIAGNOSTIC_REFRESH_INFO, lsproto::NoParams) {
+        if let Err(err) = self.send_client_request_fire_and_forget(
+            lsproto::WORKSPACE_DIAGNOSTIC_REFRESH_INFO,
+            lsproto::NoParams,
+        ) {
             return Err(Error::wrap("failed to refresh diagnostics: ", err));
         }
 
@@ -809,14 +1075,25 @@ impl Server {
 
     // server.go:725
     // PublishDiagnostics implements project.Client.
-    pub fn publish_diagnostics(&self, _ctx: &Context, params: lsproto::PublishDiagnosticsParams) -> Result<(), Error> {
+    pub fn publish_diagnostics(
+        &self,
+        _ctx: &Context,
+        params: lsproto::PublishDiagnosticsParams,
+    ) -> Result<(), Error> {
         self.send_notification(lsproto::TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS_INFO, params)
     }
 
     // server.go:730
     // SendTelemetry implements project.Client.
-    pub fn send_telemetry(&self, _ctx: &Context, telemetry: lsproto::TelemetryEvent) -> Result<(), Error> {
-        assert!(self.telemetry_enabled.load(Ordering::SeqCst), "SendTelemetry called with telemetry disabled");
+    pub fn send_telemetry(
+        &self,
+        _ctx: &Context,
+        telemetry: lsproto::TelemetryEvent,
+    ) -> Result<(), Error> {
+        assert!(
+            self.telemetry_enabled.load(Ordering::SeqCst),
+            "SendTelemetry called with telemetry disabled"
+        );
         self.send_notification(lsproto::TELEMETRY_EVENT_INFO, telemetry)
     }
 
@@ -833,7 +1110,10 @@ impl Server {
             return Ok(());
         }
 
-        if let Err(err) = self.send_client_request_fire_and_forget(lsproto::WORKSPACE_INLAY_HINT_REFRESH_INFO, lsproto::NoParams) {
+        if let Err(err) = self.send_client_request_fire_and_forget(
+            lsproto::WORKSPACE_INLAY_HINT_REFRESH_INFO,
+            lsproto::NoParams,
+        ) {
             return Err(Error::wrap("failed to refresh inlay hints: ", err));
         }
         Ok(())
@@ -845,7 +1125,10 @@ impl Server {
             return Ok(());
         }
 
-        if let Err(err) = self.send_client_request_fire_and_forget(lsproto::WORKSPACE_CODE_LENS_REFRESH_INFO, lsproto::NoParams) {
+        if let Err(err) = self.send_client_request_fire_and_forget(
+            lsproto::WORKSPACE_CODE_LENS_REFRESH_INFO,
+            lsproto::NoParams,
+        ) {
             return Err(Error::wrap("failed to refresh code lens: ", err));
         }
         Ok(())
@@ -853,7 +1136,11 @@ impl Server {
 
     // server.go:766
     // ProgressStart implements project.Client.
-    pub fn progress_start(&self, message: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]) {
+    pub fn progress_start(
+        &self,
+        message: &'static tsrs_diagnostics::Message,
+        args: &[&dyn std::fmt::Display],
+    ) {
         if let Some(progress) = self.project_progress.get() {
             progress.start(message, tsrs_diagnostics::stringify_args(args));
         }
@@ -861,7 +1148,11 @@ impl Server {
 
     // server.go:773
     // ProgressFinish implements project.Client.
-    pub fn progress_finish(&self, message: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]) {
+    pub fn progress_finish(
+        &self,
+        message: &'static tsrs_diagnostics::Message,
+        args: &[&dyn std::fmt::Display],
+    ) {
         if let Some(progress) = self.project_progress.get() {
             progress.finish(message, tsrs_diagnostics::stringify_args(args));
         }
@@ -892,7 +1183,11 @@ impl Server {
         if !caps.workspace.configuration {
             let opts = self.initialization_options();
             if let Some(user_prefs) = &opts.user_preferences {
-                self.logger.logf(format_args!("received formatting options from initialization: {}\n{}", go_type_name(user_prefs), go_sprint_value(user_prefs)));
+                self.logger.logf(format_args!(
+                    "received formatting options from initialization: {}\n{}",
+                    go_type_name(user_prefs),
+                    go_sprint_value(user_prefs)
+                ));
                 if let lsproto::Value::Object(config) = user_prefs {
                     let mut items = OrderedMap::default();
                     items.insert("js/ts".to_string(), lsproto::Value::Object(config.clone()));
@@ -906,10 +1201,22 @@ impl Server {
             lsproto::WORKSPACE_CONFIGURATION_INFO,
             lsproto::ConfigurationParams {
                 items: vec![
-                    lsproto::ConfigurationItem { section: Some("js/ts".to_string()), ..Default::default() },
-                    lsproto::ConfigurationItem { section: Some("typescript".to_string()), ..Default::default() },
-                    lsproto::ConfigurationItem { section: Some("javascript".to_string()), ..Default::default() },
-                    lsproto::ConfigurationItem { section: Some("editor".to_string()), ..Default::default() },
+                    lsproto::ConfigurationItem {
+                        section: Some("js/ts".to_string()),
+                        ..Default::default()
+                    },
+                    lsproto::ConfigurationItem {
+                        section: Some("typescript".to_string()),
+                        ..Default::default()
+                    },
+                    lsproto::ConfigurationItem {
+                        section: Some("javascript".to_string()),
+                        ..Default::default()
+                    },
+                    lsproto::ConfigurationItem {
+                        section: Some("editor".to_string()),
+                        ..Default::default()
+                    },
                 ],
             },
         ) {
@@ -924,7 +1231,8 @@ impl Server {
             3 => Some(("editor".to_string(), config)),
             _ => None,
         }));
-        let show = |key: &str| config_map.get(key).map_or_else(|| "<nil>".to_string(), go_sprint_value);
+        let show =
+            |key: &str| config_map.get(key).map_or_else(|| "<nil>".to_string(), go_sprint_value);
         self.logger.logf(format_args!(
             "received options from workspace/configuration request:\njs/ts: {}\n\ntypescript: {}\n\njavascript: {}\n\neditor: {}\n",
             show("js/ts"),
@@ -1062,10 +1370,14 @@ impl Server {
             request_ctx = project::with_checker_data_lease(&request_ctx);
             let mut cancel = None;
             if let Some(id) = &req.id {
-                let (c, cancel_func) = context::with_request_id(&request_ctx, &id.string()).with_cancel();
+                let (c, cancel_func) =
+                    context::with_request_id(&request_ctx, &id.string()).with_cancel();
                 request_ctx = c;
                 cancel = Some(cancel_func.clone());
-                self.pending_client_requests.lock().unwrap().insert(id.clone(), pendingClientRequest { cancel: cancel_func });
+                self.pending_client_requests
+                    .lock()
+                    .unwrap()
+                    .insert(id.clone(), pendingClientRequest { cancel: cancel_func });
             }
 
             let lease = project::enter_checker_data_lease(&request_ctx);
@@ -1129,8 +1441,12 @@ impl Server {
             if let Err(err) = result {
                 if err.is(MESSAGE_MARSHAL_ERROR) && msg.kind == MessageKind::Response {
                     let resp = msg.as_response();
-                    if let Some(id) = resp.id.as_ref() && resp.error.is_none() {
-                        self.logger.errorf(format_args!("failed to marshal response for request {id}: {err}"));
+                    if let Some(id) = resp.id.as_ref()
+                        && resp.error.is_none()
+                    {
+                        self.logger.errorf(format_args!(
+                            "failed to marshal response for request {id}: {err}"
+                        ));
                         self.send_error(Some(id), err)?;
                         continue;
                     }
@@ -1143,8 +1459,16 @@ impl Server {
     // server.go:1053
     // WARNING: this should only be called in the async portion of a request handler,
     // otherwise a deadlock can occur.
-    pub(crate) fn send_client_request<Req: Json, Resp: Json>(&self, ctx: &Context, info: lsproto::RequestInfo<Req, Resp>, params: Req) -> Result<Resp, Error> {
-        let id = jsonrpc::new_id_string(&format!("ts{}", self.client_seq.fetch_add(1, Ordering::SeqCst) + 1));
+    pub(crate) fn send_client_request<Req: Json, Resp: Json>(
+        &self,
+        ctx: &Context,
+        info: lsproto::RequestInfo<Req, Resp>,
+        params: Req,
+    ) -> Result<Resp, Error> {
+        let id = jsonrpc::new_id_string(&format!(
+            "ts{}",
+            self.client_seq.fetch_add(1, Ordering::SeqCst) + 1
+        ));
         let req = info.new_request_message(Some(id.clone()), params);
 
         let response_chan = responseChan::new();
@@ -1179,15 +1503,26 @@ impl Server {
     // The response, if any, will be silently ignored by the read loop since no pending channel is registered.
     // This means any error returned by the client will not be observed. Use only for requests where the
     // response value is not needed (e.g., the client always returns null).
-    pub(crate) fn send_client_request_fire_and_forget<Req: Json, Resp: Json>(&self, info: lsproto::RequestInfo<Req, Resp>, params: Req) -> Result<(), Error> {
-        let id = jsonrpc::new_id_string(&format!("ts{}", self.client_seq.fetch_add(1, Ordering::SeqCst) + 1));
+    pub(crate) fn send_client_request_fire_and_forget<Req: Json, Resp: Json>(
+        &self,
+        info: lsproto::RequestInfo<Req, Resp>,
+        params: Req,
+    ) -> Result<(), Error> {
+        let id = jsonrpc::new_id_string(&format!(
+            "ts{}",
+            self.client_seq.fetch_add(1, Ordering::SeqCst) + 1
+        ));
         let req = info.new_request_message(Some(id), params);
         self.send(req.message())
     }
 
     // server.go:1096
     pub(crate) fn send_result(&self, id: Option<&ID>, result: &impl Json) -> Result<(), Error> {
-        self.send_response(ResponseMessage { id: id.cloned(), result: Some(result.to_json()), ..Default::default() })
+        self.send_response(ResponseMessage {
+            id: id.cloned(),
+            result: Some(result.to_json()),
+            ..Default::default()
+        })
     }
 
     // server.go:1108
@@ -1208,7 +1543,11 @@ impl Server {
     }
 
     // server.go:1129
-    pub(crate) fn send_notification<Params: Json>(&self, info: lsproto::NotificationInfo<Params>, params: Params) -> Result<(), Error> {
+    pub(crate) fn send_notification<Params: Json>(
+        &self,
+        info: lsproto::NotificationInfo<Params>,
+        params: Params,
+    ) -> Result<(), Error> {
         self.send(info.new_notification_message(params).message())
     }
 
@@ -1226,7 +1565,11 @@ impl Server {
     // server.go:1144
     // handleRequestOrNotification looks up the handler for the given request or notification, executes its synchronous work
     // and returns any asynchronous work as a function to be executed by the caller.
-    fn handle_request_or_notification(self: &Arc<Self>, ctx: &Context, req: &Arc<RequestMessage>) -> Result<Option<asyncWork>, Error> {
+    fn handle_request_or_notification(
+        self: &Arc<Self>,
+        ctx: &Context,
+        req: &Arc<RequestMessage>,
+    ) -> Result<Option<asyncWork>, Error> {
         let ctx = lsproto::with_client_capabilities(ctx, self.client_capabilities_arc());
 
         if let Some(handler) = handlers().0.get(&req.method) {
@@ -1240,15 +1583,32 @@ impl Server {
                 Err(err) => {
                     if let Some(resp) = content_mapper_fallback_response(req.method, &err) {
                         if !self.logger.is_tracing() {
-                            self.logger.info(&format!("handled method '{}'{} in {}", req.method, id_str, go_duration_string(start.elapsed())));
+                            self.logger.info(&format!(
+                                "handled method '{}'{} in {}",
+                                req.method,
+                                id_str,
+                                go_duration_string(start.elapsed())
+                            ));
                         }
-                        self.send_response(ResponseMessage { id: req.id.clone(), result: Some(resp), ..Default::default() })?;
+                        self.send_response(ResponseMessage {
+                            id: req.id.clone(),
+                            result: Some(resp),
+                            ..Default::default()
+                        })?;
                         return Ok(None);
                     }
                     if !err.is(USER_FACING_REQUEST_FAILED_ERROR) {
-                        self.logger.error(&format!("error handling method '{}'{}: {}", req.method, id_str, err));
+                        self.logger.error(&format!(
+                            "error handling method '{}'{}: {}",
+                            req.method, id_str, err
+                        ));
                     } else if !self.logger.is_tracing() {
-                        self.logger.info(&format!("handled method '{}'{} in {}", req.method, id_str, go_duration_string(start.elapsed())));
+                        self.logger.info(&format!(
+                            "handled method '{}'{} in {}",
+                            req.method,
+                            id_str,
+                            go_duration_string(start.elapsed())
+                        ));
                     }
                     return Err(err);
                 }
@@ -1263,15 +1623,30 @@ impl Server {
                     let is_user_facing = matches!(&async_work_err, Err(err) if err.is(USER_FACING_REQUEST_FAILED_ERROR));
                     let is_real_error = async_work_err.is_err() && !is_user_facing;
                     if is_real_error {
-                        s.logger.info(&format!("error handling method '{}'{} in {}", method, id_str, go_duration_string(start.elapsed())));
+                        s.logger.info(&format!(
+                            "error handling method '{}'{} in {}",
+                            method,
+                            id_str,
+                            go_duration_string(start.elapsed())
+                        ));
                     } else if !s.logger.is_tracing() {
-                        s.logger.info(&format!("handled method '{}'{} in {}", method, id_str, go_duration_string(start.elapsed())));
+                        s.logger.info(&format!(
+                            "handled method '{}'{} in {}",
+                            method,
+                            id_str,
+                            go_duration_string(start.elapsed())
+                        ));
                     }
                     async_work_err
                 })));
             }
             if !self.logger.is_tracing() {
-                self.logger.info(&format!("handled method '{}'{} in {}", req.method, id_str, go_duration_string(start.elapsed())));
+                self.logger.info(&format!(
+                    "handled method '{}'{} in {}",
+                    req.method,
+                    id_str,
+                    go_duration_string(start.elapsed())
+                ));
             }
             return Ok(None);
         }
@@ -1290,18 +1665,24 @@ impl Server {
         uri: &lsproto::DocumentUri,
         _req: &RequestMessage,
     ) -> Result<(Arc<LanguageService>, Arc<dyn tsrs_ls::CrossProjectOrchestrator>), Error> {
-        let (default_project, default_ls, all_projects) = self.session().get_language_service_and_projects_for_file(ctx, uri)?;
-        let orchestrator: Arc<dyn tsrs_ls::CrossProjectOrchestrator> = Arc::new(crossProjectOrchestrator {
-            server: Arc::clone(self),
-            default_project: Arc::<project::Project>::clone(default_project.arc()),
-            all_projects,
-        });
+        let (default_project, default_ls, all_projects) =
+            self.session().get_language_service_and_projects_for_file(ctx, uri)?;
+        let orchestrator: Arc<dyn tsrs_ls::CrossProjectOrchestrator> =
+            Arc::new(crossProjectOrchestrator {
+                server: Arc::clone(self),
+                default_project: Arc::<project::Project>::clone(default_project.arc()),
+                all_projects,
+            });
         Ok((default_ls, orchestrator))
     }
 
     // server.go:1477: `defer s.recover(req)` around `f`. A panic in `f` is logged and answered with an internal
     // error; the work then returns nil like Go's function after a recovered panic.
-    pub(crate) fn with_recover(&self, req: &RequestMessage, f: impl FnOnce() -> Result<(), Error>) -> Result<(), Error> {
+    pub(crate) fn with_recover(
+        &self,
+        req: &RequestMessage,
+        f: impl FnOnce() -> Result<(), Error>,
+    ) -> Result<(), Error> {
         match recover_scope(f) {
             Ok(result) => result,
             Err((payload, stack)) => {
@@ -1318,7 +1699,10 @@ impl Server {
         if req.id.is_some() {
             let _ = self.send_error(
                 req.id.as_ref(),
-                Error::wrap_code(ErrorCode::InternalError, Error::new(format!("panic handling request {}: {}", req.method, r))),
+                Error::wrap_code(
+                    ErrorCode::InternalError,
+                    Error::new(format!("panic handling request {}: {}", req.method, r)),
+                ),
             );
         } else {
             self.logger.error(&format!("unhandled panic in notification{}{}", req.method, r));
@@ -1343,7 +1727,12 @@ impl Server {
     }
 
     // server.go:1501
-    fn handle_initialize(self: &Arc<Self>, _ctx: &Context, params: lsproto::InitializeParams, _req: &RequestMessage) -> Result<lsproto::InitializeResponse, Error> {
+    fn handle_initialize(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        params: lsproto::InitializeParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::InitializeResponse, Error> {
         if self.initialize_params.get().is_some() {
             return Err(ErrorCode::InvalidRequest.into());
         }
@@ -1356,7 +1745,9 @@ impl Server {
         // absent value as empty options so the rest of the server can read fields
         // off s.initializationOptions without nil-checking the container.
         let initialization_options = match &params.initialization_options {
-            Some(lsproto::InitializationOptionsOrNull { initialization_options: Some(options),  }) => options.clone(),
+            Some(lsproto::InitializationOptionsOrNull {
+                initialization_options: Some(options),
+            }) => options.clone(),
             _ => lsproto::InitializationOptions::default(),
         };
         let _ = self.initialization_options.set(initialization_options);
@@ -1371,15 +1762,23 @@ impl Server {
         }
         let _ = self.client_capabilities.set(Arc::new(params.capabilities.resolve()));
         if self.client_capabilities().window.work_done_progress {
-            let _ = self.project_progress.set(new_project_loading_progress(Arc::downgrade(self), self.progress_delay));
+            let _ = self
+                .project_progress
+                .set(new_project_loading_progress(Arc::downgrade(self), self.progress_delay));
         }
 
         // Go logs json.MarshalIndent(&s.clientCapabilities, "", "\t"); the Resolved* views have no JSON codec in
         // tsrs_lsproto, so the log shows their Debug form.
-        self.logger.info(&format!("Resolved client capabilities: {:?}", self.client_capabilities()));
+        self.logger
+            .info(&format!("Resolved client capabilities: {:?}", self.client_capabilities()));
 
         let mut position_encoding = lsproto::PositionEncodingKind::UTF16;
-        if self.client_capabilities().general.position_encodings.contains(&lsproto::PositionEncodingKind::UTF8) {
+        if self
+            .client_capabilities()
+            .general
+            .position_encodings
+            .contains(&lsproto::PositionEncodingKind::UTF8)
+        {
             position_encoding = lsproto::PositionEncodingKind::UTF8;
         }
         let _ = self.position_encoding.set(position_encoding);
@@ -1512,7 +1911,11 @@ impl Server {
     }
 
     // server.go:1677
-    fn handle_initialized(self: &Arc<Self>, ctx: &Context, _params: lsproto::InitializedParams) -> Result<(), Error> {
+    fn handle_initialized(
+        self: &Arc<Self>,
+        ctx: &Context,
+        _params: lsproto::InitializedParams,
+    ) -> Result<(), Error> {
         let mut disable_push_diagnostics = false;
         let mut enable_telemetry = false;
         let opts = self.initialization_options();
@@ -1526,7 +1929,8 @@ impl Server {
         if let Some(v) = opts.run_external_code {
             run_external_code = v;
         }
-        let has_dynamic_watch_registration = self.client_capabilities().workspace.did_change_watched_files.dynamic_registration;
+        let has_dynamic_watch_registration =
+            self.client_capabilities().workspace.did_change_watched_files.dynamic_registration;
         if has_dynamic_watch_registration {
             self.logger.logf(format_args!("file watching: using LSP client-side watching (client supports dynamic registration)"));
             self.watch_enabled.store(true, Ordering::SeqCst);
@@ -1538,15 +1942,20 @@ impl Server {
             self.watch_enabled.store(true, Ordering::SeqCst);
             let s = Arc::downgrade(self);
             let background_ctx = self.background_ctx();
-            let on_changes: lspwatcher::OnChanges = Arc::new(move |changes: Vec<lsproto::FileEvent>| {
-                if let Some(s) = s.upgrade() {
-                    if let Some(session) = s.session.get() {
-                        session.did_change_watched_files(&background_ctx, &changes);
+            let on_changes: lspwatcher::OnChanges =
+                Arc::new(move |changes: Vec<lsproto::FileEvent>| {
+                    if let Some(s) = s.upgrade() {
+                        if let Some(session) = s.session.get() {
+                            session.did_change_watched_files(&background_ctx, &changes);
+                        }
                     }
-                }
-            });
+                });
             let logger: Arc<dyn logging::Logger> = self.logger_arc();
-            let _ = self.builtin_watcher.set(lspwatcher::new(self.fs.clone().expect("FS is required"), on_changes, logger));
+            let _ = self.builtin_watcher.set(lspwatcher::new(
+                self.fs.clone().expect("FS is required"),
+                on_changes,
+                logger,
+            ));
         } else {
             // The client cannot watch files and the builtin watcher backend lacks
             // efficient recursive watching, so file watching is disabled.
@@ -1558,11 +1967,19 @@ impl Server {
         if self.client_capabilities().workspace.workspace_folders
             && matches!(&initialize_params.workspace_folders, Some(lsproto::WorkspaceFoldersOrNull { workspace_folders: Some(folders),  }) if folders.len() == 1)
         {
-            let folders = initialize_params.workspace_folders.as_ref().unwrap().workspace_folders.as_ref().unwrap();
+            let folders = initialize_params
+                .workspace_folders
+                .as_ref()
+                .unwrap()
+                .workspace_folders
+                .as_ref()
+                .unwrap();
             cwd = file_name_or_empty(&lsproto::DocumentUri(folders[0].uri.0.clone()));
         } else if let Some(root_uri) = &initialize_params.root_uri.document_uri {
             cwd = file_name_or_empty(root_uri);
-        } else if let Some(lsproto::StringOrNull { string: Some(root_path),  }) = &initialize_params.root_path {
+        } else if let Some(lsproto::StringOrNull { string: Some(root_path) }) =
+            &initialize_params.root_path
+        {
             cwd.clone_from(root_path);
         }
         if !tspath::path_is_absolute(&cwd) {
@@ -1575,7 +1992,10 @@ impl Server {
         let logger: Arc<dyn logging::Logger> = self.logger_arc();
         let npm_executor: Arc<dyn project::NpmExecutor> = Arc::<Server>::clone(self);
         let session = project::new_session(&project::SessionInit {
-            background_ctx: lsproto::with_client_capabilities(&self.background_ctx(), self.client_capabilities_arc()),
+            background_ctx: lsproto::with_client_capabilities(
+                &self.background_ctx(),
+                self.client_capabilities_arc(),
+            ),
             options: Arc::new(project::SessionOptions {
                 current_directory: cwd,
                 default_library_path: self.default_library_path.clone(),
@@ -1608,12 +2028,19 @@ impl Server {
                 registrations: vec![lsproto::Registration {
                     id: "typescript-config-watch-id".to_string(),
                     register_options: Some(lsproto::RegisterOptions {
-                        workspace_did_change_configuration: Some(lsproto::DidChangeConfigurationRegistrationOptions {
-                            section: Some(lsproto::StringOrStrings {
-                                strings: Some(vec!["js/ts".to_string(), "typescript".to_string(), "javascript".to_string(), "editor".to_string()]),
-                                ..Default::default()
-                            }),
-                        }),
+                        workspace_did_change_configuration: Some(
+                            lsproto::DidChangeConfigurationRegistrationOptions {
+                                section: Some(lsproto::StringOrStrings {
+                                    strings: Some(vec![
+                                        "js/ts".to_string(),
+                                        "typescript".to_string(),
+                                        "javascript".to_string(),
+                                        "editor".to_string(),
+                                    ]),
+                                    ..Default::default()
+                                }),
+                            },
+                        ),
                         ..Default::default()
                     }),
                 }],
@@ -1638,8 +2065,16 @@ impl Server {
     }
 
     // server.go:1788
-    #[expect(clippy::unnecessary_wraps, reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly.")]
-    fn handle_shutdown(self: &Arc<Self>, _ctx: &Context, _params: lsproto::NoParams, _req: &RequestMessage) -> Result<lsproto::ShutdownResponse, Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly."
+    )]
+    fn handle_shutdown(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: lsproto::NoParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::ShutdownResponse, Error> {
         if let Some(builtin_watcher) = self.builtin_watcher.get() {
             builtin_watcher.close();
         }
@@ -1648,14 +2083,28 @@ impl Server {
     }
 
     // server.go:1796
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_exit(self: &Arc<Self>, _ctx: &Context, _params: lsproto::NoParams) -> Result<(), Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_exit(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: lsproto::NoParams,
+    ) -> Result<(), Error> {
         Err(Error::tagged(ErrorTag::EOF, "EOF"))
     }
 
     // server.go:1800
-    #[expect(clippy::unnecessary_wraps, reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly.")]
-    fn handle_did_change_workspace_configuration(self: &Arc<Self>, _ctx: &Context, params: &lsproto::DidChangeConfigurationParams) -> Result<(), Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly."
+    )]
+    fn handle_did_change_workspace_configuration(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        params: &lsproto::DidChangeConfigurationParams,
+    ) -> Result<(), Error> {
         if params.settings == lsproto::Value::Null {
             return Ok(());
         } else if let lsproto::Value::Object(settings) = &params.settings {
@@ -1665,7 +2114,11 @@ impl Server {
     }
 
     // server.go:1809
-    fn handle_did_open(self: &Arc<Self>, ctx: &Context, params: lsproto::DidOpenTextDocumentParams) -> Result<(), Error> {
+    fn handle_did_open(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: lsproto::DidOpenTextDocumentParams,
+    ) -> Result<(), Error> {
         check_uri(&params.text_document.uri)?;
         let doc = params.text_document;
         self.session().did_open_file(ctx, doc.uri, doc.version, doc.text, doc.language_id);
@@ -1673,33 +2126,65 @@ impl Server {
     }
 
     // server.go:1814
-    fn handle_did_change(self: &Arc<Self>, ctx: &Context, params: lsproto::DidChangeTextDocumentParams) -> Result<(), Error> {
+    fn handle_did_change(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: lsproto::DidChangeTextDocumentParams,
+    ) -> Result<(), Error> {
         check_uri(&params.text_document.uri)?;
-        self.session().did_change_file(ctx, params.text_document.uri, params.text_document.version, params.content_changes);
+        self.session().did_change_file(
+            ctx,
+            params.text_document.uri,
+            params.text_document.version,
+            params.content_changes,
+        );
         Ok(())
     }
 
     // server.go:1819
-    fn handle_did_save(self: &Arc<Self>, ctx: &Context, params: lsproto::DidSaveTextDocumentParams) -> Result<(), Error> {
+    fn handle_did_save(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: lsproto::DidSaveTextDocumentParams,
+    ) -> Result<(), Error> {
         check_uri(&params.text_document.uri)?;
         self.session().did_save_file(ctx, params.text_document.uri);
         Ok(())
     }
 
     // server.go:1824
-    fn handle_did_close(self: &Arc<Self>, ctx: &Context, params: lsproto::DidCloseTextDocumentParams) -> Result<(), Error> {
+    fn handle_did_close(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: lsproto::DidCloseTextDocumentParams,
+    ) -> Result<(), Error> {
         check_uri(&params.text_document.uri)?;
         self.session().did_close_file(ctx, params.text_document.uri);
         Ok(())
     }
 
     // server.go:1829
-    #[expect(clippy::unnecessary_wraps, reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly.")]
-    fn handle_did_change_watched_files(self: &Arc<Self>, ctx: &Context, params: &lsproto::DidChangeWatchedFilesParams) -> Result<(), Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly."
+    )]
+    fn handle_did_change_watched_files(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: &lsproto::DidChangeWatchedFilesParams,
+    ) -> Result<(), Error> {
         // tsrs-only: an event with a bad URI (`check_uri`) is dropped, not the whole notification.
         if params.changes.iter().any(|change| change.uri.check().is_err()) {
-            let changes: Vec<lsproto::FileEvent> = params.changes.iter().filter(|change| change.uri.check().is_ok()).cloned().collect();
-            self.logger.error(&format!("ignored {} watched file event(s) with an invalid URI", params.changes.len() - changes.len()));
+            let changes: Vec<lsproto::FileEvent> = params
+                .changes
+                .iter()
+                .filter(|change| change.uri.check().is_ok())
+                .cloned()
+                .collect();
+            self.logger.error(&format!(
+                "ignored {} watched file event(s) with an invalid URI",
+                params.changes.len() - changes.len()
+            ));
             self.session().did_change_watched_files(ctx, &changes);
             return Ok(());
         }
@@ -1708,9 +2193,19 @@ impl Server {
     }
 
     // server.go:1834
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    #[expect(clippy::unnecessary_wraps, reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly.")]
-    fn handle_set_trace(self: &Arc<Self>, _ctx: &Context, _params: lsproto::SetTraceParams) -> Result<(), Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly."
+    )]
+    fn handle_set_trace(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: lsproto::SetTraceParams,
+    ) -> Result<(), Error> {
         // $/setTrace is sent by vscode-languageclient when trace settings change.
         // Server log verbosity is controlled separately by custom/setLogVerbosity,
         // so this handler is intentionally a no-op.
@@ -1718,9 +2213,16 @@ impl Server {
     }
 
     // server.go:1841
-    fn handle_set_log_verbosity(self: &Arc<Self>, _ctx: &Context, params: lsproto::SetLogVerbosityParams) -> Result<(), Error> {
+    fn handle_set_log_verbosity(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        params: lsproto::SetLogVerbosityParams,
+    ) -> Result<(), Error> {
         if !is_valid_log_verbosity(params.verbosity) {
-            return Err(Error::wrap_code(ErrorCode::InvalidParams, Error::new(format!("invalid log verbosity {}", params.verbosity.0))));
+            return Err(Error::wrap_code(
+                ErrorCode::InvalidParams,
+                Error::new(format!("invalid log verbosity {}", params.verbosity.0)),
+            ));
         }
         self.logger.set_verbosity(params.verbosity);
         Ok(())
@@ -1740,23 +2242,35 @@ impl Server {
         let direct = language_service.provide_diagnostics(&ctx, &params.text_document.uri)?;
         // Go runs a full `Program.Emit` (writing nothing) between the two diagnostics requests to provoke checker
         // state changes; this port does not call `Program::emit` here, so the second request follows the first directly.
-        let Ok(secondary) = language_service.provide_diagnostics(&ctx, &params.text_document.uri) else {
+        let Ok(secondary) = language_service.provide_diagnostics(&ctx, &params.text_document.uri)
+        else {
             return Ok(direct);
         };
         let empty = Vec::new();
-        let direct_items = direct.full_document_diagnostic_report.as_ref().map_or(&empty, |r| &r.items);
-        let secondary_items = secondary.full_document_diagnostic_report.as_ref().map_or(&empty, |r| &r.items);
-        let (missing_from_pre, missing_from_post) = lsproto::compare_diagnostics(direct_items, secondary_items);
+        let direct_items =
+            direct.full_document_diagnostic_report.as_ref().map_or(&empty, |r| &r.items);
+        let secondary_items =
+            secondary.full_document_diagnostic_report.as_ref().map_or(&empty, |r| &r.items);
+        let (missing_from_pre, missing_from_post) =
+            lsproto::compare_diagnostics(direct_items, secondary_items);
         if missing_from_pre.is_empty() && missing_from_post.is_empty() {
             return Ok(direct);
         }
 
-        let diff = generate_diagnostic_diff_string(&missing_from_pre, &missing_from_post, lsproto::Diagnostic::as_string);
+        let diff = generate_diagnostic_diff_string(
+            &missing_from_pre,
+            &missing_from_post,
+            lsproto::Diagnostic::as_string,
+        );
 
         self.logger.error(&diff);
 
         if self.telemetry_enabled.load(Ordering::SeqCst) {
-            let sanitized_diff = generate_diagnostic_diff_string(&missing_from_pre, &missing_from_post, lsproto::Diagnostic::code_as_string);
+            let sanitized_diff = generate_diagnostic_diff_string(
+                &missing_from_pre,
+                &missing_from_post,
+                lsproto::Diagnostic::code_as_string,
+            );
             let _ = self.send_notification(
                 lsproto::TELEMETRY_EVENT_INFO,
                 lsproto::TelemetryEvent {
@@ -1773,54 +2287,98 @@ impl Server {
             );
         }
 
-        assert!(self.flake_logging() != lsproto::DiagnosticFlakeLogLevel::Panic, "flaky diagnostic(s) logged:\n{diff}");
+        assert!(
+            self.flake_logging() != lsproto::DiagnosticFlakeLogLevel::Panic,
+            "flaky diagnostic(s) logged:\n{diff}"
+        );
         Ok(direct)
     }
 
     // server.go:1907
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_hover(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::HoverParams) -> Result<lsproto::HoverResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_hover(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::HoverParams,
+    ) -> Result<lsproto::HoverResponse, Error> {
         ls.provide_hover(ctx, params)
     }
 
     // server.go:1911
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_prepare_rename(
         self: &Arc<Self>,
         ctx: &Context,
         language_service: &Arc<LanguageService>,
         params: &lsproto::PrepareRenameParams,
     ) -> Result<lsproto::PrepareRenameResponse, Error> {
-        let info = language_service.get_rename_info(ctx, "" /*newName*/, &params.text_document.uri, params.position);
+        let info = language_service.get_rename_info(
+            ctx,
+            "", /*newName*/
+            &params.text_document.uri,
+            params.position,
+        );
         if !info.can_rename {
             return Err(user_facing_request_failed_error(info.localized_error_message));
         }
         Ok(lsproto::PrepareRenameResponse {
-            prepare_rename_placeholder: Some(lsproto::PrepareRenamePlaceholder { range: info.trigger_span, placeholder: info.display_name }),
+            prepare_rename_placeholder: Some(lsproto::PrepareRenamePlaceholder {
+                range: info.trigger_span,
+                placeholder: info.display_name,
+            }),
             ..Default::default()
         })
     }
 
     // server.go:1924
-    fn handle_rename(self: &Arc<Self>, ctx: &Context, params: &lsproto::RenameParams, req: &RequestMessage) -> Result<lsproto::RenameResponse, Error> {
+    fn handle_rename(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: &lsproto::RenameParams,
+        req: &RequestMessage,
+    ) -> Result<lsproto::RenameResponse, Error> {
         check_uri(&params.text_document.uri)?;
-        let (default_ls, orchestrator) = self.get_language_service_and_cross_project_orchestrator(ctx, &params.text_document.uri, req)?;
-        let info = default_ls.get_rename_info(ctx, &params.new_name, &params.text_document.uri, params.position);
+        let (default_ls, orchestrator) = self.get_language_service_and_cross_project_orchestrator(
+            ctx,
+            &params.text_document.uri,
+            req,
+        )?;
+        let info = default_ls.get_rename_info(
+            ctx,
+            &params.new_name,
+            &params.text_document.uri,
+            params.position,
+        );
         if info.can_rename && !info.file_to_rename.is_empty() {
             // We send a `willRenameFiles` request if the client allows;
             // otherwise we directly compute the edits for renaming the file.
             if tsrs_ls::client_supports_will_rename_files(ctx) {
-                let document_changes = vec![lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile {
-                    rename_file: Some(lsproto::RenameFile {
-                        kind: lsproto::StringLiteralRename,
-                        old_uri: tsrs_ls::lsconv::file_name_to_document_uri(&info.file_to_rename),
-                        new_uri: tsrs_ls::lsconv::file_name_to_document_uri(&info.new_file_name),
+                let document_changes =
+                    vec![lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile {
+                        rename_file: Some(lsproto::RenameFile {
+                            kind: lsproto::StringLiteralRename,
+                            old_uri: tsrs_ls::lsconv::file_name_to_document_uri(
+                                &info.file_to_rename,
+                            ),
+                            new_uri: tsrs_ls::lsconv::file_name_to_document_uri(
+                                &info.new_file_name,
+                            ),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }];
+                return Ok(lsproto::WorkspaceEditOrNull {
+                    workspace_edit: Some(lsproto::WorkspaceEdit {
+                        document_changes: Some(document_changes),
                         ..Default::default()
                     }),
-                    ..Default::default()
-                }];
-                return Ok(lsproto::WorkspaceEditOrNull {
-                    workspace_edit: Some(lsproto::WorkspaceEdit { document_changes: Some(document_changes), ..Default::default() }),
                 });
             }
             let rename_files_params = lsproto::RenameFilesParams {
@@ -1829,14 +2387,24 @@ impl Server {
                     new_uri: tsrs_ls::lsconv::file_name_to_document_uri(&info.new_file_name),
                 }],
             };
-            return self.handle_will_rename_files_worker(ctx, &rename_files_params, req, true /*sendRenameFile*/);
+            return self.handle_will_rename_files_worker(
+                ctx,
+                &rename_files_params,
+                req,
+                true, /*sendRenameFile*/
+            );
         }
 
         default_ls.provide_rename(ctx, params, Some(&*orchestrator))
     }
 
     // server.go:1961
-    fn handle_will_rename_files(self: &Arc<Self>, ctx: &Context, params: &lsproto::RenameFilesParams, msg: &RequestMessage) -> Result<lsproto::WillRenameFilesResponse, Error> {
+    fn handle_will_rename_files(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: &lsproto::RenameFilesParams,
+        msg: &RequestMessage,
+    ) -> Result<lsproto::WillRenameFilesResponse, Error> {
         for file in &params.files {
             check_uri(&file.old_uri)?;
             check_uri(&file.new_uri)?;
@@ -1848,7 +2416,10 @@ impl Server {
     // If `sendRenameFile` is true, the original `willRenameFiles` request is being handled as part of a rename operation
     // where the client doesn't support `willRenameFiles`,
     // so we should include the file rename in the edits we return
-    #[expect(clippy::unnecessary_wraps, reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Registered LSP handlers share a Result return type so dispatch propagates failures uniformly."
+    )]
     fn handle_will_rename_files_worker(
         self: &Arc<Self>,
         ctx: &Context,
@@ -1867,16 +2438,22 @@ impl Server {
             return Ok(lsproto::WillRenameFilesResponse::default());
         }
 
-        let services = self.session().get_language_services_for_documents_loading_project_tree(ctx, &uris);
+        let services =
+            self.session().get_language_services_for_documents_loading_project_tree(ctx, &uris);
 
         // Go maps (random iteration order).
-        let mut seen_edits: rustc_hash::FxHashMap<(lsproto::DocumentUri, lsproto::Range), String> = rustc_hash::FxHashMap::default();
-        let mut seen_renames: rustc_hash::FxHashMap<lsproto::DocumentUri, bool> = rustc_hash::FxHashMap::default();
-        let mut document_changes: Vec<lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile> = Vec::new();
+        let mut seen_edits: rustc_hash::FxHashMap<(lsproto::DocumentUri, lsproto::Range), String> =
+            rustc_hash::FxHashMap::default();
+        let mut seen_renames: rustc_hash::FxHashMap<lsproto::DocumentUri, bool> =
+            rustc_hash::FxHashMap::default();
+        let mut document_changes: Vec<
+            lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile,
+        > = Vec::new();
 
         // tsrs-only: one call with every rename, so edits for files that import several renamed files are computed
         // against all of the moves at once. Go computed each rename separately, and the per-rename edits conflicted.
-        let renames: Vec<(lsproto::DocumentUri, lsproto::DocumentUri)> = params.files.iter().map(|file| (file.old_uri.clone(), file.new_uri.clone())).collect();
+        let renames: Vec<(lsproto::DocumentUri, lsproto::DocumentUri)> =
+            params.files.iter().map(|file| (file.old_uri.clone(), file.new_uri.clone())).collect();
         for language_service in &services {
             let changes = language_service.get_edits_for_file_renames(ctx, &renames);
             for change in changes {
@@ -1887,7 +2464,8 @@ impl Server {
                     }
                 } else if let Some(text_document_edit) = &change.text_document_edit {
                     let uri = text_document_edit.text_document.uri.clone();
-                    let mut deduped: Vec<lsproto::TextEditOrAnnotatedTextEditOrSnippetTextEdit> = Vec::new();
+                    let mut deduped: Vec<lsproto::TextEditOrAnnotatedTextEditOrSnippetTextEdit> =
+                        Vec::new();
                     deduped.extend(text_document_edit.edits.iter().filter_map(|edit| {
                         if let Some(text_edit) = &edit.text_edit {
                             let key = (uri.clone(), text_edit.range);
@@ -1900,24 +2478,31 @@ impl Server {
                         Some(edit.clone())
                     }));
                     if !deduped.is_empty() {
-                        document_changes.push(lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile {
-                            text_document_edit: Some(lsproto::TextDocumentEdit { text_document: text_document_edit.text_document.clone(), edits: deduped }),
-                            ..Default::default()
-                        });
+                        document_changes.push(
+                            lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile {
+                                text_document_edit: Some(lsproto::TextDocumentEdit {
+                                    text_document: text_document_edit.text_document.clone(),
+                                    edits: deduped,
+                                }),
+                                ..Default::default()
+                            },
+                        );
                     }
                 }
             }
         }
 
         if send_rename_file {
-            document_changes.extend(params.files.iter().map(|file| lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile {
-                rename_file: Some(lsproto::RenameFile {
-                    kind: lsproto::StringLiteralRename,
-                    old_uri: file.old_uri.clone(),
-                    new_uri: file.new_uri.clone(),
+            document_changes.extend(params.files.iter().map(|file| {
+                lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile {
+                    rename_file: Some(lsproto::RenameFile {
+                        kind: lsproto::StringLiteralRename,
+                        old_uri: file.old_uri.clone(),
+                        new_uri: file.new_uri.clone(),
+                        ..Default::default()
+                    }),
                     ..Default::default()
-                }),
-                ..Default::default()
+                }
             }));
         }
 
@@ -1927,12 +2512,18 @@ impl Server {
 
         if tsrs_ls::client_supports_document_changes(ctx) {
             return Ok(lsproto::WillRenameFilesResponse {
-                workspace_edit: Some(lsproto::WorkspaceEdit { document_changes: Some(document_changes), ..Default::default() }),
+                workspace_edit: Some(lsproto::WorkspaceEdit {
+                    document_changes: Some(document_changes),
+                    ..Default::default()
+                }),
             });
         }
 
         // Go map (random iteration order).
-        let mut changes: tsrs_core::collections::OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>> = tsrs_core::collections::OrderedMap::default();
+        let mut changes: tsrs_core::collections::OrderedMap<
+            lsproto::DocumentUri,
+            Vec<lsproto::TextEdit>,
+        > = tsrs_core::collections::OrderedMap::default();
         for change in &document_changes {
             if let Some(text_document_edit) = &change.text_document_edit {
                 let uri = text_document_edit.text_document.uri.clone();
@@ -1945,30 +2536,65 @@ impl Server {
         }
 
         Ok(lsproto::WillRenameFilesResponse {
-            workspace_edit: Some(lsproto::WorkspaceEdit { changes: Some(changes), ..Default::default() }),
+            workspace_edit: Some(lsproto::WorkspaceEdit {
+                changes: Some(changes),
+                ..Default::default()
+            }),
         })
     }
 
     // server.go:2070
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_signature_help(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::SignatureHelpParams) -> Result<lsproto::SignatureHelpResponse, Error> {
-        ls.provide_signature_help(ctx, &params.text_document.uri, params.position, params.context.as_ref())
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_signature_help(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::SignatureHelpParams,
+    ) -> Result<lsproto::SignatureHelpResponse, Error> {
+        ls.provide_signature_help(
+            ctx,
+            &params.text_document.uri,
+            params.position,
+            params.context.as_ref(),
+        )
     }
 
     // server.go:2079
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_folding_range(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::FoldingRangeParams) -> Result<lsproto::FoldingRangeResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_folding_range(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::FoldingRangeParams,
+    ) -> Result<lsproto::FoldingRangeResponse, Error> {
         ls.provide_folding_range(ctx, &params.text_document.uri)
     }
 
     // server.go:2083
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_vs_on_auto_insert(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::VSOnAutoInsertParams) -> Result<lsproto::VSOnAutoInsertResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_vs_on_auto_insert(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::VSOnAutoInsertParams,
+    ) -> Result<lsproto::VSOnAutoInsertResponse, Error> {
         ls.provide_on_auto_insert(ctx, params)
     }
 
     // server.go:2087
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_linked_editing_range(
         self: &Arc<Self>,
         ctx: &Context,
@@ -1979,13 +2605,24 @@ impl Server {
     }
 
     // server.go:2091
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_definition(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::DefinitionParams) -> Result<lsproto::DefinitionResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_definition(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::DefinitionParams,
+    ) -> Result<lsproto::DefinitionResponse, Error> {
         ls.provide_definition(ctx, &params.text_document.uri, params.position)
     }
 
     // server.go:2095
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_source_definition(
         self: &Arc<Self>,
         ctx: &Context,
@@ -1997,27 +2634,59 @@ impl Server {
     }
 
     // server.go:2103
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_type_definition(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::TypeDefinitionParams) -> Result<lsproto::TypeDefinitionResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_type_definition(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::TypeDefinitionParams,
+    ) -> Result<lsproto::TypeDefinitionResponse, Error> {
         ls.provide_type_definition(ctx, &params.text_document.uri, params.position)
     }
 
     // server.go:2107
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_completion(self: &Arc<Self>, ctx: &Context, language_service: &Arc<LanguageService>, params: &lsproto::CompletionParams) -> Result<lsproto::CompletionResponse, Error> {
-        language_service.provide_completion(ctx, &params.text_document.uri, params.position, params.context.as_ref())
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_completion(
+        self: &Arc<Self>,
+        ctx: &Context,
+        language_service: &Arc<LanguageService>,
+        params: &lsproto::CompletionParams,
+    ) -> Result<lsproto::CompletionResponse, Error> {
+        language_service.provide_completion(
+            ctx,
+            &params.text_document.uri,
+            params.position,
+            params.context.as_ref(),
+        )
     }
 
     // server.go:2116
-    fn handle_completion_item_resolve(self: &Arc<Self>, ctx: &Context, params: lsproto::CompletionItem, req_msg: &RequestMessage) -> Result<lsproto::CompletionResolveResponse, Error> {
+    fn handle_completion_item_resolve(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: lsproto::CompletionItem,
+        req_msg: &RequestMessage,
+    ) -> Result<lsproto::CompletionResolveResponse, Error> {
         let Some(data) = params.data.clone() else {
             return Err(Error::new("completion item data is nil"));
         };
         // tsrs-only: Go turns any file name into a URI and panics on one that is not a rooted path ("", a URI).
         if !tspath::is_rooted_disk_path(&data.file_name) && !data.file_name.starts_with("^/") {
-            return Err(Error::wrap_code(ErrorCode::InvalidParams, Error::new(format!("completion item data has no file name: {:?}", data.file_name))));
+            return Err(Error::wrap_code(
+                ErrorCode::InvalidParams,
+                Error::new(format!("completion item data has no file name: {:?}", data.file_name)),
+            ));
         }
-        let language_service = self.session().get_language_service(ctx, &tsrs_ls::lsconv::file_name_to_document_uri(&data.file_name))?;
+        let language_service = self.session().get_language_service(
+            ctx,
+            &tsrs_ls::lsconv::file_name_to_document_uri(&data.file_name),
+        )?;
         // `defer s.recover(reqMsg)`: Go answers the recovered panic with an internal error and then sends the nil
         // result; here the handler returns an error instead of a second (null) result.
         match recover_scope(|| language_service.resolve_completion_item(ctx, params, Some(&data))) {
@@ -2030,56 +2699,105 @@ impl Server {
     }
 
     // server.go:2129
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_document_format(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::DocumentFormattingParams) -> Result<lsproto::DocumentFormattingResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_document_format(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::DocumentFormattingParams,
+    ) -> Result<lsproto::DocumentFormattingResponse, Error> {
         ls.provide_format_document(ctx, &params.text_document.uri, params.options)
     }
 
     // server.go:2137
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_document_range_format(
         self: &Arc<Self>,
         ctx: &Context,
         ls: &Arc<LanguageService>,
         params: &lsproto::DocumentRangeFormattingParams,
     ) -> Result<lsproto::DocumentRangeFormattingResponse, Error> {
-        ls.provide_format_document_range(ctx, &params.text_document.uri, params.options, params.range)
+        ls.provide_format_document_range(
+            ctx,
+            &params.text_document.uri,
+            params.options,
+            params.range,
+        )
     }
 
     // server.go:2146
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_document_on_type_format(
         self: &Arc<Self>,
         ctx: &Context,
         ls: &Arc<LanguageService>,
         params: &lsproto::DocumentOnTypeFormattingParams,
     ) -> Result<lsproto::DocumentOnTypeFormattingResponse, Error> {
-        ls.provide_format_document_on_type(ctx, &params.text_document.uri, params.options, params.position, &params.ch)
+        ls.provide_format_document_on_type(
+            ctx,
+            &params.text_document.uri,
+            params.options,
+            params.position,
+            &params.ch,
+        )
     }
 
     // server.go:2156
-    fn handle_workspace_symbol(self: &Arc<Self>, ctx: &Context, params: &lsproto::WorkspaceSymbolParams, req_msg: &RequestMessage) -> Result<lsproto::WorkspaceSymbolResponse, Error> {
+    fn handle_workspace_symbol(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: &lsproto::WorkspaceSymbolParams,
+        req_msg: &RequestMessage,
+    ) -> Result<lsproto::WorkspaceSymbolResponse, Error> {
         let mut resp = lsproto::WorkspaceSymbolResponse::default();
         let mut ls_err: Option<Error> = None;
-        let mut provide_symbols = |snapshot: &Arc<project::Snapshot>, programs: Vec<&'static tsrs_compiler::Program>| {
-            let _ = self.with_recover(req_msg, || {
-                match tsrs_ls::provide_workspace_symbols(ctx, &programs, &snapshot.converters(), snapshot.user_preferences(), &params.query) {
-                    Ok(r) => resp = r,
-                    Err(e) => ls_err = Some(e),
-                }
-                Ok(())
-            });
-        };
-        if let Some(text_document) = params.text_document.as_ref() && self.session().config().workspace_symbols_scope == lsutil::WorkspaceSymbolsScope::CurrentProject {
+        let mut provide_symbols =
+            |snapshot: &Arc<project::Snapshot>, programs: Vec<&'static tsrs_compiler::Program>| {
+                let _ = self.with_recover(req_msg, || {
+                    match tsrs_ls::provide_workspace_symbols(
+                        ctx,
+                        &programs,
+                        &snapshot.converters(),
+                        snapshot.user_preferences(),
+                        &params.query,
+                    ) {
+                        Ok(r) => resp = r,
+                        Err(e) => ls_err = Some(e),
+                    }
+                    Ok(())
+                });
+            };
+        if let Some(text_document) = params.text_document.as_ref()
+            && self.session().config().workspace_symbols_scope
+                == lsutil::WorkspaceSymbolsScope::CurrentProject
+        {
             let uri = text_document.uri.clone();
             self.session().with_snapshot_for_document(ctx, &uri, |snapshot| {
                 // Go maps `ls.Project.GetProgram` (a nil program is dereferenced by ProvideWorkspaceSymbols).
-                let programs = snapshot.get_language_service_projects_containing_file(&uri).iter().map(|p| p.get_program().unwrap()).collect();
+                let programs = snapshot
+                    .get_language_service_projects_containing_file(&uri)
+                    .iter()
+                    .map(|p| p.get_program().unwrap())
+                    .collect();
                 provide_symbols(snapshot, programs);
             });
         } else {
             self.session().with_snapshot_loading_project_tree(ctx, None, |snapshot| {
-                let programs = snapshot.project_collection.language_service_projects().iter().map(|p| p.get_program().unwrap()).collect();
+                let programs = snapshot
+                    .project_collection
+                    .language_service_projects()
+                    .iter()
+                    .map(|p| p.get_program().unwrap())
+                    .collect();
                 provide_symbols(snapshot, programs);
             });
         }
@@ -2090,13 +2808,24 @@ impl Server {
     }
 
     // server.go:2184
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_document_symbol(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::DocumentSymbolParams) -> Result<lsproto::DocumentSymbolResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_document_symbol(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::DocumentSymbolParams,
+    ) -> Result<lsproto::DocumentSymbolResponse, Error> {
         ls.provide_document_symbols(ctx, &params.text_document.uri)
     }
 
     // server.go:2188
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_document_highlight(
         self: &Arc<Self>,
         ctx: &Context,
@@ -2107,45 +2836,93 @@ impl Server {
     }
 
     // server.go:2192
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_multi_document_highlight(
         self: &Arc<Self>,
         ctx: &Context,
         ls: &Arc<LanguageService>,
         params: &lsproto::MultiDocumentHighlightParams,
     ) -> Result<lsproto::CustomMultiDocumentHighlightResponse, Error> {
-        ls.provide_multi_document_highlights(ctx, &params.text_document.uri, params.position, &params.files_to_search)
+        ls.provide_multi_document_highlights(
+            ctx,
+            &params.text_document.uri,
+            params.position,
+            &params.files_to_search,
+        )
     }
 
     // server.go:2196
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_selection_range(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::SelectionRangeParams) -> Result<lsproto::SelectionRangeResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_selection_range(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::SelectionRangeParams,
+    ) -> Result<lsproto::SelectionRangeResponse, Error> {
         ls.provide_selection_ranges(ctx, params)
     }
 
     // server.go:2200
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_code_action(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::CodeActionParams) -> Result<lsproto::CodeActionResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_code_action(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::CodeActionParams,
+    ) -> Result<lsproto::CodeActionResponse, Error> {
         ls.provide_code_actions(ctx, params)
     }
 
     // server.go:2204
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_inlay_hint(self: &Arc<Self>, ctx: &Context, language_service: &Arc<LanguageService>, params: &lsproto::InlayHintParams) -> Result<lsproto::InlayHintResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_inlay_hint(
+        self: &Arc<Self>,
+        ctx: &Context,
+        language_service: &Arc<LanguageService>,
+        params: &lsproto::InlayHintParams,
+    ) -> Result<lsproto::InlayHintResponse, Error> {
         language_service.provide_inlay_hint(ctx, params)
     }
 
     // server.go:2212
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_code_lens(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::CodeLensParams) -> Result<lsproto::CodeLensResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_code_lens(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::CodeLensParams,
+    ) -> Result<lsproto::CodeLensResponse, Error> {
         ls.provide_code_lenses(ctx, &params.text_document.uri)
     }
 
     // server.go:2216
-    fn handle_code_lens_resolve(self: &Arc<Self>, ctx: &Context, code_lens: lsproto::CodeLens, req_msg: &RequestMessage) -> Result<lsproto::CodeLensResolveResponse, Error> {
+    fn handle_code_lens_resolve(
+        self: &Arc<Self>,
+        ctx: &Context,
+        code_lens: lsproto::CodeLens,
+        req_msg: &RequestMessage,
+    ) -> Result<lsproto::CodeLensResolveResponse, Error> {
         // tsrs-only: Go unwraps the data, which a client's lens may not have, and panics.
         let Some(data) = &code_lens.data else {
-            return Err(Error::wrap_code(ErrorCode::InvalidParams, Error::new("code lens data is nil")));
+            return Err(Error::wrap_code(
+                ErrorCode::InvalidParams,
+                Error::new("code lens data is nil"),
+            ));
         };
         let uri = data.uri.clone();
         check_uri(&uri)?;
@@ -2179,14 +2956,21 @@ impl Server {
     }
 
     // server.go:2240
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_prepare_call_hierarchy(
         self: &Arc<Self>,
         ctx: &Context,
         language_service: &Arc<LanguageService>,
         params: &lsproto::CallHierarchyPrepareParams,
     ) -> Result<lsproto::CallHierarchyPrepareResponse, Error> {
-        language_service.provide_prepare_call_hierarchy(ctx, &params.text_document.uri, params.position)
+        language_service.provide_prepare_call_hierarchy(
+            ctx,
+            &params.text_document.uri,
+            params.position,
+        )
     }
 
     // server.go:2248
@@ -2197,7 +2981,11 @@ impl Server {
         req_msg: &RequestMessage,
     ) -> Result<lsproto::CallHierarchyIncomingCallsResponse, Error> {
         check_uri(&params.item.uri)?;
-        let (default_ls, orchestrator) = self.get_language_service_and_cross_project_orchestrator(ctx, &params.item.uri, req_msg)?;
+        let (default_ls, orchestrator) = self.get_language_service_and_cross_project_orchestrator(
+            ctx,
+            &params.item.uri,
+            req_msg,
+        )?;
         default_ls.provide_call_hierarchy_incoming_calls(ctx, &params.item, Some(&*orchestrator))
     }
 
@@ -2214,13 +3002,24 @@ impl Server {
     }
 
     // server.go:2272
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_semantic_tokens_full(self: &Arc<Self>, ctx: &Context, ls: &Arc<LanguageService>, params: &lsproto::SemanticTokensParams) -> Result<lsproto::SemanticTokensResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_semantic_tokens_full(
+        self: &Arc<Self>,
+        ctx: &Context,
+        ls: &Arc<LanguageService>,
+        params: &lsproto::SemanticTokensParams,
+    ) -> Result<lsproto::SemanticTokensResponse, Error> {
         ls.provide_semantic_tokens(ctx, &params.text_document.uri)
     }
 
     // server.go:2276
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_semantic_tokens_range(
         self: &Arc<Self>,
         ctx: &Context,
@@ -2231,7 +3030,10 @@ impl Server {
     }
 
     // server.go:2280 (the `api` package is out of scope)
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_initialize_api_session(
         self: &Arc<Self>,
         _ctx: &Context,
@@ -2243,7 +3045,11 @@ impl Server {
 
     // server.go:2363
     // !!! temporary; remove when we have `handleDidChangeConfiguration`/implicit project config support
-    pub fn set_compiler_options_for_inferred_projects(&self, ctx: &Context, options: Option<P<CompilerOptions>>) {
+    pub fn set_compiler_options_for_inferred_projects(
+        &self,
+        ctx: &Context,
+        options: Option<P<CompilerOptions>>,
+    ) {
         *self.compiler_options_for_inferred_projects.lock().unwrap() = options;
         if let Some(session) = self.session.get() {
             session.did_change_compiler_options_for_inferred_projects(ctx, options);
@@ -2251,40 +3057,86 @@ impl Server {
     }
 
     // server.go:2394 (pprof is out of scope)
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_run_gc(self: &Arc<Self>, _ctx: &Context, _params: lsproto::NoParams, _req: &RequestMessage) -> Result<lsproto::RunGCResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_run_gc(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: lsproto::NoParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::RunGCResponse, Error> {
         Err(not_yet_ported(Method::CustomRunGC))
     }
 
     // server.go:2400
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_save_heap_profile(self: &Arc<Self>, _ctx: &Context, _params: &lsproto::ProfileParams, _req: &RequestMessage) -> Result<lsproto::SaveHeapProfileResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_save_heap_profile(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: &lsproto::ProfileParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::SaveHeapProfileResponse, Error> {
         Err(not_yet_ported(Method::CustomSaveHeapProfile))
     }
 
     // server.go:2409
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_save_alloc_profile(self: &Arc<Self>, _ctx: &Context, _params: &lsproto::ProfileParams, _req: &RequestMessage) -> Result<lsproto::SaveAllocProfileResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_save_alloc_profile(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: &lsproto::ProfileParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::SaveAllocProfileResponse, Error> {
         Err(not_yet_ported(Method::CustomSaveAllocProfile))
     }
 
     // server.go:2418
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_start_cpu_profile(self: &Arc<Self>, _ctx: &Context, _params: &lsproto::ProfileParams, _req: &RequestMessage) -> Result<lsproto::StartCPUProfileResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_start_cpu_profile(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: &lsproto::ProfileParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::StartCPUProfileResponse, Error> {
         Err(not_yet_ported(Method::CustomStartCPUProfile))
     }
 
     // server.go:2427
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
-    fn handle_stop_cpu_profile(self: &Arc<Self>, _ctx: &Context, _params: lsproto::NoParams, _req: &RequestMessage) -> Result<lsproto::StopCPUProfileResponse, Error> {
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
+    fn handle_stop_cpu_profile(
+        self: &Arc<Self>,
+        _ctx: &Context,
+        _params: lsproto::NoParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::StopCPUProfileResponse, Error> {
         Err(not_yet_ported(Method::CustomStopCPUProfile))
     }
 
     // server.go:2436
-    fn handle_project_info(self: &Arc<Self>, ctx: &Context, params: &lsproto::ProjectInfoParams, _req: &RequestMessage) -> Result<lsproto::CustomProjectInfoResponse, Error> {
+    fn handle_project_info(
+        self: &Arc<Self>,
+        ctx: &Context,
+        params: &lsproto::ProjectInfoParams,
+        _req: &RequestMessage,
+    ) -> Result<lsproto::CustomProjectInfoResponse, Error> {
         let uri = &params.text_document.uri;
         check_uri(uri)?;
-        let (default_project, _, _) = self.session().get_language_service_and_projects_for_file(ctx, uri)?;
+        let (default_project, _, _) =
+            self.session().get_language_service_and_projects_for_file(ctx, uri)?;
         let mut config_file_path = String::new();
         if default_project.kind == project::Kind::Configured {
             config_file_path = default_project.config_file_name().to_string();
@@ -2293,7 +3145,10 @@ impl Server {
     }
 
     // server.go:2451 (content mappers are out of scope)
-    #[expect(clippy::unused_self, reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Registered LSP handlers share a Server receiver so the dispatcher can call them uniformly."
+    )]
     fn handle_set_content_mapper_contributions(
         self: &Arc<Self>,
         _ctx: &Context,
@@ -2344,10 +3199,14 @@ fn supported_code_action_kinds() -> Vec<lsproto::CodeActionKind> {
 }
 
 // server.go:1103: `userFacingRequestFailedError` (a string error type that unwraps to ErrorCodeRequestFailed).
-pub(crate) const USER_FACING_REQUEST_FAILED_ERROR: ErrorTag = ErrorTag::Sentinel("userFacingRequestFailedError");
+pub(crate) const USER_FACING_REQUEST_FAILED_ERROR: ErrorTag =
+    ErrorTag::Sentinel("userFacingRequestFailedError");
 
 pub(crate) fn user_facing_request_failed_error(message: impl Into<String>) -> Error {
-    Error { message: message.into(), tags: vec![USER_FACING_REQUEST_FAILED_ERROR, ErrorTag::Code(ErrorCode::RequestFailed)] }
+    Error {
+        message: message.into(),
+        tags: vec![USER_FACING_REQUEST_FAILED_ERROR, ErrorTag::Code(ErrorCode::RequestFailed)],
+    }
 }
 
 // server.go:1198
@@ -2362,7 +3221,12 @@ fn content_mapper_fallback_response(method: Method, err: &Error) -> Option<lspro
     match method {
         Method::TextDocumentDiagnostic => Some(
             lsproto::DocumentDiagnosticResponse {
-                full_document_diagnostic_report: Some(lsproto::RelatedFullDocumentDiagnosticReport { items: Vec::new(), ..Default::default() }),
+                full_document_diagnostic_report: Some(
+                    lsproto::RelatedFullDocumentDiagnosticReport {
+                        items: Vec::new(),
+                        ..Default::default()
+                    },
+                ),
                 ..Default::default()
             }
             .to_json(),
@@ -2384,7 +3248,11 @@ fn content_mapper_fallback_response(method: Method, err: &Error) -> Option<lspro
 // handlerMap maps LSP method to a handler function. The handler function executes any work that must be done synchronously
 // before other requests/notifications can be processed, and returns any additional work as a function to be executed
 // asynchronously after the synchronous work is complete.
-pub(crate) type handlerFunc = Box<dyn Fn(&Arc<Server>, &Context, &Arc<RequestMessage>) -> Result<Option<asyncWork>, Error> + Send + Sync>;
+pub(crate) type handlerFunc = Box<
+    dyn Fn(&Arc<Server>, &Context, &Arc<RequestMessage>) -> Result<Option<asyncWork>, Error>
+        + Send
+        + Sync,
+>;
 
 pub(crate) struct handlerMap(FxHashMap<Method, handlerFunc>);
 
@@ -2395,76 +3263,223 @@ fn handlers() -> &'static handlerMap {
         let mut handlers = handlerMap(FxHashMap::default());
 
         handlers.register_request_handler(lsproto::INITIALIZE_INFO, Server::handle_initialize);
-        handlers.register_notification_handler(lsproto::INITIALIZED_INFO, Server::handle_initialized);
+        handlers
+            .register_notification_handler(lsproto::INITIALIZED_INFO, Server::handle_initialized);
         handlers.register_request_handler(lsproto::SHUTDOWN_INFO, Server::handle_shutdown);
         handlers.register_notification_handler(lsproto::EXIT_INFO, Server::handle_exit);
 
-        handlers.register_notification_handler(lsproto::WORKSPACE_DID_CHANGE_CONFIGURATION_INFO, |s, ctx, params| s.handle_did_change_workspace_configuration(ctx, &params));
-        handlers.register_notification_handler(lsproto::TEXT_DOCUMENT_DID_OPEN_INFO, Server::handle_did_open);
-        handlers.register_notification_handler(lsproto::TEXT_DOCUMENT_DID_CHANGE_INFO, Server::handle_did_change);
-        handlers.register_notification_handler(lsproto::TEXT_DOCUMENT_DID_SAVE_INFO, Server::handle_did_save);
-        handlers.register_notification_handler(lsproto::TEXT_DOCUMENT_DID_CLOSE_INFO, Server::handle_did_close);
-        handlers.register_notification_handler(lsproto::WORKSPACE_DID_CHANGE_WATCHED_FILES_INFO, |s, ctx, params| s.handle_did_change_watched_files(ctx, &params));
+        handlers.register_notification_handler(
+            lsproto::WORKSPACE_DID_CHANGE_CONFIGURATION_INFO,
+            |s, ctx, params| s.handle_did_change_workspace_configuration(ctx, &params),
+        );
+        handlers.register_notification_handler(
+            lsproto::TEXT_DOCUMENT_DID_OPEN_INFO,
+            Server::handle_did_open,
+        );
+        handlers.register_notification_handler(
+            lsproto::TEXT_DOCUMENT_DID_CHANGE_INFO,
+            Server::handle_did_change,
+        );
+        handlers.register_notification_handler(
+            lsproto::TEXT_DOCUMENT_DID_SAVE_INFO,
+            Server::handle_did_save,
+        );
+        handlers.register_notification_handler(
+            lsproto::TEXT_DOCUMENT_DID_CLOSE_INFO,
+            Server::handle_did_close,
+        );
+        handlers.register_notification_handler(
+            lsproto::WORKSPACE_DID_CHANGE_WATCHED_FILES_INFO,
+            |s, ctx, params| s.handle_did_change_watched_files(ctx, &params),
+        );
         handlers.register_notification_handler(lsproto::SET_TRACE_INFO, Server::handle_set_trace);
-        handlers.register_notification_handler(lsproto::CUSTOM_SET_LOG_VERBOSITY_INFO, Server::handle_set_log_verbosity);
-        handlers.register_request_handler(lsproto::WORKSPACE_WILL_RENAME_FILES_INFO, |s, ctx, params, req| s.handle_will_rename_files(ctx, &params, req));
+        handlers.register_notification_handler(
+            lsproto::CUSTOM_SET_LOG_VERBOSITY_INFO,
+            Server::handle_set_log_verbosity,
+        );
+        handlers.register_request_handler(
+            lsproto::WORKSPACE_WILL_RENAME_FILES_INFO,
+            |s, ctx, params, req| s.handle_will_rename_files(ctx, &params, req),
+        );
 
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_DIAGNOSTIC_INFO, Server::handle_document_diagnostic);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_HOVER_INFO, Server::handle_hover);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_DEFINITION_INFO, Server::handle_definition);
-        handlers.register_language_service_document_request_handler(lsproto::CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION_INFO, Server::handle_source_definition);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_TYPE_DEFINITION_INFO, Server::handle_type_definition);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_SIGNATURE_HELP_INFO, Server::handle_signature_help);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_FORMATTING_INFO, Server::handle_document_format);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_RANGE_FORMATTING_INFO, Server::handle_document_range_format);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_ON_TYPE_FORMATTING_INFO, Server::handle_document_on_type_format);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_DOCUMENT_SYMBOL_INFO, Server::handle_document_symbol);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT_INFO, Server::handle_document_highlight);
-        handlers.register_language_service_document_request_handler(lsproto::CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT_INFO, Server::handle_multi_document_highlight);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_SELECTION_RANGE_INFO, Server::handle_selection_range);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_INLAY_HINT_INFO, Server::handle_inlay_hint);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_CODE_LENS_INFO, Server::handle_code_lens);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_CODE_ACTION_INFO, Server::handle_code_action);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY_INFO, Server::handle_prepare_call_hierarchy);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_FOLDING_RANGE_INFO, Server::handle_folding_range);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_PREPARE_RENAME_INFO, Server::handle_prepare_rename);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_LINKED_EDITING_RANGE_INFO, Server::handle_linked_editing_range);
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_DIAGNOSTIC_INFO,
+            Server::handle_document_diagnostic,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_HOVER_INFO,
+            Server::handle_hover,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_DEFINITION_INFO,
+            Server::handle_definition,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::CUSTOM_TEXT_DOCUMENT_SOURCE_DEFINITION_INFO,
+            Server::handle_source_definition,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_TYPE_DEFINITION_INFO,
+            Server::handle_type_definition,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_SIGNATURE_HELP_INFO,
+            Server::handle_signature_help,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_FORMATTING_INFO,
+            Server::handle_document_format,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_RANGE_FORMATTING_INFO,
+            Server::handle_document_range_format,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_ON_TYPE_FORMATTING_INFO,
+            Server::handle_document_on_type_format,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_DOCUMENT_SYMBOL_INFO,
+            Server::handle_document_symbol,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT_INFO,
+            Server::handle_document_highlight,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::CUSTOM_TEXT_DOCUMENT_MULTI_DOCUMENT_HIGHLIGHT_INFO,
+            Server::handle_multi_document_highlight,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_SELECTION_RANGE_INFO,
+            Server::handle_selection_range,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_INLAY_HINT_INFO,
+            Server::handle_inlay_hint,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_CODE_LENS_INFO,
+            Server::handle_code_lens,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_CODE_ACTION_INFO,
+            Server::handle_code_action,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_PREPARE_CALL_HIERARCHY_INFO,
+            Server::handle_prepare_call_hierarchy,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_FOLDING_RANGE_INFO,
+            Server::handle_folding_range,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_PREPARE_RENAME_INFO,
+            Server::handle_prepare_rename,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_LINKED_EDITING_RANGE_INFO,
+            Server::handle_linked_editing_range,
+        );
 
-        handlers.register_language_service_with_auto_imports_request_handler(lsproto::TEXT_DOCUMENT_COMPLETION_INFO, Server::handle_completion);
-        handlers.register_language_service_with_auto_imports_request_handler(lsproto::TEXT_DOCUMENT_CODE_ACTION_INFO, Server::handle_code_action);
+        handlers.register_language_service_with_auto_imports_request_handler(
+            lsproto::TEXT_DOCUMENT_COMPLETION_INFO,
+            Server::handle_completion,
+        );
+        handlers.register_language_service_with_auto_imports_request_handler(
+            lsproto::TEXT_DOCUMENT_CODE_ACTION_INFO,
+            Server::handle_code_action,
+        );
 
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_VS_ON_AUTO_INSERT_INFO, Server::handle_vs_on_auto_insert);
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_VS_ON_AUTO_INSERT_INFO,
+            Server::handle_vs_on_auto_insert,
+        );
 
-        handlers.register_multi_project_reference_request_handler(lsproto::TEXT_DOCUMENT_REFERENCES_INFO, |ls, ctx, params, orchestrator| {
-            ls.provide_references(ctx, &params, Some(&*orchestrator))
+        handlers.register_multi_project_reference_request_handler(
+            lsproto::TEXT_DOCUMENT_REFERENCES_INFO,
+            |ls, ctx, params, orchestrator| {
+                ls.provide_references(ctx, &params, Some(&*orchestrator))
+            },
+        );
+        handlers.register_multi_project_reference_request_handler(
+            lsproto::TEXT_DOCUMENT_VS_REFERENCES_INFO,
+            |ls, ctx, params, orchestrator| {
+                ls.provide_vs_references(ctx, &params, Some(&*orchestrator))
+            },
+        );
+        handlers
+            .register_request_handler(lsproto::TEXT_DOCUMENT_RENAME_INFO, |s, ctx, params, req| {
+                s.handle_rename(ctx, &params, req)
+            });
+        handlers.register_multi_project_reference_request_handler(
+            lsproto::TEXT_DOCUMENT_IMPLEMENTATION_INFO,
+            |ls, ctx, params, orchestrator| {
+                ls.provide_implementations(ctx, &params, Some(&*orchestrator))
+            },
+        );
+
+        handlers.register_request_handler(
+            lsproto::CALL_HIERARCHY_INCOMING_CALLS_INFO,
+            |s, ctx, params, req| s.handle_call_hierarchy_incoming_calls(ctx, &params, req),
+        );
+        handlers.register_request_handler(
+            lsproto::CALL_HIERARCHY_OUTGOING_CALLS_INFO,
+            |s, ctx, params, req| s.handle_call_hierarchy_outgoing_calls(ctx, &params, req),
+        );
+
+        handlers.register_request_handler(lsproto::WORKSPACE_SYMBOL_INFO, |s, ctx, params, req| {
+            s.handle_workspace_symbol(ctx, &params, req)
         });
-        handlers.register_multi_project_reference_request_handler(lsproto::TEXT_DOCUMENT_VS_REFERENCES_INFO, |ls, ctx, params, orchestrator| {
-            ls.provide_vs_references(ctx, &params, Some(&*orchestrator))
-        });
-        handlers.register_request_handler(lsproto::TEXT_DOCUMENT_RENAME_INFO, |s, ctx, params, req| s.handle_rename(ctx, &params, req));
-        handlers.register_multi_project_reference_request_handler(lsproto::TEXT_DOCUMENT_IMPLEMENTATION_INFO, |ls, ctx, params, orchestrator| {
-            ls.provide_implementations(ctx, &params, Some(&*orchestrator))
-        });
-
-        handlers.register_request_handler(lsproto::CALL_HIERARCHY_INCOMING_CALLS_INFO, |s, ctx, params, req| s.handle_call_hierarchy_incoming_calls(ctx, &params, req));
-        handlers.register_request_handler(lsproto::CALL_HIERARCHY_OUTGOING_CALLS_INFO, |s, ctx, params, req| s.handle_call_hierarchy_outgoing_calls(ctx, &params, req));
-
-        handlers.register_request_handler(lsproto::WORKSPACE_SYMBOL_INFO, |s, ctx, params, req| s.handle_workspace_symbol(ctx, &params, req));
-        handlers.register_request_handler(lsproto::COMPLETION_ITEM_RESOLVE_INFO, Server::handle_completion_item_resolve);
-        handlers.register_request_handler(lsproto::CODE_LENS_RESOLVE_INFO, Server::handle_code_lens_resolve);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_INFO, Server::handle_semantic_tokens_full);
-        handlers.register_language_service_document_request_handler(lsproto::TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE_INFO, Server::handle_semantic_tokens_range);
+        handlers.register_request_handler(
+            lsproto::COMPLETION_ITEM_RESOLVE_INFO,
+            Server::handle_completion_item_resolve,
+        );
+        handlers.register_request_handler(
+            lsproto::CODE_LENS_RESOLVE_INFO,
+            Server::handle_code_lens_resolve,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL_INFO,
+            Server::handle_semantic_tokens_full,
+        );
+        handlers.register_language_service_document_request_handler(
+            lsproto::TEXT_DOCUMENT_SEMANTIC_TOKENS_RANGE_INFO,
+            Server::handle_semantic_tokens_range,
+        );
 
         // Developer/debugging commands
         handlers.register_request_handler(lsproto::CUSTOM_RUN_GC_INFO, Server::handle_run_gc);
-        handlers.register_request_handler(lsproto::CUSTOM_SAVE_HEAP_PROFILE_INFO, |s, ctx, params, req| s.handle_save_heap_profile(ctx, &params, req));
-        handlers.register_request_handler(lsproto::CUSTOM_SAVE_ALLOC_PROFILE_INFO, |s, ctx, params, req| s.handle_save_alloc_profile(ctx, &params, req));
-        handlers.register_request_handler(lsproto::CUSTOM_START_CPU_PROFILE_INFO, |s, ctx, params, req| s.handle_start_cpu_profile(ctx, &params, req));
-        handlers.register_request_handler(lsproto::CUSTOM_STOP_CPU_PROFILE_INFO, Server::handle_stop_cpu_profile);
+        handlers.register_request_handler(
+            lsproto::CUSTOM_SAVE_HEAP_PROFILE_INFO,
+            |s, ctx, params, req| s.handle_save_heap_profile(ctx, &params, req),
+        );
+        handlers.register_request_handler(
+            lsproto::CUSTOM_SAVE_ALLOC_PROFILE_INFO,
+            |s, ctx, params, req| s.handle_save_alloc_profile(ctx, &params, req),
+        );
+        handlers.register_request_handler(
+            lsproto::CUSTOM_START_CPU_PROFILE_INFO,
+            |s, ctx, params, req| s.handle_start_cpu_profile(ctx, &params, req),
+        );
+        handlers.register_request_handler(
+            lsproto::CUSTOM_STOP_CPU_PROFILE_INFO,
+            Server::handle_stop_cpu_profile,
+        );
 
-        handlers.register_request_handler(lsproto::CUSTOM_INITIALIZE_API_SESSION_INFO, |s, ctx, params, req| s.handle_initialize_api_session(ctx, &params, req));
-        handlers.register_request_handler(lsproto::CUSTOM_PROJECT_INFO_INFO, |s, ctx, params, req| s.handle_project_info(ctx, &params, req));
-        handlers.register_request_handler(lsproto::CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS_INFO, |s, ctx, params, req| s.handle_set_content_mapper_contributions(ctx, &params, req));
+        handlers.register_request_handler(
+            lsproto::CUSTOM_INITIALIZE_API_SESSION_INFO,
+            |s, ctx, params, req| s.handle_initialize_api_session(ctx, &params, req),
+        );
+        handlers
+            .register_request_handler(lsproto::CUSTOM_PROJECT_INFO_INFO, |s, ctx, params, req| {
+                s.handle_project_info(ctx, &params, req)
+            });
+        handlers.register_request_handler(
+            lsproto::CUSTOM_SET_CONTENT_MAPPER_CONTRIBUTIONS_INFO,
+            |s, ctx, params, req| s.handle_set_content_mapper_contributions(ctx, &params, req),
+        );
         handlers
     })
 }
@@ -2605,7 +3620,12 @@ impl handlerMap {
     fn register_multi_project_reference_request_handler<Req, Resp>(
         &mut self,
         info: lsproto::RequestInfo<Req, Resp>,
-        f: fn(&LanguageService, &Context, Req, Arc<dyn tsrs_ls::CrossProjectOrchestrator>) -> Result<Resp, Error>,
+        f: fn(
+            &LanguageService,
+            &Context,
+            Req,
+            Arc<dyn tsrs_ls::CrossProjectOrchestrator>,
+        ) -> Result<Resp, Error>,
     ) where
         Req: Json + Default + lsproto::HasTextDocumentPosition + Send + 'static,
         Resp: Json + 'static,
@@ -2620,7 +3640,12 @@ impl handlerMap {
                 let params = req.unmarshal_params::<Req>()?;
                 check_uri(params.text_document_uri())?;
                 // !!! sheetal: multiple projects that contain the file through symlinks
-                let (default_ls, orchestrator) = s.get_language_service_and_cross_project_orchestrator(ctx, params.text_document_uri(), req)?;
+                let (default_ls, orchestrator) = s
+                    .get_language_service_and_cross_project_orchestrator(
+                        ctx,
+                        params.text_document_uri(),
+                        req,
+                    )?;
                 let (s, ctx, req) = (Arc::clone(s), ctx.clone(), Arc::clone(req));
                 Ok(Some(Box::new(move || {
                     s.with_recover(&req, || {
@@ -2667,7 +3692,12 @@ impl tsrs_ls::CrossProjectOrchestrator for crossProjectOrchestrator {
     }
 
     // server.go:1448
-    fn get_language_service_for_project_with_file(&self, ctx: &Context, p: &Arc<dyn tsrs_ls::Project>, uri: &lsproto::DocumentUri) -> Option<Arc<LanguageService>> {
+    fn get_language_service_for_project_with_file(
+        &self,
+        ctx: &Context,
+        p: &Arc<dyn tsrs_ls::Project>,
+        uri: &lsproto::DocumentUri,
+    ) -> Option<Arc<LanguageService>> {
         // Go type-asserts `p.(*project.Project)`; `ls::Project` has no downcast, so the project is found by its
         // id in the current snapshot (the session looks it up by id in a fresh snapshot either way).
         let snapshot = self.server.session().snapshot();
@@ -2676,17 +3706,35 @@ impl tsrs_ls::CrossProjectOrchestrator for crossProjectOrchestrator {
     }
 
     // server.go:1452
-    fn get_projects_for_file(&self, ctx: &Context, uri: &lsproto::DocumentUri) -> Result<Vec<Arc<dyn tsrs_ls::Project>>, Error> {
+    fn get_projects_for_file(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+    ) -> Result<Vec<Arc<dyn tsrs_ls::Project>>, Error> {
         Ok(self.server.session().get_projects_for_file(ctx, uri))
     }
 
     // server.go:1456. Go returns an iterator that loads the snapshot while it is consumed; the projects are
     // collected while the snapshot is held.
-    fn get_projects_loading_project_tree(&self, ctx: &Context, requested_project_trees: &Set<Path>) -> Box<dyn Iterator<Item = Arc<dyn tsrs_ls::Project>> + '_> {
+    fn get_projects_loading_project_tree(
+        &self,
+        ctx: &Context,
+        requested_project_trees: &Set<Path>,
+    ) -> Box<dyn Iterator<Item = Arc<dyn tsrs_ls::Project>> + '_> {
         let mut projects = Vec::new();
-        self.server.session().with_snapshot_loading_project_tree(ctx, Some(requested_project_trees.clone()), |snapshot| {
-            projects.extend(snapshot.project_collection.language_service_projects().into_iter().map(|p| Arc::clone(p.arc()) as Arc<dyn tsrs_ls::Project>));
-        });
+        self.server.session().with_snapshot_loading_project_tree(
+            ctx,
+            Some(requested_project_trees.clone()),
+            |snapshot| {
+                projects.extend(
+                    snapshot
+                        .project_collection
+                        .language_service_projects()
+                        .into_iter()
+                        .map(|p| Arc::clone(p.arc()) as Arc<dyn tsrs_ls::Project>),
+                );
+            },
+        );
         Box::new(projects.into_iter())
     }
 }
@@ -2698,32 +3746,57 @@ pub(crate) fn not_yet_ported(method: Method) -> Error {
 }
 
 // server.go:1896
-fn generate_diagnostic_diff_string(missing_from_pre: &[&lsproto::Diagnostic], missing_from_post: &[&lsproto::Diagnostic], stringifier: fn(&lsproto::Diagnostic) -> String) -> String {
+fn generate_diagnostic_diff_string(
+    missing_from_pre: &[&lsproto::Diagnostic],
+    missing_from_post: &[&lsproto::Diagnostic],
+    stringifier: fn(&lsproto::Diagnostic) -> String,
+) -> String {
     let mut b = String::new();
     for elem in missing_from_pre {
-        let _ = writeln!(b, "Diagnostic {} was present after emit but not before emit", stringifier(elem));
+        let _ = writeln!(
+            b,
+            "Diagnostic {} was present after emit but not before emit",
+            stringifier(elem)
+        );
     }
     for elem in missing_from_post {
-        let _ = writeln!(b, "Diagnostic {} was present before emit but not after emit", stringifier(elem));
+        let _ = writeln!(
+            b,
+            "Diagnostic {} was present before emit but not after emit",
+            stringifier(elem)
+        );
     }
     b
 }
 
 // server.go:99: `_ project.Client = (*Server)(nil)`.
 impl project::Client for Server {
-    fn watch_files(&self, ctx: &Context, id: project::WatcherID, watchers: Vec<lsproto::FileSystemWatcher>) -> Result<(), Error> {
+    fn watch_files(
+        &self,
+        ctx: &Context,
+        id: project::WatcherID,
+        watchers: Vec<lsproto::FileSystemWatcher>,
+    ) -> Result<(), Error> {
         Server::watch_files(self, ctx, &id.0, watchers)
     }
     fn unwatch_files(&self, ctx: &Context, id: project::WatcherID) -> Result<(), Error> {
         Server::unwatch_files(self, ctx, &id.0)
     }
-    fn register_content_mapper_extensions(&self, ctx: &Context, extensions: Vec<String>) -> Result<(), Error> {
+    fn register_content_mapper_extensions(
+        &self,
+        ctx: &Context,
+        extensions: Vec<String>,
+    ) -> Result<(), Error> {
         Server::register_content_mapper_extensions(self, ctx, &extensions)
     }
     fn refresh_diagnostics(&self, ctx: &Context) -> Result<(), Error> {
         Server::refresh_diagnostics(self, ctx)
     }
-    fn publish_diagnostics(&self, ctx: &Context, params: lsproto::PublishDiagnosticsParams) -> Result<(), Error> {
+    fn publish_diagnostics(
+        &self,
+        ctx: &Context,
+        params: lsproto::PublishDiagnosticsParams,
+    ) -> Result<(), Error> {
         Server::publish_diagnostics(self, ctx, params)
     }
     fn refresh_inlay_hints(&self, ctx: &Context) -> Result<(), Error> {
@@ -2732,13 +3805,25 @@ impl project::Client for Server {
     fn refresh_code_lens(&self, ctx: &Context) -> Result<(), Error> {
         Server::refresh_code_lens(self, ctx)
     }
-    fn progress_start(&self, message: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]) {
+    fn progress_start(
+        &self,
+        message: &'static tsrs_diagnostics::Message,
+        args: &[&dyn std::fmt::Display],
+    ) {
         Server::progress_start(self, message, args);
     }
-    fn progress_finish(&self, message: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]) {
+    fn progress_finish(
+        &self,
+        message: &'static tsrs_diagnostics::Message,
+        args: &[&dyn std::fmt::Display],
+    ) {
         Server::progress_finish(self, message, args);
     }
-    fn send_telemetry(&self, ctx: &Context, telemetry: lsproto::TelemetryEvent) -> Result<(), Error> {
+    fn send_telemetry(
+        &self,
+        ctx: &Context,
+        telemetry: lsproto::TelemetryEvent,
+    ) -> Result<(), Error> {
         Server::send_telemetry(self, ctx, telemetry)
     }
     fn is_active(&self) -> bool {
@@ -2780,7 +3865,16 @@ struct errGroupInner {
 impl errGroup {
     fn with_context(ctx: &Context) -> (errGroup, Context) {
         let (ctx, cancel) = ctx.with_cancel();
-        (errGroup { inner: Arc::new(errGroupInner { first: Mutex::new(None), cancel, handles: Mutex::new(Vec::new()) }) }, ctx)
+        (
+            errGroup {
+                inner: Arc::new(errGroupInner {
+                    first: Mutex::new(None),
+                    cancel,
+                    handles: Mutex::new(Vec::new()),
+                }),
+            },
+            ctx,
+        )
     }
 
     fn record(&self, result: Result<(), Error>) {
@@ -2880,7 +3974,9 @@ fn recover_scope<R>(f: impl FnOnce() -> R) -> Result<R, (Box<dyn Any + Send>, St
     RECOVER_DEPTH.with(|d| d.set(d.get() + 1));
     let result = std::panic::catch_unwind(AssertUnwindSafe(f));
     RECOVER_DEPTH.with(|d| d.set(d.get() - 1));
-    result.map_err(|payload| (payload, PANIC_STACK.with(|s| s.borrow_mut().take()).unwrap_or_default()))
+    result.map_err(|payload| {
+        (payload, PANIC_STACK.with(|s| s.borrow_mut().take()).unwrap_or_default())
+    })
 }
 
 // Go `fmt.Sprintf("%+v", v)` of a decoded JSON value (`any`): nil, bool, float64, string, []any, map[string]any
@@ -2892,17 +3988,28 @@ fn go_sprint_value(v: &lsproto::Value) -> String {
         lsproto::Value::Integer(n) => n.to_string(),
         lsproto::Value::Number(n) => go_format_float(*n),
         lsproto::Value::String(s) => s.clone(),
-        lsproto::Value::Array(items) => format!("[{}]", items.iter().map(go_sprint_value).collect::<Vec<_>>().join(" ")),
+        lsproto::Value::Array(items) => {
+            format!("[{}]", items.iter().map(go_sprint_value).collect::<Vec<_>>().join(" "))
+        }
         lsproto::Value::Object(members) => {
             let mut keys: Vec<&String> = members.keys().collect();
             keys.sort();
-            format!("map[{}]", keys.iter().map(|k| format!("{}:{}", k, go_sprint_value(&members[*k]))).collect::<Vec<_>>().join(" "))
+            format!(
+                "map[{}]",
+                keys.iter()
+                    .map(|k| format!("{}:{}", k, go_sprint_value(&members[*k])))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
         }
     }
 }
 
 // Go `%v` of a float64 (strconv 'g' with the shortest representation; exponent form for large/small values).
-#[expect(clippy::float_cmp, reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values.")]
+#[expect(
+    clippy::float_cmp,
+    reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
+)]
 fn go_format_float(f: f64) -> String {
     if f == f.trunc() && f.abs() < 1e21 {
         return format!("{}", f as i64);
@@ -2912,7 +4019,12 @@ fn go_format_float(f: f64) -> String {
         let s = format!("{f:e}");
         let (mantissa, exponent) = s.split_once('e').unwrap();
         let exponent: i32 = exponent.parse().unwrap();
-        return format!("{}e{}{:02}", mantissa, if exponent < 0 { '-' } else { '+' }, exponent.abs());
+        return format!(
+            "{}e{}{:02}",
+            mantissa,
+            if exponent < 0 { '-' } else { '+' },
+            exponent.abs()
+        );
     }
     format!("{f}")
 }

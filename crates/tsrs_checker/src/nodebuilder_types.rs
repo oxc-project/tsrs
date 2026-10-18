@@ -221,7 +221,8 @@ pub struct CheckerSlot {
 impl CheckerSlot {
     /// Makes `c` available to `with` while `f` runs (nests; the previous state is restored afterwards).
     pub fn lend<R>(&self, c: &mut Checker, f: impl FnOnce() -> R) -> R {
-        let saved = (self.ptr.replace(Some(std::ptr::NonNull::from(c))), self.in_use.replace(false));
+        let saved =
+            (self.ptr.replace(Some(std::ptr::NonNull::from(c))), self.in_use.replace(false));
         let result = f();
         self.ptr.set(saved.0);
         self.in_use.set(saved.1);
@@ -234,7 +235,10 @@ impl CheckerSlot {
         // may have entered (notes/mem-emit-regions.md), and stay in the checker's own region if it has one.
         let _outer = tsrs_core::arena::escape_scratch_one_level();
         let mut ptr = self.ptr.get().expect("CheckerSlot::with outside CheckerSlot::lend");
-        assert!(!self.in_use.replace(true), "CheckerSlot::with re-entered without CheckerSlot::lend");
+        assert!(
+            !self.in_use.replace(true),
+            "CheckerSlot::with re-entered without CheckerSlot::lend"
+        );
         // SAFETY: `ptr` comes from the `&mut Checker` passed to the innermost active `lend`, which is borrowed for
         // the whole `lend` call and not otherwise usable while `f` runs; `in_use` guarantees that at most one
         // reference derived from it is live (a nested `with` needs a nested `lend`, which derives from this one).
@@ -324,7 +328,13 @@ pub struct wrappingTracker {
 }
 
 impl SymbolTracker for wrappingTracker {
-    fn track_symbol(&self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool {
+    fn track_symbol(
+        &self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool {
         wrappingTracker::track_symbol(self, c, symbol, enclosing_declaration, meaning)
     }
     fn report_inaccessible_this_error(&self) {
@@ -345,8 +355,18 @@ impl SymbolTracker for wrappingTracker {
     fn report_truncation_error(&self) {
         wrappingTracker::report_truncation_error(self);
     }
-    fn report_nonlocal_augmentation(&self, containing_file: P<SourceFile>, parent_symbol: P<Symbol>, augmenting_symbol: P<Symbol>) {
-        wrappingTracker::report_nonlocal_augmentation(self, containing_file, parent_symbol, augmenting_symbol);
+    fn report_nonlocal_augmentation(
+        &self,
+        containing_file: P<SourceFile>,
+        parent_symbol: P<Symbol>,
+        augmenting_symbol: P<Symbol>,
+    ) {
+        wrappingTracker::report_nonlocal_augmentation(
+            self,
+            containing_file,
+            parent_symbol,
+            augmenting_symbol,
+        );
     }
     fn report_non_serializable_property(&self, property_name: &str) {
         wrappingTracker::report_non_serializable_property(self, property_name);

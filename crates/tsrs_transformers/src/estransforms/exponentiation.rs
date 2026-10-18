@@ -32,7 +32,9 @@ impl exponentiationTransformer {
     // exponentiation.go:24
     fn visit_binary_expression(&self, node: P<Node>) -> P<Node> {
         match node.as_binary_expression().operator_token.kind() {
-            Kind::AsteriskAsteriskEqualsToken => return self.visit_exponentiation_assignment_expression(node),
+            Kind::AsteriskAsteriskEqualsToken => {
+                return self.visit_exponentiation_assignment_expression(node);
+            }
             Kind::AsteriskAsteriskToken => return self.visit_exponentiation_expression(node),
             _ => {}
         }
@@ -56,23 +58,42 @@ impl exponentiationTransformer {
 
             let obj_expr = f.new_assignment_expression(expression_temp, left.expression().unwrap());
             obj_expr.set_loc(left.expression().unwrap().loc());
-            let access_expr = f.new_assignment_expression(argument_expression_temp, left.as_element_access_expression().argument_expression);
+            let access_expr = f.new_assignment_expression(
+                argument_expression_temp,
+                left.as_element_access_expression().argument_expression,
+            );
             access_expr.set_loc(left.as_element_access_expression().argument_expression.loc());
 
             target = f.new_element_access_expression(obj_expr, None, access_expr, NodeFlags::None);
 
-            value = f.new_element_access_expression(expression_temp, None, argument_expression_temp, NodeFlags::None);
+            value = f.new_element_access_expression(
+                expression_temp,
+                None,
+                argument_expression_temp,
+                NodeFlags::None,
+            );
             value.set_loc(left.loc());
         } else if ast::is_property_access_expression(left) {
             // Transforms `a.x **= b` into `(_a = a).x = Math.pow(_a.x, b)`
             let expression_temp = f.new_temp_variable();
             self.emit_context().add_variable_declaration(expression_temp);
-            let assignment = f.new_assignment_expression(expression_temp, left.expression().unwrap());
+            let assignment =
+                f.new_assignment_expression(expression_temp, left.expression().unwrap());
             assignment.set_loc(left.expression().unwrap().loc());
-            target = f.new_property_access_expression(assignment, None, left.name().unwrap(), NodeFlags::None);
+            target = f.new_property_access_expression(
+                assignment,
+                None,
+                left.name().unwrap(),
+                NodeFlags::None,
+            );
             target.set_loc(left.loc());
 
-            value = f.new_property_access_expression(expression_temp, None, left.name().unwrap(), NodeFlags::None);
+            value = f.new_property_access_expression(
+                expression_temp,
+                None,
+                left.name().unwrap(),
+                NodeFlags::None,
+            );
             value.set_loc(left.loc());
         } else {
             // Transforms `a **= b` into `a = Math.pow(a, b)`
@@ -99,8 +120,14 @@ impl exponentiationTransformer {
 }
 
 // exponentiation.go:87
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_exponentiation_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(exponentiationTransformer { base: Transformer::default() });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(opt.context)))
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(opt.context),
+    ))
 }

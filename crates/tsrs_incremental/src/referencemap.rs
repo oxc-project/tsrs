@@ -32,11 +32,19 @@ impl RefSet {
     }
 
     pub(crate) fn len(&self) -> usize {
-        self.own.len() + self.shared.as_ref().map_or(0, |shared| shared.len() - usize::from(self.skip.is_some()))
+        self.own.len()
+            + self
+                .shared
+                .as_ref()
+                .map_or(0, |shared| shared.len() - usize::from(self.skip.is_some()))
     }
 
     pub(crate) fn has(&self, path: &Path) -> bool {
-        self.own.has(path) || self.shared.as_ref().is_some_and(|shared| shared.has(path) && self.skip.as_ref() != Some(path))
+        self.own.has(path)
+            || self
+                .shared
+                .as_ref()
+                .is_some_and(|shared| shared.has(path) && self.skip.as_ref() != Some(path))
     }
 
     /// The file's own paths (all of them for a flat set).
@@ -51,7 +59,12 @@ impl RefSet {
 
     pub(crate) fn iter(&self) -> impl Iterator<Item = &Path> {
         let skip = self.skip.as_ref();
-        self.own.keys().iter().chain(self.shared.iter().flat_map(|shared| shared.keys().iter()).filter(move |&path| Some(path) != skip))
+        self.own.keys().iter().chain(
+            self.shared
+                .iter()
+                .flat_map(|shared| shared.keys().iter())
+                .filter(move |&path| Some(path) != skip),
+        )
     }
 }
 
@@ -109,8 +122,19 @@ impl ReferenceMap {
             groups
         });
         let mut result = Vec::new();
-        if self.referenced_by.get().is_none() && self.queries.fetch_add(1, Ordering::Relaxed) < SCAN_QUERIES {
-            result.extend(groups.iter().filter_map(|(refs, owners)| if refs.has(path) { Some(owners.iter().cloned()) } else { None }).flatten());
+        if self.referenced_by.get().is_none()
+            && self.queries.fetch_add(1, Ordering::Relaxed) < SCAN_QUERIES
+        {
+            result.extend(
+                groups
+                    .iter()
+                    .filter_map(
+                        |(refs, owners)| {
+                            if refs.has(path) { Some(owners.iter().cloned()) } else { None }
+                        },
+                    )
+                    .flatten(),
+            );
             return result;
         }
         let referenced_by = self.referenced_by.get_or_init(|| {

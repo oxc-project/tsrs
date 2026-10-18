@@ -1,8 +1,10 @@
 use tsrs_ast as ast;
 use tsrs_ast::{Kind, Node, NodeFlags, NodeList, SourceFile, TokenFlags};
-use tsrs_core::{stringutil, LanguageVariant, P};
+use tsrs_core::{LanguageVariant, P, stringutil};
 
-use crate::scanner::{decode_rune, is_identifier_part_ex, is_identifier_start, skip_trivia, text_to_keyword};
+use crate::scanner::{
+    decode_rune, is_identifier_part_ex, is_identifier_start, skip_trivia, text_to_keyword,
+};
 
 pub(crate) fn token_is_identifier_or_keyword(token: Kind) -> bool {
     token >= Kind::Identifier
@@ -12,7 +14,11 @@ pub fn identifier_to_keyword_kind(node: P<Node>) -> Kind {
     text_to_keyword(node.as_identifier().text())
 }
 
-pub fn get_source_text_of_node_from_source_file(source_file: P<SourceFile>, node: P<Node>, include_trivia: bool) -> String {
+pub fn get_source_text_of_node_from_source_file(
+    source_file: P<SourceFile>,
+    node: P<Node>,
+    include_trivia: bool,
+) -> String {
     get_text_of_node_from_source_text(source_file.text(), node, include_trivia)
 }
 
@@ -56,7 +62,8 @@ pub(crate) fn normalize_jsdoc_type_source_text(text: &str) -> String {
         if i + 1 < line_starts.len() {
             line_end = line_starts[i + 1] as usize;
         }
-        let line = text[line_start as usize..line_end].trim_end_matches(|c: char| stringutil::is_line_break(c as u32));
+        let line = text[line_start as usize..line_end]
+            .trim_end_matches(|c: char| stringutil::is_line_break(c as u32));
         result.push_str(strip_leading_jsdoc_comment(line));
 
         result
@@ -72,19 +79,19 @@ fn strip_leading_jsdoc_comment(line: &str) -> &str {
     trim_left_white_space_like(line)
 }
 
-pub fn get_text_of_node_from_source_text(source_text: &str, node: P<Node>, include_trivia: bool) -> String {
+pub fn get_text_of_node_from_source_text(
+    source_text: &str,
+    node: P<Node>,
+    include_trivia: bool,
+) -> String {
     if ast::node_is_missing(Some(node)) {
         return String::new();
     }
-    let mut pos = node
-        .pos()
-        .expect_source("parsed nodes have source positions");
+    let mut pos = node.pos().expect_source("parsed nodes have source positions");
     if !include_trivia {
         pos = skip_trivia(source_text, pos);
     }
-    let end = node
-        .end()
-        .expect_source("parsed nodes have source positions");
+    let end = node.end().expect_source("parsed nodes have source positions");
     let mut text = source_text[pos as usize..end as usize].to_string();
     if is_jsdoc_type_expression_or_child(node) {
         text = normalize_jsdoc_type_source_text(&text);
@@ -108,7 +115,11 @@ pub fn get_text_of_node_from_source_text(source_text: &str, node: P<Node>, inclu
 }
 
 pub fn get_text_of_node(node: P<Node>) -> String {
-    get_source_text_of_node_from_source_file(ast::get_source_file_of_node(node).unwrap(), node, false /*includeTrivia*/)
+    get_source_text_of_node_from_source_file(
+        ast::get_source_file_of_node(node).unwrap(),
+        node,
+        false, /*includeTrivia*/
+    )
 }
 
 pub fn get_text_of_jsdoc_comment(comment: Option<P<NodeList>>) -> String {
@@ -119,7 +130,9 @@ pub fn get_text_of_jsdoc_comment(comment: Option<P<NodeList>>) -> String {
     b = comment.nodes().iter().fold(b, |mut b, &n| {
         match n.kind() {
             Kind::JSDocText => b.push_str(n.text()),
-            Kind::JSDocLink | Kind::JSDocLinkCode | Kind::JSDocLinkPlain => b.push_str(&get_text_of_node(n)),
+            Kind::JSDocLink | Kind::JSDocLinkCode | Kind::JSDocLinkPlain => {
+                b.push_str(&get_text_of_node(n));
+            }
             _ => {}
         }
 
@@ -156,5 +169,6 @@ pub fn is_identifier_text(name: &str, language_variant: LanguageVariant) -> bool
 }
 
 pub fn is_intrinsic_jsx_name(name: &str) -> bool {
-    !name.is_empty() && (name.as_bytes()[0] >= b'a' && name.as_bytes()[0] <= b'z' || name.contains('-'))
+    !name.is_empty()
+        && (name.as_bytes()[0] >= b'a' && name.as_bytes()[0] <= b'z' || name.contains('-'))
 }

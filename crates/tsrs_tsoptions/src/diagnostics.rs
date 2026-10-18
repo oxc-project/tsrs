@@ -29,7 +29,9 @@ pub struct ParseCommandLineWorkerDiagnostics {
 pub static COMPILER_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<ParseCommandLineWorkerDiagnostics> =
     LazyLock::new(|| get_parse_command_line_worker_diagnostics(&OPTIONS_DECLARATIONS));
 
-pub(crate) fn get_parse_command_line_worker_diagnostics(decls: &[&'static CommandLineOption]) -> ParseCommandLineWorkerDiagnostics {
+pub(crate) fn get_parse_command_line_worker_diagnostics(
+    decls: &[&'static CommandLineOption],
+) -> ParseCommandLineWorkerDiagnostics {
     // this will only return the correct diagnostics for `compiler` mode, and is factored into a function for testing reasons.
     ParseCommandLineWorkerDiagnostics {
         did_you_mean: DidYouMeanOptionsDiagnostics {
@@ -45,28 +47,30 @@ pub(crate) fn get_parse_command_line_worker_diagnostics(decls: &[&'static Comman
     }
 }
 
-pub(crate) static WATCH_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<ParseCommandLineWorkerDiagnostics> =
-    LazyLock::new(|| ParseCommandLineWorkerDiagnostics {
-        did_you_mean: DidYouMeanOptionsDiagnostics {
-            // no alternateMode
-            alternate_mode: None,
-            option_declarations: OPTIONS_FOR_WATCH.clone(),
-            unknown_option_diagnostic: &diagnostics::Unknown_watch_option_0,
-            unknown_did_you_mean_diagnostic: &diagnostics::Unknown_watch_option_0_Did_you_mean_1,
-        },
-        option_type_mismatch_diagnostic: &diagnostics::Watch_option_0_requires_a_value_of_type_1,
-    });
+pub(crate) static WATCH_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<
+    ParseCommandLineWorkerDiagnostics,
+> = LazyLock::new(|| ParseCommandLineWorkerDiagnostics {
+    did_you_mean: DidYouMeanOptionsDiagnostics {
+        // no alternateMode
+        alternate_mode: None,
+        option_declarations: OPTIONS_FOR_WATCH.clone(),
+        unknown_option_diagnostic: &diagnostics::Unknown_watch_option_0,
+        unknown_did_you_mean_diagnostic: &diagnostics::Unknown_watch_option_0_Did_you_mean_1,
+    },
+    option_type_mismatch_diagnostic: &diagnostics::Watch_option_0_requires_a_value_of_type_1,
+});
 
-pub(crate) static BUILD_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<ParseCommandLineWorkerDiagnostics> =
-    LazyLock::new(|| ParseCommandLineWorkerDiagnostics {
-        did_you_mean: DidYouMeanOptionsDiagnostics {
-            alternate_mode: Some(AlternateModeDiagnostics {
-                diagnostic: &diagnostics::Compiler_option_0_may_not_be_used_with_build,
-                options_name_map: Some(&COMPILER_NAME_MAP),
-            }),
-            option_declarations: BUILD_OPTS.clone(),
-            unknown_option_diagnostic: &diagnostics::Unknown_build_option_0,
-            unknown_did_you_mean_diagnostic: &diagnostics::Unknown_build_option_0_Did_you_mean_1,
-        },
-        option_type_mismatch_diagnostic: &diagnostics::Build_option_0_requires_a_value_of_type_1,
-    });
+pub(crate) static BUILD_OPTIONS_DID_YOU_MEAN_DIAGNOSTICS: LazyLock<
+    ParseCommandLineWorkerDiagnostics,
+> = LazyLock::new(|| ParseCommandLineWorkerDiagnostics {
+    did_you_mean: DidYouMeanOptionsDiagnostics {
+        alternate_mode: Some(AlternateModeDiagnostics {
+            diagnostic: &diagnostics::Compiler_option_0_may_not_be_used_with_build,
+            options_name_map: Some(&COMPILER_NAME_MAP),
+        }),
+        option_declarations: BUILD_OPTS.clone(),
+        unknown_option_diagnostic: &diagnostics::Unknown_build_option_0,
+        unknown_did_you_mean_diagnostic: &diagnostics::Unknown_build_option_0_Did_you_mean_1,
+    },
+    option_type_mismatch_diagnostic: &diagnostics::Build_option_0_requires_a_value_of_type_1,
+});

@@ -85,7 +85,10 @@ impl MappingsDecoder {
 
     // decoder.go:85
     // Go returns (value, done); None is done.
-    #[expect(clippy::should_implement_trait, reason = "this is the Go source-map decoder's stateful Next API, not a general Rust iterator")]
+    #[expect(
+        clippy::should_implement_trait,
+        reason = "this is the Go source-map decoder's stateful Next API, not a general Rust iterator"
+    )]
     pub fn next(&mut self) -> Option<Mapping> {
         while !self.done && self.pos < self.mappings.len() {
             let ch = self.mappings.as_bytes()[self.pos];
@@ -122,7 +125,9 @@ impl MappingsDecoder {
                     None => return self.set_error_and_stop_iterating("Invalid sourceIndex found"),
                 };
                 if self.is_source_mapping_segment_end() {
-                    return self.set_error_and_stop_iterating("Unsupported Format: No entries after sourceIndex");
+                    return self.set_error_and_stop_iterating(
+                        "Unsupported Format: No entries after sourceIndex",
+                    );
                 }
 
                 let delta = self.base64_vlq_format_decode()?;
@@ -131,7 +136,9 @@ impl MappingsDecoder {
                     None => return self.set_error_and_stop_iterating("Invalid sourceLine found"),
                 };
                 if self.is_source_mapping_segment_end() {
-                    return self.set_error_and_stop_iterating("Unsupported Format: No entries after sourceLine");
+                    return self.set_error_and_stop_iterating(
+                        "Unsupported Format: No entries after sourceLine",
+                    );
                 }
 
                 let delta = self.base64_vlq_format_decode()?;
@@ -153,7 +160,9 @@ impl MappingsDecoder {
                     };
 
                     if !self.is_source_mapping_segment_end() {
-                        return self.set_error_and_stop_iterating("Unsupported Error Format: Entries after nameIndex");
+                        return self.set_error_and_stop_iterating(
+                            "Unsupported Error Format: Entries after nameIndex",
+                        );
                     }
                 }
             }
@@ -176,11 +185,7 @@ impl MappingsDecoder {
             },
             source_line: has_source.then_some(self.source_line),
             source_character: has_source.then_some(self.source_character),
-            name_index: if has_name {
-                NameIndex::Index(self.name_index)
-            } else {
-                MISSING_NAME
-            },
+            name_index: if has_name { NameIndex::Index(self.name_index) } else { MISSING_NAME },
         }
     }
 
@@ -204,7 +209,9 @@ impl MappingsDecoder {
     // decoder.go:192
     // decoder.go:196
     fn is_source_mapping_segment_end(&self) -> bool {
-        self.pos == self.mappings.len() || self.mappings.as_bytes()[self.pos] == b',' || self.mappings.as_bytes()[self.pos] == b';'
+        self.pos == self.mappings.len()
+            || self.mappings.as_bytes()[self.pos] == b','
+            || self.mappings.as_bytes()[self.pos] == b';'
     }
 
     // decoder.go:200

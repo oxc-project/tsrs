@@ -2,10 +2,12 @@ use std::borrow::Cow;
 use std::sync::OnceLock;
 
 use rustc_hash::FxHashMap;
+use tsrs_core::Tristate;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::Value;
-use tsrs_core::Tristate;
-use tsrs_modulespecifiers::{ImportModuleSpecifierEndingPreference, ImportModuleSpecifierPreference};
+use tsrs_modulespecifiers::{
+    ImportModuleSpecifierEndingPreference, ImportModuleSpecifierPreference,
+};
 use tsrs_vfs::vfsmatch;
 
 use super::*;
@@ -85,7 +87,7 @@ pub struct UserPreferences {
     pub import_module_specifier_preference: ImportModuleSpecifierPreference, // !!!
     // Determines whether we import `foo/index.ts` as "foo", "foo/index", or "foo/index.js"
     pub import_module_specifier_ending: ImportModuleSpecifierEndingPreference, // !!!
-    pub auto_import_specifier_exclude_regexes: Option<Vec<String>>, // !!!
+    pub auto_import_specifier_exclude_regexes: Option<Vec<String>>,            // !!!
     pub auto_import_file_exclude_patterns: Option<Vec<String>>,
     pub auto_import_entrypoint_directory_search: Tristate,
     pub prefer_type_only_auto_imports: Tristate,
@@ -165,9 +167,9 @@ pub struct UserPreferences {
     // ------- Misc -------
     pub enable_formatting: Tristate,
     pub enable_validation: Tristate,
-    pub disable_suggestions: Tristate,              // !!!
-    pub disable_line_text_in_references: Tristate,  // !!!
-    pub display_parts_for_jsdoc: Tristate,          // !!!
+    pub disable_suggestions: Tristate,             // !!!
+    pub disable_line_text_in_references: Tristate, // !!!
+    pub display_parts_for_jsdoc: Tristate,         // !!!
     pub report_style_checks_as_warnings: Tristate,
     pub locale: String,
 
@@ -258,93 +260,446 @@ macro_rules! field_tag {
 
 pub(crate) static USER_PREFERENCES_FIELD_TAGS: &[FieldTag] = &[
     // FormatCodeSettings.EditorSettings
-    field_tag!(Int, format_code_settings.editor_settings.base_indent_size, "baseIndentSize", "format.baseIndentSize"),
-    field_tag!(Int, format_code_settings.editor_settings.indent_size, "indentSize", "format.indentSize"),
+    field_tag!(
+        Int,
+        format_code_settings.editor_settings.base_indent_size,
+        "baseIndentSize",
+        "format.baseIndentSize"
+    ),
+    field_tag!(
+        Int,
+        format_code_settings.editor_settings.indent_size,
+        "indentSize",
+        "format.indentSize"
+    ),
     field_tag!(Int, format_code_settings.editor_settings.tab_size, "tabSize", "format.tabSize"),
-    field_tag!(String, format_code_settings.editor_settings.new_line_character, "newLineCharacter", "format.newLineCharacter"),
-    field_tag!(Tristate, format_code_settings.editor_settings.convert_tabs_to_spaces, "convertTabsToSpaces", "format.convertTabsToSpaces"),
-    field_tag!(IndentStyle, format_code_settings.editor_settings.indent_style, "indentStyle", "format.indentStyle"),
-    field_tag!(Tristate, format_code_settings.editor_settings.trim_trailing_whitespace, "trimTrailingWhitespace", "format.trimTrailingWhitespace"),
+    field_tag!(
+        String,
+        format_code_settings.editor_settings.new_line_character,
+        "newLineCharacter",
+        "format.newLineCharacter"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.editor_settings.convert_tabs_to_spaces,
+        "convertTabsToSpaces",
+        "format.convertTabsToSpaces"
+    ),
+    field_tag!(
+        IndentStyle,
+        format_code_settings.editor_settings.indent_style,
+        "indentStyle",
+        "format.indentStyle"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.editor_settings.trim_trailing_whitespace,
+        "trimTrailingWhitespace",
+        "format.trimTrailingWhitespace"
+    ),
     // FormatCodeSettings
-    field_tag!(Tristate, format_code_settings.insert_space_after_comma_delimiter, "insertSpaceAfterCommaDelimiter", "format.insertSpaceAfterCommaDelimiter"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_semicolon_in_for_statements, "insertSpaceAfterSemicolonInForStatements", "format.insertSpaceAfterSemicolonInForStatements"),
-    field_tag!(Tristate, format_code_settings.insert_space_before_and_after_binary_operators, "insertSpaceBeforeAndAfterBinaryOperators", "format.insertSpaceBeforeAndAfterBinaryOperators"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_constructor, "insertSpaceAfterConstructor", "format.insertSpaceAfterConstructor"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_keywords_in_control_flow_statements, "insertSpaceAfterKeywordsInControlFlowStatements", "format.insertSpaceAfterKeywordsInControlFlowStatements"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_function_keyword_for_anonymous_functions, "insertSpaceAfterFunctionKeywordForAnonymousFunctions", "format.insertSpaceAfterFunctionKeywordForAnonymousFunctions"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_opening_and_before_closing_nonempty_parenthesis, "insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis", "format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_opening_and_before_closing_nonempty_brackets, "insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets", "format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_opening_and_before_closing_nonempty_braces, "insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces", "format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_opening_and_before_closing_empty_braces, "insertSpaceAfterOpeningAndBeforeClosingEmptyBraces", "format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_opening_and_before_closing_template_string_braces, "insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces", "format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_opening_and_before_closing_jsx_expression_braces, "insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces", "format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces"),
-    field_tag!(Tristate, format_code_settings.insert_space_after_type_assertion, "insertSpaceAfterTypeAssertion", "format.insertSpaceAfterTypeAssertion"),
-    field_tag!(Tristate, format_code_settings.insert_space_before_function_parenthesis, "insertSpaceBeforeFunctionParenthesis", "format.insertSpaceBeforeFunctionParenthesis"),
-    field_tag!(Tristate, format_code_settings.place_open_brace_on_new_line_for_functions, "placeOpenBraceOnNewLineForFunctions", "format.placeOpenBraceOnNewLineForFunctions"),
-    field_tag!(Tristate, format_code_settings.place_open_brace_on_new_line_for_control_blocks, "placeOpenBraceOnNewLineForControlBlocks", "format.placeOpenBraceOnNewLineForControlBlocks"),
-    field_tag!(Tristate, format_code_settings.insert_space_before_type_annotation, "insertSpaceBeforeTypeAnnotation", "format.insertSpaceBeforeTypeAnnotation"),
-    field_tag!(Tristate, format_code_settings.indent_multi_line_object_literal_beginning_on_blank_line, "indentMultiLineObjectLiteralBeginningOnBlankLine", "format.indentMultiLineObjectLiteralBeginningOnBlankLine"),
-    field_tag!(SemicolonPreference, format_code_settings.semicolons, "semicolons", "format.semicolons"),
-    field_tag!(Tristate, format_code_settings.indent_switch_case, "indentSwitchCase", "format.indentSwitchCase"),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_comma_delimiter,
+        "insertSpaceAfterCommaDelimiter",
+        "format.insertSpaceAfterCommaDelimiter"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_semicolon_in_for_statements,
+        "insertSpaceAfterSemicolonInForStatements",
+        "format.insertSpaceAfterSemicolonInForStatements"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_before_and_after_binary_operators,
+        "insertSpaceBeforeAndAfterBinaryOperators",
+        "format.insertSpaceBeforeAndAfterBinaryOperators"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_constructor,
+        "insertSpaceAfterConstructor",
+        "format.insertSpaceAfterConstructor"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_keywords_in_control_flow_statements,
+        "insertSpaceAfterKeywordsInControlFlowStatements",
+        "format.insertSpaceAfterKeywordsInControlFlowStatements"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_function_keyword_for_anonymous_functions,
+        "insertSpaceAfterFunctionKeywordForAnonymousFunctions",
+        "format.insertSpaceAfterFunctionKeywordForAnonymousFunctions"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_opening_and_before_closing_nonempty_parenthesis,
+        "insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis",
+        "format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_opening_and_before_closing_nonempty_brackets,
+        "insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets",
+        "format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_opening_and_before_closing_nonempty_braces,
+        "insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces",
+        "format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_opening_and_before_closing_empty_braces,
+        "insertSpaceAfterOpeningAndBeforeClosingEmptyBraces",
+        "format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_opening_and_before_closing_template_string_braces,
+        "insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces",
+        "format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_opening_and_before_closing_jsx_expression_braces,
+        "insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces",
+        "format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_after_type_assertion,
+        "insertSpaceAfterTypeAssertion",
+        "format.insertSpaceAfterTypeAssertion"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_before_function_parenthesis,
+        "insertSpaceBeforeFunctionParenthesis",
+        "format.insertSpaceBeforeFunctionParenthesis"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.place_open_brace_on_new_line_for_functions,
+        "placeOpenBraceOnNewLineForFunctions",
+        "format.placeOpenBraceOnNewLineForFunctions"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.place_open_brace_on_new_line_for_control_blocks,
+        "placeOpenBraceOnNewLineForControlBlocks",
+        "format.placeOpenBraceOnNewLineForControlBlocks"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.insert_space_before_type_annotation,
+        "insertSpaceBeforeTypeAnnotation",
+        "format.insertSpaceBeforeTypeAnnotation"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.indent_multi_line_object_literal_beginning_on_blank_line,
+        "indentMultiLineObjectLiteralBeginningOnBlankLine",
+        "format.indentMultiLineObjectLiteralBeginningOnBlankLine"
+    ),
+    field_tag!(
+        SemicolonPreference,
+        format_code_settings.semicolons,
+        "semicolons",
+        "format.semicolons"
+    ),
+    field_tag!(
+        Tristate,
+        format_code_settings.indent_switch_case,
+        "indentSwitchCase",
+        "format.indentSwitchCase"
+    ),
     // UserPreferences
     field_tag!(QuotePreference, quote_preference, "quotePreference", "preferences.quoteStyle"),
-    field_tag!(Tristate, lazy_configured_projects_from_external_project, "lazyConfiguredProjectsFromExternalProject", ""),
+    field_tag!(
+        Tristate,
+        lazy_configured_projects_from_external_project,
+        "lazyConfiguredProjectsFromExternalProject",
+        ""
+    ),
     field_tag!(Int, maximum_hover_length, "maximumHoverLength", ""),
-    field_tag!(Tristate, include_completions_for_module_exports, "includeCompletionsForModuleExports", "suggest.autoImports"),
-    field_tag!(Tristate, include_completions_for_import_statements, "includeCompletionsForImportStatements", "suggest.includeCompletionsForImportStatements"),
-    field_tag!(Tristate, include_automatic_optional_chain_completions, "includeAutomaticOptionalChainCompletions", "suggest.includeAutomaticOptionalChainCompletions"),
-    field_tag!(Tristate, include_completions_with_class_member_snippets, "includeCompletionsWithClassMemberSnippets", "suggest.classMemberSnippets.enabled"),
-    field_tag!(Tristate, include_completions_with_object_literal_method_snippets, "includeCompletionsWithObjectLiteralMethodSnippets", "suggest.objectLiteralMethodSnippets.enabled"),
-    field_tag!(JsxAttributeCompletionStyle, jsx_attribute_completion_style, "jsxAttributeCompletionStyle", "preferences.jsxAttributeCompletionStyle"),
-    field_tag!(Tristate, enable_auto_closing_tags, "autoClosingTags", "autoClosingTags.enabled", "autoClosingTags"),
-    field_tag!(Tristate, enable_jsdoc_completions, "completeJSDocs", "suggest.jsdoc.enabled", "suggest.completeJSDocs"),
-    field_tag!(Tristate, generate_return_in_doc_template, "generateReturnInDocTemplate", "suggest.jsdoc.generateReturns"),
-    field_tag!(ImportModuleSpecifierPreference, import_module_specifier_preference, "importModuleSpecifierPreference", "preferences.importModuleSpecifier"),
-    field_tag!(ImportModuleSpecifierEndingPreference, import_module_specifier_ending, "importModuleSpecifierEnding", "preferences.importModuleSpecifierEnding"),
-    field_tag!(Slice, auto_import_specifier_exclude_regexes, "autoImportSpecifierExcludeRegexes", "preferences.autoImportSpecifierExcludeRegexes"),
-    field_tag!(Slice, auto_import_file_exclude_patterns, "autoImportFileExcludePatterns", "preferences.autoImportFileExcludePatterns"),
-    field_tag!(Tristate, auto_import_entrypoint_directory_search, "autoImportEntrypointDirectorySearch", "preferences.autoImportEntrypointDirectorySearch"),
-    field_tag!(Tristate, prefer_type_only_auto_imports, "preferTypeOnlyAutoImports", "preferences.preferTypeOnlyAutoImports"),
-    field_tag!(OrganizeImportsSort, organize_imports_sort, "organizeImportsSort", "preferences.organizeImports.sort"),
-    field_tag!(Tristate, organize_imports_ignore_case, "organizeImportsIgnoreCase", "preferences.organizeImports.caseSensitivity"),
-    field_tag!(OrganizeImportsCollation, organize_imports_collation, "organizeImportsCollation", "preferences.organizeImports.unicodeCollation"),
-    field_tag!(String, organize_imports_locale, "organizeImportsLocale", "preferences.organizeImports.locale"),
-    field_tag!(Tristate, organize_imports_numeric_collation, "organizeImportsNumericCollation", "preferences.organizeImports.numericCollation"),
-    field_tag!(Tristate, organize_imports_accent_collation, "organizeImportsAccentCollation", "preferences.organizeImports.accentCollation"),
-    field_tag!(OrganizeImportsCaseFirst, organize_imports_case_first, "organizeImportsCaseFirst", "preferences.organizeImports.caseFirst"),
-    field_tag!(OrganizeImportsTypeOrder, organize_imports_type_order, "organizeImportsTypeOrder", "preferences.organizeImports.typeOrder"),
+    field_tag!(
+        Tristate,
+        include_completions_for_module_exports,
+        "includeCompletionsForModuleExports",
+        "suggest.autoImports"
+    ),
+    field_tag!(
+        Tristate,
+        include_completions_for_import_statements,
+        "includeCompletionsForImportStatements",
+        "suggest.includeCompletionsForImportStatements"
+    ),
+    field_tag!(
+        Tristate,
+        include_automatic_optional_chain_completions,
+        "includeAutomaticOptionalChainCompletions",
+        "suggest.includeAutomaticOptionalChainCompletions"
+    ),
+    field_tag!(
+        Tristate,
+        include_completions_with_class_member_snippets,
+        "includeCompletionsWithClassMemberSnippets",
+        "suggest.classMemberSnippets.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        include_completions_with_object_literal_method_snippets,
+        "includeCompletionsWithObjectLiteralMethodSnippets",
+        "suggest.objectLiteralMethodSnippets.enabled"
+    ),
+    field_tag!(
+        JsxAttributeCompletionStyle,
+        jsx_attribute_completion_style,
+        "jsxAttributeCompletionStyle",
+        "preferences.jsxAttributeCompletionStyle"
+    ),
+    field_tag!(
+        Tristate,
+        enable_auto_closing_tags,
+        "autoClosingTags",
+        "autoClosingTags.enabled",
+        "autoClosingTags"
+    ),
+    field_tag!(
+        Tristate,
+        enable_jsdoc_completions,
+        "completeJSDocs",
+        "suggest.jsdoc.enabled",
+        "suggest.completeJSDocs"
+    ),
+    field_tag!(
+        Tristate,
+        generate_return_in_doc_template,
+        "generateReturnInDocTemplate",
+        "suggest.jsdoc.generateReturns"
+    ),
+    field_tag!(
+        ImportModuleSpecifierPreference,
+        import_module_specifier_preference,
+        "importModuleSpecifierPreference",
+        "preferences.importModuleSpecifier"
+    ),
+    field_tag!(
+        ImportModuleSpecifierEndingPreference,
+        import_module_specifier_ending,
+        "importModuleSpecifierEnding",
+        "preferences.importModuleSpecifierEnding"
+    ),
+    field_tag!(
+        Slice,
+        auto_import_specifier_exclude_regexes,
+        "autoImportSpecifierExcludeRegexes",
+        "preferences.autoImportSpecifierExcludeRegexes"
+    ),
+    field_tag!(
+        Slice,
+        auto_import_file_exclude_patterns,
+        "autoImportFileExcludePatterns",
+        "preferences.autoImportFileExcludePatterns"
+    ),
+    field_tag!(
+        Tristate,
+        auto_import_entrypoint_directory_search,
+        "autoImportEntrypointDirectorySearch",
+        "preferences.autoImportEntrypointDirectorySearch"
+    ),
+    field_tag!(
+        Tristate,
+        prefer_type_only_auto_imports,
+        "preferTypeOnlyAutoImports",
+        "preferences.preferTypeOnlyAutoImports"
+    ),
+    field_tag!(
+        OrganizeImportsSort,
+        organize_imports_sort,
+        "organizeImportsSort",
+        "preferences.organizeImports.sort"
+    ),
+    field_tag!(
+        Tristate,
+        organize_imports_ignore_case,
+        "organizeImportsIgnoreCase",
+        "preferences.organizeImports.caseSensitivity"
+    ),
+    field_tag!(
+        OrganizeImportsCollation,
+        organize_imports_collation,
+        "organizeImportsCollation",
+        "preferences.organizeImports.unicodeCollation"
+    ),
+    field_tag!(
+        String,
+        organize_imports_locale,
+        "organizeImportsLocale",
+        "preferences.organizeImports.locale"
+    ),
+    field_tag!(
+        Tristate,
+        organize_imports_numeric_collation,
+        "organizeImportsNumericCollation",
+        "preferences.organizeImports.numericCollation"
+    ),
+    field_tag!(
+        Tristate,
+        organize_imports_accent_collation,
+        "organizeImportsAccentCollation",
+        "preferences.organizeImports.accentCollation"
+    ),
+    field_tag!(
+        OrganizeImportsCaseFirst,
+        organize_imports_case_first,
+        "organizeImportsCaseFirst",
+        "preferences.organizeImports.caseFirst"
+    ),
+    field_tag!(
+        OrganizeImportsTypeOrder,
+        organize_imports_type_order,
+        "organizeImportsTypeOrder",
+        "preferences.organizeImports.typeOrder"
+    ),
     field_tag!(Tristate, allow_text_changes_in_new_files, "allowTextChangesInNewFiles", ""),
-    field_tag!(Tristate, use_aliases_for_rename, "providePrefixAndSuffixTextForRename", "preferences.useAliasesForRenames"),
+    field_tag!(
+        Tristate,
+        use_aliases_for_rename,
+        "providePrefixAndSuffixTextForRename",
+        "preferences.useAliasesForRenames"
+    ),
     field_tag!(Tristate, allow_rename_of_import_path, "allowRenameOfImportPath", ""),
-    field_tag!(Tristate, provide_refactor_not_applicable_reason, "provideRefactorNotApplicableReason", ""),
+    field_tag!(
+        Tristate,
+        provide_refactor_not_applicable_reason,
+        "provideRefactorNotApplicableReason",
+        ""
+    ),
     // UserPreferences.InlayHints
-    field_tag!(IncludeInlayParameterNameHints, inlay_hints.include_inlay_parameter_name_hints, "includeInlayParameterNameHints", "inlayHints.parameterNames.enabled"),
-    field_tag!(Tristate, inlay_hints.include_inlay_parameter_name_hints_when_argument_matches_name, "includeInlayParameterNameHintsWhenArgumentMatchesName", "inlayHints.parameterNames.suppressWhenArgumentMatchesName,invert"),
-    field_tag!(Tristate, inlay_hints.include_inlay_function_parameter_type_hints, "includeInlayFunctionParameterTypeHints", "inlayHints.parameterTypes.enabled"),
-    field_tag!(Tristate, inlay_hints.include_inlay_variable_type_hints, "includeInlayVariableTypeHints", "inlayHints.variableTypes.enabled"),
-    field_tag!(Tristate, inlay_hints.include_inlay_variable_type_hints_when_type_matches_name, "includeInlayVariableTypeHintsWhenTypeMatchesName", "inlayHints.variableTypes.suppressWhenTypeMatchesName,invert"),
-    field_tag!(Tristate, inlay_hints.include_inlay_property_declaration_type_hints, "includeInlayPropertyDeclarationTypeHints", "inlayHints.propertyDeclarationTypes.enabled"),
-    field_tag!(Tristate, inlay_hints.include_inlay_function_like_return_type_hints, "includeInlayFunctionLikeReturnTypeHints", "inlayHints.functionLikeReturnTypes.enabled"),
-    field_tag!(Tristate, inlay_hints.include_inlay_enum_member_value_hints, "includeInlayEnumMemberValueHints", "inlayHints.enumMemberValues.enabled"),
+    field_tag!(
+        IncludeInlayParameterNameHints,
+        inlay_hints.include_inlay_parameter_name_hints,
+        "includeInlayParameterNameHints",
+        "inlayHints.parameterNames.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_parameter_name_hints_when_argument_matches_name,
+        "includeInlayParameterNameHintsWhenArgumentMatchesName",
+        "inlayHints.parameterNames.suppressWhenArgumentMatchesName,invert"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_function_parameter_type_hints,
+        "includeInlayFunctionParameterTypeHints",
+        "inlayHints.parameterTypes.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_variable_type_hints,
+        "includeInlayVariableTypeHints",
+        "inlayHints.variableTypes.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_variable_type_hints_when_type_matches_name,
+        "includeInlayVariableTypeHintsWhenTypeMatchesName",
+        "inlayHints.variableTypes.suppressWhenTypeMatchesName,invert"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_property_declaration_type_hints,
+        "includeInlayPropertyDeclarationTypeHints",
+        "inlayHints.propertyDeclarationTypes.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_function_like_return_type_hints,
+        "includeInlayFunctionLikeReturnTypeHints",
+        "inlayHints.functionLikeReturnTypes.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        inlay_hints.include_inlay_enum_member_value_hints,
+        "includeInlayEnumMemberValueHints",
+        "inlayHints.enumMemberValues.enabled"
+    ),
     // UserPreferences.CodeLens
-    field_tag!(Tristate, code_lens.references_code_lens_enabled, "referencesCodeLensEnabled", "referencesCodeLens.enabled"),
-    field_tag!(Tristate, code_lens.implementations_code_lens_enabled, "implementationsCodeLensEnabled", "implementationsCodeLens.enabled"),
-    field_tag!(Tristate, code_lens.references_code_lens_show_on_all_functions, "referencesCodeLensShowOnAllFunctions", "referencesCodeLens.showOnAllFunctions"),
-    field_tag!(Tristate, code_lens.implementations_code_lens_show_on_interface_methods, "implementationsCodeLensShowOnInterfaceMethods", "implementationsCodeLens.showOnInterfaceMethods"),
-    field_tag!(Tristate, code_lens.implementations_code_lens_show_on_all_class_methods, "implementationsCodeLensShowOnAllClassMethods", "implementationsCodeLens.showOnAllClassMethods"),
+    field_tag!(
+        Tristate,
+        code_lens.references_code_lens_enabled,
+        "referencesCodeLensEnabled",
+        "referencesCodeLens.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        code_lens.implementations_code_lens_enabled,
+        "implementationsCodeLensEnabled",
+        "implementationsCodeLens.enabled"
+    ),
+    field_tag!(
+        Tristate,
+        code_lens.references_code_lens_show_on_all_functions,
+        "referencesCodeLensShowOnAllFunctions",
+        "referencesCodeLens.showOnAllFunctions"
+    ),
+    field_tag!(
+        Tristate,
+        code_lens.implementations_code_lens_show_on_interface_methods,
+        "implementationsCodeLensShowOnInterfaceMethods",
+        "implementationsCodeLens.showOnInterfaceMethods"
+    ),
+    field_tag!(
+        Tristate,
+        code_lens.implementations_code_lens_show_on_all_class_methods,
+        "implementationsCodeLensShowOnAllClassMethods",
+        "implementationsCodeLens.showOnAllClassMethods"
+    ),
     // UserPreferences (continued)
     field_tag!(Bool, prefer_go_to_source_definition, "preferGoToSourceDefinition", ""),
-    field_tag!(Tristate, exclude_library_symbols_in_nav_to, "excludeLibrarySymbolsInNavTo", "workspaceSymbols.excludeLibrarySymbols"),
+    field_tag!(
+        Tristate,
+        exclude_library_symbols_in_nav_to,
+        "excludeLibrarySymbolsInNavTo",
+        "workspaceSymbols.excludeLibrarySymbols"
+    ),
     field_tag!(WorkspaceSymbolsScope, workspace_symbols_scope, "", "workspaceSymbols.scope"),
     field_tag!(Tristate, enable_formatting, "formatEnabled", "format.enabled", "format.enable"),
-    field_tag!(Tristate, enable_validation, "validateEnabled", "validate.enabled", "validate.enable"),
+    field_tag!(
+        Tristate,
+        enable_validation,
+        "validateEnabled",
+        "validate.enabled",
+        "validate.enable"
+    ),
     field_tag!(Tristate, disable_suggestions, "disableSuggestions", ""),
     field_tag!(Tristate, disable_line_text_in_references, "disableLineTextInReferences", ""),
     field_tag!(Tristate, display_parts_for_jsdoc, "displayPartsForJSDoc", ""),
-    field_tag!(Tristate, report_style_checks_as_warnings, "reportStyleChecksAsWarnings", "reportStyleChecksAsWarnings"),
+    field_tag!(
+        Tristate,
+        report_style_checks_as_warnings,
+        "reportStyleChecksAsWarnings",
+        "reportStyleChecksAsWarnings"
+    ),
     field_tag!(String, locale, "", "locale"),
-    field_tag!(Tristate, disable_automatic_type_acquisition, "disableAutomaticTypeAcquisition", "disableAutomaticTypeAcquisition"),
-    field_tag!(Tristate, automatic_type_acquisition_enabled, "automaticTypeAcquisitionEnabled", "tsserver.automaticTypeAcquisition.enabled"),
+    field_tag!(
+        Tristate,
+        disable_automatic_type_acquisition,
+        "disableAutomaticTypeAcquisition",
+        "disableAutomaticTypeAcquisition"
+    ),
+    field_tag!(
+        Tristate,
+        automatic_type_acquisition_enabled,
+        "automaticTypeAcquisitionEnabled",
+        "tsserver.automaticTypeAcquisition.enabled"
+    ),
     field_tag!(String, custom_config_file_name, "customConfigFileName", "customConfigFileName"),
 ];
 
@@ -413,8 +768,10 @@ impl QuotePreference {
 pub struct WorkspaceSymbolsScope(pub Cow<'static, str>);
 
 impl WorkspaceSymbolsScope {
-    pub const AllOpenProjects: WorkspaceSymbolsScope = WorkspaceSymbolsScope(Cow::Borrowed("allOpenProjects"));
-    pub const CurrentProject: WorkspaceSymbolsScope = WorkspaceSymbolsScope(Cow::Borrowed("currentProject"));
+    pub const AllOpenProjects: WorkspaceSymbolsScope =
+        WorkspaceSymbolsScope(Cow::Borrowed("allOpenProjects"));
+    pub const CurrentProject: WorkspaceSymbolsScope =
+        WorkspaceSymbolsScope(Cow::Borrowed("currentProject"));
 }
 
 // userpreferences.go:246
@@ -536,7 +893,9 @@ pub(crate) fn parse_jsx_attribute_completion_style(val: &Value) -> JsxAttributeC
     JsxAttributeCompletionStyle::Auto
 }
 
-pub(crate) fn parse_include_inlay_parameter_name_hints(val: &Value) -> IncludeInlayParameterNameHints {
+pub(crate) fn parse_include_inlay_parameter_name_hints(
+    val: &Value,
+) -> IncludeInlayParameterNameHints {
     if let Value::String(s) = val {
         match s.as_str() {
             "all" => return IncludeInlayParameterNameHints::All,
@@ -592,7 +951,9 @@ pub(crate) fn parse_organize_imports_type_order(val: &Value) -> OrganizeImportsT
     OrganizeImportsTypeOrder::Auto
 }
 
-pub(crate) fn parse_import_module_specifier_preference(val: &Value) -> ImportModuleSpecifierPreference {
+pub(crate) fn parse_import_module_specifier_preference(
+    val: &Value,
+) -> ImportModuleSpecifierPreference {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "project-relative" => return ImportModuleSpecifierPreference::ProjectRelative,
@@ -604,7 +965,9 @@ pub(crate) fn parse_import_module_specifier_preference(val: &Value) -> ImportMod
     ImportModuleSpecifierPreference::Shortest
 }
 
-pub(crate) fn parse_import_module_specifier_ending_preference(val: &Value) -> ImportModuleSpecifierEndingPreference {
+pub(crate) fn parse_import_module_specifier_ending_preference(
+    val: &Value,
+) -> ImportModuleSpecifierEndingPreference {
     if let Value::String(s) = val {
         match s.to_lowercase().as_str() {
             "minimal" => return ImportModuleSpecifierEndingPreference::Minimal,
@@ -620,7 +983,10 @@ pub(crate) fn parse_import_module_specifier_ending_preference(val: &Value) -> Im
 // typeSerializers maps a field type to a function that serializes a value of that type.
 // For types which do not serialize as-is (tristate, enums, etc). Returns None for a type without an entry; the inner
 // None is Go's nil.
-#[expect(clippy::option_option, reason = "Distinguishes no matching serializer or field from a matching nil value, as in Go.")]
+#[expect(
+    clippy::option_option,
+    reason = "Distinguishes no matching serializer or field from a matching nil value, as in Go."
+)]
 pub(crate) fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
     Some(match field {
         FieldRef::Tristate(v) => match **v {
@@ -692,20 +1058,12 @@ pub(crate) fn type_serializers(field: &FieldRef<'_>) -> Option<Option<Value>> {
         FieldRef::ImportModuleSpecifierPreference(v) => {
             // TODO: make consistent with other enums (see note above): have the parser
             // return the zero value (None) as its fallback and drop this serializer.
-            if !v.as_str().is_empty() {
-                Some(Value::String(v.as_str().to_string()))
-            } else {
-                None
-            }
+            if !v.as_str().is_empty() { Some(Value::String(v.as_str().to_string())) } else { None }
         }
         FieldRef::ImportModuleSpecifierEndingPreference(v) => {
             // TODO: make consistent with other enums (see note above): have the parser
             // return the zero value (None) as its fallback and drop this serializer.
-            if !v.as_str().is_empty() {
-                Some(Value::String(v.as_str().to_string()))
-            } else {
-                None
-            }
+            if !v.as_str().is_empty() { Some(Value::String(v.as_str().to_string())) } else { None }
         }
         _ => return None,
     })
@@ -744,8 +1102,8 @@ pub(crate) struct FieldInfo {
     pub(crate) config_path: &'static str, // dotted path for config (e.g., "preferences.quoteStyle")
     pub(crate) fallback_config_paths: Vec<ConfigPathInfo>,
     pub(crate) field: &'static FieldTag, // Go: fieldPath, the index path to the field in the struct
-    pub(crate) raw_invert: bool,          // whether to invert boolean values for raw name
-    pub(crate) config_invert: bool,       // whether to invert boolean values for config path
+    pub(crate) raw_invert: bool,         // whether to invert boolean values for raw name
+    pub(crate) config_invert: bool,      // whether to invert boolean values for config path
 }
 
 // userpreferences.go:556
@@ -768,7 +1126,9 @@ pub(crate) fn unstable_name_index() -> &'static FxHashMap<&'static str, usize> {
     INDEX.get_or_init(|| {
         let infos = field_info_cache();
         let mut index = FxHashMap::with_capacity_and_hasher(infos.len(), rustc_hash::FxBuildHasher);
-        index.extend(infos.iter().enumerate().filter_map(|(i, info)| if !info.raw_name.is_empty() { Some((info.raw_name, i)) } else { None }));
+        index.extend(infos.iter().enumerate().filter_map(|(i, info)| {
+            if !info.raw_name.is_empty() { Some((info.raw_name, i)) } else { None }
+        }));
         index
     })
 }
@@ -782,7 +1142,11 @@ pub(crate) fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo>
         let fallback_config_tag = field.fallback_config;
 
         // Go recurses into embedded structs without tags here; the table is already flattened.
-        assert!(!(raw_tag.is_empty() && config_tag.is_empty()), "raw or config tag required for field {}", field.name);
+        assert!(
+            !(raw_tag.is_empty() && config_tag.is_empty()),
+            "raw or config tag required for field {}",
+            field.name
+        );
 
         let mut info = FieldInfo {
             raw_name: "",
@@ -811,7 +1175,8 @@ pub(crate) fn collect_field_infos(fields: &'static [FieldTag]) -> Vec<FieldInfo>
             info.config_invert = config_path.invert;
         }
         if !fallback_config_tag.is_empty() {
-            info.fallback_config_paths.extend(fallback_config_tag.split(';').map(parse_config_path_tag));
+            info.fallback_config_paths
+                .extend(fallback_config_tag.split(';').map(parse_config_path_tag));
         }
 
         infos.push(info);
@@ -832,7 +1197,10 @@ pub(crate) fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
 }
 
 // userpreferences.go:639
-pub(crate) fn get_nested_value<'a>(config: &'a OrderedMap<String, Value>, path: &str) -> Option<&'a Value> {
+pub(crate) fn get_nested_value<'a>(
+    config: &'a OrderedMap<String, Value>,
+    path: &str,
+) -> Option<&'a Value> {
     let mut parts = path.split('.');
     let mut current = config.get(parts.next().unwrap())?;
     current = parts.try_fold(current, |current, part| {
@@ -861,7 +1229,11 @@ pub(crate) fn set_nested_value(config: &mut OrderedMap<String, Value>, path: &st
 }
 
 // userpreferences.go:669
-pub(crate) fn set_raw_fields_from_config(p: &mut UserPreferences, infos: &[FieldInfo], settings: &OrderedMap<String, Value>) {
+pub(crate) fn set_raw_fields_from_config(
+    p: &mut UserPreferences,
+    infos: &[FieldInfo],
+    settings: &OrderedMap<String, Value>,
+) {
     let index = unstable_name_index();
     for (name, value) in settings {
         if let Some(&idx) = index.get(name.as_str()) {
@@ -902,7 +1274,8 @@ impl UserPreferences {
             if info.config_path.is_empty() {
                 continue;
             }
-            let mut config_path = ConfigPathInfo { path: info.config_path, invert: info.config_invert };
+            let mut config_path =
+                ConfigPathInfo { path: info.config_path, invert: info.config_invert };
             let mut val = get_nested_value(config, config_path.path);
             if val.is_none() {
                 for fallback_config_path in &info.fallback_config_paths {
@@ -928,7 +1301,10 @@ impl UserPreferences {
             if let Some(parser) = config_path_parsers(config_path.path) {
                 match field {
                     FieldMut::Tristate(f) => *f = parser(val),
-                    _ => panic!("reflect.Set: value of type core.Tristate is not assignable to field {}", info.field.name),
+                    _ => panic!(
+                        "reflect.Set: value of type core.Tristate is not assignable to field {}",
+                        info.field.name
+                    ),
                 }
                 continue;
             }
@@ -962,13 +1338,19 @@ pub(crate) fn set_field_from_value(field: FieldMut<'_>, val: &Value) {
         FieldMut::SemicolonPreference(f) => *f = parse_semicolon_preference(val),
         FieldMut::QuotePreference(f) => *f = parse_quote_preference(val),
         FieldMut::JsxAttributeCompletionStyle(f) => *f = parse_jsx_attribute_completion_style(val),
-        FieldMut::IncludeInlayParameterNameHints(f) => *f = parse_include_inlay_parameter_name_hints(val),
+        FieldMut::IncludeInlayParameterNameHints(f) => {
+            *f = parse_include_inlay_parameter_name_hints(val);
+        }
         FieldMut::OrganizeImportsSort(f) => *f = parse_organize_imports_sort(val),
         FieldMut::OrganizeImportsCollation(f) => *f = parse_organize_imports_collation(val),
         FieldMut::OrganizeImportsCaseFirst(f) => *f = parse_organize_imports_case_first(val),
         FieldMut::OrganizeImportsTypeOrder(f) => *f = parse_organize_imports_type_order(val),
-        FieldMut::ImportModuleSpecifierPreference(f) => *f = parse_import_module_specifier_preference(val),
-        FieldMut::ImportModuleSpecifierEndingPreference(f) => *f = parse_import_module_specifier_ending_preference(val),
+        FieldMut::ImportModuleSpecifierPreference(f) => {
+            *f = parse_import_module_specifier_preference(val);
+        }
+        FieldMut::ImportModuleSpecifierEndingPreference(f) => {
+            *f = parse_import_module_specifier_ending_preference(val);
+        }
 
         FieldMut::Bool(f) => {
             if let Value::Bool(b) = val {
@@ -994,7 +1376,9 @@ pub(crate) fn set_field_from_value(field: FieldMut<'_>, val: &Value) {
         FieldMut::Slice(f) => {
             if let Value::Array(arr) = val {
                 let mut result = Vec::with_capacity(arr.len());
-                result.extend(arr.iter().filter_map(|item| if let Value::String(s) = item { Some(s.clone()) } else { None }));
+                result.extend(arr.iter().filter_map(|item| {
+                    if let Value::String(s) = item { Some(s.clone()) } else { None }
+                }));
                 *f = Some(result);
             }
         }
@@ -1098,7 +1482,11 @@ impl UserPreferences {
             Value::Object(m) => m,
             // A JSON null leaves Go's map nil.
             Value::Null => &empty,
-            _ => return Err("json: cannot unmarshal into Go value of type map[string]any".to_string()),
+            _ => {
+                return Err(
+                    "json: cannot unmarshal into Go value of type map[string]any".to_string()
+                );
+            }
         };
         // Start with defaults, then overlay parsed values
         *self = new_default_user_preferences().with_config(config);
@@ -1112,12 +1500,18 @@ impl UserPreferences {
         tsrs_modulespecifiers::UserPreferences {
             import_module_specifier_preference: self.import_module_specifier_preference,
             import_module_specifier_ending: self.import_module_specifier_ending,
-            auto_import_specifier_exclude_regexes: self.auto_import_specifier_exclude_regexes.clone().unwrap_or_default(),
+            auto_import_specifier_exclude_regexes: self
+                .auto_import_specifier_exclude_regexes
+                .clone()
+                .unwrap_or_default(),
         }
     }
 
     // userpreferences.go:885
-    pub fn parsed_auto_import_file_exclude_patterns(&self, use_case_sensitive_file_names: bool) -> Option<vfsmatch::SpecMatcher> {
+    pub fn parsed_auto_import_file_exclude_patterns(
+        &self,
+        use_case_sensitive_file_names: bool,
+    ) -> Option<vfsmatch::SpecMatcher> {
         vfsmatch::new_spec_matcher(
             self.auto_import_file_exclude_patterns.as_deref().unwrap_or(&[]),
             "",
@@ -1128,7 +1522,10 @@ impl UserPreferences {
 
     // userpreferences.go:889
     pub fn is_module_specifier_excluded(&self, module_specifier: &str) -> bool {
-        tsrs_modulespecifiers::is_excluded_by_regex(module_specifier, self.auto_import_specifier_exclude_regexes.as_deref().unwrap_or(&[]))
+        tsrs_modulespecifiers::is_excluded_by_regex(
+            module_specifier,
+            self.auto_import_specifier_exclude_regexes.as_deref().unwrap_or(&[]),
+        )
     }
 }
 
@@ -1155,13 +1552,14 @@ pub fn parse_user_preferences(items: &OrderedMap<String, Value>) -> UserPreferen
         prefs = prefs.with_config(&unstable);
     }
     // Apply javascript, then typescript, then js/ts (highest precedence).
-    prefs = (["javascript", "typescript", "js/ts"]).into_iter().fold(prefs, |mut prefs, section| {
-        if let Some(Value::Object(settings)) = items.get(section) {
-            prefs = prefs.with_config(settings);
-        }
+    prefs =
+        (["javascript", "typescript", "js/ts"]).into_iter().fold(prefs, |mut prefs, section| {
+            if let Some(Value::Object(settings)) = items.get(section) {
+                prefs = prefs.with_config(settings);
+            }
 
-        prefs
-    });
+            prefs
+        });
     prefs
 }
 

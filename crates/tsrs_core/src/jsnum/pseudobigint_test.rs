@@ -4,7 +4,10 @@ use super::*;
 fn test_parse_pseudo_big_int() {
     let mut test_numbers: Vec<Number> = Vec::new();
     test_numbers.extend((0..1000i64).map(|i| Number(i as f64)));
-    test_numbers.extend((0..53).flat_map(|bits| [Number((1i64 << bits) as f64), Number(((1i64 << bits) - 1) as f64)]));
+    test_numbers.extend(
+        (0..53)
+            .flat_map(|bits| [Number((1i64 << bits) as f64), Number(((1i64 << bits) - 1) as f64)]),
+    );
 
     // strip base-10 strings
     for test_number in &test_numbers {
@@ -44,13 +47,22 @@ fn test_parse_pseudo_big_int() {
     }
 
     // can parse large literals
-    assert_eq!(parse_pseudo_big_int("123456789012345678901234567890n"), "123456789012345678901234567890");
+    assert_eq!(
+        parse_pseudo_big_int("123456789012345678901234567890n"),
+        "123456789012345678901234567890"
+    );
     assert_eq!(
         parse_pseudo_big_int(
             "0b1100011101110100100001111111101101100001101110011111000001110111001001110001111110000101011010010n"
         ),
         "123456789012345678901234567890"
     );
-    assert_eq!(parse_pseudo_big_int("0o143564417755415637016711617605322n"), "123456789012345678901234567890");
-    assert_eq!(parse_pseudo_big_int("0x18ee90ff6c373e0ee4e3f0ad2n"), "123456789012345678901234567890");
+    assert_eq!(
+        parse_pseudo_big_int("0o143564417755415637016711617605322n"),
+        "123456789012345678901234567890"
+    );
+    assert_eq!(
+        parse_pseudo_big_int("0x18ee90ff6c373e0ee4e3f0ad2n"),
+        "123456789012345678901234567890"
+    );
 }

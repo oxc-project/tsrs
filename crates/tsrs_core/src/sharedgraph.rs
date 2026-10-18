@@ -46,7 +46,8 @@ static FROZEN: [AtomicU64; WORDS] = [const { AtomicU64::new(0) }; WORDS];
 /// under `plain-ptrs`, and forks wrote their lazily filled fields into the shared seed: a write fault on its protected
 /// pages, and with `TSRS_SHARED_GRAPH_PROTECT=0` data races between forks (`ThreadSanitizer`, which needs plain pointers).
 #[cfg(not(compressed_ptrs))]
-static FROZEN_RANGES: std::sync::atomic::AtomicPtr<Box<[(usize, usize)]>> = std::sync::atomic::AtomicPtr::new(std::ptr::null_mut());
+static FROZEN_RANGES: std::sync::atomic::AtomicPtr<Box<[(usize, usize)]>> =
+    std::sync::atomic::AtomicPtr::new(std::ptr::null_mut());
 
 /// The frozen chunks lie in `[FROZEN_LO, FROZEN_LO + FROZEN_SPAN)` (0 and 0 while nothing is frozen).
 static FROZEN_LO: AtomicUsize = AtomicUsize::new(0);
@@ -54,11 +55,15 @@ static FROZEN_SPAN: AtomicUsize = AtomicUsize::new(0);
 /// One bit per 64-byte line of the frozen range: some fork wrote a cell in that line into its overlay. A read of a
 /// frozen cell whose line is clean returns the inline value without touching the overlay (no thread-local, no hash).
 /// Bits are only ever set (a fork whose overlay lacks the cell falls back to the inline value).
-static DIRTY: std::sync::atomic::AtomicPtr<AtomicU64> = std::sync::atomic::AtomicPtr::new(std::ptr::null_mut());
+static DIRTY: std::sync::atomic::AtomicPtr<AtomicU64> =
+    std::sync::atomic::AtomicPtr::new(std::ptr::null_mut());
 
 /// Whether the cell at `addr` is frozen and its line is dirty: the only case a read must consult the overlay.
 #[inline(always)]
-#[expect(clippy::inline_always, reason = "on every read of a lazy field; without the feature it must fold to `false`")]
+#[expect(
+    clippy::inline_always,
+    reason = "on every read of a lazy field; without the feature it must fold to `false`"
+)]
 pub fn dirty(addr: usize) -> bool {
     if !COMPILED_IN {
         return false;
@@ -93,7 +98,10 @@ fn mark_dirty(addr: usize) {
 }
 
 #[inline(always)]
-#[expect(clippy::inline_always, reason = "on every write of a lazy field; without the feature it must fold to `false`")]
+#[expect(
+    clippy::inline_always,
+    reason = "on every write of a lazy field; without the feature it must fold to `false`"
+)]
 pub fn any_frozen() -> bool {
     // Relaxed: written before the threads that read it were spawned.
     COMPILED_IN && ANY_FROZEN.load(Ordering::Relaxed)
@@ -146,7 +154,9 @@ fn is_frozen_addr_slow(addr: usize) -> bool {
 #[cfg(unix)]
 fn protect() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *ON.get_or_init(|| !matches!(std::env::var("TSRS_SHARED_GRAPH_PROTECT").as_deref(), Ok("0" | "off")))
+    *ON.get_or_init(|| {
+        !matches!(std::env::var("TSRS_SHARED_GRAPH_PROTECT").as_deref(), Ok("0" | "off"))
+    })
 }
 
 /// Marks `ranges` (start, len; page-aligned chunks of the seed's region) frozen, and protects them unless
@@ -183,7 +193,8 @@ pub fn freeze(ranges: &[(usize, usize)]) {
     let lo = ranges.iter().map(|r| r.0).min().unwrap_or(0);
     let hi = ranges.iter().map(|r| r.0 + r.1).max().unwrap_or(0);
     let words = ((hi - lo) >> 6).div_ceil(64) + 1;
-    let dirty: &'static mut [AtomicU64] = Box::leak(std::iter::repeat_with(|| AtomicU64::new(0)).take(words).collect());
+    let dirty: &'static mut [AtomicU64] =
+        Box::leak(std::iter::repeat_with(|| AtomicU64::new(0)).take(words).collect());
     // Relaxed (both): published by the Release store of the span below.
     DIRTY.store(dirty.as_mut_ptr(), Ordering::Relaxed);
     FROZEN_LO.store(lo, Ordering::Relaxed);
@@ -202,7 +213,13 @@ pub fn freeze(ranges: &[(usize, usize)]) {
                 continue;
             }
             // SAFETY: whole pages of a chunk of the reservation, mapped read-write; they become read-only.
-            let r = unsafe { libc::mprotect(std::ptr::with_exposed_provenance_mut::<libc::c_void>(lo), hi - lo, libc::PROT_READ) };
+            let r = unsafe {
+                libc::mprotect(
+                    std::ptr::with_exposed_provenance_mut::<libc::c_void>(lo),
+                    hi - lo,
+                    libc::PROT_READ,
+                )
+            };
             assert!(r == 0, "shared graph: mprotect failed");
         }
     }
@@ -236,7 +253,11 @@ extern "C" fn fault_handler(sig: i32, info: *mut libc::siginfo_t, _ctx: *mut lib
     // SAFETY: the kernel passes a valid siginfo for SA_SIGINFO handlers.
     let addr = unsafe { (*info).si_addr() }.addr();
     let ours = is_frozen_addr_slow(addr);
-    let msg: &[u8] = if ours { b"tsrs shared graph: write to frozen address\n" } else { b"tsrs shared graph: fault outside the frozen seed\n" };
+    let msg: &[u8] = if ours {
+        b"tsrs shared graph: write to frozen address\n"
+    } else {
+        b"tsrs shared graph: fault outside the frozen seed\n"
+    };
     // SAFETY: writes a static buffer to stderr; fills and prints a local frame buffer (the raw frames, symbolized by
     // the system without allocating).
     unsafe {
@@ -336,7 +357,10 @@ pub fn try_current_overlay() -> Option<&'static Overlay> {
 
 pub fn current_overlay() -> &'static Overlay {
     let p = CURRENT.with(Cell::get);
-    assert!(!p.is_null(), "shared graph: a frozen object was touched on a thread without a checker overlay");
+    assert!(
+        !p.is_null(),
+        "shared graph: a frozen object was touched on a thread without a checker overlay"
+    );
     // SAFETY: set by `enter_overlay` from a checker that outlives its use on this thread.
     unsafe { &*p }
 }
@@ -346,7 +370,13 @@ fn encode<T: Copy>(v: T) -> [u64; 2] {
     const { assert!(std::mem::size_of::<T>() <= 16) };
     let mut out = [0u64; 2];
     // SAFETY: T fits in 16 bytes; a plain byte copy of a Copy value.
-    unsafe { std::ptr::copy_nonoverlapping(std::ptr::from_ref(&v).cast::<u8>(), out.as_mut_ptr().cast::<u8>(), std::mem::size_of::<T>()) };
+    unsafe {
+        std::ptr::copy_nonoverlapping(
+            std::ptr::from_ref(&v).cast::<u8>(),
+            out.as_mut_ptr().cast::<u8>(),
+            std::mem::size_of::<T>(),
+        );
+    };
     out
 }
 
@@ -432,7 +462,8 @@ impl<T: Copy + Default + PartialEq> Clone for OvCell<T> {
 pub fn with_ref<T, R>(c: &RefCell<T>, f: impl FnOnce(&T) -> R) -> R {
     if any_frozen() && is_frozen_addr_slow(std::ptr::from_ref(c).addr()) {
         // SAFETY: frozen memory is never written after the freeze, so no mutable borrow exists or can start.
-        return f(unsafe { c.try_borrow_unguarded() }.expect("shared graph: frozen RefCell borrowed mutably"));
+        return f(unsafe { c.try_borrow_unguarded() }
+            .expect("shared graph: frozen RefCell borrowed mutably"));
     }
     f(&c.borrow())
 }
@@ -524,7 +555,8 @@ impl Overlay {
         if pages.len() <= p {
             pages.resize_with(p + 1, || None);
         }
-        pages[p].get_or_insert_with(|| Box::new([0; ID_PAGE]))[id as usize % ID_PAGE] = value | (1 << 63);
+        pages[p].get_or_insert_with(|| Box::new([0; ID_PAGE]))[id as usize % ID_PAGE] =
+            value | (1 << 63);
     }
 }
 
@@ -615,4 +647,3 @@ pub fn set_seed_thread(on: bool) {
 pub fn on_seed_thread() -> bool {
     COMPILED_IN && SEED_THREAD.with(Cell::get)
 }
-

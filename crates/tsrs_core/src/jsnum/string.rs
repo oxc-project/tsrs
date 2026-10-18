@@ -5,7 +5,10 @@ use super::jsnum::*;
 
 impl Number {
     // https://tc39.es/ecma262/2024/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-tostring
-    #[expect(clippy::float_cmp, reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values.")]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
+    )]
     pub fn string(self) -> String {
         if self.is_nan() {
             return "NaN".to_string();
@@ -49,7 +52,9 @@ pub fn from_string(s: &str) -> Number {
         _ => {}
     }
 
-    if let Some(result) = s.bytes().into_iter().find_map(|b| if !is_number_byte(b) { Some(nan()) } else { None }) {
+    if let Some(result) =
+        s.bytes().into_iter().find_map(|b| if !is_number_byte(b) { Some(nan()) } else { None })
+    {
         return result;
     }
 
@@ -99,7 +104,11 @@ pub(crate) fn is_str_white_space(r: char) -> bool {
     }
 
     // WhiteSpace (unicode.Zs)
-    matches!(r, '\u{0020}' | '\u{00A0}' | '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}')
+    matches!(
+        r,
+        '\u{0020}' | '\u{00A0}' | '\u{1680}' | '\u{2000}'
+            ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}'
+    )
 }
 
 pub(crate) fn try_parse_int(s: &str) -> Option<Number> {

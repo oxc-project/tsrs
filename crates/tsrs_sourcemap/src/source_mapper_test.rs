@@ -27,7 +27,8 @@ impl Host for TestHost {
 
 #[test]
 fn decoder_reads_what_the_generator_writes() {
-    let mut r#gen = new_generator("main.js", "", "/", tsrs_core::tspath::ComparePathsOptions::default());
+    let mut r#gen =
+        new_generator("main.js", "", "/", tsrs_core::tspath::ComparePathsOptions::default());
     let s = r#gen.add_source("/main.ts");
     let n = r#gen.add_name("foo");
     r#gen.add_source_mapping(0, 4, s, 1, 2).unwrap();
@@ -57,22 +58,8 @@ fn decoder_reads_what_the_generator_writes() {
                 Some(2),
                 MISSING_NAME
             ),
-            m(
-                0,
-                40,
-                SourceIndex::Index(0),
-                Some(0),
-                Some(0),
-                NameIndex::Index(0)
-            ),
-            m(
-                2,
-                1,
-                MISSING_SOURCE,
-                MISSING_LINE_OR_COLUMN,
-                MISSING_UTF16_COLUMN,
-                MISSING_NAME
-            ),
+            m(0, 40, SourceIndex::Index(0), Some(0), Some(0), NameIndex::Index(0)),
+            m(2, 1, MISSING_SOURCE, MISSING_LINE_OR_COLUMN, MISSING_UTF16_COLUMN, MISSING_NAME),
         ]
     );
     assert!(mappings[0].is_source_mapping());
@@ -101,8 +88,14 @@ fn base64_url_parsing() {
     assert_eq!(try_parse_base64_url("main.js.map"), ("", false));
     assert_eq!(try_parse_base64_url("data:text/plain,x"), ("", true));
     assert_eq!(try_parse_base64_url("data:application/json;base64,eyJ9"), ("eyJ9", true));
-    assert_eq!(try_parse_base64_url("data:application/json;charset=UTF-8;base64,eyJ9"), ("eyJ9", true));
-    assert_eq!(try_parse_base64_url("data:application/json;charset=latin1;base64,eyJ9"), ("", true));
+    assert_eq!(
+        try_parse_base64_url("data:application/json;charset=UTF-8;base64,eyJ9"),
+        ("eyJ9", true)
+    );
+    assert_eq!(
+        try_parse_base64_url("data:application/json;charset=latin1;base64,eyJ9"),
+        ("", true)
+    );
     assert_eq!(try_parse_base64_url("data:application/json;base64,ey J9"), ("", true));
 }
 
@@ -129,7 +122,15 @@ fn test_host(map_comment: &str, map_file: Option<&str>) -> TestHost {
 }
 
 fn generate_map() -> Generator {
-    let mut r#gen = new_generator("main.js", "", "/out", ComparePathsOptions { use_case_sensitive_file_names: true, current_directory: "/".to_string() });
+    let mut r#gen = new_generator(
+        "main.js",
+        "",
+        "/out",
+        ComparePathsOptions {
+            use_case_sensitive_file_names: true,
+            current_directory: "/".to_string(),
+        },
+    );
     let s = r#gen.add_source("/src/main.ts");
     r#gen.add_source_mapping(0, 0, s, 0, 0).unwrap();
     r#gen.add_source_mapping(0, 4, s, 0, 4).unwrap();
@@ -146,14 +147,32 @@ fn document_position_mapper_from_map_file() {
     let mapper = get_document_position_mapper(&host, "/out/main.js").unwrap();
 
     // "y" in main.js (line 1, char 4) -> closest mapping at or after it is (1, 8) -> main.ts line 1 char 8.
-    let pos = mapper.get_source_position(&DocumentPosition { file_name: "/out/main.js".to_string(), pos: 15 }).unwrap();
+    let pos = mapper
+        .get_source_position(&DocumentPosition { file_name: "/out/main.js".to_string(), pos: 15 })
+        .unwrap();
     assert_eq!(pos, DocumentPosition { file_name: "/src/main.ts".to_string(), pos: 19 + 8 });
 
-    let pos = mapper.get_generated_position(&DocumentPosition { file_name: "/src/main.ts".to_string(), pos: 4 }).unwrap();
+    let pos = mapper
+        .get_generated_position(&DocumentPosition { file_name: "/src/main.ts".to_string(), pos: 4 })
+        .unwrap();
     assert_eq!(pos, DocumentPosition { file_name: "/out/main.js".to_string(), pos: 4 });
 
-    assert!(mapper.get_generated_position(&DocumentPosition { file_name: "/src/other.ts".to_string(), pos: 0 }).is_none());
-    assert!(mapper.get_source_position(&DocumentPosition { file_name: "/out/main.js".to_string(), pos: 1000 }).is_none());
+    assert!(
+        mapper
+            .get_generated_position(&DocumentPosition {
+                file_name: "/src/other.ts".to_string(),
+                pos: 0
+            })
+            .is_none()
+    );
+    assert!(
+        mapper
+            .get_source_position(&DocumentPosition {
+                file_name: "/out/main.js".to_string(),
+                pos: 1000
+            })
+            .is_none()
+    );
 }
 
 #[test]
@@ -161,16 +180,19 @@ fn document_position_mapper_from_data_url() {
     let url = generate_map().base64_data_url();
     let host = test_host(&format!("//# sourceMappingURL={url}"), None);
     let mapper = get_document_position_mapper(&host, "/out/main.js").unwrap();
-    let pos = mapper.get_generated_position(&DocumentPosition { file_name: "/src/main.ts".to_string(), pos: 19 }).unwrap();
+    let pos = mapper
+        .get_generated_position(&DocumentPosition {
+            file_name: "/src/main.ts".to_string(),
+            pos: 19,
+        })
+        .unwrap();
     assert_eq!(pos, DocumentPosition { file_name: "/out/main.js".to_string(), pos: 11 });
 }
 
 #[test]
 fn document_position_mapper_rejects_inlined_sources() {
     let mut r#gen = generate_map();
-    r#gen
-        .set_source_content(SourceIndex::Index(0), "let x: number = 1;\n")
-        .unwrap();
+    r#gen.set_source_content(SourceIndex::Index(0), "let x: number = 1;\n").unwrap();
     let host = test_host("", Some(&r#gen.string()));
     assert!(get_document_position_mapper(&host, "/out/main.js").is_none());
 }

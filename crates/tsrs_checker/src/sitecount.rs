@@ -34,14 +34,21 @@ mod imp {
     }
 
     pub fn dump() {
-        let top: usize = std::env::var("TSRS_SITE_COUNTS_TOP").ok().and_then(|v| v.parse().ok()).unwrap_or(40);
+        let top: usize =
+            std::env::var("TSRS_SITE_COUNTS_TOP").ok().and_then(|v| v.parse().ok()).unwrap_or(40);
         let guard = COUNTS.lock().unwrap();
         let Some(counts) = guard.as_ref() else { return };
         let mut kinds: FxHashMap<&str, Vec<(String, u64)>> = FxHashMap::default();
-        #[expect(clippy::iter_over_hash_type, reason = "Aggregates independent integer counters; the report sorts the collected rows.")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "Aggregates independent integer counters; the report sorts the collected rows."
+        )]
         for (&(kind, label, loc), &n) in counts {
             let file = loc.file().rsplit('/').next().unwrap_or(loc.file());
-            kinds.entry(kind).or_default().push((format!("{:<24} {}:{}", label, file, loc.line()), n));
+            kinds
+                .entry(kind)
+                .or_default()
+                .push((format!("{:<24} {}:{}", label, file, loc.line()), n));
         }
         let mut names: Vec<_> = kinds.keys().copied().collect();
         names.sort_unstable();
@@ -52,7 +59,10 @@ mod imp {
             eprintln!("== site counts: {kind} (total {total}, {} sites)", rows.len());
             // Per-label totals.
             let mut labels: FxHashMap<&str, u64> = FxHashMap::default();
-            #[expect(clippy::iter_over_hash_type, reason = "Aggregates independent integer counters; the report sorts the collected rows.")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "Aggregates independent integer counters; the report sorts the collected rows."
+            )]
             for (&(k, label, _), &n) in counts {
                 if k == kind {
                     *labels.entry(label).or_insert(0) += n;
@@ -62,7 +72,12 @@ mod imp {
             labels.sort_by_key(|a| std::cmp::Reverse(a.1));
             if labels.len() > 1 {
                 for (label, n) in labels.iter().take(top) {
-                    eprintln!("   label {:>12} {:5.1}%  {}", n, 100.0 * *n as f64 / total as f64, label);
+                    eprintln!(
+                        "   label {:>12} {:5.1}%  {}",
+                        n,
+                        100.0 * *n as f64 / total as f64,
+                        label
+                    );
                 }
             }
             for (row, n) in rows.iter().take(top) {

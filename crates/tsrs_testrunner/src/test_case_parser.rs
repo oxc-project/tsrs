@@ -13,8 +13,10 @@ use crate::harnessutil;
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
 
 // Regex for parsing options in the format "@Alpha: Value of any sort"
-pub(crate) static OPTION_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?m)^/{2}[\t\n\x0C\r ]*@([0-9A-Za-z_]+)[\t\n\x0C\r ]*:[\t\n\x0C\r ]*([^\r\n]*)").unwrap());
+pub(crate) static OPTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?m)^/{2}[\t\n\x0C\r ]*@([0-9A-Za-z_]+)[\t\n\x0C\r ]*:[\t\n\x0C\r ]*([^\r\n]*)")
+        .unwrap()
+});
 
 // Regex for parsing @link option
 static LINK_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -54,7 +56,10 @@ pub struct TestCaseContent {
 // options.rs (parse_test_ts_config).
 pub fn make_units_from_test(code: &str, file_name: &str) -> TestCaseContent {
     let (mut test_units, symlinks, mut current_directory, global_options) =
-        parse_test_files_and_symlinks(code, file_name, |filename, content, _| TestUnit { content: content.to_string(), name: filename.to_string() });
+        parse_test_files_and_symlinks(code, file_name, |filename, content, _| TestUnit {
+            content: content.to_string(),
+            name: filename.to_string(),
+        });
 
     if current_directory.is_empty() {
         current_directory = SRC_FOLDER.to_string();
@@ -62,11 +67,20 @@ pub fn make_units_from_test(code: &str, file_name: &str) -> TestCaseContent {
 
     // check if project has tsconfig.json in the list of files
     let mut ts_config_file_unit_data = None;
-    if let Some(i) = test_units.iter().position(|data| !harnessutil::get_config_name_from_file_name(&data.name).is_empty()) {
+    if let Some(i) = test_units
+        .iter()
+        .position(|data| !harnessutil::get_config_name_from_file_name(&data.name).is_empty())
+    {
         ts_config_file_unit_data = Some(test_units.remove(i));
     }
 
-    TestCaseContent { test_unit_data: test_units, ts_config_file_unit_data, symlinks, current_directory, global_options }
+    TestCaseContent {
+        test_unit_data: test_units,
+        ts_config_file_unit_data,
+        symlinks,
+        current_directory,
+        global_options,
+    }
 }
 
 #[derive(Default, Clone, Copy)]
@@ -85,7 +99,12 @@ pub fn parse_test_files_and_symlinks<T>(
     file_name: &str,
     parse_file: impl FnMut(&str, &str, &FxHashMap<String, String>) -> T,
 ) -> (Vec<T>, BTreeMap<String, String>, String, FxHashMap<String, String>) {
-    parse_test_files_and_symlinks_with_options(code, file_name, parse_file, ParseTestFilesOptions::default())
+    parse_test_files_and_symlinks_with_options(
+        code,
+        file_name,
+        parse_file,
+        ParseTestFilesOptions::default(),
+    )
 }
 
 pub fn parse_test_files_and_symlinks_with_options<T>(
@@ -127,7 +146,11 @@ pub fn parse_test_files_and_symlinks_with_options<T>(
                 if meta_data_name == "symlink" && !current_file_name.is_empty() {
                     symlinks.extend(meta_data_value.split(',').filter_map(|link| {
                         let link = link.trim();
-                        if !link.is_empty() { Some((link.to_string(), current_file_name.clone())) } else { None }
+                        if !link.is_empty() {
+                            Some((link.to_string(), current_file_name.clone()))
+                        } else {
+                            None
+                        }
                     }));
                 } else if FOURSLASH_DIRECTIVES.contains(&meta_data_name.as_str()) {
                     // File-specific option
@@ -142,10 +165,16 @@ pub fn parse_test_files_and_symlinks_with_options<T>(
             // New metadata statement after having collected some code to go with the previous metadata
             if !current_file_name.is_empty() {
                 // Store result file - always save for regular tests, but skip empty implicit first file for fourslash
-                let should_save_file = !options.allow_implicit_first_file || !current_file_content.is_empty() || has_seen_file;
+                let should_save_file = !options.allow_implicit_first_file
+                    || !current_file_content.is_empty()
+                    || has_seen_file;
                 if should_save_file {
                     has_seen_file = true;
-                    test_units.push(parse_file(&current_file_name, &current_file_content, &current_file_options));
+                    test_units.push(parse_file(
+                        &current_file_name,
+                        &current_file_content,
+                        &current_file_options,
+                    ));
                 }
 
                 // Reset local data
@@ -155,15 +184,25 @@ pub fn parse_test_files_and_symlinks_with_options<T>(
                 current_file_options = FxHashMap::default();
             } else {
                 // First metadata marker in the file
-                let has_content_before_first_filename =
-                    !current_file_content.is_empty() && skip_trivia(&current_file_content, 0) != current_file_content.len();
-                assert!(!has_content_before_first_filename || options.allow_implicit_first_file, "Non-comment test content appears before the first '// @Filename' directive");
+                let has_content_before_first_filename = !current_file_content.is_empty()
+                    && skip_trivia(&current_file_content, 0) != current_file_content.len();
+                assert!(
+                    !has_content_before_first_filename || options.allow_implicit_first_file,
+                    "Non-comment test content appears before the first '// @Filename' directive"
+                );
 
                 // If we have content before the first @Filename and AllowImplicitFirstFile is true,
                 // we need to save it as an implicit first file before starting the new file
-                if has_content_before_first_filename && options.allow_implicit_first_file && !current_file_name.is_empty() {
+                if has_content_before_first_filename
+                    && options.allow_implicit_first_file
+                    && !current_file_name.is_empty()
+                {
                     has_seen_file = true;
-                    test_units.push(parse_file(&current_file_name, &current_file_content, &current_file_options));
+                    test_units.push(parse_file(
+                        &current_file_name,
+                        &current_file_content,
+                        &current_file_options,
+                    ));
                 }
 
                 // Reset for the new file
@@ -223,7 +262,9 @@ fn parse_symlink_from_test(line: &str, symlinks: &mut BTreeMap<String, String>) 
 fn skip_trivia(text: &str, mut pos: usize) -> usize {
     let bytes = text.as_bytes();
     if pos == 0 && bytes.starts_with(b"#!") {
-        pos += (pos..bytes.len()).take_while(|&index| bytes[index] != b'\n' && bytes[index] != b'\r').count();
+        pos += (pos..bytes.len())
+            .take_while(|&index| bytes[index] != b'\n' && bytes[index] != b'\r')
+            .count();
     }
     loop {
         if pos >= bytes.len() {
@@ -277,8 +318,14 @@ function bar() { return \"b\"; }";
         assert_eq!(
             result.test_unit_data,
             vec![
-                TestUnit { content: "function foo() { return \"a\"; }\n// normal comment".to_string(), name: "firstFile.ts".to_string() },
-                TestUnit { content: "// some other comment\nfunction bar() { return \"b\"; }".to_string(), name: "secondFile.ts".to_string() },
+                TestUnit {
+                    content: "function foo() { return \"a\"; }\n// normal comment".to_string(),
+                    name: "firstFile.ts".to_string()
+                },
+                TestUnit {
+                    content: "// some other comment\nfunction bar() { return \"b\"; }".to_string(),
+                    name: "secondFile.ts".to_string()
+                },
             ]
         );
         assert_eq!(result.ts_config_file_unit_data, None);
@@ -287,7 +334,9 @@ function bar() { return \"b\"; }";
 
     #[test]
     fn test_extract_settings() {
-        let s = extract_compiler_settings("// @Target: ES5, ES2015;\r\n//@strict:true\n// @filename: a.ts\nfoo");
+        let s = extract_compiler_settings(
+            "// @Target: ES5, ES2015;\r\n//@strict:true\n// @filename: a.ts\nfoo",
+        );
         assert_eq!(s.get("target").map(String::as_str), Some("ES5, ES2015"));
         assert_eq!(s.get("strict").map(String::as_str), Some("true"));
         assert_eq!(s.get("filename").map(String::as_str), Some("a.ts"));

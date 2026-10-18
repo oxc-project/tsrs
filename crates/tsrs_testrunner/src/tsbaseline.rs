@@ -7,18 +7,23 @@ use regex::Regex;
 use tsrs_core::tspath::{self, ComparePathsOptions};
 
 use crate::baseline::NO_CONTENT;
-use crate::diagnosticwriter::{self as dw, compute_ecma_line_starts, Diag, FormattingOptions};
+use crate::diagnosticwriter::{self as dw, Diag, FormattingOptions, compute_ecma_line_starts};
 use crate::harnessutil::TestFile;
 
 // IO
 const HARNESS_NEW_LINE: &str = "\r\n";
 
 fn format_opts() -> FormattingOptions {
-    FormattingOptions { compare_paths_options: ComparePathsOptions::default(), new_line: HARNESS_NEW_LINE }
+    FormattingOptions {
+        compare_paths_options: ComparePathsOptions::default(),
+        new_line: HARNESS_NEW_LINE,
+    }
 }
 
-static DIAGNOSTICS_LOCATION_PREFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?im)^(lib.*\.d\.ts)\([0-9]+,[0-9]+\)").unwrap());
-static DIAGNOSTICS_LOCATION_PATTERN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)(lib.*\.d\.ts):[0-9]+:[0-9]+").unwrap());
+static DIAGNOSTICS_LOCATION_PREFIX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?im)^(lib.*\.d\.ts)\([0-9]+,[0-9]+\)").unwrap());
+static DIAGNOSTICS_LOCATION_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(lib.*\.d\.ts):[0-9]+:[0-9]+").unwrap());
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
 pub(crate) static TS_EXTENSION: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.tsx?$").unwrap());
 
@@ -56,7 +61,11 @@ pub fn get_error_baseline(input_files: &[TestFile], diagnostics: &[Diag], pretty
     output_lines.concat()
 }
 
-fn iterate_error_baseline(input_files: &[TestFile], input_diagnostics: &[Diag], pretty: bool) -> Vec<String> {
+fn iterate_error_baseline(
+    input_files: &[TestFile],
+    input_diagnostics: &[Diag],
+    pretty: bool,
+) -> Vec<String> {
     let mut diagnostics: Vec<&Diag> = input_diagnostics.iter().collect();
     // slices.SortFunc is not stable; diagnostics that compare equal are indistinguishable in the output.
     diagnostics.sort_by(|a, b| dw::compare_diagnostics(a, b));
@@ -73,28 +82,48 @@ fn iterate_error_baseline(input_files: &[TestFile], input_diagnostics: &[Diag], 
 
     let mut result = Vec::new();
 
-    let output_error_text = |output_lines: &mut String, new_line: &mut dyn FnMut() -> &'static str, diag: &Diag| {
+    let output_error_text = |output_lines: &mut String,
+                             new_line: &mut dyn FnMut() -> &'static str,
+                             diag: &Diag| {
         let message = dw::flatten_diagnostic_message(diag, HARNESS_NEW_LINE);
 
         let mut err_lines = Vec::new();
-        err_lines.extend(remove_test_path_prefixes(&message, false).split('\n').filter_map(|line| {
-            let line = line.strip_suffix('\r').unwrap_or(line);
-            if line.is_empty() {
-                return None;
-            }
-            Some(format!("!!! {} TS{}: {}", diag.category.name(), diag.code, line))
-        }));
+        err_lines.extend(remove_test_path_prefixes(&message, false).split('\n').filter_map(
+            |line| {
+                let line = line.strip_suffix('\r').unwrap_or(line);
+                if line.is_empty() {
+                    return None;
+                }
+                Some(format!("!!! {} TS{}: {}", diag.category.name(), diag.code, line))
+            },
+        ));
 
         err_lines.extend(diag.related.iter().map(|info| {
             let mut location = String::new();
             if let Some(file) = &info.file {
-                location = format!(" {}", format_location(file, info.pos.unwrap_or(0) , &format_opts(), |output, text, _| output.push_str(text)));
+                location = format!(
+                    " {}",
+                    format_location(
+                        file,
+                        info.pos.unwrap_or(0),
+                        &format_opts(),
+                        |output, text, _| output.push_str(text)
+                    )
+                );
             }
             location = remove_test_path_prefixes(&location, false);
-            if !location.is_empty() && is_default_library_file(&info.file.as_ref().unwrap().file_name) {
-                location = DIAGNOSTICS_LOCATION_PATTERN.replace_all(&location, "$1:--:--").into_owned();
+            if !location.is_empty()
+                && is_default_library_file(&info.file.as_ref().unwrap().file_name)
+            {
+                location =
+                    DIAGNOSTICS_LOCATION_PATTERN.replace_all(&location, "$1:--:--").into_owned();
             }
-            format!("!!! related TS{}{}: {}", info.code, location, dw::flatten_diagnostic_message(info, HARNESS_NEW_LINE))
+            format!(
+                "!!! related TS{}{}: {}",
+                info.code,
+                location,
+                dw::flatten_diagnostic_message(info, HARNESS_NEW_LINE)
+            )
         }));
 
         for e in err_lines {
@@ -138,7 +167,8 @@ fn iterate_error_baseline(input_files: &[TestFile], input_diagnostics: &[Diag], 
             .collect();
 
         // Header
-        let _ = write!(output_lines, "{}==== {} ({} errors) ====", new_line(), unit, file_errors.len());
+        let _ =
+            write!(output_lines, "{}==== {} ({} errors) ====", new_line(), unit, file_errors.len());
 
         // For each line, emit the line followed by any error squiggles matching this line
         let content = input_file.content.as_bytes();
@@ -178,10 +208,17 @@ fn iterate_error_baseline(input_files: &[TestFile], input_diagnostics: &[Diag], 
                         .expect("squiggle offset exceeds usize");
                     output_lines.push_str(new_line());
                     output_lines.push_str("    ");
-                    output_lines.push_str(&replace_non_whitespace(&line[..squiggle_start.min(line.len())]));
+                    output_lines
+                        .push_str(&replace_non_whitespace(&line[..squiggle_start.min(line.len())]));
                     // This was `new Array(count).join("~")`; which maps 0 to "", 1 to "", 2 to "~", 3 to "~~", etc.
-                    let squiggle_end = squiggle_start.max((squiggle_start as i64 + length as i64).min(line.len() as i64).max(0) as usize);
-                    let squiggle_slice = if squiggle_start <= line.len() { &line[squiggle_start..squiggle_end.min(line.len())] } else { &[][..] };
+                    let squiggle_end = squiggle_start
+                        .max((squiggle_start as i64 + length as i64).min(line.len() as i64).max(0)
+                            as usize);
+                    let squiggle_slice = if squiggle_start <= line.len() {
+                        &line[squiggle_start..squiggle_end.min(line.len())]
+                    } else {
+                        &[][..]
+                    };
                     output_lines.push_str(&"~".repeat(rune_count(squiggle_slice)));
                     // If the error ended here, or we're at the end of the file, emit its message
                     if line_index == lines.len() - 1 || next_line_start > end {
@@ -257,7 +294,9 @@ fn replace_all(text: &str, pairs: &[(&str, &str)]) -> String {
     let mut i = 0;
     let mut last = 0;
     while i < bytes.len() {
-        if let Some((old, new)) = pairs.iter().find(|(old, _)| bytes[i..].starts_with(old.as_bytes())) {
+        if let Some((old, new)) =
+            pairs.iter().find(|(old, _)| bytes[i..].starts_with(old.as_bytes()))
+        {
             out.push_str(&text[last..i]);
             out.push_str(new);
             i += old.len();

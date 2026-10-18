@@ -2,19 +2,20 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use rustc_hash::FxHashMap;
 use tsrs_contentmapper::{
-    CloseProjectParams, Diagnostic, DiagnosticDirectivePolicy, DiagnosticDirectives, MappedDiagnosticDirective, MappedOutput,
-    OpenProjectParams, ProtocolJson, TransformParams, TransformResult, UnusedExpectDirectiveDiagnostic, METHOD_INITIALIZE,
-    METHOD_TRANSFORM,
+    CloseProjectParams, Diagnostic, DiagnosticDirectivePolicy, DiagnosticDirectives,
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedDiagnosticDirective, MappedOutput,
+    OpenProjectParams, ProtocolJson, TransformParams, TransformResult,
+    UnusedExpectDirectiveDiagnostic,
 };
+use tsrs_core::TextRange;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::{self, Value};
-use tsrs_core::TextRange;
 use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment, SpanMap};
 
 use crate::protocol::{
-    initialize_result, marshal_span_map, no_notifications, projectLifecycleHandler, quote, testHandler, unexpected_method,
-    unmarshal_params,
+    initialize_result, marshal_span_map, no_notifications, projectLifecycleHandler, quote,
+    testHandler, unexpected_method, unmarshal_params,
 };
 
 // transforming.go:17
@@ -42,7 +43,9 @@ impl projectLifecycleHandler for Handler {
             None => return Err(ipc::Error::new("unexpected EOF")),
             Some(Value::Null) => None,
             Some(Value::Object(members)) => Some(Arc::new(members)),
-            Some(_) => return Err(ipc::Error::new("cannot unmarshal non-object JSON value into Map")),
+            Some(_) => {
+                return Err(ipc::Error::new("cannot unmarshal non-object JSON value into Map"));
+            }
         };
         lock(&self.mu).insert(p.project_handle, options);
         Ok(())
@@ -69,9 +72,13 @@ impl ipc::Handler for Handler {
                 let p: TransformParams = unmarshal_params(params)?;
                 let options = lock(&self.mu).get(&p.project_handle).cloned().flatten();
                 let Some(options) = options else {
-                    return Err(ipc::Error::new(format!("contentmappertest: project {} is not open", quote(&p.project_handle))));
+                    return Err(ipc::Error::new(format!(
+                        "contentmappertest: project {} is not open",
+                        quote(&p.project_handle)
+                    )));
                 };
-                let (text, mappings, diagnostics, diagnostic_directives) = transform(&p.content, Some(&options))?;
+                let (text, mappings, diagnostics, diagnostic_directives) =
+                    transform(&p.content, Some(&options))?;
                 Ok(TransformResult {
                     mapped_output: MappedOutput {
                         text,
@@ -88,7 +95,11 @@ impl ipc::Handler for Handler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }
@@ -108,7 +119,10 @@ type transformOutput = (String, Value, Vec<Diagnostic>, Option<DiagnosticDirecti
 
 // transforming.go:91 (Go's writeVerbatim and writeAtom closures share the builder and the segments, which
 // `virtualWriter` holds.)
-fn transform(content: &str, options: Option<&OrderedMap<String, Value>>) -> Result<transformOutput, ipc::Error> {
+fn transform(
+    content: &str,
+    options: Option<&OrderedMap<String, Value>>,
+) -> Result<transformOutput, ipc::Error> {
     let mut w = virtualWriter { virtual_: String::new(), segments: Vec::new() };
     let mut diagnostics = Vec::new();
 
@@ -192,30 +206,59 @@ impl virtualWriter {
 
 // transforming.go:169
 fn diagnostic_directives(content: &str, mappings: &SpanMap) -> Option<DiagnosticDirectives> {
-    let wrap = |directives: Vec<MappedDiagnosticDirective>, unused: Vec<UnusedExpectDirectiveDiagnostic>| {
+    let wrap = |directives: Vec<MappedDiagnosticDirective>,
+                unused: Vec<UnusedExpectDirectiveDiagnostic>| {
         Some(DiagnosticDirectives { unused_expect_directive_diagnostics: unused, directives })
     };
     const INVALID_PREFIX: &str = "// @box-invalid-directive:";
     if let Some(rest) = content.strip_prefix(INVALID_PREFIX) {
-        let directive = |virtual_start: i64, virtual_end: i64, original_start: i64, policy: DiagnosticDirectivePolicy| {
-            MappedDiagnosticDirective { original_start, virtual_start, virtual_end, policy, ..Default::default() }
+        let directive = |virtual_start: i64,
+                         virtual_end: i64,
+                         original_start: i64,
+                         policy: DiagnosticDirectivePolicy| {
+            MappedDiagnosticDirective {
+                original_start,
+                virtual_start,
+                virtual_end,
+                policy,
+                ..Default::default()
+            }
         };
         let ignore = DiagnosticDirectivePolicy::Ignore;
         let expect = DiagnosticDirectivePolicy::Expect;
         match rest.split('\n').next().unwrap_or_default().trim() {
             "invalid-range" => return wrap(vec![directive(-1, 0, 0, ignore)], Vec::new()),
-            "original-range-out-of-bounds" => return wrap(vec![directive(0, 0, content.len() as i64 + 1, ignore)], Vec::new()),
-            "virtual-range-out-of-bounds" => return wrap(vec![directive(1 << 20, 1 << 20, 0, ignore)], Vec::new()),
-            "invalid-policy" => return wrap(vec![directive(0, 0, 0, DiagnosticDirectivePolicy(2))], Vec::new()),
-            "ignore-with-unused-diagnostic" => {
-                return wrap(vec![directive(0, 0, 0, ignore)], vec![UnusedExpectDirectiveDiagnostic::default()]);
+            "original-range-out-of-bounds" => {
+                return wrap(vec![directive(0, 0, content.len() as i64 + 1, ignore)], Vec::new());
             }
-            "expect-without-unused-diagnostic" => return wrap(vec![directive(0, 0, 0, expect)], Vec::new()),
+            "virtual-range-out-of-bounds" => {
+                return wrap(vec![directive(1 << 20, 1 << 20, 0, ignore)], Vec::new());
+            }
+            "invalid-policy" => {
+                return wrap(vec![directive(0, 0, 0, DiagnosticDirectivePolicy(2))], Vec::new());
+            }
+            "ignore-with-unused-diagnostic" => {
+                return wrap(
+                    vec![directive(0, 0, 0, ignore)],
+                    vec![UnusedExpectDirectiveDiagnostic::default()],
+                );
+            }
+            "expect-without-unused-diagnostic" => {
+                return wrap(vec![directive(0, 0, 0, expect)], Vec::new());
+            }
             "invalid-unused-diagnostic-index" => {
-                let directive = MappedDiagnosticDirective { unused_expect_directive_index: Some(1), ..directive(0, 0, 0, expect) };
+                let directive = MappedDiagnosticDirective {
+                    unused_expect_directive_index: Some(1),
+                    ..directive(0, 0, 0, expect)
+                };
                 return wrap(vec![directive], vec![UnusedExpectDirectiveDiagnostic::default()]);
             }
-            "overlap" => return wrap(vec![directive(0, 2, 0, ignore), directive(1, 3, 0, ignore)], Vec::new()),
+            "overlap" => {
+                return wrap(
+                    vec![directive(0, 2, 0, ignore), directive(1, 3, 0, ignore)],
+                    Vec::new(),
+                );
+            }
             _ => {}
         }
     }
@@ -253,10 +296,7 @@ fn diagnostic_directives(content: &str, mappings: &SpanMap) -> Option<Diagnostic
                 None => content.len() - affected_start,
             };
             let virtual_spans = mappings.original_to_virtual_spans(
-                TextRange::new(
-                    affected_start as u32,
-                    (affected_start + affected_length) as u32,
-                ),
+                TextRange::new(affected_start as u32, (affected_start + affected_length) as u32),
                 Feature::All,
             );
             if virtual_spans.len() == 1 {

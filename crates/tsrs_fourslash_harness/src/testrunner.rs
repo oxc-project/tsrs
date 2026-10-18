@@ -13,8 +13,10 @@ use tsrs_core::tspath;
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
 
 // test_case_parser.go:41
-static OPTION_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?m)^/{2}[\t\n\x0C\r ]*@([0-9A-Za-z_]+)[\t\n\x0C\r ]*:[\t\n\x0C\r ]*([^\r\n]*)").unwrap());
+static OPTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?m)^/{2}[\t\n\x0C\r ]*@([0-9A-Za-z_]+)[\t\n\x0C\r ]*:[\t\n\x0C\r ]*([^\r\n]*)")
+        .unwrap()
+});
 
 // test_case_parser.go:44
 static LINK_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -83,7 +85,11 @@ pub fn parse_test_files_and_symlinks_with_options<U, E>(
                 if meta_data_name == "symlink" && !current_file_name.is_empty() {
                     symlinks.extend(meta_data_value.split(',').filter_map(|link| {
                         let link = link.trim();
-                        if !link.is_empty() { Some((link.to_string(), current_file_name.clone())) } else { None }
+                        if !link.is_empty() {
+                            Some((link.to_string(), current_file_name.clone()))
+                        } else {
+                            None
+                        }
                     }));
                 } else if FOURSLASH_DIRECTIVES.contains(&meta_data_name.as_str()) {
                     // File-specific option
@@ -99,10 +105,16 @@ pub fn parse_test_files_and_symlinks_with_options<U, E>(
             // New metadata statement after having collected some code to go with the previous metadata
             if !current_file_name.is_empty() {
                 // Store result file - always save for regular tests, but skip empty implicit first file for fourslash
-                let should_save_file = !options.allow_implicit_first_file || !current_file_content.is_empty() || has_seen_file;
+                let should_save_file = !options.allow_implicit_first_file
+                    || !current_file_content.is_empty()
+                    || has_seen_file;
                 if should_save_file {
                     has_seen_file = true;
-                    match parse_file(&current_file_name, &current_file_content, &current_file_options) {
+                    match parse_file(
+                        &current_file_name,
+                        &current_file_content,
+                        &current_file_options,
+                    ) {
                         Ok(u) => test_units.push(u),
                         Err(e) => {
                             parse_error = Some(e);
@@ -119,15 +131,26 @@ pub fn parse_test_files_and_symlinks_with_options<U, E>(
             } else {
                 // First metadata marker in the file
                 let has_content_before_first_filename = !current_file_content.is_empty()
-                    && tsrs_scanner::skip_trivia(&current_file_content, 0) as usize != current_file_content.len();
-                assert!(!has_content_before_first_filename || options.allow_implicit_first_file, "Non-comment test content appears before the first '// @Filename' directive");
+                    && tsrs_scanner::skip_trivia(&current_file_content, 0) as usize
+                        != current_file_content.len();
+                assert!(
+                    !has_content_before_first_filename || options.allow_implicit_first_file,
+                    "Non-comment test content appears before the first '// @Filename' directive"
+                );
 
                 // If we have content before the first @Filename and AllowImplicitFirstFile is true,
                 // we need to save it as an implicit first file before starting the new file
-                if has_content_before_first_filename && options.allow_implicit_first_file && !current_file_name.is_empty() {
+                if has_content_before_first_filename
+                    && options.allow_implicit_first_file
+                    && !current_file_name.is_empty()
+                {
                     // Store the implicit first file
                     has_seen_file = true;
-                    match parse_file(&current_file_name, &current_file_content, &current_file_options) {
+                    match parse_file(
+                        &current_file_name,
+                        &current_file_content,
+                        &current_file_options,
+                    ) {
                         Ok(u) => test_units.push(u),
                         Err(e) => {
                             parse_error = Some(e);
@@ -177,7 +200,12 @@ pub fn parse_test_files_and_symlinks_with_options<U, E>(
     if let Some(e) = parse_error {
         return Err(e);
     }
-    Ok(ParsedTestFiles { units: test_units, symlinks, current_dir: current_directory, global_options })
+    Ok(ParsedTestFiles {
+        units: test_units,
+        symlinks,
+        current_dir: current_directory,
+        global_options,
+    })
 }
 
 // test_case_parser.go:291

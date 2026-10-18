@@ -1,6 +1,6 @@
 use crate::*;
-use tsrs_ast::*;
 use pseudochecker::{PseudoObjectElementKind, PseudoTypeKind};
+use tsrs_ast::*;
 
 impl NodeBuilderImpl {
     // pseudotypenodebuilder.go:15
@@ -8,7 +8,12 @@ impl NodeBuilderImpl {
     // is PseudoTypeInferred, it reports any error nodes and then serializes from the checker's type.
     // This avoids incorrect type output when PseudoTypeInferred would derive the type from the
     // original declaration expression in an instantiated context.
-    pub(crate) fn pseudo_type_to_node_with_checker_fallback(&self, c: &mut Checker, t: P<PseudoType>, checker_type: P<Type>) -> Option<P<Node>> {
+    pub(crate) fn pseudo_type_to_node_with_checker_fallback(
+        &self,
+        c: &mut Checker,
+        t: P<PseudoType>,
+        checker_type: P<Type>,
+    ) -> Option<P<Node>> {
         if t.kind == PseudoTypeKind::Inferred {
             let ctx = self.ctx();
             if !ctx.suppress_report_inference_fallback.get() {
@@ -18,7 +23,10 @@ impl NodeBuilderImpl {
                         ctx.tracker.get().unwrap().report_inference_fallback(c, n);
                     }
                 } else {
-                    ctx.tracker.get().unwrap().report_inference_fallback(c, t.as_pseudo_type_inferred().expression);
+                    ctx.tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, t.as_pseudo_type_inferred().expression);
                 }
             }
             let old_suppress = ctx.suppress_report_inference_fallback.get();
@@ -45,7 +53,11 @@ impl NodeBuilderImpl {
 
     // pseudotypenodebuilder.go:48
     // Maps a pseudochecker's pseudotypes into ast nodes and reports any inference fallback errors the pseudotype structure implies
-    pub(crate) fn pseudo_type_to_node(&self, c: &mut Checker, t: Option<P<PseudoType>>) -> Option<P<Node>> {
+    pub(crate) fn pseudo_type_to_node(
+        &self,
+        c: &mut Checker,
+        t: Option<P<PseudoType>>,
+    ) -> Option<P<Node>> {
         assert!(t.is_some(), "Attempted to serialize nil pseudotype");
         let t = t.unwrap();
         match t.kind {
@@ -58,8 +70,13 @@ impl NodeBuilderImpl {
                     for &n in error_nodes {
                         self.ctx().tracker.get().unwrap().report_inference_fallback(c, n);
                     }
-                } else if is_entity_name_expression(node) && is_declaration(node.parent().unwrap()) {
-                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, node.parent().unwrap());
+                } else if is_entity_name_expression(node) && is_declaration(node.parent().unwrap())
+                {
+                    self.ctx()
+                        .tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, node.parent().unwrap());
                 } else {
                     self.ctx().tracker.get().unwrap().report_inference_fallback(c, node);
                 }
@@ -72,7 +89,13 @@ impl NodeBuilderImpl {
                 if is_return_statement(parent) {
                     let enclosing = get_containing_function(node).unwrap();
                     if is_accessor(enclosing) {
-                        return Some(self.serialize_type_for_declaration(c, Some(enclosing), None, None, false));
+                        return Some(self.serialize_type_for_declaration(
+                            c,
+                            Some(enclosing),
+                            None,
+                            None,
+                            false,
+                        ));
                     }
                     let sig = c.get_signature_from_declaration(enclosing);
                     return self.serialize_return_type_for_signature(c, sig, false);
@@ -82,7 +105,13 @@ impl NodeBuilderImpl {
                     return self.serialize_return_type_for_signature(c, sig, false);
                 }
                 if is_declaration(parent) {
-                    return Some(self.serialize_type_for_declaration(c, Some(parent), None, None, false));
+                    return Some(self.serialize_type_for_declaration(
+                        c,
+                        Some(parent),
+                        None,
+                        None,
+                        false,
+                    ));
                 }
                 // This might be effectively unreachable. If it's not, it may need more widening rules to mirror checker behavior for whatever expressions are serialized here
                 let ty = c.get_type_of_expression(node);
@@ -110,7 +139,11 @@ impl NodeBuilderImpl {
                     let contextual_type = c.get_contextual_type(d.node, ContextFlags::None);
                     let t = Self::pseudo_type_to_type(c, Some(d.const_type));
                     if let Some(t) = t {
-                        let instantiated = c.instantiate_contextual_type(contextual_type, d.node, ContextFlags::None);
+                        let instantiated = c.instantiate_contextual_type(
+                            contextual_type,
+                            d.node,
+                            ContextFlags::None,
+                        );
                         if c.is_literal_of_contextual_type(t, instantiated) {
                             is_in_const_context = true;
                         }
@@ -127,7 +160,11 @@ impl NodeBuilderImpl {
                 let mut has_elided_type = false;
                 let mut has_undefined = false;
                 let members = t.as_pseudo_type_union().types;
-                fn append_type_node(node: P<Node>, res: &mut Vec<P<Node>>, has_undefined: &mut bool) {
+                fn append_type_node(
+                    node: P<Node>,
+                    res: &mut Vec<P<Node>>,
+                    has_undefined: &mut bool,
+                ) {
                     if is_union_type_node(node) {
                         for &node in node.as_union_type_node().types().nodes() {
                             append_type_node(node, res, has_undefined);
@@ -143,7 +180,9 @@ impl NodeBuilderImpl {
                     res.push(node);
                 }
                 for &m in members {
-                    if !c.strict_null_checks && (m.kind == PseudoTypeKind::Undefined || m.kind == PseudoTypeKind::Null) {
+                    if !c.strict_null_checks
+                        && (m.kind == PseudoTypeKind::Undefined || m.kind == PseudoTypeKind::Null)
+                    {
                         has_elided_type = true;
                         continue;
                     }
@@ -178,12 +217,18 @@ impl NodeBuilderImpl {
             PseudoTypeKind::Number => Some(self.f.new_keyword_type_node(Kind::NumberKeyword)),
             PseudoTypeKind::BigInt => Some(self.f.new_keyword_type_node(Kind::BigIntKeyword)),
             PseudoTypeKind::Boolean => Some(self.f.new_keyword_type_node(Kind::BooleanKeyword)),
-            PseudoTypeKind::False => Some(self.f.new_literal_type_node(self.f.new_keyword_expression(Kind::FalseKeyword))),
-            PseudoTypeKind::True => Some(self.f.new_literal_type_node(self.f.new_keyword_expression(Kind::TrueKeyword))),
+            PseudoTypeKind::False => Some(
+                self.f.new_literal_type_node(self.f.new_keyword_expression(Kind::FalseKeyword)),
+            ),
+            PseudoTypeKind::True => {
+                Some(self.f.new_literal_type_node(self.f.new_keyword_expression(Kind::TrueKeyword)))
+            }
             PseudoTypeKind::SingleCallSignature => {
                 let d = t.as_pseudo_type_single_call_signature();
                 let signature = c.get_signature_from_declaration(d.signature);
-                let expanded_params = c.get_expanded_parameters(signature, true /*skipUnionExpanding*/).swap_remove(0);
+                let expanded_params = c
+                    .get_expanded_parameters(signature, true /*skipUnionExpanding*/)
+                    .swap_remove(0);
                 let mut cleanup = self.enter_new_scope(
                     c,
                     Some(d.signature),
@@ -227,7 +272,8 @@ impl NodeBuilderImpl {
                 // something a true syntactic ID emitter couldn't possibly know (since the signature could
                 // be from across files). This can't *really* happen in any cases ID doesn't already error on, though.
                 // Just something to keep in mind if the ID checker keeps growing.
-                let is_const = c.is_const_context(elements[0].name.parent().unwrap().parent().unwrap());
+                let is_const =
+                    c.is_const_context(elements[0].name.parent().unwrap().parent().unwrap());
                 let mut new_elements: Vec<P<Node>> = Vec::with_capacity(elements.len());
 
                 // Member types are serialized within an object type literal, so set the
@@ -238,13 +284,21 @@ impl NodeBuilderImpl {
 
                 for &e in elements {
                     let mut modifiers: Option<P<ModifierList>> = None;
-                    if is_const || (e.kind == PseudoObjectElementKind::PropertyAssignment && e.as_pseudo_property_assignment().readonly) {
-                        modifiers = Some(self.f.new_modifier_list(vec![self.f.new_modifier(Kind::ReadonlyKeyword)]));
+                    if is_const
+                        || (e.kind == PseudoObjectElementKind::PropertyAssignment
+                            && e.as_pseudo_property_assignment().readonly)
+                    {
+                        modifiers =
+                            Some(self.f.new_modifier_list(vec![
+                                self.f.new_modifier(Kind::ReadonlyKeyword),
+                            ]));
                     }
                     let mut cleanup: Option<Box<dyn FnMut(&mut Checker)>> = None;
                     if e.kind != PseudoObjectElementKind::PropertyAssignment {
                         let signature = c.get_signature_from_declaration(e.signature().unwrap());
-                        let expanded_params = c.get_expanded_parameters(signature, true /*skipUnionExpanding*/).swap_remove(0);
+                        let expanded_params = c
+                            .get_expanded_parameters(signature, true /*skipUnionExpanding*/)
+                            .swap_remove(0);
                         cleanup = Some(self.enter_new_scope(
                             c,
                             e.signature(),
@@ -259,8 +313,13 @@ impl NodeBuilderImpl {
                             let d = e.as_pseudo_object_method();
                             let mut type_params: Option<P<NodeList>> = None;
                             if !d.type_parameters.is_empty() {
-                                let mut res: Vec<P<Node>> = Vec::with_capacity(d.type_parameters.len());
-                                res.extend(d.type_parameters.iter().map(|&tp| self.reuse_node(c, tp).unwrap()));
+                                let mut res: Vec<P<Node>> =
+                                    Vec::with_capacity(d.type_parameters.len());
+                                res.extend(
+                                    d.type_parameters
+                                        .iter()
+                                        .map(|&tp| self.reuse_node(c, tp).unwrap()),
+                                );
                                 type_params = Some(self.f.new_node_list(res));
                             }
                             if is_const {
@@ -271,33 +330,56 @@ impl NodeBuilderImpl {
                                     modifiers,
                                     name,
                                     None,
-                                    Some(self.f.new_function_type_node(type_params, Some(params), return_type)),
+                                    Some(self.f.new_function_type_node(
+                                        type_params,
+                                        Some(params),
+                                        return_type,
+                                    )),
                                     None,
                                 )
                             } else {
                                 let name = self.reuse_name(c, e.name, true /*isMethod*/).unwrap();
                                 let params = self.pseudo_parameters_to_node_list(c, d.parameters);
                                 let return_type = self.pseudo_type_to_node(c, Some(d.return_type));
-                                self.f.new_method_signature_declaration(modifiers, name, None, type_params, Some(params), return_type)
+                                self.f.new_method_signature_declaration(
+                                    modifiers,
+                                    name,
+                                    None,
+                                    type_params,
+                                    Some(params),
+                                    return_type,
+                                )
                             }
                         }
                         PseudoObjectElementKind::PropertyAssignment => {
                             let d = e.as_pseudo_property_assignment();
                             let name = self.reuse_name(c, e.name, false /*isMethod*/).unwrap();
                             let type_node = self.pseudo_type_to_node(c, Some(d.type_));
-                            self.f.new_property_signature_declaration(modifiers, name, None, type_node, None)
+                            self.f.new_property_signature_declaration(
+                                modifiers, name, None, type_node, None,
+                            )
                         }
                         PseudoObjectElementKind::SetAccessor => {
                             let d = e.as_pseudo_set_accessor();
                             let name = self.reuse_name(c, e.name, false /*isMethod*/).unwrap();
                             let param = self.pseudo_parameter_to_node(c, d.parameter);
-                            self.f.new_set_accessor_declaration(None, name, None, Some(self.f.new_node_list(vec![param])), None, None, None)
+                            self.f.new_set_accessor_declaration(
+                                None,
+                                name,
+                                None,
+                                Some(self.f.new_node_list(vec![param])),
+                                None,
+                                None,
+                                None,
+                            )
                         }
                         PseudoObjectElementKind::GetAccessor => {
                             let d = e.as_pseudo_get_accessor();
                             let name = self.reuse_name(c, e.name, false /*isMethod*/).unwrap();
                             let type_node = self.pseudo_type_to_node(c, Some(d.type_));
-                            self.f.new_get_accessor_declaration(None, name, None, None, type_node, None, None)
+                            self.f.new_get_accessor_declaration(
+                                None, name, None, None, type_node, None, None,
+                            )
                         }
                     };
                     if self.ctx().enclosing_file.get() == get_source_file_of_node(e.name) {
@@ -315,7 +397,9 @@ impl NodeBuilderImpl {
                 }
                 Some(result)
             }
-            PseudoTypeKind::StringLiteral | PseudoTypeKind::NumericLiteral | PseudoTypeKind::BigIntLiteral => {
+            PseudoTypeKind::StringLiteral
+            | PseudoTypeKind::NumericLiteral
+            | PseudoTypeKind::BigIntLiteral => {
                 let source = t.as_pseudo_type_literal().node;
                 Some(self.f.new_literal_type_node(self.reuse_node(c, source).unwrap()))
             }
@@ -323,14 +407,22 @@ impl NodeBuilderImpl {
     }
 
     // pseudotypenodebuilder.go:327
-    pub(crate) fn pseudo_parameters_to_node_list(&self, c: &mut Checker, params: &[P<PseudoParameter>]) -> P<NodeList> {
+    pub(crate) fn pseudo_parameters_to_node_list(
+        &self,
+        c: &mut Checker,
+        params: &[P<PseudoParameter>],
+    ) -> P<NodeList> {
         let mut res: Vec<P<Node>> = Vec::with_capacity(params.len());
         res.extend(params.iter().map(|&p| self.pseudo_parameter_to_node(c, p)));
         self.f.new_node_list(res)
     }
 
     // pseudotypenodebuilder.go:335
-    pub(crate) fn pseudo_parameter_to_node(&self, c: &mut Checker, p: P<PseudoParameter>) -> P<Node> {
+    pub(crate) fn pseudo_parameter_to_node(
+        &self,
+        c: &mut Checker,
+        p: P<PseudoParameter>,
+    ) -> P<Node> {
         let mut dot_dot_dot: Option<P<Node>> = None;
         let mut question_mark: Option<P<Node>> = None;
         if p.rest {
@@ -341,9 +433,20 @@ impl NodeBuilderImpl {
         }
         let name_parent = p.name.parent().unwrap();
         // matches strada behavior of always reserializing param names from scratch
-        let name = self.parameter_to_parameter_declaration_name(c, name_parent.symbol().unwrap(), Some(name_parent));
+        let name = self.parameter_to_parameter_declaration_name(
+            c,
+            name_parent.symbol().unwrap(),
+            Some(name_parent),
+        );
         let type_node = self.pseudo_type_to_node(c, Some(p.type_));
-        let parameter = self.f.new_parameter_declaration(None, dot_dot_dot, name, question_mark, type_node, None);
+        let parameter = self.f.new_parameter_declaration(
+            None,
+            dot_dot_dot,
+            name,
+            question_mark,
+            type_node,
+            None,
+        );
         let original = name_parent;
         if is_parameter_declaration(original) {
             self.set_comment_range(c, parameter, Some(original));
@@ -355,7 +458,14 @@ impl NodeBuilderImpl {
     // see `typeNodeIsEquivalentToType` in strada, but applied more broadly here, so is setup to handle more equivalences - strada only used it via
     // the `canReuseTypeNodeAnnotation` host hook and not the `canReuseTypeNode` hook, which meant locations using the later were reliant on
     // over-invalidation by the ID inference engine to not emit incorrect types.
-    pub(crate) fn pseudo_type_equivalent_to_type(&self, c: &mut Checker, t: Option<P<PseudoType>>, type_: Option<P<Type>>, is_optional_annotated: bool, report_errors: bool) -> bool {
+    pub(crate) fn pseudo_type_equivalent_to_type(
+        &self,
+        c: &mut Checker,
+        t: Option<P<PseudoType>>,
+        type_: Option<P<Type>>,
+        is_optional_annotated: bool,
+        report_errors: bool,
+    ) -> bool {
         // if type_ resolves to an error, we charitably assume equality, since we might be in a single-file checking mode
         if let Some(ty) = type_ {
             if c.is_error_type(ty) {
@@ -369,7 +479,8 @@ impl NodeBuilderImpl {
         }
         let mut undefined_stripped = type_;
         if is_optional_annotated {
-            undefined_stripped = Some(c.get_type_with_facts(type_.unwrap(), TypeFacts::NEUndefined));
+            undefined_stripped =
+                Some(c.get_type_with_facts(type_.unwrap(), TypeFacts::NEUndefined));
         }
         if let (Some(type_from_pseudo), Some(ty)) = (type_from_pseudo, type_) {
             let undefined_stripped = undefined_stripped.unwrap();
@@ -377,18 +488,26 @@ impl NodeBuilderImpl {
                 if undefined_stripped == type_from_pseudo {
                     return true;
                 }
-                if type_from_pseudo.flags().intersects(TypeFlags::Union) && undefined_stripped.flags().intersects(TypeFlags::Union) {
+                if type_from_pseudo.flags().intersects(TypeFlags::Union)
+                    && undefined_stripped.flags().intersects(TypeFlags::Union)
+                {
                     // does union comparison in general, since the unions may not be `==` identical due to aliasing and the like
-                    if c.compare_types_identical(type_from_pseudo, undefined_stripped) == Ternary::True {
+                    if c.compare_types_identical(type_from_pseudo, undefined_stripped)
+                        == Ternary::True
+                    {
                         return true;
                     }
                 }
             }
             // handles freshness mismatches (e.g., fresh true vs regular true in as const)
-            if c.get_regular_type_of_literal_type(type_from_pseudo) == c.get_regular_type_of_literal_type(ty) {
+            if c.get_regular_type_of_literal_type(type_from_pseudo)
+                == c.get_regular_type_of_literal_type(ty)
+            {
                 return true;
             }
-            if type_from_pseudo.flags().intersects(TypeFlags::Union) && ty.flags().intersects(TypeFlags::Union) {
+            if type_from_pseudo.flags().intersects(TypeFlags::Union)
+                && ty.flags().intersects(TypeFlags::Union)
+            {
                 // handles union comparison in general, since unions may not be `==` identical due to aliasing
                 if c.compare_types_identical(type_from_pseudo, ty) == Ternary::True {
                     return true;
@@ -413,7 +532,11 @@ impl NodeBuilderImpl {
                     return false;
                 }
                 if report_errors {
-                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, t.as_pseudo_type_inferred().expression);
+                    self.ctx()
+                        .tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, t.as_pseudo_type_inferred().expression);
                 }
                 false
             }
@@ -427,11 +550,12 @@ impl NodeBuilderImpl {
                 // Count total declarations across all target prop symbols to handle getter/setter pairs,
                 // which are two elements in pt.Elements but only one symbol in targetProps.
                 let mut target_decl_count = 0;
-                target_decl_count = target_props.iter().fold(target_decl_count, |mut target_decl_count, prop| {
-                    target_decl_count += prop.declarations().len();
+                target_decl_count =
+                    target_props.iter().fold(target_decl_count, |mut target_decl_count, prop| {
+                        target_decl_count += prop.declarations().len();
 
-                    target_decl_count
-                });
+                        target_decl_count
+                    });
                 if pt.elements.len() != target_decl_count {
                     return false;
                 }
@@ -439,7 +563,8 @@ impl NodeBuilderImpl {
                     let mut target_prop: Option<P<Symbol>> = None;
                     let elem_symbol = e.name.parent().unwrap().symbol();
                     if let Some(elem_symbol) = elem_symbol {
-                        target_prop = c.get_property_of_type(undefined_stripped, elem_symbol.name());
+                        target_prop =
+                            c.get_property_of_type(undefined_stripped, elem_symbol.name());
                     }
                     if target_prop.is_none() {
                         // Name lookup failed or returned no result; search target properties
@@ -454,7 +579,11 @@ impl NodeBuilderImpl {
                         }
                         if target_prop.is_none() {
                             if report_errors {
-                                self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                                self.ctx()
+                                    .tracker
+                                    .get()
+                                    .unwrap()
+                                    .report_inference_fallback(c, e.name.parent().unwrap());
                             }
                             return false;
                         }
@@ -463,7 +592,11 @@ impl NodeBuilderImpl {
                     let target_is_optional = target_prop.flags().intersects(SymbolFlags::Optional);
                     if e.optional != target_is_optional {
                         if report_errors {
-                            self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                            self.ctx()
+                                .tracker
+                                .get()
+                                .unwrap()
+                                .report_inference_fallback(c, e.name.parent().unwrap());
                         }
                         return false;
                     }
@@ -472,15 +605,31 @@ impl NodeBuilderImpl {
                     match e.kind {
                         PseudoObjectElementKind::PropertyAssignment => {
                             let d = e.as_pseudo_property_assignment();
-                            if !self.pseudo_type_equivalent_to_type(c, Some(d.type_), Some(prop_type), e.optional, false) {
+                            if !self.pseudo_type_equivalent_to_type(
+                                c,
+                                Some(d.type_),
+                                Some(prop_type),
+                                e.optional,
+                                false,
+                            ) {
                                 if report_errors {
-                                    if d.type_.kind == PseudoTypeKind::Inferred && !d.type_.as_pseudo_type_inferred().error_nodes.is_empty() {
+                                    if d.type_.kind == PseudoTypeKind::Inferred
+                                        && !d.type_.as_pseudo_type_inferred().error_nodes.is_empty()
+                                    {
                                         // Re-report the fine-grained error nodes; the recursive call used reportErrors=false
                                         for &n in d.type_.as_pseudo_type_inferred().error_nodes {
-                                            self.ctx().tracker.get().unwrap().report_inference_fallback(c, n);
+                                            self.ctx()
+                                                .tracker
+                                                .get()
+                                                .unwrap()
+                                                .report_inference_fallback(c, n);
                                         }
                                     } else if !is_structural_pseudo_type(d.type_) {
-                                        self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                                        self.ctx()
+                                            .tracker
+                                            .get()
+                                            .unwrap()
+                                            .report_inference_fallback(c, e.name.parent().unwrap());
                                     }
                                 }
                                 return false;
@@ -493,23 +642,47 @@ impl NodeBuilderImpl {
                                 // Target property type doesn't have a single call signature; can't validate
                                 continue;
                             };
-                            let param_eq = self.pseudo_parameters_equivalent_to_parameters(c, d.parameters, target_sig, report_errors, e.name.parent().unwrap());
+                            let param_eq = self.pseudo_parameters_equivalent_to_parameters(
+                                c,
+                                d.parameters,
+                                target_sig,
+                                report_errors,
+                                e.name.parent().unwrap(),
+                            );
                             if !param_eq {
                                 return false;
                             }
                             let target_predicate = c.get_type_predicate_of_signature(target_sig);
                             if let Some(target_predicate) = target_predicate {
-                                if !Self::pseudo_return_type_matches_predicate(c, Some(d.return_type), target_predicate) {
+                                if !Self::pseudo_return_type_matches_predicate(
+                                    c,
+                                    Some(d.return_type),
+                                    target_predicate,
+                                ) {
                                     if report_errors {
-                                        self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                                        self.ctx()
+                                            .tracker
+                                            .get()
+                                            .unwrap()
+                                            .report_inference_fallback(c, e.name.parent().unwrap());
                                     }
                                     return false;
                                 }
                             } else {
                                 let return_type = c.get_return_type_of_signature(target_sig);
-                                if !self.pseudo_type_equivalent_to_type(c, Some(d.return_type), Some(return_type), false, false) {
+                                if !self.pseudo_type_equivalent_to_type(
+                                    c,
+                                    Some(d.return_type),
+                                    Some(return_type),
+                                    false,
+                                    false,
+                                ) {
                                     if report_errors {
-                                        self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                                        self.ctx()
+                                            .tracker
+                                            .get()
+                                            .unwrap()
+                                            .report_inference_fallback(c, e.name.parent().unwrap());
                                     }
                                     return false;
                                 }
@@ -517,9 +690,19 @@ impl NodeBuilderImpl {
                         }
                         PseudoObjectElementKind::GetAccessor => {
                             let d = e.as_pseudo_get_accessor();
-                            if !self.pseudo_type_equivalent_to_type(c, Some(d.type_), Some(prop_type), false, false) {
+                            if !self.pseudo_type_equivalent_to_type(
+                                c,
+                                Some(d.type_),
+                                Some(prop_type),
+                                false,
+                                false,
+                            ) {
                                 if report_errors {
-                                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                                    self.ctx()
+                                        .tracker
+                                        .get()
+                                        .unwrap()
+                                        .report_inference_fallback(c, e.name.parent().unwrap());
                                 }
                                 return false;
                             }
@@ -527,9 +710,19 @@ impl NodeBuilderImpl {
                         PseudoObjectElementKind::SetAccessor => {
                             let d = e.as_pseudo_set_accessor();
                             let write_type = c.get_write_type_of_symbol(target_prop);
-                            if !self.pseudo_type_equivalent_to_type(c, Some(d.parameter.type_), write_type, false, false) {
+                            if !self.pseudo_type_equivalent_to_type(
+                                c,
+                                Some(d.parameter.type_),
+                                write_type,
+                                false,
+                                false,
+                            ) {
                                 if report_errors {
-                                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, e.name.parent().unwrap());
+                                    self.ctx()
+                                        .tracker
+                                        .get()
+                                        .unwrap()
+                                        .report_inference_fallback(c, e.name.parent().unwrap());
                                 }
                                 return false;
                             }
@@ -556,11 +749,15 @@ impl NodeBuilderImpl {
                 if pt.elements.len() != element_types.len() {
                     return false;
                 }
-                !(pt
-                    .elements
-                    .iter()
-                    .enumerate()
-                    .any(|(i, &elem)| !self.pseudo_type_equivalent_to_type(c, Some(elem), Some(element_types[i]), false, report_errors)))
+                !(pt.elements.iter().enumerate().any(|(i, &elem)| {
+                    !self.pseudo_type_equivalent_to_type(
+                        c,
+                        Some(elem),
+                        Some(element_types[i]),
+                        false,
+                        report_errors,
+                    )
+                }))
             }
             PseudoTypeKind::SingleCallSignature => {
                 let target_sig = c.get_single_call_signature(undefined_stripped.unwrap());
@@ -570,25 +767,49 @@ impl NodeBuilderImpl {
                 let pt = t.as_pseudo_type_single_call_signature();
                 if target_sig.type_parameters.get().len() != pt.type_parameters.len() {
                     if report_errors {
-                        self.ctx().tracker.get().unwrap().report_inference_fallback(c, pt.signature);
+                        self.ctx()
+                            .tracker
+                            .get()
+                            .unwrap()
+                            .report_inference_fallback(c, pt.signature);
                     }
                     return false;
                 }
-                let param_eq = self.pseudo_parameters_equivalent_to_parameters(c, pt.parameters, target_sig, report_errors, pt.signature);
+                let param_eq = self.pseudo_parameters_equivalent_to_parameters(
+                    c,
+                    pt.parameters,
+                    target_sig,
+                    report_errors,
+                    pt.signature,
+                );
                 if !param_eq {
                     return false;
                 }
                 let target_predicate = c.get_type_predicate_of_signature(target_sig);
                 if let Some(target_predicate) = target_predicate {
-                    if !Self::pseudo_return_type_matches_predicate(c, Some(pt.return_type), target_predicate) {
+                    if !Self::pseudo_return_type_matches_predicate(
+                        c,
+                        Some(pt.return_type),
+                        target_predicate,
+                    ) {
                         if report_errors {
-                            self.ctx().tracker.get().unwrap().report_inference_fallback(c, pt.signature);
+                            self.ctx()
+                                .tracker
+                                .get()
+                                .unwrap()
+                                .report_inference_fallback(c, pt.signature);
                         }
                         return false;
                     }
                 } else {
                     let return_type = c.get_return_type_of_signature(target_sig);
-                    if !self.pseudo_type_equivalent_to_type(c, Some(pt.return_type), Some(return_type), false, report_errors) {
+                    if !self.pseudo_type_equivalent_to_type(
+                        c,
+                        Some(pt.return_type),
+                        Some(return_type),
+                        false,
+                        report_errors,
+                    ) {
                         // error reported within the return type
                         return false;
                     }
@@ -597,7 +818,11 @@ impl NodeBuilderImpl {
             }
             PseudoTypeKind::NoResult => {
                 if report_errors {
-                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, t.as_pseudo_type_no_result().declaration);
+                    self.ctx()
+                        .tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, t.as_pseudo_type_no_result().declaration);
                 }
                 false
             }
@@ -606,34 +831,63 @@ impl NodeBuilderImpl {
     }
 
     // pseudotypenodebuilder.go:585
-    pub(crate) fn pseudo_parameters_equivalent_to_parameters(&self, c: &mut Checker, params: &[P<PseudoParameter>], target_sig: P<Signature>, report_errors: bool, non_param_error_location: P<Node>) -> bool {
+    pub(crate) fn pseudo_parameters_equivalent_to_parameters(
+        &self,
+        c: &mut Checker,
+        params: &[P<PseudoParameter>],
+        target_sig: P<Signature>,
+        report_errors: bool,
+        non_param_error_location: P<Node>,
+    ) -> bool {
         let mut params = params;
         let this_parameter = target_sig.this_parameter();
         if this_parameter.is_some() && params.is_empty() {
             if report_errors {
-                self.ctx().tracker.get().unwrap().report_inference_fallback(c, non_param_error_location); // missing `this` param
+                self.ctx()
+                    .tracker
+                    .get()
+                    .unwrap()
+                    .report_inference_fallback(c, non_param_error_location); // missing `this` param
             }
             return false;
         } else if this_parameter.is_some() && is_this_identifier(params[0].name) {
             let target_param = this_parameter.unwrap();
             let param_type = c.get_type_of_parameter(target_param);
-            if !self.pseudo_type_equivalent_to_type(c, Some(params[0].type_), Some(param_type), params[0].optional, false) {
+            if !self.pseudo_type_equivalent_to_type(
+                c,
+                Some(params[0].type_),
+                Some(param_type),
+                params[0].optional,
+                false,
+            ) {
                 if report_errors {
-                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, params[0].name.parent().unwrap());
+                    self.ctx()
+                        .tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, params[0].name.parent().unwrap());
                 }
                 return false;
             }
             params = &params[1..];
         } else if this_parameter.is_some() {
             if report_errors {
-                self.ctx().tracker.get().unwrap().report_inference_fallback(c, non_param_error_location);
+                self.ctx()
+                    .tracker
+                    .get()
+                    .unwrap()
+                    .report_inference_fallback(c, non_param_error_location);
             }
             return false;
         }
         let target_params = target_sig.parameters.get();
         if target_params.len() != params.len() {
             if report_errors {
-                self.ctx().tracker.get().unwrap().report_inference_fallback(c, non_param_error_location);
+                self.ctx()
+                    .tracker
+                    .get()
+                    .unwrap()
+                    .report_inference_fallback(c, non_param_error_location);
             }
             return false; // TODO: spread tuple params may mess with this check
         }
@@ -641,14 +895,28 @@ impl NodeBuilderImpl {
             let target_param = target_params[i];
             if p.optional != c.is_optional_parameter(target_param.value_declaration().unwrap()) {
                 if report_errors {
-                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, p.name.parent().unwrap());
+                    self.ctx()
+                        .tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, p.name.parent().unwrap());
                 }
                 return false;
             }
             let param_type = c.get_type_of_parameter(target_param);
-            if !self.pseudo_type_equivalent_to_type(c, Some(p.type_), Some(param_type), p.optional, false) {
+            if !self.pseudo_type_equivalent_to_type(
+                c,
+                Some(p.type_),
+                Some(param_type),
+                p.optional,
+                false,
+            ) {
                 if report_errors {
-                    self.ctx().tracker.get().unwrap().report_inference_fallback(c, p.name.parent().unwrap());
+                    self.ctx()
+                        .tracker
+                        .get()
+                        .unwrap()
+                        .report_inference_fallback(c, p.name.parent().unwrap());
                 }
                 return false;
             }
@@ -660,7 +928,9 @@ impl NodeBuilderImpl {
 // pseudotypenodebuilder.go:632
 pub(crate) fn is_structural_pseudo_type(t: P<PseudoType>) -> bool {
     match t.kind {
-        PseudoTypeKind::ObjectLiteral | PseudoTypeKind::Tuple | PseudoTypeKind::SingleCallSignature => true,
+        PseudoTypeKind::ObjectLiteral
+        | PseudoTypeKind::Tuple
+        | PseudoTypeKind::SingleCallSignature => true,
         PseudoTypeKind::MaybeConstLocation => {
             let d = t.as_pseudo_type_maybe_const_location();
             is_structural_pseudo_type(d.const_type) || is_structural_pseudo_type(d.regular_type)
@@ -673,7 +943,11 @@ impl NodeBuilderImpl {
     // pseudotypenodebuilder.go:645
     // pseudoReturnTypeMatchesPredicate checks if a pseudo return type (which should be a Direct type
     // wrapping a TypePredicate) matches the given type predicate from the checker.
-    pub(crate) fn pseudo_return_type_matches_predicate(c: &mut Checker, rt: Option<P<PseudoType>>, predicate: P<TypePredicate>) -> bool {
+    pub(crate) fn pseudo_return_type_matches_predicate(
+        c: &mut Checker,
+        rt: Option<P<PseudoType>>,
+        predicate: P<TypePredicate>,
+    ) -> bool {
         let rt = rt.unwrap();
         if rt.kind != PseudoTypeKind::Direct {
             return false;
@@ -686,13 +960,15 @@ impl NodeBuilderImpl {
         // Check asserts modifier matches
         let is_asserts = tp.asserts_modifier.is_some();
         let kind = predicate.kind.get();
-        let predicate_is_asserts = kind == TypePredicateKind::AssertsThis || kind == TypePredicateKind::AssertsIdentifier;
+        let predicate_is_asserts =
+            kind == TypePredicateKind::AssertsThis || kind == TypePredicateKind::AssertsIdentifier;
         if is_asserts != predicate_is_asserts {
             return false;
         }
         // Check this vs identifier matches
         let is_this = is_this_type_node(tp.parameter_name);
-        let predicate_is_this = kind == TypePredicateKind::This || kind == TypePredicateKind::AssertsThis;
+        let predicate_is_this =
+            kind == TypePredicateKind::This || kind == TypePredicateKind::AssertsThis;
         if is_this != predicate_is_this {
             return false;
         }
@@ -706,7 +982,9 @@ impl NodeBuilderImpl {
                 return false;
             };
             let predicate_type_from_node = c.get_type_from_type_node(tp_type);
-            if predicate_type_from_node != predicate_t && c.compare_types_identical(predicate_type_from_node, predicate_t) != Ternary::True {
+            if predicate_type_from_node != predicate_t
+                && c.compare_types_identical(predicate_type_from_node, predicate_t) != Ternary::True
+            {
                 return false;
             }
         } else if tp.type_.is_some() {
@@ -716,13 +994,18 @@ impl NodeBuilderImpl {
     }
 
     // pseudotypenodebuilder.go:689
-    pub(crate) fn pseudo_type_to_type(c: &mut Checker, t: Option<P<PseudoType>>) -> Option<P<Type>> {
+    pub(crate) fn pseudo_type_to_type(
+        c: &mut Checker,
+        t: Option<P<PseudoType>>,
+    ) -> Option<P<Type>> {
         // !!! TODO: only literal types currently mapped because this is only used to determine if literal contextual typing need apply to the pseudotype
         // If this is used more broadly, the implementation needs to be filled out more to handle the structural pseudotypes - signatures, objects, tuples, etc
         assert!(t.is_some(), "Attempted to realize nil pseudotype");
         let t = t.unwrap();
         match t.kind {
-            PseudoTypeKind::Direct => Some(c.get_type_from_type_node(t.as_pseudo_type_direct().type_node)),
+            PseudoTypeKind::Direct => {
+                Some(c.get_type_from_type_node(t.as_pseudo_type_direct().type_node))
+            }
             PseudoTypeKind::Inferred => {
                 let node = t.as_pseudo_type_inferred().expression;
                 if t.as_pseudo_type_inferred().is_signature_return {
@@ -746,7 +1029,9 @@ impl NodeBuilderImpl {
                 let mut has_elided_type = false;
                 let members = t.as_pseudo_type_union().types;
                 res = members.iter().try_fold(res, |mut res, &m| {
-                    if !c.strict_null_checks && (m.kind == PseudoTypeKind::Undefined || m.kind == PseudoTypeKind::Null) {
+                    if !c.strict_null_checks
+                        && (m.kind == PseudoTypeKind::Undefined || m.kind == PseudoTypeKind::Null)
+                    {
                         has_elided_type = true;
                         return Some(res);
                     }
@@ -778,11 +1063,15 @@ impl NodeBuilderImpl {
             PseudoTypeKind::Boolean => Some(c.boolean_type),
             PseudoTypeKind::False => Some(c.false_type),
             PseudoTypeKind::True => Some(c.true_type),
-            PseudoTypeKind::StringLiteral | PseudoTypeKind::NumericLiteral | PseudoTypeKind::BigIntLiteral => {
+            PseudoTypeKind::StringLiteral
+            | PseudoTypeKind::NumericLiteral
+            | PseudoTypeKind::BigIntLiteral => {
                 let source = t.as_pseudo_type_literal().node;
                 Some(c.get_regular_type_of_expression(source)) // big shortcut, uses cached expression types where possible
             }
-            PseudoTypeKind::ObjectLiteral | PseudoTypeKind::SingleCallSignature | PseudoTypeKind::Tuple => None, // no simple mapping to a type, since these are structural types
+            PseudoTypeKind::ObjectLiteral
+            | PseudoTypeKind::SingleCallSignature
+            | PseudoTypeKind::Tuple => None, // no simple mapping to a type, since these are structural types
         }
     }
 }

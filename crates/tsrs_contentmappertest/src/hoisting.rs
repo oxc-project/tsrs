@@ -1,9 +1,15 @@
-use tsrs_contentmapper::{MappedOutput, ProtocolJson, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedOutput, ProtocolJson, TransformParams,
+    TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
-use crate::protocol::{initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    unmarshal_params,
+};
 
 // hoisting.go:15
 pub(crate) struct hoistingHandler;
@@ -19,7 +25,12 @@ impl ipc::Handler for hoistingHandler {
                 let p: TransformParams = unmarshal_params(params)?;
                 let (text, mappings) = transform_hoisting(&p.content)?;
                 Ok(TransformResult {
-                    mapped_output: MappedOutput { text, extension: ".ts".to_string(), mappings: Some(mappings), ..Default::default() },
+                    mapped_output: MappedOutput {
+                        text,
+                        extension: ".ts".to_string(),
+                        mappings: Some(mappings),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 }
                 .marshal_json())
@@ -28,7 +39,11 @@ impl ipc::Handler for hoistingHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

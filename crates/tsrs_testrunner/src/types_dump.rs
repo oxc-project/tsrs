@@ -6,12 +6,15 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use rustc_hash::FxHashSet;
-use tsrs_compiler::{get_diagnostics_of_any_program, new_cached_fs_compiler_host, new_program, Context, ProgramOptions};
-use tsrs_core::{tspath, Tristate, P};
+use tsrs_compiler::{
+    Context, ProgramOptions, get_diagnostics_of_any_program, new_cached_fs_compiler_host,
+    new_program,
+};
+use tsrs_core::{P, Tristate, tspath};
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{bundled::embed as bundled, osvfs, FS};
+use tsrs_vfs::{FS, bundled::embed as bundled, osvfs};
 
-use crate::type_symbol_baseline::{project_file_baseline, TypeWriterWalker};
+use crate::type_symbol_baseline::{TypeWriterWalker, project_file_baseline};
 
 struct OsParseConfigHost {
     fs: Arc<dyn FS>,
@@ -39,17 +42,25 @@ pub struct DumpArgs {
 pub fn run(args: &DumpArgs) {
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(osvfs::fs()));
     let cwd = tspath::normalize_path(&std::env::current_dir().unwrap().to_string_lossy());
-    let host: &'static OsParseConfigHost = Box::leak(Box::new(OsParseConfigHost { fs: Arc::clone(&fs), cwd: cwd.clone() }));
+    let host: &'static OsParseConfigHost =
+        Box::leak(Box::new(OsParseConfigHost { fs: Arc::clone(&fs), cwd: cwd.clone() }));
     let mut config_path = tspath::get_normalized_absolute_path(&args.project, &cwd);
     if fs.directory_exists(&config_path) {
         config_path = tspath::combine_paths(&config_path, &["tsconfig.json"]);
     }
-    let (config, errs) = tsoptions::get_parsed_command_line_of_config_file(&config_path, Some(&tsrs_core::CompilerOptions::default()), None, host, None);
+    let (config, errs) = tsoptions::get_parsed_command_line_of_config_file(
+        &config_path,
+        Some(&tsrs_core::CompilerOptions::default()),
+        None,
+        host,
+        None,
+    );
     if !errs.is_empty() || config.is_none() {
         eprintln!("config errors: {}", errs.len());
         std::process::exit(1);
     }
-    let compiler_host = new_cached_fs_compiler_host(&cwd, fs, &bundled::lib_path(), None, None, None);
+    let compiler_host =
+        new_cached_fs_compiler_host(&cwd, fs, &bundled::lib_path(), None, None, None);
     let mut opts = ProgramOptions::new(P::new(config.unwrap()), compiler_host);
     opts.single_threaded = Tristate::True;
     let program = new_program(opts);
@@ -66,7 +77,9 @@ pub fn run(args: &DumpArgs) {
     let config_dir = tspath::get_directory_path(&config_path);
     let mut files = Vec::new();
     files.extend(program.source_files().iter().filter_map(|&f| {
-        if f.file_name().contains("/node_modules/") || program.is_source_file_default_library(f.path()) {
+        if f.file_name().contains("/node_modules/")
+            || program.is_source_file_default_library(f.path())
+        {
             return None;
         }
         Some((f, rel_name(&config_dir, f.file_name())))
@@ -95,10 +108,13 @@ pub fn run(args: &DumpArgs) {
     std::fs::create_dir_all(&args.out).unwrap();
     for &is_symbol in kinds {
         let kind = if is_symbol { "symbols" } else { "types" };
-        let mut mw = std::io::BufWriter::new(std::fs::File::create(args.out.join(format!("manifest.{kind}"))).unwrap());
+        let mut mw = std::io::BufWriter::new(
+            std::fs::File::create(args.out.join(format!("manifest.{kind}"))).unwrap(),
+        );
         for (i, (f, rel)) in files.iter().enumerate() {
             let section = project_file_baseline(&mut walker, *f, rel, is_symbol);
-            writeln!(mw, "{:016x}\t{}\t{}", fnv1a64(&section), section.matches('\n').count(), rel).unwrap();
+            writeln!(mw, "{:016x}\t{}\t{}", fnv1a64(&section), section.matches('\n').count(), rel)
+                .unwrap();
             if args.text == "all" || wanted.as_ref().is_some_and(|w| w.contains(rel)) {
                 let p = args.out.join(kind).join(format!("{rel}.{kind}"));
                 std::fs::create_dir_all(p.parent().unwrap_or(Path::new("."))).unwrap();
@@ -115,7 +131,12 @@ pub fn run(args: &DumpArgs) {
             }
         }
         let c = program.get_type_checker(&Context::default());
-        writeln!(mw, "#counts\t{}\t{}\t{}", c.type_count, c.symbol_count, c.total_instantiation_count).unwrap();
+        writeln!(
+            mw,
+            "#counts\t{}\t{}\t{}",
+            c.type_count, c.symbol_count, c.total_instantiation_count
+        )
+        .unwrap();
         drop(c);
         mw.flush().unwrap();
     }
@@ -132,7 +153,11 @@ fn read_list(path: &str) -> FxHashSet<String> {
 }
 
 fn rel_name(dir: &str, file_name: &str) -> String {
-    let rel = tspath::get_relative_path_from_directory(dir, file_name, &tspath::ComparePathsOptions { use_case_sensitive_file_names: true, ..Default::default() });
+    let rel = tspath::get_relative_path_from_directory(
+        dir,
+        file_name,
+        &tspath::ComparePathsOptions { use_case_sensitive_file_names: true, ..Default::default() },
+    );
     rel.split('/').map(|p| if p == ".." { "_up_" } else { p }).collect::<Vec<_>>().join("/")
 }
 

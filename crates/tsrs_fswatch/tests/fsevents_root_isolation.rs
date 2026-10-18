@@ -4,11 +4,11 @@
 // not overflow the crate's unit tests.
 #![cfg(target_os = "macos")]
 
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
-use tsrs_fswatch::{fsevents, ErrOverflow, WatchCallback};
+use tsrs_fswatch::{ErrOverflow, WatchCallback, fsevents};
 
 fn count_overflows(overflows: &Arc<AtomicUsize>) -> WatchCallback {
     let overflows = Arc::clone(overflows);
@@ -26,14 +26,19 @@ fn a_drop_under_one_root_does_not_overflow_another() {
     let (quiet, busy) = (base.join("quiet"), base.join("busy"));
     std::fs::create_dir_all(&quiet).unwrap();
     std::fs::create_dir_all(&busy).unwrap();
-    let (quiet, busy) = (std::fs::canonicalize(&quiet).unwrap(), std::fs::canonicalize(&busy).unwrap());
+    let (quiet, busy) =
+        (std::fs::canonicalize(&quiet).unwrap(), std::fs::canonicalize(&busy).unwrap());
     std::fs::write(quiet.join("index.d.ts"), "export {};\n").unwrap();
 
     let quiet_overflows = Arc::new(AtomicUsize::new(0));
     let busy_overflows = Arc::new(AtomicUsize::new(0));
     let recursive = || vec![tsrs_fswatch::with_recursive()];
-    let quiet_watch = fsevents().watch_directory(quiet.to_str().unwrap(), count_overflows(&quiet_overflows), recursive()).unwrap();
-    let busy_watch = fsevents().watch_directory(busy.to_str().unwrap(), count_overflows(&busy_overflows), recursive()).unwrap();
+    let quiet_watch = fsevents()
+        .watch_directory(quiet.to_str().unwrap(), count_overflows(&quiet_overflows), recursive())
+        .unwrap();
+    let busy_watch = fsevents()
+        .watch_directory(busy.to_str().unwrap(), count_overflows(&busy_overflows), recursive())
+        .unwrap();
 
     // 20k writes and their deletes make fseventsd drop events about once (a client that does nothing in its
     // callback too); keep going until it has.
@@ -46,7 +51,8 @@ fn a_drop_under_one_root_does_not_overflow_another() {
             if i % 100 == 0 {
                 std::fs::create_dir_all(&dir).unwrap();
             }
-            std::fs::write(dir.join(format!("f{i}.ts")), format!("export const x = {i};\n")).unwrap();
+            std::fs::write(dir.join(format!("f{i}.ts")), format!("export const x = {i};\n"))
+                .unwrap();
         }
         std::fs::remove_dir_all(&work).unwrap();
         std::thread::sleep(Duration::from_secs(1));
@@ -57,6 +63,13 @@ fn a_drop_under_one_root_does_not_overflow_another() {
     let _ = busy_watch.close();
     let _ = std::fs::remove_dir_all(&base);
 
-    assert!(busy_overflows.load(Ordering::SeqCst) > 0, "fseventsd dropped no events, so the test did not run");
-    assert_eq!(quiet_overflows.load(Ordering::SeqCst), 0, "the busy root's drop overflowed the quiet root");
+    assert!(
+        busy_overflows.load(Ordering::SeqCst) > 0,
+        "fseventsd dropped no events, so the test did not run"
+    );
+    assert_eq!(
+        quiet_overflows.load(Ordering::SeqCst),
+        0,
+        "the busy root's drop overflowed the quiet root"
+    );
 }

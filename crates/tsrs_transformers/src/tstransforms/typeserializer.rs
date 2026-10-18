@@ -18,8 +18,21 @@ pub struct MetadataSerializerContext {
 }
 
 // typeserializer.go:26
-pub(crate) fn new_metadata_serializer(resolver: Resolver, f: &'static printer::NodeFactory, ec: P<EmitContext>, language_version: ScriptTarget, strict_null_checks: bool) -> P<MetadataSerializer> {
-    P::new(MetadataSerializer { resolver, language_version, f, ec, strict_null_checks, c: Cell::new(MetadataSerializerContext::default()) })
+pub(crate) fn new_metadata_serializer(
+    resolver: Resolver,
+    f: &'static printer::NodeFactory,
+    ec: P<EmitContext>,
+    language_version: ScriptTarget,
+    strict_null_checks: bool,
+) -> P<MetadataSerializer> {
+    P::new(MetadataSerializer {
+        resolver,
+        language_version,
+        f,
+        ec,
+        strict_null_checks,
+        c: Cell::new(MetadataSerializerContext::default()),
+    })
 }
 
 impl MetadataSerializer {
@@ -29,7 +42,12 @@ impl MetadataSerializer {
     }
 
     // typeserializer.go:34
-    pub fn serialize_type_of_node(&self, ctx: MetadataSerializerContext, node: P<Node>, container: Option<P<Node>>) -> P<Node> {
+    pub fn serialize_type_of_node(
+        &self,
+        ctx: MetadataSerializerContext,
+        node: P<Node>,
+        container: Option<P<Node>>,
+    ) -> P<Node> {
         let old_ctx = self.c.get();
         self.c.set(ctx);
         let result = self.serialize_type_of_node_(node, container);
@@ -38,7 +56,12 @@ impl MetadataSerializer {
     }
 
     // typeserializer.go:41
-    pub fn serialize_parameter_types_of_node(&self, ctx: MetadataSerializerContext, node: P<Node>, container: Option<P<Node>>) -> P<Node> {
+    pub fn serialize_parameter_types_of_node(
+        &self,
+        ctx: MetadataSerializerContext,
+        node: P<Node>,
+        container: Option<P<Node>>,
+    ) -> P<Node> {
         let old_ctx = self.c.get();
         self.c.set(ctx);
         let result = self.serialize_parameter_types_of_node_(node, container);
@@ -47,7 +70,11 @@ impl MetadataSerializer {
     }
 
     // typeserializer.go:48
-    pub fn serialize_return_type_of_node(&self, ctx: MetadataSerializerContext, node: P<Node>) -> P<Node> {
+    pub fn serialize_return_type_of_node(
+        &self,
+        ctx: MetadataSerializerContext,
+        node: P<Node>,
+    ) -> P<Node> {
         let old_ctx = self.c.get();
         self.c.set(ctx);
         let result = self.serialize_return_type_of_node_(node);
@@ -100,9 +127,15 @@ impl MetadataSerializer {
      */
     fn serialize_type_of_node_(&self, node: P<Node>, container: Option<P<Node>>) -> P<Node> {
         match node.kind() {
-            Kind::PropertyDeclaration | Kind::Parameter => self.serialize_type_node(node.type_node()),
-            Kind::GetAccessor | Kind::SetAccessor => self.serialize_type_node(get_accessor_type_node(node, container.unwrap())),
-            Kind::ClassDeclaration | Kind::ClassExpression | Kind::MethodDeclaration => self.f.new_identifier("Function"),
+            Kind::PropertyDeclaration | Kind::Parameter => {
+                self.serialize_type_node(node.type_node())
+            }
+            Kind::GetAccessor | Kind::SetAccessor => {
+                self.serialize_type_node(get_accessor_type_node(node, container.unwrap()))
+            }
+            Kind::ClassDeclaration | Kind::ClassExpression | Kind::MethodDeclaration => {
+                self.f.new_identifier("Function")
+            }
             _ => self.f.new_void_zero_expression(),
         }
     }
@@ -112,7 +145,11 @@ impl MetadataSerializer {
      * Serializes the type of a node for use with decorator type metadata.
      * @param node The node that should have its type serialized.
      */
-    fn serialize_parameter_types_of_node_(&self, node: P<Node>, container: Option<P<Node>>) -> P<Node> {
+    fn serialize_parameter_types_of_node_(
+        &self,
+        node: P<Node>,
+        container: Option<P<Node>>,
+    ) -> P<Node> {
         let mut value_declaration: Option<P<Node>> = None;
         if ast::is_class_like(node) {
             value_declaration = ast::get_first_constructor_with_body(node);
@@ -126,23 +163,35 @@ impl MetadataSerializer {
 
         let mut expressions: Vec<P<Node>> = Vec::new();
         let parameters = get_parameters_of_decorated_declaration(value_declaration, container);
-        expressions.extend(parameters.map_or(&[] as &[P<Node>], |p| p.nodes()).iter().enumerate().filter_map(|(i, parameter)| {
-            let parameter = *parameter;
-            if i == 0 && ast::is_identifier(parameter.name().unwrap()) && parameter.name().unwrap().text() == "this" {
-                return None;
-            }
-            if parameter.as_parameter_declaration().dot_dot_dot_token().is_some() {
-                Some(self.serialize_type_node(ast::get_rest_parameter_element_type(parameter.type_node())))
-            } else {
-                Some(self.serialize_type_of_node_(parameter, container))
-            }
-        }));
+        expressions.extend(
+            parameters.map_or(&[] as &[P<Node>], |p| p.nodes()).iter().enumerate().filter_map(
+                |(i, parameter)| {
+                    let parameter = *parameter;
+                    if i == 0
+                        && ast::is_identifier(parameter.name().unwrap())
+                        && parameter.name().unwrap().text() == "this"
+                    {
+                        return None;
+                    }
+                    if parameter.as_parameter_declaration().dot_dot_dot_token().is_some() {
+                        Some(self.serialize_type_node(ast::get_rest_parameter_element_type(
+                            parameter.type_node(),
+                        )))
+                    } else {
+                        Some(self.serialize_type_of_node_(parameter, container))
+                    }
+                },
+            ),
+        );
         self.f.new_array_literal_expression(self.f.new_node_list(expressions), false)
     }
 }
 
 // typeserializer.go:137
-fn get_parameters_of_decorated_declaration(node: P<Node>, container: Option<P<Node>>) -> Option<P<NodeList>> {
+fn get_parameters_of_decorated_declaration(
+    node: P<Node>,
+    container: Option<P<Node>>,
+) -> Option<P<NodeList>> {
     if let Some(container) = container {
         if node.kind() == Kind::GetAccessor {
             let acc = ast::get_all_accessor_declarations(container.members(), node);
@@ -196,7 +245,9 @@ impl MetadataSerializer {
         let node = ast::skip_type_parentheses(node);
 
         match node.kind() {
-            Kind::VoidKeyword | Kind::UndefinedKeyword | Kind::NeverKeyword => return self.f.new_void_zero_expression(),
+            Kind::VoidKeyword | Kind::UndefinedKeyword | Kind::NeverKeyword => {
+                return self.f.new_void_zero_expression();
+            }
             Kind::FunctionType | Kind::ConstructorType => return self.f.new_identifier("Function"),
             Kind::ArrayType | Kind::TupleType => return self.f.new_identifier("Array"),
             Kind::TypePredicate => {
@@ -206,22 +257,41 @@ impl MetadataSerializer {
                 return self.f.new_identifier("Boolean");
             }
             Kind::BooleanKeyword => return self.f.new_identifier("Boolean"),
-            Kind::TemplateLiteralType | Kind::StringKeyword => return self.f.new_identifier("String"),
+            Kind::TemplateLiteralType | Kind::StringKeyword => {
+                return self.f.new_identifier("String");
+            }
             Kind::ObjectKeyword => return self.f.new_identifier("Object"),
-            Kind::LiteralType => return self.serialize_literal_of_literal_type_node(node.as_literal_type_node().literal).unwrap(),
+            Kind::LiteralType => {
+                return self
+                    .serialize_literal_of_literal_type_node(node.as_literal_type_node().literal)
+                    .unwrap();
+            }
             Kind::NumberKeyword => return self.f.new_identifier("Number"),
             Kind::BigIntKeyword => return self.serialize_big_int_constructor(),
             Kind::SymbolKeyword => return self.f.new_identifier("Symbol"),
             Kind::TypeReference => return self.serialize_type_reference_node(node),
-            Kind::IntersectionType => return self.serialize_union_or_intersection_constituents(node.as_intersection_type_node().types().nodes(), true),
-            Kind::UnionType => return self.serialize_union_or_intersection_constituents(node.as_union_type_node().types().nodes(), false),
+            Kind::IntersectionType => {
+                return self.serialize_union_or_intersection_constituents(
+                    node.as_intersection_type_node().types().nodes(),
+                    true,
+                );
+            }
+            Kind::UnionType => {
+                return self.serialize_union_or_intersection_constituents(
+                    node.as_union_type_node().types().nodes(),
+                    false,
+                );
+            }
             Kind::ConditionalType => {
                 let mut c = self.c.get();
                 let old_state = c.serializing_conditional_type_branch;
                 c.serializing_conditional_type_branch = true;
                 self.c.set(c);
                 let ct = node.as_conditional_type_node();
-                let result = self.serialize_union_or_intersection_constituents(&[ct.true_type, ct.false_type], false);
+                let result = self.serialize_union_or_intersection_constituents(
+                    &[ct.true_type, ct.false_type],
+                    false,
+                );
                 let mut c = self.c.get();
                 c.serializing_conditional_type_branch = old_state;
                 self.c.set(c);
@@ -233,7 +303,14 @@ impl MetadataSerializer {
                 }
                 // TODO: why is `unique symbol` not handled as `Symbol`? This falls back to `Object`
             }
-            Kind::TypeQuery | Kind::IndexedAccessType | Kind::MappedType | Kind::TypeLiteral | Kind::AnyKeyword | Kind::UnknownKeyword | Kind::ThisType | Kind::ImportType => {
+            Kind::TypeQuery
+            | Kind::IndexedAccessType
+            | Kind::MappedType
+            | Kind::TypeLiteral
+            | Kind::AnyKeyword
+            | Kind::UnknownKeyword
+            | Kind::ThisType
+            | Kind::ImportType => {
                 // These types fall back to Object.
             }
 
@@ -241,14 +318,20 @@ impl MetadataSerializer {
             Kind::JSDocAllType | Kind::JSDocVariadicType => {
                 // no meaningful serialization for these invalid-parse JSDoc types
             }
-            Kind::JSDocNullableType | Kind::JSDocNonNullableType | Kind::JSDocOptionalType => return self.serialize_type_node(node.type_node()),
+            Kind::JSDocNullableType | Kind::JSDocNonNullableType | Kind::JSDocOptionalType => {
+                return self.serialize_type_node(node.type_node());
+            }
             _ => panic!("Unexpected node kind: {:?}", node.kind()),
         }
         self.f.new_identifier("Object")
     }
 
     // typeserializer.go:242
-    fn serialize_union_or_intersection_constituents(&self, types: &[P<Node>], is_intersection: bool) -> P<Node> {
+    fn serialize_union_or_intersection_constituents(
+        &self,
+        types: &[P<Node>],
+        is_intersection: bool,
+    ) -> P<Node> {
         // Note when updating logic here also update `getEntityNameForDecoratorMetadata` in checker.ts so that aliases can be marked as referenced
         let mut serialized_type: Option<P<Node>> = None;
         for type_node in types {
@@ -271,12 +354,18 @@ impl MetadataSerializer {
                 return self.f.new_identifier("Object"); // Reduce to `any` in a union or intersection
             }
 
-            if !self.strict_null_checks && ((ast::is_literal_type_node(type_node) && type_node.as_literal_type_node().literal.kind() == Kind::NullKeyword) || type_node.kind() == Kind::UndefinedKeyword) {
+            if !self.strict_null_checks
+                && ((ast::is_literal_type_node(type_node)
+                    && type_node.as_literal_type_node().literal.kind() == Kind::NullKeyword)
+                    || type_node.kind() == Kind::UndefinedKeyword)
+            {
                 continue; // Elide null and undefined from unions for metadata, just like what we did prior to the implementation of strict null checks
             }
 
             let serialized_constituent = self.serialize_type_node(Some(type_node));
-            if ast::is_identifier(serialized_constituent) && serialized_constituent.as_identifier().text() == "Object" {
+            if ast::is_identifier(serialized_constituent)
+                && serialized_constituent.as_identifier().text() == "Object"
+            {
                 // One of the individual is global object, return immediately
                 return serialized_constituent;
             }
@@ -304,11 +393,15 @@ impl MetadataSerializer {
     // typeserializer.go:295
     fn serialize_literal_of_literal_type_node(&self, node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
-            Kind::StringLiteral | Kind::NoSubstitutionTemplateLiteral => Some(self.f.new_identifier("String")),
+            Kind::StringLiteral | Kind::NoSubstitutionTemplateLiteral => {
+                Some(self.f.new_identifier("String"))
+            }
             Kind::PrefixUnaryExpression => {
                 let operand = node.as_prefix_unary_expression().operand;
                 match operand.kind() {
-                    Kind::NumericLiteral | Kind::BigIntLiteral => self.serialize_literal_of_literal_type_node(operand),
+                    Kind::NumericLiteral | Kind::BigIntLiteral => {
+                        self.serialize_literal_of_literal_type_node(operand)
+                    }
                     _ => panic!("Unexpected node kind: {:?}", operand.kind()),
                 }
             }
@@ -329,7 +422,10 @@ impl MetadataSerializer {
         let type_name = node.as_type_reference_node().type_name;
         let c = self.c.get();
         let serial_scope = c.current_name_scope.or(c.current_lexical_scope);
-        let kind = self.resolver.get_type_reference_serialization_kind(self.ec.parse_node(Some(type_name)).unwrap(), self.ec.parse_node(serial_scope));
+        let kind = self.resolver.get_type_reference_serialization_kind(
+            self.ec.parse_node(Some(type_name)).unwrap(),
+            self.ec.parse_node(serial_scope),
+        );
         match kind {
             TypeReferenceSerializationKind::Unknown => {
                 // From conditional type type reference that cannot be resolved is Similar to any or unknown
@@ -341,22 +437,31 @@ impl MetadataSerializer {
                 let temp = self.f.new_temp_variable();
                 self.ec.add_variable_declaration(temp);
                 self.f.new_conditional_expression(
-                    self.f.new_type_check(self.f.new_assignment_expression(temp, serialized), "function"),
+                    self.f.new_type_check(
+                        self.f.new_assignment_expression(temp, serialized),
+                        "function",
+                    ),
                     self.f.new_token(Kind::QuestionToken),
                     temp,
                     self.f.new_token(Kind::ColonToken),
                     self.f.new_identifier("Object"),
                 )
             }
-            TypeReferenceSerializationKind::TypeWithConstructSignatureAndValue => self.serialize_entity_name_as_expression(type_name).unwrap(),
-            TypeReferenceSerializationKind::VoidNullableOrNeverType => self.f.new_void_zero_expression(),
+            TypeReferenceSerializationKind::TypeWithConstructSignatureAndValue => {
+                self.serialize_entity_name_as_expression(type_name).unwrap()
+            }
+            TypeReferenceSerializationKind::VoidNullableOrNeverType => {
+                self.f.new_void_zero_expression()
+            }
             TypeReferenceSerializationKind::BigIntLikeType => self.serialize_big_int_constructor(),
             TypeReferenceSerializationKind::BooleanType => self.f.new_identifier("Boolean"),
             TypeReferenceSerializationKind::NumberLikeType => self.f.new_identifier("Number"),
             TypeReferenceSerializationKind::StringLikeType => self.f.new_identifier("String"),
             TypeReferenceSerializationKind::ArrayLikeType => self.f.new_identifier("Array"),
             TypeReferenceSerializationKind::ESSymbolType => self.f.new_identifier("Symbol"),
-            TypeReferenceSerializationKind::TypeWithCallSignature => self.f.new_identifier("Function"),
+            TypeReferenceSerializationKind::TypeWithCallSignature => {
+                self.f.new_identifier("Function")
+            }
             TypeReferenceSerializationKind::Promise => self.f.new_identifier("Promise"),
             TypeReferenceSerializationKind::ObjectType => self.f.new_identifier("Object"),
         }
@@ -404,7 +509,12 @@ impl MetadataSerializer {
      */
     fn serialize_qualified_name_as_expression(&self, node: P<Node>) -> P<Node> {
         let qn = node.as_qualified_name();
-        self.f.new_property_access_expression(self.serialize_entity_name_as_expression(qn.left).unwrap(), None, qn.right, NodeFlags::None)
+        self.f.new_property_access_expression(
+            self.serialize_entity_name_as_expression(qn.left).unwrap(),
+            None,
+            qn.right,
+            NodeFlags::None,
+        )
     }
 
     // typeserializer.go:433
@@ -421,7 +531,10 @@ impl MetadataSerializer {
         let qn = node.as_qualified_name();
         if qn.left.kind() == Kind::Identifier {
             // A.B -> typeof A !== "undefined" && A.B
-            return self.create_checked_value(self.serialize_entity_name_as_expression(qn.left).unwrap(), self.serialize_entity_name_as_expression(node).unwrap());
+            return self.create_checked_value(
+                self.serialize_entity_name_as_expression(qn.left).unwrap(),
+                self.serialize_entity_name_as_expression(node).unwrap(),
+            );
         }
         // A.B.C -> typeof A !== "undefined" && (_a = A.B) !== void 0 && _a.C
         let left = self.serialize_entity_name_as_expression_fallback(qn.left);
@@ -429,7 +542,13 @@ impl MetadataSerializer {
         self.ec.add_variable_declaration(temp);
         let lb = left.as_binary_expression();
         self.f.new_logical_and_expression(
-            self.f.new_logical_and_expression(lb.left, self.f.new_strict_inequality_expression(self.f.new_assignment_expression(temp, lb.right()), self.f.new_void_zero_expression())),
+            self.f.new_logical_and_expression(
+                lb.left,
+                self.f.new_strict_inequality_expression(
+                    self.f.new_assignment_expression(temp, lb.right()),
+                    self.f.new_void_zero_expression(),
+                ),
+            ),
             self.f.new_property_access_expression(temp, None, qn.right, NodeFlags::None),
         )
     }
@@ -447,7 +566,13 @@ impl MetadataSerializer {
      * further checked by any containing expression.
      */
     fn create_checked_value(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.f.new_logical_and_expression(self.f.new_strict_inequality_expression(self.f.new_type_of_expression(left), self.f.new_string_literal("undefined", TokenFlags::None)), right)
+        self.f.new_logical_and_expression(
+            self.f.new_strict_inequality_expression(
+                self.f.new_type_of_expression(left),
+                self.f.new_string_literal("undefined", TokenFlags::None),
+            ),
+            right,
+        )
     }
 
     // typeserializer.go:474
@@ -461,11 +586,20 @@ impl MetadataSerializer {
             return ast::is_identifier(right) && left.text() == right.text();
         }
         if ast::is_property_access_expression(left) {
-            return ast::is_property_access_expression(right) && self.equate_serialized_type_nodes(left.expression().unwrap(), right.expression().unwrap()) && self.equate_serialized_type_nodes(left.name().unwrap(), right.name().unwrap());
+            return ast::is_property_access_expression(right)
+                && self.equate_serialized_type_nodes(
+                    left.expression().unwrap(),
+                    right.expression().unwrap(),
+                )
+                && self.equate_serialized_type_nodes(left.name().unwrap(), right.name().unwrap());
         }
         // `void 0`
         if ast::is_void_expression(left) {
-            return ast::is_void_expression(right) && ast::is_numeric_literal(left.expression().unwrap()) && ast::is_numeric_literal(right.expression().unwrap()) && left.expression().unwrap().text() == "0" && right.expression().unwrap().text() == "0";
+            return ast::is_void_expression(right)
+                && ast::is_numeric_literal(left.expression().unwrap())
+                && ast::is_numeric_literal(right.expression().unwrap())
+                && left.expression().unwrap().text() == "0"
+                && right.expression().unwrap().text() == "0";
         }
         // `"undefined"` or `"function"` in `typeof` checks
         if ast::is_string_literal(left) {
@@ -473,16 +607,27 @@ impl MetadataSerializer {
         }
         // used in `typeof` checks for fallback
         if ast::is_type_of_expression(left) {
-            return ast::is_type_of_expression(right) && self.equate_serialized_type_nodes(left.expression().unwrap(), right.expression().unwrap());
+            return ast::is_type_of_expression(right)
+                && self.equate_serialized_type_nodes(
+                    left.expression().unwrap(),
+                    right.expression().unwrap(),
+                );
         }
         // parens in `typeof` checks with temps
         if ast::is_parenthesized_expression(left) {
-            return ast::is_parenthesized_expression(right) && self.equate_serialized_type_nodes(left.expression().unwrap(), right.expression().unwrap());
+            return ast::is_parenthesized_expression(right)
+                && self.equate_serialized_type_nodes(
+                    left.expression().unwrap(),
+                    right.expression().unwrap(),
+                );
         }
         // conditionals used in fallback
         if ast::is_conditional_expression(left) {
             let (l, r) = (left.as_conditional_expression(), right_conditional(right));
-            return ast::is_conditional_expression(right) && self.equate_serialized_type_nodes(l.condition, r.unwrap().condition) && self.equate_serialized_type_nodes(l.when_true, r.unwrap().when_true) && self.equate_serialized_type_nodes(l.when_false, r.unwrap().when_false);
+            return ast::is_conditional_expression(right)
+                && self.equate_serialized_type_nodes(l.condition, r.unwrap().condition)
+                && self.equate_serialized_type_nodes(l.when_true, r.unwrap().when_true)
+                && self.equate_serialized_type_nodes(l.when_false, r.unwrap().when_false);
         }
         // logical binary and assignments used in fallback
         if ast::is_binary_expression(left) {
@@ -490,7 +635,9 @@ impl MetadataSerializer {
                 return false;
             }
             let (l, r) = (left.as_binary_expression(), right.as_binary_expression());
-            return l.operator_token.kind() == r.operator_token.kind() && self.equate_serialized_type_nodes(l.left, r.left) && self.equate_serialized_type_nodes(l.right(), r.right());
+            return l.operator_token.kind() == r.operator_token.kind()
+                && self.equate_serialized_type_nodes(l.left, r.left)
+                && self.equate_serialized_type_nodes(l.right(), r.right());
         }
         false
     }

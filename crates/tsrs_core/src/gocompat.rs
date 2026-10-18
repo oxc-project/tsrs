@@ -73,25 +73,18 @@ pub fn quote(b: &[u8], style: QuoteStyle) -> String {
     out
 }
 pub fn parse_int64(b: &[u8], style: QuoteStyle) -> Result<i64, String> {
-    let digits = b
-        .strip_prefix(b"+")
-        .or_else(|| b.strip_prefix(b"-"))
-        .unwrap_or(b);
+    let digits = b.strip_prefix(b"+").or_else(|| b.strip_prefix(b"-")).unwrap_or(b);
     let error = if digits.is_empty() || !digits.iter().all(u8::is_ascii_digit) {
         "invalid syntax"
     } else {
-        if let Ok(n) = std::str::from_utf8(b)
-            .expect("validated sign and digits are ASCII")
-            .parse::<i64>()
+        if let Ok(n) =
+            std::str::from_utf8(b).expect("validated sign and digits are ASCII").parse::<i64>()
         {
             return Ok(n);
         }
         "value out of range"
     };
-    Err(format!(
-        "strconv.ParseInt: parsing {}: {error}",
-        quote(b, style)
-    ))
+    Err(format!("strconv.ParseInt: parsing {}: {error}", quote(b, style)))
 }
 
 #[cfg(test)]
@@ -110,10 +103,7 @@ mod tests {
                 QuoteStyle::Api,
                 "\"\\x07\\x08\\x0c\\x0b\\n\\r\\t\\\"\\x7f\u{85}\u{a0}\u{200b}\u{feff}\\\\\"",
             ),
-            (
-                QuoteStyle::Lsp,
-                "\"\\a\\b\\f\\v\\n\\r\\t\\\"\\x7f\u{85}\u{a0}\u{200b}\u{feff}\\\\\"",
-            ),
+            (QuoteStyle::Lsp, "\"\\a\\b\\f\\v\\n\\r\\t\\\"\\x7f\u{85}\u{a0}\u{200b}\u{feff}\\\\\""),
             (
                 QuoteStyle::MapperTest,
                 "\"\\a\\b\\f\\v\\n\\r\\t\\\"\\x7f\\u0085\\u00a0\u{200b}\u{feff}\\\\\"",
@@ -136,12 +126,9 @@ mod tests {
             (b"a\xf0\x9f".as_slice(), "\"a\\xf0\\x9f\"", "\"a�\""),
         ] {
             assert_eq!(quote(input, QuoteStyle::Lsp), replaced);
-            for style in [
-                QuoteStyle::Header,
-                QuoteStyle::Api,
-                QuoteStyle::MapperTest,
-                QuoteStyle::Fourslash,
-            ] {
+            for style in
+                [QuoteStyle::Header, QuoteStyle::Api, QuoteStyle::MapperTest, QuoteStyle::Fourslash]
+            {
                 assert_eq!(quote(input, style), escaped, "{style:?}");
             }
         }
@@ -176,10 +163,7 @@ mod tests {
                     "strconv.ParseInt: parsing \"-9223372036854775809\": value out of range",
                 ),
             ] {
-                assert_eq!(
-                    parse_int64(input.as_bytes(), style),
-                    Err(expected.to_string())
-                );
+                assert_eq!(parse_int64(input.as_bytes(), style), Err(expected.to_string()));
             }
         }
         assert_eq!(

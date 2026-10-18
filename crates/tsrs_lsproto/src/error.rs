@@ -4,14 +4,17 @@
 
 use std::fmt;
 
-use crate::json::JsonError;
 use crate::ErrorCode;
+use crate::json::JsonError;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ErrorTag {
     Code(ErrorCode),
     // io.EOF / io.ErrUnexpectedEOF
-    #[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+    #[expect(
+        clippy::upper_case_acronyms,
+        reason = "The name matches the upstream Go or protocol vocabulary."
+    )]
     EOF,
     UnexpectedEOF,
     // jsonrpc.ErrInvalidHeader / ErrInvalidContentLength / ErrNoContentLength / ErrInvalidJSONRPCVersion
@@ -28,7 +31,10 @@ pub enum ErrorTag {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[expect(clippy::error_impl_error, reason = "the public name mirrors Go's package-level error value used throughout the protocol port")]
+#[expect(
+    clippy::error_impl_error,
+    reason = "the public name mirrors Go's package-level error value used throughout the protocol port"
+)]
 pub struct Error {
     pub message: String,
     pub tags: Vec<ErrorTag>,
@@ -109,6 +115,9 @@ impl From<tsrs_core::context::ContextError> for Error {
 
 impl From<JsonError> for Error {
     fn from(err: JsonError) -> Error {
-        Error { message: err.to_string(), tags: err.codes.iter().map(|c| ErrorTag::Code(*c)).collect() }
+        Error {
+            message: err.to_string(),
+            tags: err.codes.iter().map(|c| ErrorTag::Code(*c)).collect(),
+        }
     }
 }

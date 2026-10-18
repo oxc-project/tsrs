@@ -36,11 +36,7 @@ impl Obj {
             Value::Object(o) => o.is_empty(),
             _ => false,
         };
-        if empty {
-            self
-        } else {
-            self.set(key, value)
-        }
+        if empty { self } else { self.set(key, value) }
     }
 
     pub fn build(self) -> Value {
@@ -83,7 +79,9 @@ impl<'a> Params<'a> {
     /// A `DocumentIdentifier` field: absent is Go's zero value (empty file name); explicit `null` is an error.
     pub fn document(self, key: &str) -> ApiResult<DocumentIdentifier> {
         match self.0 {
-            Value::Object(o) if !o.contains_key(key) => Ok(DocumentIdentifier::FileName(String::new())),
+            Value::Object(o) if !o.contains_key(key) => {
+                Ok(DocumentIdentifier::FileName(String::new()))
+            }
             _ => DocumentIdentifier::parse(self.get(key), key),
         }
     }
@@ -146,7 +144,9 @@ impl<'a> Params<'a> {
 pub fn as_u64(v: &Value, key: &str) -> ApiResult<u64> {
     match v {
         // Range and syntax were checked by `predecode` against the field's Go type.
-        Value::Number(x) if *x >= 0.0 && x.fract() == 0.0 && *x < 18_446_744_073_709_551_616.0 => Ok(*x as u64),
+        Value::Number(x) if *x >= 0.0 && x.fract() == 0.0 && *x < 18_446_744_073_709_551_616.0 => {
+            Ok(*x as u64)
+        }
         Value::Null => Ok(0),
         _ => Err(ApiError::invalid_request(format!("{key} must be a non-negative integer"))),
     }
@@ -165,13 +165,17 @@ impl DocumentIdentifier {
             Value::String(s) => Ok(DocumentIdentifier::FileName(s.clone())),
             // proto.go `DocumentIdentifier.UnmarshalJSONFrom`: an explicit null is an error (an absent field is the
             // zero value; see `Params::document`).
-            Value::Null => Err(ApiError::invalid_request("DocumentIdentifier: expected string or object, got null")),
+            Value::Null => Err(ApiError::invalid_request(
+                "DocumentIdentifier: expected string or object, got null",
+            )),
             Value::Object(o) => match o.get("uri") {
                 Some(Value::String(u)) => Ok(DocumentIdentifier::Uri(u.clone())),
                 // Go reads `{}` (no uri) as an empty file name.
                 _ => Ok(DocumentIdentifier::FileName(String::new())),
             },
-            _ => Err(ApiError::invalid_request(format!("DocumentIdentifier: expected string or object for {key}"))),
+            _ => Err(ApiError::invalid_request(format!(
+                "DocumentIdentifier: expected string or object for {key}"
+            ))),
         }
     }
     pub fn parse_list(v: &[Value], key: &str) -> ApiResult<Vec<DocumentIdentifier>> {
@@ -187,7 +191,9 @@ impl DocumentIdentifier {
     /// Go `ToAbsoluteFileName`.
     pub fn to_absolute_file_name(&self, cwd: &str) -> String {
         match self {
-            DocumentIdentifier::FileName(f) => tsrs_core::tspath::get_normalized_absolute_path(f, cwd),
+            DocumentIdentifier::FileName(f) => {
+                tsrs_core::tspath::get_normalized_absolute_path(f, cwd)
+            }
             DocumentIdentifier::Uri(u) => tsrs_lsproto::DocumentUri(u.clone()).file_name(),
         }
     }

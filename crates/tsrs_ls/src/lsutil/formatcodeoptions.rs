@@ -1,5 +1,5 @@
-use tsrs_core::json::Value;
 use tsrs_core::Tristate;
+use tsrs_core::json::Value;
 
 // formatcodeoptions.go:11
 // Go `type IndentStyle int`: parseIndentStyle stores any number it is given, so the type is an open set.
@@ -115,13 +115,17 @@ impl std::ops::DerefMut for FormatCodeSettings {
 }
 
 // formatcodeoptions.go:94
-pub fn from_ls_format_options(f: &FormatCodeSettings, opt: tsrs_lsproto::FormattingOptions) -> FormatCodeSettings {
+pub fn from_ls_format_options(
+    f: &FormatCodeSettings,
+    opt: tsrs_lsproto::FormattingOptions,
+) -> FormatCodeSettings {
     let mut updated_settings = f.clone();
     updated_settings.tab_size = opt.tab_size as i32;
     updated_settings.indent_size = opt.tab_size as i32;
     updated_settings.convert_tabs_to_spaces = tsrs_core::bool_to_tristate(opt.insert_spaces);
     if let Some(trim_trailing_whitespace) = opt.trim_trailing_whitespace {
-        updated_settings.trim_trailing_whitespace = tsrs_core::bool_to_tristate(trim_trailing_whitespace);
+        updated_settings.trim_trailing_whitespace =
+            tsrs_core::bool_to_tristate(trim_trailing_whitespace);
     }
     updated_settings
 }

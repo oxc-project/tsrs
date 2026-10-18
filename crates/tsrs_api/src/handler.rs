@@ -34,7 +34,10 @@ impl ApiError {
         ApiError { kind: ErrorKind::ClientError, message: message.into() }
     }
     pub fn unsupported(method: &str) -> ApiError {
-        ApiError { kind: ErrorKind::Unsupported, message: format!("method {method:?} is not implemented by tsrs (see docs/NODE_API.md)") }
+        ApiError {
+            kind: ErrorKind::Unsupported,
+            message: format!("method {method:?} is not implemented by tsrs (see docs/NODE_API.md)"),
+        }
     }
     pub fn internal(message: impl Into<String>) -> ApiError {
         ApiError { kind: ErrorKind::Internal, message: message.into() }
@@ -81,7 +84,12 @@ pub trait Handler: Send + Sync {
     /// `depth >= 1`. Nested requests are served like top-level ones (Go does the same); resources that are not
     /// reentrant are acquired with the transport's `lock_for_request`, which fails boundedly instead of
     /// deadlocking when the holder is waiting on the client (`crates/tsrs_api_transport/src/reentrancy.rs`).
-    fn handle_nested_request(&self, method: &str, params: &[u8], depth: u32) -> ApiResult<Response> {
+    fn handle_nested_request(
+        &self,
+        method: &str,
+        params: &[u8],
+        depth: u32,
+    ) -> ApiResult<Response> {
         let _ = depth;
         self.handle_request(method, params)
     }

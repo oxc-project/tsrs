@@ -1,9 +1,9 @@
 use crate::*;
-use tsrs_ast::*;
+use std::fmt::Display;
 use tsrs_ast as ast;
+use tsrs_ast::*;
 use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
-use std::fmt::Display;
 
 // Non-function declarations in relater.go:2580-end (not generated; port by hand in this file):
 //   type Relater (relater.go:2580) -- in relater_types.rs
@@ -14,7 +14,11 @@ fn is_message(message: Option<&'static Message>, target: &'static Message) -> bo
 }
 
 // Go's instantiateType returns nil for a nil type.
-fn instantiate_type_or_nil(c: &mut Checker, t: Option<P<Type>>, m: Option<P<TypeMapper>>) -> Option<P<Type>> {
+fn instantiate_type_or_nil(
+    c: &mut Checker,
+    t: Option<P<Type>>,
+    m: Option<P<TypeMapper>>,
+) -> Option<P<Type>> {
     t.map(|t| c.instantiate_type(t, m))
 }
 
@@ -60,42 +64,122 @@ impl Relater {
     }
 
     // Go `r.c.isSimpleTypeRelatedTo(source, target, r.relation, core.IfElse(reportErrors, r.reportError, nil))`
-    fn is_simple_type_related_to_reporting(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool) -> bool {
+    fn is_simple_type_related_to_reporting(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+    ) -> bool {
         let relation = self.rel();
-        let mut reporter = |c: &mut Checker, message: &'static Message, args: &[&dyn Display]| self.report_error(c, message, args);
-        c.is_simple_type_related_to(source, target, relation, if report_errors { Some(&mut reporter) } else { None })
+        let mut reporter = |c: &mut Checker, message: &'static Message, args: &[&dyn Display]| {
+            self.report_error(c, message, args);
+        };
+        c.is_simple_type_related_to(
+            source,
+            target,
+            relation,
+            if report_errors { Some(&mut reporter) } else { None },
+        )
     }
 
     // relater.go:2621
-    pub(crate) fn is_related_to_simple(&self, c: &mut Checker, source: P<Type>, target: P<Type>) -> Ternary {
-        self.is_related_to_ex(c, source, target, RecursionFlags::Both, false /*reportErrors*/, None /*headMessage*/, IntersectionState::None)
+    pub(crate) fn is_related_to_simple(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> Ternary {
+        self.is_related_to_ex(
+            c,
+            source,
+            target,
+            RecursionFlags::Both,
+            false, /*reportErrors*/
+            None,  /*headMessage*/
+            IntersectionState::None,
+        )
     }
 
     // relater.go:2625
-    pub(crate) fn is_related_to_worker(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool) -> Ternary {
-        self.is_related_to_ex(c, source, target, RecursionFlags::Both, report_errors, None, IntersectionState::None)
+    pub(crate) fn is_related_to_worker(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+    ) -> Ternary {
+        self.is_related_to_ex(
+            c,
+            source,
+            target,
+            RecursionFlags::Both,
+            report_errors,
+            None,
+            IntersectionState::None,
+        )
     }
 
     // relater.go:2629
-    pub(crate) fn is_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, recursion_flags: RecursionFlags, report_errors: bool) -> Ternary {
-        self.is_related_to_ex(c, source, target, recursion_flags, report_errors, None, IntersectionState::None)
+    pub(crate) fn is_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        recursion_flags: RecursionFlags,
+        report_errors: bool,
+    ) -> Ternary {
+        self.is_related_to_ex(
+            c,
+            source,
+            target,
+            recursion_flags,
+            report_errors,
+            None,
+            IntersectionState::None,
+        )
     }
 
     // relater.go:2633
-    pub(crate) fn is_related_to_ex(&self, c: &mut Checker, original_source: P<Type>, original_target: P<Type>, recursion_flags: RecursionFlags, report_errors: bool, head_message: Option<&'static Message>, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn is_related_to_ex(
+        &self,
+        c: &mut Checker,
+        original_source: P<Type>,
+        original_target: P<Type>,
+        recursion_flags: RecursionFlags,
+        report_errors: bool,
+        head_message: Option<&'static Message>,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if original_source == original_target {
             return Ternary::True;
         }
         // Before normalization: if `source` is type an object type, and `target` is primitive,
         // skip all the checks we don't need and just return `isSimpleTypeRelatedTo` result
-        if original_source.flags().intersects(TypeFlags::Object) && original_target.flags().intersects(TypeFlags::Primitive) {
-            if self.rel() == c.comparable_relation && !original_target.flags().intersects(TypeFlags::Never) && c.is_simple_type_related_to(original_target, original_source, self.rel(), None)
-                || self.is_simple_type_related_to_reporting(c, original_source, original_target, report_errors)
+        if original_source.flags().intersects(TypeFlags::Object)
+            && original_target.flags().intersects(TypeFlags::Primitive)
+        {
+            if self.rel() == c.comparable_relation
+                && !original_target.flags().intersects(TypeFlags::Never)
+                && c.is_simple_type_related_to(original_target, original_source, self.rel(), None)
+                || self.is_simple_type_related_to_reporting(
+                    c,
+                    original_source,
+                    original_target,
+                    report_errors,
+                )
             {
                 return Ternary::True;
             }
             if report_errors {
-                self.report_error_results(c, original_source, original_target, original_source, original_target, head_message);
+                self.report_error_results(
+                    c,
+                    original_source,
+                    original_target,
+                    original_source,
+                    original_target,
+                    head_message,
+                );
             }
             return Ternary::False;
         }
@@ -116,24 +200,38 @@ impl Relater {
                 return Ternary::True;
             }
             self.trace_unions_or_intersections_too_large(c, source, target);
-            return self.recursive_type_related_to(c, source, target, false /*reportErrors*/, IntersectionState::None, recursion_flags);
+            return self.recursive_type_related_to(
+                c,
+                source,
+                target,
+                false, /*reportErrors*/
+                IntersectionState::None,
+                recursion_flags,
+            );
         }
         // We fastpath comparing a type parameter to exactly its constraint, as this is _super_ common,
         // and otherwise, for type parameters in large unions, causes us to need to compare the union to itself,
         // as we break down the _target_ union first, _then_ get the source constraint - so for every
         // member of the target, we attempt to find a match in the source. This avoids that in cases where
         // the target is exactly the constraint.
-        if source.flags().intersects(TypeFlags::TypeParameter) && c.get_constraint_of_type(source) == Some(target) {
+        if source.flags().intersects(TypeFlags::TypeParameter)
+            && c.get_constraint_of_type(source) == Some(target)
+        {
             return Ternary::True;
         }
         // See if we're relating a definitely non-nullable type to a union that includes null and/or undefined
         // plus a single non-nullable type. If so, remove null and/or undefined from the target type.
-        if source.flags().intersects(TypeFlags::DefinitelyNonNullable) && target.flags().intersects(TypeFlags::Union) {
+        if source.flags().intersects(TypeFlags::DefinitelyNonNullable)
+            && target.flags().intersects(TypeFlags::Union)
+        {
             let types = target.types();
             let mut candidate: Option<P<Type>> = None;
             if types.len() == 2 && types[0].flags().intersects(TypeFlags::Nullable) {
                 candidate = Some(types[1]);
-            } else if types.len() == 3 && types[0].flags().intersects(TypeFlags::Nullable) && types[1].flags().intersects(TypeFlags::Nullable) {
+            } else if types.len() == 3
+                && types[0].flags().intersects(TypeFlags::Nullable)
+                && types[1].flags().intersects(TypeFlags::Nullable)
+            {
                 candidate = Some(types[2]);
             }
             if let Some(candidate) = candidate {
@@ -145,76 +243,159 @@ impl Relater {
                 }
             }
         }
-        if self.rel() == c.comparable_relation && !target.flags().intersects(TypeFlags::Never) && c.is_simple_type_related_to(target, source, self.rel(), None)
+        if self.rel() == c.comparable_relation
+            && !target.flags().intersects(TypeFlags::Never)
+            && c.is_simple_type_related_to(target, source, self.rel(), None)
             || self.is_simple_type_related_to_reporting(c, source, target, report_errors)
         {
             return Ternary::True;
         }
-        if source.flags().intersects(TypeFlags::StructuredOrInstantiable) || target.flags().intersects(TypeFlags::StructuredOrInstantiable) {
-            let is_performing_excess_property_checks = !intersection_state.intersects(IntersectionState::Target) && is_object_literal_type(source) && source.object_flags().intersects(ObjectFlags::FreshLiteral);
+        if source.flags().intersects(TypeFlags::StructuredOrInstantiable)
+            || target.flags().intersects(TypeFlags::StructuredOrInstantiable)
+        {
+            let is_performing_excess_property_checks = !intersection_state
+                .intersects(IntersectionState::Target)
+                && is_object_literal_type(source)
+                && source.object_flags().intersects(ObjectFlags::FreshLiteral);
             if is_performing_excess_property_checks {
                 if self.has_excess_properties(c, source, target, report_errors) {
                     if report_errors {
-                        self.report_relation_error(c, head_message, source, if original_target.alias().is_some() { original_target } else { target });
+                        self.report_relation_error(
+                            c,
+                            head_message,
+                            source,
+                            if original_target.alias().is_some() {
+                                original_target
+                            } else {
+                                target
+                            },
+                        );
                     }
                     return Ternary::False;
                 }
             }
-            let is_performing_common_property_checks = (self.rel() != c.comparable_relation || is_unit_type(source))
+            let is_performing_common_property_checks = (self.rel() != c.comparable_relation
+                || is_unit_type(source))
                 && !intersection_state.intersects(IntersectionState::Target)
-                && source.flags().intersects(TypeFlags::Primitive | TypeFlags::Object | TypeFlags::Intersection)
+                && source
+                    .flags()
+                    .intersects(TypeFlags::Primitive | TypeFlags::Object | TypeFlags::Intersection)
                 && source != c.global_object_type
                 && target.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
                 && c.is_weak_type(target)
-                && (!c.get_properties_of_type(source).is_empty() || c.type_has_call_or_construct_signatures(source));
-            let is_comparing_jsx_attributes = source.object_flags().intersects(ObjectFlags::JsxAttributes);
-            if is_performing_common_property_checks && !c.has_common_properties(source, target, is_comparing_jsx_attributes) {
+                && (!c.get_properties_of_type(source).is_empty()
+                    || c.type_has_call_or_construct_signatures(source));
+            let is_comparing_jsx_attributes =
+                source.object_flags().intersects(ObjectFlags::JsxAttributes);
+            if is_performing_common_property_checks
+                && !c.has_common_properties(source, target, is_comparing_jsx_attributes)
+            {
                 if report_errors {
-                    let source_string = c.type_to_string_exported(if original_source.alias().is_some() { original_source } else { source });
-                    let target_string = c.type_to_string_exported(if original_target.alias().is_some() { original_target } else { target });
+                    let source_string =
+                        c.type_to_string_exported(if original_source.alias().is_some() {
+                            original_source
+                        } else {
+                            source
+                        });
+                    let target_string =
+                        c.type_to_string_exported(if original_target.alias().is_some() {
+                            original_target
+                        } else {
+                            target
+                        });
                     let calls = c.get_signatures_of_type(source, SignatureKind::Call);
                     let constructs = c.get_signatures_of_type(source, SignatureKind::Construct);
                     if !calls.is_empty() && {
                         let return_type = c.get_return_type_of_signature(calls[0]);
-                        self.is_related_to(c, return_type, target, RecursionFlags::Source, false /*reportErrors*/) != Ternary::False
+                        self.is_related_to(
+                            c,
+                            return_type,
+                            target,
+                            RecursionFlags::Source,
+                            false, /*reportErrors*/
+                        ) != Ternary::False
                     } || !constructs.is_empty() && {
                         let return_type = c.get_return_type_of_signature(constructs[0]);
-                        self.is_related_to(c, return_type, target, RecursionFlags::Source, false /*reportErrors*/) != Ternary::False
+                        self.is_related_to(
+                            c,
+                            return_type,
+                            target,
+                            RecursionFlags::Source,
+                            false, /*reportErrors*/
+                        ) != Ternary::False
                     } {
                         self.report_error(c, &diagnostics::Value_of_type_0_has_no_properties_in_common_with_type_1_Did_you_mean_to_call_it, &[&source_string, &target_string]);
                     } else {
-                        self.report_error(c, &diagnostics::Type_0_has_no_properties_in_common_with_type_1, &[&source_string, &target_string]);
+                        self.report_error(
+                            c,
+                            &diagnostics::Type_0_has_no_properties_in_common_with_type_1,
+                            &[&source_string, &target_string],
+                        );
                     }
                 }
                 return Ternary::False;
             }
             self.trace_unions_or_intersections_too_large(c, source, target);
-            let skip_caching = source.flags().intersects(TypeFlags::Union) && source.types().len() < 4 && !target.flags().intersects(TypeFlags::Union)
-                || target.flags().intersects(TypeFlags::Union) && target.types().len() < 4 && !source.flags().intersects(TypeFlags::StructuredOrInstantiable);
+            let skip_caching = source.flags().intersects(TypeFlags::Union)
+                && source.types().len() < 4
+                && !target.flags().intersects(TypeFlags::Union)
+                || target.flags().intersects(TypeFlags::Union)
+                    && target.types().len() < 4
+                    && !source.flags().intersects(TypeFlags::StructuredOrInstantiable);
             let result = if skip_caching {
-                self.union_or_intersection_related_to(c, source, target, report_errors, intersection_state)
+                self.union_or_intersection_related_to(
+                    c,
+                    source,
+                    target,
+                    report_errors,
+                    intersection_state,
+                )
             } else {
-                self.recursive_type_related_to(c, source, target, report_errors, intersection_state, recursion_flags)
+                self.recursive_type_related_to(
+                    c,
+                    source,
+                    target,
+                    report_errors,
+                    intersection_state,
+                    recursion_flags,
+                )
             };
             if result != Ternary::False {
                 return result;
             }
         }
         if report_errors {
-            self.report_error_results(c, original_source, original_target, source, target, head_message);
+            self.report_error_results(
+                c,
+                original_source,
+                original_target,
+                source,
+                target,
+                head_message,
+            );
         }
         Ternary::False
     }
 
     // relater.go:2747
-    pub(crate) fn has_excess_properties(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool) -> bool {
-        if !is_excess_property_check_target(target) || !c.no_implicit_any && target.object_flags().intersects(ObjectFlags::JSLiteral) {
+    pub(crate) fn has_excess_properties(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+    ) -> bool {
+        if !is_excess_property_check_target(target)
+            || !c.no_implicit_any && target.object_flags().intersects(ObjectFlags::JSLiteral)
+        {
             // Disable excess property checks on JS literals to simulate having an implicit "index signature" - but only outside of noImplicitAny
             return false;
         }
-        let is_comparing_jsx_attributes = source.object_flags().intersects(ObjectFlags::JsxAttributes);
+        let is_comparing_jsx_attributes =
+            source.object_flags().intersects(ObjectFlags::JsxAttributes);
         if (self.rel() == c.assignable_relation || self.rel() == c.comparable_relation)
-            && (c.is_type_subset_of(c.global_object_type, target) || (!is_comparing_jsx_attributes && c.is_empty_object_type(target)))
+            && (c.is_type_subset_of(c.global_object_type, target)
+                || (!is_comparing_jsx_attributes && c.is_empty_object_type(target)))
         {
             return false;
         }
@@ -222,44 +403,63 @@ impl Relater {
         // Go nil is the empty Vec (Distributed() only returns nil for never, never an empty slice otherwise)
         let mut check_types: Vec<P<Type>> = Vec::new();
         if target.flags().intersects(TypeFlags::Union) {
-            reduced_target = match c.find_matching_discriminant_type(source, target, |c, s, t| self.is_related_to_simple(c, s, t)) {
+            reduced_target = match c.find_matching_discriminant_type(source, target, |c, s, t| {
+                self.is_related_to_simple(c, s, t)
+            }) {
                 Some(t) => t,
                 None => c.filter_primitives_if_contains_non_primitive(target),
             };
             check_types = reduced_target.distributed();
         }
         for prop in c.get_properties_of_type(source).iter().copied() {
-            if should_check_as_excess_property(prop, source.symbol()) && !is_ignored_jsx_property(source, prop) {
+            if should_check_as_excess_property(prop, source.symbol())
+                && !is_ignored_jsx_property(source, prop)
+            {
                 if !c.is_known_property(reduced_target, prop.name(), is_comparing_jsx_attributes) {
                     if report_errors {
                         // Report error in terms of object types in the target as those are the only ones
                         // we check in isKnownProperty.
-                        let error_target = c.filter_type(reduced_target, |_, t| is_excess_property_check_target(t));
+                        let error_target = c
+                            .filter_type(reduced_target, |_, t| is_excess_property_check_target(t));
                         // We know *exactly* where things went wrong when comparing the types.
                         // Use this property as the error node as this will be more helpful in
                         // reasoning about what went wrong.
                         let Some(error_node) = self.error_node.get() else {
                             panic!("No errorNode in hasExcessProperties");
                         };
-                        if ast::is_jsx_attributes(error_node) || ast::is_jsx_opening_like_element(error_node) || ast::is_jsx_opening_like_element(error_node.parent().unwrap()) {
+                        if ast::is_jsx_attributes(error_node)
+                            || ast::is_jsx_opening_like_element(error_node)
+                            || ast::is_jsx_opening_like_element(error_node.parent().unwrap())
+                        {
                             // JsxAttributes has an object-literal flag and undergo same type-assignablity check as normal object-literal.
                             // However, using an object-literal error message will be very confusing to the users so we give different a message.
                             if let Some(value_declaration) = prop.value_declaration() {
-                                if ast::is_jsx_attribute(value_declaration) && get_source_file_of_node(error_node) == get_source_file_of_node(value_declaration.name()) {
+                                if ast::is_jsx_attribute(value_declaration)
+                                    && get_source_file_of_node(error_node)
+                                        == get_source_file_of_node(value_declaration.name())
+                                {
                                     // Note that extraneous children (as in `<NoChild>extra</NoChild>`) don't pass this check,
                                     // since `children` is a Kind.PropertySignature instead of a Kind.JsxAttribute.
                                     self.error_node.set(value_declaration.name());
                                 }
                             }
                             let prop_name = c.symbol_to_string(prop);
-                            let suggestion_symbol = c.get_suggested_symbol_for_nonexistent_jsx_attribute(&prop_name, error_target);
+                            let suggestion_symbol = c
+                                .get_suggested_symbol_for_nonexistent_jsx_attribute(
+                                    &prop_name,
+                                    error_target,
+                                );
                             if let Some(suggestion_symbol) = suggestion_symbol {
                                 let error_target_string = c.type_to_string_exported(error_target);
                                 let suggestion_string = c.symbol_to_string(suggestion_symbol);
                                 self.report_error(c, &diagnostics::Property_0_does_not_exist_on_type_1_Did_you_mean_2, &[&prop_name, &error_target_string, &suggestion_string]);
                             } else {
                                 let error_target_string = c.type_to_string_exported(error_target);
-                                self.report_error(c, &diagnostics::Property_0_does_not_exist_on_type_1, &[&prop_name, &error_target_string]);
+                                self.report_error(
+                                    c,
+                                    &diagnostics::Property_0_does_not_exist_on_type_1,
+                                    &[&prop_name, &error_target_string],
+                                );
                             }
                         } else {
                             // use the property's value declaration if the property is assigned inside the literal itself
@@ -270,14 +470,21 @@ impl Relater {
                             let mut suggestion = String::new();
                             if let Some(value_declaration) = prop.value_declaration() {
                                 if ast::is_object_literal_element(value_declaration)
-                                    && find_ancestor(value_declaration, |d| Some(d) == object_literal_declaration).is_some()
-                                    && get_source_file_of_node(object_literal_declaration) == get_source_file_of_node(self.error_node.get())
+                                    && find_ancestor(value_declaration, |d| {
+                                        Some(d) == object_literal_declaration
+                                    })
+                                    .is_some()
+                                    && get_source_file_of_node(object_literal_declaration)
+                                        == get_source_file_of_node(self.error_node.get())
                                 {
                                     let name = value_declaration.name();
                                     self.error_node.set(name);
                                     let name = name.unwrap();
                                     if ast::is_identifier(name) {
-                                        suggestion = c.get_suggestion_for_nonexistent_property(name.text(), error_target);
+                                        suggestion = c.get_suggestion_for_nonexistent_property(
+                                            name.text(),
+                                            error_target,
+                                        );
                                     }
                                 }
                             }
@@ -296,12 +503,23 @@ impl Relater {
                 }
                 if !check_types.is_empty() && {
                     let prop_type = c.get_type_of_symbol(prop);
-                    let target_prop_type = c.get_type_of_property_in_types(&check_types, prop.name());
-                    self.is_related_to(c, prop_type, target_prop_type, RecursionFlags::Both, report_errors) == Ternary::False
+                    let target_prop_type =
+                        c.get_type_of_property_in_types(&check_types, prop.name());
+                    self.is_related_to(
+                        c,
+                        prop_type,
+                        target_prop_type,
+                        RecursionFlags::Both,
+                        report_errors,
+                    ) == Ternary::False
                 } {
                     if report_errors {
                         let prop_string = c.symbol_to_string(prop);
-                        self.report_error(c, &diagnostics::Types_of_property_0_are_incompatible, &[&prop_string]);
+                        self.report_error(
+                            c,
+                            &diagnostics::Types_of_property_0_are_incompatible,
+                            &[&prop_string],
+                        );
                     }
                     return true;
                 }
@@ -313,7 +531,11 @@ impl Relater {
 
 impl Checker {
     // relater.go:2829
-    pub(crate) fn get_type_of_property_in_types(&mut self, types: &[P<Type>], name: &str) -> P<Type> {
+    pub(crate) fn get_type_of_property_in_types(
+        &mut self,
+        types: &[P<Type>],
+        name: &str,
+    ) -> P<Type> {
         let mut prop_types: Vec<P<Type>> = Vec::new();
         prop_types.extend(types.iter().map(|&t| self.get_type_of_property_in_type(t, name)));
         self.get_union_type(&prop_types)
@@ -340,19 +562,28 @@ impl Checker {
 
 // relater.go:2855
 // container is nil-able (Go only dereferences it after checking prop.ValueDeclaration).
-pub(crate) fn should_check_as_excess_property(prop: P<Symbol>, container: Option<P<Symbol>>) -> bool {
-    prop.value_declaration().is_some() && container.unwrap().value_declaration().is_some() && prop.value_declaration().unwrap().parent() == container.unwrap().value_declaration()
+pub(crate) fn should_check_as_excess_property(
+    prop: P<Symbol>,
+    container: Option<P<Symbol>>,
+) -> bool {
+    prop.value_declaration().is_some()
+        && container.unwrap().value_declaration().is_some()
+        && prop.value_declaration().unwrap().parent() == container.unwrap().value_declaration()
 }
 
 // relater.go:2859
 pub(crate) fn is_ignored_jsx_property(source: P<Type>, source_prop: P<Symbol>) -> bool {
-    source.object_flags().intersects(ObjectFlags::JsxAttributes) && is_hyphenated_jsx_name(source_prop.name())
+    source.object_flags().intersects(ObjectFlags::JsxAttributes)
+        && is_hyphenated_jsx_name(source_prop.name())
 }
 
 impl Checker {
     // relater.go:2863
     pub(crate) fn is_type_subset_of(&mut self, source: P<Type>, target: P<Type>) -> bool {
-        source == target || source.flags().intersects(TypeFlags::Never) || target.flags().intersects(TypeFlags::Union) && self.is_type_subset_of_union(source, target)
+        source == target
+            || source.flags().intersects(TypeFlags::Never)
+            || target.flags().intersects(TypeFlags::Union)
+                && self.is_type_subset_of_union(source, target)
     }
 
     // relater.go:2867
@@ -369,7 +600,9 @@ impl Checker {
             }
             return true;
         }
-        if source.flags().intersects(TypeFlags::EnumLike) && self.get_base_type_of_enum_like_type(source) == target {
+        if source.flags().intersects(TypeFlags::EnumLike)
+            && self.get_base_type_of_enum_like_type(source) == target
+        {
             return true;
         }
         contains_type(self, target.types(), source)
@@ -378,7 +611,14 @@ impl Checker {
 
 impl Relater {
     // relater.go:2882
-    pub(crate) fn union_or_intersection_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn union_or_intersection_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         // Note that these checks are specifically ordered to produce correct results. In particular,
         // we need to deconstruct unions before intersections (because unions are always at the top),
         // and we need to handle "each" relations before "some" relations for the same kind of type.
@@ -390,7 +630,10 @@ impl Relater {
                 // the result to be true (for any two types A and B, A & B is related to both A and B).
                 let source_origin = source.as_union_type().origin();
                 if let Some(source_origin) = source_origin {
-                    if source_origin.flags().intersects(TypeFlags::Intersection) && target.alias().is_some() && source_origin.types().contains(&target) {
+                    if source_origin.flags().intersects(TypeFlags::Intersection)
+                        && target.alias().is_some()
+                        && source_origin.types().contains(&target)
+                    {
                         return Ternary::True;
                     }
                 }
@@ -398,22 +641,51 @@ impl Relater {
                 // much shorter than the normalized result, so we scan it in the following fast path.
                 let target_origin = target.as_union_type().origin();
                 if let Some(target_origin) = target_origin {
-                    if target_origin.flags().intersects(TypeFlags::Union) && source.alias().is_some() && target_origin.types().contains(&source) {
+                    if target_origin.flags().intersects(TypeFlags::Union)
+                        && source.alias().is_some()
+                        && target_origin.types().contains(&source)
+                    {
                         return Ternary::True;
                     }
                 }
             }
             if self.rel() == c.comparable_relation {
-                return self.some_type_related_to_type(c, source, target, report_errors && !source.flags().intersects(TypeFlags::Primitive), intersection_state);
+                return self.some_type_related_to_type(
+                    c,
+                    source,
+                    target,
+                    report_errors && !source.flags().intersects(TypeFlags::Primitive),
+                    intersection_state,
+                );
             }
-            return self.each_type_related_to_type(c, source, target, report_errors && !source.flags().intersects(TypeFlags::Primitive), intersection_state);
+            return self.each_type_related_to_type(
+                c,
+                source,
+                target,
+                report_errors && !source.flags().intersects(TypeFlags::Primitive),
+                intersection_state,
+            );
         }
         if target.flags().intersects(TypeFlags::Union) {
             let regular_source = c.get_regular_type_of_object_literal(source);
-            return self.type_related_to_some_type(c, regular_source, target, report_errors && !source.flags().intersects(TypeFlags::Primitive) && !target.flags().intersects(TypeFlags::Primitive), intersection_state);
+            return self.type_related_to_some_type(
+                c,
+                regular_source,
+                target,
+                report_errors
+                    && !source.flags().intersects(TypeFlags::Primitive)
+                    && !target.flags().intersects(TypeFlags::Primitive),
+                intersection_state,
+            );
         }
         if target.flags().intersects(TypeFlags::Intersection) {
-            return self.type_related_to_each_type(c, source, target, report_errors, IntersectionState::Target);
+            return self.type_related_to_each_type(
+                c,
+                source,
+                target,
+                report_errors,
+                IntersectionState::Target,
+            );
         }
         // Source is an intersection. For the comparable relation, if the target is a primitive type we hoist the
         // constraints of all non-primitive types in the source into a new intersection. We do this because the
@@ -446,11 +718,23 @@ impl Relater {
                     return Ternary::False;
                 }
                 if !source.flags().intersects(TypeFlags::Intersection) {
-                    let result = self.is_related_to(c, source, target, RecursionFlags::Source, false /*reportErrors*/);
+                    let result = self.is_related_to(
+                        c,
+                        source,
+                        target,
+                        RecursionFlags::Source,
+                        false, /*reportErrors*/
+                    );
                     if result != Ternary::False {
                         return result;
                     }
-                    return self.is_related_to(c, target, source, RecursionFlags::Source, false /*reportErrors*/);
+                    return self.is_related_to(
+                        c,
+                        target,
+                        source,
+                        RecursionFlags::Source,
+                        false, /*reportErrors*/
+                    );
                 }
             }
         }
@@ -458,11 +742,24 @@ impl Relater {
         // Don't report errors though. Elaborating on whether a source constituent is related to the target is
         // not actually useful and leads to some confusing error messages. Instead, we rely on the caller
         // checking whether the full intersection viewed as an object is related to the target.
-        self.some_type_related_to_type(c, source, target, false /*reportErrors*/, IntersectionState::Source)
+        self.some_type_related_to_type(
+            c,
+            source,
+            target,
+            false, /*reportErrors*/
+            IntersectionState::Source,
+        )
     }
 
     // relater.go:2951
-    pub(crate) fn some_type_related_to_type(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn some_type_related_to_type(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let source_types = source.types();
         if source.flags().intersects(TypeFlags::Union) && contains_type(c, source_types, target) {
             return Ternary::True;
@@ -489,7 +786,14 @@ impl Relater {
     }
 
     // relater.go:2965
-    pub(crate) fn each_type_related_to_type(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn each_type_related_to_type(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let mut result = Ternary::True;
         let source_types = source.types();
         // We strip `undefined` from the target if the `source` trivially doesn't contain it for our correspondence-checking fastpath
@@ -499,37 +803,48 @@ impl Relater {
         if stripped_target.flags().intersects(TypeFlags::Union) {
             stripped_types = stripped_target.types();
         }
-        result = match source_types.iter().enumerate().try_fold(result, |mut result, (i, &source_type)| {
-            if stripped_target.flags().intersects(TypeFlags::Union)
-                && source_types.len() >= stripped_types.len()
-                && source_types.len().is_multiple_of(stripped_types.len())
-            {
-                // many unions are mappings of one another; in such cases, simply comparing members at the same index can shortcut the comparison
-                // such unions will have identical lengths, and their corresponding elements will match up. Another common scenario is where a large
-                // union has a union of objects intersected with it. In such cases, if the input was, eg `("a" | "b" | "c") & (string | boolean | {} | {whatever})`,
-                // the result will have the structure `"a" | "b" | "c" | "a" & {} | "b" & {} | "c" & {} | "a" & {whatever} | "b" & {whatever} | "c" & {whatever}`
-                // - the resulting union has a length which is a multiple of the original union, and the elements correspond modulo the length of the original union
+        result = match source_types.iter().enumerate().try_fold(
+            result,
+            |mut result, (i, &source_type)| {
+                if stripped_target.flags().intersects(TypeFlags::Union)
+                    && source_types.len() >= stripped_types.len()
+                    && source_types.len().is_multiple_of(stripped_types.len())
+                {
+                    // many unions are mappings of one another; in such cases, simply comparing members at the same index can shortcut the comparison
+                    // such unions will have identical lengths, and their corresponding elements will match up. Another common scenario is where a large
+                    // union has a union of objects intersected with it. In such cases, if the input was, eg `("a" | "b" | "c") & (string | boolean | {} | {whatever})`,
+                    // the result will have the structure `"a" | "b" | "c" | "a" & {} | "b" & {} | "c" & {} | "a" & {whatever} | "b" & {whatever} | "c" & {whatever}`
+                    // - the resulting union has a length which is a multiple of the original union, and the elements correspond modulo the length of the original union
+                    let related = self.is_related_to_ex(
+                        c,
+                        source_type,
+                        stripped_types[i % stripped_types.len()],
+                        RecursionFlags::Both,
+                        false, /*reportErrors*/
+                        None,  /*headMessage*/
+                        intersection_state,
+                    );
+                    if related != Ternary::False {
+                        result &= related;
+                        return Ok(result);
+                    }
+                }
                 let related = self.is_related_to_ex(
                     c,
                     source_type,
-                    stripped_types[i % stripped_types.len()],
-                    RecursionFlags::Both,
-                    false, /*reportErrors*/
-                    None,  /*headMessage*/
+                    target,
+                    RecursionFlags::Source,
+                    report_errors,
+                    None, /*headMessage*/
                     intersection_state,
                 );
-                if related != Ternary::False {
-                    result &= related;
-                    return Ok(result);
+                if related == Ternary::False {
+                    return Err(Ternary::False);
                 }
-            }
-            let related = self.is_related_to_ex(c, source_type, target, RecursionFlags::Source, report_errors, None /*headMessage*/, intersection_state);
-            if related == Ternary::False {
-                return Err(Ternary::False);
-            }
-            result &= related;
-            Ok(result)
-        }) {
+                result &= related;
+                Ok(result)
+            },
+        ) {
             Ok(value) => value,
             Err(value) => return value,
         };
@@ -537,7 +852,11 @@ impl Relater {
     }
 
     // relater.go:2997
-    pub(crate) fn get_undefined_stripped_target_if_needed(c: &mut Checker, source: P<Type>, target: P<Type>) -> P<Type> {
+    pub(crate) fn get_undefined_stripped_target_if_needed(
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> P<Type> {
         if source.flags().intersects(TypeFlags::Union)
             && target.flags().intersects(TypeFlags::Union)
             && !source.types()[0].flags().intersects(TypeFlags::Undefined)
@@ -549,22 +868,52 @@ impl Relater {
     }
 
     // relater.go:3004
-    #[cfg_attr(not(feature = "work-census"), inline(always), expect(clippy::inline_always, reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"))]
-    pub(crate) fn type_related_to_some_type(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    #[cfg_attr(
+        not(feature = "work-census"),
+        inline(always),
+        expect(
+            clippy::inline_always,
+            reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
+        )
+    )]
+    pub(crate) fn type_related_to_some_type(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if !c.census_on() {
-            return self.type_related_to_some_type_worker(c, source, target, report_errors, intersection_state, &mut (0, 0, 0));
+            return self.type_related_to_some_type_worker(
+                c,
+                source,
+                target,
+                report_errors,
+                intersection_state,
+                &mut (0, 0, 0),
+            );
         }
         let span = c.census_begin(crate::workcensus::Cat::RelUnion, || {
             let (sym, label) = crate::workcensus::type_identity(target);
             crate::workcensus::CKey::Rel(0, sym, label)
         });
         let mut outcome = (0u8, 0u8, 0u32);
-        let r = self.type_related_to_some_type_worker(c, source, target, report_errors, intersection_state, &mut outcome);
+        let r = self.type_related_to_some_type_worker(
+            c,
+            source,
+            target,
+            report_errors,
+            intersection_state,
+            &mut outcome,
+        );
         let timing = c.census_end(span).unwrap();
         let k = crate::workcensus::rel_kind(c, self.rel());
         let (sym, label) = crate::workcensus::type_identity(target);
         let n = target.types().len();
-        let source_kind = if is_object_literal_type(source) && source.object_flags().intersects(ObjectFlags::FreshLiteral) {
+        let source_kind = if is_object_literal_type(source)
+            && source.object_flags().intersects(ObjectFlags::FreshLiteral)
+        {
             0
         } else if is_object_literal_type(source) {
             1
@@ -577,7 +926,9 @@ impl Relater {
         } else {
             5
         };
-        let key_state = if !target.flags().intersects(TypeFlags::Union) || target.as_union_type().key_property_name().is_empty() {
+        let key_state = if !target.flags().intersects(TypeFlags::Union)
+            || target.as_union_type().key_property_name().is_empty()
+        {
             0
         } else if target.as_union_type().key_property_name() == InternalSymbolNameMissing {
             1
@@ -601,7 +952,14 @@ impl Relater {
             }
         };
         let census = c.census.as_mut().unwrap();
-        census.record(crate::workcensus::Cat::RelUnion, crate::workcensus::CKey::Rel(k, sym, label), timing, outcome.2 as u64, (outcome.0 == 2) as u64, (r != Ternary::False) as u64);
+        census.record(
+            crate::workcensus::Cat::RelUnion,
+            crate::workcensus::CKey::Rel(k, sym, label),
+            timing,
+            outcome.2 as u64,
+            (outcome.0 == 2) as u64,
+            (r != Ternary::False) as u64,
+        );
         let s = census.rel_union.entry((source_kind, key_state, exit)).or_default();
         s.count += 1;
         s.a += outcome.2 as u64;
@@ -613,8 +971,23 @@ impl Relater {
     }
 
     /// `outcome`: (exit path: 0 contains, 1 primitive union, 2 key match, 3 loop; key map state; constituents tried).
-    #[cfg_attr(not(feature = "work-census"), inline(always), expect(clippy::inline_always, reason = "its only call without the census; inlined, the outcome stores disappear"))]
-    fn type_related_to_some_type_worker(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState, outcome: &mut (u8, u8, u32)) -> Ternary {
+    #[cfg_attr(
+        not(feature = "work-census"),
+        inline(always),
+        expect(
+            clippy::inline_always,
+            reason = "its only call without the census; inlined, the outcome stores disappear"
+        )
+    )]
+    fn type_related_to_some_type_worker(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+        outcome: &mut (u8, u8, u32),
+    ) -> Ternary {
         let target_types = target.types();
         if target.flags().intersects(TypeFlags::Union) {
             if contains_type(c, target_types, source) {
@@ -624,8 +997,11 @@ impl Relater {
             if self.rel() != c.comparable_relation
                 && target.object_flags().intersects(ObjectFlags::PrimitiveUnion)
                 && !source.flags().intersects(TypeFlags::EnumLiteral)
-                && (source.flags().intersects(TypeFlags::StringLiteral | TypeFlags::BooleanLiteral | TypeFlags::BigIntLiteral)
-                    || (self.rel() == c.subtype_relation || self.rel() == c.strict_subtype_relation) && source.flags().intersects(TypeFlags::NumberLiteral))
+                && (source.flags().intersects(
+                    TypeFlags::StringLiteral | TypeFlags::BooleanLiteral | TypeFlags::BigIntLiteral,
+                ) || (self.rel() == c.subtype_relation
+                    || self.rel() == c.strict_subtype_relation)
+                    && source.flags().intersects(TypeFlags::NumberLiteral))
             {
                 // When relating a literal type to a union of primitive types, we know the relation is false unless
                 // the union contains the base primitive type or the literal type in one of its fresh/regular forms.
@@ -633,7 +1009,8 @@ impl Relater {
                 // numeric enum literals with the same value. Similarly, we exclude enum literal types because
                 // identically named enum types are related (see isEnumTypeRelatedTo). We exclude the comparable
                 // relation in entirety because it needs to be checked in both directions.
-                let alternate_form = if Some(source) == source.as_literal_type().regular_type.get() {
+                let alternate_form = if Some(source) == source.as_literal_type().regular_type.get()
+                {
                     source.as_literal_type().fresh_type.get()
                 } else {
                     source.as_literal_type().regular_type.get()
@@ -647,7 +1024,9 @@ impl Relater {
                     primitive = Some(c.bigint_type);
                 }
                 outcome.0 = 1;
-                if primitive.is_some_and(|p| contains_type(c, target_types, p)) || alternate_form.is_some_and(|a| contains_type(c, target_types, a)) {
+                if primitive.is_some_and(|p| contains_type(c, target_types, p))
+                    || alternate_form.is_some_and(|a| contains_type(c, target_types, a))
+                {
                     return Ternary::True;
                 }
                 return Ternary::False;
@@ -656,7 +1035,15 @@ impl Relater {
             outcome.1 = 4;
             if let Some(match_) = match_ {
                 outcome.1 = 3;
-                let related = self.is_related_to_ex(c, source, match_, RecursionFlags::Target, false /*reportErrors*/, None /*headMessage*/, intersection_state);
+                let related = self.is_related_to_ex(
+                    c,
+                    source,
+                    match_,
+                    RecursionFlags::Target,
+                    false, /*reportErrors*/
+                    None,  /*headMessage*/
+                    intersection_state,
+                );
                 if related != Ternary::False {
                     outcome.0 = 2;
                     outcome.1 = 2;
@@ -672,11 +1059,22 @@ impl Relater {
             outcome.2 += 1;
             let (t0, cached) = if census_on {
                 let (id, _) = get_relation_key(c, source, t, intersection_state, false, false);
-                (c.census.as_ref().unwrap().now_ns(), self.rel().lookup(id) != RelationComparisonResult::None)
+                (
+                    c.census.as_ref().unwrap().now_ns(),
+                    self.rel().lookup(id) != RelationComparisonResult::None,
+                )
             } else {
                 (0, false)
             };
-            let related = self.is_related_to_ex(c, source, t, RecursionFlags::Target, false /*reportErrors*/, None /*headMessage*/, intersection_state);
+            let related = self.is_related_to_ex(
+                c,
+                source,
+                t,
+                RecursionFlags::Target,
+                false, /*reportErrors*/
+                None,  /*headMessage*/
+                intersection_state,
+            );
             if census_on && related == Ternary::False {
                 fail_ns += c.census.as_ref().unwrap().now_ns() - t0;
                 fail_cached += cached as u64;
@@ -695,7 +1093,9 @@ impl Relater {
                             }
                             let mut all = true;
                             for &tj in &target_types[..i] {
-                                let excluded = tj.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
+                                let excluded = tj
+                                    .flags()
+                                    .intersects(TypeFlags::Object | TypeFlags::Intersection)
                                     && c.get_property_of_type(tj, p.name()).is_some_and(|q| {
                                         let qt = c.get_type_of_symbol(q);
                                         is_unit_type(qt) && !c.is_type_assignable_to(pt, qt)
@@ -713,7 +1113,10 @@ impl Relater {
                     }
                     let n = target_types.len();
                     let census = c.census.as_mut().unwrap();
-                    let s = census.rel_union_late.entry((crate::workcensus::bucket(n) as u8, indexable as u8)).or_default();
+                    let s = census
+                        .rel_union_late
+                        .entry((crate::workcensus::bucket(n) as u8, indexable as u8))
+                        .or_default();
                     s.count += 1;
                     s.a += i as u64;
                     s.b += fail_cached;
@@ -725,7 +1128,8 @@ impl Relater {
         if census_on {
             let n = target_types.len();
             let census = c.census.as_mut().unwrap();
-            let s = census.rel_union_late.entry((crate::workcensus::bucket(n) as u8, 2)).or_default();
+            let s =
+                census.rel_union_late.entry((crate::workcensus::bucket(n) as u8, 2)).or_default();
             s.count += 1;
             s.a += target_types.len() as u64;
             s.b += fail_cached;
@@ -733,20 +1137,45 @@ impl Relater {
         }
         if report_errors {
             // Elaborate only if we can find a best matching type in the target union
-            let best_matching_type = c.get_best_matching_type(source, target, |c, s, t| self.is_related_to_simple(c, s, t));
+            let best_matching_type = c.get_best_matching_type(source, target, |c, s, t| {
+                self.is_related_to_simple(c, s, t)
+            });
             if let Some(best_matching_type) = best_matching_type {
-                self.is_related_to_ex(c, source, best_matching_type, RecursionFlags::Target, true /*reportErrors*/, None /*headMessage*/, intersection_state);
+                self.is_related_to_ex(
+                    c,
+                    source,
+                    best_matching_type,
+                    RecursionFlags::Target,
+                    true, /*reportErrors*/
+                    None, /*headMessage*/
+                    intersection_state,
+                );
             }
         }
         Ternary::False
     }
 
     // relater.go:3063
-    pub(crate) fn type_related_to_each_type(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn type_related_to_each_type(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let mut result = Ternary::True;
         let target_types = target.types();
         result = match target_types.iter().try_fold(result, |mut result, &target_type| {
-            let related = self.is_related_to_ex(c, source, target_type, RecursionFlags::Target, report_errors, None /*headMessage*/, intersection_state);
+            let related = self.is_related_to_ex(
+                c,
+                source,
+                target_type,
+                RecursionFlags::Target,
+                report_errors,
+                None, /*headMessage*/
+                intersection_state,
+            );
             if related == Ternary::False {
                 return Err(Ternary::False);
             }
@@ -760,11 +1189,22 @@ impl Relater {
     }
 
     // relater.go:3076
-    pub(crate) fn each_type_related_to_some_type(&self, c: &mut Checker, source: P<Type>, target: P<Type>) -> Ternary {
+    pub(crate) fn each_type_related_to_some_type(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> Ternary {
         let mut result = Ternary::True;
         let source_types = source.types();
         result = match source_types.iter().try_fold(result, |mut result, &source_type| {
-            let related = self.type_related_to_some_type(c, source_type, target, false /*reportErrors*/, IntersectionState::None);
+            let related = self.type_related_to_some_type(
+                c,
+                source_type,
+                target,
+                false, /*reportErrors*/
+                IntersectionState::None,
+            );
             if related == Ternary::False {
                 return Err(Ternary::False);
             }
@@ -783,16 +1223,34 @@ impl Relater {
     // equal and infinitely expanding. Fourth, if we have reached a depth of 100 nested comparisons, assume we have runaway recursion
     // and issue an error. Otherwise, actually compare the structure of the two types.
     // relater.go:3094
-    pub(crate) fn recursive_type_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState, recursion_flags: RecursionFlags) -> Ternary {
+    pub(crate) fn recursive_type_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+        recursion_flags: RecursionFlags,
+    ) -> Ternary {
         if self.overflow.get() {
             // Note that stack depth overflows can cause _any_ relation involving structured types to become false, so it is
             // important to have well-defined behavior even in cases that shouldn't normally occur.
             return Ternary::False;
         }
         let is_identity = self.rel() == c.identity_relation;
-        let (id, constrained) = get_relation_key(c, source, target, intersection_state, is_identity, false /*ignoreConstraints*/);
+        let (id, constrained) = get_relation_key(
+            c,
+            source,
+            target,
+            intersection_state,
+            is_identity,
+            false, /*ignoreConstraints*/
+        );
         let entry = self.rel().lookup(id);
-        crate::sitecount::hit("relation cache (recursiveTypeRelatedTo)", if entry != RelationComparisonResult::None { "hit" } else { "miss" });
+        crate::sitecount::hit(
+            "relation cache (recursiveTypeRelatedTo)",
+            if entry != RelationComparisonResult::None { "hit" } else { "miss" },
+        );
         if c.census_on() {
             let k = crate::workcensus::rel_kind(c, self.rel()) as usize;
             let census = c.census.as_mut().unwrap();
@@ -805,15 +1263,24 @@ impl Relater {
             }
         }
         if entry != RelationComparisonResult::None {
-            if report_errors && entry.intersects(RelationComparisonResult::Failed) && !entry.intersects(RelationComparisonResult::Overflow) {
+            if report_errors
+                && entry.intersects(RelationComparisonResult::Failed)
+                && !entry.intersects(RelationComparisonResult::Overflow)
+            {
                 // We are elaborating errors and the cached result is a failure not due to a comparison overflow,
                 // so we will do the comparison again to generate an error message.
             } else {
-                c.reliability_flags |= entry & (RelationComparisonResult::ReportsUnmeasurable | RelationComparisonResult::ReportsUnreliable);
+                c.reliability_flags |= entry
+                    & (RelationComparisonResult::ReportsUnmeasurable
+                        | RelationComparisonResult::ReportsUnreliable);
                 if report_errors && entry.intersects(RelationComparisonResult::Overflow) {
                     let source_string = c.type_to_string_exported(source);
                     let target_string = c.type_to_string_exported(target);
-                    self.report_error(c, &diagnostics::Excessive_complexity_comparing_types_0_and_1, &[&source_string, &target_string]);
+                    self.report_error(
+                        c,
+                        &diagnostics::Excessive_complexity_comparing_types_0_and_1,
+                        &[&source_string, &target_string],
+                    );
                 }
                 if entry.intersects(RelationComparisonResult::Succeeded) {
                     return Ternary::True;
@@ -834,9 +1301,19 @@ impl Relater {
         // type parameters. For such keys we also check against the key we would have gotten if all type parameters
         // were unconstrained.
         if constrained {
-            let (broadest_equivalent_id, _) = get_relation_key(c, source, target, intersection_state, is_identity, true /*ignoreConstraints*/);
+            let (broadest_equivalent_id, _) = get_relation_key(
+                c,
+                source,
+                target,
+                intersection_state,
+                is_identity,
+                true, /*ignoreConstraints*/
+            );
             if self.maybe_stack_has(&broadest_equivalent_id) {
-                crate::sitecount::hit("relation cache (recursiveTypeRelatedTo)", "maybe stack hit (broadest)");
+                crate::sitecount::hit(
+                    "relation cache (recursiveTypeRelatedTo)",
+                    "maybe stack hit (broadest)",
+                );
                 return Ternary::Maybe;
             }
         }
@@ -852,13 +1329,17 @@ impl Relater {
         if recursion_flags.intersects(RecursionFlags::Source) {
             self.source_stack.borrow_mut().push(RelaterStackEntry::new(source));
             // isDeeplyNestedType never reaches this relater, so the stack borrow is not held across a re-entry.
-            if !self.expanding_flags.get().intersects(ExpandingFlags::Source) && c.is_deeply_nested_on_stack(source, &self.source_stack.borrow(), 3) {
+            if !self.expanding_flags.get().intersects(ExpandingFlags::Source)
+                && c.is_deeply_nested_on_stack(source, &self.source_stack.borrow(), 3)
+            {
                 self.expanding_flags.set(self.expanding_flags.get() | ExpandingFlags::Source);
             }
         }
         if recursion_flags.intersects(RecursionFlags::Target) {
             self.target_stack.borrow_mut().push(RelaterStackEntry::new(target));
-            if !self.expanding_flags.get().intersects(ExpandingFlags::Target) && c.is_deeply_nested_on_stack(target, &self.target_stack.borrow(), 3) {
+            if !self.expanding_flags.get().intersects(ExpandingFlags::Target)
+                && c.is_deeply_nested_on_stack(target, &self.target_stack.borrow(), 3)
+            {
                 self.expanding_flags.set(self.expanding_flags.get() | ExpandingFlags::Target);
             }
         }
@@ -883,7 +1364,9 @@ impl Relater {
         // recorded, so that the next comparison evaluates and reports again (`Checker::too_complex_since`).
         let record = !c.too_complex_since(too_complex_before);
         if result != Ternary::False {
-            if result == Ternary::True || (self.source_stack.borrow().is_empty() && self.target_stack.borrow().is_empty()) {
+            if result == Ternary::True
+                || (self.source_stack.borrow().is_empty() && self.target_stack.borrow().is_empty())
+            {
                 if (result == Ternary::True || result == Ternary::Maybe) && record {
                     // If result is definitely true, record all maybe keys as having succeeded. Also, record Ternary.Maybe
                     // results as having succeeded once we reach depth 0, but never record Ternary.Unknown results.
@@ -899,7 +1382,11 @@ impl Relater {
             // A false result goes straight into global cache (when something is false under
             // assumptions it will also be false without assumptions)
             if record {
-                Relation::set(&self.rel(), id, RelationComparisonResult::Failed | propagating_variance_flags);
+                Relation::set(
+                    &self.rel(),
+                    id,
+                    RelationComparisonResult::Failed | propagating_variance_flags,
+                );
                 self.relation_count.set(self.relation_count.get() - 1);
             }
             self.reset_maybe_stack(c, maybe_start, propagating_variance_flags, false);
@@ -919,7 +1406,11 @@ impl Relater {
         if mark_all_as_succeeded {
             for i in maybe_start..len {
                 let key = self.maybe_keys.borrow()[i];
-                Relation::set(&self.rel(), key, RelationComparisonResult::Succeeded | propagating_variance_flags);
+                Relation::set(
+                    &self.rel(),
+                    key,
+                    RelationComparisonResult::Succeeded | propagating_variance_flags,
+                );
                 self.relation_count.set(self.relation_count.get() - 1);
             }
         }
@@ -961,7 +1452,10 @@ impl Relater {
 
     // relater.go:3212
     pub(crate) fn get_error_state(&self, _c: &mut Checker) -> errorState {
-        errorState { error_chain: self.error_chain.get(), related_info: self.related_info.borrow().clone() }
+        errorState {
+            error_chain: self.error_chain.get(),
+            related_info: self.related_info.borrow().clone(),
+        }
     }
 
     // relater.go:3219
@@ -971,27 +1465,74 @@ impl Relater {
     }
 
     // relater.go:3224
-    #[cfg_attr(not(feature = "work-census"), inline(always), expect(clippy::inline_always, reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"))]
-    pub(crate) fn structured_type_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    #[cfg_attr(
+        not(feature = "work-census"),
+        inline(always),
+        expect(
+            clippy::inline_always,
+            reason = "without the census the wrapper is a forwarding call; inlined, callers call the body as before (notes/perf-checker-algorithms.md)"
+        )
+    )]
+    pub(crate) fn structured_type_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if c.census_on() {
-            let span = c.census_begin(crate::workcensus::Cat::Rel, || { let (sym, label) = crate::workcensus::type_identity(target); crate::workcensus::CKey::Rel(0, sym, label) });
-            let r = self.structured_type_related_to_body(c, source, target, report_errors, intersection_state);
+            let span = c.census_begin(crate::workcensus::Cat::Rel, || {
+                let (sym, label) = crate::workcensus::type_identity(target);
+                crate::workcensus::CKey::Rel(0, sym, label)
+            });
+            let r = self.structured_type_related_to_body(
+                c,
+                source,
+                target,
+                report_errors,
+                intersection_state,
+            );
             let timing = c.census_end(span).unwrap();
             let k = crate::workcensus::rel_kind(c, self.rel());
             let (sym, label) = crate::workcensus::type_identity(target);
             let census = c.census.as_mut().unwrap();
-            if ((((source.id.0 as u64) << 32) | target.id.0 as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15) >> 61) == 0 {
+            if ((((source.id.0 as u64) << 32) | target.id.0 as u64)
+                .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+                >> 61)
+                == 0
+            {
                 *census.rel_pairs.entry((source.id.0, target.id.0)).or_default() |= 1 << k;
             }
-            census.record(crate::workcensus::Cat::Rel, crate::workcensus::CKey::Rel(k, sym, label), timing, (r == Ternary::False) as u64, 0, 0);
+            census.record(
+                crate::workcensus::Cat::Rel,
+                crate::workcensus::CKey::Rel(k, sym, label),
+                timing,
+                (r == Ternary::False) as u64,
+                0,
+                0,
+            );
             return r;
         }
         self.structured_type_related_to_body(c, source, target, report_errors, intersection_state)
     }
 
-    fn structured_type_related_to_body(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    fn structured_type_related_to_body(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let save_error_state = self.get_error_state(c);
-        let mut result = self.structured_type_related_to_worker(c, source, target, report_errors, intersection_state);
+        let mut result = self.structured_type_related_to_worker(
+            c,
+            source,
+            target,
+            report_errors,
+            intersection_state,
+        );
         if self.rel() != c.identity_relation {
             // The combined constraint of an intersection type is the intersection of the constraints of
             // the constituents. When an intersection type contains instantiable types with union type
@@ -1006,13 +1547,33 @@ impl Relater {
             // needs to have its constraint hoisted into an intersection with said type parameter, this way
             // the type param can be compared with itself in the target (with the influence of its constraint to match other parts)
             // For example, if `T extends 1 | 2` and `U extends 2 | 3` and we compare `T & U` to `T & U & (1 | 2 | 3)`
-            if result == Ternary::False && (source.flags().intersects(TypeFlags::Intersection) || source.flags().intersects(TypeFlags::TypeParameter) && target.flags().intersects(TypeFlags::Union)) {
-                let source_types: &[P<Type>] = if source.flags().intersects(TypeFlags::Intersection) { source.types() } else { std::slice::from_ref(&source) };
-                let constraint = c.get_effective_constraint_of_intersection(source_types, target.flags().intersects(TypeFlags::Union));
+            if result == Ternary::False
+                && (source.flags().intersects(TypeFlags::Intersection)
+                    || source.flags().intersects(TypeFlags::TypeParameter)
+                        && target.flags().intersects(TypeFlags::Union))
+            {
+                let source_types: &[P<Type>] = if source.flags().intersects(TypeFlags::Intersection)
+                {
+                    source.types()
+                } else {
+                    std::slice::from_ref(&source)
+                };
+                let constraint = c.get_effective_constraint_of_intersection(
+                    source_types,
+                    target.flags().intersects(TypeFlags::Union),
+                );
                 if let Some(constraint) = constraint {
                     if every_type(c, constraint, |_, t| t != source) {
                         // TODO: Stack errors so we get a pyramid for the "normal" comparison above, _and_ a second for this
-                        result = self.is_related_to_ex(c, constraint, target, RecursionFlags::Source, false /*reportErrors*/, None /*headMessage*/, intersection_state);
+                        result = self.is_related_to_ex(
+                            c,
+                            constraint,
+                            target,
+                            RecursionFlags::Source,
+                            false, /*reportErrors*/
+                            None,  /*headMessage*/
+                            intersection_state,
+                        );
                     }
                 }
             }
@@ -1031,9 +1592,27 @@ impl Relater {
                 && !c.is_generic_object_type(target)
                 && source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
             {
-                result &= self.properties_related_to(c, source, target, report_errors, &NO_EXCLUDED_PROPERTIES, false /*optionalsOnly*/, IntersectionState::None);
-                if result != Ternary::False && is_object_literal_type(source) && source.object_flags().intersects(ObjectFlags::FreshLiteral) {
-                    result &= self.index_signatures_related_to(c, source, target, false /*sourceIsPrimitive*/, report_errors, IntersectionState::None);
+                result &= self.properties_related_to(
+                    c,
+                    source,
+                    target,
+                    report_errors,
+                    &NO_EXCLUDED_PROPERTIES,
+                    false, /*optionalsOnly*/
+                    IntersectionState::None,
+                );
+                if result != Ternary::False
+                    && is_object_literal_type(source)
+                    && source.object_flags().intersects(ObjectFlags::FreshLiteral)
+                {
+                    result &= self.index_signatures_related_to(
+                        c,
+                        source,
+                        target,
+                        false, /*sourceIsPrimitive*/
+                        report_errors,
+                        IntersectionState::None,
+                    );
                 }
             // When the source is an intersection we need an extra check of any optional properties in the target to
             // detect possible mismatched property types. For example:
@@ -1042,8 +1621,20 @@ impl Relater {
             //     x = y;  // Mismatched property in source intersection
             //   }
             //
-            } else if result != Ternary::False && c.is_non_generic_object_type(target) && !c.is_array_or_tuple_type(target) && Self::is_source_intersection_needing_extra_check(c, source, target) {
-                result &= self.properties_related_to(c, source, target, report_errors, &NO_EXCLUDED_PROPERTIES, true /*optionalsOnly*/, intersection_state);
+            } else if result != Ternary::False
+                && c.is_non_generic_object_type(target)
+                && !c.is_array_or_tuple_type(target)
+                && Self::is_source_intersection_needing_extra_check(c, source, target)
+            {
+                result &= self.properties_related_to(
+                    c,
+                    source,
+                    target,
+                    report_errors,
+                    &NO_EXCLUDED_PROPERTIES,
+                    true, /*optionalsOnly*/
+                    intersection_state,
+                );
             }
         }
         if result != Ternary::False {
@@ -1053,10 +1644,16 @@ impl Relater {
     }
 
     // relater.go:3286
-    pub(crate) fn is_source_intersection_needing_extra_check(c: &mut Checker, source: P<Type>, target: P<Type>) -> bool {
+    pub(crate) fn is_source_intersection_needing_extra_check(
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> bool {
         source.flags().intersects(TypeFlags::Intersection)
             && c.get_apparent_type(source).flags().intersects(TypeFlags::StructuredType)
-            && !source.types().iter().any(|&t| t == target || t.object_flags().intersects(ObjectFlags::NonInferrableType))
+            && !source.types().iter().any(|&t| {
+                t == target || t.object_flags().intersects(ObjectFlags::NonInferrableType)
+            })
     }
 
     // The `relateVariances` closure of structuredTypeRelatedToWorker; the variables it captures by reference are passed
@@ -1074,7 +1671,14 @@ impl Relater {
         variance_check_failed: &mut bool,
         original_error_chain: &mut Option<P<ErrorChain>>,
     ) -> (Ternary, bool) {
-        *result = self.type_arguments_related_to(c, source_type_arguments, target_type_arguments, variances, report_errors, intersection_state);
+        *result = self.type_arguments_related_to(
+            c,
+            source_type_arguments,
+            target_type_arguments,
+            variances,
+            report_errors,
+            intersection_state,
+        );
         if *result != Ternary::False {
             return (*result, true);
         }
@@ -1087,7 +1691,8 @@ impl Relater {
             self.restore_error_state(c, save_error_state.clone());
             return (Ternary::False, false);
         }
-        let allow_structural_fallback = checker::Checker::has_covariant_void_argument(target_type_arguments, variances);
+        let allow_structural_fallback =
+            checker::Checker::has_covariant_void_argument(target_type_arguments, variances);
         *variance_check_failed = !allow_structural_fallback;
         // The type arguments did not relate appropriately, but it may be because we have no variance
         // information (in which case typeArgumentsRelatedTo defaulted to covariance for all type
@@ -1105,7 +1710,12 @@ impl Relater {
             // reveal the reason).
             // We can switch on `reportErrors` here, since varianceCheckFailed guarantees we return `False`,
             // we can return `False` early here to skip calculating the structural error message we don't need.
-            if *variance_check_failed && !(report_errors && variances.iter().any(|&v| (v & VarianceFlags::VarianceMask) == VarianceFlags::Invariant)) {
+            if *variance_check_failed
+                && !(report_errors
+                    && variances
+                        .iter()
+                        .any(|&v| (v & VarianceFlags::VarianceMask) == VarianceFlags::Invariant))
+            {
                 return (Ternary::False, true);
             }
             // We remember the original error information so we can restore it in case the structural
@@ -1118,7 +1728,14 @@ impl Relater {
     }
 
     // relater.go:3293
-    pub(crate) fn structured_type_related_to_worker(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn structured_type_related_to_worker(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let mut source = source;
         let mut result: Ternary = Ternary::False;
         let mut variance_check_failed = false;
@@ -1133,11 +1750,29 @@ impl Relater {
                 }
                 return result;
             } else if source.flags().intersects(TypeFlags::Index) {
-                return self.is_related_to(c, source.target().unwrap(), target.target().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                return self.is_related_to(
+                    c,
+                    source.target().unwrap(),
+                    target.target().unwrap(),
+                    RecursionFlags::Both,
+                    false, /*reportErrors*/
+                );
             } else if source.flags().intersects(TypeFlags::IndexedAccess) {
-                result = self.is_related_to(c, source.as_indexed_access_type().object_type.get().unwrap(), target.as_indexed_access_type().object_type.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                result = self.is_related_to(
+                    c,
+                    source.as_indexed_access_type().object_type.get().unwrap(),
+                    target.as_indexed_access_type().object_type.get().unwrap(),
+                    RecursionFlags::Both,
+                    false, /*reportErrors*/
+                );
                 if result != Ternary::False {
-                    result &= self.is_related_to(c, source.as_indexed_access_type().index_type.get().unwrap(), target.as_indexed_access_type().index_type.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                    result &= self.is_related_to(
+                        c,
+                        source.as_indexed_access_type().index_type.get().unwrap(),
+                        target.as_indexed_access_type().index_type.get().unwrap(),
+                        RecursionFlags::Both,
+                        false, /*reportErrors*/
+                    );
                     if result != Ternary::False {
                         return result;
                     }
@@ -1145,18 +1780,44 @@ impl Relater {
             } else if source.flags().intersects(TypeFlags::Conditional) {
                 let source_conditional = source.as_conditional_type();
                 let target_conditional = target.as_conditional_type();
-                if source_conditional.root.get().unwrap().is_distributive.get() == target_conditional.root.get().unwrap().is_distributive.get() {
-                    result = self.is_related_to(c, source_conditional.check_type.get().unwrap(), target_conditional.check_type.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                if source_conditional.root.get().unwrap().is_distributive.get()
+                    == target_conditional.root.get().unwrap().is_distributive.get()
+                {
+                    result = self.is_related_to(
+                        c,
+                        source_conditional.check_type.get().unwrap(),
+                        target_conditional.check_type.get().unwrap(),
+                        RecursionFlags::Both,
+                        false, /*reportErrors*/
+                    );
                     if result != Ternary::False {
-                        result &= self.is_related_to(c, source_conditional.extends_type.get().unwrap(), target_conditional.extends_type.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                        result &= self.is_related_to(
+                            c,
+                            source_conditional.extends_type.get().unwrap(),
+                            target_conditional.extends_type.get().unwrap(),
+                            RecursionFlags::Both,
+                            false, /*reportErrors*/
+                        );
                         if result != Ternary::False {
                             let source_true = c.get_true_type_from_conditional_type(source);
                             let target_true = c.get_true_type_from_conditional_type(target);
-                            result &= self.is_related_to(c, source_true, target_true, RecursionFlags::Both, false /*reportErrors*/);
+                            result &= self.is_related_to(
+                                c,
+                                source_true,
+                                target_true,
+                                RecursionFlags::Both,
+                                false, /*reportErrors*/
+                            );
                             if result != Ternary::False {
                                 let source_false = c.get_false_type_from_conditional_type(source);
                                 let target_false = c.get_false_type_from_conditional_type(target);
-                                result &= self.is_related_to(c, source_false, target_false, RecursionFlags::Both, false /*reportErrors*/);
+                                result &= self.is_related_to(
+                                    c,
+                                    source_false,
+                                    target_false,
+                                    RecursionFlags::Both,
+                                    false, /*reportErrors*/
+                                );
                                 if result != Ternary::False {
                                     return result;
                                 }
@@ -1165,20 +1826,42 @@ impl Relater {
                     }
                 }
             } else if source.flags().intersects(TypeFlags::Substitution) {
-                result = self.is_related_to(c, source.as_substitution_type().base_type.get().unwrap(), target.as_substitution_type().base_type.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                result = self.is_related_to(
+                    c,
+                    source.as_substitution_type().base_type.get().unwrap(),
+                    target.as_substitution_type().base_type.get().unwrap(),
+                    RecursionFlags::Both,
+                    false, /*reportErrors*/
+                );
                 if result != Ternary::False {
-                    result &= self.is_related_to(c, source.as_substitution_type().constraint.get().unwrap(), target.as_substitution_type().constraint.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                    result &= self.is_related_to(
+                        c,
+                        source.as_substitution_type().constraint.get().unwrap(),
+                        target.as_substitution_type().constraint.get().unwrap(),
+                        RecursionFlags::Both,
+                        false, /*reportErrors*/
+                    );
                     if result != Ternary::False {
                         return result;
                     }
                 }
             } else if source.flags().intersects(TypeFlags::TemplateLiteral) {
-                if source.as_template_literal_type().texts() == target.as_template_literal_type().texts() {
+                if source.as_template_literal_type().texts()
+                    == target.as_template_literal_type().texts()
+                {
                     result = Ternary::True;
                     // A measured hot loop: a recursive try_fold costs more (notes/perf-iterator-regressions.md).
-                    for (i, &source_type) in source.as_template_literal_type().types().iter().enumerate() {
+                    for (i, &source_type) in
+                        source.as_template_literal_type().types().iter().enumerate()
+                    {
                         let target_type = target.as_template_literal_type().types()[i];
-                        result &= self.is_related_to(c, source_type, target_type, RecursionFlags::Both, false /*reportErrors*/);
+                        result &= self.is_related_to(
+                            c,
+                            source_type,
+                            target_type,
+                            RecursionFlags::Both,
+                            false, /*reportErrors*/
+                        );
                         if result == Ternary::False {
                             return result;
                         }
@@ -1187,14 +1870,28 @@ impl Relater {
                 }
             } else if source.flags().intersects(TypeFlags::StringMapping) {
                 if source.symbol() == target.symbol() {
-                    return self.is_related_to(c, source.as_string_mapping_type().target.get().unwrap(), target.as_string_mapping_type().target.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                    return self.is_related_to(
+                        c,
+                        source.as_string_mapping_type().target.get().unwrap(),
+                        target.as_string_mapping_type().target.get().unwrap(),
+                        RecursionFlags::Both,
+                        false, /*reportErrors*/
+                    );
                 }
             }
             if !source.flags().intersects(TypeFlags::Object) {
                 return Ternary::False;
             }
-        } else if source.flags().intersects(TypeFlags::UnionOrIntersection) || target.flags().intersects(TypeFlags::UnionOrIntersection) {
-            result = self.union_or_intersection_related_to(c, source, target, report_errors, intersection_state);
+        } else if source.flags().intersects(TypeFlags::UnionOrIntersection)
+            || target.flags().intersects(TypeFlags::UnionOrIntersection)
+        {
+            result = self.union_or_intersection_related_to(
+                c,
+                source,
+                target,
+                report_errors,
+                intersection_state,
+            );
             if result != Ternary::False {
                 return result;
             }
@@ -1205,8 +1902,12 @@ impl Relater {
             // Source is an intersection, target is a union (e.g. { a } & { b: boolean } <=> { a, b: true } | { a, b: false }).
             // Source is an intersection, target instantiable (e.g. string & { tag } <=> T["a"] constrained to string & { tag }).
             if !(source.flags().intersects(TypeFlags::Instantiable)
-                || source.flags().intersects(TypeFlags::Object) && target.flags().intersects(TypeFlags::Union)
-                || source.flags().intersects(TypeFlags::Intersection) && target.flags().intersects(TypeFlags::Object | TypeFlags::Union | TypeFlags::Instantiable))
+                || source.flags().intersects(TypeFlags::Object)
+                    && target.flags().intersects(TypeFlags::Union)
+                || source.flags().intersects(TypeFlags::Intersection)
+                    && target
+                        .flags()
+                        .intersects(TypeFlags::Object | TypeFlags::Union | TypeFlags::Instantiable))
             {
                 return Ternary::False;
             }
@@ -1229,55 +1930,121 @@ impl Relater {
             let params = c.type_alias_links.get(alias_symbol).type_parameters.get();
             let min_params = checker::Checker::get_min_type_argument_count(params);
             let node_is_in_js_file = is_in_js_file(alias_symbol.value_declaration());
-            let source_types = c.fill_missing_type_arguments(source.alias().unwrap().type_arguments(), params, min_params, node_is_in_js_file);
-            let target_types = c.fill_missing_type_arguments(target.alias().unwrap().type_arguments(), params, min_params, node_is_in_js_file);
-            let (variance_result, ok) = self.relate_variances(c, &source_types, &target_types, &variances, intersection_state, report_errors, &save_error_state, &mut result, &mut variance_check_failed, &mut original_error_chain);
+            let source_types = c.fill_missing_type_arguments(
+                source.alias().unwrap().type_arguments(),
+                params,
+                min_params,
+                node_is_in_js_file,
+            );
+            let target_types = c.fill_missing_type_arguments(
+                target.alias().unwrap().type_arguments(),
+                params,
+                min_params,
+                node_is_in_js_file,
+            );
+            let (variance_result, ok) = self.relate_variances(
+                c,
+                &source_types,
+                &target_types,
+                &variances,
+                intersection_state,
+                report_errors,
+                &save_error_state,
+                &mut result,
+                &mut variance_check_failed,
+                &mut original_error_chain,
+            );
             if ok {
                 return variance_result;
             }
         }
         // For a generic type T and a type U that is assignable to T, [...U] is assignable to T, U is assignable to readonly [...T],
         // and U is assignable to [...T] when U is constrained to a mutable array or tuple type.
-        if is_single_element_generic_tuple_type(source) && !source.target_tuple_type().readonly.get() {
+        if is_single_element_generic_tuple_type(source)
+            && !source.target_tuple_type().readonly.get()
+        {
             let element = c.get_type_arguments(source)[0];
-            result = self.is_related_to(c, element, target, RecursionFlags::Source, false /*reportErrors*/);
+            result = self.is_related_to(
+                c,
+                element,
+                target,
+                RecursionFlags::Source,
+                false, /*reportErrors*/
+            );
             if result != Ternary::False {
                 return result;
             }
         }
-        if is_single_element_generic_tuple_type(target) && (target.target_tuple_type().readonly.get() || {
-            let base = c.get_base_constraint_or_type(source);
-            c.is_mutable_array_or_tuple(base)
-        }) {
+        if is_single_element_generic_tuple_type(target)
+            && (target.target_tuple_type().readonly.get() || {
+                let base = c.get_base_constraint_or_type(source);
+                c.is_mutable_array_or_tuple(base)
+            })
+        {
             let element = c.get_type_arguments(target)[0];
-            result = self.is_related_to(c, source, element, RecursionFlags::Target, false /*reportErrors*/);
+            result = self.is_related_to(
+                c,
+                source,
+                element,
+                RecursionFlags::Target,
+                false, /*reportErrors*/
+            );
             if result != Ternary::False {
                 return result;
             }
         }
         if target.flags().intersects(TypeFlags::TypeParameter) {
             // A source type { [P in Q]: X } is related to a target type T if keyof T is related to Q and X is related to T[Q].
-            if source.object_flags().intersects(ObjectFlags::Mapped) && source.as_mapped_type().declaration.get().unwrap().as_mapped_type_node().name_type.is_none() && {
-                let index_type = c.get_index_type(target);
-                let constraint_type = c.get_constraint_type_from_mapped_type(source);
-                self.is_related_to(c, index_type, constraint_type, RecursionFlags::Both, false) != Ternary::False
-            } {
-                if !get_mapped_type_modifiers(source).intersects(MappedTypeModifiers::IncludeOptional) {
+            if source.object_flags().intersects(ObjectFlags::Mapped)
+                && source
+                    .as_mapped_type()
+                    .declaration
+                    .get()
+                    .unwrap()
+                    .as_mapped_type_node()
+                    .name_type
+                    .is_none()
+                && {
+                    let index_type = c.get_index_type(target);
+                    let constraint_type = c.get_constraint_type_from_mapped_type(source);
+                    self.is_related_to(c, index_type, constraint_type, RecursionFlags::Both, false)
+                        != Ternary::False
+                }
+            {
+                if !get_mapped_type_modifiers(source)
+                    .intersects(MappedTypeModifiers::IncludeOptional)
+                {
                     let template_type = c.get_template_type_from_mapped_type(source);
                     let type_parameter = c.get_type_parameter_from_mapped_type(source);
                     let indexed_access_type = c.get_indexed_access_type(target, type_parameter);
-                    result = self.is_related_to(c, template_type, indexed_access_type, RecursionFlags::Both, report_errors);
+                    result = self.is_related_to(
+                        c,
+                        template_type,
+                        indexed_access_type,
+                        RecursionFlags::Both,
+                        report_errors,
+                    );
                     if result != Ternary::False {
                         return result;
                     }
                 }
             }
-            if self.rel() == c.comparable_relation && source.flags().intersects(TypeFlags::TypeParameter) {
+            if self.rel() == c.comparable_relation
+                && source.flags().intersects(TypeFlags::TypeParameter)
+            {
                 // This is a carve-out in comparability to essentially forbid comparing a type parameter with another type parameter
                 // unless one extends the other. (Remember: comparability is mostly bidirectional!)
                 if let Some(constraint) = c.get_constraint_of_type_parameter(source) {
-                    if some_type(c, constraint, |_, t| t.flags().intersects(TypeFlags::TypeParameter)) {
-                        return self.is_related_to(c, constraint, target, RecursionFlags::Source, false /*reportErrors*/);
+                    if some_type(c, constraint, |_, t| {
+                        t.flags().intersects(TypeFlags::TypeParameter)
+                    }) {
+                        return self.is_related_to(
+                            c,
+                            constraint,
+                            target,
+                            RecursionFlags::Source,
+                            false, /*reportErrors*/
+                        );
                     }
                 }
                 return Ternary::False;
@@ -1286,9 +2053,21 @@ impl Relater {
             if source.flags().intersects(TypeFlags::IndexedAccess) {
                 // Relate components directly before falling back to constraint relationships
                 // A type S[K] is related to a type T[J] if S is related to T and K is related to J.
-                result = self.is_related_to(c, source.as_indexed_access_type().object_type.get().unwrap(), target.as_indexed_access_type().object_type.get().unwrap(), RecursionFlags::Both, report_errors);
+                result = self.is_related_to(
+                    c,
+                    source.as_indexed_access_type().object_type.get().unwrap(),
+                    target.as_indexed_access_type().object_type.get().unwrap(),
+                    RecursionFlags::Both,
+                    report_errors,
+                );
                 if result != Ternary::False {
-                    result &= self.is_related_to(c, source.as_indexed_access_type().index_type.get().unwrap(), target.as_indexed_access_type().index_type.get().unwrap(), RecursionFlags::Both, report_errors);
+                    result &= self.is_related_to(
+                        c,
+                        source.as_indexed_access_type().index_type.get().unwrap(),
+                        target.as_indexed_access_type().index_type.get().unwrap(),
+                        RecursionFlags::Both,
+                        report_errors,
+                    );
                 }
                 if result != Ternary::False {
                     return result;
@@ -1304,21 +2083,47 @@ impl Relater {
                 let index_type = target.as_indexed_access_type().index_type.get().unwrap();
                 let base_object_type = c.get_base_constraint_or_type(object_type);
                 let base_index_type = c.get_base_constraint_or_type(index_type);
-                if !c.is_generic_object_type(base_object_type) && !c.is_generic_index_type(base_index_type) {
-                    let access_flags = AccessFlags::Writing | if base_object_type != object_type { AccessFlags::NoIndexSignatures } else { AccessFlags::None };
-                    let constraint = c.get_indexed_access_type_or_undefined(base_object_type, base_index_type, access_flags, None, AliasArg::None);
+                if !c.is_generic_object_type(base_object_type)
+                    && !c.is_generic_index_type(base_index_type)
+                {
+                    let access_flags = AccessFlags::Writing
+                        | if base_object_type != object_type {
+                            AccessFlags::NoIndexSignatures
+                        } else {
+                            AccessFlags::None
+                        };
+                    let constraint = c.get_indexed_access_type_or_undefined(
+                        base_object_type,
+                        base_index_type,
+                        access_flags,
+                        None,
+                        AliasArg::None,
+                    );
                     if let Some(constraint) = constraint {
                         if report_errors && original_error_chain.is_some() {
                             // create a new chain for the constraint error
                             self.restore_error_state(c, save_error_state.clone());
                         }
-                        result = self.is_related_to_ex(c, source, constraint, RecursionFlags::Target, report_errors, None /*headMessage*/, intersection_state);
+                        result = self.is_related_to_ex(
+                            c,
+                            source,
+                            constraint,
+                            RecursionFlags::Target,
+                            report_errors,
+                            None, /*headMessage*/
+                            intersection_state,
+                        );
                         if result != Ternary::False {
                             return result;
                         }
                         // prefer the shorter chain of the constraint comparison chain, and the direct comparison chain
-                        if report_errors && original_error_chain.is_some() && self.error_chain.get().is_some() {
-                            if chain_depth(original_error_chain) <= chain_depth(self.error_chain.get()) {
+                        if report_errors
+                            && original_error_chain.is_some()
+                            && self.error_chain.get().is_some()
+                        {
+                            if chain_depth(original_error_chain)
+                                <= chain_depth(self.error_chain.get())
+                            {
                                 self.error_chain.set(original_error_chain);
                             }
                         }
@@ -1332,7 +2137,13 @@ impl Relater {
             let target_type = target.as_index_type().target.get().unwrap();
             // A keyof S is related to a keyof T if T is related to S.
             if source.flags().intersects(TypeFlags::Index) {
-                result = self.is_related_to(c, target_type, source.as_index_type().target.get().unwrap(), RecursionFlags::Both, false /*reportErrors*/);
+                result = self.is_related_to(
+                    c,
+                    target_type,
+                    source.as_index_type().target.get().unwrap(),
+                    RecursionFlags::Both,
+                    false, /*reportErrors*/
+                );
                 if result != Ternary::False {
                     return result;
                 }
@@ -1341,7 +2152,13 @@ impl Relater {
                 // An index type can have a tuple type target when the tuple type contains variadic elements.
                 // Check if the source is related to the known keys of the tuple type.
                 let known_keys = c.get_known_keys_of_tuple_type(target_type);
-                result = self.is_related_to(c, source, known_keys, RecursionFlags::Target, report_errors);
+                result = self.is_related_to(
+                    c,
+                    source,
+                    known_keys,
+                    RecursionFlags::Target,
+                    report_errors,
+                );
                 if result != Ternary::False {
                     return result;
                 }
@@ -1354,8 +2171,18 @@ impl Relater {
                     // false positives. For example, given 'T extends { [K in keyof T]: string }',
                     // 'keyof T' has itself as its constraint and produces a Ternary.Maybe when
                     // related to other types.
-                    let index_type = c.get_index_type_ex(constraint, target.as_index_type().index_flags.get() | IndexFlags::NoReducibleCheck);
-                    if self.is_related_to(c, source, index_type, RecursionFlags::Target, report_errors) == Ternary::True {
+                    let index_type = c.get_index_type_ex(
+                        constraint,
+                        target.as_index_type().index_flags.get() | IndexFlags::NoReducibleCheck,
+                    );
+                    if self.is_related_to(
+                        c,
+                        source,
+                        index_type,
+                        RecursionFlags::Target,
+                        report_errors,
+                    ) == Ternary::True
+                    {
                         return Ternary::True;
                     }
                 } else if c.is_generic_mapped_type(target_type) {
@@ -1365,7 +2192,11 @@ impl Relater {
                     let name_type = c.get_name_type_from_mapped_type(target_type);
                     let constraint_type = c.get_constraint_type_from_mapped_type(target_type);
                     let target_keys;
-                    if let Some(name_type) = name_type && checker::Checker::is_mapped_type_with_keyof_constraint_declaration(target_type) {
+                    if let Some(name_type) = name_type
+                        && checker::Checker::is_mapped_type_with_keyof_constraint_declaration(
+                            target_type,
+                        )
+                    {
                         // we need to get the apparent mappings and union them with the generic mappings, since some properties may be
                         // missing from the `constraintType` which will otherwise be mapped in the object
                         let mapped_keys = c.get_apparent_mapped_type_keys(name_type, target_type);
@@ -1376,7 +2207,14 @@ impl Relater {
                     } else {
                         target_keys = constraint_type;
                     }
-                    if self.is_related_to(c, source, target_keys, RecursionFlags::Target, report_errors) == Ternary::True {
+                    if self.is_related_to(
+                        c,
+                        source,
+                        target_keys,
+                        RecursionFlags::Target,
+                        report_errors,
+                    ) == Ternary::True
+                    {
                         return Ternary::True;
                     }
                 }
@@ -1395,17 +2233,25 @@ impl Relater {
             // conditional type (as happens when computing variance).
             if root.infer_type_parameters.get().is_empty()
                 && !c.is_distribution_dependent(root)
-                && !(source.flags().intersects(TypeFlags::Conditional) && source.as_conditional_type().root.get() == Some(root))
+                && !(source.flags().intersects(TypeFlags::Conditional)
+                    && source.as_conditional_type().root.get() == Some(root))
             {
                 // Check if the conditional is always true or always false but still deferred for distribution purposes.
                 let skip_true = {
-                    let check = c.get_permissive_instantiation(target_conditional.check_type.get().unwrap());
-                    let extends = c.get_permissive_instantiation(target_conditional.extends_type.get().unwrap());
+                    let check = c
+                        .get_permissive_instantiation(target_conditional.check_type.get().unwrap());
+                    let extends = c.get_permissive_instantiation(
+                        target_conditional.extends_type.get().unwrap(),
+                    );
                     !c.is_type_assignable_to(check, extends)
                 };
                 let skip_false = !skip_true && {
-                    let check = c.get_restrictive_instantiation(target_conditional.check_type.get().unwrap());
-                    let extends = c.get_restrictive_instantiation(target_conditional.extends_type.get().unwrap());
+                    let check = c.get_restrictive_instantiation(
+                        target_conditional.check_type.get().unwrap(),
+                    );
+                    let extends = c.get_restrictive_instantiation(
+                        target_conditional.extends_type.get().unwrap(),
+                    );
                     c.is_type_assignable_to(check, extends)
                 };
                 // TODO: Find a nice way to include potential conditional type breakdowns in error output, if they seem good (they usually don't)
@@ -1413,14 +2259,30 @@ impl Relater {
                     result = Ternary::True;
                 } else {
                     let true_type = c.get_true_type_from_conditional_type(target);
-                    result = self.is_related_to_ex(c, source, true_type, RecursionFlags::Target, false /*reportErrors*/, None /*headMessage*/, intersection_state);
+                    result = self.is_related_to_ex(
+                        c,
+                        source,
+                        true_type,
+                        RecursionFlags::Target,
+                        false, /*reportErrors*/
+                        None,  /*headMessage*/
+                        intersection_state,
+                    );
                 }
                 if result != Ternary::False {
                     if skip_false {
                         result &= Ternary::True;
                     } else {
                         let false_type = c.get_false_type_from_conditional_type(target);
-                        result &= self.is_related_to_ex(c, source, false_type, RecursionFlags::Target, false /*reportErrors*/, None /*headMessage*/, intersection_state);
+                        result &= self.is_related_to_ex(
+                            c,
+                            source,
+                            false_type,
+                            RecursionFlags::Target,
+                            false, /*reportErrors*/
+                            None,  /*headMessage*/
+                            intersection_state,
+                        );
                     }
                     if result != Ternary::False {
                         return result;
@@ -1430,7 +2292,10 @@ impl Relater {
         } else if target.flags().intersects(TypeFlags::TemplateLiteral) {
             if source.flags().intersects(TypeFlags::TemplateLiteral) {
                 if self.rel() == c.comparable_relation {
-                    if checker::Checker::template_literal_types_definitely_unrelated(source.as_template_literal_type(), target.as_template_literal_type()) {
+                    if checker::Checker::template_literal_types_definitely_unrelated(
+                        source.as_template_literal_type(),
+                        target.as_template_literal_type(),
+                    ) {
                         return Ternary::False;
                     }
                     return Ternary::True;
@@ -1440,7 +2305,11 @@ impl Relater {
                 c.instantiate_type(source, Some(c.report_unreliable_mapper));
             }
             let r = self.as_p();
-            if c.is_type_matched_by_template_literal_type(source, target.as_template_literal_type(), r.worker_comparer()) {
+            if c.is_type_matched_by_template_literal_type(
+                source,
+                target.as_template_literal_type(),
+                r.worker_comparer(),
+            ) {
                 return Ternary::True;
             }
         } else if target.flags().intersects(TypeFlags::StringMapping) {
@@ -1451,7 +2320,14 @@ impl Relater {
             }
         } else if c.is_generic_mapped_type(target) && self.rel() != c.identity_relation {
             // Check if source type `S` is related to target type `{ [P in Q]: T }` or `{ [P in Q as R]: T}`.
-            let keys_remapped = target.as_mapped_type().declaration.get().unwrap().as_mapped_type_node().name_type.is_some();
+            let keys_remapped = target
+                .as_mapped_type()
+                .declaration
+                .get()
+                .unwrap()
+                .as_mapped_type_node()
+                .name_type
+                .is_some();
             let template_type = c.get_template_type_from_mapped_type(target);
             let modifiers = get_mapped_type_modifiers(target);
             if !modifiers.intersects(MappedTypeModifiers::ExcludeOptional) {
@@ -1460,7 +2336,8 @@ impl Relater {
                 if !keys_remapped
                     && template_type.flags().intersects(TypeFlags::IndexedAccess)
                     && template_type.as_indexed_access_type().object_type.get() == Some(source)
-                    && template_type.as_indexed_access_type().index_type.get() == Some(c.get_type_parameter_from_mapped_type(target))
+                    && template_type.as_indexed_access_type().index_type.get()
+                        == Some(c.get_type_parameter_from_mapped_type(target))
                 {
                     return Ternary::True;
                 }
@@ -1474,25 +2351,50 @@ impl Relater {
                     };
                     // Type of the keys of source type `S`, i.e. `keyof S`.
                     let source_keys = c.get_index_type_ex(source, IndexFlags::NoIndexSignatures);
-                    let include_optional = modifiers.intersects(MappedTypeModifiers::IncludeOptional);
+                    let include_optional =
+                        modifiers.intersects(MappedTypeModifiers::IncludeOptional);
                     let mut filtered_by_applicability: Option<P<Type>> = None;
                     if include_optional {
-                        filtered_by_applicability = c.intersect_types(Some(target_keys), Some(source_keys));
+                        filtered_by_applicability =
+                            c.intersect_types(Some(target_keys), Some(source_keys));
                     }
                     // A source type `S` is related to a target type `{ [P in Q]: T }` if `Q` is related to `keyof S` and `S[Q]` is related to `T`.
                     // A source type `S` is related to a target type `{ [P in Q as R]: T }` if `R` is related to `keyof S` and `S[R]` is related to `T.
                     // A source type `S` is related to a target type `{ [P in Q]?: T }` if some constituent `Q'` of `Q` is related to `keyof S` and `S[Q']` is related to `T`.
                     // A source type `S` is related to a target type `{ [P in Q as R]?: T }` if some constituent `R'` of `R` is related to `keyof S` and `S[R']` is related to `T`.
-                    if include_optional && !filtered_by_applicability.unwrap().flags().intersects(TypeFlags::Never)
-                        || !include_optional && self.is_related_to(c, target_keys, source_keys, RecursionFlags::Both, false) != Ternary::False
+                    if include_optional
+                        && !filtered_by_applicability.unwrap().flags().intersects(TypeFlags::Never)
+                        || !include_optional
+                            && self.is_related_to(
+                                c,
+                                target_keys,
+                                source_keys,
+                                RecursionFlags::Both,
+                                false,
+                            ) != Ternary::False
                     {
                         let template_type = c.get_template_type_from_mapped_type(target);
                         let type_parameter = c.get_type_parameter_from_mapped_type(target);
                         // Fastpath: When the template type has the form `Obj[P]` where `P` is the mapped type parameter, directly compare source `S` with `Obj`
                         // to avoid creating the (potentially very large) number of new intermediate types made by manufacturing `S[P]`.
-                        let non_null_component = c.extract_types_of_kind(template_type, !TypeFlags::Nullable);
-                        if !keys_remapped && non_null_component.flags().intersects(TypeFlags::IndexedAccess) && non_null_component.as_indexed_access_type().index_type.get() == Some(type_parameter) {
-                            result = self.is_related_to(c, source, non_null_component.as_indexed_access_type().object_type.get().unwrap(), RecursionFlags::Target, report_errors);
+                        let non_null_component =
+                            c.extract_types_of_kind(template_type, !TypeFlags::Nullable);
+                        if !keys_remapped
+                            && non_null_component.flags().intersects(TypeFlags::IndexedAccess)
+                            && non_null_component.as_indexed_access_type().index_type.get()
+                                == Some(type_parameter)
+                        {
+                            result = self.is_related_to(
+                                c,
+                                source,
+                                non_null_component
+                                    .as_indexed_access_type()
+                                    .object_type
+                                    .get()
+                                    .unwrap(),
+                                RecursionFlags::Target,
+                                report_errors,
+                            );
                             if result != Ternary::False {
                                 return result;
                             }
@@ -1508,12 +2410,24 @@ impl Relater {
                             let mut indexing_type = type_parameter;
                             if keys_remapped {
                                 indexing_type = filtered_by_applicability.unwrap_or(target_keys);
-                            } else if let Some(filtered_by_applicability) = filtered_by_applicability {
-                                indexing_type = c.get_intersection_type(&[filtered_by_applicability, type_parameter]);
+                            } else if let Some(filtered_by_applicability) =
+                                filtered_by_applicability
+                            {
+                                indexing_type = c.get_intersection_type(&[
+                                    filtered_by_applicability,
+                                    type_parameter,
+                                ]);
                             }
-                            let indexed_access_type = c.get_indexed_access_type(source, indexing_type);
+                            let indexed_access_type =
+                                c.get_indexed_access_type(source, indexing_type);
                             // Compare `S[indexingType]` to `T`, where `T` is the type of a property of the target type.
-                            result = self.is_related_to(c, indexed_access_type, template_type, RecursionFlags::Both, report_errors);
+                            result = self.is_related_to(
+                                c,
+                                indexed_access_type,
+                                template_type,
+                                RecursionFlags::Both,
+                                report_errors,
+                            );
                             if result != Ternary::False {
                                 return result;
                             }
@@ -1526,23 +2440,39 @@ impl Relater {
         }
         if source.flags().intersects(TypeFlags::TypeVariable) {
             // IndexedAccess comparisons are handled above in the `target.flags&TypeFlagsIndexedAccess` branch
-            if !source.flags().intersects(TypeFlags::IndexedAccess) || !target.flags().intersects(TypeFlags::IndexedAccess) {
+            if !source.flags().intersects(TypeFlags::IndexedAccess)
+                || !target.flags().intersects(TypeFlags::IndexedAccess)
+            {
                 let constraint = match c.get_constraint_of_type(source) {
                     Some(constraint) => constraint,
                     None => c.unknown_type,
                 };
                 // hi-speed no-this-instantiation check (less accurate, but avoids costly `this`-instantiation when the constraint will suffice), see #28231 for report on why this is needed
-                result = self.is_related_to_ex(c, constraint, target, RecursionFlags::Source, false /*reportErrors*/, None /*headMessage*/, intersection_state);
+                result = self.is_related_to_ex(
+                    c,
+                    constraint,
+                    target,
+                    RecursionFlags::Source,
+                    false, /*reportErrors*/
+                    None,  /*headMessage*/
+                    intersection_state,
+                );
                 if result != Ternary::False {
                     return result;
                 }
-                let constraint_with_this = c.get_type_with_this_argument(constraint, Some(source), false /*needApparentType*/);
+                let constraint_with_this = c.get_type_with_this_argument(
+                    constraint,
+                    Some(source),
+                    false, /*needApparentType*/
+                );
                 result = self.is_related_to_ex(
                     c,
                     constraint_with_this,
                     target,
                     RecursionFlags::Source,
-                    report_errors && constraint != c.unknown_type && !(target.flags() & source.flags()).intersects(TypeFlags::TypeParameter),
+                    report_errors
+                        && constraint != c.unknown_type
+                        && !(target.flags() & source.flags()).intersects(TypeFlags::TypeParameter),
                     None, /*headMessage*/
                     intersection_state,
                 );
@@ -1552,10 +2482,21 @@ impl Relater {
                 if c.is_mapped_type_generic_indexed_access(source) {
                     // For an indexed access type { [P in K]: E}[X], above we have already explored an instantiation of E with X
                     // substituted for P. We also want to explore type { [P in K]: E }[C], where C is the constraint of X.
-                    let index_constraint = c.get_constraint_of_type(source.as_indexed_access_type().index_type.get().unwrap());
+                    let index_constraint = c.get_constraint_of_type(
+                        source.as_indexed_access_type().index_type.get().unwrap(),
+                    );
                     if let Some(index_constraint) = index_constraint {
-                        let indexed_access = c.get_indexed_access_type(source.as_indexed_access_type().object_type.get().unwrap(), index_constraint);
-                        result = self.is_related_to(c, indexed_access, target, RecursionFlags::Source, report_errors);
+                        let indexed_access = c.get_indexed_access_type(
+                            source.as_indexed_access_type().object_type.get().unwrap(),
+                            index_constraint,
+                        );
+                        result = self.is_related_to(
+                            c,
+                            indexed_access,
+                            target,
+                            RecursionFlags::Source,
+                            report_errors,
+                        );
                         if result != Ternary::False {
                             return result;
                         }
@@ -1564,8 +2505,18 @@ impl Relater {
             }
         } else if source.flags().intersects(TypeFlags::Index) {
             let source_index_target = source.as_index_type().target.get().unwrap();
-            let is_deferred_mapped_index = c.should_defer_index_type(source_index_target, source.as_index_type().index_flags.get()) && source_index_target.object_flags().intersects(ObjectFlags::Mapped);
-            result = self.is_related_to(c, c.string_number_symbol_type, target, RecursionFlags::Source, report_errors && !is_deferred_mapped_index);
+            let is_deferred_mapped_index =
+                c.should_defer_index_type(
+                    source_index_target,
+                    source.as_index_type().index_flags.get(),
+                ) && source_index_target.object_flags().intersects(ObjectFlags::Mapped);
+            result = self.is_related_to(
+                c,
+                c.string_number_symbol_type,
+                target,
+                RecursionFlags::Source,
+                report_errors && !is_deferred_mapped_index,
+            );
             if result != Ternary::False {
                 return result;
             }
@@ -1577,14 +2528,23 @@ impl Relater {
                 // allow assignments of index types of identical (or similar enough) mapped types.
                 // eg, `keyof {[X in keyof A]: Obj[X]}` should be assignable to `keyof {[Y in keyof A]: Tup[Y]}` because both map over the same set of keys (`keyof A`).
                 // Without this source-side breakdown, a `keyof {[X in keyof A]: Obj[X]}` style type won't be assignable to anything except itself, which is much too strict.
-                let source_mapped_keys = if let Some(name_type) = name_type && checker::Checker::is_mapped_type_with_keyof_constraint_declaration(mapped_type) {
+                let source_mapped_keys = if let Some(name_type) = name_type
+                    && checker::Checker::is_mapped_type_with_keyof_constraint_declaration(
+                        mapped_type,
+                    ) {
                     c.get_apparent_mapped_type_keys(name_type, mapped_type)
                 } else if let Some(name_type) = name_type {
                     name_type
                 } else {
                     c.get_constraint_type_from_mapped_type(mapped_type)
                 };
-                result = self.is_related_to(c, source_mapped_keys, target, RecursionFlags::Source, report_errors);
+                result = self.is_related_to(
+                    c,
+                    source_mapped_keys,
+                    target,
+                    RecursionFlags::Source,
+                    report_errors,
+                );
                 if result != Ternary::False {
                     return result;
                 }
@@ -1601,29 +2561,67 @@ impl Relater {
                 // and Y1 is related to Y2.
                 let source_conditional = source.as_conditional_type();
                 let target_conditional = target.as_conditional_type();
-                let source_params = source_conditional.root.get().unwrap().infer_type_parameters.get();
+                let source_params =
+                    source_conditional.root.get().unwrap().infer_type_parameters.get();
                 let mut source_extends = source_conditional.extends_type.get().unwrap();
                 let mut mapper: Option<P<TypeMapper>> = None;
                 if !source_params.is_empty() {
                     // If the source has infer type parameters, we instantiate them in the context of the target
                     let r = self.as_p();
-                    let ctx = checker::Checker::new_inference_context(source_params, None /*signature*/, InferenceFlags::None, Some(r.worker_comparer()));
-                    c.infer_types(ctx.inferences.get(), target_conditional.extends_type.get().unwrap(), source_extends, InferencePriority::NoConstraints | InferencePriority::AlwaysStrict, false);
+                    let ctx = checker::Checker::new_inference_context(
+                        source_params,
+                        None, /*signature*/
+                        InferenceFlags::None,
+                        Some(r.worker_comparer()),
+                    );
+                    c.infer_types(
+                        ctx.inferences.get(),
+                        target_conditional.extends_type.get().unwrap(),
+                        source_extends,
+                        InferencePriority::NoConstraints | InferencePriority::AlwaysStrict,
+                        false,
+                    );
                     source_extends = c.instantiate_type(source_extends, ctx.mapper());
                     mapper = ctx.mapper();
                 }
-                if c.is_type_identical_to(source_extends, target_conditional.extends_type.get().unwrap())
-                    && (self.is_related_to(c, source_conditional.check_type.get().unwrap(), target_conditional.check_type.get().unwrap(), RecursionFlags::Both, false) != Ternary::False
-                        || self.is_related_to(c, target_conditional.check_type.get().unwrap(), source_conditional.check_type.get().unwrap(), RecursionFlags::Both, false) != Ternary::False)
+                if c.is_type_identical_to(
+                    source_extends,
+                    target_conditional.extends_type.get().unwrap(),
+                ) && (self.is_related_to(
+                    c,
+                    source_conditional.check_type.get().unwrap(),
+                    target_conditional.check_type.get().unwrap(),
+                    RecursionFlags::Both,
+                    false,
+                ) != Ternary::False
+                    || self.is_related_to(
+                        c,
+                        target_conditional.check_type.get().unwrap(),
+                        source_conditional.check_type.get().unwrap(),
+                        RecursionFlags::Both,
+                        false,
+                    ) != Ternary::False)
                 {
                     let source_true = c.get_true_type_from_conditional_type(source);
                     let source_true = c.instantiate_type(source_true, mapper);
                     let target_true = c.get_true_type_from_conditional_type(target);
-                    result = self.is_related_to(c, source_true, target_true, RecursionFlags::Both, report_errors);
+                    result = self.is_related_to(
+                        c,
+                        source_true,
+                        target_true,
+                        RecursionFlags::Both,
+                        report_errors,
+                    );
                     if result != Ternary::False {
                         let source_false = c.get_false_type_from_conditional_type(source);
                         let target_false = c.get_false_type_from_conditional_type(target);
-                        result &= self.is_related_to(c, source_false, target_false, RecursionFlags::Both, report_errors);
+                        result &= self.is_related_to(
+                            c,
+                            source_false,
+                            target_false,
+                            RecursionFlags::Both,
+                            report_errors,
+                        );
                     }
                     if result != Ternary::False {
                         return result;
@@ -1633,28 +2631,51 @@ impl Relater {
             // conditionals can be related to one another via normal constraint, as, eg, `A extends B ? O : never` should be assignable to `O`
             // when `O` is a conditional (`never` is trivially assignable to `O`, as is `O`!).
             let default_constraint = c.get_default_constraint_of_conditional_type(source);
-            result = self.is_related_to(c, default_constraint, target, RecursionFlags::Source, report_errors);
+            result = self.is_related_to(
+                c,
+                default_constraint,
+                target,
+                RecursionFlags::Source,
+                report_errors,
+            );
             if result != Ternary::False {
                 return result;
             }
             // conditionals aren't related to one another via distributive constraint as it is much too inaccurate and allows way
             // more assignments than are desirable (since it maps the source check type to its constraint, it loses information).
-            if !target.flags().intersects(TypeFlags::Conditional) && c.has_non_circular_base_constraint(source) {
-                let distributive_constraint = c.get_constraint_of_distributive_conditional_type(source);
+            if !target.flags().intersects(TypeFlags::Conditional)
+                && c.has_non_circular_base_constraint(source)
+            {
+                let distributive_constraint =
+                    c.get_constraint_of_distributive_conditional_type(source);
                 if let Some(distributive_constraint) = distributive_constraint {
                     self.restore_error_state(c, save_error_state.clone());
-                    result = self.is_related_to(c, distributive_constraint, target, RecursionFlags::Source, report_errors);
+                    result = self.is_related_to(
+                        c,
+                        distributive_constraint,
+                        target,
+                        RecursionFlags::Source,
+                        report_errors,
+                    );
                     if result != Ternary::False {
                         return result;
                     }
                 }
             }
-        } else if source.flags().intersects(TypeFlags::TemplateLiteral) && !target.flags().intersects(TypeFlags::Object) {
+        } else if source.flags().intersects(TypeFlags::TemplateLiteral)
+            && !target.flags().intersects(TypeFlags::Object)
+        {
             if !target.flags().intersects(TypeFlags::TemplateLiteral) {
                 let constraint = c.get_base_constraint_of_type(source);
                 if let Some(constraint) = constraint {
                     if constraint != source {
-                        result = self.is_related_to(c, constraint, target, RecursionFlags::Source, report_errors);
+                        result = self.is_related_to(
+                            c,
+                            constraint,
+                            target,
+                            RecursionFlags::Source,
+                            report_errors,
+                        );
                         if result != Ternary::False {
                             return result;
                         }
@@ -1666,14 +2687,26 @@ impl Relater {
                 if source.symbol() != target.symbol() {
                     return Ternary::False;
                 }
-                result = self.is_related_to(c, source.as_string_mapping_type().target.get().unwrap(), target.as_string_mapping_type().target.get().unwrap(), RecursionFlags::Both, report_errors);
+                result = self.is_related_to(
+                    c,
+                    source.as_string_mapping_type().target.get().unwrap(),
+                    target.as_string_mapping_type().target.get().unwrap(),
+                    RecursionFlags::Both,
+                    report_errors,
+                );
                 if result != Ternary::False {
                     return result;
                 }
             } else {
                 let constraint = c.get_base_constraint_of_type(source);
                 if let Some(constraint) = constraint {
-                    result = self.is_related_to(c, constraint, target, RecursionFlags::Source, report_errors);
+                    result = self.is_related_to(
+                        c,
+                        constraint,
+                        target,
+                        RecursionFlags::Source,
+                        report_errors,
+                    );
                     if result != Ternary::False {
                         return result;
                     }
@@ -1681,7 +2714,11 @@ impl Relater {
             }
         } else {
             // An empty object type is related to any mapped type that includes a '?' modifier.
-            if self.rel() != c.subtype_relation && self.rel() != c.strict_subtype_relation && is_partial_mapped_type(target) && c.is_empty_object_type(source) {
+            if self.rel() != c.subtype_relation
+                && self.rel() != c.strict_subtype_relation
+                && is_partial_mapped_type(target)
+                && c.is_empty_object_type(source)
+            {
                 return Ternary::True;
             }
             if c.is_generic_mapped_type(target) {
@@ -1723,23 +2760,55 @@ impl Relater {
                 }
                 let source_type_arguments = c.get_type_arguments(source);
                 let target_type_arguments = c.get_type_arguments(target);
-                let (variance_result, ok) = self.relate_variances(c, source_type_arguments, target_type_arguments, &variances, intersection_state, report_errors, &save_error_state, &mut result, &mut variance_check_failed, &mut original_error_chain);
+                let (variance_result, ok) = self.relate_variances(
+                    c,
+                    source_type_arguments,
+                    target_type_arguments,
+                    &variances,
+                    intersection_state,
+                    report_errors,
+                    &save_error_state,
+                    &mut result,
+                    &mut variance_check_failed,
+                    &mut original_error_chain,
+                );
                 if ok {
                     return variance_result;
                 }
-            } else if c.is_array_type(target) && (c.is_readonly_array_type(target) && every_type(c, source, super::checker::Checker::is_array_or_tuple_type) || every_type(c, source, |_, t| is_mutable_tuple_type(t))) {
+            } else if c.is_array_type(target)
+                && (c.is_readonly_array_type(target)
+                    && every_type(c, source, super::checker::Checker::is_array_or_tuple_type)
+                    || every_type(c, source, |_, t| is_mutable_tuple_type(t)))
+            {
                 if self.rel() != c.identity_relation {
-                    let source_index_type = c.get_index_type_of_type_ex(source, c.number_type, c.any_type);
-                    let target_index_type = c.get_index_type_of_type_ex(target, c.number_type, c.any_type);
-                    return self.is_related_to(c, source_index_type, target_index_type, RecursionFlags::Both, report_errors);
+                    let source_index_type =
+                        c.get_index_type_of_type_ex(source, c.number_type, c.any_type);
+                    let target_index_type =
+                        c.get_index_type_of_type_ex(target, c.number_type, c.any_type);
+                    return self.is_related_to(
+                        c,
+                        source_index_type,
+                        target_index_type,
+                        RecursionFlags::Both,
+                        report_errors,
+                    );
                 }
                 // By flags alone, we know that the `target` is a readonly array while the source is a normal array or tuple
                 // or `target` is an array and source is a tuple - in both cases the types cannot be identical, by construction
                 return Ternary::False;
-            } else if checker::Checker::is_generic_tuple_type(source) && is_tuple_type(target) && !checker::Checker::is_generic_tuple_type(target) {
+            } else if checker::Checker::is_generic_tuple_type(source)
+                && is_tuple_type(target)
+                && !checker::Checker::is_generic_tuple_type(target)
+            {
                 let constraint = c.get_base_constraint_or_type(source);
                 if constraint != source {
-                    return self.is_related_to(c, constraint, target, RecursionFlags::Source, report_errors);
+                    return self.is_related_to(
+                        c,
+                        constraint,
+                        target,
+                        RecursionFlags::Source,
+                        report_errors,
+                    );
                 }
             } else if (self.rel() == c.subtype_relation || self.rel() == c.strict_subtype_relation)
                 && c.is_empty_object_type(target)
@@ -1753,16 +2822,49 @@ impl Relater {
             // In a check of the form X = A & B, we will have previously checked if A relates to X or B relates
             // to X. Failing both of those we want to check if the aggregation of A and B's members structurally
             // relates to X. Thus, we include intersection types on the source side here.
-            if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection) && target.flags().intersects(TypeFlags::Object) {
+            if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
+                && target.flags().intersects(TypeFlags::Object)
+            {
                 // Report structural errors only if we haven't reported any errors yet
-                let report_structural_errors = report_errors && self.error_chain.get() == save_error_state.error_chain && !source_is_primitive;
-                result = self.properties_related_to(c, source, target, report_structural_errors, &NO_EXCLUDED_PROPERTIES, false /*optionalsOnly*/, intersection_state);
+                let report_structural_errors = report_errors
+                    && self.error_chain.get() == save_error_state.error_chain
+                    && !source_is_primitive;
+                result = self.properties_related_to(
+                    c,
+                    source,
+                    target,
+                    report_structural_errors,
+                    &NO_EXCLUDED_PROPERTIES,
+                    false, /*optionalsOnly*/
+                    intersection_state,
+                );
                 if result != Ternary::False {
-                    result &= self.signatures_related_to(c, source, target, SignatureKind::Call, report_structural_errors, intersection_state);
+                    result &= self.signatures_related_to(
+                        c,
+                        source,
+                        target,
+                        SignatureKind::Call,
+                        report_structural_errors,
+                        intersection_state,
+                    );
                     if result != Ternary::False {
-                        result &= self.signatures_related_to(c, source, target, SignatureKind::Construct, report_structural_errors, intersection_state);
+                        result &= self.signatures_related_to(
+                            c,
+                            source,
+                            target,
+                            SignatureKind::Construct,
+                            report_structural_errors,
+                            intersection_state,
+                        );
                         if result != Ternary::False {
-                            result &= self.index_signatures_related_to(c, source, target, source_is_primitive, report_structural_errors, intersection_state);
+                            result &= self.index_signatures_related_to(
+                                c,
+                                source,
+                                target,
+                                source_is_primitive,
+                                report_structural_errors,
+                                intersection_state,
+                            );
                         }
                     }
                 }
@@ -1782,10 +2884,16 @@ impl Relater {
             // there exists a constituent of T for every combination of the discriminants of S
             // with respect to T. We do not report errors here, as we will use the existing
             // error result from checking each constituent of the union.
-            if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection) && target.flags().intersects(TypeFlags::Union) {
-                let object_only_target = c.extract_types_of_kind(target, TypeFlags::Object | TypeFlags::Intersection | TypeFlags::Substitution);
+            if source.flags().intersects(TypeFlags::Object | TypeFlags::Intersection)
+                && target.flags().intersects(TypeFlags::Union)
+            {
+                let object_only_target = c.extract_types_of_kind(
+                    target,
+                    TypeFlags::Object | TypeFlags::Intersection | TypeFlags::Substitution,
+                );
                 if object_only_target.flags().intersects(TypeFlags::Union) {
-                    let result = self.type_related_to_discriminated_type(c, source, object_only_target);
+                    let result =
+                        self.type_related_to_discriminated_type(c, source, object_only_target);
                     if result != Ternary::False {
                         return result;
                     }
@@ -1796,7 +2904,15 @@ impl Relater {
     }
 
     // relater.go:3935
-    pub(crate) fn type_arguments_related_to(&self, c: &mut Checker, sources: &[P<Type>], targets: &[P<Type>], variances: &[VarianceFlags], report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn type_arguments_related_to(
+        &self,
+        c: &mut Checker,
+        sources: &[P<Type>],
+        targets: &[P<Type>],
+        variances: &[VarianceFlags],
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if sources.len() != targets.len() && self.rel() == c.identity_relation {
             return Ternary::False;
         }
@@ -1821,35 +2937,89 @@ impl Relater {
                     // We can't simply assume invariance, because `Unmeasurable` marks nonlinear relations, for example, a relation tainted by
                     // the `-?` modifier in a mapped type (where, no matter how the inputs are related, the outputs still might not be)
                     if self.rel() == c.identity_relation {
-                        related = self.is_related_to(c, s, t, RecursionFlags::Both, false /*reportErrors*/);
+                        related = self.is_related_to(
+                            c,
+                            s,
+                            t,
+                            RecursionFlags::Both,
+                            false, /*reportErrors*/
+                        );
                     } else {
                         related = c.compare_types_identical(s, t);
                     }
                 } else {
                     // Propagate unreliable variance flag in variance computations
-                    if !c.variance_stack.is_empty() && variance_flags.intersects(VarianceFlags::Unreliable) {
+                    if !c.variance_stack.is_empty()
+                        && variance_flags.intersects(VarianceFlags::Unreliable)
+                    {
                         c.instantiate_type(s, Some(c.report_unreliable_mapper));
                     }
                     if variance == VarianceFlags::Covariant {
-                        related = self.is_related_to_ex(c, s, t, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                        related = self.is_related_to_ex(
+                            c,
+                            s,
+                            t,
+                            RecursionFlags::Both,
+                            report_errors,
+                            None, /*headMessage*/
+                            intersection_state,
+                        );
                     } else if variance == VarianceFlags::Contravariant {
-                        related = self.is_related_to_ex(c, t, s, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                        related = self.is_related_to_ex(
+                            c,
+                            t,
+                            s,
+                            RecursionFlags::Both,
+                            report_errors,
+                            None, /*headMessage*/
+                            intersection_state,
+                        );
                     } else if variance == VarianceFlags::Bivariant {
                         // In the bivariant case we first compare contravariantly without reporting
                         // errors. Then, if that doesn't succeed, we compare covariantly with error
                         // reporting. Thus, error elaboration will be based on the covariant check,
                         // which is generally easier to reason about.
-                        related = self.is_related_to(c, t, s, RecursionFlags::Both, false /*reportErrors*/);
+                        related = self.is_related_to(
+                            c,
+                            t,
+                            s,
+                            RecursionFlags::Both,
+                            false, /*reportErrors*/
+                        );
                         if related == Ternary::False {
-                            related = self.is_related_to_ex(c, s, t, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                            related = self.is_related_to_ex(
+                                c,
+                                s,
+                                t,
+                                RecursionFlags::Both,
+                                report_errors,
+                                None, /*headMessage*/
+                                intersection_state,
+                            );
                         }
                     } else {
                         // In the invariant case we first compare covariantly, and only when that
                         // succeeds do we proceed to compare contravariantly. Thus, error elaboration
                         // will typically be based on the covariant check.
-                        related = self.is_related_to_ex(c, s, t, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                        related = self.is_related_to_ex(
+                            c,
+                            s,
+                            t,
+                            RecursionFlags::Both,
+                            report_errors,
+                            None, /*headMessage*/
+                            intersection_state,
+                        );
                         if related != Ternary::False {
-                            related &= self.is_related_to_ex(c, t, s, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                            related &= self.is_related_to_ex(
+                                c,
+                                t,
+                                s,
+                                RecursionFlags::Both,
+                                report_errors,
+                                None, /*headMessage*/
+                                intersection_state,
+                            );
                         }
                     }
                 }
@@ -1866,10 +3036,19 @@ impl Relater {
     // related to Y, where X' is an instantiation of X in which P is replaced with Q. Notice
     // that S and T are contra-variant whereas X and Y are co-variant.
     // relater.go:4004
-    pub(crate) fn mapped_type_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool) -> Ternary {
+    pub(crate) fn mapped_type_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+    ) -> Ternary {
         let modifiers_related = self.rel() == c.comparable_relation
-            || self.rel() == c.identity_relation && get_mapped_type_modifiers(source) == get_mapped_type_modifiers(target)
-            || self.rel() != c.identity_relation && c.get_combined_mapped_type_optionality(source) <= c.get_combined_mapped_type_optionality(target);
+            || self.rel() == c.identity_relation
+                && get_mapped_type_modifiers(source) == get_mapped_type_modifiers(target)
+            || self.rel() != c.identity_relation
+                && c.get_combined_mapped_type_optionality(source)
+                    <= c.get_combined_mapped_type_optionality(target);
         if modifiers_related {
             let target_constraint = c.get_constraint_type_from_mapped_type(target);
             let source_constraint_uninstantiated = c.get_constraint_type_from_mapped_type(source);
@@ -1899,7 +3078,14 @@ impl Relater {
                     let source_template = c.get_template_type_from_mapped_type(source);
                     let source_template = c.instantiate_type(source_template, Some(mapper));
                     let target_template = c.get_template_type_from_mapped_type(target);
-                    return result & self.is_related_to(c, source_template, target_template, RecursionFlags::Both, report_errors);
+                    return result
+                        & self.is_related_to(
+                            c,
+                            source_template,
+                            target_template,
+                            RecursionFlags::Both,
+                            report_errors,
+                        );
                 }
             }
         }
@@ -1907,7 +3093,12 @@ impl Relater {
     }
 
     // relater.go:4021
-    pub(crate) fn type_related_to_discriminated_type(&self, c: &mut Checker, source: P<Type>, target: P<Type>) -> Ternary {
+    pub(crate) fn type_related_to_discriminated_type(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> Ternary {
         // 1. Generate the combinations of discriminant properties & types 'source' can satisfy.
         //    a. If the number of combinations is above a set limit, the comparison is too complex.
         // 2. Filter 'target' to the subset of types whose discriminants exist in the matrix.
@@ -1938,7 +3129,8 @@ impl Relater {
             }
         }
         // Compute the set of types for each discriminant property.
-        let mut source_discriminant_types: Vec<Vec<P<Type>>> = vec![Vec::new(); source_properties_filtered.len()];
+        let mut source_discriminant_types: Vec<Vec<P<Type>>> =
+            vec![Vec::new(); source_properties_filtered.len()];
         let mut excluded_properties: Set<String> = Set::new();
         for (i, &source_property) in source_properties_filtered.iter().enumerate() {
             let source_property_type = c.get_non_missing_type_of_symbol(source_property);
@@ -2016,9 +3208,23 @@ impl Relater {
                 IntersectionState::None,
             );
             if result != Ternary::False {
-                result &= self.signatures_related_to(c, source, t, SignatureKind::Call, false /*reportErrors*/, IntersectionState::None);
+                result &= self.signatures_related_to(
+                    c,
+                    source,
+                    t,
+                    SignatureKind::Call,
+                    false, /*reportErrors*/
+                    IntersectionState::None,
+                );
                 if result != Ternary::False {
-                    result &= self.signatures_related_to(c, source, t, SignatureKind::Construct, false /*reportErrors*/, IntersectionState::None);
+                    result &= self.signatures_related_to(
+                        c,
+                        source,
+                        t,
+                        SignatureKind::Construct,
+                        false, /*reportErrors*/
+                        IntersectionState::None,
+                    );
                     if result != Ternary::False && !(is_tuple_type(source) && is_tuple_type(t)) {
                         // Comparing numeric index types when both `source` and `type` are tuples is unnecessary as the
                         // element types should be sufficiently covered by `propertiesRelatedTo`. It also causes problems
@@ -2047,39 +3253,76 @@ impl Relater {
     }
 
     // relater.go:4132
-    pub(crate) fn properties_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, excluded_properties: &Set<String>, optionals_only: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn properties_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        excluded_properties: &Set<String>,
+        optionals_only: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if self.rel() == c.identity_relation {
             return self.properties_identical_to(c, source, target, excluded_properties);
         }
         let mut result = Ternary::True;
         if is_tuple_type(target) {
             if c.is_array_or_tuple_type(source) {
-                if !target.target_tuple_type().readonly.get() && (c.is_readonly_array_type(source) || is_tuple_type(source) && source.target_tuple_type().readonly.get()) {
+                if !target.target_tuple_type().readonly.get()
+                    && (c.is_readonly_array_type(source)
+                        || is_tuple_type(source) && source.target_tuple_type().readonly.get())
+                {
                     return Ternary::False;
                 }
                 let source_arity = checker::Checker::get_type_reference_arity(source);
                 let target_arity = checker::Checker::get_type_reference_arity(target);
-                let source_rest = if is_tuple_type(source) { source.target_tuple_type().combined_flags.get().intersects(ElementFlags::Rest) } else { true };
-                let target_has_rest_element = target.target_tuple_type().combined_flags.get().intersects(ElementFlags::Rest);
-                let target_has_variable_element = target.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable);
-                let source_min_length = if is_tuple_type(source) { source.target_tuple_type().min_length.get() } else { 0 };
+                let source_rest = if is_tuple_type(source) {
+                    source.target_tuple_type().combined_flags.get().intersects(ElementFlags::Rest)
+                } else {
+                    true
+                };
+                let target_has_rest_element =
+                    target.target_tuple_type().combined_flags.get().intersects(ElementFlags::Rest);
+                let target_has_variable_element = target
+                    .target_tuple_type()
+                    .combined_flags
+                    .get()
+                    .intersects(ElementFlags::Variable);
+                let source_min_length = if is_tuple_type(source) {
+                    source.target_tuple_type().min_length.get()
+                } else {
+                    0
+                };
                 let target_min_length = target.target_tuple_type().min_length.get();
                 if !source_rest && source_arity < target_min_length {
                     if report_errors {
-                        self.report_error(c, &diagnostics::Source_has_0_element_s_but_target_requires_1, &[&source_arity, &target_min_length]);
+                        self.report_error(
+                            c,
+                            &diagnostics::Source_has_0_element_s_but_target_requires_1,
+                            &[&source_arity, &target_min_length],
+                        );
                     }
                     return Ternary::False;
                 }
                 if !target_has_variable_element && target_arity < source_min_length {
                     if report_errors {
-                        self.report_error(c, &diagnostics::Source_has_0_element_s_but_target_allows_only_1, &[&source_min_length, &target_arity]);
+                        self.report_error(
+                            c,
+                            &diagnostics::Source_has_0_element_s_but_target_allows_only_1,
+                            &[&source_min_length, &target_arity],
+                        );
                     }
                     return Ternary::False;
                 }
                 if !target_has_variable_element && (source_rest || target_arity < source_arity) {
                     if report_errors {
                         if source_min_length < target_min_length {
-                            self.report_error(c, &diagnostics::Target_requires_0_element_s_but_source_may_have_fewer, &[&target_min_length]);
+                            self.report_error(
+                                c,
+                                &diagnostics::Target_requires_0_element_s_but_source_may_have_fewer,
+                                &[&target_min_length],
+                            );
                         } else {
                             self.report_error(c, &diagnostics::Target_allows_only_0_element_s_but_source_may_have_more, &[&target_arity]);
                         }
@@ -2088,10 +3331,14 @@ impl Relater {
                 }
                 let source_type_arguments = c.get_type_arguments(source);
                 let target_type_arguments = c.get_type_arguments(target);
-                let target_start_count = get_start_element_count(target.target_tuple_type(), ElementFlags::NonRest);
-                let target_end_count = get_end_element_count(target.target_tuple_type(), ElementFlags::NonRest);
+                let target_start_count =
+                    get_start_element_count(target.target_tuple_type(), ElementFlags::NonRest);
+                let target_end_count =
+                    get_end_element_count(target.target_tuple_type(), ElementFlags::NonRest);
                 let mut can_exclude_discriminants = !excluded_properties.is_empty();
-                for (source_position, &source_type_argument) in source_type_arguments.iter().enumerate().take(source_arity) {
+                for (source_position, &source_type_argument) in
+                    source_type_arguments.iter().enumerate().take(source_arity)
+                {
                     let source_flags = if is_tuple_type(source) {
                         source.target_tuple_type().element_infos.get()[source_position].flags
                     } else {
@@ -2099,7 +3346,9 @@ impl Relater {
                     };
                     let source_position_from_end = source_arity - 1 - source_position;
 
-                    let target_position = if target_has_rest_element && source_position >= target_start_count {
+                    let target_position = if target_has_rest_element
+                        && source_position >= target_start_count
+                    {
                         target_arity - 1 - source_position_from_end.min(target_end_count)
                     } else {
                         if source_position >= target_arity {
@@ -2120,13 +3369,17 @@ impl Relater {
                         }
                         return Ternary::False;
                     }
-                    if source_flags.intersects(ElementFlags::Variadic) && !target_flags.intersects(ElementFlags::Variable) {
+                    if source_flags.intersects(ElementFlags::Variadic)
+                        && !target_flags.intersects(ElementFlags::Variable)
+                    {
                         if report_errors {
                             self.report_error(c, &diagnostics::Variadic_element_at_position_0_in_source_does_not_match_element_at_position_1_in_target, &[&source_position, &target_position]);
                         }
                         return Ternary::False;
                     }
-                    if target_flags.intersects(ElementFlags::Required) && !source_flags.intersects(ElementFlags::Required) {
+                    if target_flags.intersects(ElementFlags::Required)
+                        && !source_flags.intersects(ElementFlags::Required)
+                    {
                         if report_errors {
                             self.report_error(c, &diagnostics::Source_provides_no_match_for_required_element_at_position_0_in_target, &[&target_position]);
                         }
@@ -2134,24 +3387,48 @@ impl Relater {
                     }
                     // We can only exclude discriminant properties if we have not yet encountered a variable-length element.
                     if can_exclude_discriminants {
-                        if source_flags.intersects(ElementFlags::Variable) || target_flags.intersects(ElementFlags::Variable) {
+                        if source_flags.intersects(ElementFlags::Variable)
+                            || target_flags.intersects(ElementFlags::Variable)
+                        {
                             can_exclude_discriminants = false;
                         }
-                        if can_exclude_discriminants && excluded_properties.has(&source_position.to_string()) {
+                        if can_exclude_discriminants
+                            && excluded_properties.has(&source_position.to_string())
+                        {
                             continue;
                         }
                     }
-                    let source_type = c.remove_missing_type(source_type_argument, (source_flags & target_flags).intersects(ElementFlags::Optional));
+                    let source_type = c.remove_missing_type(
+                        source_type_argument,
+                        (source_flags & target_flags).intersects(ElementFlags::Optional),
+                    );
                     let target_type = target_type_arguments[target_position];
-                    let target_check_type = if source_flags.intersects(ElementFlags::Variadic) && target_flags.intersects(ElementFlags::Rest) {
+                    let target_check_type = if source_flags.intersects(ElementFlags::Variadic)
+                        && target_flags.intersects(ElementFlags::Rest)
+                    {
                         c.create_array_type(target_type)
                     } else {
-                        c.remove_missing_type(target_type, target_flags.intersects(ElementFlags::Optional))
+                        c.remove_missing_type(
+                            target_type,
+                            target_flags.intersects(ElementFlags::Optional),
+                        )
                     };
-                    let related = self.is_related_to_ex(c, source_type, target_check_type, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                    let related = self.is_related_to_ex(
+                        c,
+                        source_type,
+                        target_check_type,
+                        RecursionFlags::Both,
+                        report_errors,
+                        None, /*headMessage*/
+                        intersection_state,
+                    );
                     if related == Ternary::False {
                         if report_errors && (target_arity > 1 || source_arity > 1) {
-                            if target_has_rest_element && source_position >= target_start_count && source_position_from_end >= target_end_count && target_start_count != source_arity - target_end_count - 1 {
+                            if target_has_rest_element
+                                && source_position >= target_start_count
+                                && source_position_from_end >= target_end_count
+                                && target_start_count != source_arity - target_end_count - 1
+                            {
                                 self.report_error(c, &diagnostics::Type_at_positions_0_through_1_in_source_is_not_compatible_with_type_at_position_2_in_target, &[&target_start_count, &(source_arity - target_end_count - 1), &target_position]);
                             } else {
                                 self.report_error(c, &diagnostics::Type_at_position_0_in_source_is_not_compatible_with_type_at_position_1_in_target, &[&source_position, &target_position]);
@@ -2167,39 +3444,89 @@ impl Relater {
                 return Ternary::False;
             }
         }
-        let require_optional_properties = (self.rel() == c.subtype_relation || self.rel() == c.strict_subtype_relation) && !is_object_literal_type(source) && !c.is_empty_array_literal_type(source) && !is_tuple_type(source);
+        let require_optional_properties = (self.rel() == c.subtype_relation
+            || self.rel() == c.strict_subtype_relation)
+            && !is_object_literal_type(source)
+            && !c.is_empty_array_literal_type(source)
+            && !is_tuple_type(source);
         // tsrs-only: the loop below looks up the same names in `source` again; the lookups recorded here answer it.
         let mut found = c.unmatched_found_pool.pop().unwrap_or_default();
         found.clear();
-        let unmatched_property = c.get_unmatched_property_recording(source, target, require_optional_properties, &mut found);
-        let result = self.properties_related_to_rest(c, source, target, report_errors, excluded_properties, optionals_only, intersection_state, require_optional_properties, unmatched_property, &found);
+        let unmatched_property = c.get_unmatched_property_recording(
+            source,
+            target,
+            require_optional_properties,
+            &mut found,
+        );
+        let result = self.properties_related_to_rest(
+            c,
+            source,
+            target,
+            report_errors,
+            excluded_properties,
+            optionals_only,
+            intersection_state,
+            require_optional_properties,
+            unmatched_property,
+            &found,
+        );
         c.unmatched_found_pool.push(found);
         result
     }
 
-    #[expect(clippy::option_option, reason = "The outer option records whether a result is available; the inner option records an absent value.")]
-    fn properties_related_to_rest(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool, excluded_properties: &Set<String>, optionals_only: bool, intersection_state: IntersectionState, require_optional_properties: bool, unmatched_property: Option<P<Symbol>>, found: &[Option<Option<P<Symbol>>>]) -> Ternary {
+    #[expect(
+        clippy::option_option,
+        reason = "The outer option records whether a result is available; the inner option records an absent value."
+    )]
+    fn properties_related_to_rest(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+        excluded_properties: &Set<String>,
+        optionals_only: bool,
+        intersection_state: IntersectionState,
+        require_optional_properties: bool,
+        unmatched_property: Option<P<Symbol>>,
+        found: &[Option<Option<P<Symbol>>>],
+    ) -> Ternary {
         let mut result = Ternary::True;
         if let Some(unmatched_property) = unmatched_property {
             if report_errors && c.should_report_unmatched_property_error(source, target) {
-                self.report_unmatched_property(c, source, target, unmatched_property, require_optional_properties);
+                self.report_unmatched_property(
+                    c,
+                    source,
+                    target,
+                    unmatched_property,
+                    require_optional_properties,
+                );
             }
             return Ternary::False;
         }
         if is_object_literal_type(target) {
             let source_properties = c.get_properties_of_type(source);
-            if let Some(result) = exclude_properties(source_properties, excluded_properties).iter().copied().into_iter().find_map(|source_prop| {
-                if c.get_property_of_object_type(target, source_prop.name()).is_none() {
-                    if report_errors {
-                        let source_prop_string = c.symbol_to_string(source_prop);
-                        let target_string = c.type_to_string_exported(target);
-                        self.report_error(c, &diagnostics::Property_0_does_not_exist_on_type_1, &[&source_prop_string, &target_string]);
+            if let Some(result) = exclude_properties(source_properties, excluded_properties)
+                .iter()
+                .copied()
+                .into_iter()
+                .find_map(|source_prop| {
+                    if c.get_property_of_object_type(target, source_prop.name()).is_none() {
+                        if report_errors {
+                            let source_prop_string = c.symbol_to_string(source_prop);
+                            let target_string = c.type_to_string_exported(target);
+                            self.report_error(
+                                c,
+                                &diagnostics::Property_0_does_not_exist_on_type_1,
+                                &[&source_prop_string, &target_string],
+                            );
+                        }
+                        return Some(Ternary::False);
                     }
-                    return Some(Ternary::False);
-                }
 
-                None
-            }) {
+                    None
+                })
+            {
                 return result;
             }
         }
@@ -2208,11 +3535,20 @@ impl Relater {
         let properties = c.get_properties_of_type(target);
         let numeric_names_only = is_tuple_type(source) && is_tuple_type(target);
         // `found` is by position in `properties` when it covers them all and nothing is excluded.
-        let found = if found.len() == properties.len() && excluded_properties.is_empty() { found } else { &[] };
+        let found = if found.len() == properties.len() && excluded_properties.is_empty() {
+            found
+        } else {
+            &[]
+        };
         let resolved_source = c.resolved_property_source(source);
-        for (i, target_prop) in exclude_properties(properties, excluded_properties).iter().copied().enumerate() {
+        for (i, target_prop) in
+            exclude_properties(properties, excluded_properties).iter().copied().enumerate()
+        {
             let name = target_prop.name();
-            if !target_prop.flags().intersects(SymbolFlags::Prototype) && (!numeric_names_only || is_numeric_literal_name(name) || name == "length") && (!optionals_only || target_prop.flags().intersects(SymbolFlags::Optional)) {
+            if !target_prop.flags().intersects(SymbolFlags::Prototype)
+                && (!numeric_names_only || is_numeric_literal_name(name) || name == "length")
+                && (!optionals_only || target_prop.flags().intersects(SymbolFlags::Optional))
+            {
                 let source_prop = match found.get(i) {
                     Some(&Some(source_prop)) => source_prop,
                     _ => match &resolved_source {
@@ -2223,7 +3559,17 @@ impl Relater {
                 if let Some(source_prop) = source_prop {
                     if source_prop != target_prop {
                         let skip_optional = self.rel() == c.comparable_relation;
-                        let related = self.property_related_to(c, source, target, source_prop, target_prop, super::checker::Checker::get_non_missing_type_of_symbol, report_errors, intersection_state, skip_optional);
+                        let related = self.property_related_to(
+                            c,
+                            source,
+                            target,
+                            source_prop,
+                            target_prop,
+                            super::checker::Checker::get_non_missing_type_of_symbol,
+                            report_errors,
+                            intersection_state,
+                            skip_optional,
+                        );
                         if related == Ternary::False {
                             return Ternary::False;
                         }
@@ -2236,21 +3582,56 @@ impl Relater {
     }
 
     // relater.go:4302
-    pub(crate) fn property_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, source_prop: P<Symbol>, target_prop: P<Symbol>, get_type_of_source_property: impl FnMut(&mut Checker, P<Symbol>) -> P<Type>, report_errors: bool, intersection_state: IntersectionState, skip_optional: bool) -> Ternary {
+    pub(crate) fn property_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        source_prop: P<Symbol>,
+        target_prop: P<Symbol>,
+        get_type_of_source_property: impl FnMut(&mut Checker, P<Symbol>) -> P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+        skip_optional: bool,
+    ) -> Ternary {
         // tsrs: only the Private and Protected bits are tested below.
         let source_prop_flags = get_declaration_non_public_flags_from_symbol(source_prop);
         let target_prop_flags = get_declaration_non_public_flags_from_symbol(target_prop);
-        if source_prop_flags.intersects(ModifierFlags::Private) || target_prop_flags.intersects(ModifierFlags::Private) {
+        if source_prop_flags.intersects(ModifierFlags::Private)
+            || target_prop_flags.intersects(ModifierFlags::Private)
+        {
             if source_prop.value_declaration() != target_prop.value_declaration() {
                 if report_errors {
-                    if source_prop_flags.intersects(ModifierFlags::Private) && target_prop_flags.intersects(ModifierFlags::Private) {
+                    if source_prop_flags.intersects(ModifierFlags::Private)
+                        && target_prop_flags.intersects(ModifierFlags::Private)
+                    {
                         let target_prop_string = c.symbol_to_string(target_prop);
-                        self.report_error(c, &diagnostics::Types_have_separate_declarations_of_a_private_property_0, &[&target_prop_string]);
+                        self.report_error(
+                            c,
+                            &diagnostics::Types_have_separate_declarations_of_a_private_property_0,
+                            &[&target_prop_string],
+                        );
                     } else {
                         let target_prop_string = c.symbol_to_string(target_prop);
-                        let first = c.type_to_string_exported(if source_prop_flags.intersects(ModifierFlags::Private) { source } else { target });
-                        let second = c.type_to_string_exported(if source_prop_flags.intersects(ModifierFlags::Private) { target } else { source });
-                        self.report_error(c, &diagnostics::Property_0_is_private_in_type_1_but_not_in_type_2, &[&target_prop_string, &first, &second]);
+                        let first = c.type_to_string_exported(
+                            if source_prop_flags.intersects(ModifierFlags::Private) {
+                                source
+                            } else {
+                                target
+                            },
+                        );
+                        let second = c.type_to_string_exported(
+                            if source_prop_flags.intersects(ModifierFlags::Private) {
+                                target
+                            } else {
+                                source
+                            },
+                        );
+                        self.report_error(
+                            c,
+                            &diagnostics::Property_0_is_private_in_type_1_but_not_in_type_2,
+                            &[&target_prop_string, &first, &second],
+                        );
                     }
                 }
                 return Ternary::False;
@@ -2272,7 +3653,11 @@ impl Relater {
                 let target_prop_string = c.symbol_to_string(target_prop);
                 let source_string = c.type_to_string_exported(source);
                 let target_string = c.type_to_string_exported(target);
-                self.report_error(c, &diagnostics::Property_0_is_protected_in_type_1_but_public_in_type_2, &[&target_prop_string, &source_string, &target_string]);
+                self.report_error(
+                    c,
+                    &diagnostics::Property_0_is_protected_in_type_1_but_public_in_type_2,
+                    &[&target_prop_string, &source_string, &target_string],
+                );
             }
             return Ternary::False;
         }
@@ -2282,20 +3667,38 @@ impl Relater {
         // from deciding which type "wins" in union subtype reduction.
         // They're still assignable to one another, since `readonly` doesn't affect assignability.
         // This is only applied during the strictSubtypeRelation -- currently used in subtype reduction
-        if self.rel() == c.strict_subtype_relation && c.is_readonly_symbol(source_prop) && !c.is_readonly_symbol(target_prop) {
+        if self.rel() == c.strict_subtype_relation
+            && c.is_readonly_symbol(source_prop)
+            && !c.is_readonly_symbol(target_prop)
+        {
             return Ternary::False;
         }
         // If the target comes from a partial union prop, allow `undefined` in the target type
-        let related = self.is_property_symbol_type_related(c, source_prop, target_prop, get_type_of_source_property, report_errors, intersection_state);
+        let related = self.is_property_symbol_type_related(
+            c,
+            source_prop,
+            target_prop,
+            get_type_of_source_property,
+            report_errors,
+            intersection_state,
+        );
         if related == Ternary::False {
             if report_errors {
                 let target_prop_string = c.symbol_to_string(target_prop);
-                self.report_error(c, &diagnostics::Types_of_property_0_are_incompatible, &[&target_prop_string]);
+                self.report_error(
+                    c,
+                    &diagnostics::Types_of_property_0_are_incompatible,
+                    &[&target_prop_string],
+                );
             }
             return Ternary::False;
         }
         // When checking for comparability, be more lenient with optional properties.
-        if !skip_optional && source_prop.flags().intersects(SymbolFlags::Optional) && target_prop.flags().intersects(SymbolFlags::ClassMember) && !target_prop.flags().intersects(SymbolFlags::Optional) {
+        if !skip_optional
+            && source_prop.flags().intersects(SymbolFlags::Optional)
+            && target_prop.flags().intersects(SymbolFlags::ClassMember)
+            && !target_prop.flags().intersects(SymbolFlags::Optional)
+        {
             // TypeScript 1.0 spec (April 2014): 3.8.3
             // S is a subtype of a type T, and T is a supertype of S if ...
             // S' and T are object types and, for each member M in T..
@@ -2307,7 +3710,11 @@ impl Relater {
                 let target_prop_string = c.symbol_to_string(target_prop);
                 let source_string = c.type_to_string_exported(source);
                 let target_string = c.type_to_string_exported(target);
-                self.report_error(c, &diagnostics::Property_0_is_optional_in_type_1_but_required_in_type_2, &[&target_prop_string, &source_string, &target_string]);
+                self.report_error(
+                    c,
+                    &diagnostics::Property_0_is_optional_in_type_1_but_required_in_type_2,
+                    &[&target_prop_string, &source_string, &target_string],
+                );
             }
             return Ternary::False;
         }
@@ -2315,57 +3722,123 @@ impl Relater {
     }
 
     // relater.go:4366
-    pub(crate) fn is_property_symbol_type_related(&self, c: &mut Checker, source_prop: P<Symbol>, target_prop: P<Symbol>, mut get_type_of_source_property: impl FnMut(&mut Checker, P<Symbol>) -> P<Type>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
-        let target_is_optional = c.strict_null_checks && target_prop.check_flags().intersects(CheckFlags::Partial);
+    pub(crate) fn is_property_symbol_type_related(
+        &self,
+        c: &mut Checker,
+        source_prop: P<Symbol>,
+        target_prop: P<Symbol>,
+        mut get_type_of_source_property: impl FnMut(&mut Checker, P<Symbol>) -> P<Type>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
+        let target_is_optional =
+            c.strict_null_checks && target_prop.check_flags().intersects(CheckFlags::Partial);
         let non_missing_target = c.get_non_missing_type_of_symbol(target_prop);
-        let effective_target = c.add_optionality_ex(non_missing_target, false /*isProperty*/, target_is_optional);
+        let effective_target =
+            c.add_optionality_ex(non_missing_target, false /*isProperty*/, target_is_optional);
         // source could resolve to `any` and that's not related to `unknown` target under strict subtype relation
-        if effective_target.flags().intersects(if self.rel() == c.strict_subtype_relation { TypeFlags::Any } else { TypeFlags::AnyOrUnknown }) {
+        if effective_target.flags().intersects(if self.rel() == c.strict_subtype_relation {
+            TypeFlags::Any
+        } else {
+            TypeFlags::AnyOrUnknown
+        }) {
             return Ternary::True;
         }
         let effective_source = get_type_of_source_property(c, source_prop);
-        self.is_related_to_ex(c, effective_source, effective_target, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state)
+        self.is_related_to_ex(
+            c,
+            effective_source,
+            effective_target,
+            RecursionFlags::Both,
+            report_errors,
+            None, /*headMessage*/
+            intersection_state,
+        )
     }
 
     // relater.go:4377
-    pub(crate) fn report_unmatched_property(&self, c: &mut Checker, source: P<Type>, target: P<Type>, unmatched_property: P<Symbol>, require_optional_properties: bool) {
+    pub(crate) fn report_unmatched_property(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        unmatched_property: P<Symbol>,
+        require_optional_properties: bool,
+    ) {
         // give specific error in case where private names have the same description
         if let Some(value_declaration) = unmatched_property.value_declaration() {
-            if value_declaration.name().is_some_and(ast::is_private_identifier) && source.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::Class)) {
+            if value_declaration.name().is_some_and(ast::is_private_identifier)
+                && source.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::Class))
+            {
                 let private_identifier_description = value_declaration.name().unwrap().text();
-                let symbol_table_key = tsrs_binder::get_symbol_name_for_private_identifier(source.symbol().unwrap(), private_identifier_description);
+                let symbol_table_key = tsrs_binder::get_symbol_name_for_private_identifier(
+                    source.symbol().unwrap(),
+                    private_identifier_description,
+                );
                 if c.get_property_of_type(source, &symbol_table_key).is_some() {
-                    let source_symbol_string = c.symbol_to_string_exported(source.symbol().unwrap());
-                    let target_symbol_string = c.symbol_to_string_exported(target.symbol().unwrap());
+                    let source_symbol_string =
+                        c.symbol_to_string_exported(source.symbol().unwrap());
+                    let target_symbol_string =
+                        c.symbol_to_string_exported(target.symbol().unwrap());
                     self.report_error(c, &diagnostics::Property_0_in_type_1_refers_to_a_different_member_that_cannot_be_accessed_from_within_type_2, &[&private_identifier_description, &source_symbol_string, &target_symbol_string]);
                     return;
                 }
             }
         }
-        let props = c.get_unmatched_properties(source, target, require_optional_properties, false /*matchDiscriminantProperties*/);
+        let props = c.get_unmatched_properties(
+            source,
+            target,
+            require_optional_properties,
+            false, /*matchDiscriminantProperties*/
+        );
         if props.len() == 1 {
             let (source_type, target_type) = c.get_type_names_for_error_display(source, target);
             let prop_name = c.symbol_to_string(unmatched_property);
-            self.report_error(c, &diagnostics::Property_0_is_missing_in_type_1_but_required_in_type_2, &[&prop_name, &source_type, &target_type]);
+            self.report_error(
+                c,
+                &diagnostics::Property_0_is_missing_in_type_1_but_required_in_type_2,
+                &[&prop_name, &source_type, &target_type],
+            );
             let first_declaration = unmatched_property.declarations().first().copied();
             if let Some(first_declaration) = first_declaration {
-                let diagnostic = create_diagnostic_for_node(Some(first_declaration), &diagnostics::X_0_is_declared_here, &[&prop_name]);
+                let diagnostic = create_diagnostic_for_node(
+                    Some(first_declaration),
+                    &diagnostics::X_0_is_declared_here,
+                    &[&prop_name],
+                );
                 self.related_info.borrow_mut().push(diagnostic);
             }
-        } else if self.try_elaborate_array_like_errors(c, source, target, false /*reportErrors*/) {
+        } else if self
+            .try_elaborate_array_like_errors(c, source, target, false /*reportErrors*/)
+        {
             let (source_type, target_type) = c.get_type_names_for_error_display(source, target);
             if props.len() > 5 {
-                let prop_names = props[..4].iter().map(|&p| c.symbol_to_string(p)).collect::<Vec<_>>().join(", ");
+                let prop_names = props[..4]
+                    .iter()
+                    .map(|&p| c.symbol_to_string(p))
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 self.report_error(c, &diagnostics::Type_0_is_missing_the_following_properties_from_type_1_Colon_2_and_3_more, &[&source_type, &target_type, &prop_names, &(props.len() - 4)]);
             } else {
-                let prop_names = props.iter().map(|&p| c.symbol_to_string(p)).collect::<Vec<_>>().join(", ");
-                self.report_error(c, &diagnostics::Type_0_is_missing_the_following_properties_from_type_1_Colon_2, &[&source_type, &target_type, &prop_names]);
+                let prop_names =
+                    props.iter().map(|&p| c.symbol_to_string(p)).collect::<Vec<_>>().join(", ");
+                self.report_error(
+                    c,
+                    &diagnostics::Type_0_is_missing_the_following_properties_from_type_1_Colon_2,
+                    &[&source_type, &target_type, &prop_names],
+                );
             }
         }
     }
 
     // relater.go:4411
-    pub(crate) fn try_elaborate_array_like_errors(&self, c: &mut Checker, source: P<Type>, target: P<Type>, report_errors: bool) -> bool {
+    pub(crate) fn try_elaborate_array_like_errors(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+    ) -> bool {
         /*
          * The spec for elaboration is:
          * - If the source is a readonly tuple and the target is a mutable array or tuple, elaborate on mutability and skip property elaborations.
@@ -2399,7 +3872,12 @@ impl Relater {
     }
 
     // relater.go:4440
-    pub(crate) fn try_elaborate_errors_for_primitives_and_objects(&self, c: &mut Checker, source: P<Type>, target: P<Type>) {
+    pub(crate) fn try_elaborate_errors_for_primitives_and_objects(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) {
         if (source == c.global_string_type && target == c.string_type)
             || (source == c.global_number_type && target == c.number_type)
             || (source == c.global_boolean_type && target == c.boolean_type)
@@ -2412,8 +3890,16 @@ impl Relater {
     }
 
     // relater.go:4449
-    pub(crate) fn properties_identical_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, excluded_properties: &Set<String>) -> Ternary {
-        if !source.flags().intersects(TypeFlags::Object) || !target.flags().intersects(TypeFlags::Object) {
+    pub(crate) fn properties_identical_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        excluded_properties: &Set<String>,
+    ) -> Ternary {
+        if !source.flags().intersects(TypeFlags::Object)
+            || !target.flags().intersects(TypeFlags::Object)
+        {
             return Ternary::False;
         }
         let source_object_properties = c.get_properties_of_object_type(source);
@@ -2429,7 +3915,9 @@ impl Relater {
             let Some(target_prop) = target_prop else {
                 return Err(Ternary::False);
             };
-            let related = c.compare_properties(source_prop, target_prop, |c, s, t| self.is_related_to_simple(c, s, t));
+            let related = c.compare_properties(source_prop, target_prop, |c, s, t| {
+                self.is_related_to_simple(c, s, t)
+            });
             if related == Ternary::False {
                 return Err(Ternary::False);
             }
@@ -2443,7 +3931,15 @@ impl Relater {
     }
 
     // relater.go:4473
-    pub(crate) fn signatures_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, kind: SignatureKind, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn signatures_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        kind: SignatureKind,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if self.rel() == c.identity_relation {
             return self.signatures_identical_to(c, source, target, kind);
         }
@@ -2456,9 +3952,14 @@ impl Relater {
         }
         let source_signatures = c.get_signatures_of_type(source, kind);
         let target_signatures = c.get_signatures_of_type(target, kind);
-        if kind == SignatureKind::Construct && !source_signatures.is_empty() && !target_signatures.is_empty() {
-            let source_is_abstract = source_signatures[0].flags.get().intersects(SignatureFlags::Abstract);
-            let target_is_abstract = target_signatures[0].flags.get().intersects(SignatureFlags::Abstract);
+        if kind == SignatureKind::Construct
+            && !source_signatures.is_empty()
+            && !target_signatures.is_empty()
+        {
+            let source_is_abstract =
+                source_signatures[0].flags.get().intersects(SignatureFlags::Abstract);
+            let target_is_abstract =
+                target_signatures[0].flags.get().intersects(SignatureFlags::Abstract);
             if source_is_abstract && !target_is_abstract {
                 // An abstract constructor type is not assignable to a non-abstract constructor type
                 // as it would otherwise be possible to new an abstract class. Note that the assignability
@@ -2469,20 +3970,36 @@ impl Relater {
                 }
                 return Ternary::False;
             }
-            if !self.constructor_visibilities_are_compatible(c, source_signatures[0], target_signatures[0], report_errors) {
+            if !self.constructor_visibilities_are_compatible(
+                c,
+                source_signatures[0],
+                target_signatures[0],
+                report_errors,
+            ) {
                 return Ternary::False;
             }
         }
         let mut result = Ternary::True;
-        if source.object_flags().intersects(ObjectFlags::Instantiated) && target.object_flags().intersects(ObjectFlags::Instantiated) && source.symbol() == target.symbol()
-            || source.object_flags().intersects(ObjectFlags::Reference) && target.object_flags().intersects(ObjectFlags::Reference) && source.target() == target.target()
+        if source.object_flags().intersects(ObjectFlags::Instantiated)
+            && target.object_flags().intersects(ObjectFlags::Instantiated)
+            && source.symbol() == target.symbol()
+            || source.object_flags().intersects(ObjectFlags::Reference)
+                && target.object_flags().intersects(ObjectFlags::Reference)
+                && source.target() == target.target()
         {
             // We have instantiations of the same anonymous type (which typically will be the type of a
             // method). Simply do a pairwise comparison of the signatures in the two signature lists instead
             // of the much more expensive N * M comparison matrix we explore below. We erase type parameters
             // as they are known to always be the same.
             for (i, element) in target_signatures.iter().enumerate() {
-                let related = self.signature_related_to(c, source_signatures[i], *element, true /*erase*/, report_errors, intersection_state);
+                let related = self.signature_related_to(
+                    c,
+                    source_signatures[i],
+                    *element,
+                    true, /*erase*/
+                    report_errors,
+                    intersection_state,
+                );
                 if related == Ternary::False {
                     return Ternary::False;
                 }
@@ -2495,14 +4012,28 @@ impl Relater {
             // this regardless of the number of signatures, but the potential costs are prohibitive due
             // to the quadratic nature of the logic below.
             let erase_generics = self.rel() == c.comparable_relation;
-            result = self.signature_related_to(c, source_signatures[0], target_signatures[0], erase_generics, report_errors, intersection_state);
+            result = self.signature_related_to(
+                c,
+                source_signatures[0],
+                target_signatures[0],
+                erase_generics,
+                report_errors,
+                intersection_state,
+            );
         } else {
             'outer: for &t in target_signatures {
                 let save_error_state = self.get_error_state(c);
                 // Only elaborate errors from the first failure
                 let mut should_elaborate_errors = report_errors;
                 for &s in source_signatures {
-                    let related = self.signature_related_to(c, s, t, true /*erase*/, should_elaborate_errors, intersection_state);
+                    let related = self.signature_related_to(
+                        c,
+                        s,
+                        t,
+                        true, /*erase*/
+                        should_elaborate_errors,
+                        intersection_state,
+                    );
                     if related != Ternary::False {
                         result &= related;
                         self.restore_error_state(c, save_error_state);
@@ -2513,7 +4044,11 @@ impl Relater {
                 if should_elaborate_errors {
                     let source_string = c.type_to_string_exported(source);
                     let signature_string = c.signature_to_string(t);
-                    self.report_error(c, &diagnostics::Type_0_provides_no_match_for_the_signature_1, &[&source_string, &signature_string]);
+                    self.report_error(
+                        c,
+                        &diagnostics::Type_0_provides_no_match_for_the_signature_1,
+                        &[&source_string, &signature_string],
+                    );
                 }
                 return Ternary::False;
             }
@@ -2522,18 +4057,30 @@ impl Relater {
     }
 
     // relater.go:4550
-    pub(crate) fn constructor_visibilities_are_compatible(&self, c: &mut Checker, source_signature: P<Signature>, target_signature: P<Signature>, report_errors: bool) -> bool {
-        let (Some(source_declaration), Some(target_declaration)) = (source_signature.declaration.get(), target_signature.declaration.get()) else {
+    pub(crate) fn constructor_visibilities_are_compatible(
+        &self,
+        c: &mut Checker,
+        source_signature: P<Signature>,
+        target_signature: P<Signature>,
+        report_errors: bool,
+    ) -> bool {
+        let (Some(source_declaration), Some(target_declaration)) =
+            (source_signature.declaration.get(), target_signature.declaration.get())
+        else {
             return true;
         };
-        let source_accessibility = source_declaration.modifier_flags() & ModifierFlags::NonPublicAccessibilityModifier;
-        let target_accessibility = target_declaration.modifier_flags() & ModifierFlags::NonPublicAccessibilityModifier;
+        let source_accessibility =
+            source_declaration.modifier_flags() & ModifierFlags::NonPublicAccessibilityModifier;
+        let target_accessibility =
+            target_declaration.modifier_flags() & ModifierFlags::NonPublicAccessibilityModifier;
         // A public, protected and private signature is assignable to a private signature.
         if target_accessibility == ModifierFlags::Private {
             return true;
         }
         // A public and protected signature is assignable to a protected signature.
-        if target_accessibility == ModifierFlags::Protected && source_accessibility != ModifierFlags::Private {
+        if target_accessibility == ModifierFlags::Protected
+            && source_accessibility != ModifierFlags::Private
+        {
             return true;
         }
         // Only a public signature is assignable to public signature.
@@ -2543,14 +4090,26 @@ impl Relater {
         if report_errors {
             let source_string = visibility_to_string(source_accessibility);
             let target_string = visibility_to_string(target_accessibility);
-            self.report_error(c, &diagnostics::Cannot_assign_a_0_constructor_type_to_a_1_constructor_type, &[&source_string, &target_string]);
+            self.report_error(
+                c,
+                &diagnostics::Cannot_assign_a_0_constructor_type_to_a_1_constructor_type,
+                &[&source_string, &target_string],
+            );
         }
         false
     }
 
     // See signatureAssignableTo, compareSignaturesIdentical
     // relater.go:4575
-    pub(crate) fn signature_related_to(&self, c: &mut Checker, source: P<Signature>, target: P<Signature>, erase: bool, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn signature_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Signature>,
+        target: P<Signature>,
+        erase: bool,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let mut check_mode = SignatureCheckMode::None;
         if self.rel() == c.subtype_relation {
             check_mode = SignatureCheckMode::StrictTopSignature;
@@ -2563,19 +4122,52 @@ impl Relater {
             source = c.get_erased_signature(source);
             target = c.get_erased_signature(target);
         }
-        let cached = self.signature_comparers.borrow().iter().find(|e| e.0 == intersection_state).map(|e| e.1);
-        let is_related_to_worker = if let Some(f) = cached { f } else {
+        let cached = self
+            .signature_comparers
+            .borrow()
+            .iter()
+            .find(|e| e.0 == intersection_state)
+            .map(|e| e.1);
+        let is_related_to_worker = if let Some(f) = cached {
+            f
+        } else {
             let r = self.as_p();
-            let f = type_comparer(move |c, source, target, report_errors| r.is_related_to_ex(c, source, target, RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state));
+            let f = type_comparer(move |c, source, target, report_errors| {
+                r.is_related_to_ex(
+                    c,
+                    source,
+                    target,
+                    RecursionFlags::Both,
+                    report_errors,
+                    None, /*headMessage*/
+                    intersection_state,
+                )
+            });
             self.signature_comparers.borrow_mut().push((intersection_state, f));
             f
         };
-        let mut reporter = |c: &mut Checker, message: &'static Message, args: &[&dyn Display]| self.report_error(c, message, args);
-        c.compare_signatures_related(source, target, check_mode, report_errors, Some(&mut reporter), is_related_to_worker, Some(c.report_unreliable_mapper))
+        let mut reporter = |c: &mut Checker, message: &'static Message, args: &[&dyn Display]| {
+            self.report_error(c, message, args);
+        };
+        c.compare_signatures_related(
+            source,
+            target,
+            check_mode,
+            report_errors,
+            Some(&mut reporter),
+            is_related_to_worker,
+            Some(c.report_unreliable_mapper),
+        )
     }
 
     // relater.go:4593
-    pub(crate) fn signatures_identical_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, kind: SignatureKind) -> Ternary {
+    pub(crate) fn signatures_identical_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        kind: SignatureKind,
+    ) -> Ternary {
         let source_signatures = c.get_signatures_of_type(source, kind);
         let target_signatures = c.get_signatures_of_type(target, kind);
         if source_signatures.len() != target_signatures.len() {
@@ -2600,7 +4192,15 @@ impl Relater {
     }
 
     // relater.go:4610
-    pub(crate) fn index_signatures_related_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>, source_is_primitive: bool, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn index_signatures_related_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+        source_is_primitive: bool,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         if self.rel() == c.identity_relation {
             return self.index_signatures_identical_to(c, source, target);
         }
@@ -2617,9 +4217,21 @@ impl Relater {
                 Ternary::True
             } else if c.is_generic_mapped_type(source) && target_has_string_index {
                 let template_type = c.get_template_type_from_mapped_type(source);
-                self.is_related_to(c, template_type, target_info.value_type(), RecursionFlags::Both, report_errors)
+                self.is_related_to(
+                    c,
+                    template_type,
+                    target_info.value_type(),
+                    RecursionFlags::Both,
+                    report_errors,
+                )
             } else {
-                self.type_related_to_index_info(c, source, target_info, report_errors, intersection_state)
+                self.type_related_to_index_info(
+                    c,
+                    source,
+                    target_info,
+                    report_errors,
+                    intersection_state,
+                )
             };
             if related == Ternary::False {
                 return Err(Ternary::False);
@@ -2634,24 +4246,48 @@ impl Relater {
     }
 
     // relater.go:4635
-    pub(crate) fn type_related_to_index_info(&self, c: &mut Checker, source: P<Type>, target_info: P<IndexInfo>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn type_related_to_index_info(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target_info: P<IndexInfo>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let source_info = c.get_applicable_index_info(source, target_info.key_type());
         if let Some(source_info) = source_info {
-            return self.index_info_related_to(c, source_info, target_info, report_errors, intersection_state);
+            return self.index_info_related_to(
+                c,
+                source_info,
+                target_info,
+                report_errors,
+                intersection_state,
+            );
         }
         // Intersection constituents are never considered to have an inferred index signature. Also, in the strict subtype relation,
         // only fresh object literals are considered to have inferred index signatures. This ensures { [x: string]: xxx } <: {} but
         // not vice-versa. Without this rule, those types would be mutual strict subtypes.
         if !intersection_state.intersects(IntersectionState::Source)
-            && (self.rel() != c.strict_subtype_relation || source.object_flags().intersects(ObjectFlags::FreshLiteral))
+            && (self.rel() != c.strict_subtype_relation
+                || source.object_flags().intersects(ObjectFlags::FreshLiteral))
             && c.is_object_type_with_inferable_index(source)
         {
-            return self.members_related_to_index_info(c, source, target_info, report_errors, intersection_state);
+            return self.members_related_to_index_info(
+                c,
+                source,
+                target_info,
+                report_errors,
+                intersection_state,
+            );
         }
         if report_errors {
             let key_type_string = c.type_to_string_exported(target_info.key_type());
             let source_string = c.type_to_string_exported(source);
-            self.report_error(c, &diagnostics::Index_signature_for_type_0_is_missing_in_type_1, &[&key_type_string, &source_string]);
+            self.report_error(
+                c,
+                &diagnostics::Index_signature_for_type_0_is_missing_in_type_1,
+                &[&key_type_string, &source_string],
+            );
         }
         Ternary::False
     }
@@ -2671,16 +4307,31 @@ impl Checker {
             return true;
         }
         t.symbol().is_some_and(|s| {
-            s.flags().intersects(SymbolFlags::ObjectLiteral | SymbolFlags::TypeLiteral | SymbolFlags::Enum | SymbolFlags::ValueModule) && !s.flags().intersects(SymbolFlags::Class)
+            s.flags().intersects(
+                SymbolFlags::ObjectLiteral
+                    | SymbolFlags::TypeLiteral
+                    | SymbolFlags::Enum
+                    | SymbolFlags::ValueModule,
+            ) && !s.flags().intersects(SymbolFlags::Class)
         }) && !self.type_has_call_or_construct_signatures(t)
             || t.object_flags().intersects(ObjectFlags::JSLiteral | ObjectFlags::ObjectRestType)
-            || t.object_flags().intersects(ObjectFlags::ReverseMapped) && self.is_object_type_with_inferable_index(t.as_reverse_mapped_type().source.get().unwrap())
+            || t.object_flags().intersects(ObjectFlags::ReverseMapped)
+                && self.is_object_type_with_inferable_index(
+                    t.as_reverse_mapped_type().source.get().unwrap(),
+                )
     }
 }
 
 impl Relater {
     // relater.go:4666
-    pub(crate) fn members_related_to_index_info(&self, c: &mut Checker, source: P<Type>, target_info: P<IndexInfo>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
+    pub(crate) fn members_related_to_index_info(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target_info: P<IndexInfo>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
         let mut result = Ternary::True;
         let key_type = target_info.key_type();
         let props = if source.flags().intersects(TypeFlags::Intersection) {
@@ -2693,35 +4344,64 @@ impl Relater {
             if is_ignored_jsx_property(source, prop) {
                 continue;
             }
-            let literal_type = c.get_literal_type_from_property(prop, TypeFlags::StringOrNumberLiteralOrUnique, false);
+            let literal_type = c.get_literal_type_from_property(
+                prop,
+                TypeFlags::StringOrNumberLiteralOrUnique,
+                false,
+            );
             if c.is_applicable_index_type(literal_type, key_type) {
                 let prop_type = c.get_non_missing_type_of_symbol(prop);
-                let t = if c.exact_optional_property_types || prop_type.flags().intersects(TypeFlags::Undefined) || key_type == c.number_type || !prop.flags().intersects(SymbolFlags::Optional) {
+                let t = if c.exact_optional_property_types
+                    || prop_type.flags().intersects(TypeFlags::Undefined)
+                    || key_type == c.number_type
+                    || !prop.flags().intersects(SymbolFlags::Optional)
+                {
                     prop_type
                 } else {
                     c.get_type_with_facts(prop_type, TypeFacts::NEUndefined)
                 };
-                let related = self.is_related_to_ex(c, t, target_info.value_type(), RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+                let related = self.is_related_to_ex(
+                    c,
+                    t,
+                    target_info.value_type(),
+                    RecursionFlags::Both,
+                    report_errors,
+                    None, /*headMessage*/
+                    intersection_state,
+                );
                 if related == Ternary::False {
                     if report_errors {
                         let prop_string = c.symbol_to_string(prop);
-                        self.report_error(c, &diagnostics::Property_0_is_incompatible_with_index_signature, &[&prop_string]);
+                        self.report_error(
+                            c,
+                            &diagnostics::Property_0_is_incompatible_with_index_signature,
+                            &[&prop_string],
+                        );
                     }
                     return Ternary::False;
                 }
                 result &= related;
             }
         }
-        result = match c.get_index_infos_of_type(source).iter().copied().try_fold(result, |mut result, info| {
-            if c.is_applicable_index_type(info.key_type(), key_type) {
-                let related = self.index_info_related_to(c, info, target_info, report_errors, intersection_state);
-                if related == Ternary::False {
-                    return Err(Ternary::False);
+        result = match c.get_index_infos_of_type(source).iter().copied().try_fold(
+            result,
+            |mut result, info| {
+                if c.is_applicable_index_type(info.key_type(), key_type) {
+                    let related = self.index_info_related_to(
+                        c,
+                        info,
+                        target_info,
+                        report_errors,
+                        intersection_state,
+                    );
+                    if related == Ternary::False {
+                        return Err(Ternary::False);
+                    }
+                    result &= related;
                 }
-                result &= related;
-            }
-            Ok(result)
-        }) {
+                Ok(result)
+            },
+        ) {
             Ok(value) => value,
             Err(value) => return value,
         };
@@ -2729,23 +4409,51 @@ impl Relater {
     }
 
     // relater.go:4710
-    pub(crate) fn index_info_related_to(&self, c: &mut Checker, source_info: P<IndexInfo>, target_info: P<IndexInfo>, report_errors: bool, intersection_state: IntersectionState) -> Ternary {
-        let related = self.is_related_to_ex(c, source_info.value_type(), target_info.value_type(), RecursionFlags::Both, report_errors, None /*headMessage*/, intersection_state);
+    pub(crate) fn index_info_related_to(
+        &self,
+        c: &mut Checker,
+        source_info: P<IndexInfo>,
+        target_info: P<IndexInfo>,
+        report_errors: bool,
+        intersection_state: IntersectionState,
+    ) -> Ternary {
+        let related = self.is_related_to_ex(
+            c,
+            source_info.value_type(),
+            target_info.value_type(),
+            RecursionFlags::Both,
+            report_errors,
+            None, /*headMessage*/
+            intersection_state,
+        );
         if related == Ternary::False && report_errors {
             if source_info.key_type() == target_info.key_type() {
                 let key_type_string = c.type_to_string_exported(source_info.key_type());
-                self.report_error(c, &diagnostics::X_0_index_signatures_are_incompatible, &[&key_type_string]);
+                self.report_error(
+                    c,
+                    &diagnostics::X_0_index_signatures_are_incompatible,
+                    &[&key_type_string],
+                );
             } else {
                 let source_key_string = c.type_to_string_exported(source_info.key_type());
                 let target_key_string = c.type_to_string_exported(target_info.key_type());
-                self.report_error(c, &diagnostics::X_0_and_1_index_signatures_are_incompatible, &[&source_key_string, &target_key_string]);
+                self.report_error(
+                    c,
+                    &diagnostics::X_0_and_1_index_signatures_are_incompatible,
+                    &[&source_key_string, &target_key_string],
+                );
             }
         }
         related
     }
 
     // relater.go:4722
-    pub(crate) fn index_signatures_identical_to(&self, c: &mut Checker, source: P<Type>, target: P<Type>) -> Ternary {
+    pub(crate) fn index_signatures_identical_to(
+        &self,
+        c: &mut Checker,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> Ternary {
         let source_infos = c.get_index_infos_of_type(source);
         let target_infos = c.get_index_infos_of_type(target);
         if source_infos.len() != target_infos.len() {
@@ -2754,7 +4462,13 @@ impl Relater {
         if let Some(result) = target_infos.iter().find_map(|&target_info| {
             let source_info = c.get_index_info_of_type(source, target_info.key_type());
             if !(source_info.is_some()
-                && self.is_related_to(c, source_info.unwrap().value_type(), target_info.value_type(), RecursionFlags::Both, false) != Ternary::False
+                && self.is_related_to(
+                    c,
+                    source_info.unwrap().value_type(),
+                    target_info.value_type(),
+                    RecursionFlags::Both,
+                    false,
+                ) != Ternary::False
                 && source_info.unwrap().is_readonly() == target_info.is_readonly())
             {
                 return Some(Ternary::False);
@@ -2768,32 +4482,59 @@ impl Relater {
     }
 
     // relater.go:4737
-    pub(crate) fn report_error_results(&self, c: &mut Checker, original_source: P<Type>, original_target: P<Type>, source: P<Type>, target: P<Type>, head_message: Option<&'static Message>) {
+    pub(crate) fn report_error_results(
+        &self,
+        c: &mut Checker,
+        original_source: P<Type>,
+        original_target: P<Type>,
+        source: P<Type>,
+        target: P<Type>,
+        head_message: Option<&'static Message>,
+    ) {
         let mut source = source;
         let mut target = target;
-        let source_has_base = c.get_single_base_for_non_augmenting_subtype(original_source).is_some();
-        let target_has_base = c.get_single_base_for_non_augmenting_subtype(original_target).is_some();
+        let source_has_base =
+            c.get_single_base_for_non_augmenting_subtype(original_source).is_some();
+        let target_has_base =
+            c.get_single_base_for_non_augmenting_subtype(original_target).is_some();
         if original_source.alias().is_some() || source_has_base {
             source = original_source;
         }
         if original_target.alias().is_some() || target_has_base {
             target = original_target;
         }
-        if source.flags().intersects(TypeFlags::Object) && target.flags().intersects(TypeFlags::Object) {
+        if source.flags().intersects(TypeFlags::Object)
+            && target.flags().intersects(TypeFlags::Object)
+        {
             self.try_elaborate_array_like_errors(c, source, target, true /*reportErrors*/);
         }
-        if source.flags().intersects(TypeFlags::Object) && target.flags().intersects(TypeFlags::Primitive) {
+        if source.flags().intersects(TypeFlags::Object)
+            && target.flags().intersects(TypeFlags::Primitive)
+        {
             self.try_elaborate_errors_for_primitives_and_objects(c, source, target);
-        } else if source.symbol().is_some() && source.flags().intersects(TypeFlags::Object) && c.global_object_type == source {
+        } else if source.symbol().is_some()
+            && source.flags().intersects(TypeFlags::Object)
+            && c.global_object_type == source
+        {
             self.report_error(c, &diagnostics::The_Object_type_is_assignable_to_very_few_other_types_Did_you_mean_to_use_the_any_type_instead, &[]);
-        } else if source.object_flags().intersects(ObjectFlags::JsxAttributes) && target.flags().intersects(TypeFlags::Intersection) {
+        } else if source.object_flags().intersects(ObjectFlags::JsxAttributes)
+            && target.flags().intersects(TypeFlags::Intersection)
+        {
             let target_types = target.types();
-            let intrinsic_attributes = c.get_jsx_type(JsxNames.intrinsic_attributes, self.error_node.get().unwrap());
-            let intrinsic_class_attributes = c.get_jsx_type(JsxNames.intrinsic_class_attributes, self.error_node.get().unwrap());
-            if !c.is_error_type(intrinsic_attributes) && !c.is_error_type(intrinsic_class_attributes) && (target_types.contains(&intrinsic_attributes) || target_types.contains(&intrinsic_class_attributes)) {
+            let intrinsic_attributes =
+                c.get_jsx_type(JsxNames.intrinsic_attributes, self.error_node.get().unwrap());
+            let intrinsic_class_attributes =
+                c.get_jsx_type(JsxNames.intrinsic_class_attributes, self.error_node.get().unwrap());
+            if !c.is_error_type(intrinsic_attributes)
+                && !c.is_error_type(intrinsic_class_attributes)
+                && (target_types.contains(&intrinsic_attributes)
+                    || target_types.contains(&intrinsic_class_attributes))
+            {
                 return;
             }
-        } else if original_target.flags().intersects(TypeFlags::Intersection) && original_target.object_flags_lazy().intersects(ObjectFlags::IsNeverIntersection) {
+        } else if original_target.flags().intersects(TypeFlags::Intersection)
+            && original_target.object_flags_lazy().intersects(ObjectFlags::IsNeverIntersection)
+        {
             let mut message = &diagnostics::The_intersection_0_was_reduced_to_never_because_property_1_has_conflicting_types_in_some_constituents;
             let mut prop: Option<P<Symbol>> = None;
             if let Some(p) = c
@@ -2807,53 +4548,93 @@ impl Relater {
             }
             if prop.is_none() {
                 message = &diagnostics::The_intersection_0_was_reduced_to_never_because_property_1_exists_in_multiple_constituents_and_is_private_in_some;
-                prop = c.get_properties_of_union_or_intersection_type(original_target).iter().copied().find(|&p| is_conflicting_private_property(p));
+                prop = c
+                    .get_properties_of_union_or_intersection_type(original_target)
+                    .iter()
+                    .copied()
+                    .find(|&p| is_conflicting_private_property(p));
             }
             if let Some(prop) = prop {
-                let target_string = c.type_to_string_ex(original_target, None /*enclosingDeclaration*/, TypeFormatFlags::NoTypeReduction, None);
+                let target_string = c.type_to_string_ex(
+                    original_target,
+                    None, /*enclosingDeclaration*/
+                    TypeFormatFlags::NoTypeReduction,
+                    None,
+                );
                 let prop_string = c.symbol_to_string(prop);
                 self.report_error(c, message, &[&target_string, &prop_string]);
             }
         }
         self.report_relation_error(c, head_message, source, target);
-        if source.flags().intersects(TypeFlags::TypeParameter) && source.symbol().is_some_and(|s| !s.declarations().is_empty()) && c.get_constraint_of_type(source).is_none() {
+        if source.flags().intersects(TypeFlags::TypeParameter)
+            && source.symbol().is_some_and(|s| !s.declarations().is_empty())
+            && c.get_constraint_of_type(source).is_none()
+        {
             let synthetic_param = c.clone_type_parameter(source);
-            let constraint = c.instantiate_type(target, Some(new_simple_type_mapper(source, synthetic_param)));
+            let constraint =
+                c.instantiate_type(target, Some(new_simple_type_mapper(source, synthetic_param)));
             synthetic_param.as_type_parameter().constraint.set(Some(constraint));
             if c.has_non_circular_base_constraint(synthetic_param) {
                 let target_constraint_string = c.type_to_string_exported(target);
                 let first_declaration = source.symbol().unwrap().declarations()[0];
-                let diagnostic = new_diagnostic_for_node(Some(first_declaration), Some(&diagnostics::This_type_parameter_might_need_an_extends_0_constraint), &[&target_constraint_string]);
+                let diagnostic = new_diagnostic_for_node(
+                    Some(first_declaration),
+                    Some(&diagnostics::This_type_parameter_might_need_an_extends_0_constraint),
+                    &[&target_constraint_string],
+                );
                 self.related_info.borrow_mut().push(diagnostic);
             }
         }
     }
 
     // relater.go:4783
-    pub(crate) fn report_relation_error(&self, c: &mut Checker, message: Option<&'static Message>, source: P<Type>, target: P<Type>) {
+    pub(crate) fn report_relation_error(
+        &self,
+        c: &mut Checker,
+        message: Option<&'static Message>,
+        source: P<Type>,
+        target: P<Type>,
+    ) {
         let (source_type, target_type) = c.get_type_names_for_error_display(source, target);
         let mut generalized_source = source;
         let mut generalized_source_type = source_type.clone();
         // Don't generalize on 'never' - we really want the original type
         // to be displayed for use-cases like 'assertNever'.
-        if !target.flags().intersects(TypeFlags::Never) && is_literal_type(source) && !c.type_could_have_top_level_singleton_types(target) {
+        if !target.flags().intersects(TypeFlags::Never)
+            && is_literal_type(source)
+            && !c.type_could_have_top_level_singleton_types(target)
+        {
             generalized_source = c.get_base_type_of_literal_type(source);
             generalized_source_type = c.get_type_name_for_error_display(generalized_source);
         }
         // If `target` is of indexed access type (and `source` it is not), we use the object type of `target` for better error reporting
-        let target_flags = if target.flags().intersects(TypeFlags::IndexedAccess) && !source.flags().intersects(TypeFlags::IndexedAccess) {
+        let target_flags = if target.flags().intersects(TypeFlags::IndexedAccess)
+            && !source.flags().intersects(TypeFlags::IndexedAccess)
+        {
             target.as_indexed_access_type().object_type.get().unwrap().flags()
         } else {
             target.flags()
         };
-        if target_flags.intersects(TypeFlags::TypeParameter) && target != c.marker_super_type_for_check && target != c.marker_sub_type_for_check {
+        if target_flags.intersects(TypeFlags::TypeParameter)
+            && target != c.marker_super_type_for_check
+            && target != c.marker_sub_type_for_check
+        {
             let constraint = c.get_base_constraint_of_type(target);
-            if is_distributed_type_parameter(target) && c.is_type_assignable_to(generalized_source, target.as_type_parameter().constraint.get().unwrap()) {
+            if is_distributed_type_parameter(target)
+                && c.is_type_assignable_to(
+                    generalized_source,
+                    target.as_type_parameter().constraint.get().unwrap(),
+                )
+            {
                 self.report_error(c, &diagnostics::X_0_is_only_assignable_to_the_non_distributed_1_but_1_has_been_distributed_here, &[&generalized_source_type, &target_type]);
-            } else if let Some(constraint) = constraint && c.is_type_assignable_to(generalized_source, constraint) {
+            } else if let Some(constraint) = constraint
+                && c.is_type_assignable_to(generalized_source, constraint)
+            {
                 let constraint_string = c.type_to_string_exported(constraint);
                 self.report_error(c, &diagnostics::X_0_is_assignable_to_the_constraint_of_type_1_but_1_could_be_instantiated_with_a_different_subtype_of_constraint_2, &[&generalized_source_type, &target_type, &constraint_string]);
-            } else if let Some(constraint) = constraint && c.is_type_assignable_to(source, constraint) {
+            } else if let Some(constraint) = constraint
+                && c.is_type_assignable_to(source, constraint)
+            {
                 let constraint_string = c.type_to_string_exported(constraint);
                 self.report_error(c, &diagnostics::X_0_is_assignable_to_the_constraint_of_type_1_but_1_could_be_instantiated_with_a_different_subtype_of_constraint_2, &[&source_type, &target_type, &constraint_string]);
             } else {
@@ -2867,14 +4648,23 @@ impl Relater {
                     &diagnostics::Type_0_is_not_comparable_to_type_1
                 } else if source_type == target_type {
                     &diagnostics::Type_0_is_not_assignable_to_type_1_Two_different_types_with_this_name_exist_but_they_are_unrelated
-                } else if c.exact_optional_property_types && !c.get_exact_optional_unassignable_properties(source, target).is_empty() {
+                } else if c.exact_optional_property_types
+                    && !c.get_exact_optional_unassignable_properties(source, target).is_empty()
+                {
                     &diagnostics::Type_0_is_not_assignable_to_type_1_with_exactOptionalPropertyTypes_Colon_true_Consider_adding_undefined_to_the_types_of_the_target_s_properties
                 } else {
-                    if source.flags().intersects(TypeFlags::StringLiteral) && target.flags().intersects(TypeFlags::Union) {
-                        let suggested_type = c.get_suggested_type_for_nonexistent_string_literal_type(source, target);
+                    if source.flags().intersects(TypeFlags::StringLiteral)
+                        && target.flags().intersects(TypeFlags::Union)
+                    {
+                        let suggested_type = c
+                            .get_suggested_type_for_nonexistent_string_literal_type(source, target);
                         if let Some(suggested_type) = suggested_type {
                             let suggested_type_string = c.type_to_string_exported(suggested_type);
-                            self.report_error(c, &diagnostics::Type_0_is_not_assignable_to_type_1_Did_you_mean_2, &[&generalized_source_type, &target_type, &suggested_type_string]);
+                            self.report_error(
+                                c,
+                                &diagnostics::Type_0_is_not_assignable_to_type_1_Did_you_mean_2,
+                                &[&generalized_source_type, &target_type, &suggested_type_string],
+                            );
                             return;
                         }
                     }
@@ -2920,7 +4710,12 @@ impl Relater {
     }
 
     // relater.go:4864
-    pub(crate) fn report_error(&self, c: &mut Checker, message: &'static Message, args: &[&dyn Display]) {
+    pub(crate) fn report_error(
+        &self,
+        c: &mut Checker,
+        message: &'static Message,
+        args: &[&dyn Display],
+    ) {
         let mut message = message;
         let mut args = diagnostics::stringify_args(args);
         if std::ptr::eq(message, &raw const diagnostics::Types_of_property_0_are_incompatible) {
@@ -2946,7 +4741,8 @@ impl Relater {
                 arg = "new ".to_string() + &get_property_name_arg(&args[0]) + "(...)";
             }
             if !arg.is_empty() {
-                message = &diagnostics::The_types_returned_by_0_are_incompatible_between_these_types;
+                message =
+                    &diagnostics::The_types_returned_by_0_are_incompatible_between_these_types;
                 args[0] = arg;
                 self.error_chain.set(self.error_chain.get().unwrap().next.unwrap().next);
             }
@@ -2955,21 +4751,35 @@ impl Relater {
             // message for 'x.y'
             let chain_message = self.get_chain_message(c, 1);
             if is_message(chain_message, &diagnostics::Types_of_property_0_are_incompatible)
-                || is_message(chain_message, &diagnostics::The_types_of_0_are_incompatible_between_these_types)
-                || is_message(chain_message, &diagnostics::The_types_returned_by_0_are_incompatible_between_these_types)
+                || is_message(
+                    chain_message,
+                    &diagnostics::The_types_of_0_are_incompatible_between_these_types,
+                )
+                || is_message(
+                    chain_message,
+                    &diagnostics::The_types_returned_by_0_are_incompatible_between_these_types,
+                )
             {
                 let head = get_property_name_arg(&args[0]);
-                let tail = get_property_name_arg(&self.error_chain.get().unwrap().next.unwrap().args[0]);
+                let tail =
+                    get_property_name_arg(&self.error_chain.get().unwrap().next.unwrap().args[0]);
                 let arg = add_to_dotted_name(&head, &tail);
                 self.error_chain.set(self.error_chain.get().unwrap().next.unwrap().next);
-                if std::ptr::eq(message, &raw const diagnostics::Types_of_property_0_are_incompatible) {
+                if std::ptr::eq(
+                    message,
+                    &raw const diagnostics::Types_of_property_0_are_incompatible,
+                ) {
                     message = &diagnostics::The_types_of_0_are_incompatible_between_these_types;
                 }
                 self.report_error(c, message, &[&arg]);
                 return;
             }
         }
-        self.error_chain.set(Some(P::new(ErrorChain { next: self.error_chain.get(), message, args })));
+        self.error_chain.set(Some(P::new(ErrorChain {
+            next: self.error_chain.get(),
+            message,
+            args,
+        })));
     }
 }
 
@@ -3040,7 +4850,9 @@ impl Relater {
 // relater.go:4959
 pub(crate) fn get_property_name_arg(arg: &str) -> String {
     let s = arg;
-    if !s.is_empty() && (s.as_bytes()[0] == b'"' || s.as_bytes()[0] == b'\'' || s.as_bytes()[0] == b'`') {
+    if !s.is_empty()
+        && (s.as_bytes()[0] == b'"' || s.as_bytes()[0] == b'\'' || s.as_bytes()[0] == b'`')
+    {
         return "[".to_string() + s + "]";
     }
     s.to_string()
@@ -3081,11 +4893,21 @@ impl Checker {
     // relater.go:4995
     pub(crate) fn is_type_derived_from(&mut self, source: P<Type>, target: P<Type>) -> bool {
         if source.flags().intersects(TypeFlags::Union) {
-            !(source.as_union_type().types.get().iter().any(|&t| !self.is_type_derived_from(t, target)))
+            !(source
+                .as_union_type()
+                .types
+                .get()
+                .iter()
+                .any(|&t| !self.is_type_derived_from(t, target)))
         } else if target.flags().intersects(TypeFlags::Union) {
             target.as_union_type().types.get().iter().any(|&t| self.is_type_derived_from(source, t))
         } else if source.flags().intersects(TypeFlags::Intersection) {
-            source.as_intersection_type().types.get().iter().any(|&t| self.is_type_derived_from(t, target))
+            source
+                .as_intersection_type()
+                .types
+                .get()
+                .iter()
+                .any(|&t| self.is_type_derived_from(t, target))
         } else if source.flags().intersects(TypeFlags::InstantiableNonPrimitive) {
             let constraint = match self.get_base_constraint_of_type(source) {
                 Some(constraint) => constraint,
@@ -3095,12 +4917,16 @@ impl Checker {
         } else if self.is_empty_anonymous_object_type(target) {
             source.flags().intersects(TypeFlags::Object | TypeFlags::NonPrimitive)
         } else if target == self.global_object_type {
-            source.flags().intersects(TypeFlags::Object | TypeFlags::NonPrimitive) && !self.is_empty_anonymous_object_type(source)
+            source.flags().intersects(TypeFlags::Object | TypeFlags::NonPrimitive)
+                && !self.is_empty_anonymous_object_type(source)
         } else if target == self.global_function_type {
             source.flags().intersects(TypeFlags::Object) && self.is_function_object_type(source)
         } else {
             let target_type = Self::get_target_type(target).unwrap();
-            self.has_base_type(source, Some(target_type)) || (self.is_array_type(target) && !self.is_readonly_array_type(target) && self.is_type_derived_from(source, self.global_readonly_array_type))
+            self.has_base_type(source, Some(target_type))
+                || (self.is_array_type(target)
+                    && !self.is_readonly_array_type(target)
+                    && self.is_type_derived_from(source, self.global_readonly_array_type))
         }
     }
 
@@ -3108,17 +4934,28 @@ impl Checker {
     pub(crate) fn is_distribution_dependent(&mut self, root: P<ConditionalRoot>) -> bool {
         let check_type = root.check_type.get().unwrap();
         let node = root.node.get().unwrap().as_conditional_type_node();
-        root.is_distributive.get() && (self.is_type_parameter_possibly_referenced(check_type, node.true_type) || self.is_type_parameter_possibly_referenced(check_type, node.false_type))
+        root.is_distributive.get()
+            && (self.is_type_parameter_possibly_referenced(check_type, node.true_type)
+                || self.is_type_parameter_possibly_referenced(check_type, node.false_type))
     }
 }
 
 impl Relater {
     // relater.go:5030
-    #[expect(clippy::unused_self, reason = "The Go initialization or tracing hook is retained in the same method call sequence.")]
-    pub(crate) fn trace_unions_or_intersections_too_large(&self, _c: &mut Checker, _source: P<Type>, _target: P<Type>) {
+    #[expect(
+        clippy::unused_self,
+        reason = "The Go initialization or tracing hook is retained in the same method call sequence."
+    )]
+    pub(crate) fn trace_unions_or_intersections_too_large(
+        &self,
+        _c: &mut Checker,
+        _source: P<Type>,
+        _target: P<Type>,
+    ) {
         // Only reports to the tracer, which is not ported.
     }
 }
 
 /// The empty `excludedProperties` (tsrs: shared, instead of a set made and dropped per structural comparison).
-static NO_EXCLUDED_PROPERTIES: Set<String> = Set { m: rustc_hash::FxHashSet::with_hasher(rustc_hash::FxBuildHasher) };
+static NO_EXCLUDED_PROPERTIES: Set<String> =
+    Set { m: rustc_hash::FxHashSet::with_hasher(rustc_hash::FxBuildHasher) };

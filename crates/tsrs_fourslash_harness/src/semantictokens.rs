@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tsrs_ls::lsconv;
 use tsrs_lsproto as lsproto;
 
-use crate::fourslash::{new_test_converters, FourslashTest};
+use crate::fourslash::{FourslashTest, new_test_converters};
 use crate::go::quote;
 use crate::testing::T;
 
@@ -18,7 +18,9 @@ impl FourslashTest {
     // semantictokens.go:17
     pub fn verify_semantic_tokens(&mut self, t: &T, expected: &[SemanticToken]) {
         let params = lsproto::SemanticTokensParams {
-            text_document: lsproto::TextDocumentIdentifier { uri: lsconv::file_name_to_document_uri(&self.active_filename) },
+            text_document: lsproto::TextDocumentIdentifier {
+                uri: lsconv::file_name_to_document_uri(&self.active_filename),
+            },
             ..Default::default()
         };
 
@@ -32,7 +34,12 @@ impl FourslashTest {
         };
 
         // Decode the semantic tokens using token types/modifiers from the test configuration
-        let actual = decode_semantic_tokens(self, &semantic_tokens.data, &self.semantic_token_types, &self.semantic_token_modifiers);
+        let actual = decode_semantic_tokens(
+            self,
+            &semantic_tokens.data,
+            &self.semantic_token_types,
+            &self.semantic_token_modifiers,
+        );
 
         // Compare with expected
         if actual.len() != expected.len() {
@@ -62,12 +69,20 @@ impl FourslashTest {
 }
 
 // semantictokens.go:55
-pub(crate) fn decode_semantic_tokens(f: &FourslashTest, data: &[u32], token_types: &[String], token_modifiers: &[String]) -> Vec<SemanticToken> {
+pub(crate) fn decode_semantic_tokens(
+    f: &FourslashTest,
+    data: &[u32],
+    token_types: &[String],
+    token_modifiers: &[String],
+) -> Vec<SemanticToken> {
     assert!(data.len().is_multiple_of(5), "Invalid semantic tokens data length: {}", data.len());
 
     let script_info = f.get_script_info(&f.active_filename);
     let line_map = Arc::clone(&script_info.line_map);
-    let converters = new_test_converters(lsconv::new_converters(lsproto::PositionEncodingKind::UTF8, move |_| Some(Arc::clone(&line_map))));
+    let converters = new_test_converters(lsconv::new_converters(
+        lsproto::PositionEncodingKind::UTF8,
+        move |_| Some(Arc::clone(&line_map)),
+    ));
 
     let mut tokens = Vec::new();
     let mut prev_line: u32 = 0;
@@ -86,12 +101,17 @@ pub(crate) fn decode_semantic_tokens(f: &FourslashTest, data: &[u32], token_type
         let char = if delta_line == 0 { prev_char + delta_char } else { delta_char };
 
         // Get token type
-        assert!((token_type_idx as usize) < token_types.len(), "Token type index out of range: {token_type_idx}");
+        assert!(
+            (token_type_idx as usize) < token_types.len(),
+            "Token type index out of range: {token_type_idx}"
+        );
         let token_type = &token_types[token_type_idx as usize];
 
         // Get modifiers
         let mut modifiers: Vec<&str> = Vec::new();
-        modifiers.extend(token_modifiers.iter().enumerate().filter_map(|(i, m)| if token_modifier_mask & (1 << i) != 0 { Some(m.as_str()) } else { None }));
+        modifiers.extend(token_modifiers.iter().enumerate().filter_map(|(i, m)| {
+            if token_modifier_mask & (1 << i) != 0 { Some(m.as_str()) } else { None }
+        }));
 
         // Build full type string (type.modifier1.modifier2)
         let mut type_str = token_type.clone();
@@ -102,8 +122,10 @@ pub(crate) fn decode_semantic_tokens(f: &FourslashTest, data: &[u32], token_type
         // Get the text
         let start_pos = lsproto::Position { line, character: char };
         let end_pos = lsproto::Position { line, character: char + length };
-        let start_offset = converters.line_and_character_to_position(script_info.clone(), start_pos) as usize;
-        let end_offset = converters.line_and_character_to_position(script_info.clone(), end_pos) as usize;
+        let start_offset =
+            converters.line_and_character_to_position(script_info.clone(), start_pos) as usize;
+        let end_offset =
+            converters.line_and_character_to_position(script_info.clone(), end_pos) as usize;
         let text = script_info.content[start_offset..end_offset].to_string();
 
         tokens.push(SemanticToken { type_: type_str, text });
@@ -119,6 +141,8 @@ pub(crate) fn decode_semantic_tokens(f: &FourslashTest, data: &[u32], token_type
 // semantictokens.go:124
 pub(crate) fn format_semantic_tokens(tokens: &[SemanticToken]) -> String {
     let mut lines = Vec::new();
-    lines.extend(tokens.iter().enumerate().map(|(i, tok)| format!("  [{}] {{Type: {}, Text: {}}}", i, quote(&tok.type_), quote(&tok.text))));
+    lines.extend(tokens.iter().enumerate().map(|(i, tok)| {
+        format!("  [{}] {{Type: {}, Text: {}}}", i, quote(&tok.type_), quote(&tok.text))
+    }));
     lines.join("\n")
 }

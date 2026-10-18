@@ -5,8 +5,8 @@
 
 use std::io::{self, Read, Write};
 
-use crate::jsonrpc::{new_reader, new_writer};
 use crate::ErrorTag;
+use crate::jsonrpc::{new_reader, new_writer};
 
 // baseproto_test.go:12
 #[test]
@@ -18,7 +18,12 @@ fn test_base_reader() {
         err: &'static str,
     }
     let tests = [
-        Test { name: "empty", input: b"Content-Length: 0\r\n\r\n", value: None, err: "jsonrpc: no content length" },
+        Test {
+            name: "empty",
+            input: b"Content-Length: 0\r\n\r\n",
+            value: None,
+            err: "jsonrpc: no content length",
+        },
         Test { name: "early end", input: b"oops", value: None, err: "EOF" },
         Test {
             name: "negative length",
@@ -26,9 +31,24 @@ fn test_base_reader() {
             value: None,
             err: "jsonrpc: invalid content length: negative value -1",
         },
-        Test { name: "invalid content", input: b"Content-Length: 1\r\n\r\n{", value: Some(b"{"), err: "" },
-        Test { name: "valid content", input: b"Content-Length: 2\r\n\r\n{}", value: Some(b"{}"), err: "" },
-        Test { name: "extra header values", input: b"Content-Length: 2\r\nExtra: 1\r\n\r\n{}", value: Some(b"{}"), err: "" },
+        Test {
+            name: "invalid content",
+            input: b"Content-Length: 1\r\n\r\n{",
+            value: Some(b"{"),
+            err: "",
+        },
+        Test {
+            name: "valid content",
+            input: b"Content-Length: 2\r\n\r\n{}",
+            value: Some(b"{}"),
+            err: "",
+        },
+        Test {
+            name: "extra header values",
+            input: b"Content-Length: 2\r\nExtra: 1\r\n\r\n{}",
+            value: Some(b"{}"),
+            err: "",
+        },
         Test {
             name: "too long content length",
             input: b"Content-Length: 100\r\n\r\n{}",
@@ -41,14 +61,24 @@ fn test_base_reader() {
             value: None,
             err: "jsonrpc: invalid content length: parse error: strconv.ParseInt: parsing \"\": invalid syntax",
         },
-        Test { name: "invalid header", input: b"Nope\r\n\r\n{}", value: None, err: "jsonrpc: invalid header: \"Nope\\r\\n\"" },
+        Test {
+            name: "invalid header",
+            input: b"Nope\r\n\r\n{}",
+            value: None,
+            err: "jsonrpc: invalid header: \"Nope\\r\\n\"",
+        },
     ];
 
     for tt in tests {
         let mut r = new_reader(tt.input);
         let out = r.read();
         if !tt.err.is_empty() {
-            assert_eq!(out.as_ref().err().map(ToString::to_string).as_deref(), Some(tt.err), "{}", tt.name);
+            assert_eq!(
+                out.as_ref().err().map(ToString::to_string).as_deref(),
+                Some(tt.err),
+                "{}",
+                tt.name
+            );
         }
         assert_eq!(out.ok().as_deref(), tt.value, "{}", tt.name);
     }
@@ -152,7 +182,12 @@ fn reader_matches_go_header_parsing() {
         b"X-Other: 1\r\nContent-Length: 5\r\n\r\nhello",
     ];
     for input in ok {
-        assert_eq!(new_reader(input).read().unwrap(), b"hello", "{}", String::from_utf8_lossy(input));
+        assert_eq!(
+            new_reader(input).read().unwrap(),
+            b"hello",
+            "{}",
+            String::from_utf8_lossy(input)
+        );
     }
 
     let errors: [(&[u8], &str); 10] = [
@@ -186,7 +221,12 @@ fn reader_matches_go_header_parsing() {
         ),
     ];
     for (input, err) in errors {
-        assert_eq!(new_reader(input).read().unwrap_err().to_string(), err, "{}", String::from_utf8_lossy(input));
+        assert_eq!(
+            new_reader(input).read().unwrap_err().to_string(),
+            err,
+            "{}",
+            String::from_utf8_lossy(input)
+        );
     }
     assert_eq!(
         new_reader(&b"Bad\xff\r\n"[..]).read().unwrap_err().to_string(),

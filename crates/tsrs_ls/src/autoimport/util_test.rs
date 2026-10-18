@@ -1,5 +1,5 @@
-use tsrs_vfs::vfstest;
 use tsrs_vfs::FS;
+use tsrs_vfs::vfstest;
 
 use super::util::{get_package_realpath_funcs, word_indices};
 
@@ -28,7 +28,10 @@ fn test_word_indices() {
         ("a", &["a"]),
         ("A", &["A"]),
         // Consecutive underscores
-        ("test__double__underscore", &["test__double__underscore", "double__underscore", "underscore"]),
+        (
+            "test__double__underscore",
+            &["test__double__underscore", "double__underscore", "underscore"],
+        ),
     ];
 
     for &(input, expected_words) in tests {
@@ -64,7 +67,11 @@ fn test_get_package_realpath_funcs_follows_node_modules_symlinks() {
     let (to_realpath, _) = get_package_realpath_funcs(fs, "/symlink-bin/pkg");
 
     // Files inside the package should be converted via string replacement (fast path).
-    assert_eq!(to_realpath("/symlink-bin/pkg/index.d.ts"), "/real/bin/pkg/index.d.ts", "package files should be converted via prefix replacement");
+    assert_eq!(
+        to_realpath("/symlink-bin/pkg/index.d.ts"),
+        "/real/bin/pkg/index.d.ts",
+        "package files should be converted via prefix replacement"
+    );
 
     // Files outside the package (e.g. node_modules symlinks) should be resolved via
     // fs.Realpath so the cache key is the canonical realpath, not the symlink path.
@@ -108,8 +115,14 @@ fn test_get_package_realpath_funcs_duplicate_cache_keys() {
     // Both should resolve to the same canonical realpath so the module resolver
     // uses a single cache key for the shared dependency, avoiding duplicate loads.
     let expected_realpath = "/store/shared-lib/index.d.ts";
-    assert_eq!(resolved_a, expected_realpath, "app-a's toRealpath should follow the node_modules symlink to the realpath");
-    assert_eq!(resolved_b, expected_realpath, "app-b's toRealpath should follow the node_modules symlink to the realpath");
+    assert_eq!(
+        resolved_a, expected_realpath,
+        "app-a's toRealpath should follow the node_modules symlink to the realpath"
+    );
+    assert_eq!(
+        resolved_b, expected_realpath,
+        "app-b's toRealpath should follow the node_modules symlink to the realpath"
+    );
 }
 
 // util_test.go:192

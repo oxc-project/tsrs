@@ -6,8 +6,8 @@ use std::time::{Duration, SystemTime};
 use rustc_hash::FxHashMap;
 use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_compiler::CompilerHost;
-use tsrs_core::tspath::{self, Path};
 use tsrs_core::P;
+use tsrs_core::tspath::{self, Path};
 use tsrs_diagnostics::Message;
 use tsrs_incremental::{BuildInfo, BuildInfoReader};
 use tsrs_tsoptions::{self as tsoptions, CompilerOptionsValue, ParseConfigHost, ParsedCommandLine};
@@ -36,7 +36,9 @@ pub(crate) struct host {
 
     // tsrs-only, watch mode: every parsed file and the modification time it was read at, kept across build cycles
     // (`get_watch_source_file`).
-    pub(crate) watch_source_files: Option<Mutex<FxHashMap<SourceFileParseOptions, (P<SourceFile>, Option<std::time::SystemTime>)>>>,
+    pub(crate) watch_source_files: Option<
+        Mutex<FxHashMap<SourceFileParseOptions, (P<SourceFile>, Option<std::time::SystemTime>)>>,
+    >,
     // tsrs-only, watch mode: the regions of those files (watchmem.rs; `Orchestrator::free_unreachable_watch_files`).
     pub(crate) watch_file_regions: crate::watchmem::FileRegions,
 }
@@ -50,7 +52,13 @@ impl host {
     // A file whose modification time is the one it was read at is reused without reading it again (as the non-build
     // watcher does); reading and comparing every file's text took about 100 ms of a vscode cycle. A file whose time
     // changed is compared by text.
-    fn get_watch_source_file(&self, cache: &Mutex<FxHashMap<SourceFileParseOptions, (P<SourceFile>, Option<std::time::SystemTime>)>>, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
+    fn get_watch_source_file(
+        &self,
+        cache: &Mutex<
+            FxHashMap<SourceFileParseOptions, (P<SourceFile>, Option<std::time::SystemTime>)>,
+        >,
+        opts: SourceFileParseOptions,
+    ) -> Option<P<SourceFile>> {
         let cached = cache.lock().unwrap().get(&opts).copied();
         // A bundled lib is text in the binary.
         if let Some((file, _)) = cached
@@ -78,7 +86,8 @@ impl host {
             }
         }
         let size = info.as_ref().map_or(0, |info| usize::try_from(info.size()).unwrap_or(0));
-        let file = self.watch_file_regions.parse(size, || self.host.get_source_file(opts.clone()))?;
+        let file =
+            self.watch_file_regions.parse(size, || self.host.get_source_file(opts.clone()))?;
         cache.lock().unwrap().insert(opts, (file, mod_time));
         Some(file)
     }
@@ -88,7 +97,12 @@ impl host {
     }
 
     // host.go:118
-    pub(crate) fn load_or_store_m_time(&self, file: &str, old_cache: Option<&mTimeCache>, store: bool) -> Option<SystemTime> {
+    pub(crate) fn load_or_store_m_time(
+        &self,
+        file: &str,
+        old_cache: Option<&mTimeCache>,
+        store: bool,
+    ) -> Option<SystemTime> {
         let path = self.o().to_path(file);
         let m_times = self.m_times.lock().unwrap().clone();
         if let Some(existing) = m_times.lock().unwrap().get(&path) {
@@ -158,7 +172,9 @@ impl CompilerHost for host {
     }
 
     fn trace(&self, _msg: &'static Message, _args: &[&dyn std::fmt::Display]) {
-        panic!("build.Orchestrator.host does not support tracing; use a different host for tracing");
+        panic!(
+            "build.Orchestrator.host does not support tracing; use a different host for tracing"
+        );
     }
 
     // host.go:55
@@ -166,9 +182,15 @@ impl CompilerHost for host {
         if let Some(cache) = &self.watch_source_files {
             return self.get_watch_source_file(cache, opts);
         }
-        if tspath::is_declaration_file_name(&opts.file_name) || tspath::file_extension_is(&opts.file_name, tspath::EXTENSION_JSON) {
+        if tspath::is_declaration_file_name(&opts.file_name)
+            || tspath::file_extension_is(&opts.file_name, tspath::EXTENSION_JSON)
+        {
             // Cache dts and json files as they will be reused
-            return self.source_files.load_or_store(&opts, |opts| self.host.get_source_file(opts.clone()), false /* allowZero */);
+            return self.source_files.load_or_store(
+                &opts,
+                |opts| self.host.get_source_file(opts.clone()),
+                false, /* allowZero */
+            );
         }
         self.host.get_source_file(opts)
     }
@@ -184,11 +206,17 @@ impl CompilerHost for host {
 
     // host.go:66
     fn content_mapper_project(&self) -> Option<Arc<dyn tsrs_contentmapper::Project>> {
-        panic!("build.Orchestrator.host does not support content mapper project; use an individual project's compiler host instead");
+        panic!(
+            "build.Orchestrator.host does not support content mapper project; use an individual project's compiler host instead"
+        );
     }
 
     // host.go:71
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<ParsedCommandLine>> {
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<ParsedCommandLine>> {
         self.resolved_references.load_or_store(
             &path,
             |path| {
@@ -228,7 +256,11 @@ impl BuildInfoReader for host {
         let o = self.o();
         let config_path = o.to_path(config.config_name());
         let task = o.get_task(&config_path);
-        let (build_info, _) = task.load_or_store_build_info(o, &o.to_path(config.config_name()), &config.get_build_info_file_name());
+        let (build_info, _) = task.load_or_store_build_info(
+            o,
+            &o.to_path(config.config_name()),
+            &config.get_build_info_file_name(),
+        );
         build_info.map(|b| (*b).clone())
     }
 }

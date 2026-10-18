@@ -26,7 +26,9 @@ impl ResolutionHost for Host {
 }
 
 fn get<'a>(value: &'a Json, name: &str) -> Option<&'a Json> {
-    let Json::Object(members) = value else { return None };
+    let Json::Object(members) = value else {
+        return None;
+    };
     members.iter().rev().find(|(n, _)| n == name).map(|(_, v)| v)
 }
 
@@ -162,7 +164,9 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
         _ => Vec::new(),
     };
     let mut mismatches = Vec::new();
-    let Some(Json::Array(requests)) = get(scenario, "requests") else { return mismatches };
+    let Some(Json::Array(requests)) = get(scenario, "requests") else {
+        return mismatches;
+    };
     for (request, expected) in requests.iter().zip(expected_results.iter()) {
         let kind = str_of(get(request, "kind"));
         let name = str_of(get(request, "name"));
@@ -177,32 +181,61 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
             actual.push(("resolvedFileName", m.resolved_file_name.to_string()));
             actual.push(("originalPath", m.original_path.to_string()));
             actual.push(("extension", m.extension.to_string()));
-            actual.push(("packageId", if m.package_id.name.is_empty() { String::new() } else { m.package_id.to_string() }));
+            actual.push((
+                "packageId",
+                if m.package_id.name.is_empty() { String::new() } else { m.package_id.to_string() },
+            ));
             actual.push(("isExternalLibraryImport", m.is_external_library_import.to_string()));
             actual.push(("resolvedUsingTsExtension", m.resolved_using_ts_extension.to_string()));
-            actual.push(("resolvedUsingExtraExtensions", m.resolved_using_extra_extensions.to_string()));
+            actual.push((
+                "resolvedUsingExtraExtensions",
+                m.resolved_using_extra_extensions.to_string(),
+            ));
             actual.push(("alternateResult", m.alternate_result.to_string()));
-            actual.push(("diagnostics", m.resolution_diagnostics.iter().map(|d| d.code().to_string()).collect::<Vec<_>>().join(",")));
+            actual.push((
+                "diagnostics",
+                m.resolution_diagnostics
+                    .iter()
+                    .map(|d| d.code().to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            ));
         } else {
             let (m, t) = resolver.resolve_type_reference_directive(&name, &file, mode, None);
             traces = t;
             actual.push(("resolvedFileName", m.resolved_file_name.to_string()));
             actual.push(("originalPath", m.original_path.to_string()));
-            actual.push(("packageId", if m.package_id.name.is_empty() { String::new() } else { m.package_id.to_string() }));
+            actual.push((
+                "packageId",
+                if m.package_id.name.is_empty() { String::new() } else { m.package_id.to_string() },
+            ));
             actual.push(("isExternalLibraryImport", m.is_external_library_import.to_string()));
             actual.push(("primary", m.primary.to_string()));
-            actual.push(("diagnostics", m.resolution_diagnostics.iter().map(|d| d.code().to_string()).collect::<Vec<_>>().join(",")));
+            actual.push((
+                "diagnostics",
+                m.resolution_diagnostics
+                    .iter()
+                    .map(|d| d.code().to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            ));
         }
         mismatches.extend(actual.iter().filter_map(|(field, value)| {
             let want = match get(expected, field) {
                 Some(Json::String(s)) => s.clone(),
                 Some(Json::Bool(b)) => b.to_string(),
-                Some(Json::Array(items)) if *field == "diagnostics" => {
-                    items.iter().map(|i| str_of(Some(i)).split(':').next().unwrap_or("").to_string()).collect::<Vec<_>>().join(",")
-                }
+                Some(Json::Array(items)) if *field == "diagnostics" => items
+                    .iter()
+                    .map(|i| str_of(Some(i)).split(':').next().unwrap_or("").to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
                 _ => String::new(),
             };
-            if &want != value { Some((label.clone(), field.to_string(), format!("want {want:?}, got {value:?}"))) } else { None }
+            if &want != value {
+                Some((label.clone(), field.to_string(), format!("want {want:?}, got {value:?}")))
+            } else {
+                None
+            }
         }));
         let want_traces: Vec<String> = match get(expected, "traces") {
             Some(Json::Array(items)) => items.iter().map(|i| str_of(Some(i))).collect(),
@@ -210,22 +243,35 @@ fn run(scenario: &Json) -> Vec<(String, String, String)> {
         };
         let got_traces: Vec<String> = traces.iter().map(format_trace).collect();
         if want_traces != got_traces {
-            let i = want_traces.iter().zip(got_traces.iter()).position(|(a, b)| a != b).unwrap_or(want_traces.len().min(got_traces.len()));
+            let i = want_traces
+                .iter()
+                .zip(got_traces.iter())
+                .position(|(a, b)| a != b)
+                .unwrap_or(want_traces.len().min(got_traces.len()));
             mismatches.push((
                 label.clone(),
                 "traces".to_string(),
-                format!("first difference at #{i}: want {:?}, got {:?}", want_traces.get(i), got_traces.get(i)),
+                format!(
+                    "first difference at #{i}: want {:?}, got {:?}",
+                    want_traces.get(i),
+                    got_traces.get(i)
+                ),
             ));
         }
     }
-    let want_types: Vec<String> = match get(scenario, "expected").and_then(|e| get(e, "automaticTypes")) {
-        Some(Json::Array(items)) => items.iter().map(|i| str_of(Some(i))).collect(),
-        _ => Vec::new(),
-    };
+    let want_types: Vec<String> =
+        match get(scenario, "expected").and_then(|e| get(e, "automaticTypes")) {
+            Some(Json::Array(items)) => items.iter().map(|i| str_of(Some(i))).collect(),
+            _ => Vec::new(),
+        };
     let mut got_types = get_automatic_type_directive_names(&options, host);
     got_types.sort();
     if want_types != got_types {
-        mismatches.push(("automaticTypes".to_string(), "automaticTypes".to_string(), format!("want {want_types:?}, got {got_types:?}")));
+        mismatches.push((
+            "automaticTypes".to_string(),
+            "automaticTypes".to_string(),
+            format!("want {want_types:?}, got {got_types:?}"),
+        ));
     }
     mismatches
 }
@@ -240,13 +286,17 @@ fn oracle_handcrafted() {
 #[test]
 #[ignore = "Requires the separately generated full module-oracle corpus."]
 fn oracle_scenarios() {
-    let dir = std::env::var("TSRS_MODULE_ORACLE_DIR").unwrap_or_else(|_| concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/scratch/module").to_string());
+    let dir = std::env::var("TSRS_MODULE_ORACLE_DIR").unwrap_or_else(|_| {
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/scratch/module").to_string()
+    });
     run_oracle_dir(&dir);
 }
 
 fn run_oracle_dir(dir: &str) {
-    let scenarios = std::fs::read_to_string(format!("{dir}/scenarios.jsonl")).expect("scenarios.jsonl");
-    let expected = std::fs::read_to_string(format!("{dir}/expected.jsonl")).expect("expected.jsonl");
+    let scenarios =
+        std::fs::read_to_string(format!("{dir}/scenarios.jsonl")).expect("scenarios.jsonl");
+    let expected =
+        std::fs::read_to_string(format!("{dir}/expected.jsonl")).expect("expected.jsonl");
     let mut failed = 0;
     let mut total = 0;
     for (scenario_line, expected_line) in scenarios.lines().zip(expected.lines()) {

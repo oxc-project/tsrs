@@ -1,18 +1,18 @@
 use std::fmt::Write as _;
 use std::sync::Arc;
 
-use tsrs_compiler::{new_compiler_host, new_program, CompilerHost, Program, ProgramOptions};
-use tsrs_core::context::Context;
+use tsrs_compiler::{CompilerHost, Program, ProgramOptions, new_compiler_host, new_program};
 use tsrs_core::P;
+use tsrs_core::context::Context;
 use tsrs_lsproto as lsproto;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{bundled, vfstest, FS};
+use tsrs_vfs::{FS, bundled, vfstest};
 
 use crate::autoimport::{ProjectID, Registry};
-use crate::lsconv::{self, compute_lsp_line_starts, Converters};
-use crate::lsutil::{new_default_user_preferences, UserPreferences};
+use crate::lsconv::{self, Converters, compute_lsp_line_starts};
+use crate::lsutil::{UserPreferences, new_default_user_preferences};
 use crate::sourcemap::ECMALineInfo;
-use crate::{new_language_service, Host};
+use crate::{Host, new_language_service};
 
 struct testHost {
     fs: Arc<dyn FS>,
@@ -38,7 +38,15 @@ impl Host for testHost {
     fn auto_import_registry(&self) -> Option<Arc<Registry>> {
         None
     }
-    fn read_directory(&self, _: &str, _: &str, _: &[String], _: &[String], _: &[String], _: usize) -> Vec<String> {
+    fn read_directory(
+        &self,
+        _: &str,
+        _: &str,
+        _: &[String],
+        _: &[String],
+        _: &[String],
+        _: usize,
+    ) -> Vec<String> {
         Vec::new()
     }
     fn get_directories(&self, _path: &str) -> Vec<String> {
@@ -88,29 +96,63 @@ fn test_implementations_worklist_does_not_blow_up() {
         b.push_str("i.m();\n");
         let content = b;
 
-        let files = [("/repro.ts", content.as_str()), ("/tsconfig.json", r#"{ "compilerOptions": {}, "files": ["repro.ts"] }"#)];
-        let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), false /*useCaseSensitiveFileNames*/)));
+        let files = [
+            ("/repro.ts", content.as_str()),
+            ("/tsconfig.json", r#"{ "compilerOptions": {}, "files": ["repro.ts"] }"#),
+        ];
+        let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+            files.iter().map(|&(k, v)| (k, v)),
+            false, /*useCaseSensitiveFileNames*/
+        )));
 
-        let config_host: &'static parseConfigHost = Box::leak(Box::new(parseConfigHost { fs: std::sync::Arc::clone(&fs) }));
-        let (parsed, errors) = tsoptions::get_parsed_command_line_of_config_file("/tsconfig.json", None, None, config_host, None);
+        let config_host: &'static parseConfigHost =
+            Box::leak(Box::new(parseConfigHost { fs: std::sync::Arc::clone(&fs) }));
+        let (parsed, errors) = tsoptions::get_parsed_command_line_of_config_file(
+            "/tsconfig.json",
+            None,
+            None,
+            config_host,
+            None,
+        );
         assert_eq!(errors.len(), 0);
-        let host: Arc<dyn CompilerHost> = new_compiler_host("/", std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
-        let program: &'static Program = new_program(ProgramOptions::new(P::new(parsed.unwrap()), host));
+        let host: Arc<dyn CompilerHost> = new_compiler_host(
+            "/",
+            std::sync::Arc::clone(&fs),
+            &bundled::lib_path(),
+            None,
+            None,
+            None,
+        );
+        let program: &'static Program =
+            new_program(ProgramOptions::new(P::new(parsed.unwrap()), host));
         program.bind_source_files();
         let ctx = Context::background();
         program.get_semantic_diagnostics(&ctx, program.get_source_file("/repro.ts"));
 
         let source_file = program.get_source_file("/repro.ts").unwrap();
         let line_content = content.clone();
-        let converters = lsconv::new_converters(lsproto::PositionEncodingKind::UTF8, move |_| Some(compute_lsp_line_starts(&line_content)));
-        let l = new_language_service(ProjectID("/tsconfig.json".to_string()), program, Arc::new(testHost { fs, converters: std::sync::Arc::clone(&converters) }), "/repro.ts");
+        let converters = lsconv::new_converters(lsproto::PositionEncodingKind::UTF8, move |_| {
+            Some(compute_lsp_line_starts(&line_content))
+        });
+        let l = new_language_service(
+            ProjectID("/tsconfig.json".to_string()),
+            program,
+            Arc::new(testHost { fs, converters: std::sync::Arc::clone(&converters) }),
+            "/repro.ts",
+        );
 
         // Position of the `m` property in the final `i.m();`.
         let offset = content.rfind("i.m").unwrap() + "i.".len();
         let offset = u32::try_from(offset).expect("test source fits in a source position");
         let (pos, _) = converters.to_lsp_position(&source_file, offset.into());
 
-        let data = l.provide_symbols_and_entries(&ctx, &lsproto::DocumentUri("file:///repro.ts".to_string()), pos, false /*isRename*/, true /*implementations*/);
+        let data = l.provide_symbols_and_entries(
+            &ctx,
+            &lsproto::DocumentUri("file:///repro.ts".to_string()),
+            pos,
+            false, /*isRename*/
+            true,  /*implementations*/
+        );
         assert!(data.is_some());
         let data = data.unwrap();
         let mut refs = 0;

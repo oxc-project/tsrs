@@ -54,10 +54,7 @@ impl<T> FrozenCell<T> {
             let mut state = self.state.load(Ordering::Acquire);
             loop {
                 assert!(state != EXCLUSIVE_BORROW, "FrozenCell already mutably borrowed");
-                assert!(
-                    state < EXCLUSIVE_BORROW - 1,
-                    "FrozenCell shared borrow count overflow"
-                );
+                assert!(state < EXCLUSIVE_BORROW - 1, "FrozenCell shared borrow count overflow");
                 state = match self.state.compare_exchange_weak(
                     state,
                     state + 1,
@@ -226,7 +223,8 @@ impl<T: Copy> OwnedCell<T> {
     #[inline]
     pub fn set(&self, value: T) {
         crate::ptr::shared_check::assert_not_shared(self, "OwnedCell");
-        if crate::sharedgraph::any_frozen() && crate::sharedgraph::owned_set_if_frozen(self, value) {
+        if crate::sharedgraph::any_frozen() && crate::sharedgraph::owned_set_if_frozen(self, value)
+        {
             return;
         }
         self.0.set(value);
@@ -365,7 +363,11 @@ impl OwnedTaggedStrCell {
         let len = (w >> TAGGED_LEN_SHIFT) & TAGGED_LEN_MASK;
         // SAFETY: built by `pack` from a `&'static str` of this length, or by `pack_long` (length prefix + bytes).
         unsafe {
-            let (p, len) = if len == TAGGED_LEN_MASK { (p.add(4), p.cast::<u32>().read_unaligned() as usize) } else { (p, len as usize) };
+            let (p, len) = if len == TAGGED_LEN_MASK {
+                (p.add(4), p.cast::<u32>().read_unaligned() as usize)
+            } else {
+                (p, len as usize)
+            };
             std::str::from_utf8_unchecked(std::slice::from_raw_parts(p, len))
         }
     }
@@ -373,7 +375,10 @@ impl OwnedTaggedStrCell {
     #[inline]
     pub fn set(&self, value: &'static str) {
         crate::ptr::shared_check::assert_not_shared(self, "OwnedTaggedStrCell");
-        self.0.set(Self::pack(value) | self.0.get() & !(TAGGED_ADDR | (TAGGED_LEN_MASK << TAGGED_LEN_SHIFT)));
+        self.0.set(
+            Self::pack(value)
+                | self.0.get() & !(TAGGED_ADDR | (TAGGED_LEN_MASK << TAGGED_LEN_SHIFT)),
+        );
     }
 
     /// The two tag bits.

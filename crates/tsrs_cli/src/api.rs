@@ -11,9 +11,9 @@ use tsrs_api_transport as transport;
 use tsrs_api_transport::{CallbackConfig, CallbackFs};
 use tsrs_core::P;
 use tsrs_tsoptions::ParseConfigHost;
-use tsrs_vfs::{bundled, osvfs, FS};
+use tsrs_vfs::{FS, bundled, osvfs};
 
-use crate::build::{new_orchestrator, Options};
+use crate::build::{Options, new_orchestrator};
 use crate::lsp::flagSet;
 use crate::tsc::System;
 
@@ -36,24 +36,37 @@ pub(crate) fn parse_api_flags(args: &[String]) -> Result<ApiFlags, ()> {
     flags.string("callbacks", "comma-separated list of FS callbacks and defaults to enable");
     flags.bool("useCaseSensitiveFileNames", "treat filesystem paths as case-sensitive");
     flags.bool("async", "use JSON-RPC protocol instead of MessagePack (for async API)");
-    flags.bool("timing", "collect per-request server processing time, folded into the client's timing snapshot");
+    flags.bool(
+        "timing",
+        "collect per-request server processing time, folded into the client's timing snapshot",
+    );
     flags.bool("runExternalCode", "allow projects to execute configured external plugins");
     flags.parse(args)?;
     // Go defaults: cwd = os.Getwd(), useCaseSensitiveFileNames = the OS filesystem's sensitivity.
     let cwd = match flags.string_value("cwd") {
         c if !c.is_empty() => c,
-        _ => std::env::current_dir().map(|d| d.to_string_lossy().replace('\\', "/")).map_err(|_| ())?,
+        _ => std::env::current_dir()
+            .map(|d| d.to_string_lossy().replace('\\', "/"))
+            .map_err(|_| ())?,
     };
     let case_flag_given = args.iter().any(|a| {
         let a = a.trim_start_matches('-');
         a == "useCaseSensitiveFileNames" || a.starts_with("useCaseSensitiveFileNames=")
     });
-    let case_sensitive = if case_flag_given { flags.bool_value("useCaseSensitiveFileNames") } else { osvfs::fs().use_case_sensitive_file_names() };
+    let case_sensitive = if case_flag_given {
+        flags.bool_value("useCaseSensitiveFileNames")
+    } else {
+        osvfs::fs().use_case_sensitive_file_names()
+    };
     let callbacks = flags.string_value("callbacks");
     Ok(ApiFlags {
         cwd,
         pipe_path: flags.string_value("pipe"),
-        callbacks: if callbacks.is_empty() { Vec::new() } else { callbacks.split(',').map(str::to_string).collect() },
+        callbacks: if callbacks.is_empty() {
+            Vec::new()
+        } else {
+            callbacks.split(',').map(str::to_string).collect()
+        },
         case_sensitive,
         is_async: flags.bool_value("async"),
         timing: flags.bool_value("timing"),
@@ -68,7 +81,8 @@ pub(crate) fn new_api_session(flags: &ApiFlags) -> Result<(Arc<Session>, Arc<Cal
     let config = CallbackConfig::parse(&flags.callbacks)?;
     let callback_fs = Arc::new(CallbackFs::new(base, &config, Some(flags.case_sensitive)));
     let fs: Arc<dyn FS> = Arc::<CallbackFs>::clone(&callback_fs);
-    let mut options = SessionOptions::new(flags.cwd.clone(), bundled::default_lib_path(), fs, !flags.is_async);
+    let mut options =
+        SessionOptions::new(flags.cwd.clone(), bundled::default_lib_path(), fs, !flags.is_async);
     options.run_external_code = flags.run_external_code;
     let session = Session::new(options);
     session.set_build_backend(Arc::new(CliBuildBackend));
@@ -79,7 +93,12 @@ pub(crate) fn new_api_session(flags: &ApiFlags) -> Result<(Arc<Session>, Arc<Cal
 struct SessionHandler(Arc<Session>);
 
 impl transport::Handler for SessionHandler {
-    fn handle_request(&self, cx: &transport::RequestContext, method: &str, params: &[u8]) -> Result<transport::Response, transport::ApiError> {
+    fn handle_request(
+        &self,
+        cx: &transport::RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<transport::Response, transport::ApiError> {
         // Go: errors are CodeInternalError with err.Error().
         match self.0.handle_nested_request(method, params, cx.depth) {
             Ok(tsrs_api::Response::Json(s)) => Ok(transport::Response::Json(s.into_bytes())),
@@ -103,14 +122,19 @@ struct ClientConnAdapter(Arc<dyn transport::Caller>);
 
 impl ClientConn for ClientConnAdapter {
     fn call(&self, method: &str, params: &str) -> tsrs_api::ApiResult<String> {
-        let raw = self.0.call(method, Some(params.as_bytes())).map_err(|e| tsrs_api::ApiError::internal(e.to_string()))?;
+        let raw = self
+            .0
+            .call(method, Some(params.as_bytes()))
+            .map_err(|e| tsrs_api::ApiError::internal(e.to_string()))?;
         tsrs_core::utf8::into_string(raw).map_err(|e| tsrs_api::ApiError::internal(e.to_string()))
     }
 }
 
 /// `tsrs --api` (Go `runAPI` + `StdioServer.Run`). stdout carries only protocol bytes.
 pub fn run_api(args: &[String]) -> i32 {
-    let Ok(flags) = parse_api_flags(args) else { return 2 };
+    let Ok(flags) = parse_api_flags(args) else {
+        return 2;
+    };
     if let Err(err) = CallbackConfig::parse(&flags.callbacks) {
         eprintln!("{err}");
         return 2;
@@ -266,7 +290,9 @@ impl BuildOrchestrator for CliOrchestrator {
         // A build can unwind (a panic while building a program, e.g. the module resolver's `Unexpected
         // moduleResolution`, which the API turns into an error). The fresh orchestrator is then freed here instead
         // of being leaked; the retained one (for later cleans) is untouched.
-        let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| o.build_for_api(project, only_references))) {
+        let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            o.build_for_api(project, only_references)
+        })) {
             Ok(result) => outcome(result),
             Err(panic) => {
                 // SAFETY: the build ran inline on this thread and has unwound (its scoped workers were joined), so
@@ -279,7 +305,9 @@ impl BuildOrchestrator for CliOrchestrator {
         result
     }
     fn clean(&mut self, project: &str, only_references: bool) -> BuildOutcome {
-        let o = if let Some(o) = self.orchestrator { o } else {
+        let o = if let Some(o) = self.orchestrator {
+            o
+        } else {
             let o = self.fresh();
             self.replace(o);
             o
@@ -314,7 +342,14 @@ mod tests {
 
     #[test]
     fn api_flags() {
-        let f = parse_api_flags(&["--async".into(), "-cwd".into(), "/x".into(), "--callbacks=readFile,fileExists".into(), "--useCaseSensitiveFileNames=false".into()]).unwrap();
+        let f = parse_api_flags(&[
+            "--async".into(),
+            "-cwd".into(),
+            "/x".into(),
+            "--callbacks=readFile,fileExists".into(),
+            "--useCaseSensitiveFileNames=false".into(),
+        ])
+        .unwrap();
         assert!(f.is_async && !f.case_sensitive);
         assert_eq!(f.cwd, "/x");
         assert_eq!(f.callbacks, vec!["readFile", "fileExists"]);
@@ -324,21 +359,33 @@ mod tests {
     #[test]
     fn api_build_refreshes_cli_cached_interface_absence() {
         let _serial = super::BUILD_TESTS.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-        let dir = std::env::temp_dir().join(format!("tsrs-api-canonical-cache-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("tsrs-api-canonical-cache-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
-        let fixture =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().join("testdata/regressions/merged-interface-check-site");
+        let fixture = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("testdata/regressions/merged-interface-check-site");
         for file in ["bases.ts", "a.ts", "b.ts", "c.ts", "d.d.ts", "tsconfig.json"] {
             std::fs::copy(fixture.join(file), dir.join(file)).unwrap();
         }
-        let mut config = json::unmarshal(&std::fs::read_to_string(dir.join("tsconfig.json")).unwrap()).unwrap();
+        let mut config =
+            json::unmarshal(&std::fs::read_to_string(dir.join("tsconfig.json")).unwrap()).unwrap();
         let Value::Object(ref mut config_object) = config else { unreachable!() };
-        let Value::Object(options) = config_object.get_mut("compilerOptions").unwrap() else { unreachable!() };
+        let Value::Object(options) = config_object.get_mut("compilerOptions").unwrap() else {
+            unreachable!()
+        };
         options.insert("incremental".into(), Value::Bool(true));
         std::fs::write(dir.join("tsconfig.json"), json::marshal(&config).unwrap()).unwrap();
         let exe = std::env::current_exe().unwrap().parent().unwrap().parent().unwrap().join("tsrs");
         let cli = || {
-            let output = std::process::Command::new(&exe).args(["-p", ".", "--pretty", "false"]).current_dir(&dir).output().unwrap();
+            let output = std::process::Command::new(&exe)
+                .args(["-p", ".", "--pretty", "false"])
+                .current_dir(&dir)
+                .output()
+                .unwrap();
             assert_eq!(output.status.code(), Some(2));
             assert_eq!(output.stderr, [] as [u8; 0]);
             String::from_utf8(output.stdout).unwrap()
@@ -363,8 +410,13 @@ mod tests {
         let build = || call(&s, "build", &format!("{{\"buildOrchestratorID\":{id}}}"));
         let migrated = build();
         assert_eq!(get(&migrated, "status"), &Value::Number(2.0));
-        let Value::Array(diagnostics) = get(&migrated, "diagnostics") else { panic!("{migrated:?}") };
-        assert_eq!(diagnostics.iter().filter(|d| get(d, "code") == &Value::Number(2320.0)).count(), 4);
+        let Value::Array(diagnostics) = get(&migrated, "diagnostics") else {
+            panic!("{migrated:?}")
+        };
+        assert_eq!(
+            diagnostics.iter().filter(|d| get(d, "code") == &Value::Number(2320.0)).count(),
+            4
+        );
         let api_info = std::fs::read_to_string(&info).unwrap();
         assert!(!api_info.contains("tsrsCanonicalCheckSignature"));
         for _ in 0..2 {
@@ -372,7 +424,11 @@ mod tests {
             assert_eq!(std::fs::read_to_string(&info).unwrap(), api_info);
         }
         std::fs::remove_file(&info).unwrap();
-        assert_eq!(get(&build(), "diagnostics"), get(&migrated, "diagnostics"), "CLI cache migration must match fresh API output");
+        assert_eq!(
+            get(&build(), "diagnostics"),
+            get(&migrated, "diagnostics"),
+            "CLI cache migration must match fresh API output"
+        );
         assert_eq!(std::fs::read_to_string(&info).unwrap(), api_info);
         assert_eq!(cli(), expected_cli, "API-to-CLI must refresh all ordered diagnostics");
         assert_eq!(std::fs::read_to_string(&info).unwrap(), cli_info);
@@ -390,16 +446,34 @@ mod tests {
         let w = |p: &str, t: &str| std::fs::write(dir.join(p), t).unwrap();
         w("core/tsconfig.json", r#"{ "compilerOptions": { "composite": true, "outDir": "out" } }"#);
         w("core/index.ts", "export const one = 1;\n");
-        w("app/tsconfig.json", r#"{ "compilerOptions": { "composite": true, "outDir": "out" }, "references": [{ "path": "../core" }] }"#);
-        w("app/main.ts", "import { one } from '../core/index';\nexport const two: number = one + 1;\n");
+        w(
+            "app/tsconfig.json",
+            r#"{ "compilerOptions": { "composite": true, "outDir": "out" }, "references": [{ "path": "../core" }] }"#,
+        );
+        w(
+            "app/main.ts",
+            "import { one } from '../core/index';\nexport const two: number = one + 1;\n",
+        );
         let cwd = dir.canonicalize().unwrap().to_string_lossy().into_owned();
-        let flags = ApiFlags { cwd, pipe_path: String::new(), callbacks: Vec::new(), case_sensitive: true, is_async: true, timing: false, run_external_code: false };
+        let flags = ApiFlags {
+            cwd,
+            pipe_path: String::new(),
+            callbacks: Vec::new(),
+            case_sensitive: true,
+            is_async: true,
+            timing: false,
+            run_external_code: false,
+        };
         let (s, _) = new_api_session(&flags).unwrap();
         let s = s;
         let r = call(&s, "createBuildOrchestrator", r#"{"rootNames":["app"]}"#);
         let id = json::marshal(get(&r, "buildOrchestratorID")).unwrap();
 
-        let r = call(&s, "buildReferences", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"app\"}}"));
+        let r = call(
+            &s,
+            "buildReferences",
+            &format!("{{\"buildOrchestratorID\":{id},\"project\":\"app\"}}"),
+        );
         assert_eq!(get(&r, "status"), &Value::Number(0.0), "{}", json::marshal(&r).unwrap());
         assert_eq!(get(get(&r, "statistics"), "Projects"), &Value::Number(1.0));
         assert!(dir.join("core/out/index.js").exists());
@@ -412,7 +486,12 @@ mod tests {
 
         // Second build: everything is up to date.
         let r = call(&s, "build", &format!("{{\"buildOrchestratorID\":{id}}}"));
-        assert_eq!(get(get(&r, "statistics"), "ProjectsBuilt"), &Value::Number(0.0), "{}", json::marshal(&r).unwrap());
+        assert_eq!(
+            get(get(&r, "statistics"), "ProjectsBuilt"),
+            &Value::Number(0.0),
+            "{}",
+            json::marshal(&r).unwrap()
+        );
 
         let r = call(&s, "cleanBuild", &format!("{{\"buildOrchestratorID\":{id}}}"));
         assert_eq!(get(&r, "status"), &Value::Number(0.0));
@@ -423,13 +502,35 @@ mod tests {
         // Upstream "returns build response information after clean": clean one project, rebuild it, then
         // cleanReferences of the downstream project deletes the rebuilt outputs too.
         call(&s, "build", &format!("{{\"buildOrchestratorID\":{id}}}"));
-        let r = call(&s, "cleanBuild", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"));
-        assert!(json::marshal(get(&r, "filesDeleted")).unwrap().contains("index.js"), "{}", json::marshal(&r).unwrap());
-        let r = call(&s, "build", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"));
-        assert_eq!(get(get(&r, "statistics"), "ProjectsBuilt"), &Value::Number(1.0), "{}", json::marshal(&r).unwrap());
+        let r = call(
+            &s,
+            "cleanBuild",
+            &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"),
+        );
+        assert!(
+            json::marshal(get(&r, "filesDeleted")).unwrap().contains("index.js"),
+            "{}",
+            json::marshal(&r).unwrap()
+        );
+        let r =
+            call(&s, "build", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"));
+        assert_eq!(
+            get(get(&r, "statistics"), "ProjectsBuilt"),
+            &Value::Number(1.0),
+            "{}",
+            json::marshal(&r).unwrap()
+        );
         assert!(dir.join("core/out/index.js").exists());
-        let r = call(&s, "cleanReferences", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"app\"}}"));
-        assert!(json::marshal(get(&r, "filesDeleted")).unwrap().contains("core/out/index.js"), "{}", json::marshal(&r).unwrap());
+        let r = call(
+            &s,
+            "cleanReferences",
+            &format!("{{\"buildOrchestratorID\":{id},\"project\":\"app\"}}"),
+        );
+        assert!(
+            json::marshal(get(&r, "filesDeleted")).unwrap().contains("core/out/index.js"),
+            "{}",
+            json::marshal(&r).unwrap()
+        );
 
         // Upstream "cleans and rebuilds ..." tail, parity f703: after build + clean, the client recreates only one
         // output; Go's next clean reuses the cached existence answers (cachedvfs, cleared only by a build), so it
@@ -437,51 +538,118 @@ mod tests {
         call(&s, "build", &format!("{{\"buildOrchestratorID\":{id}}}"));
         let all = |r: &Value| {
             let mut v: Vec<String> = match get(r, "filesDeleted") {
-                Value::Array(a) => a.iter().map(|f| json::marshal(f).unwrap().rsplit('/').next().unwrap().trim_end_matches('"').to_string()).collect(),
+                Value::Array(a) => a
+                    .iter()
+                    .map(|f| {
+                        json::marshal(f)
+                            .unwrap()
+                            .rsplit('/')
+                            .next()
+                            .unwrap()
+                            .trim_end_matches('"')
+                            .to_string()
+                    })
+                    .collect(),
                 _ => Vec::new(),
             };
             v.sort();
             v
         };
-        let r = call(&s, "cleanBuild", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"));
-        assert_eq!(all(&r), ["index.d.ts", "index.js", "tsconfig.tsbuildinfo"], "{}", json::marshal(&r).unwrap());
+        let r = call(
+            &s,
+            "cleanBuild",
+            &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"),
+        );
+        assert_eq!(
+            all(&r),
+            ["index.d.ts", "index.js", "tsconfig.tsbuildinfo"],
+            "{}",
+            json::marshal(&r).unwrap()
+        );
         w("core/out/index.js", "export const one = 1;\n");
-        let r = call(&s, "cleanBuild", &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"));
+        let r = call(
+            &s,
+            "cleanBuild",
+            &format!("{{\"buildOrchestratorID\":{id},\"project\":\"core\"}}"),
+        );
         assert_eq!(get(&r, "status"), &Value::Number(0.0), "{}", json::marshal(&r).unwrap());
-        assert_eq!(all(&r), ["index.d.ts", "index.js", "tsconfig.tsbuildinfo"], "{}", json::marshal(&r).unwrap());
+        assert_eq!(
+            all(&r),
+            ["index.d.ts", "index.js", "tsconfig.tsbuildinfo"],
+            "{}",
+            json::marshal(&r).unwrap()
+        );
         assert!(!dir.join("core/out/index.js").exists());
 
         // moduleResolution with no named kind (runtime 0689274 review): pinned Go builds import-free projects and
         // panics only when a module is resolved; tsrs answers a stable client error there and stays usable.
-        let r = call(&s, "createBuildOrchestrator", r#"{"rootNames":["core"],"compilerOptions":{"moduleResolution":12345,"checkers":9223372036854775807}}"#);
+        let r = call(
+            &s,
+            "createBuildOrchestrator",
+            r#"{"rootNames":["core"],"compilerOptions":{"moduleResolution":12345,"checkers":9223372036854775807}}"#,
+        );
         let other = json::marshal(get(&r, "buildOrchestratorID")).unwrap();
         let r = call(&s, "build", &format!("{{\"buildOrchestratorID\":{other}}}"));
         assert_eq!(get(&r, "status"), &Value::Number(0.0), "{}", json::marshal(&r).unwrap());
         assert_eq!(get(get(&r, "statistics"), "ProjectsBuilt"), &Value::Number(1.0));
         assert!(dir.join("core/out/index.js").exists());
         let r = call(&s, "cleanBuild", &format!("{{\"buildOrchestratorID\":{other}}}"));
-        assert!(json::marshal(get(&r, "filesDeleted")).unwrap().contains("index.js"), "{}", json::marshal(&r).unwrap());
-        assert_eq!(call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{other}}}")), Value::Bool(true));
-        let r = call(&s, "createBuildOrchestrator", r#"{"rootNames":["app"],"compilerOptions":{"moduleResolution":-1}}"#);
+        assert!(
+            json::marshal(get(&r, "filesDeleted")).unwrap().contains("index.js"),
+            "{}",
+            json::marshal(&r).unwrap()
+        );
+        assert_eq!(
+            call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{other}}}")),
+            Value::Bool(true)
+        );
+        let r = call(
+            &s,
+            "createBuildOrchestrator",
+            r#"{"rootNames":["app"],"compilerOptions":{"moduleResolution":-1}}"#,
+        );
         let other = json::marshal(get(&r, "buildOrchestratorID")).unwrap();
-        let e = s.handle_request("build", format!("{{\"buildOrchestratorID\":{other}}}").as_bytes()).unwrap_err();
-        assert_eq!(e.to_string(), "api: client error: unsupported moduleResolution value -1 (not a ModuleResolutionKind)");
+        let e = s
+            .handle_request("build", format!("{{\"buildOrchestratorID\":{other}}}").as_bytes())
+            .unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "api: client error: unsupported moduleResolution value -1 (not a ModuleResolutionKind)"
+        );
         let r = call(&s, "cleanBuild", &format!("{{\"buildOrchestratorID\":{other}}}"));
         assert_eq!(get(&r, "status"), &Value::Number(0.0), "{}", json::marshal(&r).unwrap());
-        assert_eq!(call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{other}}}")), Value::Bool(true));
+        assert_eq!(
+            call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{other}}}")),
+            Value::Bool(true)
+        );
         call(&s, "createBuildOrchestrator", r#"{"rootNames":["app"]}"#);
 
         // Go `*int` builders: any int64 is accepted (API builds run one builder regardless; runtime-f2-review).
         for n in ["2147483648", "-2147483649", "9223372036854775807"] {
-            let r = call(&s, "createBuildOrchestrator", &format!(r#"{{"rootNames":["app"],"buildOptions":{{"builders":{n}}}}}"#));
+            let r = call(
+                &s,
+                "createBuildOrchestrator",
+                &format!(r#"{{"rootNames":["app"],"buildOptions":{{"builders":{n}}}}}"#),
+            );
             let other = json::marshal(get(&r, "buildOrchestratorID")).unwrap();
             let r = call(&s, "build", &format!("{{\"buildOrchestratorID\":{other}}}"));
-            assert_eq!(get(&r, "status"), &Value::Number(0.0), "builders {n}: {}", json::marshal(&r).unwrap());
+            assert_eq!(
+                get(&r, "status"),
+                &Value::Number(0.0),
+                "builders {n}: {}",
+                json::marshal(&r).unwrap()
+            );
             call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{other}}}"));
         }
 
-        assert_eq!(call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{id}}}")), Value::Bool(true));
-        assert!(s.handle_request("build", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes()).is_err());
+        assert_eq!(
+            call(&s, "disposeBuildOrchestrator", &format!("{{\"buildOrchestratorID\":{id}}}")),
+            Value::Bool(true)
+        );
+        assert!(
+            s.handle_request("build", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes())
+                .is_err()
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
@@ -505,7 +673,11 @@ mod memory_tests {
         unsafe { malloc_trim(0) };
         tsrs_core::utf8::read_to_string("/proc/self/status")
             .ok()
-            .and_then(|s| s.lines().find(|l| l.starts_with("VmRSS:")).and_then(|l| l.split_whitespace().nth(1)?.parse().ok()))
+            .and_then(|s| {
+                s.lines()
+                    .find(|l| l.starts_with("VmRSS:"))
+                    .and_then(|l| l.split_whitespace().nth(1)?.parse().ok())
+            })
             .unwrap_or(0)
     }
 
@@ -520,10 +692,22 @@ mod memory_tests {
                 std::fs::create_dir_all(root.join(p).parent().unwrap()).unwrap();
                 std::fs::write(root.join(p), t).unwrap();
             };
-            w("core/tsconfig.json", r#"{ "compilerOptions": { "composite": true, "outDir": "out", "declarationMap": true, "sourceMap": true } }"#);
-            w("core/index.ts", "export const one = 1;\nexport class C { x = 1; private y = 'a'; }\n");
-            w("app/tsconfig.json", r#"{ "compilerOptions": { "composite": true, "outDir": "out", "strict": true }, "references": [{ "path": "../core" }] }"#);
-            w("app/main.ts", "import { one, C } from '../core/index';\nexport const two: number = one + 1;\nexport const c = new C();\nlet bad: string = 1;\n");
+            w(
+                "core/tsconfig.json",
+                r#"{ "compilerOptions": { "composite": true, "outDir": "out", "declarationMap": true, "sourceMap": true } }"#,
+            );
+            w(
+                "core/index.ts",
+                "export const one = 1;\nexport class C { x = 1; private y = 'a'; }\n",
+            );
+            w(
+                "app/tsconfig.json",
+                r#"{ "compilerOptions": { "composite": true, "outDir": "out", "strict": true }, "references": [{ "path": "../core" }] }"#,
+            );
+            w(
+                "app/main.ts",
+                "import { one, C } from '../core/index';\nexport const two: number = one + 1;\nexport const c = new C();\nlet bad: string = 1;\n",
+            );
         };
         let cli = base.join("cli");
         let api = base.join("api");
@@ -532,20 +716,44 @@ mod memory_tests {
         // The tsrs binary next to this test binary (target/<profile>/tsrs; `cargo build -p tsrs_cli` first).
         let exe = std::env::current_exe().unwrap().parent().unwrap().parent().unwrap().join("tsrs");
         assert!(exe.exists(), "build the tsrs binary first: {}", exe.display());
-        let status = std::process::Command::new(&exe).args(["-b", "app"]).env("TSRS_CHECKER_ASSIGNMENT", "go").current_dir(&cli).status().unwrap();
+        let status = std::process::Command::new(&exe)
+            .args(["-b", "app"])
+            .env("TSRS_CHECKER_ASSIGNMENT", "go")
+            .current_dir(&cli)
+            .status()
+            .unwrap();
         let cwd = api.canonicalize().unwrap().to_string_lossy().into_owned();
-        let flags = ApiFlags { cwd, pipe_path: String::new(), callbacks: Vec::new(), case_sensitive: true, is_async: true, timing: false, run_external_code: false };
+        let flags = ApiFlags {
+            cwd,
+            pipe_path: String::new(),
+            callbacks: Vec::new(),
+            case_sensitive: true,
+            is_async: true,
+            timing: false,
+            run_external_code: false,
+        };
         let (s, _) = new_api_session(&flags).unwrap();
-        let Response::Json(r) = s.handle_request("createBuildOrchestrator", br#"{"rootNames":["app"]}"#).unwrap() else { unreachable!() };
+        let Response::Json(r) =
+            s.handle_request("createBuildOrchestrator", br#"{"rootNames":["app"]}"#).unwrap()
+        else {
+            unreachable!()
+        };
         assert!(r.contains("\"buildOrchestratorID\":1"), "{r}");
-        let Response::Json(b) = s.handle_request("build", br#"{"buildOrchestratorID":1}"#).unwrap() else { unreachable!() };
-        assert!(b.contains(&format!("\"status\":{}", status.code().unwrap())), "cli exit {:?} vs api {b}", status.code());
-        let mut files = Vec::new();
-        files.extend(
-            ["core/out", "app/out"]
-                .into_iter()
-                .flat_map(|proj| std::fs::read_dir(cli.join(proj)).unwrap().map(move |e| format!("{proj}/{}", e.unwrap().file_name().to_string_lossy()))),
+        let Response::Json(b) = s.handle_request("build", br#"{"buildOrchestratorID":1}"#).unwrap()
+        else {
+            unreachable!()
+        };
+        assert!(
+            b.contains(&format!("\"status\":{}", status.code().unwrap())),
+            "cli exit {:?} vs api {b}",
+            status.code()
         );
+        let mut files = Vec::new();
+        files.extend(["core/out", "app/out"].into_iter().flat_map(|proj| {
+            std::fs::read_dir(cli.join(proj))
+                .unwrap()
+                .map(move |e| format!("{proj}/{}", e.unwrap().file_name().to_string_lossy()))
+        }));
         files.sort();
         assert!(files.len() >= 8, "{files:?}");
         for f in &files {
@@ -564,29 +772,47 @@ mod memory_tests {
         let dir = std::env::temp_dir().join(format!("tsrs-api-buildmem-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(dir.join("tsconfig.json"), r#"{ "compilerOptions": { "composite": true, "outDir": "out" } }"#).unwrap();
+        std::fs::write(
+            dir.join("tsconfig.json"),
+            r#"{ "compilerOptions": { "composite": true, "outDir": "out" } }"#,
+        )
+        .unwrap();
         let cwd = dir.canonicalize().unwrap().to_string_lossy().into_owned();
-        let flags = ApiFlags { cwd, pipe_path: String::new(), callbacks: Vec::new(), case_sensitive: true, is_async: true, timing: false, run_external_code: false };
-        let (s, _) = new_api_session(&flags).unwrap();
-        let id = match s.handle_request("createBuildOrchestrator", br#"{"rootNames":["."]}"#).unwrap() {
-            Response::Json(t) => {
-                let v = json::unmarshal(&t).unwrap();
-                let id = match &v {
-                    Value::Object(o) => o.get("buildOrchestratorID").unwrap().clone(),
-                    _ => unreachable!(),
-                };
-                json::marshal(&id).unwrap()
-            }
-            Response::Binary(_) => unreachable!(),
+        let flags = ApiFlags {
+            cwd,
+            pipe_path: String::new(),
+            callbacks: Vec::new(),
+            case_sensitive: true,
+            is_async: true,
+            timing: false,
+            run_external_code: false,
         };
+        let (s, _) = new_api_session(&flags).unwrap();
+        let id =
+            match s.handle_request("createBuildOrchestrator", br#"{"rootNames":["."]}"#).unwrap() {
+                Response::Json(t) => {
+                    let v = json::unmarshal(&t).unwrap();
+                    let id = match &v {
+                        Value::Object(o) => o.get("buildOrchestratorID").unwrap().clone(),
+                        _ => unreachable!(),
+                    };
+                    json::marshal(&id).unwrap()
+                }
+                Response::Binary(_) => unreachable!(),
+            };
         let n: usize = std::env::var("N").ok().and_then(|v| v.parse().ok()).unwrap_or(40);
         let mut before = 0;
         for i in 0..n + 5 {
             if i == 5 {
                 before = rss_kib();
             }
-            std::fs::write(dir.join("a.ts"), format!("export const v{i}: number = {i};\n").repeat(50)).unwrap();
-            s.handle_request("build", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes()).unwrap();
+            std::fs::write(
+                dir.join("a.ts"),
+                format!("export const v{i}: number = {i};\n").repeat(50),
+            )
+            .unwrap();
+            s.handle_request("build", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes())
+                .unwrap();
         }
         let grown = rss_kib().saturating_sub(before);
         eprintln!("BUILDMEM x{n}: rss grew {grown} KiB");
@@ -606,12 +832,27 @@ mod memory_tests {
         let dir = std::env::temp_dir().join(format!("tsrs-api-failedbuild-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(dir.join("tsconfig.json"), r#"{ "compilerOptions": { "outDir": "out" } }"#).unwrap();
+        std::fs::write(dir.join("tsconfig.json"), r#"{ "compilerOptions": { "outDir": "out" } }"#)
+            .unwrap();
         std::fs::write(dir.join("w.ts"), "export const w = 1;\n").unwrap();
         let cwd = dir.canonicalize().unwrap().to_string_lossy().into_owned();
-        let flags = ApiFlags { cwd, pipe_path: String::new(), callbacks: Vec::new(), case_sensitive: true, is_async: true, timing: false, run_external_code: false };
+        let flags = ApiFlags {
+            cwd,
+            pipe_path: String::new(),
+            callbacks: Vec::new(),
+            case_sensitive: true,
+            is_async: true,
+            timing: false,
+            run_external_code: false,
+        };
         let (s, _) = new_api_session(&flags).unwrap();
-        let create = || match s.handle_request("createBuildOrchestrator", br#"{"rootNames":["."],"compilerOptions":{"moduleResolution":-1}}"#).unwrap() {
+        let create = || match s
+            .handle_request(
+                "createBuildOrchestrator",
+                br#"{"rootNames":["."],"compilerOptions":{"moduleResolution":-1}}"#,
+            )
+            .unwrap()
+        {
             Response::Json(t) => match json::unmarshal(&t).unwrap() {
                 Value::Object(o) => json::marshal(o.get("buildOrchestratorID").unwrap()).unwrap(),
                 _ => unreachable!(),
@@ -620,9 +861,18 @@ mod memory_tests {
         };
         let id = create();
         let fail = |i: usize| {
-            std::fs::write(dir.join("a.ts"), format!("import {{ w }} from './w';\nexport const v{i} = w;\n").repeat(200)).unwrap();
-            let e = s.handle_request("build", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes()).unwrap_err();
-            assert_eq!(e.to_string(), "api: client error: unsupported moduleResolution value -1 (not a ModuleResolutionKind)");
+            std::fs::write(
+                dir.join("a.ts"),
+                format!("import {{ w }} from './w';\nexport const v{i} = w;\n").repeat(200),
+            )
+            .unwrap();
+            let e = s
+                .handle_request("build", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes())
+                .unwrap_err();
+            assert_eq!(
+                e.to_string(),
+                "api: client error: unsupported moduleResolution value -1 (not a ModuleResolutionKind)"
+            );
         };
         for i in 0..5 {
             fail(i);
@@ -635,8 +885,17 @@ mod memory_tests {
         let grown = rss_kib().saturating_sub(before);
         eprintln!("failed build x{n}: rss grew {grown} KiB");
         assert!(grown < (n as u64) * 256, "rss grew {grown} KiB over {n} failed builds");
-        assert!(s.handle_request("cleanBuild", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes()).is_ok());
-        assert!(s.handle_request("disposeBuildOrchestrator", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes()).is_ok());
+        assert!(
+            s.handle_request("cleanBuild", format!("{{\"buildOrchestratorID\":{id}}}").as_bytes())
+                .is_ok()
+        );
+        assert!(
+            s.handle_request(
+                "disposeBuildOrchestrator",
+                format!("{{\"buildOrchestratorID\":{id}}}").as_bytes()
+            )
+            .is_ok()
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

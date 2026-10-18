@@ -3,31 +3,46 @@ use crate::*;
 // transform.go lines 1340–2327.
 
 fn optimistic() -> printer::AutoGenerateOptions {
-    printer::AutoGenerateOptions { flags: printer::GeneratedIdentifierFlags::Optimistic, ..Default::default() }
+    printer::AutoGenerateOptions {
+        flags: printer::GeneratedIdentifierFlags::Optimistic,
+        ..Default::default()
+    }
 }
 
 impl DeclarationTransformer {
     // transform.go:1350
-    pub(crate) fn transform_common_js_export(&self, input: P<Node>, name: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn transform_common_js_export(
+        &self,
+        input: P<Node>,
+        name: P<Node>,
+    ) -> Option<P<Node>> {
         let res = self.transform_common_js_export_worker(input, name)?;
         Some(self.wrap_in_cjs_export_namespace(res))
     }
 
     // transform.go:1358
-    pub(crate) fn transform_common_js_export_worker(&self, input: P<Node>, name: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn transform_common_js_export_worker(
+        &self,
+        input: P<Node>,
+        name: P<Node>,
+    ) -> Option<P<Node>> {
         let f = self.factory();
         let mut name_text = "";
         if ast::is_identifier(name) || ast::is_string_literal(name) {
             name_text = name.text();
         }
-        if self.witnessed_cjs_exports.borrow().has(&name_text.to_string()) && !name_text.is_empty() {
+        if self.witnessed_cjs_exports.borrow().has(&name_text.to_string()) && !name_text.is_empty()
+        {
             return None; // Already emitted this export name
         }
         self.witnessed_cjs_exports.borrow_mut().add(name_text.to_string());
         self.result_has_external_module_indicator.set(true);
         self.result_has_scope_marker.set(true);
         // only transform cjs exports to shorthand at the top-level of a source file, otherwise we uniformly emit nested exports with a type annotation
-        if is_common_js_alias_export(input) && ast::is_expression_statement(input.parent().unwrap()) && ast::is_source_file(input.parent().unwrap().parent().unwrap()) {
+        if is_common_js_alias_export(input)
+            && ast::is_expression_statement(input.parent().unwrap())
+            && ast::is_source_file(input.parent().unwrap().parent().unwrap())
+        {
             // export { name }
             // export { source as name }
             return Some(self.transform_binary_expression_to_export_declaration(input, name));
@@ -52,14 +67,20 @@ impl DeclarationTransformer {
                         // triggers TrackSymbol for any self-referential member types.
                         let class_name = f.new_identifier(class_expr_name.text());
                         let class_mods = vec![f.new_modifier(Kind::ExportKeyword)];
-                        let mut class_decl = self.transform_class_expression_to_declaration(rhs, class_name, f.new_modifier_list(class_mods));
+                        let mut class_decl = self.transform_class_expression_to_declaration(
+                            rhs,
+                            class_name,
+                            f.new_modifier_list(class_mods),
+                        );
                         self.preserve_js_doc(class_decl, input);
 
                         // Determine if namespace isolation is needed:
                         // - The class expression name differs from the export name, OR
                         // - The class's own symbol was used in a member's serialized type
-                        let names_differ = !ast::is_identifier(name) || class_expr_name.text() != name.text();
-                        let needs_isolation = names_differ || self.tracker.class_symbol_tracked.get();
+                        let names_differ =
+                            !ast::is_identifier(name) || class_expr_name.text() != name.text();
+                        let needs_isolation =
+                            names_differ || self.tracker.class_symbol_tracked.get();
 
                         if needs_isolation {
                             let ns_name = f.new_unique_name_ex("_ns", optimistic());
@@ -77,18 +98,39 @@ impl DeclarationTransformer {
 
                             let mut alias_base = String::from("_exported");
                             let name_text = name.text();
-                            if ast::is_identifier(name) && scanner::is_identifier_text(&format!("_{name_text}"), tsrs_core::LanguageVariant::Standard) {
+                            if ast::is_identifier(name)
+                                && scanner::is_identifier_text(
+                                    &format!("_{name_text}"),
+                                    tsrs_core::LanguageVariant::Standard,
+                                )
+                            {
                                 alias_base = format!("_{name_text}");
                             }
                             let import_alias = f.new_unique_name_ex(&alias_base, optimistic());
                             let qualified_name = f.new_qualified_name(ns_name, class_name);
-                            let import_decl = f.new_import_equals_declaration(None, false, import_alias, qualified_name);
+                            let import_decl = f.new_import_equals_declaration(
+                                None,
+                                false,
+                                import_alias,
+                                qualified_name,
+                            );
 
-                            let export_specifier = f.new_export_specifier(false, Some(import_alias), name);
-                            let export_decl = f.new_export_declaration(None, false, Some(f.new_named_exports(f.new_node_list(vec![export_specifier]))), None, None);
+                            let export_specifier =
+                                f.new_export_specifier(false, Some(import_alias), name);
+                            let export_decl = f.new_export_declaration(
+                                None,
+                                false,
+                                Some(f.new_named_exports(f.new_node_list(vec![export_specifier]))),
+                                None,
+                                None,
+                            );
                             self.remove_all_comments(export_decl);
 
-                            return f.new_syntax_list(alloc_vec(vec![ns_decl, import_decl, export_decl]));
+                            return f.new_syntax_list(alloc_vec(vec![
+                                ns_decl,
+                                import_decl,
+                                export_decl,
+                            ]));
                         }
 
                         // No isolation needed: names match and no self-references.
@@ -99,7 +141,14 @@ impl DeclarationTransformer {
                             mods.push(f.new_modifier(Kind::DeclareKeyword));
                         }
                         let cd = class_decl.as_class_declaration();
-                        class_decl = f.update_class_declaration(class_decl, Some(f.new_modifier_list(mods)), cd.name(), cd.type_parameters(), cd.heritage_clauses(), cd.members());
+                        class_decl = f.update_class_declaration(
+                            class_decl,
+                            Some(f.new_modifier_list(mods)),
+                            cd.name(),
+                            cd.type_parameters(),
+                            cd.heritage_clauses(),
+                            cd.members(),
+                        );
                         class_decl
                     })();
 
@@ -117,11 +166,24 @@ impl DeclarationTransformer {
                 if !ast::is_identifier(class_name) {
                     class_name = f.new_unique_name_ex("_class", optimistic());
                 }
-                let class_decl = self.transform_class_expression_to_declaration(rhs, class_name, f.new_modifier_list(mods));
+                let class_decl = self.transform_class_expression_to_declaration(
+                    rhs,
+                    class_name,
+                    f.new_modifier_list(mods),
+                );
                 self.preserve_js_doc(class_decl, input);
                 if !ast::is_identifier(name) {
                     // Non-identifier name: emit class declaration + named export
-                    let export_decl = f.new_export_declaration(None, false, Some(f.new_named_exports(f.new_node_list(vec![f.new_export_specifier(false, Some(class_name), name)]))), None, None);
+                    let export_decl =
+                        f.new_export_declaration(
+                            None,
+                            false,
+                            Some(f.new_named_exports(f.new_node_list(vec![
+                                f.new_export_specifier(false, Some(class_name), name),
+                            ]))),
+                            None,
+                            None,
+                        );
                     self.remove_all_comments(export_decl);
                     return Some(f.new_syntax_list(alloc_vec(vec![class_decl, export_decl])));
                 }
@@ -133,13 +195,15 @@ impl DeclarationTransformer {
             if name.text() == "default" {
                 // const _default: Type; export default _default;
                 let new_id = f.new_unique_name_ex("_default", optimistic());
-                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = Rc::new(move |_: &SymbolAccessibilityResult| {
-                    Some(P::new(SymbolAccessibilityDiagnostic {
+                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = Rc::new(
+                    move |_: &SymbolAccessibilityResult| {
+                        Some(P::new(SymbolAccessibilityDiagnostic {
                         diagnostic_message: &diagnostics::Default_export_of_the_module_has_or_is_using_private_name_0,
                         error_node: Some(input),
                         type_name: None,
                     }))
-                });
+                    },
+                );
                 self.tracker.push_error_fallback_node(Some(input));
                 let type_ = self.ensure_type(input, false);
                 let var_decl = f.new_variable_declaration(new_id, None, type_, None);
@@ -149,14 +213,23 @@ impl DeclarationTransformer {
                 } else {
                     f.new_modifier_list(vec![])
                 };
-                let statement = f.new_variable_statement(Some(mod_list), f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Const));
+                let statement = f.new_variable_statement(
+                    Some(mod_list),
+                    f.new_variable_declaration_list(
+                        f.new_node_list(vec![var_decl]),
+                        NodeFlags::Const,
+                    ),
+                );
 
                 let assignment = f.new_export_assignment(input.modifiers(), false, None, new_id);
                 // Remove comments from the export declaration and copy them onto the synthetic _default declaration
                 self.preserve_js_doc(statement, input);
                 self.remove_all_comments(assignment);
                 return Some(f.new_syntax_list(alloc_vec(vec![statement, assignment])));
-            } else if self.host.get_emit_resolver().get_referenced_value_declaration(name) == Some(input) || self.host.get_emit_resolver().get_referenced_value_declaration(name).is_none() {
+            } else if self.host.get_emit_resolver().get_referenced_value_declaration(name)
+                == Some(input)
+                || self.host.get_emit_resolver().get_referenced_value_declaration(name).is_none()
+            {
                 // only inline to a export var if the `name` lookup points at this assignment or nothing - if it points at something else, we must use a temp name
                 // export var name: Type
                 self.tracker.push_error_fallback_node(Some(input));
@@ -164,22 +237,33 @@ impl DeclarationTransformer {
                 let var_decl = f.new_variable_declaration(name, None, type_, None);
                 self.tracker.pop_error_fallback_node();
                 let mod_list = if self.needs_declare.get() {
-                    f.new_modifier_list(vec![f.new_modifier(Kind::ExportKeyword), f.new_modifier(Kind::DeclareKeyword)])
+                    f.new_modifier_list(vec![
+                        f.new_modifier(Kind::ExportKeyword),
+                        f.new_modifier(Kind::DeclareKeyword),
+                    ])
                 } else {
                     f.new_modifier_list(vec![f.new_modifier(Kind::ExportKeyword)])
                 };
-                return Some(f.new_variable_statement(Some(mod_list), f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::None)));
+                return Some(f.new_variable_statement(
+                    Some(mod_list),
+                    f.new_variable_declaration_list(
+                        f.new_node_list(vec![var_decl]),
+                        NodeFlags::None,
+                    ),
+                ));
             }
         }
         // const _exported: Type; export {_exported as "name"};
         let new_id = f.new_unique_name_ex("_exported", optimistic());
-        *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = Rc::new(move |_: &SymbolAccessibilityResult| {
-            Some(P::new(SymbolAccessibilityDiagnostic {
-                diagnostic_message: &diagnostics::Default_export_of_the_module_has_or_is_using_private_name_0,
-                error_node: Some(input),
-                type_name: None,
-            }))
-        });
+        *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+            Rc::new(move |_: &SymbolAccessibilityResult| {
+                Some(P::new(SymbolAccessibilityDiagnostic {
+                    diagnostic_message:
+                        &diagnostics::Default_export_of_the_module_has_or_is_using_private_name_0,
+                    error_node: Some(input),
+                    type_name: None,
+                }))
+            });
         self.tracker.push_error_fallback_node(Some(input));
         let type_ = self.ensure_type(input, false);
         let var_decl = f.new_variable_declaration(new_id, None, type_, None);
@@ -189,9 +273,22 @@ impl DeclarationTransformer {
         } else {
             f.new_modifier_list(vec![])
         };
-        let statement = f.new_variable_statement(Some(mod_list), f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Const));
+        let statement = f.new_variable_statement(
+            Some(mod_list),
+            f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Const),
+        );
 
-        let assignment = f.new_export_declaration(None, false, Some(f.new_named_exports(f.new_node_list(vec![f.new_export_specifier(false, Some(new_id), name)]))), None, None);
+        let assignment = f.new_export_declaration(
+            None,
+            false,
+            Some(f.new_named_exports(f.new_node_list(vec![f.new_export_specifier(
+                false,
+                Some(new_id),
+                name,
+            )]))),
+            None,
+            None,
+        );
         // Remove comments from the export declaration and copy them onto the synthetic _default declaration
         self.preserve_js_doc(statement, input);
         self.remove_all_comments(assignment);
@@ -216,7 +313,13 @@ impl DeclarationTransformer {
             ns_mods.push(f.new_modifier(Kind::DeclareKeyword));
         }
         (members, _) = self.declare_stripping_visitor().visit_slice(members);
-        f.new_module_declaration(Some(f.new_modifier_list(ns_mods)), Kind::NamespaceKeyword, ns_name, None, Some(f.new_module_block(f.new_node_list_from_slice(members))))
+        f.new_module_declaration(
+            Some(f.new_modifier_list(ns_mods)),
+            Kind::NamespaceKeyword,
+            ns_name,
+            None,
+            Some(f.new_module_block(f.new_node_list_from_slice(members))),
+        )
     }
 }
 
@@ -237,7 +340,12 @@ impl DeclarationTransformer {
     // transformClassExpressionToDeclaration converts a class expression into a class declaration
     // for use in CJS export declarations (e.g., exports.K = class K {} or module.exports = class Thing {}).
     // This delegates to the shared buildClassMembers helper to stay in sync with transformClassDeclaration.
-    pub(crate) fn transform_class_expression_to_declaration(&self, class_expr: P<Node>, class_name: P<Node>, modifiers: P<ModifierList>) -> P<Node> {
+    pub(crate) fn transform_class_expression_to_declaration(
+        &self,
+        class_expr: P<Node>,
+        class_name: P<Node>,
+        modifiers: P<ModifierList>,
+    ) -> P<Node> {
         let previous_enclosing_declaration = self.enclosing_declaration.get();
         self.enclosing_declaration.set(Some(class_expr));
         let previous_in_class_expression_declaration = self.in_class_expression_declaration.get();
@@ -248,10 +356,18 @@ impl DeclarationTransformer {
             extra_members = self.collect_this_property_assignments(class_expr);
         }
         let members = self.build_class_members(class_expr, &extra_members);
-        let type_parameters = self.ensure_type_params(class_expr, class_expr.as_class_expression().type_parameters());
-        let heritage_clauses = self.visitor().visit_nodes(class_expr.as_class_expression().heritage_clauses());
+        let type_parameters =
+            self.ensure_type_params(class_expr, class_expr.as_class_expression().type_parameters());
+        let heritage_clauses =
+            self.visitor().visit_nodes(class_expr.as_class_expression().heritage_clauses());
 
-        let result = self.factory().new_class_declaration(Some(modifiers), Some(class_name), type_parameters, heritage_clauses, members);
+        let result = self.factory().new_class_declaration(
+            Some(modifiers),
+            Some(class_name),
+            type_parameters,
+            heritage_clauses,
+            members,
+        );
         // Go: deferred restore.
         self.enclosing_declaration.set(previous_enclosing_declaration);
         self.in_class_expression_declaration.set(previous_in_class_expression_declaration);
@@ -259,9 +375,16 @@ impl DeclarationTransformer {
     }
 
     // transform.go:1608
-    pub(crate) fn rewrite_module_specifier(&self, parent: P<Node>, input: Option<P<Node>>) -> Option<P<Node>> {
+    pub(crate) fn rewrite_module_specifier(
+        &self,
+        parent: P<Node>,
+        input: Option<P<Node>>,
+    ) -> Option<P<Node>> {
         let input = input?;
-        self.result_has_external_module_indicator.set(self.result_has_external_module_indicator.get() || (parent.kind() != Kind::ModuleDeclaration && parent.kind() != Kind::ImportType));
+        self.result_has_external_module_indicator.set(
+            self.result_has_external_module_indicator.get()
+                || (parent.kind() != Kind::ModuleDeclaration && parent.kind() != Kind::ImportType),
+        );
         Some(input)
     }
 
@@ -276,7 +399,10 @@ impl DeclarationTransformer {
         if !original.flags().intersects(NodeFlags::Reparsed) {
             return;
         }
-        let Some(&jsdoc) = original.eager_jsdoc(ast::get_source_file_of_node(original).map(tsrs_core::P::get)).first() else {
+        let Some(&jsdoc) = original
+            .eager_jsdoc(ast::get_source_file_of_node(original).map(tsrs_core::P::get))
+            .first()
+        else {
             return;
         };
         let description = scanner::get_text_of_jsdoc_comment(Some(jsdoc.as_jsdoc().comment));
@@ -284,7 +410,12 @@ impl DeclarationTransformer {
             return;
         }
         let comment = format!("*\n * {}\n ", description.replace('\n', "\n * "));
-        self.emit_context().add_synthetic_leading_comment(updated, Kind::MultiLineCommentTrivia, &comment, true /*hasTrailingNewLine*/);
+        self.emit_context().add_synthetic_leading_comment(
+            updated,
+            Kind::MultiLineCommentTrivia,
+            &comment,
+            true, /*hasTrailingNewLine*/
+        );
     }
 
     // transform.go:1637
@@ -297,7 +428,12 @@ impl DeclarationTransformer {
 
     // transform.go:1644
     pub(crate) fn ensure_type(&self, node: P<Node>, ignore_private: bool) -> Option<P<Node>> {
-        if !ignore_private && self.host.get_effective_declaration_flags(self.emit_context().parse_node(Some(node)).unwrap(), ModifierFlags::Private) != ModifierFlags::None {
+        if !ignore_private
+            && self.host.get_effective_declaration_flags(
+                self.emit_context().parse_node(Some(node)).unwrap(),
+                ModifierFlags::Private,
+            ) != ModifierFlags::None
+        {
             // Private nodes emit no types (except private parameter properties, whose parameter types are actually visible)
             return None;
         }
@@ -312,7 +448,12 @@ impl DeclarationTransformer {
         if !ast::is_export_assignment(node)
             && !ast::is_binding_element(node)
             && node.type_node().is_some()
-            && (!ast::is_parameter_declaration(node) || !self.resolver.requires_adding_implicit_undefined(node, None, self.enclosing_declaration.get()))
+            && (!ast::is_parameter_declaration(node)
+                || !self.resolver.requires_adding_implicit_undefined(
+                    node,
+                    None,
+                    self.enclosing_declaration.get(),
+                ))
         {
             if self.state.current_source_file.get().unwrap().is_js() {
                 // JS types have a heap of constructs we can't directly emit into .d.ts files; the node builder contains logic to remap those where possible, so we invoke it here
@@ -321,7 +462,14 @@ impl DeclarationTransformer {
                 if self.in_class_expression_declaration.get() {
                     js_flags &= !nodebuilder::Flags::WriteClassExpressionAsTypeLiteral;
                 }
-                let res = self.resolver.try_js_type_node_to_type_node(self.emit_context(), node.type_node().unwrap(), self.enclosing_declaration.get(), js_flags, declarationEmitInternalNodeBuilderFlags, self.tracker.get());
+                let res = self.resolver.try_js_type_node_to_type_node(
+                    self.emit_context(),
+                    node.type_node().unwrap(),
+                    self.enclosing_declaration.get(),
+                    js_flags,
+                    declarationEmitInternalNodeBuilderFlags,
+                    self.tracker.get(),
+                );
                 if res.is_some() {
                     return res;
                 }
@@ -337,19 +485,33 @@ impl DeclarationTransformer {
         if !self.suppress_new_diagnostic_contexts.get() {
             old_diag = Some(self.state.get_symbol_accessibility_diagnostic.borrow().clone());
             if can_produce_diagnostics(node) {
-                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = create_get_symbol_accessibility_diagnostic_for_node(node);
+                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+                    create_get_symbol_accessibility_diagnostic_for_node(node);
             }
         }
-
 
         let mut flags = declarationEmitNodeBuilderFlags;
         if self.in_class_expression_declaration.get() {
             flags &= !nodebuilder::Flags::WriteClassExpressionAsTypeLiteral;
         }
         let type_node = if ast::has_inferred_type(node) {
-            self.resolver.create_type_of_declaration(self.emit_context(), node, self.enclosing_declaration.get(), flags, declarationEmitInternalNodeBuilderFlags, self.tracker.get())
+            self.resolver.create_type_of_declaration(
+                self.emit_context(),
+                node,
+                self.enclosing_declaration.get(),
+                flags,
+                declarationEmitInternalNodeBuilderFlags,
+                self.tracker.get(),
+            )
         } else if ast::is_function_like(node) {
-            self.resolver.create_return_type_of_signature_declaration(self.emit_context(), node, self.enclosing_declaration.get(), flags, declarationEmitInternalNodeBuilderFlags, self.tracker.get())
+            self.resolver.create_return_type_of_signature_declaration(
+                self.emit_context(),
+                node,
+                self.enclosing_declaration.get(),
+                flags,
+                declarationEmitInternalNodeBuilderFlags,
+                self.tracker.get(),
+            )
         } else {
             panic!("Unhandled node kind in ensureType: {:?}", node.kind());
         };
@@ -366,12 +528,21 @@ impl DeclarationTransformer {
 
     // transform.go:1708
     pub(crate) fn should_print_with_initializer(&self, node: P<Node>) -> bool {
-        can_have_literal_initializer(self.host, node) && node.initializer().is_some() && self.resolver.is_literal_const_declaration(self.emit_context().most_original(Some(node)).unwrap())
+        can_have_literal_initializer(self.host, node)
+            && node.initializer().is_some()
+            && self.resolver.is_literal_const_declaration(
+                self.emit_context().most_original(Some(node)).unwrap(),
+            )
     }
 
     // transform.go:1712
-    pub(crate) fn check_entity_name_visibility(&self, entity_name: P<Node>, enclosing_declaration: Option<P<Node>>) {
-        let visibility_result = self.resolver.is_entity_name_visible(entity_name, enclosing_declaration);
+    pub(crate) fn check_entity_name_visibility(
+        &self,
+        entity_name: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+    ) {
+        let visibility_result =
+            self.resolver.is_entity_name_visible(entity_name, enclosing_declaration);
         self.tracker.handle_symbol_accessibility_error(&visibility_result);
     }
 
@@ -393,12 +564,17 @@ impl DeclarationTransformer {
             if let Some(res) = res {
                 if res.kind() != Kind::ImportDeclaration {
                     // Go: `res := res.Clone(tx.Factory()); res.Kind = ast.KindImportDeclaration`
-                    return Some(ast::clone_as_import_declaration(res, self.factory().as_node_factory()));
+                    return Some(ast::clone_as_import_declaration(
+                        res,
+                        self.factory().as_node_factory(),
+                    ));
                 }
             }
             return res;
         }
-        if ast::is_declaration(input) && is_declaration_and_not_visible(self.emit_context(), self.resolver, input) {
+        if ast::is_declaration(input)
+            && is_declaration_and_not_visible(self.emit_context(), self.resolver, input)
+        {
             return None;
         }
 
@@ -412,7 +588,8 @@ impl DeclarationTransformer {
         let original = self.emit_context().most_original(Some(input)).unwrap();
         let id = ast::get_node_id(original);
         let is_expando_host = self.expando_hosts.borrow().contains_key(&id);
-        let has_deferred_expando_assignments = self.deferred_expando_assignments.borrow().contains_key(&id);
+        let has_deferred_expando_assignments =
+            self.deferred_expando_assignments.borrow().contains_key(&id);
         if is_expando_host || has_deferred_expando_assignments {
             return self.create_full_expando_block(id);
         }
@@ -426,12 +603,15 @@ impl DeclarationTransformer {
         let old_diag = self.state.get_symbol_accessibility_diagnostic.borrow().clone();
         let old_name = self.state.error_name_node.get();
         if can_produce_diagnostic {
-            *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = create_get_symbol_accessibility_diagnostic_for_node(input);
+            *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+                create_get_symbol_accessibility_diagnostic_for_node(input);
         }
         let save_needs_declare = self.needs_declare.get();
 
         let result = match input.kind() {
-            Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => Some(self.transform_type_alias_declaration(input)),
+            Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => {
+                Some(self.transform_type_alias_declaration(input))
+            }
             Kind::InterfaceDeclaration => Some(self.transform_interface_declaration(input)),
             Kind::FunctionDeclaration => Some(self.transform_function_declaration(input)),
             Kind::ModuleDeclaration => Some(self.transform_module_declaration(input)),
@@ -477,7 +657,8 @@ impl DeclarationTransformer {
     // transform.go:1820
     pub(crate) fn transform_function_declaration(&self, input: P<Node>) -> P<Node> {
         if self.resolver.is_expando_function_declaration(input) {
-            self.resolver.lock(|c| (self.state.report_expando_function_errors.get().unwrap())(c, input));
+            self.resolver
+                .lock(|c| (self.state.report_expando_function_errors.get().unwrap())(c, input));
         }
         let modifiers = self.ensure_modifiers(input);
         let type_parameters = self.ensure_type_params(input, input.type_parameter_list());
@@ -505,7 +686,9 @@ impl DeclarationTransformer {
         self.needs_declare.set(false);
         let inner = input.body();
         let mut keyword = input.as_module_declaration().keyword;
-        if keyword != Kind::GlobalKeyword && (input.name().is_none() || !ast::is_string_literal(input.name().unwrap())) {
+        if keyword != Kind::GlobalKeyword
+            && (input.name().is_none() || !ast::is_string_literal(input.name().unwrap()))
+        {
             keyword = Kind::NamespaceKeyword;
         }
         let attributes = self.visit_fn(input.attributes());
@@ -516,7 +699,8 @@ impl DeclarationTransformer {
             self.result_has_scope_marker.set(false);
             self.needs_scope_fix_marker.set(false);
             let statements = self.visitor().visit_nodes(inner.statement_list()).unwrap();
-            let mut late_statements = self.transform_and_replace_late_painted_statements(statements);
+            let mut late_statements =
+                self.transform_and_replace_late_painted_statements(statements);
             if input.flags().intersects(NodeFlags::Ambient) {
                 self.needs_scope_fix_marker.set(false); // If it was `declare`'d everything is implicitly exported already, ignore late printed "privates"
             }
@@ -524,13 +708,17 @@ impl DeclarationTransformer {
             // 1. There's an export assignment or export declaration in the namespace - do nothing
             // 2. Everything is exported and there are no export assignments or export declarations - strip all export modifiers
             // 3. Some things are exported, some are not, and there's no marker - add an empty marker
-            if !ast::is_global_scope_augmentation(input) && !self.result_has_scope_marker.get() && !has_scope_marker(Some(late_statements)) {
+            if !ast::is_global_scope_augmentation(input)
+                && !self.result_has_scope_marker.get()
+                && !has_scope_marker(Some(late_statements))
+            {
                 if self.needs_scope_fix_marker.get() {
                     let mut nodes = late_statements.nodes().to_vec();
                     nodes.push(create_empty_exports(f.as_node_factory()));
                     late_statements = f.new_node_list(nodes);
                 } else {
-                    late_statements = self.export_stripping_visitor().visit_nodes(Some(late_statements)).unwrap();
+                    late_statements =
+                        self.export_stripping_visitor().visit_nodes(Some(late_statements)).unwrap();
                 }
             }
 
@@ -539,7 +727,14 @@ impl DeclarationTransformer {
             self.needs_scope_fix_marker.set(old_needs_scope_fix);
             self.result_has_scope_marker.set(old_has_scope_fix);
 
-            return f.update_module_declaration(input, mods, keyword, input.name().unwrap(), attributes, Some(body));
+            return f.update_module_declaration(
+                input,
+                mods,
+                keyword,
+                input.name().unwrap(),
+                attributes,
+                Some(body),
+            );
         }
         if let Some(inner) = inner {
             // trigger visit. ignore result (is deferred, so is just inner unless elided)
@@ -548,7 +743,14 @@ impl DeclarationTransformer {
             let original = self.emit_context().most_original(Some(inner)).unwrap();
             let id = ast::get_node_id(original);
             let body = self.late_statement_replacement_map.borrow_mut().remove(&id).flatten();
-            return f.update_module_declaration(input, mods, keyword, input.name().unwrap(), attributes, body);
+            return f.update_module_declaration(
+                input,
+                mods,
+                keyword,
+                input.name().unwrap(),
+                attributes,
+                body,
+            );
         }
         f.update_module_declaration(input, mods, keyword, input.name().unwrap(), attributes, None)
     }
@@ -557,7 +759,10 @@ impl DeclarationTransformer {
     pub(crate) fn strip_export_modifiers(&self, statement: P<Node>) -> P<Node> {
         let parse_node = self.emit_context().parse_node(Some(statement));
         if ast::is_import_equals_declaration(statement)
-            || parse_node.is_some_and(|parse_node| self.host.get_effective_declaration_flags(parse_node, ModifierFlags::Default) != ModifierFlags::None)
+            || parse_node.is_some_and(|parse_node| {
+                self.host.get_effective_declaration_flags(parse_node, ModifierFlags::Default)
+                    != ModifierFlags::None
+            })
             || !ast::can_have_modifiers(statement)
         {
             // `export import` statements should remain as-is, as imports are _not_ implicitly exported in an ambient namespace
@@ -570,32 +775,52 @@ impl DeclarationTransformer {
             return statement;
         }
         let new_flags = old_flags & (ModifierFlags::All ^ ModifierFlags::Export);
-        let modifiers = ast::create_modifiers_from_modifier_flags(new_flags, |k| self.factory().new_modifier(k));
-        ast::replace_modifiers(self.factory().as_node_factory(), statement, Some(self.factory().new_modifier_list(modifiers)))
+        let modifiers = ast::create_modifiers_from_modifier_flags(new_flags, |k| {
+            self.factory().new_modifier(k)
+        });
+        ast::replace_modifiers(
+            self.factory().as_node_factory(),
+            statement,
+            Some(self.factory().new_modifier_list(modifiers)),
+        )
     }
 
     // transform.go:1937
     // buildClassMembers builds the member list for a class-like node (ClassDeclaration or ClassExpression).
     // It handles parameter properties, private identifiers, late-bound index signatures, and visited members.
     // Extra members (e.g., this-property assignments from JS files) can be passed via extraMembers.
-    pub(crate) fn build_class_members(&self, class_node: P<Node>, extra_members: &[P<Node>]) -> P<NodeList> {
+    pub(crate) fn build_class_members(
+        &self,
+        class_node: P<Node>,
+        extra_members: &[P<Node>],
+    ) -> P<NodeList> {
         let f = self.factory();
         let ctor = ast::get_first_constructor_with_body(class_node);
         let mut parameter_properties = Vec::new();
         if let Some(ctor) = ctor {
             let old_diag = self.state.get_symbol_accessibility_diagnostic.borrow().clone();
             for &param in ctor.parameters() {
-                if !ast::has_syntactic_modifier(param, ModifierFlags::ParameterPropertyModifier) || self.should_strip_internal(Some(param)) {
+                if !ast::has_syntactic_modifier(param, ModifierFlags::ParameterPropertyModifier)
+                    || self.should_strip_internal(Some(param))
+                {
                     continue;
                 }
-                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = create_get_symbol_accessibility_diagnostic_for_node(param);
+                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+                    create_get_symbol_accessibility_diagnostic_for_node(param);
                 if param.name().unwrap().kind() == Kind::Identifier {
-                    let updated = f.new_property_declaration(self.ensure_modifiers(param), param.name().unwrap(), param.question_token(), self.ensure_type(param, false), self.ensure_no_initializer(param));
+                    let updated = f.new_property_declaration(
+                        self.ensure_modifiers(param),
+                        param.name().unwrap(),
+                        param.question_token(),
+                        self.ensure_type(param, false),
+                        self.ensure_no_initializer(param),
+                    );
                     self.preserve_js_doc(updated, param);
                     parameter_properties.push(updated);
                 } else {
                     // Pattern - this is currently an error, but we emit declarations for it somewhat correctly
-                    parameter_properties.extend(self.walk_binding_pattern(param.name().unwrap(), param));
+                    parameter_properties
+                        .extend(self.walk_binding_pattern(param.name().unwrap(), param));
                 }
             }
             *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = old_diag;
@@ -605,11 +830,28 @@ impl DeclarationTransformer {
         // Prevents other classes with the same public members from being used in place of the current class
         let members = class_node.class_like_data().unwrap().members();
         let mut private_identifier = None;
-        if members.nodes().iter().any(|member| member.name().is_some_and(ast::is_private_identifier)) {
-            private_identifier = Some(f.new_property_declaration(None, f.new_private_identifier("#private"), None, None, None));
+        if members
+            .nodes()
+            .iter()
+            .any(|member| member.name().is_some_and(ast::is_private_identifier))
+        {
+            private_identifier = Some(f.new_property_declaration(
+                None,
+                f.new_private_identifier("#private"),
+                None,
+                None,
+                None,
+            ));
         }
 
-        let late_indexes = self.resolver.create_late_bound_index_signatures(self.emit_context(), class_node, self.enclosing_declaration.get(), declarationEmitNodeBuilderFlags, declarationEmitInternalNodeBuilderFlags, self.tracker.get());
+        let late_indexes = self.resolver.create_late_bound_index_signatures(
+            self.emit_context(),
+            class_node,
+            self.enclosing_declaration.get(),
+            declarationEmitNodeBuilderFlags,
+            declarationEmitInternalNodeBuilderFlags,
+            self.tracker.get(),
+        );
 
         let mut member_nodes = Vec::with_capacity(members.nodes().len());
         if let Some(private_identifier) = private_identifier {
@@ -637,7 +879,7 @@ impl DeclarationTransformer {
             let f = self.factory();
             let decl = input.as_class_declaration();
             let modifiers = self.ensure_modifiers(input);
-                let type_parameters = self.ensure_type_params(input, decl.type_parameters());
+            let type_parameters = self.ensure_type_params(input, decl.type_parameters());
 
             // Collect this.x property assignments from constructors and static blocks in JS files
             let mut extra_members = Vec::new();
@@ -650,52 +892,102 @@ impl DeclarationTransformer {
             let extends_clause = get_effective_base_type_node(input);
 
             if let Some(extends_clause) = extends_clause {
-                let extends_expression = extends_clause.as_expression_with_type_arguments().expression;
-                if !ast::is_entity_name_expression(extends_expression) && extends_expression.kind() != Kind::NullKeyword {
-                    self.resolver.lock(|c| self.tracker.report_inference_fallback(c, extends_expression)); // Add an isolated declarations error on this extends clause
+                let extends_expression =
+                    extends_clause.as_expression_with_type_arguments().expression;
+                if !ast::is_entity_name_expression(extends_expression)
+                    && extends_expression.kind() != Kind::NullKeyword
+                {
+                    self.resolver.lock(|c| {
+                        self.tracker.report_inference_fallback(c, extends_expression);
+                    }); // Add an isolated declarations error on this extends clause
                     let mut old_id = "default";
-                    if ast::node_is_present(decl.name()) && ast::is_identifier(decl.name().unwrap()) && !decl.name().unwrap().text().is_empty() {
+                    if ast::node_is_present(decl.name())
+                        && ast::is_identifier(decl.name().unwrap())
+                        && !decl.name().unwrap().text().is_empty()
+                    {
                         old_id = decl.name().unwrap().text();
                     }
                     let new_id = f.new_unique_name_ex(&format!("{old_id}_base"), optimistic());
                     let type_name = decl.name();
-                    *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = Rc::new(move |_: &SymbolAccessibilityResult| {
-                        Some(P::new(SymbolAccessibilityDiagnostic {
+                    *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = Rc::new(
+                        move |_: &SymbolAccessibilityResult| {
+                            Some(P::new(SymbolAccessibilityDiagnostic {
                             diagnostic_message: &diagnostics::X_extends_clause_of_exported_class_0_has_or_is_using_private_name_1,
                             error_node: Some(extends_clause),
                             type_name,
                         }))
-                    });
+                        },
+                    );
 
                     let var_decl = f.new_variable_declaration(
                         new_id,
                         None,
-                        self.resolver.create_type_of_expression(self.emit_context(), extends_clause.expression().unwrap(), Some(input), declarationEmitNodeBuilderFlags, declarationEmitInternalNodeBuilderFlags, self.tracker.get()),
+                        self.resolver.create_type_of_expression(
+                            self.emit_context(),
+                            extends_clause.expression().unwrap(),
+                            Some(input),
+                            declarationEmitNodeBuilderFlags,
+                            declarationEmitInternalNodeBuilderFlags,
+                            self.tracker.get(),
+                        ),
                         None,
                     );
                     let mut mods = None;
                     if self.needs_declare.get() {
-                        mods = Some(f.new_modifier_list(vec![f.new_modifier(Kind::DeclareKeyword)]));
+                        mods =
+                            Some(f.new_modifier_list(vec![f.new_modifier(Kind::DeclareKeyword)]));
                     }
-                    let statement = f.new_variable_statement(mods, f.new_variable_declaration_list(f.new_node_list(vec![var_decl]), NodeFlags::Const));
+                    let statement = f.new_variable_statement(
+                        mods,
+                        f.new_variable_declaration_list(
+                            f.new_node_list(vec![var_decl]),
+                            NodeFlags::Const,
+                        ),
+                    );
                     let heritage_clause = extends_clause.parent().unwrap();
                     let new_heritage_clause = f.update_heritage_clause(
                         heritage_clause,
                         heritage_clause.as_heritage_clause().token,
-                        f.new_node_list(vec![f.update_expression_with_type_arguments(extends_clause, new_id, self.visitor().visit_nodes(extends_clause.as_expression_with_type_arguments().type_arguments()))]),
+                        f.new_node_list(vec![f.update_expression_with_type_arguments(
+                            extends_clause,
+                            new_id,
+                            self.visitor().visit_nodes(
+                                extends_clause.as_expression_with_type_arguments().type_arguments(),
+                            ),
+                        )]),
                     );
-                    let retained_heritage_clauses = self.visitor().visit_nodes(decl.heritage_clauses()); // should just be `implements`
+                    let retained_heritage_clauses =
+                        self.visitor().visit_nodes(decl.heritage_clauses()); // should just be `implements`
                     let mut heritage_list = vec![new_heritage_clause];
-                    if let Some(retained_heritage_clauses) = retained_heritage_clauses.filter(|r| !r.nodes().is_empty()) {
+                    if let Some(retained_heritage_clauses) =
+                        retained_heritage_clauses.filter(|r| !r.nodes().is_empty())
+                    {
                         heritage_list.extend_from_slice(retained_heritage_clauses.nodes());
                     }
                     let heritage_clauses = f.new_node_list(heritage_list);
 
-                    return f.new_syntax_list(alloc_vec(vec![statement, f.update_class_declaration(input, modifiers, decl.name(), type_parameters, Some(heritage_clauses), members)]));
+                    return f.new_syntax_list(alloc_vec(vec![
+                        statement,
+                        f.update_class_declaration(
+                            input,
+                            modifiers,
+                            decl.name(),
+                            type_parameters,
+                            Some(heritage_clauses),
+                            members,
+                        ),
+                    ]));
                 }
             }
 
-            f.update_class_declaration(input, modifiers, decl.name(), type_parameters, self.visitor().visit_nodes(decl.heritage_clauses()), members)
+            f.update_class_declaration(
+                input,
+                modifiers,
+                decl.name(),
+                type_parameters,
+                self.visitor().visit_nodes(decl.heritage_clauses()),
+                members,
+            )
         })();
 
         // Go: deferred `PopErrorFallbackNode` and enclosing-declaration restore (LIFO).
@@ -711,7 +1003,9 @@ impl DeclarationTransformer {
         let Some(this_target) = this_container.parent() else {
             return None; // thisContainer was source file, can't have expando-this
         };
-        if ast::has_static_modifier(this_container) || ast::is_class_static_block_declaration(this_container) {
+        if ast::has_static_modifier(this_container)
+            || ast::is_class_static_block_declaration(this_container)
+        {
             is_static = true;
         }
         if Some(this_target) != self.enclosing_declaration.get() {
@@ -733,7 +1027,9 @@ impl DeclarationTransformer {
                 // but what we transform to won't - so we either need to match the base type (for example, if it's a getter/setter) or emit nothing
                 // See `checkKindsOfPropertyMemberOverrides` in the checker for what we're trying to satisfy here
                 let heritage_clauses = this_target.class_like_data().unwrap().heritage_clauses();
-                if heritage_clauses.is_some_and(|h| !h.nodes().is_empty()) && !is_class_extending_null(Some(this_target)) {
+                if heritage_clauses.is_some_and(|h| !h.nodes().is_empty())
+                    && !is_class_extending_null(Some(this_target))
+                {
                     // there is a base type any assignments might be "from"
                     self.resolver.lock(|c| self.tracker.report_inference_fallback(c, this_target)); // Add an isolated declarations error on this class - we can't know how to transform this prop into an assignment without referring to type information
                     if self.resolver.is_this_property_assignment_declaration_redundant(Some(node)) {
@@ -756,10 +1052,21 @@ impl DeclarationTransformer {
                 if ast::get_text_of_property_name(name) == "constructor" {
                     break 'case_block; // `constructor` is a builtin class member, not allowed to redeclare it
                 }
-                if ast::is_identifier(name) && !scanner::is_identifier_text(name.text(), tsrs_core::LanguageVariant::Standard) {
+                if ast::is_identifier(name)
+                    && !scanner::is_identifier_text(
+                        name.text(),
+                        tsrs_core::LanguageVariant::Standard,
+                    )
+                {
                     name = f.new_string_literal_from_node(name);
                 }
-                let prop = f.new_property_declaration(mods, name, None, self.ensure_type(node, false), None);
+                let prop = f.new_property_declaration(
+                    mods,
+                    name,
+                    None,
+                    self.ensure_type(node, false),
+                    None,
+                );
                 if ast::is_expression_statement(node.parent().unwrap()) {
                     self.preserve_js_doc(prop, node.parent().unwrap());
                 }
@@ -817,24 +1124,25 @@ impl DeclarationTransformer {
     // transform.go:2201
     pub(crate) fn walk_binding_pattern(&self, pattern: P<Node>, param: P<Node>) -> Vec<P<Node>> {
         let mut elems = Vec::new();
-        elems = pattern.as_binding_pattern().elements.nodes().iter().fold(elems, |mut elems, &elem| {
-            if ast::is_omitted_expression(elem) {
-                return elems;
-            }
-            if ast::is_binding_pattern(elem.name().unwrap()) {
-                elems.extend(self.walk_binding_pattern(elem.name().unwrap(), param));
-                return elems;
-            }
-            elems.push(self.factory().new_property_declaration(
-                self.ensure_modifiers(param),
-                elem.name().unwrap(),
-                None, /*questionOrExclamationToken*/
-                self.ensure_type(elem, false),
-                None, /*initializer*/
-            ));
+        elems =
+            pattern.as_binding_pattern().elements.nodes().iter().fold(elems, |mut elems, &elem| {
+                if ast::is_omitted_expression(elem) {
+                    return elems;
+                }
+                if ast::is_binding_pattern(elem.name().unwrap()) {
+                    elems.extend(self.walk_binding_pattern(elem.name().unwrap(), param));
+                    return elems;
+                }
+                elems.push(self.factory().new_property_declaration(
+                    self.ensure_modifiers(param),
+                    elem.name().unwrap(),
+                    None, /*questionOrExclamationToken*/
+                    self.ensure_type(elem, false),
+                    None, /*initializer*/
+                ));
 
-            elems
-        });
+                elems
+            });
         elems
     }
 
@@ -853,20 +1161,24 @@ impl DeclarationTransformer {
             return None;
         }
 
-        let mut input_nodes: Vec<P<Node>> = declaration_list.as_variable_declaration_list().declarations.nodes().to_vec();
+        let mut input_nodes: Vec<P<Node>> =
+            declaration_list.as_variable_declaration_list().declarations.nodes().to_vec();
         let mut extra_imports: &'static [P<Node>] = &[];
         if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some() {
             let mut normal_declarations = Vec::new();
             let mut imports = Vec::new();
-            (imports, normal_declarations) = input_nodes.iter().fold((imports, normal_declarations), |(mut imports, mut normal_declarations), &n| {
-                if ast::is_variable_declaration_initialized_to_require(n) {
-                    imports.push(n);
-                } else {
-                    normal_declarations.push(n);
-                }
+            (imports, normal_declarations) = input_nodes.iter().fold(
+                (imports, normal_declarations),
+                |(mut imports, mut normal_declarations), &n| {
+                    if ast::is_variable_declaration_initialized_to_require(n) {
+                        imports.push(n);
+                    } else {
+                        normal_declarations.push(n);
+                    }
 
-                (imports, normal_declarations)
-            });
+                    (imports, normal_declarations)
+                },
+            );
             input_nodes = normal_declarations;
             (extra_imports, _) = self.visitor().visit_slice(alloc_vec(imports));
         }
@@ -889,7 +1201,11 @@ impl DeclarationTransformer {
             self.emit_context().set_comment_range(decl_list, declaration_list.loc());
             decl_list.set_loc(declaration_list.loc());
         } else {
-            decl_list = f.update_variable_declaration_list(declaration_list, node_list, declaration_list.flags());
+            decl_list = f.update_variable_declaration_list(
+                declaration_list,
+                node_list,
+                declaration_list.flags(),
+            );
         }
         let res = f.update_variable_statement(input, modifiers, decl_list);
         if !extra_imports.is_empty() {
@@ -927,17 +1243,25 @@ impl DeclarationTransformer {
                         if value.0 > 0.0 {
                             Some(f.new_identifier("Infinity"))
                         } else {
-                            Some(f.new_prefix_unary_expression(Kind::MinusToken, f.new_identifier("Infinity")))
+                            Some(f.new_prefix_unary_expression(
+                                Kind::MinusToken,
+                                f.new_identifier("Infinity"),
+                            ))
                         }
                     } else if value.is_nan() {
                         Some(f.new_identifier("NaN"))
                     } else if value.0 >= 0.0 {
                         Some(f.new_numeric_literal(alloc_str(&value.string()), TokenFlags::None))
                     } else {
-                        Some(f.new_prefix_unary_expression(Kind::MinusToken, f.new_numeric_literal(alloc_str(&(-value).string()), TokenFlags::None)))
+                        Some(f.new_prefix_unary_expression(
+                            Kind::MinusToken,
+                            f.new_numeric_literal(alloc_str(&(-value).string()), TokenFlags::None),
+                        ))
                     }
                 }
-                Some(checker::LiteralValue::String(value)) => Some(f.new_string_literal(value, TokenFlags::None)),
+                Some(checker::LiteralValue::String(value)) => {
+                    Some(f.new_string_literal(value, TokenFlags::None))
+                }
                 // nil
                 _ => None,
             };

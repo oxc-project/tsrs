@@ -78,14 +78,12 @@ bitflags! {
 const NONE: SubtreeFacts = SubtreeFacts::None;
 
 fn if_else(cond: bool, a: SubtreeFacts, b: SubtreeFacts) -> SubtreeFacts {
-    if cond {
-        a
-    } else {
-        b
-    }
+    if cond { a } else { b }
 }
 
-fn propagate_eraseable_syntax_list_subtree_facts(children: impl Into<Option<P<NodeList>>>) -> SubtreeFacts {
+fn propagate_eraseable_syntax_list_subtree_facts(
+    children: impl Into<Option<P<NodeList>>>,
+) -> SubtreeFacts {
     if_else(children.into().is_some(), SubtreeFacts::ContainsTypeScript, NONE)
 }
 
@@ -97,7 +95,8 @@ fn propagate_object_binding_element_subtree_facts(child: P<Node>) -> SubtreeFact
     let mut facts = propagate_subtree_facts(child);
     if facts.intersects(SubtreeFacts::ContainsRestOrSpread) {
         facts &= !SubtreeFacts::ContainsRestOrSpread;
-        facts |= SubtreeFacts::ContainsObjectRestOrSpread | SubtreeFacts::ContainsESObjectRestOrSpread;
+        facts |=
+            SubtreeFacts::ContainsObjectRestOrSpread | SubtreeFacts::ContainsESObjectRestOrSpread;
     }
     facts
 }
@@ -113,7 +112,10 @@ fn propagate_subtree_facts(child: impl Into<Option<P<Node>>>) -> SubtreeFacts {
     }
 }
 
-fn propagate_node_list_subtree_facts(children: impl Into<Option<P<NodeList>>>, propagate: fn(P<Node>) -> SubtreeFacts) -> SubtreeFacts {
+fn propagate_node_list_subtree_facts(
+    children: impl Into<Option<P<NodeList>>>,
+    propagate: fn(P<Node>) -> SubtreeFacts,
+) -> SubtreeFacts {
     let Some(children) = children.into() else {
         return NONE;
     };
@@ -157,7 +159,8 @@ fn template_facts(flags: TokenFlags) -> SubtreeFacts {
 }
 
 fn async_generator_facts(is_async: bool, is_generator: bool) -> SubtreeFacts {
-    if_else(is_async && is_generator, SubtreeFacts::ContainsForAwaitOrAsyncGenerator, NONE) | if_else(is_async && !is_generator, SubtreeFacts::ContainsAnyAwait, NONE)
+    if_else(is_async && is_generator, SubtreeFacts::ContainsForAwaitOrAsyncGenerator, NONE)
+        | if_else(is_async && !is_generator, SubtreeFacts::ContainsAnyAwait, NONE)
 }
 
 // Go caches the facts of composite nodes in CompositeBase; computeSubtreeFacts is idempotent, so the port
@@ -285,19 +288,34 @@ impl Node {
                 Kind::AsyncKeyword => F::ContainsAnyAwait,
                 Kind::SuperKeyword => F::ContainsLexicalSuper,
                 Kind::ThisKeyword => F::ContainsLexicalThis,
-                Kind::AsteriskAsteriskToken | Kind::AsteriskAsteriskEqualsToken => F::ContainsExponentiationOperator,
+                Kind::AsteriskAsteriskToken | Kind::AsteriskAsteriskEqualsToken => {
+                    F::ContainsExponentiationOperator
+                }
                 Kind::QuestionQuestionToken => F::ContainsNullishCoalescing,
                 Kind::QuestionDotToken => F::ContainsOptionalChaining,
-                Kind::QuestionQuestionEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken => F::ContainsLogicalAssignments,
+                Kind::QuestionQuestionEqualsToken
+                | Kind::BarBarEqualsToken
+                | Kind::AmpersandAmpersandEqualsToken => F::ContainsLogicalAssignments,
                 _ => NONE,
             },
             NodeData::PrivateIdentifier(_) => F::ContainsClassFields,
-            NodeData::Decorator(d) => prop(d.expression()) | F::ContainsTypeScript | F::ContainsDecorators,
+            NodeData::Decorator(d) => {
+                prop(d.expression()) | F::ContainsTypeScript | F::ContainsDecorators
+            }
             NodeData::ForInOrOfStatement(d) => {
-                prop(d.initializer()) | prop(d.expression()) | prop(d.statement()) | if_else(d.await_modifier().is_some(), F::ContainsForAwaitOrAsyncGenerator, NONE)
+                prop(d.initializer())
+                    | prop(d.expression())
+                    | prop(d.statement())
+                    | if_else(
+                        d.await_modifier().is_some(),
+                        F::ContainsForAwaitOrAsyncGenerator,
+                        NONE,
+                    )
             }
             // return in an ES2018 async generator must be awaited
-            NodeData::ReturnStatement(d) => propagate_subtree_facts(d.expression()) | F::ContainsForAwaitOrAsyncGenerator,
+            NodeData::ReturnStatement(d) => {
+                propagate_subtree_facts(d.expression()) | F::ContainsForAwaitOrAsyncGenerator
+            }
             NodeData::CatchClause(d) => {
                 let mut res = propagate_subtree_facts(d.variable_declaration()) | prop(d.block());
                 if d.variable_declaration().is_none() {
@@ -309,7 +327,8 @@ impl Node {
                 if has_ambient_modifier(d.modifiers()) {
                     F::ContainsTypeScript
                 } else {
-                    propagate_modifier_list_subtree_facts(d.modifiers()) | prop(d.declaration_list())
+                    propagate_modifier_list_subtree_facts(d.modifiers())
+                        | prop(d.declaration_list())
                 }
             }
             NodeData::VariableDeclaration(d) => {
@@ -319,11 +338,18 @@ impl Node {
                     | propagate_subtree_facts(d.initializer())
             }
             NodeData::VariableDeclarationList(d) => {
-                propagate_node_list_subtree_facts(d.declarations(), propagate_subtree_facts) | if_else(self.flags().intersects(NodeFlags::Using), F::ContainsUsing, NONE)
+                propagate_node_list_subtree_facts(d.declarations(), propagate_subtree_facts)
+                    | if_else(self.flags().intersects(NodeFlags::Using), F::ContainsUsing, NONE)
             }
             NodeData::BindingPattern(d) => match self.kind() {
-                Kind::ObjectBindingPattern => propagate_node_list_subtree_facts(d.elements(), propagate_object_binding_element_subtree_facts),
-                Kind::ArrayBindingPattern => propagate_node_list_subtree_facts(d.elements(), propagate_binding_element_subtree_facts),
+                Kind::ObjectBindingPattern => propagate_node_list_subtree_facts(
+                    d.elements(),
+                    propagate_object_binding_element_subtree_facts,
+                ),
+                Kind::ArrayBindingPattern => propagate_node_list_subtree_facts(
+                    d.elements(),
+                    propagate_binding_element_subtree_facts,
+                ),
                 _ => NONE,
             },
             NodeData::ParameterDeclaration(d) => {
@@ -368,16 +394,26 @@ impl Node {
                     propagate_modifier_list_subtree_facts(class.modifiers())
                         | propagate_subtree_facts(class.name())
                         | propagate_eraseable_syntax_list_subtree_facts(class.type_parameters())
-                        | propagate_node_list_subtree_facts(class.heritage_clauses(), propagate_subtree_facts)
-                        | propagate_node_list_subtree_facts(class.members(), propagate_subtree_facts)
+                        | propagate_node_list_subtree_facts(
+                            class.heritage_clauses(),
+                            propagate_subtree_facts,
+                        )
+                        | propagate_node_list_subtree_facts(
+                            class.members(),
+                            propagate_subtree_facts,
+                        )
                 }
             }
             NodeData::HeritageClause(d) => match d.token {
-                Kind::ExtendsKeyword => propagate_node_list_subtree_facts(d.types(), propagate_subtree_facts),
+                Kind::ExtendsKeyword => {
+                    propagate_node_list_subtree_facts(d.types(), propagate_subtree_facts)
+                }
                 Kind::ImplementsKeyword => F::ContainsTypeScript,
                 _ => NONE,
             },
-            NodeData::EnumMember(d) => prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::ContainsTypeScript,
+            NodeData::EnumMember(d) => {
+                prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::ContainsTypeScript
+            }
             NodeData::EnumDeclaration(d) => {
                 if has_ambient_modifier(d.modifiers()) {
                     F::ContainsTypeScript
@@ -392,14 +428,19 @@ impl Node {
                 if self.modifier_flags().intersects(ModifierFlags::Ambient) {
                     F::ContainsTypeScript
                 } else {
-                    propagate_modifier_list_subtree_facts(d.modifiers()) | prop(d.name()) | propagate_subtree_facts(d.body()) | F::ContainsTypeScript
+                    propagate_modifier_list_subtree_facts(d.modifiers())
+                        | prop(d.name())
+                        | propagate_subtree_facts(d.body())
+                        | F::ContainsTypeScript
                 }
             }
             NodeData::ImportEqualsDeclaration(d) => {
                 if d.is_type_only || !is_external_module_reference(d.module_reference()) {
                     F::ContainsTypeScript
                 } else {
-                    propagate_modifier_list_subtree_facts(d.modifiers()) | prop(d.name()) | prop(d.module_reference())
+                    propagate_modifier_list_subtree_facts(d.modifiers())
+                        | prop(d.name())
+                        | prop(d.module_reference())
                 }
             }
             NodeData::ImportSpecifier(d) => {
@@ -466,7 +507,9 @@ impl Node {
                 if d.body().is_none() {
                     F::ContainsTypeScript
                 } else {
-                    let is_async = d.modifiers().is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Async));
+                    let is_async = d
+                        .modifiers()
+                        .is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Async));
                     let is_generator = d.asterisk_token().is_some();
                     propagate_modifier_list_subtree_facts(d.modifiers())
                         | propagate_subtree_facts(d.asterisk_token())
@@ -488,7 +531,11 @@ impl Node {
                     | propagate_subtree_facts(d.initializer())
                     | F::ContainsClassFields
             }
-            NodeData::ClassStaticBlockDeclaration(d) => propagate_modifier_list_subtree_facts(d.modifiers()) | prop(d.body()) | F::ContainsClassFields,
+            NodeData::ClassStaticBlockDeclaration(d) => {
+                propagate_modifier_list_subtree_facts(d.modifiers())
+                    | prop(d.body())
+                    | F::ContainsClassFields
+            }
             NodeData::KeywordExpression(_) => match self.kind() {
                 Kind::ThisKeyword => F::ContainsLexicalThis,
                 Kind::SuperKeyword => F::ContainsLexicalSuper,
@@ -504,19 +551,23 @@ impl Node {
                     | prop(d.operator_token())
                     | prop(d.right())
                     | if_else(
-                        d.operator_token().kind() == Kind::InKeyword && is_private_identifier(d.left()),
+                        d.operator_token().kind() == Kind::InKeyword
+                            && is_private_identifier(d.left()),
                         F::ContainsClassFields | F::ContainsPrivateIdentifierInExpression,
                         NONE,
                     );
                 if d.operator_token().kind() == Kind::EqualsToken
-                    && (is_object_literal_expression(d.left()) || is_array_literal_expression(d.left()))
+                    && (is_object_literal_expression(d.left())
+                        || is_array_literal_expression(d.left()))
                     && contains_object_rest_or_spread(d.left())
                 {
                     facts |= F::ContainsObjectRestOrSpread;
                 }
                 facts
             }
-            NodeData::YieldExpression(d) => propagate_subtree_facts(d.expression()) | F::ContainsForAwaitOrAsyncGenerator,
+            NodeData::YieldExpression(d) => {
+                propagate_subtree_facts(d.expression()) | F::ContainsForAwaitOrAsyncGenerator
+            }
             NodeData::ArrowFunction(d) => {
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_parameters())
@@ -524,10 +575,16 @@ impl Node {
                     | propagate_eraseable_syntax_subtree_facts(d.type_())
                     | propagate_eraseable_syntax_subtree_facts(d.full_signature())
                     | propagate_subtree_facts(d.body())
-                    | if_else(self.modifier_flags().intersects(ModifierFlags::Async), F::ContainsAnyAwait, NONE)
+                    | if_else(
+                        self.modifier_flags().intersects(ModifierFlags::Async),
+                        F::ContainsAnyAwait,
+                        NONE,
+                    )
             }
             NodeData::FunctionExpression(d) => {
-                let is_async = d.modifiers().is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Async));
+                let is_async = d
+                    .modifiers()
+                    .is_some_and(|m| m.modifier_flags.intersects(ModifierFlags::Async));
                 let is_generator = d.asterisk_token().is_some();
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | propagate_subtree_facts(d.asterisk_token())
@@ -542,15 +599,26 @@ impl Node {
             NodeData::AsExpression(d) => prop(d.expression()) | F::ContainsTypeScript,
             NodeData::SatisfiesExpression(d) => prop(d.expression()) | F::ContainsTypeScript,
             NodeData::PropertyAccessExpression(d) => {
-                let private_name = if_else(!is_identifier(d.name()), F::ContainsPrivateIdentifierInExpression, NONE);
-                prop(d.expression()) | propagate_subtree_facts(d.question_dot_token()) | prop(d.name()) | private_name
+                let private_name = if_else(
+                    !is_identifier(d.name()),
+                    F::ContainsPrivateIdentifierInExpression,
+                    NONE,
+                );
+                prop(d.expression())
+                    | propagate_subtree_facts(d.question_dot_token())
+                    | prop(d.name())
+                    | private_name
             }
             NodeData::CallExpression(d) => {
                 prop(d.expression())
                     | propagate_subtree_facts(d.question_dot_token())
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
                     | propagate_node_list_subtree_facts(d.arguments(), propagate_subtree_facts)
-                    | if_else(d.expression().kind() == Kind::ImportKeyword, F::ContainsDynamicImport, NONE)
+                    | if_else(
+                        d.expression().kind() == Kind::ImportKeyword,
+                        F::ContainsDynamicImport,
+                        NONE,
+                    )
             }
             NodeData::NewExpression(d) => {
                 prop(d.expression())
@@ -566,58 +634,114 @@ impl Node {
                     | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
                     | prop(d.template())
             }
-            NodeData::SpreadAssignment(d) => prop(d.expression()) | F::ContainsESObjectRestOrSpread | F::ContainsObjectRestOrSpread,
-            NodeData::PropertyAssignment(d) => prop(d.name()) | propagate_subtree_facts(d.type_()) | prop(d.initializer()),
+            NodeData::SpreadAssignment(d) => {
+                prop(d.expression())
+                    | F::ContainsESObjectRestOrSpread
+                    | F::ContainsObjectRestOrSpread
+            }
+            NodeData::PropertyAssignment(d) => {
+                prop(d.name()) | propagate_subtree_facts(d.type_()) | prop(d.initializer())
+            }
             NodeData::ShorthandPropertyAssignment(d) => {
-                prop(d.name()) | propagate_subtree_facts(d.type_()) | propagate_subtree_facts(d.object_assignment_initializer()) | F::ContainsTypeScript
+                prop(d.name())
+                    | propagate_subtree_facts(d.type_())
+                    | propagate_subtree_facts(d.object_assignment_initializer())
+                    | F::ContainsTypeScript
             }
             // await in an ES2018 async generator must use `yield __await(expr)`
-            NodeData::AwaitExpression(d) => prop(d.expression()) | F::ContainsAwait | F::ContainsAnyAwait | F::ContainsForAwaitOrAsyncGenerator,
+            NodeData::AwaitExpression(d) => {
+                prop(d.expression())
+                    | F::ContainsAwait
+                    | F::ContainsAnyAwait
+                    | F::ContainsForAwaitOrAsyncGenerator
+            }
             NodeData::TypeAssertion(d) => prop(d.expression()) | F::ContainsTypeScript,
-            NodeData::ExpressionWithTypeArguments(d) => prop(d.expression()) | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments()),
+            NodeData::ExpressionWithTypeArguments(d) => {
+                prop(d.expression())
+                    | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
+            }
             NodeData::TemplateHead(d) => template_facts(d.template_flags()),
             NodeData::TemplateMiddle(d) => template_facts(d.template_flags()),
             NodeData::TemplateTail(d) => template_facts(d.template_flags()),
             NodeData::JsxElement(d) => {
-                prop(d.opening_element()) | propagate_node_list_subtree_facts(d.children(), propagate_subtree_facts) | prop(d.closing_element()) | F::ContainsJsx
+                prop(d.opening_element())
+                    | propagate_node_list_subtree_facts(d.children(), propagate_subtree_facts)
+                    | prop(d.closing_element())
+                    | F::ContainsJsx
             }
-            NodeData::JsxAttributes(d) => propagate_node_list_subtree_facts(d.properties(), propagate_subtree_facts) | F::ContainsJsx,
+            NodeData::JsxAttributes(d) => {
+                propagate_node_list_subtree_facts(d.properties(), propagate_subtree_facts)
+                    | F::ContainsJsx
+            }
             NodeData::JsxNamespacedName(d) => prop(d.namespace()) | prop(d.name()) | F::ContainsJsx,
             NodeData::JsxOpeningElement(d) => {
-                prop(d.tag_name()) | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments()) | prop(d.attributes()) | F::ContainsJsx
+                prop(d.tag_name())
+                    | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
+                    | prop(d.attributes())
+                    | F::ContainsJsx
             }
             NodeData::JsxSelfClosingElement(d) => {
-                prop(d.tag_name()) | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments()) | prop(d.attributes()) | F::ContainsJsx
+                prop(d.tag_name())
+                    | propagate_eraseable_syntax_list_subtree_facts(d.type_arguments())
+                    | prop(d.attributes())
+                    | F::ContainsJsx
             }
-            NodeData::JsxFragment(d) => propagate_node_list_subtree_facts(d.children(), propagate_subtree_facts) | F::ContainsJsx,
+            NodeData::JsxFragment(d) => {
+                propagate_node_list_subtree_facts(d.children(), propagate_subtree_facts)
+                    | F::ContainsJsx
+            }
             NodeData::JsxOpeningFragment => F::ContainsJsx,
             NodeData::JsxClosingFragment => F::ContainsJsx,
-            NodeData::JsxAttribute(d) => prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::ContainsJsx,
+            NodeData::JsxAttribute(d) => {
+                prop(d.name()) | propagate_subtree_facts(d.initializer()) | F::ContainsJsx
+            }
             NodeData::JsxSpreadAttribute(d) => prop(d.expression()) | F::ContainsJsx,
             NodeData::JsxClosingElement(d) => prop(d.tag_name()) | F::ContainsJsx,
             NodeData::JsxExpression(d) => propagate_subtree_facts(d.expression()) | F::ContainsJsx,
             NodeData::JsxText(_) => F::ContainsJsx,
-            NodeData::SourceFile(d) => propagate_node_list_subtree_facts(d.statements, propagate_subtree_facts),
+            NodeData::SourceFile(d) => {
+                propagate_node_list_subtree_facts(d.statements, propagate_subtree_facts)
+            }
 
             // Generated (ast_generated.go)
             NodeData::QualifiedName(d) => prop(d.left()) | prop(d.right()),
             NodeData::ComputedPropertyName(d) => prop(d.expression()),
-            NodeData::IfStatement(d) => prop(d.expression()) | prop(d.then_statement()) | propagate_subtree_facts(d.else_statement()),
+            NodeData::IfStatement(d) => {
+                prop(d.expression())
+                    | prop(d.then_statement())
+                    | propagate_subtree_facts(d.else_statement())
+            }
             NodeData::DoStatement(d) => prop(d.statement()) | prop(d.expression()),
             NodeData::WhileStatement(d) => prop(d.expression()) | prop(d.statement()),
             NodeData::ForStatement(d) => {
-                propagate_subtree_facts(d.initializer()) | propagate_subtree_facts(d.condition()) | propagate_subtree_facts(d.incrementor()) | prop(d.statement())
+                propagate_subtree_facts(d.initializer())
+                    | propagate_subtree_facts(d.condition())
+                    | propagate_subtree_facts(d.incrementor())
+                    | prop(d.statement())
             }
             NodeData::WithStatement(d) => prop(d.expression()) | prop(d.statement()),
             NodeData::SwitchStatement(d) => prop(d.expression()) | prop(d.case_block()),
-            NodeData::CaseBlock(d) => propagate_node_list_subtree_facts(d.clauses(), propagate_subtree_facts),
-            NodeData::CaseOrDefaultClause(d) => propagate_subtree_facts(d.expression()) | propagate_node_list_subtree_facts(d.statements(), propagate_subtree_facts),
+            NodeData::CaseBlock(d) => {
+                propagate_node_list_subtree_facts(d.clauses(), propagate_subtree_facts)
+            }
+            NodeData::CaseOrDefaultClause(d) => {
+                propagate_subtree_facts(d.expression())
+                    | propagate_node_list_subtree_facts(d.statements(), propagate_subtree_facts)
+            }
             NodeData::ThrowStatement(d) => prop(d.expression()),
-            NodeData::TryStatement(d) => prop(d.try_block()) | propagate_subtree_facts(d.catch_clause()) | propagate_subtree_facts(d.finally_block()),
+            NodeData::TryStatement(d) => {
+                prop(d.try_block())
+                    | propagate_subtree_facts(d.catch_clause())
+                    | propagate_subtree_facts(d.finally_block())
+            }
             NodeData::LabeledStatement(d) => prop(d.label()) | prop(d.statement()),
             NodeData::ExpressionStatement(d) => prop(d.expression()),
-            NodeData::Block(d) => propagate_node_list_subtree_facts(d.statements(), propagate_subtree_facts),
-            NodeData::ModuleBlock(d) => propagate_node_list_subtree_facts(d.statements(), propagate_subtree_facts),
+            NodeData::Block(d) => {
+                propagate_node_list_subtree_facts(d.statements(), propagate_subtree_facts)
+            }
+            NodeData::ModuleBlock(d) => {
+                propagate_node_list_subtree_facts(d.statements(), propagate_subtree_facts)
+            }
             NodeData::ImportDeclaration(d) => {
                 propagate_modifier_list_subtree_facts(d.modifiers())
                     | propagate_subtree_facts(d.import_clause())
@@ -626,25 +750,46 @@ impl Node {
             }
             NodeData::ExternalModuleReference(d) => prop(d.expression()),
             NodeData::NamespaceImport(d) => prop(d.name()),
-            NodeData::NamedImports(d) => propagate_node_list_subtree_facts(d.elements(), propagate_subtree_facts),
+            NodeData::NamedImports(d) => {
+                propagate_node_list_subtree_facts(d.elements(), propagate_subtree_facts)
+            }
             NodeData::NamespaceExport(d) => prop(d.name()),
-            NodeData::NamedExports(d) => propagate_node_list_subtree_facts(d.elements(), propagate_subtree_facts),
+            NodeData::NamedExports(d) => {
+                propagate_node_list_subtree_facts(d.elements(), propagate_subtree_facts)
+            }
             NodeData::PrefixUnaryExpression(d) => prop(d.operand()),
             NodeData::PostfixUnaryExpression(d) => prop(d.operand()),
             NodeData::ConditionalExpression(d) => {
-                prop(d.condition()) | prop(d.question_token()) | prop(d.when_true()) | prop(d.colon_token()) | prop(d.when_false())
+                prop(d.condition())
+                    | prop(d.question_token())
+                    | prop(d.when_true())
+                    | prop(d.colon_token())
+                    | prop(d.when_false())
             }
-            NodeData::ElementAccessExpression(d) => prop(d.expression()) | propagate_subtree_facts(d.question_dot_token()) | prop(d.argument_expression()),
-            NodeData::TemplateExpression(d) => prop(d.head()) | propagate_node_list_subtree_facts(d.template_spans(), propagate_subtree_facts),
+            NodeData::ElementAccessExpression(d) => {
+                prop(d.expression())
+                    | propagate_subtree_facts(d.question_dot_token())
+                    | prop(d.argument_expression())
+            }
+            NodeData::TemplateExpression(d) => {
+                prop(d.head())
+                    | propagate_node_list_subtree_facts(d.template_spans(), propagate_subtree_facts)
+            }
             NodeData::TemplateSpan(d) => prop(d.expression()) | prop(d.literal()),
             NodeData::ParenthesizedExpression(d) => prop(d.expression()),
-            NodeData::ArrayLiteralExpression(d) => propagate_node_list_subtree_facts(d.elements(), propagate_subtree_facts),
-            NodeData::ObjectLiteralExpression(d) => propagate_node_list_subtree_facts(d.properties(), propagate_subtree_facts),
+            NodeData::ArrayLiteralExpression(d) => {
+                propagate_node_list_subtree_facts(d.elements(), propagate_subtree_facts)
+            }
+            NodeData::ObjectLiteralExpression(d) => {
+                propagate_node_list_subtree_facts(d.properties(), propagate_subtree_facts)
+            }
             NodeData::DeleteExpression(d) => prop(d.expression()),
             NodeData::TypeOfExpression(d) => prop(d.expression()),
             NodeData::VoidExpression(d) => prop(d.expression()),
             NodeData::ImportAttribute(d) => propagate_subtree_facts(d.name()) | prop(d.value()),
-            NodeData::ImportAttributes(d) => propagate_node_list_subtree_facts(d.attributes(), propagate_subtree_facts),
+            NodeData::ImportAttributes(d) => {
+                propagate_node_list_subtree_facts(d.attributes(), propagate_subtree_facts)
+            }
             NodeData::PartiallyEmittedExpression(d) => prop(d.expression()),
             NodeData::SyntheticReferenceExpression(d) => prop(d.expression()) | prop(d.this_arg()),
 
@@ -700,27 +845,45 @@ impl Node {
             | NodeData::TypeParameterDeclaration(_)
             | NodeData::JSDocTypeLiteral(_) => F::ContainsTypeScript,
             NodeData::CatchClause(_) => self.subtree_facts() & !F::ExclusionsCatchClause,
-            NodeData::VariableDeclarationList(_) => self.subtree_facts() & !F::ExclusionsVariableDeclarationList,
+            NodeData::VariableDeclarationList(_) => {
+                self.subtree_facts() & !F::ExclusionsVariableDeclarationList
+            }
             NodeData::BindingPattern(_) => self.subtree_facts() & !F::ExclusionsBindingPattern,
             NodeData::ParameterDeclaration(_) => self.subtree_facts() & !F::ExclusionsParameter,
             NodeData::FunctionDeclaration(_) => self.subtree_facts() & !F::ExclusionsFunction,
-            NodeData::ClassDeclaration(_) | NodeData::ClassExpression(_) => self.subtree_facts() & !F::ExclusionsClass,
+            NodeData::ClassDeclaration(_) | NodeData::ClassExpression(_) => {
+                self.subtree_facts() & !F::ExclusionsClass
+            }
             NodeData::ModuleDeclaration(_) => self.subtree_facts() & !F::ExclusionsModule,
             NodeData::ConstructorDeclaration(_) => self.subtree_facts() & !F::ExclusionsConstructor,
             NodeData::GetAccessorDeclaration(_) | NodeData::SetAccessorDeclaration(_) => {
                 self.subtree_facts() & !F::ExclusionsAccessor | propagate_subtree_facts(self.name())
             }
-            NodeData::MethodDeclaration(_) => self.subtree_facts() & !F::ExclusionsMethod | propagate_subtree_facts(self.name()),
-            NodeData::PropertyDeclaration(_) => self.subtree_facts() & !F::ExclusionsProperty | propagate_subtree_facts(self.name()),
+            NodeData::MethodDeclaration(_) => {
+                self.subtree_facts() & !F::ExclusionsMethod | propagate_subtree_facts(self.name())
+            }
+            NodeData::PropertyDeclaration(_) => {
+                self.subtree_facts() & !F::ExclusionsProperty | propagate_subtree_facts(self.name())
+            }
             NodeData::ArrowFunction(_) => self.subtree_facts() & !F::ExclusionsArrowFunction,
             NodeData::FunctionExpression(_) => self.subtree_facts() & !F::ExclusionsFunction,
-            NodeData::AsExpression(_) | NodeData::SatisfiesExpression(_) | NodeData::TypeAssertion(_) => self.subtree_facts() & !F::ExclusionsOuterExpression,
-            NodeData::PropertyAccessExpression(_) => self.subtree_facts() & !F::ExclusionsPropertyAccess,
-            NodeData::ElementAccessExpression(_) => self.subtree_facts() & !F::ExclusionsElementAccess,
+            NodeData::AsExpression(_)
+            | NodeData::SatisfiesExpression(_)
+            | NodeData::TypeAssertion(_) => self.subtree_facts() & !F::ExclusionsOuterExpression,
+            NodeData::PropertyAccessExpression(_) => {
+                self.subtree_facts() & !F::ExclusionsPropertyAccess
+            }
+            NodeData::ElementAccessExpression(_) => {
+                self.subtree_facts() & !F::ExclusionsElementAccess
+            }
             NodeData::CallExpression(_) => self.subtree_facts() & !F::ExclusionsCall,
             NodeData::NewExpression(_) => self.subtree_facts() & !F::ExclusionsNew,
-            NodeData::ArrayLiteralExpression(_) => self.subtree_facts() & !F::ExclusionsArrayLiteral,
-            NodeData::ObjectLiteralExpression(_) => self.subtree_facts() & !F::ExclusionsObjectLiteral,
+            NodeData::ArrayLiteralExpression(_) => {
+                self.subtree_facts() & !F::ExclusionsArrayLiteral
+            }
+            NodeData::ObjectLiteralExpression(_) => {
+                self.subtree_facts() & !F::ExclusionsObjectLiteral
+            }
             _ => self.subtree_facts() & !F::ExclusionsNode,
         }
     }
@@ -740,7 +903,9 @@ pub fn contains_object_rest_or_spread(node: P<Node>) -> bool {
                     if target.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) {
                         return true;
                     }
-                    if target.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread) && contains_object_rest_or_spread(target) {
+                    if target.subtree_facts().intersects(SubtreeFacts::ContainsESObjectRestOrSpread)
+                        && contains_object_rest_or_spread(target)
+                    {
                         return true;
                     }
                 }

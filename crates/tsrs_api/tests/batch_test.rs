@@ -7,25 +7,51 @@ use tsrs_core::json::Value;
 fn batch_requests_results_errors_and_pagination() {
     let dir = TempDir::new("batch");
     let s = session(&dir.dir(), false);
-    let r = call(&s, "batchRequests", r#"{"requests":[{"method":"initialize"},{"method":"nope","params":{}},{"method":"batchRequests","params":{"requests":[]}},{"method":"ping"}]}"#);
+    let r = call(
+        &s,
+        "batchRequests",
+        r#"{"requests":[{"method":"initialize"},{"method":"nope","params":{}},{"method":"batchRequests","params":{"requests":[]}},{"method":"ping"}]}"#,
+    );
     assert_eq!(str_of(get(&r, "responses.0.method")), "initialize");
     assert_eq!(str_of(get(&r, "responses.0.result.currentDirectory")), dir.dir());
     assert!(str_of(get(&r, "responses.1.error")).contains("unknown API method"));
     assert_eq!(get(&r, "responses.1.result"), &Value::Null);
-    assert_eq!(str_of(get(&r, "responses.2.error")), "api: invalid request: batchRequests cannot be nested");
+    assert_eq!(
+        str_of(get(&r, "responses.2.error")),
+        "api: invalid request: batchRequests cannot be nested"
+    );
     assert_eq!(str_of(get(&r, "responses.3.result")), "pong");
     assert!(matches!(r, Value::Object(ref o) if !o.contains_key("continuationToken")));
 
     // Tiny page size: one response per page, followed via continuation tokens.
-    let r = call(&s, "batchRequests", r#"{"requests":[{"method":"ping"},{"method":"ping"},{"method":"ping"}],"maxResponseBytesPerPage":1}"#);
-    let mut seen = match get(&r, "responses") { Value::Array(a) => a.len(), _ => 0 };
+    let r = call(
+        &s,
+        "batchRequests",
+        r#"{"requests":[{"method":"ping"},{"method":"ping"},{"method":"ping"}],"maxResponseBytesPerPage":1}"#,
+    );
+    let mut seen = match get(&r, "responses") {
+        Value::Array(a) => a.len(),
+        _ => 0,
+    };
     assert_eq!(seen, 1);
     let mut token = str_of(get(&r, "continuationToken")).to_string();
     loop {
-        let r = call(&s, "batchRequests", &format!("{{\"requests\":[],\"continuationToken\":{},\"maxResponseBytesPerPage\":1}}", quote(&token)));
-        seen += match get(&r, "responses") { Value::Array(a) => a.len(), _ => 0 };
+        let r = call(
+            &s,
+            "batchRequests",
+            &format!(
+                "{{\"requests\":[],\"continuationToken\":{},\"maxResponseBytesPerPage\":1}}",
+                quote(&token)
+            ),
+        );
+        seen += match get(&r, "responses") {
+            Value::Array(a) => a.len(),
+            _ => 0,
+        };
         match r {
-            Value::Object(ref o) if o.contains_key("continuationToken") => token = str_of(get(&r, "continuationToken")).to_string(),
+            Value::Object(ref o) if o.contains_key("continuationToken") => {
+                token = str_of(get(&r, "continuationToken")).to_string();
+            }
             _ => break,
         }
     }
@@ -54,11 +80,23 @@ fn batch_items_decode_raw_params() {
     );
     for i in [0, 1, 4] {
         let e = str_of(get(&r, &format!("responses.{i}.error"))).to_string();
-        assert!(e.starts_with("api: invalid request: failed to unmarshal *api.ReleaseParams"), "{i}: {e}");
+        assert!(
+            e.starts_with("api: invalid request: failed to unmarshal *api.ReleaseParams"),
+            "{i}: {e}"
+        );
     }
-    assert_eq!(str_of(get(&r, "responses.2.error")), "api: client error: snapshot 9007199254740993 not found");
-    assert_eq!(str_of(get(&r, "responses.3.error")), "api: client error: snapshot 18446744073709551615 not found");
-    assert_eq!(str_of(get(&r, "responses.5.error")), "api: client error: snapshot 9007199254740995 not found");
+    assert_eq!(
+        str_of(get(&r, "responses.2.error")),
+        "api: client error: snapshot 9007199254740993 not found"
+    );
+    assert_eq!(
+        str_of(get(&r, "responses.3.error")),
+        "api: client error: snapshot 18446744073709551615 not found"
+    );
+    assert_eq!(
+        str_of(get(&r, "responses.5.error")),
+        "api: client error: snapshot 9007199254740995 not found"
+    );
 }
 
 /// Item params are indexed in one pass over the batch payload: 20k items with params finish quickly (rescanning
@@ -68,11 +106,20 @@ fn large_batch_params_are_indexed_once() {
     let dir = TempDir::new("batchscale");
     let s = session(&dir.dir(), false);
     let item = r#"{"method":"ping","params":{"pad":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","n":9007199254740993}}"#;
-    let payload = format!(r#"{{"requests":[{}],"maxResponseBytesPerPage":1073741824}}"#, vec![item; 20_000].join(","));
+    let payload = format!(
+        r#"{{"requests":[{}],"maxResponseBytesPerPage":1073741824}}"#,
+        vec![item; 20_000].join(",")
+    );
     let start = std::time::Instant::now();
     let r = call(&s, "batchRequests", &payload);
     let elapsed = start.elapsed();
-    assert_eq!(match get(&r, "responses") { Value::Array(a) => a.len(), _ => 0 }, 20_000);
+    assert_eq!(
+        match get(&r, "responses") {
+            Value::Array(a) => a.len(),
+            _ => 0,
+        },
+        20_000
+    );
     assert!(elapsed < std::time::Duration::from_secs(20), "{elapsed:?}");
     eprintln!("BATCH20K {elapsed:?}");
 }

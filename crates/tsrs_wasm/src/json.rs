@@ -3,9 +3,9 @@
 // server; a test checks it against `tsrs_api::diagnostics::diagnostic_responses` byte for byte.
 
 use tsrs_ast::{Diagnostic, SourceFile};
+use tsrs_core::P;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::Value;
-use tsrs_core::P;
 use tsrs_diagnostics::Category;
 
 fn category_number(c: Category) -> f64 {
@@ -52,16 +52,10 @@ fn source_lines(file: &SourceFile, first_line: usize, last_line: usize) -> Optio
     let mut result = Vec::with_capacity(lines.len());
     result.extend(lines.into_iter().map(|line| {
         let start = line_map[line] as usize;
-        let end = if (line + 1) < line_map.len() {
-            line_map[line + 1] as usize
-        } else {
-            text.len()
-        };
+        let end =
+            if (line + 1) < line_map.len() { line_map[line + 1] as usize } else { text.len() };
         Obj::new()
-            .set(
-                "line",
-                num(u32::try_from(line).expect("line number exceeds u32")),
-            )
+            .set("line", num(u32::try_from(line).expect("line number exceeds u32")))
             .set("text", Value::String(text[start..end].to_string()))
             .build()
     }));
@@ -78,8 +72,10 @@ fn diagnostic_response(d: &Diagnostic) -> Value {
         let pos = pos.unwrap_or(0).min(len);
         let end = end.unwrap_or(pos).min(len).max(pos);
         let map = file.get_position_map();
-        let (start_line, start_char) = tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, pos);
-        let (end_line, end_char) = tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, end);
+        let (start_line, start_char) =
+            tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, pos);
+        let (end_line, end_char) =
+            tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, end);
         o = o
             .set("fileName", Value::String(file.file_name().to_string()))
             .set("pos", num(map.utf8_to_utf16(pos)))
@@ -87,27 +83,15 @@ fn diagnostic_response(d: &Diagnostic) -> Value {
             .set(
                 "startPosition",
                 Obj::new()
-                    .set(
-                        "line",
-                        num(u32::try_from(start_line).expect("line number exceeds u32")),
-                    )
-                    .set(
-                        "character",
-                        num(start_char),
-                    )
+                    .set("line", num(u32::try_from(start_line).expect("line number exceeds u32")))
+                    .set("character", num(start_char))
                     .build(),
             )
             .set(
                 "endPosition",
                 Obj::new()
-                    .set(
-                        "line",
-                        num(u32::try_from(end_line).expect("line number exceeds u32")),
-                    )
-                    .set(
-                        "character",
-                        num(end_char),
-                    )
+                    .set("line", num(u32::try_from(end_line).expect("line number exceeds u32")))
+                    .set("character", num(end_char))
                     .build(),
             );
         if let Some(lines) = source_lines(&file, start_line, end_line) {
@@ -115,14 +99,8 @@ fn diagnostic_response(d: &Diagnostic) -> Value {
         }
     } else {
         o = o
-            .set(
-                "pos",
-                num(pos.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))),
-            )
-            .set(
-                "end",
-                num(end.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))),
-            );
+            .set("pos", num(pos.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))))
+            .set("end", num(end.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))));
     }
     o = o.set("code", num(d.code())).set("category", num(category_number(d.category())));
     if !d.source().is_empty() {
@@ -137,11 +115,17 @@ fn diagnostic_response(d: &Diagnostic) -> Value {
     }
     let chain = d.message_chain();
     if !chain.is_empty() {
-        o = o.set("messageChain", Value::Array(chain.iter().map(|c| diagnostic_response(c)).collect()));
+        o = o.set(
+            "messageChain",
+            Value::Array(chain.iter().map(|c| diagnostic_response(c)).collect()),
+        );
     }
     let related = d.related_information();
     if !related.is_empty() {
-        o = o.set("relatedInformation", Value::Array(related.iter().map(|r| diagnostic_response(r)).collect()));
+        o = o.set(
+            "relatedInformation",
+            Value::Array(related.iter().map(|r| diagnostic_response(r)).collect()),
+        );
     }
     o.build()
 }

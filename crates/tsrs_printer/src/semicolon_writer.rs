@@ -8,7 +8,9 @@ pub(crate) struct trailingSemicolonDeferringWriter {
     has_pending_semicolon: bool,
 }
 
-pub(crate) fn get_trailing_semicolon_deferring_writer(writer: Box<dyn EmitTextWriter>) -> Box<dyn EmitTextWriter> {
+pub(crate) fn get_trailing_semicolon_deferring_writer(
+    writer: Box<dyn EmitTextWriter>,
+) -> Box<dyn EmitTextWriter> {
     Box::new(trailingSemicolonDeferringWriter { inner: writer, has_pending_semicolon: false })
 }
 

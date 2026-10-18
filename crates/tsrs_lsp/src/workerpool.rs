@@ -31,7 +31,11 @@ fn get_pool() -> &'static workerPool {
     static POOL: OnceLock<workerPool> = OnceLock::new();
     POOL.get_or_init(|| {
         let parallelism = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
-        workerPool { state: Mutex::new(workerPoolState { jobs: VecDeque::new(), threads: 0, idle: 0 }), cond: Condvar::new(), max_idle_threads: parallelism.max(4) }
+        workerPool {
+            state: Mutex::new(workerPoolState { jobs: VecDeque::new(), threads: 0, idle: 0 }),
+            cond: Condvar::new(),
+            max_idle_threads: parallelism.max(4),
+        }
     })
 }
 

@@ -33,7 +33,8 @@ struct Request {
 }
 
 fn parse_request(request: &[u8]) -> Request {
-    let mut fields = request.split(|&b| b == 0).map(|f| tsrs_core::utf8::from_utf8_lossy(f).into_owned());
+    let mut fields =
+        request.split(|&b| b == 0).map(|f| tsrs_core::utf8::from_utf8_lossy(f).into_owned());
     let cwd = fields.next().unwrap_or_default();
     let flags = fields.next().and_then(|f| f.parse::<u32>().ok()).unwrap_or(0);
     Request { cwd, flags, args: fields.collect() }
@@ -48,7 +49,8 @@ fn run_with_output(request: &[u8], out: Box<dyn Write + Send>) -> (i32, Vec<u8>)
     // The one-thread rayon pool must exist before any other rayon use (tsrs_compiler::worker_pool).
     tsrs_compiler::worker_pool();
     let request = parse_request(request);
-    let diagnostics = (request.flags & REQUEST_JSON_DIAGNOSTICS != 0).then(|| Arc::new(Mutex::new(Vec::new())));
+    let diagnostics =
+        (request.flags & REQUEST_JSON_DIAGNOSTICS != 0).then(|| Arc::new(Mutex::new(Vec::new())));
     let sys: &'static sys::WasmSys = Box::leak(Box::new(sys::WasmSys::new(
         &request.cwd,
         request.flags & REQUEST_CASE_INSENSITIVE == 0,

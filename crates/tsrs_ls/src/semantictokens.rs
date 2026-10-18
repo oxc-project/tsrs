@@ -1,12 +1,15 @@
 // Port of ls/semantictokens.go.
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_ast::{self as ast, Kind, ModifierFlags, Node, NodeFlags, SemanticMeaning, SourceFile, Symbol, SymbolFlags};
+use tsrs_ast::{
+    self as ast, Kind, ModifierFlags, Node, NodeFlags, SemanticMeaning, SourceFile, Symbol,
+    SymbolFlags,
+};
 use tsrs_checker::{Checker, SignatureKind, Type, TypeFlags};
 use tsrs_compiler::Program;
 use tsrs_core::context::Context;
 use tsrs_core::goslices;
-use tsrs_core::{TextRange, P};
+use tsrs_core::{P, TextRange};
 use tsrs_lsproto as lsproto;
 use tsrs_lsproto::{SemanticTokenModifier, SemanticTokenType};
 use tsrs_scanner as scanner;
@@ -90,20 +93,39 @@ const TOKEN_MODIFIER_LOCAL: TokenModifier = 1 << 10;
 // It filters the legend to only include types and modifiers that the client supports,
 // as indicated by clientCapabilities.
 // semantictokens.go:109
-pub fn semantic_tokens_legend(client_capabilities: &lsproto::ResolvedSemanticTokensClientCapabilities) -> lsproto::SemanticTokensLegend {
+pub fn semantic_tokens_legend(
+    client_capabilities: &lsproto::ResolvedSemanticTokensClientCapabilities,
+) -> lsproto::SemanticTokensLegend {
     let mut types = Vec::with_capacity(TOKEN_TYPES.len());
-    types.extend(TOKEN_TYPES.into_iter().filter_map(|t| if client_capabilities.token_types.iter().any(|c| c == t.0) { Some(t.0.to_string()) } else { None }));
+    types.extend(TOKEN_TYPES.into_iter().filter_map(|t| {
+        if client_capabilities.token_types.iter().any(|c| c == t.0) {
+            Some(t.0.to_string())
+        } else {
+            None
+        }
+    }));
     let mut modifiers = Vec::with_capacity(TOKEN_MODIFIERS.len());
-    modifiers.extend(
-        TOKEN_MODIFIERS.into_iter().filter_map(|m| if client_capabilities.token_modifiers.iter().any(|c| c == m.0) { Some(m.0.to_string()) } else { None }),
-    );
+    modifiers.extend(TOKEN_MODIFIERS.into_iter().filter_map(|m| {
+        if client_capabilities.token_modifiers.iter().any(|c| c == m.0) {
+            Some(m.0.to_string())
+        } else {
+            None
+        }
+    }));
     lsproto::SemanticTokensLegend { token_types: types, token_modifiers: modifiers }
 }
 
 impl LanguageService {
     // semantictokens.go:128
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_semantic_tokens(&self, ctx: &Context, document_uri: &lsproto::DocumentUri) -> Result<lsproto::SemanticTokensResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_semantic_tokens(
+        &self,
+        ctx: &Context,
+        document_uri: &lsproto::DocumentUri,
+    ) -> Result<lsproto::SemanticTokensResponse, lsproto::Error> {
         let (program, file) = self.get_program_and_file(document_uri);
 
         let supplemental = file.supplemental_source_files();
@@ -113,44 +135,11 @@ impl LanguageService {
         let mut tokens: Vec<SemanticToken> = Vec::with_capacity(files.len());
         for projection in files {
             let mut c = program.get_type_checker_for_file(ctx, projection);
-            tokens.extend(Self::collect_semantic_tokens(ctx, &mut c, projection, program).into_iter().map(|mut token| {
-                token.file = Some(projection);
-                token
-            }));
-        }
-        sort_semantic_tokens(&mut tokens, &self.converters);
-
-        if tokens.is_empty() {
-            return Ok(lsproto::SemanticTokensOrNull::default());
-        }
-
-        // Convert to LSP format (relative encoding)
-        let encoded = encode_semantic_tokens(ctx, &tokens, &self.converters);
-
-        Ok(lsproto::SemanticTokensOrNull { semantic_tokens: Some(lsproto::SemanticTokens { data: encoded, ..Default::default() }) })
-    }
-
-    // semantictokens.go:160
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_semantic_tokens_range(
-        &self,
-        ctx: &Context,
-        document_uri: &lsproto::DocumentUri,
-        rng: lsproto::Range,
-    ) -> Result<lsproto::SemanticTokensRangeResponse, lsproto::Error> {
-        let (program, file) = self.get_program_and_file(document_uri);
-
-        let mapped_ranges = self.converters.from_lsp_range_intersecting_for_source_file(file, rng, Feature::SemanticTokens);
-        let mut tokens: Vec<SemanticToken> = Vec::with_capacity(mapped_ranges.len());
-        let mut seen: FxHashSet<SemanticToken> = FxHashSet::default();
-        for mapped in &mapped_ranges {
-            let projection = mapped.script;
-            let mut c = program.get_type_checker_for_file(ctx, projection);
             tokens.extend(
-                Self::collect_semantic_tokens_in_range(ctx, &mut c, projection, program, mapped.span.pos().expect_source("mapped semantic-token ranges have source positions") , mapped.span.end().expect_source("mapped semantic-token ranges have source positions"), ).into_iter().filter_map(
+                Self::collect_semantic_tokens(ctx, &mut c, projection, program).into_iter().map(
                     |mut token| {
                         token.file = Some(projection);
-                        if seen.insert(token) { Some(token) } else { None }
+                        token
                     },
                 ),
             );
@@ -164,7 +153,68 @@ impl LanguageService {
         // Convert to LSP format (relative encoding)
         let encoded = encode_semantic_tokens(ctx, &tokens, &self.converters);
 
-        Ok(lsproto::SemanticTokensOrNull { semantic_tokens: Some(lsproto::SemanticTokens { data: encoded, ..Default::default() }) })
+        Ok(lsproto::SemanticTokensOrNull {
+            semantic_tokens: Some(lsproto::SemanticTokens { data: encoded, ..Default::default() }),
+        })
+    }
+
+    // semantictokens.go:160
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_semantic_tokens_range(
+        &self,
+        ctx: &Context,
+        document_uri: &lsproto::DocumentUri,
+        rng: lsproto::Range,
+    ) -> Result<lsproto::SemanticTokensRangeResponse, lsproto::Error> {
+        let (program, file) = self.get_program_and_file(document_uri);
+
+        let mapped_ranges = self.converters.from_lsp_range_intersecting_for_source_file(
+            file,
+            rng,
+            Feature::SemanticTokens,
+        );
+        let mut tokens: Vec<SemanticToken> = Vec::with_capacity(mapped_ranges.len());
+        let mut seen: FxHashSet<SemanticToken> = FxHashSet::default();
+        for mapped in &mapped_ranges {
+            let projection = mapped.script;
+            let mut c = program.get_type_checker_for_file(ctx, projection);
+            tokens.extend(
+                Self::collect_semantic_tokens_in_range(
+                    ctx,
+                    &mut c,
+                    projection,
+                    program,
+                    mapped
+                        .span
+                        .pos()
+                        .expect_source("mapped semantic-token ranges have source positions"),
+                    mapped
+                        .span
+                        .end()
+                        .expect_source("mapped semantic-token ranges have source positions"),
+                )
+                .into_iter()
+                .filter_map(|mut token| {
+                    token.file = Some(projection);
+                    if seen.insert(token) { Some(token) } else { None }
+                }),
+            );
+        }
+        sort_semantic_tokens(&mut tokens, &self.converters);
+
+        if tokens.is_empty() {
+            return Ok(lsproto::SemanticTokensOrNull::default());
+        }
+
+        // Convert to LSP format (relative encoding)
+        let encoded = encode_semantic_tokens(ctx, &tokens, &self.converters);
+
+        Ok(lsproto::SemanticTokensOrNull {
+            semantic_tokens: Some(lsproto::SemanticTokens { data: encoded, ..Default::default() }),
+        })
     }
 }
 
@@ -177,7 +227,10 @@ fn sort_semantic_tokens(tokens: &mut [SemanticToken], converters: &Converters) {
     // tsrs-only: each token's start is converted once, not in every comparison (Go converts two per comparison).
     // The comparisons are the same, so the order is too; a conversion looks up the file's line map in the snapshot,
     // and concurrent requests contended on those lookups.
-    let mut keyed: Vec<(lsproto::Position, SemanticToken)> = tokens.iter().map(|&token| (semantic_token_lsp_range(&token, converters).0.start, token)).collect();
+    let mut keyed: Vec<(lsproto::Position, SemanticToken)> = tokens
+        .iter()
+        .map(|&token| (semantic_token_lsp_range(&token, converters).0.start, token))
+        .collect();
     goslices::sort_func(&mut keyed, |(a_start, a), (b_start, b)| {
         let result = go_cmp_compare(a_start.line, b_start.line);
         if !result.is_eq() {
@@ -187,10 +240,8 @@ fn sort_semantic_tokens(tokens: &mut [SemanticToken], converters: &Converters) {
         if !result.is_eq() {
             return result;
         }
-        let result = go_cmp_compare(
-            a.file.unwrap().path().as_str(),
-            b.file.unwrap().path().as_str(),
-        );
+        let result =
+            go_cmp_compare(a.file.unwrap().path().as_str(), b.file.unwrap().path().as_str());
         if !result.is_eq() {
             return result;
         }
@@ -202,17 +253,17 @@ fn sort_semantic_tokens(tokens: &mut [SemanticToken], converters: &Converters) {
 }
 
 // semantictokens.go:210
-fn semantic_token_lsp_range(token: &SemanticToken, converters: &Converters) -> (lsproto::Range, Fidelity) {
+fn semantic_token_lsp_range(
+    token: &SemanticToken,
+    converters: &Converters,
+) -> (lsproto::Range, Fidelity) {
     let file = token.file.unwrap();
     let start = scanner::get_token_pos_of_node(token.node, file, false);
     converters.to_lsp_range_for_feature(
         &file,
         TextRange::new(
             start,
-            token
-                .node
-                .end()
-                .expect_source("semantic-token nodes have source positions"),
+            token.node.end().expect_source("semantic-token nodes have source positions"),
         ),
         Feature::SemanticTokens,
     )
@@ -240,12 +291,8 @@ impl LanguageService {
             c,
             file,
             program,
-            file.as_node()
-                .pos()
-                .expect_source("parsed source files have source positions"),
-            file.as_node()
-                .end()
-                .expect_source("parsed source files have source positions"),
+            file.as_node().pos().expect_source("parsed source files have source positions"),
+            file.as_node().end().expect_source("parsed source files have source positions"),
         )
     }
 
@@ -258,7 +305,16 @@ impl LanguageService {
         span_start: u32,
         span_end: u32,
     ) -> Vec<SemanticToken> {
-        let mut v = SemanticTokensVisitor { ctx, c, file, program, span_start, span_end, tokens: Vec::new(), in_jsx_element: false };
+        let mut v = SemanticTokensVisitor {
+            ctx,
+            c,
+            file,
+            program,
+            span_start,
+            span_end,
+            tokens: Vec::new(),
+            in_jsx_element: false,
+        };
 
         v.visit(file.as_node());
         let tokens = v.tokens;
@@ -294,13 +350,8 @@ impl SemanticTokensVisitor<'_> {
         if node.flags().intersects(NodeFlags::Reparsed) {
             return false;
         }
-        let node_end = node
-            .end()
-            .expect_source("semantic-token nodes have source positions");
-        if node
-            .pos()
-            .expect_source("semantic-token nodes have source positions")
-            >= self.span_end
+        let node_end = node.end().expect_source("semantic-token nodes have source positions");
+        if node.pos().expect_source("semantic-token nodes have source positions") >= self.span_end
             || node_end <= self.span_start
         {
             return false;
@@ -352,7 +403,9 @@ impl SemanticTokensVisitor<'_> {
         }
 
         // Property declaration in constructor: reclassify parameters as properties in property access context
-        if token_type == TOKEN_TYPE_PARAMETER && ast::is_right_side_of_qualified_name_or_property_access(node) {
+        if token_type == TOKEN_TYPE_PARAMETER
+            && ast::is_right_side_of_qualified_name_or_property_access(node)
+        {
             token_type = TOKEN_TYPE_PROPERTY;
         }
 
@@ -372,11 +425,15 @@ impl SemanticTokensVisitor<'_> {
             }
             if token_type != TOKEN_TYPE_CLASS
                 && token_type != TOKEN_TYPE_INTERFACE
-                && (modifiers.intersects(ModifierFlags::Readonly) || node_flags.intersects(NodeFlags::Const) || symbol.flags().intersects(SymbolFlags::EnumMember))
+                && (modifiers.intersects(ModifierFlags::Readonly)
+                    || node_flags.intersects(NodeFlags::Const)
+                    || symbol.flags().intersects(SymbolFlags::EnumMember))
             {
                 token_modifier |= TOKEN_MODIFIER_READONLY;
             }
-            if (token_type == TOKEN_TYPE_VARIABLE || token_type == TOKEN_TYPE_FUNCTION) && is_local_declaration(decl, self.file) {
+            if (token_type == TOKEN_TYPE_VARIABLE || token_type == TOKEN_TYPE_FUNCTION)
+                && is_local_declaration(decl, self.file)
+            {
                 token_modifier |= TOKEN_MODIFIER_LOCAL;
             }
             if let Some(decl_source_file) = ast::get_source_file_of_node(decl) {
@@ -467,24 +524,32 @@ fn reclassify_by_type(c: &mut Checker, node: P<Node>, tt: TokenType) -> TokenTyp
             if condition(c, typ) {
                 return true;
             }
-            if typ.flags().intersects(TypeFlags::Union) && typ.as_union_type().types().iter().any(|&t| condition(c, t)) {
+            if typ.flags().intersects(TypeFlags::Union)
+                && typ.as_union_type().types().iter().any(|&t| condition(c, t))
+            {
                 return true;
             }
             false
         };
 
         // Check for constructor signatures (class-like)
-        if tt != TOKEN_TYPE_PARAMETER && test(c, &|c, t| !c.get_signatures_of_type(t, SignatureKind::Construct).is_empty()) {
+        if tt != TOKEN_TYPE_PARAMETER
+            && test(c, &|c, t| !c.get_signatures_of_type(t, SignatureKind::Construct).is_empty())
+        {
             return TOKEN_TYPE_CLASS;
         }
 
         // Check for call signatures (function-like)
         // Must have call signatures AND (no properties OR be used in call context)
-        let has_call_signatures = test(c, &|c, t| !c.get_signatures_of_type(t, SignatureKind::Call).is_empty());
+        let has_call_signatures =
+            test(c, &|c, t| !c.get_signatures_of_type(t, SignatureKind::Call).is_empty());
         if has_call_signatures {
             // Go reads `objType.Properties()`, resolved by the signature queries above; with lazy member tables they
             // may have been answered without resolving.
-            let has_no_properties = !test(c, &|c, t| t.data().as_object_type().is_some() && c.has_properties_of_structured_type_exported(t));
+            let has_no_properties = !test(c, &|c, t| {
+                t.data().as_object_type().is_some()
+                    && c.has_properties_of_structured_type_exported(t)
+            });
             if has_no_properties || is_expression_in_call_expression(node) {
                 if tt == TOKEN_TYPE_PROPERTY {
                     return TOKEN_TYPE_METHOD;
@@ -512,14 +577,16 @@ fn is_local_declaration(decl: P<Node>, source_file: P<SourceFile>) -> bool {
             if ast::is_variable_declaration_list(parent) {
                 if let Some(grandparent) = parent.parent() {
                     let great_grandparent = grandparent.parent();
-                    return (!great_grandparent.is_some_and(ast::is_source_file) || ast::is_catch_clause(grandparent))
+                    return (!great_grandparent.is_some_and(ast::is_source_file)
+                        || ast::is_catch_clause(grandparent))
                         && ast::get_source_file_of_node(decl) == Some(source_file);
                 }
             }
         }
     } else if ast::is_function_declaration(decl) {
         let parent = decl.parent();
-        return parent.is_some_and(|p| !ast::is_source_file(p)) && ast::get_source_file_of_node(decl) == Some(source_file);
+        return parent.is_some_and(|p| !ast::is_source_file(p))
+            && ast::get_source_file_of_node(decl) == Some(source_file);
     }
     false
 }
@@ -542,7 +609,11 @@ fn get_declaration_for_binding_element(element: P<Node>) -> P<Node> {
 
 // semantictokens.go:504
 fn is_in_import_clause(node: P<Node>) -> bool {
-    node.parent().is_some_and(|parent| ast::is_import_clause(parent) || ast::is_import_specifier(parent) || ast::is_namespace_import(parent))
+    node.parent().is_some_and(|parent| {
+        ast::is_import_clause(parent)
+            || ast::is_import_specifier(parent)
+            || ast::is_namespace_import(parent)
+    })
 }
 
 // semantictokens.go:509
@@ -551,7 +622,8 @@ fn is_expression_in_call_expression(node: P<Node>) -> bool {
     while ast::is_right_side_of_qualified_name_or_property_access(node) {
         node = node.parent().unwrap();
     }
-    node.parent().is_some_and(|parent| ast::is_call_expression(parent) && parent.expression() == Some(node))
+    node.parent()
+        .is_some_and(|parent| ast::is_call_expression(parent) && parent.expression() == Some(node))
 }
 
 // semantictokens.go:517
@@ -562,7 +634,11 @@ fn is_infinity_or_nan_string(text: &str) -> bool {
 // encodeSemanticTokens encodes tokens into the LSP format using relative positioning.
 // It filters tokens based on client capabilities, only including types and modifiers that the client supports.
 // semantictokens.go:523
-fn encode_semantic_tokens(ctx: &Context, tokens: &[SemanticToken], converters: &Converters) -> Vec<u32> {
+fn encode_semantic_tokens(
+    ctx: &Context,
+    tokens: &[SemanticToken],
+    converters: &Converters,
+) -> Vec<u32> {
     // Build mapping from server token types/modifiers to client indices
     let mut type_mapping: FxHashMap<TokenType, u32> = FxHashMap::default();
     let mut modifier_mapping: FxHashMap<SemanticTokenModifier, u32> = FxHashMap::default();
@@ -575,7 +651,9 @@ fn encode_semantic_tokens(ctx: &Context, tokens: &[SemanticToken], converters: &
         TOKEN_TYPES
             .iter()
             .enumerate()
-            .filter(|(_, server_type)| client_capabilities.token_types.iter().any(|c| c == server_type.0))
+            .filter(|(_, server_type)| {
+                client_capabilities.token_types.iter().any(|c| c == server_type.0)
+            })
             .enumerate()
             .map(|(client_idx, (i, _))| (i as TokenType, client_idx as u32)),
     );
@@ -584,7 +662,9 @@ fn encode_semantic_tokens(ctx: &Context, tokens: &[SemanticToken], converters: &
     modifier_mapping.extend(
         TOKEN_MODIFIERS
             .into_iter()
-            .filter(|server_modifier| client_capabilities.token_modifiers.iter().any(|c| c == server_modifier.0))
+            .filter(|server_modifier| {
+                client_capabilities.token_modifiers.iter().any(|c| c == server_modifier.0)
+            })
             .enumerate()
             .map(|(client_bit, server_modifier)| (server_modifier, client_bit as u32)),
     );
@@ -602,15 +682,18 @@ fn encode_semantic_tokens(ctx: &Context, tokens: &[SemanticToken], converters: &
 
         // Map modifiers to client-supported bit mask
         let mut client_modifier_mask: u32 = 0;
-        client_modifier_mask = TOKEN_MODIFIERS.iter().enumerate().fold(client_modifier_mask, |mut client_modifier_mask, (i, server_modifier)| {
-            if token.token_modifier & (1 << i) != 0 {
-                if let Some(&client_bit) = modifier_mapping.get(server_modifier) {
-                    client_modifier_mask |= 1 << client_bit;
+        client_modifier_mask = TOKEN_MODIFIERS.iter().enumerate().fold(
+            client_modifier_mask,
+            |mut client_modifier_mask, (i, server_modifier)| {
+                if token.token_modifier & (1 << i) != 0 {
+                    if let Some(&client_bit) = modifier_mapping.get(server_modifier) {
+                        client_modifier_mask |= 1 << client_bit;
+                    }
                 }
-            }
 
-            client_modifier_mask
-        });
+                client_modifier_mask
+            },
+        );
 
         // Semantic tokens must describe one concrete source segment; synthesized and cross-segment
         // tokens do not identify a coherent token in the original text.
@@ -631,10 +714,7 @@ fn encode_semantic_tokens(ctx: &Context, tokens: &[SemanticToken], converters: &
                 start_pos.character,
                 end_pos.line,
                 end_pos.character,
-                token
-                    .node
-                    .pos()
-                    .expect_source("semantic-token nodes have source positions")
+                token.node.pos().expect_source("semantic-token nodes have source positions")
             );
         };
 
@@ -646,23 +726,27 @@ fn encode_semantic_tokens(ctx: &Context, tokens: &[SemanticToken], converters: &
         if !encoded.is_empty() && line == prev_line && char == prev_char {
             continue;
         }
-        assert!(!(!encoded.is_empty() && (line < prev_line || line == prev_line && char < prev_char)),
+        assert!(
+            !(!encoded.is_empty() && (line < prev_line || line == prev_line && char < prev_char)),
             "semantic tokens: positions must be strictly increasing: prev=({},{}) current=({},{}) for token at offset {}",
             prev_line,
             prev_char,
             line,
             char,
-            token
-                .node
-                .pos()
-                .expect_source("semantic-token nodes have source positions")
+            token.node.pos().expect_source("semantic-token nodes have source positions")
         );
 
         // Encode as: [deltaLine, deltaChar, length, tokenType, tokenModifiers]
         let delta_line = line - prev_line;
         let delta_char = if delta_line == 0 { char - prev_char } else { char };
 
-        encoded.extend_from_slice(&[delta_line, delta_char, token_length, client_type_idx, client_modifier_mask]);
+        encoded.extend_from_slice(&[
+            delta_line,
+            delta_char,
+            token_length,
+            client_type_idx,
+            client_modifier_mask,
+        ]);
 
         prev_line = line;
         prev_char = char;

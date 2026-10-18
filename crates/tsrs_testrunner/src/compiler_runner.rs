@@ -15,7 +15,8 @@ pub const SRC_FOLDER: &str = "/.src";
 pub const SUITES: [&str; 2] = ["compiler", "conformance"];
 
 const REQUIRE_STR: &str = "require(";
-static REFERENCES_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"reference[\t\n\x0C\r ]path").unwrap());
+static REFERENCES_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"reference[\t\n\x0C\r ]path").unwrap());
 
 static COMPILER_BASELINE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.tsx?$").unwrap());
 
@@ -67,7 +68,10 @@ pub static SKIPPED_TESTS: &[&str] = &[
 ];
 
 pub fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap_or_else(|_| Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap_or_else(|_| Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
 }
 
 pub fn testdata_path() -> PathBuf {
@@ -82,12 +86,15 @@ pub fn reference_baseline_path(suite: &str, name: &str) -> PathBuf {
 }
 
 pub fn read_reference_baseline(suite: &str, name: &str) -> Option<String> {
-    std::fs::read(reference_baseline_path(suite, name)).ok().map(|b| tsrs_core::utf8::from_utf8_lossy(&b).into_owned())
+    std::fs::read(reference_baseline_path(suite, name))
+        .ok()
+        .map(|b| tsrs_core::utf8::from_utf8_lossy(&b).into_owned())
 }
 
 // The reference `.types` / `.symbols` baseline (`ext` = "types" | "symbols").
 pub fn read_reference_extra_baseline(suite: &str, name: &str, ext: &str) -> Option<String> {
-    let path = testdata_path().join("baselines/reference").join(suite).join(format!("{name}.{ext}"));
+    let path =
+        testdata_path().join("baselines/reference").join(suite).join(format!("{name}.{ext}"));
     let text = std::fs::read(path).ok().map(|b| tsrs_core::utf8::from_utf8_lossy(&b).into_owned());
     if ext == "js" && crate::compile::dts_only_mode() {
         let block = extract_dts_block(text.as_deref().unwrap_or(""));
@@ -100,15 +107,21 @@ pub fn read_reference_extra_baseline(suite: &str, name: &str, ext: &str) -> Opti
 // before `//// [DtsFileErrors]` / `!!!! File`), for the TSRS_TEST_DTS_ONLY metric.
 pub fn extract_dts_block(text: &str) -> String {
     let mut text = text;
-    text = (["\r\n\r\n//// [DtsFileErrors]", "\r\n\r\n!!!! File "]).into_iter().fold(text, |mut text, marker| {
-        if let Some(i) = text.find(marker) {
-            text = &text[..i];
-        }
+    text = (["\r\n\r\n//// [DtsFileErrors]", "\r\n\r\n!!!! File "]).into_iter().fold(
+        text,
+        |mut text, marker| {
+            if let Some(i) = text.find(marker) {
+                text = &text[..i];
+            }
 
-        text
-    });
+            text
+        },
+    );
     let mut starts: Vec<usize> = Vec::new();
-    starts.extend(text.match_indices("//// [").filter_map(|(at, _)| (at == 0 || text.as_bytes()[at - 1] == b'\n').then_some(at)));
+    starts.extend(
+        text.match_indices("//// [")
+            .filter_map(|(at, _)| (at == 0 || text.as_bytes()[at - 1] == b'\n').then_some(at)),
+    );
     let is_dts = |at: usize| {
         let line_end = text[at..].find("\r\n").map_or(text.len(), |e| at + e);
         let name = &text[at + 6..line_end].trim_end_matches(']');
@@ -121,21 +134,36 @@ pub fn extract_dts_block(text: &str) -> String {
     }
     // Declaration inputs can precede the outputs; the output block starts after Go's "\r\n\r\n" separator, and the
     // `.d.ts` outputs inside it follow each other directly.
-    let begin = starts[first..].iter().rev().find(|&&at| text[..at].ends_with("\r\n\r\n")).copied().unwrap_or(starts[first]);
+    let begin = starts[first..]
+        .iter()
+        .rev()
+        .find(|&&at| text[..at].ends_with("\r\n\r\n"))
+        .copied()
+        .unwrap_or(starts[first]);
     text[begin..].to_string()
 }
 
 pub fn enumerate_test_files(suite: &str) -> Vec<String> {
-    harnessutil::enumerate_files(&testdata_path().join("tests/cases").join(suite), &COMPILER_BASELINE_REGEX, true)
-        .unwrap_or_else(|e| panic!("Could not read compiler test files: {e}"))
+    harnessutil::enumerate_files(
+        &testdata_path().join("tests/cases").join(suite),
+        &COMPILER_BASELINE_REGEX,
+        true,
+    )
+    .unwrap_or_else(|e| panic!("Could not read compiler test files: {e}"))
 }
 
 // vfs internal.decodeBytes: UTF-16 with BOM is decoded, a UTF-8 BOM is dropped.
 pub fn decode_bytes(b: &[u8]) -> String {
     if b.len() >= 2 && (b[0..2] == [0xFF, 0xFE] || b[0..2] == [0xFE, 0xFF]) {
         let le = b[0] == 0xFF;
-        let units: Vec<u16> =
-            b[2..].as_chunks::<2>().0.iter().map(|c| if le { u16::from_le_bytes([c[0], c[1]]) } else { u16::from_be_bytes([c[0], c[1]]) }).collect();
+        let units: Vec<u16> = b[2..]
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| {
+                if le { u16::from_le_bytes([c[0], c[1]]) } else { u16::from_be_bytes([c[0], c[1]]) }
+            })
+            .collect();
         return String::from_utf16_lossy(&units);
     }
     let b = if b.len() >= 3 && b[0..3] == [0xEF, 0xBB, 0xBF] { &b[3..] } else { b };
@@ -179,13 +207,20 @@ pub fn baseline_stem(configured_name: &str) -> String {
     crate::tsbaseline::TS_EXTENSION.replace(configured_name, "").into_owned()
 }
 
-pub fn get_configurations(content: &str, table: &OptionTable) -> Result<Vec<NamedTestConfiguration>, String> {
+pub fn get_configurations(
+    content: &str,
+    table: &OptionTable,
+) -> Result<Vec<NamedTestConfiguration>, String> {
     let settings = test_case_parser::extract_compiler_settings(content);
     harnessutil::get_file_based_test_configurations(&settings, table)
 }
 
 // Expands a test file into its variants (runTest). Skipped test files produce no items.
-pub fn expand_test_file(suite: &str, path: &str, table: &OptionTable) -> Result<Vec<TestItem>, String> {
+pub fn expand_test_file(
+    suite: &str,
+    path: &str,
+    table: &OptionTable,
+) -> Result<Vec<TestItem>, String> {
     let basename = tspath::get_base_file_name(path);
     if SKIPPED_TESTS.contains(&basename.as_str()) {
         return Ok(Vec::new());
@@ -204,12 +239,20 @@ pub fn expand_test_file(suite: &str, path: &str, table: &OptionTable) -> Result<
     Ok(configurations.iter().map(|c| item(&c.name)).collect())
 }
 
-pub fn find_configuration(content: &str, table: &OptionTable, config: &str) -> Result<Option<NamedTestConfiguration>, String> {
+pub fn find_configuration(
+    content: &str,
+    table: &OptionTable,
+    config: &str,
+) -> Result<Option<NamedTestConfiguration>, String> {
     let configurations = get_configurations(content, table)?;
     if config.is_empty() && configurations.len() <= 1 {
         return Ok(configurations.into_iter().next());
     }
-    configurations.into_iter().find(|c| c.name == config).map(Some).ok_or_else(|| format!("configuration '{config}' not found"))
+    configurations
+        .into_iter()
+        .find(|c| c.name == config)
+        .map(Some)
+        .ok_or_else(|| format!("configuration '{config}' not found"))
 }
 
 // What running one variant produced.
@@ -219,7 +262,12 @@ pub enum Outcome {
     // The third element is the `.js` baseline when `--baselines js` asked for it and the test emits (Go
     // verifyJavaScriptOutput: `hasNonDtsFiles` and not in `skippedEmitTests`); `Err` holds a panic message.
     // The fourth element holds the `.js.map` / `.sourcemap.txt` baselines (`--baselines jsmap,sourcemap`).
-    Baseline(String, Option<TypesAndSymbols>, Option<Result<String, String>>, Option<SourceMapBaselines>),
+    Baseline(
+        String,
+        Option<TypesAndSymbols>,
+        Option<Result<String, String>>,
+        Option<SourceMapBaselines>,
+    ),
     // SkipUnsupportedCompilerOptions
     Skip(String),
     // A harness-level failure that is not a panic (t.Fatalf in Go).
@@ -240,7 +288,10 @@ pub struct TypesAndSymbols {
 }
 
 fn create_harness_test_file(unit: &TestUnit, current_directory: &str) -> TestFile {
-    TestFile { unit_name: tspath::get_normalized_absolute_path(&unit.name, current_directory), content: unit.content.clone() }
+    TestFile {
+        unit_name: tspath::get_normalized_absolute_path(&unit.name, current_directory),
+        content: unit.content.clone(),
+    }
 }
 
 pub struct SplitUnits {
@@ -254,27 +305,44 @@ pub struct SplitUnits {
 
 // The file-assembly part of newCompilerTest. `ts_config_file_names` is ParsedConfig.FileNames of the
 // test's tsconfig.json, if it has one. May rewrite `baseurl` in the harness configuration.
-pub fn split_units(payload: &TestCaseContent, harness_config: &mut TestConfiguration, ts_config_file_names: Option<&[String]>) -> SplitUnits {
-    let current_directory = tspath::get_normalized_absolute_path(harness_config.get("currentdirectory").map_or("", String::as_str), SRC_FOLDER);
+pub fn split_units(
+    payload: &TestCaseContent,
+    harness_config: &mut TestConfiguration,
+    ts_config_file_names: Option<&[String]>,
+) -> SplitUnits {
+    let current_directory = tspath::get_normalized_absolute_path(
+        harness_config.get("currentdirectory").map_or("", String::as_str),
+        SRC_FOLDER,
+    );
     let units = &payload.test_unit_data;
     let mut to_be_compiled = Vec::new();
     let mut other_files = Vec::new();
     let mut ts_config_files = Vec::new();
-    if let (Some(file_names), Some(ts_config_unit)) = (ts_config_file_names, payload.ts_config_file_unit_data.as_ref()) {
+    if let (Some(file_names), Some(ts_config_unit)) =
+        (ts_config_file_names, payload.ts_config_file_unit_data.as_ref())
+    {
         ts_config_files.push(create_harness_test_file(ts_config_unit, &current_directory));
-        (other_files, to_be_compiled) = units.iter().fold((other_files, to_be_compiled), |(mut other_files, mut to_be_compiled), unit| {
-            if file_names.contains(&tspath::get_normalized_absolute_path(&unit.name, &current_directory)) {
-                to_be_compiled.push(create_harness_test_file(unit, &current_directory));
-            } else {
-                other_files.push(create_harness_test_file(unit, &current_directory));
-            }
+        (other_files, to_be_compiled) = units.iter().fold(
+            (other_files, to_be_compiled),
+            |(mut other_files, mut to_be_compiled), unit| {
+                if file_names
+                    .contains(&tspath::get_normalized_absolute_path(&unit.name, &current_directory))
+                {
+                    to_be_compiled.push(create_harness_test_file(unit, &current_directory));
+                } else {
+                    other_files.push(create_harness_test_file(unit, &current_directory));
+                }
 
-            (other_files, to_be_compiled)
-        });
+                (other_files, to_be_compiled)
+            },
+        );
     } else {
         if let Some(base_url) = harness_config.get("baseurl").cloned() {
             if !tspath::is_rooted_disk_path(&base_url) {
-                harness_config.insert("baseurl".to_string(), tspath::get_normalized_absolute_path(&base_url, &current_directory));
+                harness_config.insert(
+                    "baseurl".to_string(),
+                    tspath::get_normalized_absolute_path(&base_url, &current_directory),
+                );
             }
         }
 
@@ -287,9 +355,16 @@ pub fn split_units(payload: &TestCaseContent, harness_config: &mut TestConfigura
             || REFERENCES_REGEX.is_match(&last_unit.content)
         {
             to_be_compiled.push(create_harness_test_file(last_unit, &current_directory));
-            other_files.extend(units[..units.len() - 1].iter().map(|unit| create_harness_test_file(unit, &current_directory)));
+            other_files.extend(
+                units[..units.len() - 1]
+                    .iter()
+                    .map(|unit| create_harness_test_file(unit, &current_directory)),
+            );
         } else {
-            to_be_compiled = units.iter().map(|unit| create_harness_test_file(unit, &current_directory)).collect();
+            to_be_compiled = units
+                .iter()
+                .map(|unit| create_harness_test_file(unit, &current_directory))
+                .collect();
         }
     }
     SplitUnits { current_directory, ts_config_files, to_be_compiled, other_files }
@@ -313,7 +388,11 @@ mod tests {
         let mut mismatches = Vec::new();
         let mut paths: rustc_hash::FxHashMap<String, String> = rustc_hash::FxHashMap::default();
         for suite in SUITES {
-            paths.extend(enumerate_test_files(suite).into_iter().map(|p| (format!("{suite}/{}", tspath::get_base_file_name(&p)), p)));
+            paths.extend(
+                enumerate_test_files(suite)
+                    .into_iter()
+                    .map(|p| (format!("{suite}/{}", tspath::get_base_file_name(&p)), p)),
+            );
         }
         let variant_suffix = regex::Regex::new(r"\(.*\)").unwrap();
         for line in diags.lines() {
@@ -328,17 +407,30 @@ mod tests {
             let content = read_test_file(path);
             let stem = baseline_stem(name);
             let items = expand_test_file(suite, path, &table).unwrap();
-            let item = items.iter().find(|i| i.name == stem).unwrap_or_else(|| panic!("no variant {stem}"));
-            let mut config = find_configuration(&content, &table, &item.config).unwrap().map(|c| c.config).unwrap_or_default();
+            let item = items
+                .iter()
+                .find(|i| i.name == stem)
+                .unwrap_or_else(|| panic!("no variant {stem}"));
+            let mut config = find_configuration(&content, &table, &item.config)
+                .unwrap()
+                .map(|c| c.config)
+                .unwrap_or_default();
             let payload = test_case_parser::make_units_from_test(&content, path);
             if payload.global_options.get("runexternalcode").is_some_and(|v| v == "true") {
                 // content-mapped files are baselined with their transformed text
                 continue;
             }
-            let all_names: Vec<String> =
-                payload.test_unit_data.iter().map(|u| tspath::get_normalized_absolute_path(&u.name, &payload.current_directory)).collect();
+            let all_names: Vec<String> = payload
+                .test_unit_data
+                .iter()
+                .map(|u| tspath::get_normalized_absolute_path(&u.name, &payload.current_directory))
+                .collect();
             let has_ts_config = payload.ts_config_file_unit_data.is_some();
-            let split = split_units(&payload, &mut config, if has_ts_config { Some(&all_names) } else { None });
+            let split = split_units(
+                &payload,
+                &mut config,
+                if has_ts_config { Some(&all_names) } else { None },
+            );
             let mine: Vec<(String, String)> = split
                 .ts_config_files
                 .iter()
@@ -350,7 +442,12 @@ mod tests {
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(|f| (f["name"].as_str().unwrap().to_string(), f["content"].as_str().unwrap().to_string()))
+                .map(|f| {
+                    (
+                        f["name"].as_str().unwrap().to_string(),
+                        f["content"].as_str().unwrap().to_string(),
+                    )
+                })
                 .collect();
             let mut mine = mine;
             if has_ts_config {
@@ -362,7 +459,12 @@ mod tests {
                 mismatches.push(format!("{suite}/{name}"));
             }
         }
-        assert!(mismatches.is_empty(), "{} of {checked} mismatched, e.g. {:?}", mismatches.len(), &mismatches[..mismatches.len().min(10)]);
+        assert!(
+            mismatches.is_empty(),
+            "{} of {checked} mismatched, e.g. {:?}",
+            mismatches.len(),
+            &mismatches[..mismatches.len().min(10)]
+        );
         eprintln!("{checked} variants match");
     }
 }

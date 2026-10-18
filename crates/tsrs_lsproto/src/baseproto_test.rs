@@ -12,7 +12,12 @@ fn test_base_reader() {
         err: &'static str,
     }
     let tests = [
-        Test { name: "empty", input: b"Content-Length: 0\r\n\r\n", value: None, err: "jsonrpc: no content length" },
+        Test {
+            name: "empty",
+            input: b"Content-Length: 0\r\n\r\n",
+            value: None,
+            err: "jsonrpc: no content length",
+        },
         Test { name: "early end", input: b"oops", value: None, err: "EOF" },
         Test {
             name: "negative length",
@@ -20,9 +25,24 @@ fn test_base_reader() {
             value: None,
             err: "jsonrpc: invalid content length: negative value -1",
         },
-        Test { name: "invalid content", input: b"Content-Length: 1\r\n\r\n{", value: Some(b"{"), err: "" },
-        Test { name: "valid content", input: b"Content-Length: 2\r\n\r\n{}", value: Some(b"{}"), err: "" },
-        Test { name: "extra header values", input: b"Content-Length: 2\r\nExtra: 1\r\n\r\n{}", value: Some(b"{}"), err: "" },
+        Test {
+            name: "invalid content",
+            input: b"Content-Length: 1\r\n\r\n{",
+            value: Some(b"{"),
+            err: "",
+        },
+        Test {
+            name: "valid content",
+            input: b"Content-Length: 2\r\n\r\n{}",
+            value: Some(b"{}"),
+            err: "",
+        },
+        Test {
+            name: "extra header values",
+            input: b"Content-Length: 2\r\nExtra: 1\r\n\r\n{}",
+            value: Some(b"{}"),
+            err: "",
+        },
         Test {
             name: "too long content length",
             input: b"Content-Length: 100\r\n\r\n{}",
@@ -35,14 +55,24 @@ fn test_base_reader() {
             value: None,
             err: "jsonrpc: invalid content length: parse error: strconv.ParseInt: parsing \"\": invalid syntax",
         },
-        Test { name: "invalid header", input: b"Nope\r\n\r\n{}", value: None, err: "jsonrpc: invalid header: \"Nope\\r\\n\"" },
+        Test {
+            name: "invalid header",
+            input: b"Nope\r\n\r\n{}",
+            value: None,
+            err: "jsonrpc: invalid header: \"Nope\\r\\n\"",
+        },
     ];
 
     for tt in tests {
         let mut r = new_base_reader(tt.input);
         let out = r.read();
         if !tt.err.is_empty() {
-            assert_eq!(out.as_ref().err().map(std::string::ToString::to_string).as_deref(), Some(tt.err), "{}", tt.name);
+            assert_eq!(
+                out.as_ref().err().map(std::string::ToString::to_string).as_deref(),
+                Some(tt.err),
+                "{}",
+                tt.name
+            );
         }
         assert_eq!(out.ok().as_deref(), tt.value, "{}", tt.name);
     }
@@ -58,7 +88,12 @@ fn test_base_reader_content_length_trim_space() {
         "Content-Length:\u{3000}2\u{85}\r\n\r\n{}".as_bytes(),
         "Content-Length: \u{2028}2 \r\n\r\n{}".as_bytes(),
     ] {
-        assert_eq!(new_base_reader(input).read().ok().as_deref(), Some(&b"{}"[..]), "{:?}", String::from_utf8_lossy(input));
+        assert_eq!(
+            new_base_reader(input).read().ok().as_deref(),
+            Some(&b"{}"[..]),
+            "{:?}",
+            String::from_utf8_lossy(input)
+        );
     }
     assert!(new_base_reader(&b"Content-Length: 2\x85\r\n\r\n{}"[..]).read().is_err());
     assert!(new_base_reader(&b"Content-Length: 2\x1c\r\n\r\n{}"[..]).read().is_err());

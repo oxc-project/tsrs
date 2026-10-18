@@ -20,14 +20,29 @@ pub(crate) fn clone_node_builder_context(context: P<NodeBuilderContext>) -> Box<
     // export const y: <T_1>(x: T_1) => T_1
     let restore_names = context.type_parameter_names.borrow_mut().enter_scope();
     let restore_names_by_text = context.type_parameter_names_by_text.borrow_mut().enter_scope();
-    let restore_names_by_text_next_name_count = context.type_parameter_names_by_text_next_name_count.borrow_mut().enter_scope();
+    let restore_names_by_text_next_name_count =
+        context.type_parameter_names_by_text_next_name_count.borrow_mut().enter_scope();
     let restore_symbol_list = context.type_parameter_symbol_list.borrow_mut().enter_scope();
-    let mut scopes = Some((restore_names, restore_names_by_text, restore_names_by_text_next_name_count, restore_symbol_list));
+    let mut scopes = Some((
+        restore_names,
+        restore_names_by_text,
+        restore_names_by_text_next_name_count,
+        restore_symbol_list,
+    ));
     Box::new(move || {
-        if let Some((restore_names, restore_names_by_text, restore_names_by_text_next_name_count, restore_symbol_list)) = scopes.take() {
+        if let Some((
+            restore_names,
+            restore_names_by_text,
+            restore_names_by_text_next_name_count,
+            restore_symbol_list,
+        )) = scopes.take()
+        {
             context.type_parameter_names.borrow_mut().exit_scope(restore_names);
             context.type_parameter_names_by_text.borrow_mut().exit_scope(restore_names_by_text);
-            context.type_parameter_names_by_text_next_name_count.borrow_mut().exit_scope(restore_names_by_text_next_name_count);
+            context
+                .type_parameter_names_by_text_next_name_count
+                .borrow_mut()
+                .exit_scope(restore_names_by_text_next_name_count);
             context.type_parameter_symbol_list.borrow_mut().exit_scope(restore_symbol_list);
         }
     })
@@ -35,7 +50,12 @@ pub(crate) fn clone_node_builder_context(context: P<NodeBuilderContext>) -> Box<
 
 impl NodeBuilderImpl {
     // nodebuilderscopes.go:40
-    pub(crate) fn add_symbol_type_to_context(&self, _c: &mut Checker, symbol: P<Symbol>, t: P<Type>) -> Box<dyn FnMut(&mut Checker)> {
+    pub(crate) fn add_symbol_type_to_context(
+        &self,
+        _c: &mut Checker,
+        symbol: P<Symbol>,
+        t: P<Type>,
+    ) -> Box<dyn FnMut(&mut Checker)> {
         let id = ast::get_symbol_id(symbol);
         let old_type = self.ctx().enclosing_symbol_types.borrow().get(&id).copied();
         self.ctx().enclosing_symbol_types.borrow_mut().insert(id, t);
@@ -50,14 +70,34 @@ impl NodeBuilderImpl {
     }
 
     // nodebuilderscopes.go:53
-    pub(crate) fn enter_signature_scope(&self, c: &mut Checker, signature: P<Signature>) -> (Vec<P<Symbol>>, Box<dyn FnMut(&mut Checker)>) {
-        let expanded_params = c.get_expanded_parameters(signature, true /*skipUnionExpanding*/).swap_remove(0);
-        let cleanup = self.enter_new_scope(c, signature.declaration(), &expanded_params, signature.type_parameters(), Some(signature.parameters()), signature.mapper.get());
+    pub(crate) fn enter_signature_scope(
+        &self,
+        c: &mut Checker,
+        signature: P<Signature>,
+    ) -> (Vec<P<Symbol>>, Box<dyn FnMut(&mut Checker)>) {
+        let expanded_params =
+            c.get_expanded_parameters(signature, true /*skipUnionExpanding*/).swap_remove(0);
+        let cleanup = self.enter_new_scope(
+            c,
+            signature.declaration(),
+            &expanded_params,
+            signature.type_parameters(),
+            Some(signature.parameters()),
+            signature.mapper.get(),
+        );
         (expanded_params, cleanup)
     }
 
     // nodebuilderscopes.go:59
-    pub(crate) fn enter_new_scope(&self, c: &mut Checker, declaration: Option<P<Node>>, expanded_params: &[P<Symbol>], type_parameters: &[P<Type>], original_parameters: Option<&[P<Symbol>]>, mapper: Option<P<TypeMapper>>) -> Box<dyn FnMut(&mut Checker)> {
+    pub(crate) fn enter_new_scope(
+        &self,
+        c: &mut Checker,
+        declaration: Option<P<Node>>,
+        expanded_params: &[P<Symbol>],
+        type_parameters: &[P<Type>],
+        original_parameters: Option<&[P<Symbol>]>,
+        mapper: Option<P<TypeMapper>>,
+    ) -> Box<dyn FnMut(&mut Checker)> {
         let mut cleanup_context = clone_node_builder_context(self.ctx());
         // For regular function/method declarations, the enclosing declaration will already be signature.declaration,
         // so this is a no-op, but for arrow functions and function expressions, the enclosing declaration will be
@@ -101,7 +141,8 @@ impl NodeBuilderImpl {
             } else {
                 cleanup_params = push_fake_scope(self, c, "params", &mut |b, c, add| {
                     for (p_index, &param) in expanded_params.iter().enumerate() {
-                        let original_param = original_parameters.and_then(|o| o.get(p_index).copied());
+                        let original_param =
+                            original_parameters.and_then(|o| o.get(p_index).copied());
                         if original_parameters.is_some() && original_param != Some(param) {
                             // Can't reference the expanded parameter name, just the original, unless we've expanded the param list for some reason
                             if let Some(original_param) = original_param {
@@ -110,7 +151,10 @@ impl NodeBuilderImpl {
                         } else {
                             let declarations = param.declarations().to_vec();
                             let bound = declarations.iter().any(|&d| {
-                                if ast::is_parameter_declaration(d) && d.name().is_some() && ast::is_binding_pattern(d.name().unwrap()) {
+                                if ast::is_parameter_declaration(d)
+                                    && d.name().is_some()
+                                    && ast::is_binding_pattern(d.name().unwrap())
+                                {
                                     bind_pattern(b, c, d.name().unwrap(), add);
                                     return true;
                                 }
@@ -124,7 +168,9 @@ impl NodeBuilderImpl {
                 });
             }
 
-            if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams) && !type_parameters.is_empty() {
+            if self.ctx().flags.get().intersects(Flags::GenerateNamesForShadowedTypeParams)
+                && !type_parameters.is_empty()
+            {
                 cleanup_type_params = push_fake_scope(self, c, "typeParams", &mut |b, c, add| {
                     for &type_param in type_parameters {
                         let type_param_name = b.type_parameter_to_name(c, type_param).text();
@@ -152,7 +198,12 @@ impl NodeBuilderImpl {
 type AddSymbol<'a> = &'a mut dyn FnMut(&'static str, P<Symbol>);
 
 // Go's `pushFakeScope` closure in enterNewScope.
-fn push_fake_scope(b: &NodeBuilderImpl, c: &mut Checker, kind: &'static str, add_all: &mut dyn FnMut(&NodeBuilderImpl, &mut Checker, AddSymbol)) -> Option<Box<dyn FnMut()>> {
+fn push_fake_scope(
+    b: &NodeBuilderImpl,
+    c: &mut Checker,
+    kind: &'static str,
+    add_all: &mut dyn FnMut(&NodeBuilderImpl, &mut Checker, AddSymbol),
+) -> Option<Box<dyn FnMut()>> {
     // We only ever need to look two declarations upward.
     let enclosing_declaration = b.ctx().enclosing_declaration.get();
     assert!(enclosing_declaration.is_some());
@@ -191,7 +242,9 @@ fn push_fake_scope(b: &NodeBuilderImpl, c: &mut Checker, kind: &'static str, add
         if existing_fake_scope.is_some() {
             match locals.lookup(name) {
                 None => new_locals.push(name.to_string()),
-                Some(old_symbol) => old_locals.push(localsRecord { name: name.to_string(), old_symbol }),
+                Some(old_symbol) => {
+                    old_locals.push(localsRecord { name: name.to_string(), old_symbol });
+                }
             }
         }
         locals.set(name, symbol);

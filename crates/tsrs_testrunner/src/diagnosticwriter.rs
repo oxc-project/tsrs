@@ -1,8 +1,8 @@
 // The subset of internal/diagnosticwriter that error baselines use, over an owned diagnostic snapshot
 // (`Diag`) so that baseline rendering does not depend on the lifetime or API of compiler objects.
 
-use std::fmt::Write as _;
 use std::cmp::Ordering;
+use std::fmt::Write as _;
 use std::rc::Rc;
 
 use tsrs_core::tspath::{self, ComparePathsOptions};
@@ -146,7 +146,10 @@ pub fn compare_diagnostics(d1: &Diag, d2: &Diag) -> Ordering {
     compare_related_info(&d1.related, &d2.related)
 }
 
-#[expect(clippy::naive_bytecount, reason = "a specialized search is a performance change that requires measurements")]
+#[expect(
+    clippy::naive_bytecount,
+    reason = "a specialized search is a performance change that requires measurements"
+)]
 pub fn compute_ecma_line_starts(text: &str) -> Vec<u32> {
     let bytes = text.as_bytes();
     let mut result = Vec::with_capacity(bytes.iter().filter(|&&b| b == b'\n').count() + 1);
@@ -242,7 +245,11 @@ fn file_appears_to_be_binary_code() -> i32 {
     diagnostics::File_appears_to_be_binary.code()
 }
 
-pub fn format_diagnostics_with_color_and_context(output: &mut String, diags: &[&Diag], format_opts: &FormattingOptions) {
+pub fn format_diagnostics_with_color_and_context(
+    output: &mut String,
+    diags: &[&Diag],
+    format_opts: &FormattingOptions,
+) {
     for (i, diagnostic) in diags.iter().enumerate() {
         if i > 0 {
             output.push_str(format_opts.new_line);
@@ -251,7 +258,11 @@ pub fn format_diagnostics_with_color_and_context(output: &mut String, diags: &[&
     }
 }
 
-pub fn format_diagnostic_with_color_and_context(output: &mut String, diagnostic: &Diag, format_opts: &FormattingOptions) {
+pub fn format_diagnostic_with_color_and_context(
+    output: &mut String,
+    diagnostic: &Diag,
+    format_opts: &FormattingOptions,
+) {
     if let Some(file) = &diagnostic.file {
         write_location(
             output,
@@ -263,8 +274,19 @@ pub fn format_diagnostic_with_color_and_context(output: &mut String, diagnostic:
         output.push_str(" - ");
     }
 
-    write_with_style_and_reset(output, diagnostic.category.name(), get_category_format(diagnostic.category));
-    let _ = write!(output, "{} {}{}: {}", FOREGROUND_COLOR_ESCAPE_GREY, diagnostic_prefix(diagnostic), diagnostic.code, RESET_ESCAPE_SEQUENCE);
+    write_with_style_and_reset(
+        output,
+        diagnostic.category.name(),
+        get_category_format(diagnostic.category),
+    );
+    let _ = write!(
+        output,
+        "{} {}{}: {}",
+        FOREGROUND_COLOR_ESCAPE_GREY,
+        diagnostic_prefix(diagnostic),
+        diagnostic.code,
+        RESET_ESCAPE_SEQUENCE
+    );
     write_flattened_diagnostic_message(output, diagnostic, format_opts.new_line);
 
     if let Some(file) = &diagnostic.file {
@@ -288,13 +310,7 @@ pub fn format_diagnostic_with_color_and_context(output: &mut String, diagnostic:
             output.push_str(format_opts.new_line);
             output.push_str("  ");
             let pos = related_information.pos.unwrap_or(0);
-            write_location(
-                output,
-                file,
-                pos,
-                Some(format_opts),
-                write_with_style_and_reset,
-            );
+            write_location(output, file, pos, Some(format_opts), write_with_style_and_reset);
             output.push_str(" - ");
             write_flattened_diagnostic_message(output, related_information, format_opts.new_line);
             write_code_snippet(
@@ -320,8 +336,10 @@ fn write_code_snippet(
     indent: &str,
     format_opts: &FormattingOptions,
 ) {
-    let (first_line, first_line_char) = get_ecma_line_and_utf16_character_of_position(source_file, start);
-    let (last_line, mut last_line_char) = get_ecma_line_and_utf16_character_of_position(source_file, start + length);
+    let (first_line, first_line_char) =
+        get_ecma_line_and_utf16_character_of_position(source_file, start);
+    let (last_line, mut last_line_char) =
+        get_ecma_line_and_utf16_character_of_position(source_file, start + length);
     if length == 0 {
         last_line_char += 1; // When length is zero, squiggle the character right after the start position.
     }
@@ -354,7 +372,11 @@ fn write_code_snippet(
         }
 
         let line_start = source_file.line_map[i] as usize;
-        let line_end = if i < last_line_of_file { source_file.line_map[i + 1] as usize } else { source_file.text.len() };
+        let line_end = if i < last_line_of_file {
+            source_file.line_map[i + 1] as usize
+        } else {
+            source_file.text.len()
+        };
 
         let line_content = byte_slice(&source_file.text, line_start, line_end).trim_end(); // trim from end
         let line_content = line_content.replace('\t', " "); // convert tabs to single spaces
@@ -378,7 +400,8 @@ fn write_code_snippet(
         if i == first_line {
             // If we're on the last line, then limit it to the last character of the last line.
             // Otherwise, we'll just squiggle the rest of the line, giving 'slice' no end position.
-            let last_char_for_line = if i == last_line { last_line_char } else { utf16_len(&line_content) };
+            let last_char_for_line =
+                if i == last_line { last_line_char } else { utf16_len(&line_content) };
 
             // Fill with spaces until the first character,
             // then squiggle the remainder of the line.
@@ -411,7 +434,12 @@ pub fn write_flattened_diagnostic_message(writer: &mut String, diagnostic: &Diag
     }
 }
 
-fn flatten_diagnostic_message_chain(writer: &mut String, chain: &Diag, new_line: &str, level: usize) {
+fn flatten_diagnostic_message_chain(
+    writer: &mut String,
+    chain: &Diag,
+    new_line: &str,
+    level: usize,
+) {
     writer.push_str(new_line);
     writer.push_str(&"  ".repeat(level));
     writer.push_str(&chain.message);
@@ -459,12 +487,24 @@ pub fn write_location(
 
     write_with_style_and_reset(output, &relative_file_name, FOREGROUND_COLOR_ESCAPE_CYAN);
     output.push(':');
-    write_with_style_and_reset(output, &(first_line + 1).to_string(), FOREGROUND_COLOR_ESCAPE_YELLOW);
+    write_with_style_and_reset(
+        output,
+        &(first_line + 1).to_string(),
+        FOREGROUND_COLOR_ESCAPE_YELLOW,
+    );
     output.push(':');
-    write_with_style_and_reset(output, &(first_char + 1).to_string(), FOREGROUND_COLOR_ESCAPE_YELLOW);
+    write_with_style_and_reset(
+        output,
+        &(first_char + 1).to_string(),
+        FOREGROUND_COLOR_ESCAPE_YELLOW,
+    );
 }
 
-pub fn write_error_summary_text(output: &mut String, all_diagnostics: &[&Diag], format_opts: &FormattingOptions) {
+pub fn write_error_summary_text(
+    output: &mut String,
+    all_diagnostics: &[&Diag],
+    format_opts: &FormattingOptions,
+) {
     // Roughly corresponds to 'getErrorSummaryText' from watch.ts
     let mut total_error_count = 0;
     let mut global_errors = 0;
@@ -506,9 +546,11 @@ pub fn write_error_summary_text(output: &mut String, all_diagnostics: &[&Diag], 
             // No file-specific errors.
             0 => diagnostics::Found_0_errors.localize(&[&total_error_count]),
             // One file with errors.
-            1 => diagnostics::Found_0_errors_in_the_same_file_starting_at_Colon_1.localize(&[&total_error_count, &first_file_name]),
+            1 => diagnostics::Found_0_errors_in_the_same_file_starting_at_Colon_1
+                .localize(&[&total_error_count, &first_file_name]),
             // Multiple files with errors.
-            _ => diagnostics::Found_0_errors_in_1_files.localize(&[&total_error_count, &num_erroring_files]),
+            _ => diagnostics::Found_0_errors_in_1_files
+                .localize(&[&total_error_count, &num_erroring_files]),
         }
     };
     output.push_str(format_opts.new_line);
@@ -521,7 +563,11 @@ pub fn write_error_summary_text(output: &mut String, all_diagnostics: &[&Diag], 
     }
 }
 
-fn write_tabular_errors_display(output: &mut String, errors_by_file: &[(Rc<FileLike>, Vec<&Diag>)], format_opts: &FormattingOptions) {
+fn write_tabular_errors_display(
+    output: &mut String,
+    errors_by_file: &[(Rc<FileLike>, Vec<&Diag>)],
+    format_opts: &FormattingOptions,
+) {
     let max_errors = errors_by_file.iter().map(|(_, e)| e.len()).max().unwrap_or(0);
 
     let header_row = diagnostics::Errors_Files.localize(&[]);
@@ -541,37 +587,46 @@ fn write_tabular_errors_display(output: &mut String, errors_by_file: &[(Rc<FileL
     }
 }
 
-fn pretty_path_for_file_error(file: &FileLike, file_errors: &[&Diag], format_opts: &FormattingOptions) -> String {
+fn pretty_path_for_file_error(
+    file: &FileLike,
+    file_errors: &[&Diag],
+    format_opts: &FormattingOptions,
+) -> String {
     if file_errors.is_empty() {
         return String::new();
     }
     let line = get_ecma_line_of_position(file, file_errors[0].pos.unwrap_or(0));
     let mut file_name = file.file_name.clone();
-    if tspath::path_is_absolute(&file_name) && tspath::path_is_absolute(&format_opts.compare_paths_options.current_directory) {
-        file_name = tspath::convert_to_relative_path(&file.file_name, &format_opts.compare_paths_options);
+    if tspath::path_is_absolute(&file_name)
+        && tspath::path_is_absolute(&format_opts.compare_paths_options.current_directory)
+    {
+        file_name =
+            tspath::convert_to_relative_path(&file.file_name, &format_opts.compare_paths_options);
     }
     format!("{}{}:{}{}", file_name, FOREGROUND_COLOR_ESCAPE_GREY, line + 1, RESET_ESCAPE_SEQUENCE)
 }
 
-pub fn write_format_diagnostics(output: &mut String, diagnostics: &[&Diag], format_opts: &FormattingOptions) {
+pub fn write_format_diagnostics(
+    output: &mut String,
+    diagnostics: &[&Diag],
+    format_opts: &FormattingOptions,
+) {
     for diagnostic in diagnostics {
         write_format_diagnostic(output, diagnostic, format_opts);
     }
 }
 
-pub fn write_format_diagnostic(output: &mut String, diagnostic: &Diag, format_opts: &FormattingOptions) {
+pub fn write_format_diagnostic(
+    output: &mut String,
+    diagnostic: &Diag,
+    format_opts: &FormattingOptions,
+) {
     if let Some(file) = &diagnostic.file {
         let (line, character) =
             get_ecma_line_and_utf16_character_of_position(file, diagnostic.pos.unwrap_or(0));
         let relative_file_name =
             tspath::convert_to_relative_path(&file.file_name, &format_opts.compare_paths_options);
-        let _ = write!(
-            output,
-            "{}({},{}): ",
-            relative_file_name,
-            line + 1,
-            character + 1
-        );
+        let _ = write!(output, "{}({},{}): ", relative_file_name, line + 1, character + 1);
     }
 
     let _ = write!(

@@ -498,7 +498,9 @@ fn async_super_helper_text_callback(make_unique_name: &mut dyn FnMut(&str) -> St
 }
 
 // helpers.go:378
-fn advanced_async_super_helper_text_callback(make_unique_name: &mut dyn FnMut(&str) -> String) -> String {
+fn advanced_async_super_helper_text_callback(
+    make_unique_name: &mut dyn FnMut(&str) -> String,
+) -> String {
     "\nconst ".to_string()
         + &make_unique_name("_superIndex")
         + " = (function (geti, seti) {\n"

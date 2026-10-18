@@ -17,7 +17,11 @@ pub struct StringTable<'a> {
 
 impl<'a> StringTable<'a> {
     pub fn new(file_text: &'a str, string_count: usize) -> StringTable<'a> {
-        StringTable { file_text: file_text.as_bytes(), other_strings: Vec::new(), offsets: Vec::with_capacity(string_count * 2) }
+        StringTable {
+            file_text: file_text.as_bytes(),
+            other_strings: Vec::new(),
+            offsets: Vec::with_capacity(string_count * 2),
+        }
     }
 
     /// Go `stringTable.add`. `text` may be WTF-8 (lone surrogates encoded by `encode_js_string_rune`); it is
@@ -32,10 +36,8 @@ impl<'a> StringTable<'a> {
         let index = self.offsets.len() as u32;
         let (pos, end) = (pos.into(), end.into());
         if kind == Kind::SourceFile {
-            self.offsets
-                .push(pos.expect_source("source files have source positions"));
-            self.offsets
-                .push(end.expect_source("source files have source positions"));
+            self.offsets.push(pos.expect_source("source files have source positions"));
+            self.offsets.push(end.expect_source("source files have source positions"));
             return index;
         }
         let text = text.as_bytes();
@@ -51,14 +53,11 @@ impl<'a> StringTable<'a> {
             ));
             let end = end as usize - end_offset;
             // Go would panic when the text starts before the file (it never happens for parsed nodes); fall back to appending.
-            if let Some(start) = end
-                .checked_sub(text.len())
-                .filter(|&start| &self.file_text[start..end] == text)
+            if let Some(start) =
+                end.checked_sub(text.len()).filter(|&start| &self.file_text[start..end] == text)
             {
-                self.offsets
-                    .push(u32::try_from(start).expect("string table offset exceeds u32"));
-                self.offsets
-                    .push(u32::try_from(end).expect("string table offset exceeds u32"));
+                self.offsets.push(u32::try_from(start).expect("string table offset exceeds u32"));
+                self.offsets.push(u32::try_from(end).expect("string table offset exceeds u32"));
                 return index;
             }
         }

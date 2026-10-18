@@ -5,14 +5,19 @@ use std::sync::LazyLock;
 
 use rustc_hash::FxHashSet;
 use tsrs_core::tspath;
-use tsrs_tsoptions::{self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue};
+use tsrs_tsoptions::{
+    self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue,
+};
 
 use std::collections::BTreeMap;
 
 use tsrs_ast::SourceFileParseOptions;
-use tsrs_core::{CompilerOptions, ModuleKind, ModuleResolutionKind, NewLineKind, ScriptKind, ScriptTarget, Tristate, P};
+use tsrs_core::{
+    CompilerOptions, ModuleKind, ModuleResolutionKind, NewLineKind, P, ScriptKind, ScriptTarget,
+    Tristate,
+};
 use tsrs_tsoptions::ParsedCommandLine;
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use crate::harnessutil::{HarnessOptions, OptKind, OptionDecl, OptionTable, TestConfiguration};
 use crate::test_case_parser;
@@ -35,28 +40,29 @@ static HARNESS_COMPILER_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> = Laz
     tsoptions::OPTIONS_DECLARATIONS.iter().copied().chain(extra).collect()
 });
 
-static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
-    let opt = new_option;
-    use CommandLineOptionKind::{Boolean, String, List};
-    vec![
-        opt("useCaseSensitiveFileNames", Boolean),
-        opt("baselineFile", String),
-        opt("includeBuiltFile", String),
-        opt("fileName", String),
-        opt("libFiles", List),
-        opt("noImplicitReferences", Boolean),
-        opt("currentDirectory", String),
-        opt("symlink", String),
-        opt("link", String),
-        opt("noTypesAndSymbols", Boolean),
-        // Emitted js baseline will print full paths for every output file
-        opt("fullEmitPaths", Boolean),
-        // used to enable error collection in `transpile` baselines
-        opt("reportDiagnostics", Boolean),
-        // Adds suggestion diagnostics to error baselines
-        opt("captureSuggestions", Boolean),
-    ]
-});
+static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> =
+    LazyLock::new(|| {
+        let opt = new_option;
+        use CommandLineOptionKind::{Boolean, List, String};
+        vec![
+            opt("useCaseSensitiveFileNames", Boolean),
+            opt("baselineFile", String),
+            opt("includeBuiltFile", String),
+            opt("fileName", String),
+            opt("libFiles", List),
+            opt("noImplicitReferences", Boolean),
+            opt("currentDirectory", String),
+            opt("symlink", String),
+            opt("link", String),
+            opt("noTypesAndSymbols", Boolean),
+            // Emitted js baseline will print full paths for every output file
+            opt("fullEmitPaths", Boolean),
+            // used to enable error collection in `transpile` baselines
+            opt("reportDiagnostics", Boolean),
+            // Adds suggestion diagnostics to error baselines
+            opt("captureSuggestions", Boolean),
+        ]
+    });
 
 pub fn get_command_line_option(option: &str) -> Option<&'static CommandLineOption> {
     HARNESS_COMPILER_OPTIONS.iter().copied().find(|d| d.name.eq_ignore_ascii_case(option))
@@ -71,7 +77,8 @@ pub fn tsoptions_option_table() -> OptionTable {
     let mut vary_by = FxHashSet::default();
     vary_by.extend(tsoptions::OPTIONS_DECLARATIONS.iter().filter_map(|option| {
         if !option.is_command_line_only
-            && (option.kind == CommandLineOptionKind::Boolean || option.kind == CommandLineOptionKind::Enum)
+            && (option.kind == CommandLineOptionKind::Boolean
+                || option.kind == CommandLineOptionKind::Enum)
             && (option.affects_program_structure
                 || option.affects_emit
                 || option.affects_module_resolution
@@ -96,9 +103,11 @@ pub fn tsoptions_option_table() -> OptionTable {
             name: o.name.to_string(),
             kind: match o.kind {
                 CommandLineOptionKind::Boolean => OptKind::Boolean,
-                CommandLineOptionKind::Enum => {
-                    OptKind::Enum(o.enum_map().map(|m| m.iter().map(|(k, v)| (k.to_string(), format!("{v:?}"))).collect()).unwrap_or_default())
-                }
+                CommandLineOptionKind::Enum => OptKind::Enum(
+                    o.enum_map()
+                        .map(|m| m.iter().map(|(k, v)| (k.to_string(), format!("{v:?}"))).collect())
+                        .unwrap_or_default(),
+                ),
                 _ => OptKind::Other,
             },
         })
@@ -106,7 +115,11 @@ pub fn tsoptions_option_table() -> OptionTable {
     OptionTable { decls, vary_by }
 }
 
-pub fn get_option_value(option: &'static CommandLineOption, value: &str, cwd: &str) -> Result<CompilerOptionsValue, String> {
+pub fn get_option_value(
+    option: &'static CommandLineOption,
+    value: &str,
+    cwd: &str,
+) -> Result<CompilerOptionsValue, String> {
     Ok(match option.kind {
         CommandLineOptionKind::String => {
             if option.is_file_path {
@@ -117,38 +130,68 @@ pub fn get_option_value(option: &'static CommandLineOption, value: &str, cwd: &s
         }
         CommandLineOptionKind::Number => match value.parse::<i64>() {
             Ok(n) => CompilerOptionsValue::Int(n),
-            Err(_) => return Err(format!("Value for option '{}' must be a number, got: {value}", option.name)),
+            Err(_) => {
+                return Err(format!(
+                    "Value for option '{}' must be a number, got: {value}",
+                    option.name
+                ));
+            }
         },
         CommandLineOptionKind::Boolean => match value.to_lowercase().as_str() {
             "true" => CompilerOptionsValue::Bool(true),
             "false" => CompilerOptionsValue::Bool(false),
-            _ => return Err(format!("Value for option '{}' must be a boolean, got: {value}", option.name)),
+            _ => {
+                return Err(format!(
+                    "Value for option '{}' must be a boolean, got: {value}",
+                    option.name
+                ));
+            }
         },
-        CommandLineOptionKind::Enum => match option.enum_map().and_then(|m| m.get(value.to_lowercase().as_str())) {
-            Some(v) => v.clone(),
-            None => return Err(format!("Value for option '{}' must be one of the enum values, got: {value}", option.name)),
-        },
+        CommandLineOptionKind::Enum => {
+            match option.enum_map().and_then(|m| m.get(value.to_lowercase().as_str())) {
+                Some(v) => v.clone(),
+                None => {
+                    return Err(format!(
+                        "Value for option '{}' must be one of the enum values, got: {value}",
+                        option.name
+                    ));
+                }
+            }
+        }
         CommandLineOptionKind::List | CommandLineOptionKind::ListOrElement => {
             let (list_val, errors) = tsoptions::parse_list_type_option(option, value);
             if option.elements().is_some_and(|e| e.is_file_path) {
                 return Ok(CompilerOptionsValue::Array(
                     list_val
                         .iter()
-                        .map(|item| CompilerOptionsValue::String(tspath::get_normalized_absolute_path(item.as_str().unwrap_or(""), cwd)))
+                        .map(|item| {
+                            CompilerOptionsValue::String(tspath::get_normalized_absolute_path(
+                                item.as_str().unwrap_or(""),
+                                cwd,
+                            ))
+                        })
                         .collect(),
                 ));
             }
             if !errors.is_empty() {
-                return Err(format!("Unknown value '{value}' for compiler option '{}'", option.name));
+                return Err(format!(
+                    "Unknown value '{value}' for compiler option '{}'",
+                    option.name
+                ));
             }
             CompilerOptionsValue::Array(list_val)
         }
-        CommandLineOptionKind::Object => return Err(format!("Object type options like '{}' are not supported", option.name)),
+        CommandLineOptionKind::Object => {
+            return Err(format!("Object type options like '{}' are not supported", option.name));
+        }
     })
 }
 
-
-fn parse_harness_option(key: &str, value: &CompilerOptionsValue, harness_options: &mut HarnessOptions) -> Result<(), String> {
+fn parse_harness_option(
+    key: &str,
+    value: &CompilerOptionsValue,
+    harness_options: &mut HarnessOptions,
+) -> Result<(), String> {
     let b = || matches!(value, CompilerOptionsValue::Bool(true));
     let s = || value.as_str().unwrap_or("").to_string();
     match key {
@@ -157,7 +200,10 @@ fn parse_harness_option(key: &str, value: &CompilerOptionsValue, harness_options
         "includeBuiltFile" => harness_options.include_built_file = s(),
         "fileName" => harness_options.file_name = s(),
         "libFiles" => {
-            harness_options.lib_files = value.as_array().map(|a| a.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect()).unwrap_or_default();
+            harness_options.lib_files = value
+                .as_array()
+                .map(|a| a.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect())
+                .unwrap_or_default();
         }
         "noImplicitReferences" => harness_options.no_implicit_references = b(),
         "currentDirectory" => harness_options.current_directory = s(),
@@ -185,9 +231,16 @@ pub fn set_options_from_test_config(
         }
         if let Some(command_line_option) = get_command_line_option(name) {
             let parsed_value = get_option_value(command_line_option, value, current_directory)?;
-            let errors = tsoptions::parse_compiler_options(command_line_option.name, &parsed_value, compiler_options);
+            let errors = tsoptions::parse_compiler_options(
+                command_line_option.name,
+                &parsed_value,
+                compiler_options,
+            );
             if !errors.is_empty() {
-                return Err(format!("Error parsing value '{value}' for compiler option '{}'.", command_line_option.name));
+                return Err(format!(
+                    "Error parsing value '{value}' for compiler option '{}'.",
+                    command_line_option.name
+                ));
             }
             continue;
         }
@@ -222,24 +275,44 @@ fn new_vfs_parse_config_host_with_symlinks(
     current_directory: &str,
     use_case_sensitive_file_names: bool,
 ) -> VfsParseConfigHost {
-    let mut entries: Vec<(String, vfstest::MapFile)> = files.iter().map(|(k, v)| (k.clone(), vfstest::MapFile::from(v.as_str()))).collect();
+    let mut entries: Vec<(String, vfstest::MapFile)> =
+        files.iter().map(|(k, v)| (k.clone(), vfstest::MapFile::from(v.as_str()))).collect();
     entries.extend(symlinks.iter().map(|(link, target)| {
-        (tspath::get_normalized_absolute_path(link, current_directory), vfstest::symlink(&tspath::get_normalized_absolute_path(target, current_directory)))
+        (
+            tspath::get_normalized_absolute_path(link, current_directory),
+            vfstest::symlink(&tspath::get_normalized_absolute_path(target, current_directory)),
+        )
     }));
-    VfsParseConfigHost { vfs: Box::new(vfstest::from_map(entries, use_case_sensitive_file_names)), current_directory: current_directory.to_string() }
+    VfsParseConfigHost {
+        vfs: Box::new(vfstest::from_map(entries, use_case_sensitive_file_names)),
+        current_directory: current_directory.to_string(),
+    }
 }
 
 // The tsconfig half of makeUnitsFromTest.
-pub fn parse_test_ts_config(content: &test_case_parser::TestCaseContent) -> Option<P<ParsedCommandLine>> {
+pub fn parse_test_ts_config(
+    content: &test_case_parser::TestCaseContent,
+) -> Option<P<ParsedCommandLine>> {
     let data = content.ts_config_file_unit_data.as_ref()?;
     let current_directory = &content.current_directory;
     // unit tests always list files explicitly
     let mut all_files = BTreeMap::new();
-    all_files.extend(content.test_unit_data.iter().map(|unit| (tspath::get_normalized_absolute_path(&unit.name, current_directory), unit.content.clone())));
-    all_files.insert(tspath::get_normalized_absolute_path(&data.name, current_directory), data.content.clone());
+    all_files.extend(content.test_unit_data.iter().map(|unit| {
+        (tspath::get_normalized_absolute_path(&unit.name, current_directory), unit.content.clone())
+    }));
+    all_files.insert(
+        tspath::get_normalized_absolute_path(&data.name, current_directory),
+        data.content.clone(),
+    );
     // Config parsing keeps `&'static dyn ParseConfigHost`; the host is leaked like everything in the arena.
     let parse_config_host: &'static VfsParseConfigHost =
-        P::new(new_vfs_parse_config_host_with_symlinks(&all_files, &content.symlinks, current_directory, true)).get();
+        P::new(new_vfs_parse_config_host_with_symlinks(
+            &all_files,
+            &content.symlinks,
+            current_directory,
+            true,
+        ))
+        .get();
 
     // Content mappers are gated behind --runExternalCode; this runner skips such tests (compile.rs, materialize.rs), so
     // none are configured here.
@@ -264,7 +337,6 @@ pub fn parse_test_ts_config(content: &test_case_parser::TestCaseContent) -> Opti
     )))
 }
 
-
 // The option setup of harnessutil.CompileFiles: tsconfig options (if any), the test defaults, then the
 // test configuration.
 pub fn test_compiler_options(
@@ -272,7 +344,8 @@ pub fn test_compiler_options(
     tsconfig: Option<P<ParsedCommandLine>>,
     current_directory: &str,
 ) -> Result<(CompilerOptions, HarnessOptions), String> {
-    let mut compiler_options: CompilerOptions = tsconfig.and_then(|t| t.compiler_options()).map(|o| (*o).clone()).unwrap_or_default();
+    let mut compiler_options: CompilerOptions =
+        tsconfig.and_then(|t| t.compiler_options()).map(|o| (*o).clone()).unwrap_or_default();
     // Set default options for tests
     if compiler_options.new_line == NewLineKind::None {
         compiler_options.new_line = NewLineKind::CRLF;
@@ -281,11 +354,20 @@ pub fn test_compiler_options(
         compiler_options.skip_default_lib_check = Tristate::True;
     }
     compiler_options.no_error_truncation = Tristate::True;
-    let mut harness_options = HarnessOptions { use_case_sensitive_file_names: true, current_directory: current_directory.to_string(), ..Default::default() };
+    let mut harness_options = HarnessOptions {
+        use_case_sensitive_file_names: true,
+        current_directory: current_directory.to_string(),
+        ..Default::default()
+    };
 
     // Parse harness and compiler options from the test configuration
     if let Some(test_config) = test_config {
-        set_options_from_test_config(test_config, &mut compiler_options, &mut harness_options, current_directory)?;
+        set_options_from_test_config(
+            test_config,
+            &mut compiler_options,
+            &mut harness_options,
+            current_directory,
+        )?;
     }
     Ok((compiler_options, harness_options))
 }
@@ -300,12 +382,17 @@ pub fn unsupported_reason(options: &CompilerOptions) -> Option<String> {
     }
     // SkipUnsupportedCompilerOptions
     match options.module {
-        ModuleKind::UMD | ModuleKind::System => return Some(format!("unsupported module kind {:?}", options.module)),
+        ModuleKind::UMD | ModuleKind::System => {
+            return Some(format!("unsupported module kind {:?}", options.module));
+        }
         _ => {}
     }
     match options.module_resolution {
         ModuleResolutionKind::Node10 | ModuleResolutionKind::Classic => {
-            return Some(format!("unsupported module resolution kind {:?}", options.module_resolution))
+            return Some(format!(
+                "unsupported module resolution kind {:?}",
+                options.module_resolution
+            ));
         }
         _ => {}
     }
@@ -338,7 +425,10 @@ mod tests {
     #[test]
     fn options_and_tsconfig_match_go_harness() {
         let scratch = repo_root().join("target/scratch/testrunner");
-        let (Ok(names), Ok(diags)) = (std::fs::read_to_string(scratch.join("names.jsonl")), std::fs::read_to_string(scratch.join("diags.jsonl"))) else {
+        let (Ok(names), Ok(diags)) = (
+            std::fs::read_to_string(scratch.join("names.jsonl")),
+            std::fs::read_to_string(scratch.join("diags.jsonl")),
+        ) else {
             eprintln!("oracle files missing; skipping");
             return;
         };
@@ -354,7 +444,12 @@ mod tests {
         go_files.extend(diags.lines().map(|line| {
             let v: serde_json::Value = serde_json::from_str(line).unwrap();
             let stem = compiler_runner::baseline_stem(v["name"].as_str().unwrap());
-            let files: Vec<String> = v["files"].as_array().into_iter().flatten().map(|f| f["name"].as_str().unwrap().to_string()).collect();
+            let files: Vec<String> = v["files"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|f| f["name"].as_str().unwrap().to_string())
+                .collect();
             (format!("{}/{stem}", v["suite"].as_str().unwrap()), files)
         }));
         let table = tsoptions_option_table();
@@ -369,32 +464,55 @@ mod tests {
                         continue;
                     }
                     let mut config =
-                        compiler_runner::find_configuration(&content, &table, &item.config).unwrap().map(|c| c.config).unwrap_or_default();
+                        compiler_runner::find_configuration(&content, &table, &item.config)
+                            .unwrap()
+                            .map(|c| c.config)
+                            .unwrap_or_default();
                     let ts_config = parse_test_ts_config(&payload);
-                    let split = compiler_runner::split_units(&payload, &mut config, ts_config.map(|t| t.get().parsed_config.file_names.as_slice()));
+                    let split = compiler_runner::split_units(
+                        &payload,
+                        &mut config,
+                        ts_config.map(|t| t.get().parsed_config.file_names.as_slice()),
+                    );
                     checked += 1;
-                    match test_compiler_options(Some(&config), ts_config, &split.current_directory) {
+                    match test_compiler_options(Some(&config), ts_config, &split.current_directory)
+                    {
                         Err(e) => problems.push(format!("{}: {e}", item.id())),
                         Ok((options, _)) => {
                             let skip = unsupported_reason(&options).is_some();
                             if go_skip.get(&item.id()).copied() != Some(skip) {
-                                problems.push(format!("{}: skip={skip} ({:?})", item.id(), unsupported_reason(&options)));
+                                problems.push(format!(
+                                    "{}: skip={skip} ({:?})",
+                                    item.id(),
+                                    unsupported_reason(&options)
+                                ));
                             }
                         }
                     }
                     if ts_config.is_some() {
-                        let mine: Vec<String> =
-                            split.ts_config_files.iter().chain(&split.to_be_compiled).chain(&split.other_files).map(|f| f.unit_name.clone()).collect();
+                        let mine: Vec<String> = split
+                            .ts_config_files
+                            .iter()
+                            .chain(&split.to_be_compiled)
+                            .chain(&split.other_files)
+                            .map(|f| f.unit_name.clone())
+                            .collect();
                         if let Some(go) = go_files.get(&item.id()) {
                             if !go.is_empty() && *go != mine {
-                                problems.push(format!("{}: files {mine:?} vs go {go:?}", item.id()));
+                                problems
+                                    .push(format!("{}: files {mine:?} vs go {go:?}", item.id()));
                             }
                         }
                     }
                 }
             }
         }
-        assert!(problems.is_empty(), "{} of {checked} differ:\n{}", problems.len(), problems[..problems.len().min(15)].join("\n"));
+        assert!(
+            problems.is_empty(),
+            "{} of {checked} differ:\n{}",
+            problems.len(),
+            problems[..problems.len().min(15)].join("\n")
+        );
         eprintln!("{checked} variants agree");
     }
 }

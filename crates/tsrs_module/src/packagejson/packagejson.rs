@@ -1,5 +1,5 @@
 use rustc_hash::FxHashMap;
-use tsrs_core::collections::{new_set_with_size_hint, Set};
+use tsrs_core::collections::{Set, new_set_with_size_hint};
 
 use super::expected::{Expected, ExpectedValue};
 use super::exportsorimports::ExportsOrImports;
@@ -158,7 +158,12 @@ pub fn parse(data: &str) -> Result<Fields, String> {
                 }
             }
         }
-        _ => return Err(format!("json: cannot unmarshal JSON {} into Go packagejson.Fields", json_kind_name(&value))),
+        _ => {
+            return Err(format!(
+                "json: cannot unmarshal JSON {} into Go packagejson.Fields",
+                json_kind_name(&value)
+            ));
+        }
     }
     // Go ignores the validity flag here and takes whatever was decoded.
     parsed.content_mapper = type_script.value.content_mapper;

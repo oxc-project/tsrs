@@ -12,7 +12,7 @@ mod util;
 
 pub use baseproto::*;
 pub use error::*;
-pub use json::{marshal, unmarshal, Json, JsonError, Value};
+pub use json::{Json, JsonError, Value, marshal, unmarshal};
 pub use lsp::*;
 pub use lsp_generated::*;
 pub use lsproto_jsonrpc::*;

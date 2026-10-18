@@ -1,6 +1,6 @@
 // eventlist_test.go: unit tests for eventList coalescing and drain semantics.
 
-use crate::event::{eventList, EventKind};
+use crate::event::{EventKind, eventList};
 use crate::watcher::Error;
 
 // eventlist_test.go:19

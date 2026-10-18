@@ -8,19 +8,21 @@ use std::time::Duration;
 
 use tsrs_ast::MappedDiagnosticDirectivePolicy;
 use tsrs_core::json::{self, Value};
-use tsrs_core::{tspath, CompilerOptions, JsxEmit, Locale, ScriptTarget, Tristate, P};
+use tsrs_core::{CompilerOptions, JsxEmit, Locale, P, ScriptTarget, Tristate, tspath};
 use tsrs_ipc::{self as ipc, Closer, Conn, Handler, Protocol, ReadWriteCloser};
 use tsrs_spanmap::{Fidelity, Kind, Segment};
 use tsrs_tsoptions::gojson::compiler_options_to_go_json;
 use tsrs_tsoptions::{Definition, Manifest, Mapper};
 
 use crate::{
-    new_host, new_host_with_options, unmarshal, DiagnosticDirectiveErrorKind, DiagnosticDirectivePolicy, DiagnosticDirectives,
-    Error, HostOptions, InitializeErrorKind, InitializeParams, InitializeResult, MappedDiagnosticDirective, MappedOutput,
-    OpenProjectParams, OpenProjectResult, OptionDiagnosticResult, PositionEncoding, ProjectErrorKind, ProjectSpec, ProtocolJson,
-    Request, Spawner, SpawnerFunc, SupplementalOutput, TransformParams, TransformResult, TransformResultFiles,
-    UnusedExpectDirectiveDiagnostic, CloseProjectParams, Diagnostic, METHOD_CLOSE_PROJECT, METHOD_INITIALIZE, METHOD_OPEN_PROJECT,
-    METHOD_TRANSFORM,
+    CloseProjectParams, Diagnostic, DiagnosticDirectiveErrorKind, DiagnosticDirectivePolicy,
+    DiagnosticDirectives, Error, HostOptions, InitializeErrorKind, InitializeParams,
+    InitializeResult, METHOD_CLOSE_PROJECT, METHOD_INITIALIZE, METHOD_OPEN_PROJECT,
+    METHOD_TRANSFORM, MappedDiagnosticDirective, MappedOutput, OpenProjectParams,
+    OpenProjectResult, OptionDiagnosticResult, PositionEncoding, ProjectErrorKind, ProjectSpec,
+    ProtocolJson, Request, Spawner, SpawnerFunc, SupplementalOutput, TransformParams,
+    TransformResult, TransformResultFiles, UnusedExpectDirectiveDiagnostic, new_host,
+    new_host_with_options, unmarshal,
 };
 
 // The tests build their mappers as Go does, with `&contentmapper.Mapper{...}`; the host keys them by address and holds
@@ -30,7 +32,13 @@ fn leak(mapper: Mapper) -> &'static Mapper {
 }
 
 // Go `&contentmapper.Mapper{Package: package, Extensions: extensions, Name: name, Version: version, Exec: exec}`.
-fn new_mapper(package: &str, extensions: &[&str], name: &str, version: &str, exec: &[&str]) -> Mapper {
+fn new_mapper(
+    package: &str,
+    extensions: &[&str],
+    name: &str,
+    version: &str,
+    exec: &[&str],
+) -> Mapper {
     Mapper {
         definition: Definition {
             package: package.to_string(),
@@ -92,7 +100,9 @@ struct responseMapper {
     response: Box<dyn Fn(TransformParams) -> Value + Send + Sync>,
 }
 
-fn response_mapper(response: impl Fn(TransformParams) -> Value + Send + Sync + 'static) -> responseMapper {
+fn response_mapper(
+    response: impl Fn(TransformParams) -> Value + Send + Sync + 'static,
+) -> responseMapper {
     responseMapper { response: Box::new(response) }
 }
 
@@ -102,8 +112,11 @@ impl Handler for responseMapper {
     // host_test.go:34
     fn handle_request(&self, method: &str, params_: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
-            METHOD_INITIALIZE => Ok(InitializeResult { position_encoding: PositionEncoding::UTF8, diagnostic_source: "mapper".to_string() }
-                .marshal_json()),
+            METHOD_INITIALIZE => Ok(InitializeResult {
+                position_encoding: PositionEncoding::UTF8,
+                diagnostic_source: "mapper".to_string(),
+            }
+            .marshal_json()),
             METHOD_TRANSFORM => {
                 let p: TransformParams = params(params_)?;
                 Ok((self.response)(p))
@@ -113,7 +126,11 @@ impl Handler for responseMapper {
     }
 
     // host_test.go:49
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         Ok(())
     }
 }
@@ -124,9 +141,11 @@ impl Handler for fakeMapper {
     // host_test.go:53
     fn handle_request(&self, method: &str, params_: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
-            METHOD_INITIALIZE => {
-                Ok(InitializeResult { position_encoding: PositionEncoding::UTF8, diagnostic_source: "vue".to_string() }.marshal_json())
+            METHOD_INITIALIZE => Ok(InitializeResult {
+                position_encoding: PositionEncoding::UTF8,
+                diagnostic_source: "vue".to_string(),
             }
+            .marshal_json()),
             METHOD_TRANSFORM => {
                 let p: TransformParams = params(params_)?;
                 let content_len =
@@ -159,7 +178,11 @@ impl Handler for fakeMapper {
     }
 
     // host_test.go:186
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         Ok(())
     }
 }
@@ -187,26 +210,43 @@ impl Handler for unicodeMapper {
             METHOD_INITIALIZE => {
                 let p: InitializeParams = params(params_)?;
                 let offered = p.position_encodings.contains(&self.encoding);
-                if !offered && (self.encoding == PositionEncoding::UTF8 || self.encoding == PositionEncoding::UTF16) {
-                    return Err(ipc::Error::new(format!("position encoding {:?} was not offered", self.encoding.0)));
+                if !offered
+                    && (self.encoding == PositionEncoding::UTF8
+                        || self.encoding == PositionEncoding::UTF16)
+                {
+                    return Err(ipc::Error::new(format!(
+                        "position encoding {:?} was not offered",
+                        self.encoding.0
+                    )));
                 }
                 let source = self.source.clone().unwrap_or_else(|| "mapper".to_string());
-                Ok(InitializeResult { position_encoding: self.encoding.clone(), diagnostic_source: source }.marshal_json())
+                Ok(InitializeResult {
+                    position_encoding: self.encoding.clone(),
+                    diagnostic_source: source,
+                }
+                .marshal_json())
             }
             METHOD_TRANSFORM => {
                 let p: TransformParams = params(params_)?;
-                let (emoji_length, text_length): (i64, i64) = if self.encoding == PositionEncoding::UTF8 {
-                    (2, 3)
-                } else if self.encoding == PositionEncoding::UTF16 {
-                    (1, 2)
-                } else {
-                    return Ok(TransformResult {
-                        mapped_output: MappedOutput { text: p.content, extension: ".ts".to_string(), ..Default::default() },
-                        ..Default::default()
-                    }
-                    .marshal_json());
+                let (emoji_length, text_length): (i64, i64) =
+                    if self.encoding == PositionEncoding::UTF8 {
+                        (2, 3)
+                    } else if self.encoding == PositionEncoding::UTF16 {
+                        (1, 2)
+                    } else {
+                        return Ok(TransformResult {
+                            mapped_output: MappedOutput {
+                                text: p.content,
+                                extension: ".ts".to_string(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }
+                        .marshal_json());
+                    };
+                let tuple = |values: [i64; 5]| {
+                    Value::Array(values.iter().map(|&v| Value::Number(v as f64)).collect())
                 };
-                let tuple = |values: [i64; 5]| Value::Array(values.iter().map(|&v| Value::Number(v as f64)).collect());
                 let mappings = Value::Array(vec![
                     tuple([0, emoji_length, 0, emoji_length, i64::from(Kind::Verbatim.0)]),
                     tuple([
@@ -249,7 +289,11 @@ impl Handler for unicodeMapper {
     }
 
     // host_test.go:156
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         Ok(())
     }
 }
@@ -265,11 +309,19 @@ impl Handler for invalidDiagnosticMapper {
     // host_test.go:164
     fn handle_request(&self, method: &str, _params: Option<&Value>) -> Result<Value, ipc::Error> {
         match method {
-            METHOD_INITIALIZE => Ok(InitializeResult { position_encoding: self.encoding.clone(), diagnostic_source: "mapper".to_string() }
-                .marshal_json()),
+            METHOD_INITIALIZE => Ok(InitializeResult {
+                position_encoding: self.encoding.clone(),
+                diagnostic_source: "mapper".to_string(),
+            }
+            .marshal_json()),
             METHOD_TRANSFORM => Ok(TransformResult {
                 mapped_output: MappedOutput { extension: ".ts".to_string(), ..Default::default() },
-                diagnostics: vec![Diagnostic { message_text: "invalid boundary".to_string(), start: 1, code: 1002, ..Default::default() }],
+                diagnostics: vec![Diagnostic {
+                    message_text: "invalid boundary".to_string(),
+                    start: 1,
+                    code: 1002,
+                    ..Default::default()
+                }],
                 ..Default::default()
             }
             .marshal_json()),
@@ -278,7 +330,11 @@ impl Handler for invalidDiagnosticMapper {
     }
 
     // host_test.go:182
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         Ok(())
     }
 }
@@ -317,18 +373,28 @@ impl Handler for noOpProjectMapper {
 
 impl Spawner for fakeSpawner {
     // host_test.go:211
-    fn spawn(&self, _command: &[String], _dir: &str, _stderr: Option<Box<dyn Write + Send>>) -> Result<ReadWriteCloser, String> {
+    fn spawn(
+        &self,
+        _command: &[String],
+        _dir: &str,
+        _stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<ReadWriteCloser, String> {
         self.spawns.fetch_add(1, SeqCst);
         let handler: Arc<dyn testMapper> = match &self.handler {
             Some(handler) => Arc::clone(handler),
             None => Arc::new(fakeMapper),
         };
-        let handler: Arc<dyn Handler> = if handler.handles_projects() { handler } else { Arc::new(noOpProjectMapper(handler)) };
+        let handler: Arc<dyn Handler> =
+            if handler.handles_projects() { handler } else { Arc::new(noOpProjectMapper(handler)) };
         let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
         thread::spawn(move || {
             let _ = ipc::new_async_conn(server, handler).run();
         });
-        let closer = Arc::new(countingReadWriteCloser { closer: client.closer, closes: Arc::clone(&self.closes), once: Once::new() });
+        let closer = Arc::new(countingReadWriteCloser {
+            closer: client.closer,
+            closes: Arc::clone(&self.closes),
+            once: Once::new(),
+        });
         Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
     }
 }
@@ -374,19 +440,32 @@ fn test_host_logging() {
         let logs = Arc::clone(&logs);
         Arc::new(move |message: &str| lock(&logs).push(message.to_string()))
     };
-    let spawner = Arc::new(SpawnerFunc(|command: &[String], dir: &str, mut stderr: Option<Box<dyn Write + Send>>| {
-        if let Some(stderr) = &mut stderr {
-            let _ = stderr.write_all(b"mapper diagnostic\n");
-        }
-        fake_spawner(None).spawn(command, dir, stderr)
-    }));
-    let host = new_host_with_options(spawner, Locale::DEFAULT, HostOptions { logger: Some(logger) });
+    let spawner = Arc::new(SpawnerFunc(
+        |command: &[String], dir: &str, mut stderr: Option<Box<dyn Write + Send>>| {
+            if let Some(stderr) = &mut stderr {
+                let _ = stderr.write_all(b"mapper diagnostic\n");
+            }
+            fake_spawner(None).spawn(command, dir, stderr)
+        },
+    ));
+    let host =
+        new_host_with_options(spawner, Locale::DEFAULT, HostOptions { logger: Some(logger) });
     let mapper = leak(new_mapper("configured", &[".vue"], "resolved", "1.0.0", &["mapper"]));
     host.transform(mapper, request("/a.vue", "export const x = 1;")).unwrap();
 
     let joined = lock(&logs).join("\n");
-    assert!(joined.contains(r#"[content mapper: resolved] send: {"jsonrpc":"2.0","id":"api1","method":"initialize""#), "{joined}");
-    assert!(joined.contains(r#"[content mapper: resolved] receive: {"jsonrpc":"2.0","id":"api1","result":"#), "{joined}");
+    assert!(
+        joined.contains(
+            r#"[content mapper: resolved] send: {"jsonrpc":"2.0","id":"api1","method":"initialize""#
+        ),
+        "{joined}"
+    );
+    assert!(
+        joined.contains(
+            r#"[content mapper: resolved] receive: {"jsonrpc":"2.0","id":"api1","result":"#
+        ),
+        "{joined}"
+    );
     assert!(joined.contains("[content mapper: resolved] stderr: mapper diagnostic"), "{joined}");
     host.close().unwrap();
 }
@@ -394,10 +473,12 @@ fn test_host_logging() {
 // host_test.go:282 (Go's io.Discard is None.)
 #[test]
 fn test_host_discards_stderr_without_logging() {
-    let spawner = Arc::new(SpawnerFunc(|command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| {
-        assert!(stderr.is_none());
-        fake_spawner(None).spawn(command, dir, stderr)
-    }));
+    let spawner = Arc::new(SpawnerFunc(
+        |command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| {
+            assert!(stderr.is_none());
+            fake_spawner(None).spawn(command, dir, stderr)
+        },
+    ));
     let host = new_host(spawner, Locale::DEFAULT);
     let mapper = leak(new_mapper("configured", &[".vue"], "resolved", "1.0.0", &["mapper"]));
     host.transform(mapper, request("/a.vue", "export const x = 1;")).unwrap();
@@ -413,7 +494,9 @@ fn test_runner_transform_response_validation() {
 
     // malformed result fails the request
     let host = new_host(
-        fake_spawner(Some(Arc::new(response_mapper(|_| json::unmarshal(r#"{"text":1}"#).unwrap())))),
+        fake_spawner(Some(Arc::new(response_mapper(|_| {
+            json::unmarshal(r#"{"text":1}"#).unwrap()
+        })))),
         Locale::DEFAULT,
     );
     assert!(host.transform(mapper, request("/a.vue", "a")).is_err());
@@ -457,30 +540,35 @@ impl Write for sharedWriter {
 fn test_host_closes_process_when_read_loop_fails() {
     let (closed_tx, closed) = mpsc::channel();
     let closed_tx = Mutex::new(closed_tx);
-    let spawner = Arc::new(SpawnerFunc(move |_: &[String], _: &str, _: Option<Box<dyn Write + Send>>| {
-        let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
-        thread::spawn(move || {
-            let ReadWriteCloser { reader, writer, closer } = server;
-            let writer = Arc::new(Mutex::new(writer));
-            let protocol = ipc::new_jsonrpc_protocol(reader, sharedWriter(Arc::clone(&writer)));
-            let message = protocol.read_message().unwrap();
-            assert_eq!(message.method, METHOD_INITIALIZE);
-            protocol
-                .write_response(
-                    message.id.as_ref().unwrap(),
-                    &InitializeResult { position_encoding: PositionEncoding::UTF8, diagnostic_source: "mapper".to_string() }.marshal_json(),
-                )
-                .unwrap();
-            lock(&writer).write_all(b"oops\n").unwrap();
-            let _ = closer.close();
-        });
-        let closer = Arc::new(closeSignalReadWriteCloser {
-            closer: client.closer,
-            closed: Mutex::new(lock(&closed_tx).clone()),
-            once: Once::new(),
-        });
-        Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
-    }));
+    let spawner =
+        Arc::new(SpawnerFunc(move |_: &[String], _: &str, _: Option<Box<dyn Write + Send>>| {
+            let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
+            thread::spawn(move || {
+                let ReadWriteCloser { reader, writer, closer } = server;
+                let writer = Arc::new(Mutex::new(writer));
+                let protocol = ipc::new_jsonrpc_protocol(reader, sharedWriter(Arc::clone(&writer)));
+                let message = protocol.read_message().unwrap();
+                assert_eq!(message.method, METHOD_INITIALIZE);
+                protocol
+                    .write_response(
+                        message.id.as_ref().unwrap(),
+                        &InitializeResult {
+                            position_encoding: PositionEncoding::UTF8,
+                            diagnostic_source: "mapper".to_string(),
+                        }
+                        .marshal_json(),
+                    )
+                    .unwrap();
+                lock(&writer).write_all(b"oops\n").unwrap();
+                let _ = closer.close();
+            });
+            let closer = Arc::new(closeSignalReadWriteCloser {
+                closer: client.closer,
+                closed: Mutex::new(lock(&closed_tx).clone()),
+                once: Once::new(),
+            });
+            Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
+        }));
     let host = new_host(spawner, Locale::DEFAULT);
     let mapper = leak(new_mapper("", &[], "mapper", "", &["mapper"]));
     assert!(host.transform(mapper, request("/a.vue", "")).is_err());
@@ -515,22 +603,27 @@ impl Closer for exitOnCloseReadWriteCloser {
 fn test_host_reports_initialization_timeout_before_closing_process() {
     let (test_done, done) = mpsc::channel::<()>();
     let done = Arc::new(Mutex::new(done));
-    let spawner = Arc::new(SpawnerFunc(move |_: &[String], _: &str, _: Option<Box<dyn Write + Send>>| {
-        let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
-        let done = Arc::clone(&done);
-        thread::spawn(move || {
-            let ReadWriteCloser { reader, writer, closer } = server;
-            let _ = ipc::new_jsonrpc_protocol(reader, writer).read_message();
-            let _ = lock(&done).recv();
-            let _ = closer.close();
-        });
-        let closer = Arc::new(exitOnCloseReadWriteCloser { closer: Some(client.closer), ..Default::default() });
-        Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
-    }));
+    let spawner =
+        Arc::new(SpawnerFunc(move |_: &[String], _: &str, _: Option<Box<dyn Write + Send>>| {
+            let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
+            let done = Arc::clone(&done);
+            thread::spawn(move || {
+                let ReadWriteCloser { reader, writer, closer } = server;
+                let _ = ipc::new_jsonrpc_protocol(reader, writer).read_message();
+                let _ = lock(&done).recv();
+                let _ = closer.close();
+            });
+            let closer = Arc::new(exitOnCloseReadWriteCloser {
+                closer: Some(client.closer),
+                ..Default::default()
+            });
+            Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
+        }));
     let host = new_host(spawner, Locale::DEFAULT);
     let mapper = leak(new_mapper("", &[], "mapper", "", &["mapper"]));
     let err = host.transform(mapper, request("/a.vue", "")).unwrap_err();
-    let initialize_error = err.as_initialize_error().unwrap_or_else(|| panic!("expected InitializeError, got {err}"));
+    let initialize_error =
+        err.as_initialize_error().unwrap_or_else(|| panic!("expected InitializeError, got {err}"));
     assert_eq!(initialize_error.kind, InitializeErrorKind::NoResponse);
     host.close().unwrap();
     drop(test_done);
@@ -556,17 +649,19 @@ impl Closer for exitedReadWriteCloser {
 // host_test.go:384
 #[test]
 fn test_host_reports_process_exit_before_initialization() {
-    let spawner = Arc::new(SpawnerFunc(|_: &[String], _: &str, _: Option<Box<dyn Write + Send>>| {
-        let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
-        server.closer.close().unwrap();
-        drop(server);
-        let closer = Arc::new(exitedReadWriteCloser { closer: client.closer, exit_code: 42 });
-        Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
-    }));
+    let spawner =
+        Arc::new(SpawnerFunc(|_: &[String], _: &str, _: Option<Box<dyn Write + Send>>| {
+            let (client, server) = ipc::pipe().map_err(|err| err.to_string())?;
+            server.closer.close().unwrap();
+            drop(server);
+            let closer = Arc::new(exitedReadWriteCloser { closer: client.closer, exit_code: 42 });
+            Ok(ReadWriteCloser { reader: client.reader, writer: client.writer, closer })
+        }));
     let host = new_host(spawner, Locale::DEFAULT);
     let mapper = leak(new_mapper("", &[], "mapper", "", &["mapper"]));
     let err = host.transform(mapper, request("/a.vue", "")).unwrap_err();
-    let initialize_error = err.as_initialize_error().unwrap_or_else(|| panic!("expected InitializeError, got {err}"));
+    let initialize_error =
+        err.as_initialize_error().unwrap_or_else(|| panic!("expected InitializeError, got {err}"));
     assert_eq!(initialize_error.kind, InitializeErrorKind::ProcessExit);
     assert_eq!(initialize_error.exit_code, 42);
     host.close().unwrap();
@@ -579,7 +674,8 @@ fn test_runner_transform_diagnostic_directives() {
     let transform = |output: MappedOutput| -> Result<TransformResultFiles, Error> {
         let host = new_host(
             fake_spawner(Some(Arc::new(response_mapper(move |_| {
-                TransformResult { mapped_output: output.clone(), ..Default::default() }.marshal_json()
+                TransformResult { mapped_output: output.clone(), ..Default::default() }
+                    .marshal_json()
             })))),
             Locale::DEFAULT,
         );
@@ -600,7 +696,10 @@ fn test_runner_transform_diagnostic_directives() {
                 policy: DiagnosticDirectivePolicy::Expect,
                 ..Default::default()
             }],
-            vec![UnusedExpectDirectiveDiagnostic { code: 2578, message_text: "Unused framework directive.".to_string() }],
+            vec![UnusedExpectDirectiveDiagnostic {
+                code: 2578,
+                message_text: "Unused framework directive.".to_string(),
+            }],
         )),
         ..Default::default()
     })
@@ -641,21 +740,44 @@ fn test_runner_transform_diagnostic_directives() {
         text: "x".to_string(),
         extension: ".ts".to_string(),
         diagnostic_directives: Some(protocol_diagnostic_directives(
-            vec![MappedDiagnosticDirective { original_start: -1, policy: DiagnosticDirectivePolicy::Ignore, ..Default::default() }],
+            vec![MappedDiagnosticDirective {
+                original_start: -1,
+                policy: DiagnosticDirectivePolicy::Ignore,
+                ..Default::default()
+            }],
             vec![UnusedExpectDirectiveDiagnostic::default()],
         )),
         ..Default::default()
     })
     .unwrap();
 
-    let directive = |virtual_start: i64, virtual_end: i64, original_start: i64, policy: DiagnosticDirectivePolicy| {
-        MappedDiagnosticDirective { original_start, virtual_start, virtual_end, policy, ..Default::default() }
+    let directive = |virtual_start: i64,
+                     virtual_end: i64,
+                     original_start: i64,
+                     policy: DiagnosticDirectivePolicy| {
+        MappedDiagnosticDirective {
+            original_start,
+            virtual_start,
+            virtual_end,
+            policy,
+            ..Default::default()
+        }
     };
     let ignore = DiagnosticDirectivePolicy::Ignore;
     let expect = DiagnosticDirectivePolicy::Expect;
     let invalid = [
-        ("invalid range", "x", vec![directive(-1, 0, 0, ignore)], DiagnosticDirectiveErrorKind::InvalidRange),
-        ("unknown policy", "x", vec![directive(0, 0, 0, DiagnosticDirectivePolicy(2))], DiagnosticDirectiveErrorKind::InvalidPolicy),
+        (
+            "invalid range",
+            "x",
+            vec![directive(-1, 0, 0, ignore)],
+            DiagnosticDirectiveErrorKind::InvalidRange,
+        ),
+        (
+            "unknown policy",
+            "x",
+            vec![directive(0, 0, 0, DiagnosticDirectivePolicy(2))],
+            DiagnosticDirectiveErrorKind::InvalidPolicy,
+        ),
         (
             "expect requires unused diagnostic",
             "x",
@@ -668,17 +790,35 @@ fn test_runner_transform_diagnostic_directives() {
             vec![directive(0, 0, 0, expect)],
             DiagnosticDirectiveErrorKind::ExpectMissingUnusedDiagnostic,
         ),
-        ("original range out of bounds", "x", vec![directive(0, 0, 99, expect)], DiagnosticDirectiveErrorKind::InvalidRange),
-        ("virtual range out of bounds", "x", vec![directive(99, 0, 0, ignore)], DiagnosticDirectiveErrorKind::InvalidRange),
-        ("overlap", "abc", vec![directive(0, 2, 0, ignore), directive(1, 3, 0, ignore)], DiagnosticDirectiveErrorKind::Overlap),
+        (
+            "original range out of bounds",
+            "x",
+            vec![directive(0, 0, 99, expect)],
+            DiagnosticDirectiveErrorKind::InvalidRange,
+        ),
+        (
+            "virtual range out of bounds",
+            "x",
+            vec![directive(99, 0, 0, ignore)],
+            DiagnosticDirectiveErrorKind::InvalidRange,
+        ),
+        (
+            "overlap",
+            "abc",
+            vec![directive(0, 2, 0, ignore), directive(1, 3, 0, ignore)],
+            DiagnosticDirectiveErrorKind::Overlap,
+        ),
     ];
     for (name, text, directives, kind) in invalid {
         let mut diagnostic_directives = protocol_diagnostic_directives(directives, Vec::new());
         if name == "original range out of bounds" {
-            diagnostic_directives.unused_expect_directive_diagnostics = vec![UnusedExpectDirectiveDiagnostic::default()];
-        } else if name == "multiple unused diagnostics require index" {
             diagnostic_directives.unused_expect_directive_diagnostics =
-                vec![UnusedExpectDirectiveDiagnostic::default(), UnusedExpectDirectiveDiagnostic::default()];
+                vec![UnusedExpectDirectiveDiagnostic::default()];
+        } else if name == "multiple unused diagnostics require index" {
+            diagnostic_directives.unused_expect_directive_diagnostics = vec![
+                UnusedExpectDirectiveDiagnostic::default(),
+                UnusedExpectDirectiveDiagnostic::default(),
+            ];
         }
         let transform_err = transform(MappedOutput {
             text: text.to_string(),
@@ -687,7 +827,9 @@ fn test_runner_transform_diagnostic_directives() {
             ..Default::default()
         })
         .unwrap_err();
-        let directive_error = transform_err.as_diagnostic_directive_error().unwrap_or_else(|| panic!("{name}: {transform_err}"));
+        let directive_error = transform_err
+            .as_diagnostic_directive_error()
+            .unwrap_or_else(|| panic!("{name}: {transform_err}"));
         assert_eq!(directive_error.kind, kind, "{name}");
     }
 }
@@ -710,12 +852,14 @@ fn test_mapped_diagnostic_directive_json() {
     for (name, directive, want) in tests {
         let data = json::marshal(&directive.marshal_json()).unwrap();
         assert_eq!(data, want, "{name}");
-        let decoded = MappedDiagnosticDirective::unmarshal_json(json::unmarshal(&data).unwrap(), "").unwrap();
+        let decoded =
+            MappedDiagnosticDirective::unmarshal_json(json::unmarshal(&data).unwrap(), "").unwrap();
         assert_eq!(decoded, directive, "{name}");
     }
 
     for data in ["[0,0,0,0]", "[0,0,0,0,0,1,2]"] {
-        let err = MappedDiagnosticDirective::unmarshal_json(json::unmarshal(data).unwrap(), "").unwrap_err();
+        let err = MappedDiagnosticDirective::unmarshal_json(json::unmarshal(data).unwrap(), "")
+            .unwrap_err();
         assert!(err.contains("diagnostic directive tuple"), "{err}");
     }
 
@@ -738,7 +882,8 @@ fn test_mapped_diagnostic_directive_json() {
         data,
         r#"{"unusedExpectDirectiveDiagnostics":[{"code":1,"messageText":"first"},{"code":2,"messageText":"second"}],"directives":[[2,3,5,9,1,1]]}"#
     );
-    let decoded = DiagnosticDirectives::unmarshal_json(json::unmarshal(&data).unwrap(), "").unwrap();
+    let decoded =
+        DiagnosticDirectives::unmarshal_json(json::unmarshal(&data).unwrap(), "").unwrap();
     assert_eq!(decoded, diagnostic_directives);
 }
 
@@ -748,7 +893,11 @@ fn test_runner_transform_supplemental_outputs() {
     let host = new_host(
         fake_spawner(Some(Arc::new(response_mapper(|_| {
             TransformResult {
-                mapped_output: MappedOutput { text: "export default 1;".to_string(), extension: ".ts".to_string(), ..Default::default() },
+                mapped_output: MappedOutput {
+                    text: "export default 1;".to_string(),
+                    extension: ".ts".to_string(),
+                    ..Default::default()
+                },
                 supplemental: vec![
                     SupplementalOutput {
                         mapped_output: MappedOutput {
@@ -787,10 +936,7 @@ fn test_runner_transform_supplemental_outputs() {
     assert!(result.supplemental[0].mappings.is_some());
     assert_eq!(result.supplemental[0].diagnostic_directives.len(), 1);
     assert_eq!(
-        result.supplemental[0].diagnostic_directives[0]
-            .virtual_range
-            .end()
-            .source_offset(),
+        result.supplemental[0].diagnostic_directives[0].virtual_range.end().source_offset(),
         Some(7)
     );
     assert_eq!(result.supplemental[1].virtual_extension, ".mjs");
@@ -815,7 +961,10 @@ fn test_runner_transform_invalid_supplemental_diagnostic_directive() {
                     SupplementalOutput { mapped_output: output(None) },
                     SupplementalOutput {
                         mapped_output: output(Some(protocol_diagnostic_directives(
-                            vec![MappedDiagnosticDirective { policy: DiagnosticDirectivePolicy::Expect, ..Default::default() }],
+                            vec![MappedDiagnosticDirective {
+                                policy: DiagnosticDirectivePolicy::Expect,
+                                ..Default::default()
+                            }],
                             Vec::new(),
                         ))),
                     },
@@ -869,7 +1018,10 @@ fn test_runner_rejects_invalid_virtual_extension() {
             );
             let mapper = leak(new_mapper("", &[".vue"], "mapper", "", &["mapper"]));
             let err = host.transform(mapper, request("/component.vue", "component")).unwrap_err();
-            assert!(err.to_string().contains("invalid virtual extension"), "supplemental={supplemental}/{extension}: {err}");
+            assert!(
+                err.to_string().contains("invalid virtual extension"),
+                "supplemental={supplemental}/{extension}: {err}"
+            );
             host.close().unwrap();
         }
     }
@@ -879,7 +1031,13 @@ fn test_runner_rejects_invalid_virtual_extension() {
 #[test]
 fn test_runner_position_encodings() {
     for encoding in [PositionEncoding::UTF8, PositionEncoding::UTF16] {
-        let r = new_host(fake_spawner(Some(Arc::new(unicodeMapper { encoding: encoding.clone(), source: None }))), Locale::DEFAULT);
+        let r = new_host(
+            fake_spawner(Some(Arc::new(unicodeMapper {
+                encoding: encoding.clone(),
+                source: None,
+            }))),
+            Locale::DEFAULT,
+        );
         let mapper = leak(new_mapper("", &[], &encoding.0, "", &["mapper"]));
         let result = r.transform(mapper, request("/a.vue", "éx")).unwrap();
         let mappings = result.mappings.unwrap();
@@ -897,34 +1055,10 @@ fn test_runner_position_encodings() {
         assert_eq!(fidelity, Fidelity::Exact);
         assert_eq!(result.diagnostics[0].pos(), Some(2));
         assert_eq!(result.diagnostics[0].end(), Some(3));
-        assert_eq!(
-            result.diagnostic_directives[0]
-                .original_range
-                .pos()
-                .source_offset(),
-            Some(2)
-        );
-        assert_eq!(
-            result.diagnostic_directives[0]
-                .original_range
-                .end()
-                .source_offset(),
-            Some(3)
-        );
-        assert_eq!(
-            result.diagnostic_directives[0]
-                .virtual_range
-                .pos()
-                .source_offset(),
-            Some(2)
-        );
-        assert_eq!(
-            result.diagnostic_directives[0]
-                .virtual_range
-                .end()
-                .source_offset(),
-            Some(3)
-        );
+        assert_eq!(result.diagnostic_directives[0].original_range.pos().source_offset(), Some(2));
+        assert_eq!(result.diagnostic_directives[0].original_range.end().source_offset(), Some(3));
+        assert_eq!(result.diagnostic_directives[0].virtual_range.pos().source_offset(), Some(2));
+        assert_eq!(result.diagnostic_directives[0].virtual_range.end().source_offset(), Some(3));
         r.close().unwrap();
     }
 }
@@ -933,7 +1067,10 @@ fn test_runner_position_encodings() {
 #[test]
 fn test_runner_rejects_unsupported_position_encoding() {
     let encoding = PositionEncoding(std::borrow::Cow::Borrowed("utf-32"));
-    let r = new_host(fake_spawner(Some(Arc::new(unicodeMapper { encoding, source: None }))), Locale::DEFAULT);
+    let r = new_host(
+        fake_spawner(Some(Arc::new(unicodeMapper { encoding, source: None }))),
+        Locale::DEFAULT,
+    );
     let mapper = leak(new_mapper("", &[], "invalid", "", &["mapper"]));
     let err = r.transform(mapper, request("/a.vue", "x")).unwrap_err();
     assert!(err.to_string().contains("unsupported position encoding"), "{err}");
@@ -944,7 +1081,8 @@ fn test_runner_rejects_unsupported_position_encoding() {
 #[test]
 fn test_runner_rejects_invalid_diagnostic_source() {
     for source in ["", " ", "ts", "TS", "d.ts", "json", "typescript", "TypeScript", "tsc", "TSC"] {
-        let handler = unicodeMapper { encoding: PositionEncoding::UTF8, source: Some(source.to_string()) };
+        let handler =
+            unicodeMapper { encoding: PositionEncoding::UTF8, source: Some(source.to_string()) };
         let r = new_host(fake_spawner(Some(Arc::new(handler))), Locale::DEFAULT);
         let mapper = leak(new_mapper("", &[], "invalid", "", &["mapper"]));
         let err = r.transform(mapper, request("/a.vue", "x")).unwrap_err().to_string();
@@ -961,7 +1099,10 @@ fn test_runner_rejects_invalid_diagnostic_source() {
 #[test]
 fn test_runner_rejects_positions_inside_unicode_characters() {
     for (encoding, content) in [(PositionEncoding::UTF8, "é"), (PositionEncoding::UTF16, "😀")] {
-        let r = new_host(fake_spawner(Some(Arc::new(invalidDiagnosticMapper { encoding: encoding.clone() }))), Locale::DEFAULT);
+        let r = new_host(
+            fake_spawner(Some(Arc::new(invalidDiagnosticMapper { encoding: encoding.clone() }))),
+            Locale::DEFAULT,
+        );
         let mapper = leak(new_mapper("", &[], &encoding.0, "", &["mapper"]));
         let err = r.transform(mapper, request("/a.vue", content)).unwrap_err();
         assert!(err.to_string().contains("splits a Unicode code point"), "{encoding}: {err}");
@@ -1100,7 +1241,11 @@ impl Handler for recordingMapper {
             METHOD_INITIALIZE => {
                 let p: InitializeParams = params(params_)?;
                 lock(&self.mu).received_locale = p.locale;
-                Ok(InitializeResult { position_encoding: PositionEncoding::UTF8, diagnostic_source: "mapper".to_string() }.marshal_json())
+                Ok(InitializeResult {
+                    position_encoding: PositionEncoding::UTF8,
+                    diagnostic_source: "mapper".to_string(),
+                }
+                .marshal_json())
             }
             METHOD_OPEN_PROJECT => {
                 let p: OpenProjectParams = params(params_)?;
@@ -1115,12 +1260,18 @@ impl Handler for recordingMapper {
                 let dynamic_config = self.dynamic_config;
                 let config_identity_override = self.config_identity.clone();
                 let option_diagnostics = self.option_diagnostics.clone();
-                if !dynamic_config && watched_files.is_none() && config_identity_override.is_none() && option_diagnostics.is_empty() {
+                if !dynamic_config
+                    && watched_files.is_none()
+                    && config_identity_override.is_none()
+                    && option_diagnostics.is_empty()
+                {
                     return Ok(OpenProjectResult::default().marshal_json());
                 }
                 if dynamic_config && watched_files.is_none() {
-                    watched_files =
-                        Some(vec![tspath::combine_paths(&tspath::get_directory_path(&p.config_file_name), &["mapper.config.js"])]);
+                    watched_files = Some(vec![tspath::combine_paths(
+                        &tspath::get_directory_path(&p.config_file_name),
+                        &["mapper.config.js"],
+                    )]);
                 }
                 let mut config_identity = String::new();
                 if dynamic_config {
@@ -1129,7 +1280,12 @@ impl Handler for recordingMapper {
                 if let Some(config_identity_override) = config_identity_override {
                     config_identity = config_identity_override;
                 }
-                Ok(OpenProjectResult { config_identity, watched_files: watched_files.unwrap_or_default(), option_diagnostics }.marshal_json())
+                Ok(OpenProjectResult {
+                    config_identity,
+                    watched_files: watched_files.unwrap_or_default(),
+                    option_diagnostics,
+                }
+                .marshal_json())
             }
             METHOD_CLOSE_PROJECT => {
                 let p: CloseProjectParams = params(params_)?;
@@ -1144,7 +1300,11 @@ impl Handler for recordingMapper {
                     state.transform_params = raw_text(params_);
                 }
                 Ok(TransformResult {
-                    mapped_output: MappedOutput { text: p.content, extension: ".ts".to_string(), ..Default::default() },
+                    mapped_output: MappedOutput {
+                        text: p.content,
+                        extension: ".ts".to_string(),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 }
                 .marshal_json())
@@ -1154,17 +1314,27 @@ impl Handler for recordingMapper {
     }
 
     // host_test.go:1211
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         Ok(())
     }
 }
 
 // Go `&contentmapper.Mapper{Options: options, Name: name, Version: "1.0.0", Exec: []string{"mapper"}, CompilerOptions:
 // compiler_options, DynamicConfig: dynamic_config}`.
-fn project_mapper(options: &str, name: &str, compiler_options: &[&str], dynamic_config: bool) -> &'static Mapper {
+fn project_mapper(
+    options: &str,
+    name: &str,
+    compiler_options: &[&str],
+    dynamic_config: bool,
+) -> &'static Mapper {
     let mut mapper = new_mapper("", &[], name, "1.0.0", &["mapper"]);
     mapper.definition.options = options.to_string();
-    mapper.manifest.compiler_options = compiler_options.iter().map(std::string::ToString::to_string).collect();
+    mapper.manifest.compiler_options =
+        compiler_options.iter().map(std::string::ToString::to_string).collect();
     mapper.manifest.dynamic_config = dynamic_config;
     leak(mapper)
 }
@@ -1192,19 +1362,40 @@ fn test_project_lifecycle() {
     let dynamic_a = project_mapper(r#"{"mode":"a"}"#, "dynamic", &["jsx"], true);
     let dynamic_b = project_mapper(r#"{"mode":"b"}"#, "dynamic", &[], true);
     let dynamic_a_options = compiler_options(tsrs_core::CompilerOptions::default());
-    let project = |config_file_name: &str, mappers: Vec<&'static Mapper>, compiler_options: Option<P<CompilerOptions>>| {
-        host.project(ProjectSpec { config_file_name: config_file_name.to_string(), mappers, compiler_options }).unwrap()
+    let project = |config_file_name: &str,
+                   mappers: Vec<&'static Mapper>,
+                   compiler_options: Option<P<CompilerOptions>>| {
+        host.project(ProjectSpec {
+            config_file_name: config_file_name.to_string(),
+            mappers,
+            compiler_options,
+        })
+        .unwrap()
     };
-    let project_a = project("/repo/a/tsconfig.json", vec![dynamic_a, dynamic_b], Some(dynamic_a_options));
-    let project_a_reversed = project("/repo/reversed/tsconfig.json", vec![dynamic_b, dynamic_a], Some(dynamic_a_options));
+    let project_a =
+        project("/repo/a/tsconfig.json", vec![dynamic_a, dynamic_b], Some(dynamic_a_options));
+    let project_a_reversed = project(
+        "/repo/reversed/tsconfig.json",
+        vec![dynamic_b, dynamic_a],
+        Some(dynamic_a_options),
+    );
     let project_different_options = project(
         "/repo/options/tsconfig.json",
         vec![dynamic_a],
         Some(compiler_options(CompilerOptions { jsx: JsxEmit::React, ..Default::default() })),
     );
-    let project_b = project("/repo/b/tsconfig.json", vec![dynamic_a], Some(compiler_options(tsrs_core::CompilerOptions::default())));
-    let project_a_again = project("/repo/a/tsconfig.json", vec![dynamic_a, dynamic_b], Some(dynamic_a_options));
-    assert_eq!(spawner.spawns.load(SeqCst), 0, "getting dynamic projects should not start the mapper");
+    let project_b = project(
+        "/repo/b/tsconfig.json",
+        vec![dynamic_a],
+        Some(compiler_options(tsrs_core::CompilerOptions::default())),
+    );
+    let project_a_again =
+        project("/repo/a/tsconfig.json", vec![dynamic_a, dynamic_b], Some(dynamic_a_options));
+    assert_eq!(
+        spawner.spawns.load(SeqCst),
+        0,
+        "getting dynamic projects should not start the mapper"
+    );
     let project_a_identities = project_a.identities().unwrap();
     let project_a_reversed_identities = project_a_reversed.identities().unwrap();
     let project_different_option_identities = project_different_options.identities().unwrap();
@@ -1281,7 +1472,10 @@ fn test_project_methods_after_host_close() {
 
 // Runs one transform of a project whose mapper is `mapper_process` and returns its error's ProjectError kind (Go's
 // errors.AsType of a *TransformError, then of a *ProjectError in it).
-fn project_error_kind(mapper_process: recordingMapper, project_mapper_: &'static Mapper) -> ProjectErrorKind {
+fn project_error_kind(
+    mapper_process: recordingMapper,
+    project_mapper_: &'static Mapper,
+) -> ProjectErrorKind {
     let host = new_host(fake_spawner(Some(Arc::new(mapper_process))), Locale::DEFAULT);
     let project = host
         .project(ProjectSpec {
@@ -1291,9 +1485,12 @@ fn project_error_kind(mapper_process: recordingMapper, project_mapper_: &'static
         })
         .unwrap();
     let err = project.transform(project_mapper_, request("/repo/file.ext", "x")).unwrap_err();
-    let transform_error = err.as_transform_error().unwrap_or_else(|| panic!("expected TransformError, got {err}"));
-    let project_error =
-        Error::Transform(transform_error.clone()).as_project_error().copied().unwrap_or_else(|| panic!("expected ProjectError, got {err}"));
+    let transform_error =
+        err.as_transform_error().unwrap_or_else(|| panic!("expected TransformError, got {err}"));
+    let project_error = Error::Transform(transform_error.clone())
+        .as_project_error()
+        .copied()
+        .unwrap_or_else(|| panic!("expected ProjectError, got {err}"));
     let _ = project.close();
     host.close().unwrap();
     project_error.kind
@@ -1309,16 +1506,29 @@ fn dynamic_package_mapper() -> &'static Mapper {
 // host_test.go:1112
 #[test]
 fn test_project_rejects_relative_watched_files() {
-    let mapper_process =
-        recordingMapper { watched_files: Some(vec!["mapper.config.js".to_string()]), dynamic_config: true, ..Default::default() };
-    assert_eq!(project_error_kind(mapper_process, dynamic_package_mapper()), ProjectErrorKind::NonAbsoluteWatchedFile);
+    let mapper_process = recordingMapper {
+        watched_files: Some(vec!["mapper.config.js".to_string()]),
+        dynamic_config: true,
+        ..Default::default()
+    };
+    assert_eq!(
+        project_error_kind(mapper_process, dynamic_package_mapper()),
+        ProjectErrorKind::NonAbsoluteWatchedFile
+    );
 }
 
 // host_test.go:1135
 #[test]
 fn test_dynamic_project_requires_config_identity() {
-    let mapper_process = recordingMapper { config_identity: Some(String::new()), dynamic_config: true, ..Default::default() };
-    assert_eq!(project_error_kind(mapper_process, dynamic_package_mapper()), ProjectErrorKind::MissingConfigIdentity);
+    let mapper_process = recordingMapper {
+        config_identity: Some(String::new()),
+        dynamic_config: true,
+        ..Default::default()
+    };
+    assert_eq!(
+        project_error_kind(mapper_process, dynamic_package_mapper()),
+        ProjectErrorKind::MissingConfigIdentity
+    );
 }
 
 // host_test.go:1159
@@ -1332,7 +1542,10 @@ fn test_static_mapper_rejects_dynamic_project_response_fields() {
         ),
         (
             "watched files",
-            recordingMapper { watched_files: Some(vec!["/repo/mapper.config.js".to_string()]), ..Default::default() },
+            recordingMapper {
+                watched_files: Some(vec!["/repo/mapper.config.js".to_string()]),
+                ..Default::default()
+            },
             ProjectErrorKind::UnexpectedWatchedFiles,
         ),
     ];
@@ -1363,8 +1576,10 @@ fn test_project_rejects_invalid_option_diagnostic_path() {
         })
         .unwrap();
     let err = project.transform(project_mapper, request("/repo/file.ext", "x")).unwrap_err();
-    let transform_error = err.as_transform_error().unwrap_or_else(|| panic!("expected TransformError, got {err}"));
-    let project_error = Error::Transform(transform_error.clone()).as_project_error().copied().unwrap();
+    let transform_error =
+        err.as_transform_error().unwrap_or_else(|| panic!("expected TransformError, got {err}"));
+    let project_error =
+        Error::Transform(transform_error.clone()).as_project_error().copied().unwrap();
     assert_eq!(project_error.kind, ProjectErrorKind::MalformedResponse);
     let _ = project.close();
     host.close().unwrap();
@@ -1375,11 +1590,23 @@ fn test_project_rejects_invalid_option_diagnostic_path() {
 fn test_runner_forwards_project_options() {
     let mapper = Arc::new(recordingMapper::default());
     let diagnostic_locale = Locale("cs-CZ".to_string());
-    let r = new_host(fake_spawner(Some(Arc::clone(&mapper) as Arc<dyn testMapper>)), diagnostic_locale);
+    let r =
+        new_host(fake_spawner(Some(Arc::clone(&mapper) as Arc<dyn testMapper>)), diagnostic_locale);
 
-    let mapper_definition = project_mapper(r#"{"strictTemplates":true}"#, "vue", &["target", "jsx"], false);
-    let options = compiler_options(CompilerOptions { target: ScriptTarget::ES2020, strict: Tristate::True, ..Default::default() });
-    let project = r.project(ProjectSpec { mappers: vec![mapper_definition], compiler_options: Some(options), ..Default::default() }).unwrap();
+    let mapper_definition =
+        project_mapper(r#"{"strictTemplates":true}"#, "vue", &["target", "jsx"], false);
+    let options = compiler_options(CompilerOptions {
+        target: ScriptTarget::ES2020,
+        strict: Tristate::True,
+        ..Default::default()
+    });
+    let project = r
+        .project(ProjectSpec {
+            mappers: vec![mapper_definition],
+            compiler_options: Some(options),
+            ..Default::default()
+        })
+        .unwrap();
     project.transform(mapper_definition, request("/a.vue", "x")).unwrap();
 
     let want = json::marshal(&compiler_options_to_go_json(&options)).unwrap();

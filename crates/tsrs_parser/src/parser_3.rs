@@ -2,22 +2,33 @@ use std::fmt::Display;
 
 use rustc_hash::FxHashMap;
 use tsrs_ast as ast;
-use tsrs_ast::{DiagnosticExt, Kind, ModifierFlags, ModifierList, Node, NodeFlags, NodeList, OperatorPrecedence, TokenFlags};
-use tsrs_core::{LanguageVariant, TextRange, Tristate, P};
+use tsrs_ast::{
+    DiagnosticExt, Kind, ModifierFlags, ModifierList, Node, NodeFlags, NodeList,
+    OperatorPrecedence, TokenFlags,
+};
+use tsrs_core::{LanguageVariant, P, TextRange, Tristate};
 use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
 use tsrs_scanner as scanner;
 
-use crate::parser_1::{is_export_modifier, is_missing_node_list, modifier_list_has_async, JsdocScannerInfo, Parser, ParsingContext};
+use crate::parser_1::{
+    JsdocScannerInfo, Parser, ParsingContext, is_export_modifier, is_missing_node_list,
+    modifier_list_has_async,
+};
 use crate::types::ParseFlags;
 use crate::utilities::{is_keyword_or_punctuation, token_is_identifier_or_keyword};
 
 impl Parser {
     pub(crate) fn parse_assignment_expression_or_higher(&mut self) -> P<Node> {
-        self.parse_assignment_expression_or_higher_worker(true /*allowReturnTypeInArrowFunction*/)
+        self.parse_assignment_expression_or_higher_worker(
+            true, /*allowReturnTypeInArrowFunction*/
+        )
     }
 
-    pub(crate) fn parse_assignment_expression_or_higher_worker(&mut self, allow_return_type_in_arrow_function: bool) -> P<Node> {
+    pub(crate) fn parse_assignment_expression_or_higher_worker(
+        &mut self,
+        allow_return_type_in_arrow_function: bool,
+    ) -> P<Node> {
         //  AssignmentExpression[in,yield]:
         //      1) ConditionalExpression[?in,?yield]
         //      2) LeftHandSideExpression = AssignmentExpression[?in,?yield]
@@ -43,10 +54,14 @@ impl Parser {
         // If we do successfully parse arrow-function, we must *not* recurse for productions 1, 2 or 3. An ArrowFunction is
         // not a LeftHandSideExpression, nor does it start a ConditionalExpression.  So we are done
         // with AssignmentExpression if we see one.
-        if let Some(arrow_expression) = self.try_parse_parenthesized_arrow_function_expression(allow_return_type_in_arrow_function) {
+        if let Some(arrow_expression) = self
+            .try_parse_parenthesized_arrow_function_expression(allow_return_type_in_arrow_function)
+        {
             return arrow_expression;
         }
-        if let Some(arrow_expression) = self.try_parse_async_simple_arrow_function_expression(allow_return_type_in_arrow_function) {
+        if let Some(arrow_expression) = self
+            .try_parse_async_simple_arrow_function_expression(allow_return_type_in_arrow_function)
+        {
             return arrow_expression;
         }
         // Now try to see if we're in production '1', '2' or '3'.  A conditional expression can
@@ -65,7 +80,13 @@ impl Parser {
         // parameter ('x => ...') above. We handle it here by checking if the parsed expression was a single
         // identifier and the current token is an arrow.
         if expr.kind() == Kind::Identifier && self.token == Kind::EqualsGreaterThanToken {
-            return self.parse_simple_arrow_function_expression(pos, expr, allow_return_type_in_arrow_function, jsdoc, None /*asyncModifier*/);
+            return self.parse_simple_arrow_function_expression(
+                pos,
+                expr,
+                allow_return_type_in_arrow_function,
+                jsdoc,
+                None, /*asyncModifier*/
+            );
         }
         // Now see if we might be in cases '2' or '3'.
         // If the expression was a LHS expression, and we have an assignment operator, then
@@ -73,9 +94,12 @@ impl Parser {
         //
         // Note: we call reScanGreaterToken so that we get an appropriately merged token
         // for cases like `> > =` becoming `>>=`
-        if ast::is_left_hand_side_expression(expr) && ast::is_assignment_operator(self.re_scan_greater_than_token()) {
+        if ast::is_left_hand_side_expression(expr)
+            && ast::is_assignment_operator(self.re_scan_greater_than_token())
+        {
             let operator_token = self.parse_token_node();
-            let right = self.parse_assignment_expression_or_higher_worker(allow_return_type_in_arrow_function);
+            let right = self
+                .parse_assignment_expression_or_higher_worker(allow_return_type_in_arrow_function);
             return self.make_binary_expression(expr, operator_token, right, pos);
         }
         // It wasn't an assignment or a lambda.  This is a conditional expression:
@@ -104,7 +128,8 @@ impl Parser {
             // for now we just check if the next token is an identifier.  More heuristics
             // can be added here later as necessary.  We just need to make sure that we
             // don't accidentally consume something legal.
-            return self.look_ahead(Parser::next_token_is_identifier_or_keyword_or_literal_on_same_line);
+            return self
+                .look_ahead(Parser::next_token_is_identifier_or_keyword_or_literal_on_same_line);
         }
         false
     }
@@ -117,7 +142,9 @@ impl Parser {
         //      yield [no LineTerminator here] * [Lexical goal InputElementRegExp]AssignmentExpression[?In, Yield]
         self.next_token();
 
-        let result = if !self.has_preceding_line_break() && (self.token == Kind::AsteriskToken || self.is_start_of_expression()) {
+        let result = if !self.has_preceding_line_break()
+            && (self.token == Kind::AsteriskToken || self.is_start_of_expression())
+        {
             let asterisk_token = self.parse_optional_token(Kind::AsteriskToken);
             let expression = self.parse_assignment_expression_or_higher();
             self.factory.new_yield_expression(asterisk_token, Some(expression))
@@ -130,7 +157,10 @@ impl Parser {
     }
 
     pub(crate) fn is_parenthesized_arrow_function_expression(&mut self) -> Tristate {
-        if self.token == Kind::OpenParenToken || self.token == Kind::LessThanToken || self.token == Kind::AsyncKeyword {
+        if self.token == Kind::OpenParenToken
+            || self.token == Kind::LessThanToken
+            || self.token == Kind::AsyncKeyword
+        {
             let state = self.mark();
             let result = self.next_is_parenthesized_arrow_function_expression();
             self.rewind(state);
@@ -166,7 +196,9 @@ impl Parser {
                 // but this is probably what the user intended.
                 let third = self.next_token();
                 match third {
-                    Kind::EqualsGreaterThanToken | Kind::ColonToken | Kind::OpenBraceToken => return Tristate::True,
+                    Kind::EqualsGreaterThanToken | Kind::ColonToken | Kind::OpenBraceToken => {
+                        return Tristate::True;
+                    }
                     _ => {}
                 }
                 return Tristate::False;
@@ -188,7 +220,10 @@ impl Parser {
             // Check for "(xxx yyy", where xxx is a modifier and yyy is an identifier. This
             // isn't actually allowed, but we want to treat it as a lambda so we can provide
             // a good error message.
-            if ast::is_modifier_kind(second) && second != Kind::AsyncKeyword && self.look_ahead(Parser::next_token_is_identifier) {
+            if ast::is_modifier_kind(second)
+                && second != Kind::AsyncKeyword
+                && self.look_ahead(Parser::next_token_is_identifier)
+            {
                 if self.next_token() == Kind::AsKeyword {
                     // https://github.com/microsoft/TypeScript/issues/44466
                     return Tristate::False;
@@ -210,7 +245,11 @@ impl Parser {
                 Kind::QuestionToken => {
                     self.next_token();
                     // If we have "(a?:" or "(a?," or "(a?=" or "(a?)" then it is definitely a lambda.
-                    if self.token == Kind::ColonToken || self.token == Kind::CommaToken || self.token == Kind::EqualsToken || self.token == Kind::CloseParenToken {
+                    if self.token == Kind::ColonToken
+                        || self.token == Kind::CommaToken
+                        || self.token == Kind::EqualsToken
+                        || self.token == Kind::CloseParenToken
+                    {
                         return Tristate::True;
                     }
                     // Otherwise it is definitely not a lambda.
@@ -239,7 +278,9 @@ impl Parser {
                     if third == Kind::ExtendsKeyword {
                         let fourth = p.next_token();
                         match fourth {
-                            Kind::EqualsToken | Kind::GreaterThanToken | Kind::SlashToken => return false,
+                            Kind::EqualsToken | Kind::GreaterThanToken | Kind::SlashToken => {
+                                return false;
+                            }
                             _ => {}
                         }
                         return true;
@@ -259,16 +300,30 @@ impl Parser {
     }
 
     #[inline]
-    pub(crate) fn try_parse_parenthesized_arrow_function_expression(&mut self, allow_return_type_in_arrow_function: bool) -> Option<P<Node>> {
+    pub(crate) fn try_parse_parenthesized_arrow_function_expression(
+        &mut self,
+        allow_return_type_in_arrow_function: bool,
+    ) -> Option<P<Node>> {
         // Keep the speculative snapshot in the worker, including standalone `=>` for error recovery.
-        if !matches!(self.token, Kind::OpenParenToken | Kind::LessThanToken | Kind::AsyncKeyword | Kind::EqualsGreaterThanToken) {
+        if !matches!(
+            self.token,
+            Kind::OpenParenToken
+                | Kind::LessThanToken
+                | Kind::AsyncKeyword
+                | Kind::EqualsGreaterThanToken
+        ) {
             return None;
         }
-        self.try_parse_parenthesized_arrow_function_expression_worker(allow_return_type_in_arrow_function)
+        self.try_parse_parenthesized_arrow_function_expression_worker(
+            allow_return_type_in_arrow_function,
+        )
     }
 
     #[inline(never)]
-    fn try_parse_parenthesized_arrow_function_expression_worker(&mut self, allow_return_type_in_arrow_function: bool) -> Option<P<Node>> {
+    fn try_parse_parenthesized_arrow_function_expression_worker(
+        &mut self,
+        allow_return_type_in_arrow_function: bool,
+    ) -> Option<P<Node>> {
         let tristate = self.is_parenthesized_arrow_function_expression();
         if tristate == Tristate::False {
             // It's definitely not a parenthesized arrow function expression.
@@ -279,17 +334,26 @@ impl Parser {
         // it out, but don't allow any ambiguity, and return 'undefined' if this could be an
         // expression instead.
         if tristate == Tristate::True {
-            return self.parse_parenthesized_arrow_function_expression(true /*allowAmbiguity*/, true /*allowReturnTypeInArrowFunction*/);
+            return self.parse_parenthesized_arrow_function_expression(
+                true, /*allowAmbiguity*/
+                true, /*allowReturnTypeInArrowFunction*/
+            );
         }
         let state = self.mark();
-        let result = self.parse_possible_parenthesized_arrow_function_expression(allow_return_type_in_arrow_function);
+        let result = self.parse_possible_parenthesized_arrow_function_expression(
+            allow_return_type_in_arrow_function,
+        );
         if result.is_none() {
             self.rewind(state);
         }
         result
     }
 
-    pub(crate) fn parse_parenthesized_arrow_function_expression(&mut self, allow_ambiguity: bool, allow_return_type_in_arrow_function: bool) -> Option<P<Node>> {
+    pub(crate) fn parse_parenthesized_arrow_function_expression(
+        &mut self,
+        allow_ambiguity: bool,
+        allow_return_type_in_arrow_function: bool,
+    ) -> Option<P<Node>> {
         let pos = self.node_pos();
         let jsdoc = self.jsdoc_scanner_info();
         let modifiers = self.parse_modifiers_for_arrow_function();
@@ -311,13 +375,15 @@ impl Parser {
             parameters = self.create_missing_list();
         } else {
             if !allow_ambiguity {
-                let maybe_parameters = self.parse_parameters_worker(signature_flags, allow_ambiguity);
+                let maybe_parameters =
+                    self.parse_parameters_worker(signature_flags, allow_ambiguity);
                 {
                     let maybe_parameters = maybe_parameters?;
                     parameters = maybe_parameters;
                 }
             } else {
-                parameters = self.parse_parameters_worker(signature_flags, allow_ambiguity).unwrap();
+                parameters =
+                    self.parse_parameters_worker(signature_flags, allow_ambiguity).unwrap();
             }
             if !self.parse_expected(Kind::CloseParenToken) && !allow_ambiguity {
                 return None;
@@ -347,7 +413,10 @@ impl Parser {
             }
             unwrapped_type = t.type_node(); // Skip parens if need be
         }
-        if !allow_ambiguity && self.token != Kind::EqualsGreaterThanToken && self.token != Kind::OpenBraceToken {
+        if !allow_ambiguity
+            && self.token != Kind::EqualsGreaterThanToken
+            && self.token != Kind::OpenBraceToken
+        {
             // Returning undefined here will cause our caller to rewind to where we started from.
             return None;
         }
@@ -355,7 +424,9 @@ impl Parser {
         // have an opening brace, just in case we're in an error state.
         let last_token = self.token;
         let equals_greater_than_token = self.parse_expected_token(Kind::EqualsGreaterThanToken);
-        let body = if last_token == Kind::EqualsGreaterThanToken || last_token == Kind::OpenBraceToken {
+        let body = if last_token == Kind::EqualsGreaterThanToken
+            || last_token == Kind::OpenBraceToken
+        {
             self.parse_arrow_function_expression_body(is_async, allow_return_type_in_arrow_function)
         } else {
             self.parse_identifier()
@@ -385,7 +456,15 @@ impl Parser {
                 return None;
             }
         }
-        let node = self.factory.new_arrow_function(modifiers, type_parameters, Some(parameters), return_type, None /*fullSignature*/, Some(equals_greater_than_token), Some(body));
+        let node = self.factory.new_arrow_function(
+            modifiers,
+            type_parameters,
+            Some(parameters),
+            return_type,
+            None, /*fullSignature*/
+            Some(equals_greater_than_token),
+            Some(body),
+        );
         let result = self.finish_node(node, pos);
         self.with_jsdoc(result, jsdoc);
         self.check_js_syntax(result);
@@ -403,11 +482,23 @@ impl Parser {
         None
     }
 
-    pub(crate) fn parse_arrow_function_expression_body(&mut self, is_async: bool, allow_return_type_in_arrow_function: bool) -> P<Node> {
+    pub(crate) fn parse_arrow_function_expression_body(
+        &mut self,
+        is_async: bool,
+        allow_return_type_in_arrow_function: bool,
+    ) -> P<Node> {
         if self.token == Kind::OpenBraceToken {
-            return self.parse_function_block(if is_async { ParseFlags::Await } else { ParseFlags::None }, None /*diagnosticMessage*/);
+            return self.parse_function_block(
+                if is_async { ParseFlags::Await } else { ParseFlags::None },
+                None, /*diagnosticMessage*/
+            );
         }
-        if self.token != Kind::SemicolonToken && self.token != Kind::FunctionKeyword && self.token != Kind::ClassKeyword && self.is_start_of_statement() && !self.is_start_of_expression_statement() {
+        if self.token != Kind::SemicolonToken
+            && self.token != Kind::FunctionKeyword
+            && self.token != Kind::ClassKeyword
+            && self.is_start_of_statement()
+            && !self.is_start_of_expression_statement()
+        {
             // Check if we got a plain statement (i.e. no expression-statements, no function/class expressions/declarations)
             //
             // Here we try to recover from a potential error situation in the case where the
@@ -422,41 +513,67 @@ impl Parser {
             // up preemptively closing the containing construct.
             //
             // Note: even when 'IgnoreMissingOpenBrace' is passed, parseBody will still error.
-            return self.parse_function_block(ParseFlags::IgnoreMissingOpenBrace | if is_async { ParseFlags::Await } else { ParseFlags::None }, None /*diagnosticMessage*/);
+            return self.parse_function_block(
+                ParseFlags::IgnoreMissingOpenBrace
+                    | if is_async { ParseFlags::Await } else { ParseFlags::None },
+                None, /*diagnosticMessage*/
+            );
         }
         let save_context_flags = self.context_flags;
         self.set_context_flags(NodeFlags::AwaitContext, is_async);
         self.set_context_flags(NodeFlags::YieldContext, false);
-        let node = self.parse_assignment_expression_or_higher_worker(allow_return_type_in_arrow_function);
+        let node =
+            self.parse_assignment_expression_or_higher_worker(allow_return_type_in_arrow_function);
         self.context_flags = save_context_flags;
         node
     }
 
     pub(crate) fn is_start_of_expression_statement(&mut self) -> bool {
         // As per the grammar, none of '{' or 'function' or 'class' can start an expression statement.
-        self.token != Kind::OpenBraceToken && self.token != Kind::FunctionKeyword && self.token != Kind::ClassKeyword && self.token != Kind::AtToken && self.is_start_of_expression()
+        self.token != Kind::OpenBraceToken
+            && self.token != Kind::FunctionKeyword
+            && self.token != Kind::ClassKeyword
+            && self.token != Kind::AtToken
+            && self.is_start_of_expression()
     }
 
-    pub(crate) fn parse_possible_parenthesized_arrow_function_expression(&mut self, allow_return_type_in_arrow_function: bool) -> Option<P<Node>> {
+    pub(crate) fn parse_possible_parenthesized_arrow_function_expression(
+        &mut self,
+        allow_return_type_in_arrow_function: bool,
+    ) -> Option<P<Node>> {
         let token_pos = self.scanner.token_start();
         if self.not_parenthesized_arrow.contains(&token_pos) {
             return None;
         }
-        let result = self.parse_parenthesized_arrow_function_expression(false /*allowAmbiguity*/, allow_return_type_in_arrow_function);
+        let result = self.parse_parenthesized_arrow_function_expression(
+            false, /*allowAmbiguity*/
+            allow_return_type_in_arrow_function,
+        );
         if result.is_none() {
             self.not_parenthesized_arrow.insert(token_pos);
         }
         result
     }
 
-    pub(crate) fn try_parse_async_simple_arrow_function_expression(&mut self, allow_return_type_in_arrow_function: bool) -> Option<P<Node>> {
+    pub(crate) fn try_parse_async_simple_arrow_function_expression(
+        &mut self,
+        allow_return_type_in_arrow_function: bool,
+    ) -> Option<P<Node>> {
         // We do a check here so that we won't be doing unnecessarily call to "lookAhead"
-        if self.token == Kind::AsyncKeyword && self.look_ahead(Parser::next_is_un_parenthesized_async_arrow_function) {
+        if self.token == Kind::AsyncKeyword
+            && self.look_ahead(Parser::next_is_un_parenthesized_async_arrow_function)
+        {
             let pos = self.node_pos();
             let jsdoc = self.jsdoc_scanner_info();
             let async_modifier = self.parse_modifiers_for_arrow_function();
             let expr = self.parse_binary_expression_or_higher(OperatorPrecedence::Lowest);
-            return Some(self.parse_simple_arrow_function_expression(pos, expr, allow_return_type_in_arrow_function, jsdoc, async_modifier));
+            return Some(self.parse_simple_arrow_function_expression(
+                pos,
+                expr,
+                allow_return_type_in_arrow_function,
+                jsdoc,
+                async_modifier,
+            ));
         }
         None
     }
@@ -503,14 +620,23 @@ impl Parser {
         );
         let parameter = self.finish_node(
             node,
-            identifier
-                .pos()
-                .expect_source("parsed nodes have source positions"),
+            identifier.pos().expect_source("parsed nodes have source positions"),
         );
         let parameters = self.new_node_list(parameter.loc(), &[parameter]);
         let equals_greater_than_token = self.parse_expected_token(Kind::EqualsGreaterThanToken);
-        let body = self.parse_arrow_function_expression_body(async_modifier.is_some() /*isAsync*/, allow_return_type_in_arrow_function);
-        let node = self.factory.new_arrow_function(async_modifier, None /*typeParameters*/, Some(parameters), None /*returnType*/, None /*fullSignature*/, Some(equals_greater_than_token), Some(body));
+        let body = self.parse_arrow_function_expression_body(
+            async_modifier.is_some(), /*isAsync*/
+            allow_return_type_in_arrow_function,
+        );
+        let node = self.factory.new_arrow_function(
+            async_modifier,
+            None, /*typeParameters*/
+            Some(parameters),
+            None, /*returnType*/
+            None, /*fullSignature*/
+            Some(equals_greater_than_token),
+            Some(body),
+        );
         let result = self.finish_node(node, pos);
         self.with_jsdoc(result, jsdoc);
         result
@@ -530,7 +656,9 @@ impl Parser {
         // we do not that for the 'whenFalse' part.
         let save_context_flags = self.context_flags;
         self.set_context_flags(NodeFlags::DisallowInContext, false);
-        let true_expression = self.parse_assignment_expression_or_higher_worker(false /*allowReturnTypeInArrowFunction*/);
+        let true_expression = self.parse_assignment_expression_or_higher_worker(
+            false, /*allowReturnTypeInArrowFunction*/
+        );
         self.context_flags = save_context_flags;
         let colon_token = self.parse_expected_token(Kind::ColonToken);
         let false_expression = if ast::node_is_present(Some(colon_token)) {
@@ -538,11 +666,20 @@ impl Parser {
         } else {
             self.create_missing_identifier()
         };
-        let node = self.factory.new_conditional_expression(left_operand, question_token, true_expression, colon_token, false_expression);
+        let node = self.factory.new_conditional_expression(
+            left_operand,
+            question_token,
+            true_expression,
+            colon_token,
+            false_expression,
+        );
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_binary_expression_or_higher(&mut self, precedence: OperatorPrecedence) -> P<Node> {
+    pub(crate) fn parse_binary_expression_or_higher(
+        &mut self,
+        precedence: OperatorPrecedence,
+    ) -> P<Node> {
         let pos = self.node_pos();
         let left_operand = self.parse_unary_expression_or_higher();
         self.parse_binary_expression_rest(precedence, left_operand, pos)
@@ -603,7 +740,9 @@ impl Parser {
                 // assertion. See https://github.com/microsoft/TypeScript/issues/63527.
                 let mut last_precedence = OperatorPrecedence::Highest;
                 if ast::is_binary_expression(last_operand) {
-                    last_precedence = ast::get_binary_operator_precedence(last_operand.as_binary_expression().operator_token.kind());
+                    last_precedence = ast::get_binary_operator_precedence(
+                        last_operand.as_binary_expression().operator_token.kind(),
+                    );
                 }
                 if operator == Kind::SatisfiesKeyword {
                     let type_node = self.parse_type();
@@ -621,31 +760,31 @@ impl Parser {
             } else {
                 let operator_token = self.parse_token_node();
                 let right = self.parse_binary_expression_or_higher(new_precedence);
-                left_operand = self.make_binary_expression(left_operand, operator_token, right, pos);
+                left_operand =
+                    self.make_binary_expression(left_operand, operator_token, right, pos);
                 last_operand = left_operand;
             }
         }
         left_operand
     }
 
-    pub(crate) fn make_satisfies_expression(&mut self, expression: P<Node>, type_node: P<Node>) -> P<Node> {
+    pub(crate) fn make_satisfies_expression(
+        &mut self,
+        expression: P<Node>,
+        type_node: P<Node>,
+    ) -> P<Node> {
         let node = self.factory.new_satisfies_expression(expression, type_node);
         let node = self.finish_node(
             node,
-            expression
-                .pos()
-                .expect_source("parsed nodes have source positions"),
+            expression.pos().expect_source("parsed nodes have source positions"),
         );
         self.check_js_syntax(node)
     }
 
     pub(crate) fn make_as_expression(&mut self, left: P<Node>, right: P<Node>) -> P<Node> {
         let node = self.factory.new_as_expression(left, right);
-        let node = self.finish_node(
-            node,
-            left.pos()
-                .expect_source("parsed nodes have source positions"),
-        );
+        let node =
+            self.finish_node(node, left.pos().expect_source("parsed nodes have source positions"));
         self.check_js_syntax(node)
     }
 
@@ -678,7 +817,11 @@ impl Parser {
             let pos = self.node_pos();
             let update_expression = self.parse_update_expression();
             if self.token == Kind::AsteriskAsteriskToken {
-                return self.parse_binary_expression_rest(ast::get_binary_operator_precedence(self.token), update_expression, pos);
+                return self.parse_binary_expression_rest(
+                    ast::get_binary_operator_precedence(self.token),
+                    update_expression,
+                    pos,
+                );
             }
             return update_expression;
         }
@@ -700,16 +843,16 @@ impl Parser {
     }
 
     #[cold]
-    fn report_invalid_exponentiation_operand(&mut self, simple_unary_expression: P<Node>, unary_operator: Kind) {
+    fn report_invalid_exponentiation_operand(
+        &mut self,
+        simple_unary_expression: P<Node>,
+        unary_operator: Kind,
+    ) {
         let pos = scanner::skip_trivia(
             self.source_text,
-            simple_unary_expression
-                .pos()
-                .expect_source("parsed nodes have source positions"),
+            simple_unary_expression.pos().expect_source("parsed nodes have source positions"),
         );
-        let end = simple_unary_expression
-            .end()
-            .expect_source("parsed nodes have source positions");
+        let end = simple_unary_expression.end().expect_source("parsed nodes have source positions");
         if simple_unary_expression.kind() == Kind::TypeAssertionExpression {
             self.parse_error_at(pos, end, &diagnostics::A_type_assertion_expression_is_not_allowed_in_the_left_hand_side_of_an_exponentiation_expression_Consider_enclosing_the_expression_in_parentheses, &[]);
         } else {
@@ -720,20 +863,33 @@ impl Parser {
 
     pub(crate) fn is_update_expression(&self) -> bool {
         match self.token {
-            Kind::PlusToken | Kind::MinusToken | Kind::TildeToken | Kind::ExclamationToken | Kind::DeleteKeyword | Kind::TypeOfKeyword | Kind::VoidKeyword | Kind::AwaitKeyword => false,
+            Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::TildeToken
+            | Kind::ExclamationToken
+            | Kind::DeleteKeyword
+            | Kind::TypeOfKeyword
+            | Kind::VoidKeyword
+            | Kind::AwaitKeyword => false,
             Kind::LessThanToken => self.language_variant == LanguageVariant::JSX,
             _ => true,
         }
     }
 
     // Outlining ++/-- leaves a small common path; forcing it inline saves instructions in the parser corpora.
-    #[expect(clippy::inline_always, reason = "Measured on the Compiler, VS Code, and t3code parser corpora after outlining update operators")]
+    #[expect(
+        clippy::inline_always,
+        reason = "Measured on the Compiler, VS Code, and t3code parser corpora after outlining update operators"
+    )]
     #[inline(always)]
     pub(crate) fn parse_update_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         if self.token == Kind::PlusPlusToken || self.token == Kind::MinusMinusToken {
             return self.parse_prefix_update_expression(pos);
-        } else if self.language_variant == LanguageVariant::JSX && self.token == Kind::LessThanToken && self.look_ahead(Parser::next_token_is_identifier_or_keyword_or_greater_than) {
+        } else if self.language_variant == LanguageVariant::JSX
+            && self.token == Kind::LessThanToken
+            && self.look_ahead(Parser::next_token_is_identifier_or_keyword_or_greater_than)
+        {
             // JSXElement is part of primaryExpression
             return self.parse_jsx_element_or_self_closing_element_or_fragment(
                 true,  /* inExpressionContext */
@@ -743,7 +899,9 @@ impl Parser {
             );
         }
         let expression = self.parse_left_hand_side_expression_or_higher();
-        if (self.token == Kind::PlusPlusToken || self.token == Kind::MinusMinusToken) && !self.has_preceding_line_break() {
+        if (self.token == Kind::PlusPlusToken || self.token == Kind::MinusMinusToken)
+            && !self.has_preceding_line_break()
+        {
             return self.parse_postfix_update_expression(pos, expression);
         }
         expression
@@ -774,7 +932,8 @@ impl Parser {
         must_be_unary: bool,
     ) -> P<Node> {
         let pos = self.node_pos();
-        let opening = self.parse_jsx_opening_or_self_closing_element_or_opening_fragment(in_expression_context);
+        let opening = self
+            .parse_jsx_opening_or_self_closing_element_or_opening_fragment(in_expression_context);
         let mut result: P<Node>;
         match opening.kind() {
             Kind::JsxOpeningElement => {
@@ -783,8 +942,14 @@ impl Parser {
                 let last_child = children.nodes().last().copied();
                 if let Some(last_child) = last_child.filter(|last_child| {
                     last_child.kind() == Kind::JsxElement
-                        && !ast::tag_names_are_equivalent(last_child.as_jsx_element().opening_element.tag_name(), last_child.as_jsx_element().closing_element.tag_name())
-                        && ast::tag_names_are_equivalent(opening.tag_name(), last_child.as_jsx_element().closing_element.tag_name())
+                        && !ast::tag_names_are_equivalent(
+                            last_child.as_jsx_element().opening_element.tag_name(),
+                            last_child.as_jsx_element().closing_element.tag_name(),
+                        )
+                        && ast::tag_names_are_equivalent(
+                            opening.tag_name(),
+                            last_child.as_jsx_element().closing_element.tag_name(),
+                        )
                 }) {
                     // when an unclosed JsxOpeningElement incorrectly parses its parent's JsxClosingElement,
                     // restructure (<div>(...<span>...</div>)) --> (<div>(...<span>...</>)</div>)
@@ -821,27 +986,49 @@ impl Parser {
                     nodes.push(new_last);
                     children = self.new_node_list(
                         TextRange::new(
-                            children
-                                .pos()
-                                .expect_source("parsed lists have source positions"),
-                            new_last
-                                .end()
-                                .expect_source("parsed nodes have source positions"),
+                            children.pos().expect_source("parsed lists have source positions"),
+                            new_last.end().expect_source("parsed nodes have source positions"),
                         ),
                         &nodes,
                     );
                     closing_element = last_child_data.closing_element;
                 } else {
-                    closing_element = self.parse_jsx_closing_element(opening, in_expression_context);
-                    if !ast::tag_names_are_equivalent(opening.tag_name(), closing_element.tag_name()) {
-                        if opening_tag.is_some_and(|opening_tag| ast::is_jsx_opening_element(opening_tag) && ast::tag_names_are_equivalent(closing_element.tag_name(), opening_tag.tag_name())) {
+                    closing_element =
+                        self.parse_jsx_closing_element(opening, in_expression_context);
+                    if !ast::tag_names_are_equivalent(
+                        opening.tag_name(),
+                        closing_element.tag_name(),
+                    ) {
+                        if opening_tag.is_some_and(|opening_tag| {
+                            ast::is_jsx_opening_element(opening_tag)
+                                && ast::tag_names_are_equivalent(
+                                    closing_element.tag_name(),
+                                    opening_tag.tag_name(),
+                                )
+                        }) {
                             // opening incorrectly matched with its parent's closing -- put error on opening
-                            let text = scanner::get_text_of_node_from_source_text(self.source_text, opening.tag_name(), false /*includeTrivia*/);
-                            self.parse_error_at_range(opening.tag_name().loc(), &diagnostics::JSX_element_0_has_no_corresponding_closing_tag, &[&text]);
+                            let text = scanner::get_text_of_node_from_source_text(
+                                self.source_text,
+                                opening.tag_name(),
+                                false, /*includeTrivia*/
+                            );
+                            self.parse_error_at_range(
+                                opening.tag_name().loc(),
+                                &diagnostics::JSX_element_0_has_no_corresponding_closing_tag,
+                                &[&text],
+                            );
                         } else {
                             // other opening/closing mismatches -- put error on closing
-                            let text = scanner::get_text_of_node_from_source_text(self.source_text, opening.tag_name(), false /*includeTrivia*/);
-                            self.parse_error_at_range(closing_element.tag_name().loc(), &diagnostics::Expected_corresponding_JSX_closing_tag_for_0, &[&text]);
+                            let text = scanner::get_text_of_node_from_source_text(
+                                self.source_text,
+                                opening.tag_name(),
+                                false, /*includeTrivia*/
+                            );
+                            self.parse_error_at_range(
+                                closing_element.tag_name().loc(),
+                                &diagnostics::Expected_corresponding_JSX_closing_tag_for_0,
+                                &[&text],
+                            );
                         }
                     }
                 }
@@ -872,9 +1059,7 @@ impl Parser {
         // a valid UnaryExpression and will cause problems later.
         if !must_be_unary && in_expression_context && self.token == Kind::LessThanToken {
             let top_bad_pos = top_invalid_node_position.unwrap_or_else(|| {
-                result
-                    .pos()
-                    .expect_source("parsed nodes have source positions")
+                result.pos().expect_source("parsed nodes have source positions")
             });
             let invalid_element = self.parse_jsx_element_or_self_closing_element_or_fragment(
                 true,
@@ -883,15 +1068,12 @@ impl Parser {
                 false,
             );
             let operator_token = self.factory.new_token(Kind::CommaToken);
-            let invalid_pos = invalid_element
-                .pos()
-                .expect_source("parsed nodes have source positions");
+            let invalid_pos =
+                invalid_element.pos().expect_source("parsed nodes have source positions");
             operator_token.set_loc(TextRange::new(invalid_pos, invalid_pos));
             self.parse_error_at(
                 scanner::skip_trivia(self.source_text, top_bad_pos),
-                invalid_element
-                    .end()
-                    .expect_source("parsed nodes have source positions"),
+                invalid_element.end().expect_source("parsed nodes have source positions"),
                 &diagnostics::JSX_expressions_must_have_one_parent_element,
                 &[],
             );
@@ -921,8 +1103,14 @@ impl Parser {
             self.node_stack.push(child);
             if ast::is_jsx_opening_element(opening_tag)
                 && child.kind() == Kind::JsxElement
-                && !ast::tag_names_are_equivalent(child.as_jsx_element().opening_element.tag_name(), child.as_jsx_element().closing_element.tag_name())
-                && ast::tag_names_are_equivalent(opening_tag.tag_name(), child.as_jsx_element().closing_element.tag_name())
+                && !ast::tag_names_are_equivalent(
+                    child.as_jsx_element().opening_element.tag_name(),
+                    child.as_jsx_element().closing_element.tag_name(),
+                )
+                && ast::tag_names_are_equivalent(
+                    opening_tag.tag_name(),
+                    child.as_jsx_element().closing_element.tag_name(),
+                )
             {
                 // stop after parsing a mismatched child like <div>...(<span></div>) in order to reattach the </div> higher
                 break;
@@ -939,19 +1127,20 @@ impl Parser {
                 // If we hit EOF, issue the error at the tag that lacks the closing element
                 // rather than at the end of the file (which is useless)
                 if ast::is_jsx_opening_fragment(opening_tag) {
-                    self.parse_error_at_range(opening_tag.loc(), &diagnostics::JSX_fragment_has_no_corresponding_closing_tag, &[]);
+                    self.parse_error_at_range(
+                        opening_tag.loc(),
+                        &diagnostics::JSX_fragment_has_no_corresponding_closing_tag,
+                        &[],
+                    );
                 } else {
                     // We want the error span to cover only 'Foo.Bar' in < Foo.Bar >
                     // or to cover only 'Foo' in < Foo >
                     let tag = opening_tag.tag_name();
-                    let tag_end = tag
-                        .end()
-                        .expect_source("parsed nodes have source positions");
+                    let tag_end = tag.end().expect_source("parsed nodes have source positions");
                     let start = std::cmp::min(
                         scanner::skip_trivia(
                             self.source_text,
-                            tag.pos()
-                                .expect_source("parsed nodes have source positions"),
+                            tag.pos().expect_source("parsed nodes have source positions"),
                         ),
                         tag_end,
                     );
@@ -1035,11 +1224,19 @@ impl Parser {
         self.token
     }
 
-    pub(crate) fn parse_jsx_closing_element(&mut self, open: P<Node>, in_expression_context: bool) -> P<Node> {
+    pub(crate) fn parse_jsx_closing_element(
+        &mut self,
+        open: P<Node>,
+        in_expression_context: bool,
+    ) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::LessThanSlashToken);
         let tag_name = self.parse_jsx_element_name();
-        if self.parse_expected_with_diagnostic(Kind::GreaterThanToken, None /*diagnosticMessage*/, false /*shouldAdvance*/) {
+        if self.parse_expected_with_diagnostic(
+            Kind::GreaterThanToken,
+            None,  /*diagnosticMessage*/
+            false, /*shouldAdvance*/
+        ) {
             // manually advance the scanner in order to look for jsx text inside jsx
             if in_expression_context || !ast::tag_names_are_equivalent(open.tag_name(), tag_name) {
                 self.next_token();
@@ -1051,7 +1248,10 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn parse_jsx_opening_or_self_closing_element_or_opening_fragment(&mut self, in_expression_context: bool) -> P<Node> {
+    pub(crate) fn parse_jsx_opening_or_self_closing_element_or_opening_fragment(
+        &mut self,
+        in_expression_context: bool,
+    ) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::LessThanToken);
         if self.token == Kind::GreaterThanToken {
@@ -1100,8 +1300,17 @@ impl Parser {
         }
         let mut expression = initial_expression;
         while self.parse_optional(Kind::DotToken) {
-            let name = self.parse_right_side_of_dot(true /*allowIdentifierNames*/, false /*allowPrivateIdentifiers*/, false /*allowUnicodeEscapeSequenceInIdentifierName*/);
-            let node = self.factory.new_property_access_expression(expression, None, name, NodeFlags::None);
+            let name = self.parse_right_side_of_dot(
+                true,  /*allowIdentifierNames*/
+                false, /*allowPrivateIdentifiers*/
+                false, /*allowUnicodeEscapeSequenceInIdentifierName*/
+            );
+            let node = self.factory.new_property_access_expression(
+                expression,
+                None,
+                name,
+                NodeFlags::None,
+            );
             expression = self.finish_node(node, pos);
         }
         expression
@@ -1127,7 +1336,8 @@ impl Parser {
 
     pub(crate) fn parse_jsx_attributes(&mut self) -> P<Node> {
         let pos = self.node_pos();
-        let properties = self.parse_list(ParsingContext::JsxAttributes, Parser::parse_jsx_attribute);
+        let properties =
+            self.parse_list(ParsingContext::JsxAttributes, Parser::parse_jsx_attribute);
         let node = self.factory.new_jsx_attributes(properties);
         self.finish_node(node, pos)
     }
@@ -1189,7 +1399,11 @@ impl Parser {
     pub(crate) fn parse_jsx_closing_fragment(&mut self, in_expression_context: bool) -> P<Node> {
         let pos = self.node_pos();
         self.parse_expected(Kind::LessThanSlashToken);
-        if self.parse_expected_with_diagnostic(Kind::GreaterThanToken, Some(&diagnostics::Expected_corresponding_closing_tag_for_JSX_fragment), false /*shouldAdvance*/) {
+        if self.parse_expected_with_diagnostic(
+            Kind::GreaterThanToken,
+            Some(&diagnostics::Expected_corresponding_closing_tag_for_JSX_fragment),
+            false, /*shouldAdvance*/
+        ) {
             // manually advance the scanner in order to look for jsx text inside jsx
             if in_expression_context {
                 self.next_token();
@@ -1204,7 +1418,9 @@ impl Parser {
     pub(crate) fn parse_simple_unary_expression(&mut self) -> P<Node> {
         let token = self.token;
         match token {
-            Kind::PlusToken | Kind::MinusToken | Kind::TildeToken | Kind::ExclamationToken => self.parse_prefix_unary_expression(),
+            Kind::PlusToken | Kind::MinusToken | Kind::TildeToken | Kind::ExclamationToken => {
+                self.parse_prefix_unary_expression()
+            }
             Kind::DeleteKeyword => self.parse_delete_expression(),
             Kind::TypeOfKeyword => self.parse_type_of_expression(),
             Kind::VoidKeyword => self.parse_void_expression(),
@@ -1265,7 +1481,8 @@ impl Parser {
                 return true;
             }
             // here we are using similar heuristics as 'isYieldExpression'
-            return self.look_ahead(Parser::next_token_is_identifier_or_keyword_or_literal_on_same_line);
+            return self
+                .look_ahead(Parser::next_token_is_identifier_or_keyword_or_literal_on_same_line);
         }
         false
     }
@@ -1279,7 +1496,10 @@ impl Parser {
     }
 
     pub(crate) fn parse_type_assertion(&mut self) -> P<Node> {
-        assert!(self.language_variant != LanguageVariant::JSX, "Type assertions should never be parsed in JSX; they should be parsed as comparisons or JSX elements/fragments.");
+        assert!(
+            self.language_variant != LanguageVariant::JSX,
+            "Type assertions should never be parsed in JSX; they should be parsed as comparisons or JSX elements/fragments."
+        );
         let pos = self.node_pos();
         self.parse_expected(Kind::LessThanToken);
         let type_node = self.parse_type();
@@ -1379,22 +1599,43 @@ impl Parser {
             let type_arguments = self.try_parse_type_arguments_in_expression();
             if type_arguments.is_some() {
                 let end = self.node_pos();
-                self.parse_error_at(start_pos, end, &diagnostics::X_super_may_not_use_type_arguments, &[]);
+                self.parse_error_at(
+                    start_pos,
+                    end,
+                    &diagnostics::X_super_may_not_use_type_arguments,
+                    &[],
+                );
                 if !self.is_template_start_of_tagged_template() {
-                    let node = self.factory.new_expression_with_type_arguments(expression, type_arguments);
+                    let node =
+                        self.factory.new_expression_with_type_arguments(expression, type_arguments);
                     expression = self.finish_node(node, pos);
                 }
             }
         }
-        if self.token == Kind::OpenParenToken || self.token == Kind::DotToken || self.token == Kind::OpenBracketToken {
+        if self.token == Kind::OpenParenToken
+            || self.token == Kind::DotToken
+            || self.token == Kind::OpenBracketToken
+        {
             return expression;
         }
         // If we have seen "super" it must be followed by '(' or '.'.
         // If it wasn't then just try to parse out a '.' and report an error.
-        self.parse_error_at_current_token(&diagnostics::X_super_must_be_followed_by_an_argument_list_or_member_access, &[]);
+        self.parse_error_at_current_token(
+            &diagnostics::X_super_must_be_followed_by_an_argument_list_or_member_access,
+            &[],
+        );
         // private names will never work with `super` (`super.#foo`), but that's a semantic error, not syntactic
-        let name = self.parse_right_side_of_dot(true /*allowIdentifierNames*/, true /*allowPrivateIdentifiers*/, true /*allowUnicodeEscapeSequenceInIdentifierName*/);
-        let node = self.factory.new_property_access_expression(expression, None /*questionDotToken*/, name, NodeFlags::None);
+        let name = self.parse_right_side_of_dot(
+            true, /*allowIdentifierNames*/
+            true, /*allowPrivateIdentifiers*/
+            true, /*allowUnicodeEscapeSequenceInIdentifierName*/
+        );
+        let node = self.factory.new_property_access_expression(
+            expression,
+            None, /*questionDotToken*/
+            name,
+            NodeFlags::None,
+        );
         self.finish_node(node, pos)
     }
 
@@ -1408,7 +1649,9 @@ impl Parser {
         // Check the cheap preconditions before saving the parser state: unless the current token is `<`
         // (or `<<`, which reScanLessThanToken would split), there is nothing to speculatively parse and
         // the mark/rewind would be a no-op.
-        if self.context_flags.intersects(NodeFlags::JavaScriptFile) || (self.token != Kind::LessThanToken && self.token != Kind::LessThanLessThanToken) {
+        if self.context_flags.intersects(NodeFlags::JavaScriptFile)
+            || (self.token != Kind::LessThanToken && self.token != Kind::LessThanLessThanToken)
+        {
             return None;
         }
         self.try_parse_type_arguments_in_expression_worker()
@@ -1418,7 +1661,8 @@ impl Parser {
         let state = self.mark();
         if self.re_scan_less_than_token() == Kind::LessThanToken {
             self.next_token();
-            let type_arguments = self.parse_delimited_list(ParsingContext::TypeArguments, Parser::parse_type);
+            let type_arguments =
+                self.parse_delimited_list(ParsingContext::TypeArguments, Parser::parse_type);
             // If it doesn't have the closing `>` then it's definitely not an type argument list.
             if self.re_scan_greater_than_token() == Kind::GreaterThanToken {
                 self.next_token();
@@ -1441,16 +1685,22 @@ impl Parser {
             // foo<x>(
             // foo<T> `...`
             // foo<T> `...${100}...`
-            Kind::OpenParenToken | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateHead => return true,
+            Kind::OpenParenToken | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateHead => {
+                return true;
+            }
             // A type argument list followed by `<` never makes sense, and a type argument list followed
             // by `>` is ambiguous with a (re-scanned) `>>` operator, so we disqualify both. Also, in
             // this context, `+` and `-` are unary operators, not binary operators.
-            Kind::LessThanToken | Kind::GreaterThanToken | Kind::PlusToken | Kind::MinusToken => return false,
+            Kind::LessThanToken | Kind::GreaterThanToken | Kind::PlusToken | Kind::MinusToken => {
+                return false;
+            }
             _ => {}
         }
         // We favor the type argument list interpretation when it is immediately followed by
         // a line break, a binary operator, or something that can't start an expression.
-        self.has_preceding_line_break() || self.is_binary_operator() || !self.is_start_of_expression()
+        self.has_preceding_line_break()
+            || self.is_binary_operator()
+            || !self.is_start_of_expression()
     }
 
     pub(crate) fn parse_member_expression_or_higher(&mut self) -> P<Node> {
@@ -1523,10 +1773,17 @@ impl Parser {
 
     #[inline]
     fn is_start_of_member_expression_rest(&self) -> bool {
-        matches!(self.token,
-            Kind::DotToken | Kind::QuestionDotToken | Kind::OpenBracketToken
-                | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateHead | Kind::ExclamationToken
-                | Kind::LessThanToken | Kind::LessThanLessThanToken)
+        matches!(
+            self.token,
+            Kind::DotToken
+                | Kind::QuestionDotToken
+                | Kind::OpenBracketToken
+                | Kind::NoSubstitutionTemplateLiteral
+                | Kind::TemplateHead
+                | Kind::ExclamationToken
+                | Kind::LessThanToken
+                | Kind::LessThanLessThanToken
+        )
     }
 
     #[inline(never)]
@@ -1540,29 +1797,50 @@ impl Parser {
         loop {
             let mut question_dot_token: Option<P<Node>> = None;
             let is_property_access;
-            if allow_optional_chain && self.is_start_of_optional_property_or_element_access_chain() {
+            if allow_optional_chain && self.is_start_of_optional_property_or_element_access_chain()
+            {
                 question_dot_token = Some(self.parse_expected_token(Kind::QuestionDotToken));
                 is_property_access = token_is_identifier_or_keyword(self.token);
             } else {
                 is_property_access = self.parse_optional(Kind::DotToken);
             }
             if is_property_access {
-                expression = self.parse_property_access_expression_rest(pos, expression, question_dot_token);
+                expression =
+                    self.parse_property_access_expression_rest(pos, expression, question_dot_token);
                 continue;
             }
             // when in the [Decorator] context, we do not parse ElementAccess as it could be part of a ComputedPropertyName
-            if (question_dot_token.is_some() || !self.in_decorator_context()) && self.parse_optional(Kind::OpenBracketToken) {
-                expression = self.parse_element_access_expression_rest(pos, expression, question_dot_token);
+            if (question_dot_token.is_some() || !self.in_decorator_context())
+                && self.parse_optional(Kind::OpenBracketToken)
+            {
+                expression =
+                    self.parse_element_access_expression_rest(pos, expression, question_dot_token);
                 continue;
             }
             if self.is_template_start_of_tagged_template() {
                 // Absorb type arguments into TemplateExpression when preceding expression is ExpressionWithTypeArguments
-                if question_dot_token.is_none() && ast::is_expression_with_type_arguments(expression) {
+                if question_dot_token.is_none()
+                    && ast::is_expression_with_type_arguments(expression)
+                {
                     let original = expression.as_expression_with_type_arguments();
-                    expression = self.parse_tagged_template_rest(pos, original.expression, question_dot_token, original.type_arguments.get());
-                    Self::unparse_expression_with_type_arguments(Some(original.expression), original.type_arguments.get(), expression);
+                    expression = self.parse_tagged_template_rest(
+                        pos,
+                        original.expression,
+                        question_dot_token,
+                        original.type_arguments.get(),
+                    );
+                    Self::unparse_expression_with_type_arguments(
+                        Some(original.expression),
+                        original.type_arguments.get(),
+                        expression,
+                    );
                 } else {
-                    expression = self.parse_tagged_template_rest(pos, expression, question_dot_token, None /*typeArguments*/);
+                    expression = self.parse_tagged_template_rest(
+                        pos,
+                        expression,
+                        question_dot_token,
+                        None, /*typeArguments*/
+                    );
                 }
                 continue;
             }
@@ -1576,7 +1854,8 @@ impl Parser {
                 }
                 let type_arguments = self.try_parse_type_arguments_in_expression();
                 if type_arguments.is_some() {
-                    let node = self.factory.new_expression_with_type_arguments(expression, type_arguments);
+                    let node =
+                        self.factory.new_expression_with_type_arguments(expression, type_arguments);
                     expression = self.finish_node(node, pos);
                     continue;
                 }
@@ -1586,10 +1865,14 @@ impl Parser {
     }
 
     pub(crate) fn is_start_of_optional_property_or_element_access_chain(&mut self) -> bool {
-        self.token == Kind::QuestionDotToken && self.look_ahead(Parser::next_token_is_identifier_or_keyword_or_open_bracket_or_template)
+        self.token == Kind::QuestionDotToken
+            && self
+                .look_ahead(Parser::next_token_is_identifier_or_keyword_or_open_bracket_or_template)
     }
 
-    pub(crate) fn next_token_is_identifier_or_keyword_or_open_bracket_or_template(&mut self) -> bool {
+    pub(crate) fn next_token_is_identifier_or_keyword_or_open_bracket_or_template(
+        &mut self,
+    ) -> bool {
         self.next_token();
         token_is_identifier_or_keyword(self.token)
             || self.token == Kind::OpenBracketToken
@@ -1613,28 +1896,23 @@ impl Parser {
             expression,
             question_dot_token,
             name,
-            if is_optional_chain {
-                NodeFlags::OptionalChain
-            } else {
-                NodeFlags::None
-            },
+            if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
         );
         if is_optional_chain && ast::is_private_identifier(name) {
             let loc = self.skip_range_trivia(name.loc());
-            self.parse_error_at_range(loc, &diagnostics::An_optional_chain_cannot_contain_private_identifiers, &[]);
+            self.parse_error_at_range(
+                loc,
+                &diagnostics::An_optional_chain_cannot_contain_private_identifiers,
+                &[],
+            );
         }
         if ast::is_expression_with_type_arguments(expression) {
             if let Some(type_arguments) = expression.type_argument_list() {
                 let loc = TextRange::new(
-                    type_arguments
-                        .pos()
-                        .expect_source("parsed lists have source positions")
-                        - 1,
+                    type_arguments.pos().expect_source("parsed lists have source positions") - 1,
                     scanner::skip_trivia(
                         self.source_text,
-                        type_arguments
-                            .end()
-                            .expect_source("parsed lists have source positions"),
+                        type_arguments.end().expect_source("parsed lists have source positions"),
                     ) + 1,
                 );
                 self.parse_error_at_range(loc, &diagnostics::An_instantiation_expression_cannot_be_followed_by_a_property_access, &[]);
@@ -1649,13 +1927,16 @@ impl Parser {
             return true;
         }
         // check for an optional chain in a non-null expression
-        ast::is_non_null_expression(node) && Self::try_reparse_optional_chain_in_non_null_expression(node)
+        ast::is_non_null_expression(node)
+            && Self::try_reparse_optional_chain_in_non_null_expression(node)
     }
 
     fn try_reparse_optional_chain_in_non_null_expression(node: P<Node>) -> bool {
         {
             let mut expr = node.expression().unwrap();
-            while ast::is_non_null_expression(expr) && !expr.flags().intersects(NodeFlags::OptionalChain) {
+            while ast::is_non_null_expression(expr)
+                && !expr.flags().intersects(NodeFlags::OptionalChain)
+            {
                 expr = expr.expression().unwrap();
             }
             if expr.flags().intersects(NodeFlags::OptionalChain) {
@@ -1680,13 +1961,24 @@ impl Parser {
         let mut argument_expression = self.create_missing_identifier();
         if self.token == Kind::CloseBracketToken {
             let node_pos = self.node_pos();
-            self.parse_error_at(node_pos, node_pos, &diagnostics::An_element_access_expression_should_take_an_argument, &[]);
+            self.parse_error_at(
+                node_pos,
+                node_pos,
+                &diagnostics::An_element_access_expression_should_take_an_argument,
+                &[],
+            );
         } else {
             argument_expression = self.parse_expression_allow_in();
         }
         self.parse_expected(Kind::CloseBracketToken);
-        let is_optional_chain = question_dot_token.is_some() || Self::try_reparse_optional_chain(expression);
-        let node = self.factory.new_element_access_expression(expression, question_dot_token, argument_expression, if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None });
+        let is_optional_chain =
+            question_dot_token.is_some() || Self::try_reparse_optional_chain(expression);
+        let node = self.factory.new_element_access_expression(
+            expression,
+            question_dot_token,
+            argument_expression,
+            if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
+        );
         self.finish_node(node, pos)
     }
 
@@ -1702,36 +1994,60 @@ impl Parser {
     fn parse_call_expression_rest_worker(&mut self, pos: u32, expression: P<Node>) -> P<Node> {
         let mut expression = expression;
         loop {
-            expression = self.parse_member_expression_rest(pos, expression, true /*allowOptionalChain*/);
+            expression = self
+                .parse_member_expression_rest(pos, expression, true /*allowOptionalChain*/);
             let mut type_arguments: Option<P<NodeList>> = None;
             let question_dot_token = self.parse_optional_token(Kind::QuestionDotToken);
             if question_dot_token.is_some() {
                 type_arguments = self.try_parse_type_arguments_in_expression();
                 if self.is_template_start_of_tagged_template() {
-                    expression = self.parse_tagged_template_rest(pos, expression, question_dot_token, type_arguments);
+                    expression = self.parse_tagged_template_rest(
+                        pos,
+                        expression,
+                        question_dot_token,
+                        type_arguments,
+                    );
                     continue;
                 }
             }
             if type_arguments.is_some() || self.token == Kind::OpenParenToken {
                 // Absorb type arguments into CallExpression when preceding expression is ExpressionWithTypeArguments
-                if question_dot_token.is_none() && expression.kind() == Kind::ExpressionWithTypeArguments {
+                if question_dot_token.is_none()
+                    && expression.kind() == Kind::ExpressionWithTypeArguments
+                {
                     type_arguments = expression.type_argument_list();
                     expression = expression.as_expression_with_type_arguments().expression;
                 }
                 let inner = expression;
                 let argument_list = self.parse_argument_list();
-                let is_optional_chain = question_dot_token.is_some() || Self::try_reparse_optional_chain(expression);
-                let node = self.factory.new_call_expression(expression, question_dot_token, type_arguments, argument_list, if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None });
+                let is_optional_chain =
+                    question_dot_token.is_some() || Self::try_reparse_optional_chain(expression);
+                let node = self.factory.new_call_expression(
+                    expression,
+                    question_dot_token,
+                    type_arguments,
+                    argument_list,
+                    if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
+                );
                 let node = self.finish_node(node, pos);
                 expression = self.check_js_syntax(node);
-                Self::unparse_expression_with_type_arguments(Some(inner), type_arguments, expression);
+                Self::unparse_expression_with_type_arguments(
+                    Some(inner),
+                    type_arguments,
+                    expression,
+                );
                 continue;
             }
             if question_dot_token.is_some() {
                 // We parsed `?.` but then failed to parse anything, so report a missing identifier here.
                 self.parse_error_at_current_token(&diagnostics::Identifier_expected, &[]);
                 let name = self.create_missing_identifier();
-                let node = self.factory.new_property_access_expression(expression, question_dot_token, name, NodeFlags::OptionalChain);
+                let node = self.factory.new_property_access_expression(
+                    expression,
+                    question_dot_token,
+                    name,
+                    NodeFlags::OptionalChain,
+                );
                 expression = self.finish_node(node, pos);
             }
             break;
@@ -1741,13 +2057,22 @@ impl Parser {
 
     pub(crate) fn parse_argument_list(&mut self) -> P<NodeList> {
         self.parse_expected(Kind::OpenParenToken);
-        let result = self.parse_delimited_list(ParsingContext::ArgumentExpressions, Parser::parse_argument_expression).unwrap();
+        let result = self
+            .parse_delimited_list(
+                ParsingContext::ArgumentExpressions,
+                Parser::parse_argument_expression,
+            )
+            .unwrap();
         self.parse_expected(Kind::CloseParenToken);
         result
     }
 
     pub(crate) fn parse_argument_expression(&mut self) -> P<Node> {
-        self.do_in_context(NodeFlags::DisallowInContext | NodeFlags::DecoratorContext, false, Parser::parse_argument_or_array_literal_element)
+        self.do_in_context(
+            NodeFlags::DisallowInContext | NodeFlags::DecoratorContext,
+            false,
+            Parser::parse_argument_or_array_literal_element,
+        )
     }
 
     pub(crate) fn parse_argument_or_array_literal_element(&mut self) -> P<Node> {
@@ -1778,15 +2103,21 @@ impl Parser {
         question_dot_token: Option<P<Node>>,
         type_arguments: Option<P<NodeList>>,
     ) -> P<Node> {
-
         let template: P<Node> = if self.token == Kind::NoSubstitutionTemplateLiteral {
             self.re_scan_template_token(true /*isTaggedTemplate*/);
             self.parse_literal_expression()
         } else {
             self.parse_template_expression(true /*isTaggedTemplate*/)
         };
-        let is_optional_chain = question_dot_token.is_some() || tag.flags().intersects(NodeFlags::OptionalChain);
-        let node = self.factory.new_tagged_template_expression(tag, question_dot_token, type_arguments, template, if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None });
+        let is_optional_chain =
+            question_dot_token.is_some() || tag.flags().intersects(NodeFlags::OptionalChain);
+        let node = self.factory.new_tagged_template_expression(
+            tag,
+            question_dot_token,
+            type_arguments,
+            template,
+            if is_optional_chain { NodeFlags::OptionalChain } else { NodeFlags::None },
+        );
         let node = self.finish_node(node, pos);
         self.check_js_syntax(node)
     }
@@ -1825,7 +2156,8 @@ impl Parser {
     #[inline]
     pub(crate) fn parse_primary_expression(&mut self) -> P<Node> {
         if self.token == Kind::Identifier {
-            return self.parse_identifier_with_diagnostic(Some(&diagnostics::Expression_expected), None);
+            return self
+                .parse_identifier_with_diagnostic(Some(&diagnostics::Expression_expected), None);
         }
         self.parse_primary_expression_worker()
     }
@@ -1834,13 +2166,22 @@ impl Parser {
     fn parse_primary_expression_worker(&mut self) -> P<Node> {
         let token = self.token;
         match token {
-            Kind::NoSubstitutionTemplateLiteral | Kind::NumericLiteral | Kind::BigIntLiteral | Kind::StringLiteral => {
-                if token == Kind::NoSubstitutionTemplateLiteral && self.scanner.token_flags().intersects(TokenFlags::IsInvalid) {
+            Kind::NoSubstitutionTemplateLiteral
+            | Kind::NumericLiteral
+            | Kind::BigIntLiteral
+            | Kind::StringLiteral => {
+                if token == Kind::NoSubstitutionTemplateLiteral
+                    && self.scanner.token_flags().intersects(TokenFlags::IsInvalid)
+                {
                     self.re_scan_template_token(false /*isTaggedTemplate*/);
                 }
                 return self.parse_literal_expression();
             }
-            Kind::ThisKeyword | Kind::SuperKeyword | Kind::NullKeyword | Kind::TrueKeyword | Kind::FalseKeyword => {
+            Kind::ThisKeyword
+            | Kind::SuperKeyword
+            | Kind::NullKeyword
+            | Kind::TrueKeyword
+            | Kind::FalseKeyword => {
                 return self.parse_keyword_expression();
             }
             Kind::OpenParenToken => return self.parse_parenthesized_expression(),
@@ -1863,7 +2204,9 @@ impl Parser {
                     return self.parse_literal_expression();
                 }
             }
-            Kind::TemplateHead => return self.parse_template_expression(false /*isTaggedTemplate*/),
+            Kind::TemplateHead => {
+                return self.parse_template_expression(false /*isTaggedTemplate*/);
+            }
             Kind::PrivateIdentifier => return self.parse_private_identifier(),
             _ => {}
         }
@@ -1887,8 +2230,18 @@ impl Parser {
         let open_bracket_position = self.scanner.token_start();
         let open_bracket_parsed = self.parse_expected(Kind::OpenBracketToken);
         let multi_line = self.has_preceding_line_break();
-        let elements = self.parse_delimited_list(ParsingContext::ArrayLiteralMembers, Parser::parse_argument_or_array_literal_element).unwrap();
-        self.parse_expected_matching_brackets(Kind::OpenBracketToken, Kind::CloseBracketToken, open_bracket_parsed, open_bracket_position);
+        let elements = self
+            .parse_delimited_list(
+                ParsingContext::ArrayLiteralMembers,
+                Parser::parse_argument_or_array_literal_element,
+            )
+            .unwrap();
+        self.parse_expected_matching_brackets(
+            Kind::OpenBracketToken,
+            Kind::CloseBracketToken,
+            open_bracket_parsed,
+            open_bracket_position,
+        );
         let node = self.factory.new_array_literal_expression(elements, multi_line);
         self.finish_node(node, pos)
     }
@@ -1898,8 +2251,18 @@ impl Parser {
         let open_brace_position = self.scanner.token_start();
         let open_brace_parsed = self.parse_expected(Kind::OpenBraceToken);
         let multi_line = self.has_preceding_line_break();
-        let properties = self.parse_delimited_list(ParsingContext::ObjectLiteralMembers, Parser::parse_object_literal_element).unwrap();
-        self.parse_expected_matching_brackets(Kind::OpenBraceToken, Kind::CloseBraceToken, open_brace_parsed, open_brace_position);
+        let properties = self
+            .parse_delimited_list(
+                ParsingContext::ObjectLiteralMembers,
+                Parser::parse_object_literal_element,
+            )
+            .unwrap();
+        self.parse_expected_matching_brackets(
+            Kind::OpenBraceToken,
+            Kind::CloseBraceToken,
+            open_brace_parsed,
+            open_brace_position,
+        );
         let node = self.factory.new_object_literal_expression(properties, multi_line);
         self.finish_node(node, pos)
     }
@@ -1914,12 +2277,28 @@ impl Parser {
             self.with_jsdoc(result, jsdoc);
             return result;
         }
-        let modifiers = self.parse_modifiers_ex(true /*allowDecorators*/, false /*permitConstAsModifier*/, false /*stopOnStartOfClassStaticBlock*/);
+        let modifiers = self.parse_modifiers_ex(
+            true,  /*allowDecorators*/
+            false, /*permitConstAsModifier*/
+            false, /*stopOnStartOfClassStaticBlock*/
+        );
         if self.parse_contextual_modifier(Kind::GetKeyword) {
-            return self.parse_accessor_declaration(pos, jsdoc, modifiers, Kind::GetAccessor, ParseFlags::None);
+            return self.parse_accessor_declaration(
+                pos,
+                jsdoc,
+                modifiers,
+                Kind::GetAccessor,
+                ParseFlags::None,
+            );
         }
         if self.parse_contextual_modifier(Kind::SetKeyword) {
-            return self.parse_accessor_declaration(pos, jsdoc, modifiers, Kind::SetAccessor, ParseFlags::None);
+            return self.parse_accessor_declaration(
+                pos,
+                jsdoc,
+                modifiers,
+                Kind::SetAccessor,
+                ParseFlags::None,
+            );
         }
         let asterisk_token = self.parse_optional_token(Kind::AsteriskToken);
         let token_is_identifier = self.is_identifier();
@@ -1930,8 +2309,19 @@ impl Parser {
         if postfix_token.is_none() {
             postfix_token = self.parse_optional_token(Kind::ExclamationToken);
         }
-        if asterisk_token.is_some() || self.token == Kind::OpenParenToken || self.token == Kind::LessThanToken {
-            return self.parse_method_declaration(pos, jsdoc, modifiers, asterisk_token, name, postfix_token, None /*diagnosticMessage*/);
+        if asterisk_token.is_some()
+            || self.token == Kind::OpenParenToken
+            || self.token == Kind::LessThanToken
+        {
+            return self.parse_method_declaration(
+                pos,
+                jsdoc,
+                modifiers,
+                asterisk_token,
+                name,
+                postfix_token,
+                None, /*diagnosticMessage*/
+            );
         }
         // check if it is short-hand property assignment or normal property assignment
         // NOTE: if token is EqualsToken it is interpreted as CoverInitializedName production
@@ -1939,18 +2329,40 @@ impl Parser {
         //     IdentifierReference[?Yield] Initializer[In, ?Yield]
         // this is necessary because ObjectLiteral productions are also used to cover grammar for ObjectAssignmentPattern
 
-        let is_shorthand_property_assignment = token_is_identifier && self.token != Kind::ColonToken;
+        let is_shorthand_property_assignment =
+            token_is_identifier && self.token != Kind::ColonToken;
         let node: P<Node> = if is_shorthand_property_assignment {
             let equals_token = self.parse_optional_token(Kind::EqualsToken);
             let mut initializer: Option<P<Node>> = None;
             if equals_token.is_some() {
-                initializer = Some(self.do_in_context(NodeFlags::DisallowInContext, false, Parser::parse_assignment_expression_or_higher));
+                initializer = Some(self.do_in_context(
+                    NodeFlags::DisallowInContext,
+                    false,
+                    Parser::parse_assignment_expression_or_higher,
+                ));
             }
-            self.factory.new_shorthand_property_assignment(modifiers, name, postfix_token, None /*typeNode*/, equals_token, initializer)
+            self.factory.new_shorthand_property_assignment(
+                modifiers,
+                name,
+                postfix_token,
+                None, /*typeNode*/
+                equals_token,
+                initializer,
+            )
         } else {
             self.parse_expected(Kind::ColonToken);
-            let initializer = self.do_in_context(NodeFlags::DisallowInContext, false, Parser::parse_assignment_expression_or_higher);
-            self.factory.new_property_assignment(modifiers, name, postfix_token, None /*typeNode*/, initializer)
+            let initializer = self.do_in_context(
+                NodeFlags::DisallowInContext,
+                false,
+                Parser::parse_assignment_expression_or_higher,
+            );
+            self.factory.new_property_assignment(
+                modifiers,
+                name,
+                postfix_token,
+                None, /*typeNode*/
+                initializer,
+            )
         };
         self.finish_node(node, pos);
         self.with_jsdoc(node, jsdoc);
@@ -1972,13 +2384,26 @@ impl Parser {
         let asterisk_token = self.parse_optional_token(Kind::AsteriskToken);
         let is_generator = asterisk_token.is_some();
         let is_async = modifier_list_has_async(modifiers);
-        let signature_flags = (if is_generator { ParseFlags::Yield } else { ParseFlags::None }) | (if is_async { ParseFlags::Await } else { ParseFlags::None });
+        let signature_flags = (if is_generator { ParseFlags::Yield } else { ParseFlags::None })
+            | (if is_async { ParseFlags::Await } else { ParseFlags::None });
         let name = if is_generator && is_async {
-            self.do_in_context(NodeFlags::YieldContext | NodeFlags::AwaitContext, true, Parser::parse_optional_binding_identifier)
+            self.do_in_context(
+                NodeFlags::YieldContext | NodeFlags::AwaitContext,
+                true,
+                Parser::parse_optional_binding_identifier,
+            )
         } else if is_generator {
-            self.do_in_context(NodeFlags::YieldContext, true, Parser::parse_optional_binding_identifier)
+            self.do_in_context(
+                NodeFlags::YieldContext,
+                true,
+                Parser::parse_optional_binding_identifier,
+            )
         } else if is_async {
-            self.do_in_context(NodeFlags::AwaitContext, true, Parser::parse_optional_binding_identifier)
+            self.do_in_context(
+                NodeFlags::AwaitContext,
+                true,
+                Parser::parse_optional_binding_identifier,
+            )
         } else {
             self.parse_optional_binding_identifier()
         };
@@ -1987,7 +2412,16 @@ impl Parser {
         let return_type = self.parse_return_type(Kind::ColonToken, false /*isType*/);
         let body = self.parse_function_block(signature_flags, None /*diagnosticMessage*/);
         self.context_flags = save_contex_flags;
-        let result = self.factory.new_function_expression(modifiers, asterisk_token, name, type_parameters, Some(parameters), return_type, None /*fullSignature*/, Some(body));
+        let result = self.factory.new_function_expression(
+            modifiers,
+            asterisk_token,
+            name,
+            type_parameters,
+            Some(parameters),
+            return_type,
+            None, /*fullSignature*/
+            Some(body),
+        );
         self.finish_node(result, pos);
         self.with_jsdoc(result, jsdoc);
         self.check_js_syntax(result);
@@ -2004,9 +2438,18 @@ impl Parser {
     pub(crate) fn parse_decorated_expression(&mut self) -> P<Node> {
         let pos = self.node_pos();
         let jsdoc = self.jsdoc_scanner_info();
-        let modifiers = self.parse_modifiers_ex(true /*allowDecorators*/, false /*permitConstAsModifier*/, false /*stopOnStartOfClassStaticBlock*/);
+        let modifiers = self.parse_modifiers_ex(
+            true,  /*allowDecorators*/
+            false, /*permitConstAsModifier*/
+            false, /*stopOnStartOfClassStaticBlock*/
+        );
         if self.token == Kind::ClassKeyword {
-            return self.parse_class_declaration_or_expression(pos, jsdoc, modifiers, Kind::ClassExpression);
+            return self.parse_class_declaration_or_expression(
+                pos,
+                jsdoc,
+                modifiers,
+                Kind::ClassExpression,
+            );
         }
         let node_pos = self.node_pos();
         self.parse_error_at(node_pos, node_pos, &diagnostics::Expression_expected, &[]);
@@ -2014,7 +2457,11 @@ impl Parser {
         self.finish_node(node, pos)
     }
 
-    pub(crate) fn unparse_expression_with_type_arguments(expression: Option<P<Node>>, type_arguments: Option<P<NodeList>>, result: P<Node>) {
+    pub(crate) fn unparse_expression_with_type_arguments(
+        expression: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+        result: P<Node>,
+    ) {
         // force overwrite the `.Parent` of the expression and type arguments to erase the fact that they may have originally been parsed as an ExpressionWithTypeArguments and be parented to such
         if let Some(expression) = expression {
             expression.set_parent(Some(result));
@@ -2036,7 +2483,11 @@ impl Parser {
         }
         let expression_pos = self.node_pos();
         let primary = self.parse_primary_expression();
-        let mut expression = self.parse_member_expression_rest(expression_pos, primary, false /*allowOptionalChain*/);
+        let mut expression = self.parse_member_expression_rest(
+            expression_pos,
+            primary,
+            false, /*allowOptionalChain*/
+        );
         let mut type_arguments: Option<P<NodeList>> = None;
         // Absorb type arguments into NewExpression when preceding expression is ExpressionWithTypeArguments
         if expression.kind() == Kind::ExpressionWithTypeArguments {
@@ -2044,8 +2495,15 @@ impl Parser {
             expression = expression.as_expression_with_type_arguments().expression;
         }
         if self.token == Kind::QuestionDotToken {
-            let text = scanner::get_text_of_node_from_source_text(self.source_text, expression, false /*includeTrivia*/);
-            self.parse_error_at_current_token(&diagnostics::Invalid_optional_chain_from_new_expression_Did_you_mean_to_call_0, &[&text]);
+            let text = scanner::get_text_of_node_from_source_text(
+                self.source_text,
+                expression,
+                false, /*includeTrivia*/
+            );
+            self.parse_error_at_current_token(
+                &diagnostics::Invalid_optional_chain_from_new_expression_Did_you_mean_to_call_0,
+                &[&text],
+            );
         }
         let mut argument_list: Option<P<NodeList>> = None;
         if self.token == Kind::OpenParenToken {
@@ -2073,8 +2531,12 @@ impl Parser {
             Kind::StringLiteral => self.factory.new_string_literal(text, token_flags),
             Kind::NumericLiteral => self.factory.new_numeric_literal(text, token_flags),
             Kind::BigIntLiteral => self.factory.new_big_int_literal(text, token_flags),
-            Kind::RegularExpressionLiteral => self.factory.new_regular_expression_literal(text, token_flags),
-            Kind::NoSubstitutionTemplateLiteral => self.factory.new_no_substitution_template_literal(text, token_flags),
+            Kind::RegularExpressionLiteral => {
+                self.factory.new_regular_expression_literal(text, token_flags)
+            }
+            Kind::NoSubstitutionTemplateLiteral => {
+                self.factory.new_no_substitution_template_literal(text, token_flags)
+            }
             _ => panic!("Unhandled case in parseLiteralExpression"),
         };
         self.next_token();
@@ -2083,7 +2545,10 @@ impl Parser {
 
     pub(crate) fn parse_identifier_name_error_on_unicode_escape_sequence(&mut self) -> P<Node> {
         if self.scanner.has_unicode_escape() || self.scanner.has_extended_unicode_escape() {
-            self.parse_error_at_current_token(&diagnostics::Unicode_escape_sequence_cannot_appear_here, &[]);
+            self.parse_error_at_current_token(
+                &diagnostics::Unicode_escape_sequence_cannot_appear_here,
+                &[],
+            );
         }
         self.create_identifier(token_is_identifier_or_keyword(self.token))
     }
@@ -2092,10 +2557,17 @@ impl Parser {
         self.parse_binding_identifier_with_diagnostic(None)
     }
 
-    pub(crate) fn parse_binding_identifier_with_diagnostic(&mut self, private_identifier_diagnostic_message: Option<&'static Message>) -> P<Node> {
+    pub(crate) fn parse_binding_identifier_with_diagnostic(
+        &mut self,
+        private_identifier_diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
         let save_has_await_identifier = self.statement_has_await_identifier;
         let is_binding_identifier = self.is_binding_identifier();
-        let id = self.create_identifier_with_diagnostic(is_binding_identifier, None /*diagnosticMessage*/, private_identifier_diagnostic_message);
+        let id = self.create_identifier_with_diagnostic(
+            is_binding_identifier,
+            None, /*diagnosticMessage*/
+            private_identifier_diagnostic_message,
+        );
         self.statement_has_await_identifier = save_has_await_identifier;
         id
     }
@@ -2104,42 +2576,78 @@ impl Parser {
         self.parse_identifier_name_with_diagnostic(None)
     }
 
-    pub(crate) fn parse_identifier_name_with_diagnostic(&mut self, diagnostic_message: Option<&'static Message>) -> P<Node> {
-        self.create_identifier_with_diagnostic(token_is_identifier_or_keyword(self.token), diagnostic_message, None)
+    pub(crate) fn parse_identifier_name_with_diagnostic(
+        &mut self,
+        diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
+        self.create_identifier_with_diagnostic(
+            token_is_identifier_or_keyword(self.token),
+            diagnostic_message,
+            None,
+        )
     }
 
     pub(crate) fn parse_identifier(&mut self) -> P<Node> {
         self.parse_identifier_with_diagnostic(None, None)
     }
 
-    pub(crate) fn parse_identifier_with_diagnostic(&mut self, diagnostic_message: Option<&'static Message>, private_identifier_diagnostic_message: Option<&'static Message>) -> P<Node> {
+    pub(crate) fn parse_identifier_with_diagnostic(
+        &mut self,
+        diagnostic_message: Option<&'static Message>,
+        private_identifier_diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
         let is_identifier = self.is_identifier();
-        self.create_identifier_with_diagnostic(is_identifier, diagnostic_message, private_identifier_diagnostic_message)
+        self.create_identifier_with_diagnostic(
+            is_identifier,
+            diagnostic_message,
+            private_identifier_diagnostic_message,
+        )
     }
 
     pub(crate) fn create_identifier(&mut self, is_identifier: bool) -> P<Node> {
         self.create_identifier_with_diagnostic(is_identifier, None, None)
     }
 
-    pub(crate) fn create_identifier_with_diagnostic(&mut self, is_identifier: bool, diagnostic_message: Option<&'static Message>, private_identifier_diagnostic_message: Option<&'static Message>) -> P<Node> {
+    pub(crate) fn create_identifier_with_diagnostic(
+        &mut self,
+        is_identifier: bool,
+        diagnostic_message: Option<&'static Message>,
+        private_identifier_diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
         if is_identifier {
-            let pos = if self.scanner.has_preceding_jsdoc_leading_asterisks() { self.scanner.token_start() } else { self.node_pos() };
+            let pos = if self.scanner.has_preceding_jsdoc_leading_asterisks() {
+                self.scanner.token_start()
+            } else {
+                self.node_pos()
+            };
             let text = self.scanner.token_value();
             let end = self.scanner.token_end();
             self.next_token_without_check();
             let id = self.new_source_identifier(text, TextRange::new(pos, end));
             return self.finish_node(id, pos);
         }
-        self.create_missing_identifier_with_diagnostic(diagnostic_message, private_identifier_diagnostic_message)
+        self.create_missing_identifier_with_diagnostic(
+            diagnostic_message,
+            private_identifier_diagnostic_message,
+        )
     }
 
     #[cold]
-    fn create_missing_identifier_with_diagnostic(&mut self, diagnostic_message: Option<&'static Message>, private_identifier_diagnostic_message: Option<&'static Message>) -> P<Node> {
+    fn create_missing_identifier_with_diagnostic(
+        &mut self,
+        diagnostic_message: Option<&'static Message>,
+        private_identifier_diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
         if self.token == Kind::PrivateIdentifier {
-            if let Some(private_identifier_diagnostic_message) = private_identifier_diagnostic_message {
+            if let Some(private_identifier_diagnostic_message) =
+                private_identifier_diagnostic_message
+            {
                 self.parse_error_at_current_token(private_identifier_diagnostic_message, &[]);
             } else {
-                self.parse_error_at_current_token(&diagnostics::Private_identifiers_are_not_allowed_outside_class_bodies, &[]);
+                self.parse_error_at_current_token(
+                    &diagnostics::Private_identifiers_are_not_allowed_outside_class_bodies,
+                    &[],
+                );
             }
             return self.create_identifier(true /*isIdentifier*/);
         }
@@ -2156,9 +2664,17 @@ impl Parser {
             let token_text = self.scanner.token_text();
             if report_at_current_position {
                 let pos = self.scanner.token_full_start();
-                self.parse_error_at(pos, pos, &diagnostics::Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, &[&token_text]);
+                self.parse_error_at(
+                    pos,
+                    pos,
+                    &diagnostics::Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here,
+                    &[&token_text],
+                );
             } else {
-                self.parse_error_at_current_token(&diagnostics::Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, &[&token_text]);
+                self.parse_error_at_current_token(
+                    &diagnostics::Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here,
+                    &[&token_text],
+                );
             }
         } else if report_at_current_position {
             let pos = self.scanner.token_full_start();
@@ -2213,7 +2729,11 @@ impl Parser {
 
     pub(crate) fn scan_type_member_start(&mut self) -> bool {
         // Return true if we have the start of a signature member
-        if self.token == Kind::OpenParenToken || self.token == Kind::LessThanToken || self.token == Kind::GetKeyword || self.token == Kind::SetKeyword {
+        if self.token == Kind::OpenParenToken
+            || self.token == Kind::LessThanToken
+            || self.token == Kind::GetKeyword
+            || self.token == Kind::SetKeyword
+        {
             return true;
         }
         let mut id_token = false;
@@ -2234,7 +2754,12 @@ impl Parser {
         // If we were able to get any potential identifier, check that it is
         // the start of a member declaration
         if id_token {
-            return self.token == Kind::OpenParenToken || self.token == Kind::LessThanToken || self.token == Kind::QuestionToken || self.token == Kind::ColonToken || self.token == Kind::CommaToken || self.can_parse_semicolon();
+            return self.token == Kind::OpenParenToken
+                || self.token == Kind::LessThanToken
+                || self.token == Kind::QuestionToken
+                || self.token == Kind::ColonToken
+                || self.token == Kind::CommaToken
+                || self.can_parse_semicolon();
         }
         false
     }
@@ -2274,7 +2799,10 @@ impl Parser {
         // If we were able to get any potential identifier...
         if id_token != Kind::Unknown {
             // If we have a non-keyword identifier, or if we have an accessor, then it's safe to parse.
-            if !ast::is_keyword(id_token) || id_token == Kind::SetKeyword || id_token == Kind::GetKeyword {
+            if !ast::is_keyword(id_token)
+                || id_token == Kind::SetKeyword
+                || id_token == Kind::GetKeyword
+            {
                 return true;
             }
             // If it *is* a keyword, but not an accessor, check a little farther along
@@ -2304,7 +2832,10 @@ impl Parser {
     pub(crate) fn can_parse_semicolon(&self) -> bool {
         // If there's a real semicolon, then we can always parse it out.
         // We can parse out an optional semicolon in ASI cases in the following cases.
-        self.token == Kind::SemicolonToken || self.token == Kind::CloseBraceToken || self.token == Kind::EndOfFile || self.has_preceding_line_break()
+        self.token == Kind::SemicolonToken
+            || self.token == Kind::CloseBraceToken
+            || self.token == Kind::EndOfFile
+            || self.has_preceding_line_break()
     }
 
     pub(crate) fn try_parse_semicolon(&mut self) -> bool {
@@ -2323,7 +2854,10 @@ impl Parser {
     }
 
     pub(crate) fn is_literal_property_name(&self) -> bool {
-        token_is_identifier_or_keyword(self.token) || self.token == Kind::StringLiteral || self.token == Kind::NumericLiteral || self.token == Kind::BigIntLiteral
+        token_is_identifier_or_keyword(self.token)
+            || self.token == Kind::StringLiteral
+            || self.token == Kind::NumericLiteral
+            || self.token == Kind::BigIntLiteral
     }
 
     pub(crate) fn is_start_of_statement(&mut self) -> bool {
@@ -2353,16 +2887,32 @@ impl Parser {
             | Kind::DebuggerKeyword
             | Kind::CatchKeyword
             | Kind::FinallyKeyword => true,
-            Kind::ImportKeyword => self.is_start_of_declaration() || self.is_next_token_open_paren_or_less_than_or_dot(),
+            Kind::ImportKeyword => {
+                self.is_start_of_declaration()
+                    || self.is_next_token_open_paren_or_less_than_or_dot()
+            }
             Kind::ConstKeyword | Kind::ExportKeyword => self.is_start_of_declaration(),
-            Kind::AsyncKeyword | Kind::DeclareKeyword | Kind::InterfaceKeyword | Kind::ModuleKeyword | Kind::NamespaceKeyword | Kind::TypeKeyword | Kind::GlobalKeyword | Kind::DeferKeyword => {
+            Kind::AsyncKeyword
+            | Kind::DeclareKeyword
+            | Kind::InterfaceKeyword
+            | Kind::ModuleKeyword
+            | Kind::NamespaceKeyword
+            | Kind::TypeKeyword
+            | Kind::GlobalKeyword
+            | Kind::DeferKeyword => {
                 // When these don't start a declaration, they're an identifier in an expression statement
                 true
             }
-            Kind::AccessorKeyword | Kind::PublicKeyword | Kind::PrivateKeyword | Kind::ProtectedKeyword | Kind::StaticKeyword | Kind::ReadonlyKeyword => {
+            Kind::AccessorKeyword
+            | Kind::PublicKeyword
+            | Kind::PrivateKeyword
+            | Kind::ProtectedKeyword
+            | Kind::StaticKeyword
+            | Kind::ReadonlyKeyword => {
                 // When these don't start a declaration, they may be the start of a class member if an identifier
                 // immediately follows. Otherwise they're an identifier in an expression statement.
-                self.is_start_of_declaration() || !self.look_ahead(Parser::next_token_is_identifier_or_keyword_on_same_line)
+                self.is_start_of_declaration()
+                    || !self.look_ahead(Parser::next_token_is_identifier_or_keyword_on_same_line)
             }
             _ => self.is_start_of_expression(),
         }
@@ -2375,7 +2925,12 @@ impl Parser {
     pub(crate) fn scan_start_of_declaration(&mut self) -> bool {
         loop {
             match self.token {
-                Kind::VarKeyword | Kind::LetKeyword | Kind::ConstKeyword | Kind::FunctionKeyword | Kind::ClassKeyword | Kind::EnumKeyword => {
+                Kind::VarKeyword
+                | Kind::LetKeyword
+                | Kind::ConstKeyword
+                | Kind::FunctionKeyword
+                | Kind::ClassKeyword
+                | Kind::EnumKeyword => {
                     return true;
                 }
                 Kind::UsingKeyword => return self.is_using_declaration(),
@@ -2401,9 +2956,20 @@ impl Parser {
                 //   I {}
                 //
                 // could be legal, it would add complexity for very little gain.
-                Kind::InterfaceKeyword | Kind::TypeKeyword | Kind::DeferKeyword => return self.next_token_is_identifier_on_same_line(),
-                Kind::ModuleKeyword | Kind::NamespaceKeyword => return self.next_token_is_identifier_or_string_literal_on_same_line(),
-                Kind::AbstractKeyword | Kind::AccessorKeyword | Kind::AsyncKeyword | Kind::DeclareKeyword | Kind::PrivateKeyword | Kind::ProtectedKeyword | Kind::PublicKeyword | Kind::ReadonlyKeyword => {
+                Kind::InterfaceKeyword | Kind::TypeKeyword | Kind::DeferKeyword => {
+                    return self.next_token_is_identifier_on_same_line();
+                }
+                Kind::ModuleKeyword | Kind::NamespaceKeyword => {
+                    return self.next_token_is_identifier_or_string_literal_on_same_line();
+                }
+                Kind::AbstractKeyword
+                | Kind::AccessorKeyword
+                | Kind::AsyncKeyword
+                | Kind::DeclareKeyword
+                | Kind::PrivateKeyword
+                | Kind::ProtectedKeyword
+                | Kind::PublicKeyword
+                | Kind::ReadonlyKeyword => {
                     let previous_token = self.token;
                     self.next_token();
                     // ASI takes effect for this modifier.
@@ -2419,20 +2985,34 @@ impl Parser {
                 }
                 Kind::GlobalKeyword => {
                     self.next_token();
-                    return self.token == Kind::OpenBraceToken || self.token == Kind::Identifier || self.token == Kind::ExportKeyword;
+                    return self.token == Kind::OpenBraceToken
+                        || self.token == Kind::Identifier
+                        || self.token == Kind::ExportKeyword;
                 }
                 Kind::ImportKeyword => {
                     self.next_token();
-                    return self.token == Kind::DeferKeyword || self.token == Kind::StringLiteral || self.token == Kind::AsteriskToken || self.token == Kind::OpenBraceToken || token_is_identifier_or_keyword(self.token);
+                    return self.token == Kind::DeferKeyword
+                        || self.token == Kind::StringLiteral
+                        || self.token == Kind::AsteriskToken
+                        || self.token == Kind::OpenBraceToken
+                        || token_is_identifier_or_keyword(self.token);
                 }
                 Kind::ExportKeyword => {
                     self.next_token();
-                    if self.token == Kind::EqualsToken || self.token == Kind::AsteriskToken || self.token == Kind::OpenBraceToken || self.token == Kind::DefaultKeyword || self.token == Kind::AsKeyword || self.token == Kind::AtToken {
+                    if self.token == Kind::EqualsToken
+                        || self.token == Kind::AsteriskToken
+                        || self.token == Kind::OpenBraceToken
+                        || self.token == Kind::DefaultKeyword
+                        || self.token == Kind::AsKeyword
+                        || self.token == Kind::AtToken
+                    {
                         return true;
                     }
                     if self.token == Kind::TypeKeyword {
                         self.next_token();
-                        return self.token == Kind::AsteriskToken || self.token == Kind::OpenBraceToken || self.is_identifier() && !self.has_preceding_line_break();
+                        return self.token == Kind::AsteriskToken
+                            || self.token == Kind::OpenBraceToken
+                            || self.is_identifier() && !self.has_preceding_line_break();
                     }
                     continue;
                 }
@@ -2548,11 +3128,15 @@ impl Parser {
             | Kind::NoSubstitutionTemplateLiteral
             | Kind::TemplateHead => return true,
             Kind::FunctionKeyword => return !in_start_of_parameter,
-            Kind::MinusToken => return !in_start_of_parameter && self.look_ahead(Parser::next_token_is_numeric_or_big_int_literal),
+            Kind::MinusToken => {
+                return !in_start_of_parameter
+                    && self.look_ahead(Parser::next_token_is_numeric_or_big_int_literal);
+            }
             Kind::OpenParenToken => {
                 // Only consider '(' the start of a type if followed by ')', '...', an identifier, a modifier,
                 // or something that starts a type. We don't want to consider things like '(1)' a type.
-                return !in_start_of_parameter && self.look_ahead(Parser::next_is_parenthesized_or_function_type);
+                return !in_start_of_parameter
+                    && self.look_ahead(Parser::next_is_parenthesized_or_function_type);
             }
             _ => {}
         }
@@ -2566,15 +3150,24 @@ impl Parser {
 
     pub(crate) fn next_is_parenthesized_or_function_type(&mut self) -> bool {
         self.next_token();
-        self.token == Kind::CloseParenToken || self.is_start_of_parameter(false /*isJSDocParameter*/) || self.is_start_of_type(false /*inStartOfParameter*/)
+        self.token == Kind::CloseParenToken
+            || self.is_start_of_parameter(false /*isJSDocParameter*/)
+            || self.is_start_of_type(false /*inStartOfParameter*/)
     }
 
     pub(crate) fn is_start_of_parameter(&mut self, is_jsdoc_parameter: bool) -> bool {
-        self.token == Kind::DotDotDotToken || self.is_binding_identifier_or_private_identifier_or_pattern() || ast::is_modifier_kind(self.token) || self.token == Kind::AtToken || self.is_start_of_type(!is_jsdoc_parameter /*inStartOfParameter*/)
+        self.token == Kind::DotDotDotToken
+            || self.is_binding_identifier_or_private_identifier_or_pattern()
+            || ast::is_modifier_kind(self.token)
+            || self.token == Kind::AtToken
+            || self.is_start_of_type(!is_jsdoc_parameter /*inStartOfParameter*/)
     }
 
     pub(crate) fn is_binding_identifier_or_private_identifier_or_pattern(&self) -> bool {
-        self.token == Kind::OpenBraceToken || self.token == Kind::OpenBracketToken || self.token == Kind::PrivateIdentifier || self.is_binding_identifier()
+        self.token == Kind::OpenBraceToken
+            || self.token == Kind::OpenBracketToken
+            || self.token == Kind::PrivateIdentifier
+            || self.is_binding_identifier()
     }
 
     pub(crate) fn is_next_token_open_paren_or_less_than_or_dot(&mut self) -> bool {
@@ -2592,7 +3185,8 @@ impl Parser {
 
     pub(crate) fn next_token_is_identifier_or_string_literal_on_same_line(&mut self) -> bool {
         self.next_token();
-        (self.is_identifier() || self.token == Kind::StringLiteral) && !self.has_preceding_line_break()
+        (self.is_identifier() || self.token == Kind::StringLiteral)
+            && !self.has_preceding_line_break()
     }
 
     // Ignore strict mode flag because we will report an error in type checker instead.
@@ -2604,7 +3198,9 @@ impl Parser {
         // considered a keyword and is not an identifier.
         // If we have a 'await' keyword, and we're in the [Await] context, then 'await' is
         // considered a keyword and is not an identifier.
-        if self.token == Kind::YieldKeyword && self.in_yield_context() || self.token == Kind::AwaitKeyword && self.in_await_context() {
+        if self.token == Kind::YieldKeyword && self.in_yield_context()
+            || self.token == Kind::AwaitKeyword && self.in_await_context()
+        {
             return false;
         }
         self.token > Kind::LastReservedWord
@@ -2640,7 +3236,10 @@ impl Parser {
             //      extends {} extends
             //      extends {} implements
             let next = self.next_token();
-            return next == Kind::CommaToken || next == Kind::OpenBraceToken || next == Kind::ExtendsKeyword || next == Kind::ImplementsKeyword;
+            return next == Kind::CommaToken
+                || next == Kind::OpenBraceToken
+                || next == Kind::ExtendsKeyword
+                || next == Kind::ImplementsKeyword;
         }
         true
     }
@@ -2662,32 +3261,51 @@ impl Parser {
         // 'using' always starts a lexical declaration if followed by an identifier. We also eagerly parse
         // |ObjectBindingPattern| so that we can report a grammar error during check. We don't parse out
         // |ArrayBindingPattern| since it potentially conflicts with element access (i.e., `using[x]`).
-        self.look_ahead(|p| p.next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(false /*disallowOf*/))
+        self.look_ahead(|p| {
+            p.next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(
+                false, /*disallowOf*/
+            )
+        })
     }
 
     pub(crate) fn next_token_is_equals_or_semicolon_or_colon_token(&mut self) -> bool {
         self.next_token();
-        self.token == Kind::EqualsToken || self.token == Kind::SemicolonToken || self.token == Kind::ColonToken
+        self.token == Kind::EqualsToken
+            || self.token == Kind::SemicolonToken
+            || self.token == Kind::ColonToken
     }
 
-    pub(crate) fn next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(&mut self, disallow_of: bool) -> bool {
+    pub(crate) fn next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(
+        &mut self,
+        disallow_of: bool,
+    ) -> bool {
         self.next_token();
         if disallow_of && self.token == Kind::OfKeyword {
             return self.look_ahead(Parser::next_token_is_equals_or_semicolon_or_colon_token);
         }
-        (self.is_binding_identifier() || self.token == Kind::OpenBraceToken) && !self.has_preceding_line_break()
+        (self.is_binding_identifier() || self.token == Kind::OpenBraceToken)
+            && !self.has_preceding_line_break()
     }
 
-    pub(crate) fn next_token_is_binding_identifier_or_start_of_destructuring_on_same_line_disallow_of(&mut self) -> bool {
-        self.next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(true /*disallowOf*/)
+    pub(crate) fn next_token_is_binding_identifier_or_start_of_destructuring_on_same_line_disallow_of(
+        &mut self,
+    ) -> bool {
+        self.next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(
+            true, /*disallowOf*/
+        )
     }
 
     pub(crate) fn is_await_using_declaration(&mut self) -> bool {
         self.look_ahead(Parser::next_is_using_keyword_then_binding_identifier_or_start_of_object_destructuring_on_same_line)
     }
 
-    pub(crate) fn next_is_using_keyword_then_binding_identifier_or_start_of_object_destructuring_on_same_line(&mut self) -> bool {
-        self.next_token() == Kind::UsingKeyword && self.next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(false /*disallowOf*/)
+    pub(crate) fn next_is_using_keyword_then_binding_identifier_or_start_of_object_destructuring_on_same_line(
+        &mut self,
+    ) -> bool {
+        self.next_token() == Kind::UsingKeyword
+            && self.next_token_is_binding_identifier_or_start_of_destructuring_on_same_line(
+                false, /*disallowOf*/
+            )
     }
 
     pub(crate) fn next_token_is_token_string_literal(&mut self) -> bool {
@@ -2702,7 +3320,12 @@ impl Parser {
         }
     }
 
-    pub(crate) fn do_in_context<T>(&mut self, flags: NodeFlags, value: bool, f: impl FnOnce(&mut Parser) -> T) -> T {
+    pub(crate) fn do_in_context<T>(
+        &mut self,
+        flags: NodeFlags,
+        value: bool,
+        f: impl FnOnce(&mut Parser) -> T,
+    ) -> T {
         let save_context_flags = self.context_flags;
         self.set_context_flags(flags, value);
         let result = f(self);
@@ -2734,13 +3357,9 @@ impl Parser {
         TextRange::new(
             scanner::skip_trivia(
                 self.source_text,
-                text_range
-                    .pos()
-                    .expect_source("parsed ranges have source positions"),
+                text_range.pos().expect_source("parsed ranges have source positions"),
             ),
-            text_range
-                .end()
-                .expect_source("parsed ranges have source positions"),
+            text_range.end().expect_source("parsed ranges have source positions"),
         )
     }
 
@@ -2797,12 +3416,18 @@ impl Parser {
                             preserve: preserve.is_some_and(|preserve| preserve.value == "true"),
                         }));
                     } else {
-                        self.parse_error_at_range(pragma.comment_range.text_range, &diagnostics::Invalid_reference_directive_syntax, &[]);
+                        self.parse_error_at_range(
+                            pragma.comment_range.text_range,
+                            &diagnostics::Invalid_reference_directive_syntax,
+                            &[],
+                        );
                     }
                 }
                 "ts-check" | "ts-nocheck" => {
                     // _last_ of either nocheck or check in a file is the "winner"
-                    if check_js_directive.is_none_or(|directive| pragma.comment_range.text_range.pos() > directive.range.text_range.pos()) {
+                    if check_js_directive.is_none_or(|directive| {
+                        pragma.comment_range.text_range.pos() > directive.range.text_range.pos()
+                    }) {
                         check_js_directive = Some(P::new(ast::CheckJsDirective {
                             enabled: &*pragma.name == "ts-check",
                             range: pragma.comment_range,
@@ -2816,15 +3441,9 @@ impl Parser {
             }
         }
         context.check_js_directive.set(check_js_directive);
-        context
-            .referenced_files
-            .set(tsrs_core::alloc_vec(referenced_files));
-        context
-            .type_reference_directives
-            .set(tsrs_core::alloc_vec(type_reference_directives));
-        context
-            .lib_reference_directives
-            .set(tsrs_core::alloc_vec(lib_reference_directives));
+        context.referenced_files.set(tsrs_core::alloc_vec(referenced_files));
+        context.type_reference_directives.set(tsrs_core::alloc_vec(type_reference_directives));
+        context.lib_reference_directives.set(tsrs_core::alloc_vec(lib_reference_directives));
     }
 
     pub(crate) fn parse_resolution_mode(
@@ -2842,7 +3461,12 @@ impl Parser {
             resolution_kind = tsrs_core::ModuleKind::CommonJS;
             return resolution_kind;
         }
-        self.parse_error_at(pos, end, &diagnostics::X_resolution_mode_should_be_either_require_or_import, &[]);
+        self.parse_error_at(
+            pos,
+            end,
+            &diagnostics::X_resolution_mode_should_be_either_require_or_import,
+            &[],
+        );
         resolution_kind
     }
 
@@ -2855,14 +3479,11 @@ impl Parser {
         let range = TextRange::new(
             scanner::skip_trivia(
                 self.source_text,
-                loc.pos()
-                    .expect_source("parsed ranges have source positions"),
+                loc.pos().expect_source("parsed ranges have source positions"),
             ),
-            loc.end()
-                .expect_source("parsed ranges have source positions"),
+            loc.end().expect_source("parsed ranges have source positions"),
         );
-        self.js_diagnostics
-            .push(ast::new_diagnostic(None, range, message, args));
+        self.js_diagnostics.push(ast::new_diagnostic(None, range, message, args));
     }
 
     pub(crate) fn check_js_decorator_syntax(&mut self, node: P<Node>) {
@@ -2872,8 +3493,14 @@ impl Parser {
         }
 
         if ast::can_have_illegal_decorators(node) {
-            if let Some(modifier) = modifiers.iter().find_map(|&modifier| if ast::is_decorator(modifier) { Some(modifier) } else { None }) {
-                self.js_error_at_range(modifier.loc(), &diagnostics::Decorators_are_not_valid_here, &[]);
+            if let Some(modifier) = modifiers.iter().find_map(|&modifier| {
+                if ast::is_decorator(modifier) { Some(modifier) } else { None }
+            }) {
+                self.js_error_at_range(
+                    modifier.loc(),
+                    &diagnostics::Decorators_are_not_valid_here,
+                    &[],
+                );
             }
         } else if ast::can_have_decorators(node) {
             if let Some(decorator_index) = find_index(modifiers, ast::is_decorator) {
@@ -2940,7 +3567,9 @@ impl Parser {
 
     #[inline]
     pub(crate) fn check_js_syntax(&mut self, node: P<Node>) -> P<Node> {
-        if !node.flags().intersects(NodeFlags::JavaScriptFile) || node.flags().intersects(NodeFlags::JSDoc | NodeFlags::Reparsed) {
+        if !node.flags().intersects(NodeFlags::JavaScriptFile)
+            || node.flags().intersects(NodeFlags::JSDoc | NodeFlags::Reparsed)
+        {
             return node;
         }
         self.check_js_syntax_worker(node)
@@ -2960,71 +3589,142 @@ impl Parser {
             | Kind::ArrowFunction
             | Kind::VariableDeclaration
             | Kind::IndexSignature => {
-                if matches!(node.kind(), Kind::Parameter | Kind::PropertyDeclaration | Kind::MethodDeclaration) {
+                if matches!(
+                    node.kind(),
+                    Kind::Parameter | Kind::PropertyDeclaration | Kind::MethodDeclaration
+                ) {
                     if let Some(token) = node.question_token() {
-                        if !token.flags().intersects(NodeFlags::Reparsed) && ast::is_question_token(token) {
-                            self.js_error_at_range(token.loc(), &diagnostics::The_0_modifier_can_only_be_used_in_TypeScript_files, &[&"?"]);
+                        if !token.flags().intersects(NodeFlags::Reparsed)
+                            && ast::is_question_token(token)
+                        {
+                            self.js_error_at_range(
+                                token.loc(),
+                                &diagnostics::The_0_modifier_can_only_be_used_in_TypeScript_files,
+                                &[&"?"],
+                            );
                         }
                     }
                     // fallthrough
                 }
                 if ast::is_function_like(Some(node)) && node.body().is_none() {
-                    self.js_error_at_range(node.loc(), &diagnostics::Signature_declarations_can_only_be_used_in_TypeScript_files, &[]);
-                } else if let Some(t) = node.type_node().filter(|t| !t.flags().intersects(NodeFlags::Reparsed)) {
-                    self.js_error_at_range(t.loc(), &diagnostics::Type_annotations_can_only_be_used_in_TypeScript_files, &[]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::Signature_declarations_can_only_be_used_in_TypeScript_files,
+                        &[],
+                    );
+                } else if let Some(t) =
+                    node.type_node().filter(|t| !t.flags().intersects(NodeFlags::Reparsed))
+                {
+                    self.js_error_at_range(
+                        t.loc(),
+                        &diagnostics::Type_annotations_can_only_be_used_in_TypeScript_files,
+                        &[],
+                    );
                 }
             }
             Kind::ImportDeclaration => {
                 if node.import_clause().is_some_and(|clause| clause.is_type_only()) {
-                    self.js_error_at_range(node.loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&"import type"]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                        &[&"import type"],
+                    );
                 }
             }
             Kind::ExportDeclaration => {
                 if node.is_type_only() {
-                    self.js_error_at_range(node.loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&"export type"]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                        &[&"export type"],
+                    );
                 }
             }
             Kind::ImportSpecifier => {
                 if node.is_type_only() {
-                    self.js_error_at_range(node.loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&"import...type"]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                        &[&"import...type"],
+                    );
                 }
             }
             Kind::ExportSpecifier => {
                 if node.is_type_only() {
-                    self.js_error_at_range(node.loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&"export...type"]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                        &[&"export...type"],
+                    );
                 }
             }
             Kind::ImportEqualsDeclaration => {
-                self.js_error_at_range(node.loc(), &diagnostics::X_import_can_only_be_used_in_TypeScript_files, &[]);
+                self.js_error_at_range(
+                    node.loc(),
+                    &diagnostics::X_import_can_only_be_used_in_TypeScript_files,
+                    &[],
+                );
             }
             Kind::ExportAssignment => {
                 if node.as_export_assignment().is_export_equals {
-                    self.js_error_at_range(node.loc(), &diagnostics::X_export_can_only_be_used_in_TypeScript_files, &[]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::X_export_can_only_be_used_in_TypeScript_files,
+                        &[],
+                    );
                 }
             }
             Kind::HeritageClause => {
                 if node.as_heritage_clause().token == Kind::ImplementsKeyword {
-                    self.js_error_at_range(node.loc(), &diagnostics::X_implements_clauses_can_only_be_used_in_TypeScript_files, &[]);
+                    self.js_error_at_range(
+                        node.loc(),
+                        &diagnostics::X_implements_clauses_can_only_be_used_in_TypeScript_files,
+                        &[],
+                    );
                 }
             }
             Kind::InterfaceDeclaration => {
-                self.js_error_at_range(node.name().unwrap().loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&"interface"]);
+                self.js_error_at_range(
+                    node.name().unwrap().loc(),
+                    &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                    &[&"interface"],
+                );
             }
             Kind::ModuleDeclaration => {
                 let keyword = scanner::token_to_string(node.as_module_declaration().keyword);
-                self.js_error_at_range(node.name().unwrap().loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&keyword]);
+                self.js_error_at_range(
+                    node.name().unwrap().loc(),
+                    &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                    &[&keyword],
+                );
             }
             Kind::TypeAliasDeclaration => {
-                self.js_error_at_range(node.name().unwrap().loc(), &diagnostics::Type_aliases_can_only_be_used_in_TypeScript_files, &[]);
+                self.js_error_at_range(
+                    node.name().unwrap().loc(),
+                    &diagnostics::Type_aliases_can_only_be_used_in_TypeScript_files,
+                    &[],
+                );
             }
             Kind::EnumDeclaration => {
-                self.js_error_at_range(node.name().unwrap().loc(), &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files, &[&"enum"]);
+                self.js_error_at_range(
+                    node.name().unwrap().loc(),
+                    &diagnostics::X_0_declarations_can_only_be_used_in_TypeScript_files,
+                    &[&"enum"],
+                );
             }
             Kind::NonNullExpression => {
-                self.js_error_at_range(node.loc(), &diagnostics::Non_null_assertions_can_only_be_used_in_TypeScript_files, &[]);
+                self.js_error_at_range(
+                    node.loc(),
+                    &diagnostics::Non_null_assertions_can_only_be_used_in_TypeScript_files,
+                    &[],
+                );
             }
             Kind::AsExpression => {
-                self.js_error_at_range(node.type_node().unwrap().loc(), &diagnostics::Type_assertion_expressions_can_only_be_used_in_TypeScript_files, &[]);
+                self.js_error_at_range(
+                    node.type_node().unwrap().loc(),
+                    &diagnostics::Type_assertion_expressions_can_only_be_used_in_TypeScript_files,
+                    &[],
+                );
             }
             Kind::SatisfiesExpression => {
                 self.js_error_at_range(node.type_node().unwrap().loc(), &diagnostics::Type_satisfaction_expressions_can_only_be_used_in_TypeScript_files, &[]);
@@ -3055,21 +3755,42 @@ impl Parser {
                     // fallthrough
                 }
                 for &modifier in node.modifier_nodes() {
-                    if !modifier.flags().intersects(NodeFlags::Reparsed) && modifier.kind() != Kind::Decorator && !ast::modifier_to_flag(modifier.kind()).intersects(ModifierFlags::JavaScript) {
+                    if !modifier.flags().intersects(NodeFlags::Reparsed)
+                        && modifier.kind() != Kind::Decorator
+                        && !ast::modifier_to_flag(modifier.kind())
+                            .intersects(ModifierFlags::JavaScript)
+                    {
                         let text = scanner::token_to_string(modifier.kind());
-                        self.js_error_at_range(modifier.loc(), &diagnostics::The_0_modifier_can_only_be_used_in_TypeScript_files, &[&text]);
+                        self.js_error_at_range(
+                            modifier.loc(),
+                            &diagnostics::The_0_modifier_can_only_be_used_in_TypeScript_files,
+                            &[&text],
+                        );
                     }
                 }
             }
             Kind::Parameter => {
                 if node.modifier_nodes().iter().any(|&m| ast::is_modifier(m)) {
-                    self.js_error_at_range(node.modifiers().unwrap().list.loc.get(), &diagnostics::Parameter_modifiers_can_only_be_used_in_TypeScript_files, &[]);
+                    self.js_error_at_range(
+                        node.modifiers().unwrap().list.loc.get(),
+                        &diagnostics::Parameter_modifiers_can_only_be_used_in_TypeScript_files,
+                        &[],
+                    );
                 }
             }
-            Kind::CallExpression | Kind::NewExpression | Kind::ExpressionWithTypeArguments | Kind::JsxSelfClosingElement | Kind::JsxOpeningElement | Kind::TaggedTemplateExpression => {
+            Kind::CallExpression
+            | Kind::NewExpression
+            | Kind::ExpressionWithTypeArguments
+            | Kind::JsxSelfClosingElement
+            | Kind::JsxOpeningElement
+            | Kind::TaggedTemplateExpression => {
                 if let Some(list) = node.type_argument_list() {
                     if list.nodes().iter().any(|n| !n.flags().intersects(NodeFlags::Reparsed)) {
-                        self.js_error_at_range(list.loc.get(), &diagnostics::Type_arguments_can_only_be_used_in_TypeScript_files, &[]);
+                        self.js_error_at_range(
+                            list.loc.get(),
+                            &diagnostics::Type_arguments_can_only_be_used_in_TypeScript_files,
+                            &[],
+                        );
                     }
                 }
             }
@@ -3084,16 +3805,23 @@ fn type_has_arrow_function_blocking_parse_error(node: P<Node>) -> bool {
     match node.kind() {
         Kind::TypeReference => ast::node_is_missing(Some(node.as_type_reference_node().type_name)),
         Kind::FunctionType | Kind::ConstructorType => {
-            is_missing_node_list(node.function_like_data().unwrap().parameters.get()) || type_has_arrow_function_blocking_parse_error(node.type_node().unwrap())
+            is_missing_node_list(node.function_like_data().unwrap().parameters.get())
+                || type_has_arrow_function_blocking_parse_error(node.type_node().unwrap())
         }
-        Kind::ParenthesizedType => type_has_arrow_function_blocking_parse_error(node.type_node().unwrap()),
+        Kind::ParenthesizedType => {
+            type_has_arrow_function_blocking_parse_error(node.type_node().unwrap())
+        }
         _ => false,
     }
 }
 
 // shouldConsumeBinaryOperator reports whether an operator binds before the operator represented by currentPrecedence.
 // At equal precedence, only the right-associative exponentiation operator binds first.
-fn should_consume_binary_operator(operator: Kind, operator_precedence: OperatorPrecedence, current_precedence: OperatorPrecedence) -> bool {
+fn should_consume_binary_operator(
+    operator: Kind,
+    operator_precedence: OperatorPrecedence,
+    current_precedence: OperatorPrecedence,
+) -> bool {
     if operator_precedence > current_precedence {
         return true;
     }
@@ -3104,7 +3832,10 @@ pub(crate) fn is_reserved_word(token: Kind) -> bool {
     Kind::FirstReservedWord <= token && token <= Kind::LastReservedWord
 }
 
-pub(crate) fn attach_file_to_diagnostics(diagnostics: &[P<ast::Diagnostic>], file: P<ast::SourceFile>) -> Vec<P<ast::Diagnostic>> {
+pub(crate) fn attach_file_to_diagnostics(
+    diagnostics: &[P<ast::Diagnostic>],
+    file: P<ast::SourceFile>,
+) -> Vec<P<ast::Diagnostic>> {
     for d in diagnostics {
         d.set_file(Some(file));
         for r in d.related_information() {
@@ -3114,7 +3845,10 @@ pub(crate) fn attach_file_to_diagnostics(diagnostics: &[P<ast::Diagnostic>], fil
     diagnostics.to_vec()
 }
 
-pub(crate) fn get_comment_pragmas(_f: &mut ast::NodeFactory, source_text: &'static str) -> Vec<ast::Pragma> {
+pub(crate) fn get_comment_pragmas(
+    _f: &mut ast::NodeFactory,
+    source_text: &'static str,
+) -> Vec<ast::Pragma> {
     let mut pragmas = Vec::new();
     pragmas.extend(scanner::get_leading_comment_ranges(source_text, 0).flat_map(|comment_range| {
         let comment = &source_text[comment_range.pos() as usize..comment_range.end() as usize];
@@ -3177,7 +3911,11 @@ fn extract_pragmas(comment_range: ast::CommentRange, text: &str) -> Vec<ast::Pra
             if !(pragma_name == "ts-check" || pragma_name == "ts-nocheck") {
                 return Vec::new();
             }
-            return vec![ast::Pragma { comment_range, name: pragma_name, args: FxHashMap::default() }];
+            return vec![ast::Pragma {
+                comment_range,
+                name: pragma_name,
+                args: FxHashMap::default(),
+            }];
         }
     }
     if comment_range.kind == Kind::MultiLineCommentTrivia {
@@ -3200,11 +3938,16 @@ fn extract_pragmas(comment_range: ast::CommentRange, text: &str) -> Vec<ast::Pra
             }
             let line_end = line_end_pos(text, pos);
             let pragma_name = text[name_pos..name_end].to_lowercase();
-            if pragma_name == "jsx" || pragma_name == "jsxfrag" || pragma_name == "jsximportsource" || pragma_name == "jsxruntime" {
+            if pragma_name == "jsx"
+                || pragma_name == "jsxfrag"
+                || pragma_name == "jsximportsource"
+                || pragma_name == "jsxruntime"
+            {
                 let start = skip_blanks(text, name_end);
                 let arg_end = skip_non_blanks(text, start);
                 if arg_end != start {
-                    let mut args: FxHashMap<String, ast::PragmaArgument> = FxHashMap::with_capacity_and_hasher(1, rustc_hash::FxBuildHasher);
+                    let mut args: FxHashMap<String, ast::PragmaArgument> =
+                        FxHashMap::with_capacity_and_hasher(1, rustc_hash::FxBuildHasher);
                     args.insert(
                         "factory".to_string(),
                         ast::PragmaArgument {
@@ -3233,14 +3976,23 @@ fn match_(text: &str, pos: usize, s: &str) -> bool {
 fn skip_blanks(text: &str, pos: usize) -> usize {
     let bytes = text.as_bytes();
     let mut pos = pos;
-    pos += (pos..bytes.len()).take_while(|&index| bytes[index] == b' ' || bytes[index] == b'\t').count();
+    pos += (pos..bytes.len())
+        .take_while(|&index| bytes[index] == b' ' || bytes[index] == b'\t')
+        .count();
     pos
 }
 
 fn skip_non_blanks(text: &str, pos: usize) -> usize {
     let bytes = text.as_bytes();
     let mut pos = pos;
-    pos += (pos..bytes.len()).take_while(|&index| bytes[index] != b' ' && bytes[index] != b'\t' && bytes[index] != b'\r' && bytes[index] != b'\n').count();
+    pos += (pos..bytes.len())
+        .take_while(|&index| {
+            bytes[index] != b' '
+                && bytes[index] != b'\t'
+                && bytes[index] != b'\r'
+                && bytes[index] != b'\n'
+        })
+        .count();
     pos
 }
 
@@ -3254,7 +4006,9 @@ fn skip_to(text: &str, pos: usize, s: &str) -> Option<usize> {
 }
 
 fn line_end_pos(text: &str, pos: usize) -> usize {
-    if let Some((offset, _)) = text[pos..].char_indices().find(|&(_, ch)| tsrs_core::stringutil::is_line_break(ch as u32)) {
+    if let Some((offset, _)) =
+        text[pos..].char_indices().find(|&(_, ch)| tsrs_core::stringutil::is_line_break(ch as u32))
+    {
         return pos + offset;
     }
     text.len()
@@ -3265,7 +4019,11 @@ fn extract_name(text: &str, pos: usize) -> String {
     let start = pos;
     let mut pos = pos;
     pos += (pos..bytes.len())
-        .take_while(|&index| bytes[index] >= b'A' && bytes[index] <= b'Z' || bytes[index] >= b'a' && bytes[index] <= b'z' || bytes[index] == b'-')
+        .take_while(|&index| {
+            bytes[index] >= b'A' && bytes[index] <= b'Z'
+                || bytes[index] >= b'a' && bytes[index] <= b'z'
+                || bytes[index] == b'-'
+        })
         .count();
     text[start..pos].to_lowercase()
 }

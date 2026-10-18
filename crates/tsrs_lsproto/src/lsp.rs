@@ -7,7 +7,7 @@ use rustc_hash::FxHashSet;
 use tsrs_core::tspath;
 
 use crate::error::Error;
-use crate::json::{is_null, kind_string, IsZero, Json, JsonError, JsonKey, Value};
+use crate::json::{IsZero, Json, JsonError, JsonKey, Value, is_null, kind_string};
 use crate::jsonrpc::ID;
 use crate::{CodeActionKind, ErrorCode, Location, MarkupKind, Position, RequestMessage};
 
@@ -114,7 +114,8 @@ fn check_uri(uri: &str) -> Result<(), String> {
         return Ok(());
     }
     if uri.starts_with("file://") {
-        let (host, path) = parse_file_url(uri).map_err(|err| format!("invalid file URI {uri:?}: {err}"))?;
+        let (host, path) =
+            parse_file_url(uri).map_err(|err| format!("invalid file URI {uri:?}: {err}"))?;
         if host.is_empty() && !tspath::path_is_absolute(fix_windows_uri_path(&path)) {
             return Err(format!("file URI {uri:?} has no absolute path"));
         }
@@ -124,7 +125,9 @@ fn check_uri(uri: &str) -> Result<(), String> {
         return Err(format!("invalid URI {uri:?}: no scheme"));
     };
     let mut chars = scheme.chars();
-    if !chars.next().is_some_and(|c| c.is_ascii_alphabetic()) || !chars.all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.')) {
+    if !chars.next().is_some_and(|c| c.is_ascii_alphabetic())
+        || !chars.all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
+    {
         return Err(format!("invalid URI {uri:?}: bad scheme"));
     }
     if path.strip_prefix("//").is_some_and(|rest| !rest.contains('/')) {
@@ -192,7 +195,26 @@ fn parse_authority(authority: &str) -> Result<String, String> {
     let userinfo = &authority[..i];
     let valid_userinfo = userinfo.chars().all(|r| {
         r.is_ascii_alphanumeric()
-            || matches!(r, '-' | '.' | '_' | ':' | '~' | '!' | '$' | '&' | '\'' | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '%' | '@')
+            || matches!(
+                r,
+                '-' | '.'
+                    | '_'
+                    | ':'
+                    | '~'
+                    | '!'
+                    | '$'
+                    | '&'
+                    | '\''
+                    | '('
+                    | ')'
+                    | '*'
+                    | '+'
+                    | ','
+                    | ';'
+                    | '='
+                    | '%'
+                    | '@'
+            )
     });
     if !valid_userinfo {
         return Err("net/url: invalid userinfo".to_string());
@@ -233,7 +255,10 @@ fn parse_host(host: &str) -> Result<String, String> {
             let unescaped_colon_port = unescape(colon_port, Encoding::Host)?;
             let hostname = &host[1..close];
             let unescaped_hostname = match hostname.find("%25") {
-                Some(zone) => unescape(&hostname[..zone], Encoding::Host)? + &unescape(&hostname[zone..], Encoding::Zone)?,
+                Some(zone) => {
+                    unescape(&hostname[..zone], Encoding::Host)?
+                        + &unescape(&hostname[zone..], Encoding::Zone)?
+                }
                 None => unescape(hostname, Encoding::Host)?,
             };
             Ok(format!("[{unescaped_hostname}]{unescaped_colon_port}"))
@@ -242,7 +267,10 @@ fn parse_host(host: &str) -> Result<String, String> {
             if let Some(i) = host.rfind(':') {
                 let colon_port = &host[i..];
                 if !valid_optional_port(colon_port) {
-                    return Err(format!("invalid port {} after host", go_quote(colon_port.as_bytes())));
+                    return Err(format!(
+                        "invalid port {} after host",
+                        go_quote(colon_port.as_bytes())
+                    ));
                 }
             }
             unescape(host, Encoding::Host)
@@ -263,7 +291,26 @@ fn should_escape_host(c: u8) -> bool {
     !(c.is_ascii_alphanumeric()
         || matches!(
             c,
-            b'!' | b'$' | b'&' | b'\'' | b'(' | b')' | b'*' | b'+' | b',' | b';' | b'=' | b':' | b'[' | b']' | b'<' | b'>' | b'"' | b'-' | b'_' | b'.' | b'~'
+            b'!' | b'$'
+                | b'&'
+                | b'\''
+                | b'('
+                | b')'
+                | b'*'
+                | b'+'
+                | b','
+                | b';'
+                | b'='
+                | b':'
+                | b'['
+                | b']'
+                | b'<'
+                | b'>'
+                | b'"'
+                | b'-'
+                | b'_'
+                | b'.'
+                | b'~'
         ))
 }
 
@@ -280,7 +327,10 @@ fn unescape(s: &str, mode: Encoding) -> Result<String, String> {
         match b[i] {
             b'%' => {
                 n += 1;
-                if i + 2 >= b.len() || !b[i + 1].is_ascii_hexdigit() || !b[i + 2].is_ascii_hexdigit() {
+                if i + 2 >= b.len()
+                    || !b[i + 1].is_ascii_hexdigit()
+                    || !b[i + 2].is_ascii_hexdigit()
+                {
                     let end = (i + 3).min(b.len());
                     return Err(format!("invalid URL escape {}", go_quote(&b[i..end])));
                 }
@@ -296,7 +346,10 @@ fn unescape(s: &str, mode: Encoding) -> Result<String, String> {
                 i += 3;
             }
             c => {
-                if (mode == Encoding::Host || mode == Encoding::Zone) && c < 0x80 && should_escape_host(c) {
+                if (mode == Encoding::Host || mode == Encoding::Zone)
+                    && c < 0x80
+                    && should_escape_host(c)
+                {
                     return Err(format!("invalid character {} in host name", go_quote(&b[i..=i])));
                 }
                 i += 1;
@@ -358,7 +411,10 @@ pub trait HasLocation {
 
 // lsp.go:83
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+#[expect(
+    clippy::upper_case_acronyms,
+    reason = "The name matches the upstream Go or protocol vocabulary."
+)]
 pub struct URI(pub String); // !!!
 
 impl Deref for URI {
@@ -464,7 +520,12 @@ pub(crate) fn err_invalid_value(type_name: &str, data: &Value) -> String {
 
 // lsp.go:107
 pub(crate) fn err_literal_mismatch(type_name: &str, expected: &str, got: &Value) -> String {
-    format!("expected {} value {}, got {}", type_name, expected, tsrs_core::json::marshal(got).unwrap_or_default())
+    format!(
+        "expected {} value {}, got {}",
+        type_name,
+        expected,
+        tsrs_core::json::marshal(got).unwrap_or_default()
+    )
 }
 
 // lsp.go:111
@@ -479,7 +540,10 @@ pub(crate) fn assert_at_most_one(message: &str, count: usize) {
 
 // lsp.go:131: the value of a top-level field of a JSON object; None if `data` is not an object or has
 // no such field. (Go's jsonKeyCheck compares raw key tokens; decoded keys are compared directly.)
-#[expect(dead_code, reason = "tools/gen-lsproto emits calls for a union with a discriminator field; no generated union has one now (same in Go)")]
+#[expect(
+    dead_code,
+    reason = "tools/gen-lsproto emits calls for a union with a discriminator field; no generated union has one now (same in Go)"
+)]
 pub(crate) fn json_object_raw_field<'a>(data: &'a Value, field: &str) -> Option<&'a Value> {
     let Value::Object(members) = data else {
         return None;
@@ -493,10 +557,7 @@ pub(crate) fn json_object_has_key(data: &Value, keys: &[&str]) -> Option<usize> 
     let Value::Object(members) = data else {
         return None;
     };
-    if let Some(i) = members
-        .keys()
-        .find_map(|name| keys.iter().position(|key| name == key))
-    {
+    if let Some(i) = members.keys().find_map(|name| keys.iter().position(|key| name == key)) {
         return Some(i);
     }
     None
@@ -526,7 +587,10 @@ impl<Params, Resp> RequestInfo<Params, Resp> {
 
 impl<Params: Json, Resp: Json> RequestInfo<Params, Resp> {
     // lsp.go:194. `result` is a response's raw result (None when the response had none).
-    #[expect(clippy::unused_self, reason = "RequestInfo exposes typed request and response codecs through the same instance API.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "RequestInfo exposes typed request and response codecs through the same instance API."
+    )]
     pub fn unmarshal_result(&self, result: Option<&Value>) -> Result<Resp, JsonError> {
         let Some(raw) = result else {
             return Err(JsonError::plain("unexpected EOF"));
@@ -535,7 +599,10 @@ impl<Params: Json, Resp: Json> RequestInfo<Params, Resp> {
     }
 
     // lsp.go:207
-    #[expect(clippy::needless_pass_by_value, reason = "Go stores params in the message; senders hand over params built for it")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Go stores params in the message; senders hand over params built for it"
+    )]
     pub fn new_request_message(&self, id: Option<ID>, params: Params) -> RequestMessage {
         RequestMessage { id, method: self.method, params: Some(params.to_json()) }
     }
@@ -563,7 +630,10 @@ impl<Params> NotificationInfo<Params> {
 
 impl<Params: Json> NotificationInfo<Params> {
     // lsp.go:220
-    #[expect(clippy::needless_pass_by_value, reason = "Go stores params in the message; senders hand over params built for it")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Go stores params in the message; senders hand over params built for it"
+    )]
     pub fn new_notification_message(&self, params: Params) -> RequestMessage {
         RequestMessage { id: None, method: self.method, params: Some(params.to_json()) }
     }
@@ -586,7 +656,10 @@ impl RequestMessage {
             if let Some(raw) = raw {
                 return Err(Error::wrap_code(
                     ErrorCode::InvalidParams,
-                    Error::new(format!("expected no params, got {}", tsrs_core::json::marshal(raw).unwrap_or_default())),
+                    Error::new(format!(
+                        "expected no params, got {}",
+                        tsrs_core::json::marshal(raw).unwrap_or_default()
+                    )),
                 ));
             }
             return Ok(T::default());
@@ -595,7 +668,10 @@ impl RequestMessage {
         // The base protocol defines params as `array | object`; reject anything else
         // (absent, null, or a scalar).
         let Some(raw @ (Value::Object(_) | Value::Array(_))) = raw else {
-            return Err(Error::wrap_code(ErrorCode::InvalidParams, Error::new("params must be an object or array")));
+            return Err(Error::wrap_code(
+                ErrorCode::InvalidParams,
+                Error::new("params must be an object or array"),
+            ));
         };
         T::from_json(raw).map_err(|err| Error::wrap_code(ErrorCode::InvalidParams, err))
     }
@@ -646,12 +722,17 @@ impl Json for NoParams {
 struct clientCapabilitiesKey(std::sync::Arc<crate::ResolvedClientCapabilities>);
 
 // lsp.go:289
-pub fn with_client_capabilities(ctx: &tsrs_core::context::Context, caps: std::sync::Arc<crate::ResolvedClientCapabilities>) -> tsrs_core::context::Context {
+pub fn with_client_capabilities(
+    ctx: &tsrs_core::context::Context,
+    caps: std::sync::Arc<crate::ResolvedClientCapabilities>,
+) -> tsrs_core::context::Context {
     ctx.with_value(clientCapabilitiesKey(caps))
 }
 
 // lsp.go:293
-pub fn get_client_capabilities(ctx: &tsrs_core::context::Context) -> std::sync::Arc<crate::ResolvedClientCapabilities> {
+pub fn get_client_capabilities(
+    ctx: &tsrs_core::context::Context,
+) -> std::sync::Arc<crate::ResolvedClientCapabilities> {
     if let Some(caps) = ctx.value::<clientCapabilitiesKey>() {
         return std::sync::Arc::clone(&caps.0);
     }
@@ -696,12 +777,15 @@ impl CodeActionKind {
     // lsp.go:310
     // Contains reports whether other is this code action kind or one of its children.
     pub fn contains(self, other: CodeActionKind) -> bool {
-        self == other || self == CodeActionKind::Empty || other.0.strip_prefix(self.0).is_some_and(|rest| rest.starts_with('.'))
+        self == other
+            || self == CodeActionKind::Empty
+            || other.0.strip_prefix(self.0).is_some_and(|rest| rest.starts_with('.'))
     }
 
     // lsp.go:316
     pub const SourceFixAllTs: CodeActionKind = CodeActionKind("source.fixAll.ts");
     pub const SourceOrganizeImportsTs: CodeActionKind = CodeActionKind("source.organizeImports.ts");
-    pub const SourceRemoveUnusedImportsTs: CodeActionKind = CodeActionKind("source.removeUnusedImports.ts");
+    pub const SourceRemoveUnusedImportsTs: CodeActionKind =
+        CodeActionKind("source.removeUnusedImports.ts");
     pub const SourceSortImportsTs: CodeActionKind = CodeActionKind("source.sortImports.ts");
 }

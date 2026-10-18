@@ -10,8 +10,11 @@ use rustc_hash::FxHashMap;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::Value;
 
-use crate::jsonrpc::{self, ResponseError, CODE_INTERNAL_ERROR, ID};
-use crate::{lock, new_jsonrpc_protocol, Closer, Conn, Error, ErrorTag, Handler, Message, Protocol, ReadWriteCloser, ERR_CONN_CLOSED};
+use crate::jsonrpc::{self, CODE_INTERNAL_ERROR, ID, ResponseError};
+use crate::{
+    Closer, Conn, ERR_CONN_CLOSED, Error, ErrorTag, Handler, Message, Protocol, ReadWriteCloser,
+    lock, new_jsonrpc_protocol,
+};
 
 // timing.go:11
 // Method names for the generic connection-level timing feature, handled by the connection itself rather
@@ -49,7 +52,11 @@ struct pendingCalls {
 // It uses JSONRPCProtocol (LSP-style Content-Length framing) by default.
 pub fn new_async_conn(rwc: ReadWriteCloser, handler: Arc<dyn Handler>) -> Arc<AsyncConn> {
     let ReadWriteCloser { reader, writer, closer } = rwc;
-    new_async_conn_with_protocol(Some(closer), Box::new(new_jsonrpc_protocol(reader, writer)), handler)
+    new_async_conn_with_protocol(
+        Some(closer),
+        Box::new(new_jsonrpc_protocol(reader, writer)),
+        handler,
+    )
 }
 
 // conn_async.go:46
@@ -82,39 +89,43 @@ impl Conn for AsyncConn {
     fn run(&self) -> Result<(), Error> {
         let request_errors: Mutex<Option<Error>> = Mutex::new(None);
         let err = thread::scope(|s| {
-            let read = catch_unwind(AssertUnwindSafe(|| loop {
-                let msg = match self.protocol.read_message() {
-                    Ok(msg) => msg,
-                    Err(err) => {
-                        if err.is(ErrorTag::EOF) {
-                            break None;
-                        }
-                        break Some(err);
-                    }
-                };
-
-                if msg.is_response() {
-                    self.handle_response(msg);
-                } else if msg.is_request() {
-                    let request_errors = &request_errors;
-                    let started = thread::Builder::new().name(HANDLER_THREAD.to_string()).spawn_scoped(s, move || {
-                        if let Err(request_err) = self.handle_request(&msg) {
-                            if self.record_request_error(request_err, request_errors) {
-                                if let Some(rwc) = &self.rwc {
-                                    let _ = rwc.close();
-                                }
+            let read = catch_unwind(AssertUnwindSafe(|| {
+                loop {
+                    let msg = match self.protocol.read_message() {
+                        Ok(msg) => msg,
+                        Err(err) => {
+                            if err.is(ErrorTag::EOF) {
+                                break None;
                             }
+                            break Some(err);
                         }
-                    });
-                    if let Err(err) = started {
-                        break Some(handler_thread_error(&err));
-                    }
-                } else if msg.is_notification() {
-                    let started = thread::Builder::new()
-                        .name(HANDLER_THREAD.to_string())
-                        .spawn_scoped(s, move || self.handle_notification(&msg));
-                    if let Err(err) = started {
-                        break Some(handler_thread_error(&err));
+                    };
+
+                    if msg.is_response() {
+                        self.handle_response(msg);
+                    } else if msg.is_request() {
+                        let request_errors = &request_errors;
+                        let started = thread::Builder::new()
+                            .name(HANDLER_THREAD.to_string())
+                            .spawn_scoped(s, move || {
+                                if let Err(request_err) = self.handle_request(&msg) {
+                                    if self.record_request_error(request_err, request_errors) {
+                                        if let Some(rwc) = &self.rwc {
+                                            let _ = rwc.close();
+                                        }
+                                    }
+                                }
+                            });
+                        if let Err(err) = started {
+                            break Some(handler_thread_error(&err));
+                        }
+                    } else if msg.is_notification() {
+                        let started = thread::Builder::new()
+                            .name(HANDLER_THREAD.to_string())
+                            .spawn_scoped(s, move || self.handle_notification(&msg));
+                        if let Err(err) = started {
+                            break Some(handler_thread_error(&err));
+                        }
                     }
                 }
             }));
@@ -144,7 +155,12 @@ impl Conn for AsyncConn {
         self.call_until(method, params, None)
     }
 
-    fn call_with_timeout(&self, method: &str, params: Option<&Value>, timeout: Duration) -> Result<Option<Value>, Error> {
+    fn call_with_timeout(
+        &self,
+        method: &str,
+        params: Option<&Value>,
+        timeout: Duration,
+    ) -> Result<Option<Value>, Error> {
         self.call_until(method, params, Instant::now().checked_add(timeout))
     }
 
@@ -181,7 +197,11 @@ impl AsyncConn {
     }
 
     // conn_async.go:123
-    fn record_request_error(&self, request_err: Error, request_errors: &Mutex<Option<Error>>) -> bool {
+    fn record_request_error(
+        &self,
+        request_err: Error,
+        request_errors: &Mutex<Option<Error>>,
+    ) -> bool {
         let mut p = lock(&self.pending_mu);
         if !p.record_terminal_error_locked(Some(&request_err)) {
             return false;
@@ -221,7 +241,9 @@ impl AsyncConn {
                     let _write = lock(&self.write_mu);
                     self.protocol.write_response(id, &disabled_server_timing_info())
                 };
-                return write_err.map_err(|err| Error::wrap("ipc: failed to write server timing response: ", err));
+                return write_err.map_err(|err| {
+                    Error::wrap("ipc: failed to write server timing response: ", err)
+                });
             }
             METHOD_RESET_SERVER_TIMING => {
                 // c.timing is nil (timing collection is not ported): there is nothing to reset.
@@ -229,7 +251,9 @@ impl AsyncConn {
                     let _write = lock(&self.write_mu);
                     self.protocol.write_response(id, &Value::Null)
                 };
-                return write_err.map_err(|err| Error::wrap("ipc: failed to write reset server timing response: ", err));
+                return write_err.map_err(|err| {
+                    Error::wrap("ipc: failed to write reset server timing response: ", err)
+                });
             }
             _ => {}
         }
@@ -256,7 +280,8 @@ impl AsyncConn {
             self.protocol.write_error(id, &internal_error(format!("panic: {r}")))
         };
         write_err.map_err(|err| {
-            Error::wrap("ipc: failed to write panic error response: ", err).with_suffix(&format!(" (original panic: {r})"))
+            Error::wrap("ipc: failed to write panic error response: ", err)
+                .with_suffix(&format!(" (original panic: {r})"))
         })
     }
 
@@ -267,9 +292,15 @@ impl AsyncConn {
     }
 
     // conn_async.go:256, Call with a context whose deadline is `deadline` (None: no deadline).
-    fn call_until(&self, method: &str, params: Option<&Value>, deadline: Option<Instant>) -> Result<Option<Value>, Error> {
+    fn call_until(
+        &self,
+        method: &str,
+        params: Option<&Value>,
+        deadline: Option<Instant>,
+    ) -> Result<Option<Value>, Error> {
         // Create unique request ID
-        let id = jsonrpc::new_id_string(&format!("api{}", self.seq.fetch_add(1, Ordering::SeqCst) + 1));
+        let id =
+            jsonrpc::new_id_string(&format!("api{}", self.seq.fetch_add(1, Ordering::SeqCst) + 1));
 
         // Register response channel BEFORE sending request to avoid race
         let (response_chan, responses) = mpsc::sync_channel(1);
@@ -305,14 +336,19 @@ impl AsyncConn {
 
         let resp = match deadline {
             None => responses.recv().ok(),
-            Some(deadline) => match responses.recv_timeout(deadline.saturating_duration_since(Instant::now())) {
-                Ok(resp) => Some(resp),
-                // case <-ctx.Done(): return nil, ctx.Err()
-                Err(RecvTimeoutError::Timeout) => {
-                    return Err(Error::tagged(ErrorTag::DeadlineExceeded, "context deadline exceeded"));
+            Some(deadline) => {
+                match responses.recv_timeout(deadline.saturating_duration_since(Instant::now())) {
+                    Ok(resp) => Some(resp),
+                    // case <-ctx.Done(): return nil, ctx.Err()
+                    Err(RecvTimeoutError::Timeout) => {
+                        return Err(Error::tagged(
+                            ErrorTag::DeadlineExceeded,
+                            "context deadline exceeded",
+                        ));
+                    }
+                    Err(RecvTimeoutError::Disconnected) => None,
                 }
-                Err(RecvTimeoutError::Disconnected) => None,
-            },
+            }
         };
         let Some(resp) = resp else {
             // The channel was closed: the read loop has exited and recorded the terminal error.

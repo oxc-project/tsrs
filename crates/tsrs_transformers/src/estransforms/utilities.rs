@@ -1,11 +1,14 @@
 // Port of estransforms/utilities.go.
 
+use super::async_::{assignment_target_contains_super_property, is_update_expression};
 use crate::*;
 use tsrs_core::collections::{OrderedSet, OrderedSetExt};
-use super::async_::{assignment_target_contains_super_property, is_update_expression};
 
 // utilities.go:10
-pub(crate) fn convert_class_declaration_to_class_expression(emit_context: P<EmitContext>, node: P<Node>) -> P<Node> {
+pub(crate) fn convert_class_declaration_to_class_expression(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+) -> P<Node> {
     let c = node.as_class_declaration();
     let updated = emit_context.factory.new_class_expression(
         extract_modifiers(emit_context, node.modifiers(), !ModifierFlags::ExportDefault),
@@ -20,7 +23,12 @@ pub(crate) fn convert_class_declaration_to_class_expression(emit_context: P<Emit
 }
 
 // utilities.go:23
-pub(crate) fn create_not_null_condition(emit_context: P<EmitContext>, left: P<Node>, right: P<Node>, invert: bool) -> P<Node> {
+pub(crate) fn create_not_null_condition(
+    emit_context: P<EmitContext>,
+    left: P<Node>,
+    right: P<Node>,
+    invert: bool,
+) -> P<Node> {
     let mut token = Kind::ExclamationEqualsEqualsToken;
     let mut op = Kind::AmpersandAmpersandToken;
     if invert {
@@ -31,10 +39,22 @@ pub(crate) fn create_not_null_condition(emit_context: P<EmitContext>, left: P<No
     let f = &emit_context.factory;
     f.new_binary_expression(
         None,
-        f.new_binary_expression(None, left, None, f.new_token(token), f.new_keyword_expression(Kind::NullKeyword)),
+        f.new_binary_expression(
+            None,
+            left,
+            None,
+            f.new_token(token),
+            f.new_keyword_expression(Kind::NullKeyword),
+        ),
         None,
         f.new_token(op),
-        f.new_binary_expression(None, right, None, f.new_token(token), f.new_void_zero_expression()),
+        f.new_binary_expression(
+            None,
+            right,
+            None,
+            f.new_token(token),
+            f.new_void_zero_expression(),
+        ),
     )
 }
 
@@ -67,10 +87,16 @@ impl superAccessState {
     }
 
     // utilities.go:69
-    pub fn init_super_access_visitor(&'static self, emit_context: P<EmitContext>, factory: &'static printer::NodeFactory) {
+    pub fn init_super_access_visitor(
+        &'static self,
+        emit_context: P<EmitContext>,
+        factory: &'static printer::NodeFactory,
+    ) {
         let _ = self.factory.set(factory);
         let s = P::from_static(self);
-        let _ = self.super_access_visitor.set(emit_context.new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| Some(s.visit_super_access_node(n)))));
+        let _ = self.super_access_visitor.set(emit_context.new_node_visitor(Rc::new(
+            move |_: &mut NodeVisitor, n: P<Node>| Some(s.visit_super_access_node(n)),
+        )));
     }
 
     // visitSuperAccessNode walks the async/generator body and replaces super property/element
@@ -81,21 +107,31 @@ impl superAccessState {
         match node.kind() {
             Kind::CallExpression => {
                 if ast::is_super_property(node.expression().unwrap()) {
-                    return self.substitute_call_expression_with_super_access(node, &mut self.super_access_visitor());
+                    return self.substitute_call_expression_with_super_access(
+                        node,
+                        &mut self.super_access_visitor(),
+                    );
                 }
                 self.super_access_visitor().visit_each_child(Some(node)).unwrap()
             }
             Kind::PropertyAccessExpression => {
                 if node.expression().unwrap().kind() == Kind::SuperKeyword {
                     // super.x → _super.x
-                    return self.factory().new_property_access_expression(self.super_binding.get().unwrap(), None, node.name().unwrap(), NodeFlags::None);
+                    return self.factory().new_property_access_expression(
+                        self.super_binding.get().unwrap(),
+                        None,
+                        node.name().unwrap(),
+                        NodeFlags::None,
+                    );
                 }
                 self.super_access_visitor().visit_each_child(Some(node)).unwrap()
             }
             Kind::ElementAccessExpression => {
                 if node.expression().unwrap().kind() == Kind::SuperKeyword {
                     // super[x] → _superIndex(x) or _superIndex(x).value
-                    return self.create_super_element_access_in_async_method(node.as_element_access_expression().argument_expression);
+                    return self.create_super_element_access_in_async_method(
+                        node.as_element_access_expression().argument_expression,
+                    );
                 }
                 self.super_access_visitor().visit_each_child(Some(node)).unwrap()
             }
@@ -119,22 +155,37 @@ impl superAccessState {
 
     // substituteCallExpressionWithSuperAccess handles super.x(args) and super[x](args).
     // utilities.go:116
-    pub fn substitute_call_expression_with_super_access(&self, call: P<Node>, visitor: &mut NodeVisitor) -> P<Node> {
+    pub fn substitute_call_expression_with_super_access(
+        &self,
+        call: P<Node>,
+        visitor: &mut NodeVisitor,
+    ) -> P<Node> {
         let f = self.factory();
         let expression = call.as_call_expression().expression;
 
-
         let target = if ast::is_property_access_expression(expression) {
             // super.x(args) → _super.x.call(this, args)
-            f.new_property_access_expression(self.super_binding.get().unwrap(), None, expression.as_property_access_expression().name, NodeFlags::None)
+            f.new_property_access_expression(
+                self.super_binding.get().unwrap(),
+                None,
+                expression.as_property_access_expression().name,
+                NodeFlags::None,
+            )
         } else if ast::is_element_access_expression(expression) {
             // super[x](args) → _superIndex(x).call(this, args) or _superIndex(x).value.call(this, args)
-            self.create_super_element_access_in_async_method(expression.as_element_access_expression().argument_expression)
+            self.create_super_element_access_in_async_method(
+                expression.as_element_access_expression().argument_expression,
+            )
         } else {
             return visitor.visit_each_child(Some(call)).unwrap();
         };
 
-        let call_target = f.new_property_access_expression(target, None, f.new_identifier("call"), NodeFlags::None);
+        let call_target = f.new_property_access_expression(
+            target,
+            None,
+            f.new_identifier("call"),
+            NodeFlags::None,
+        );
 
         let mut all_args: Vec<P<Node>> = Vec::new();
         all_args.push(f.new_this_expression());
@@ -143,18 +194,38 @@ impl superAccessState {
             all_args.extend_from_slice(visited_args.nodes());
         }
 
-        let result = f.new_call_expression(call_target, None, None, f.new_node_list(all_args), NodeFlags::None);
+        let result = f.new_call_expression(
+            call_target,
+            None,
+            None,
+            f.new_node_list(all_args),
+            NodeFlags::None,
+        );
         result.set_loc(call.loc());
         result
     }
 
     // createSuperElementAccessInAsyncMethod creates _superIndex(x) or _superIndex(x).value.
     // utilities.go:158
-    pub fn create_super_element_access_in_async_method(&self, argument_expression: P<Node>) -> P<Node> {
+    pub fn create_super_element_access_in_async_method(
+        &self,
+        argument_expression: P<Node>,
+    ) -> P<Node> {
         let f = self.factory();
-        let super_index_call = f.new_call_expression(self.super_index_binding.get().unwrap(), None, None, f.new_node_list(vec![argument_expression]), NodeFlags::None);
+        let super_index_call = f.new_call_expression(
+            self.super_index_binding.get().unwrap(),
+            None,
+            None,
+            f.new_node_list(vec![argument_expression]),
+            NodeFlags::None,
+        );
         if self.has_super_property_assignment.get() {
-            return f.new_property_access_expression(super_index_call, None, f.new_identifier("value"), NodeFlags::None);
+            return f.new_property_access_expression(
+                super_index_call,
+                None,
+                f.new_identifier("value"),
+                NodeFlags::None,
+            );
         }
         super_index_call
     }
@@ -173,44 +244,102 @@ impl superAccessState {
         let f = self.factory();
         let mut accessors: Vec<P<Node>> = Vec::new();
 
-        let names: Vec<String> = self.captured_super_properties.borrow().as_ref().map(|s| s.iter().cloned().collect()).unwrap_or_default();
+        let names: Vec<String> = self
+            .captured_super_properties
+            .borrow()
+            .as_ref()
+            .map(|s| s.iter().cloned().collect())
+            .unwrap_or_default();
         for name in names {
             let name = alloc_str(&name);
             let mut descriptor_properties: Vec<P<Node>> = Vec::new();
 
             // getter: get: () => super.name
-            let getter_body = f.new_property_access_expression(f.new_keyword_expression(Kind::SuperKeyword), None, f.new_identifier(name), NodeFlags::None);
-            let getter_arrow = f.new_arrow_function(None, None, Some(f.new_node_list(vec![])), None, None, Some(f.new_token(Kind::EqualsGreaterThanToken)), Some(getter_body));
-            let getter = f.new_property_assignment(None, f.new_identifier("get"), None, None, getter_arrow);
+            let getter_body = f.new_property_access_expression(
+                f.new_keyword_expression(Kind::SuperKeyword),
+                None,
+                f.new_identifier(name),
+                NodeFlags::None,
+            );
+            let getter_arrow = f.new_arrow_function(
+                None,
+                None,
+                Some(f.new_node_list(vec![])),
+                None,
+                None,
+                Some(f.new_token(Kind::EqualsGreaterThanToken)),
+                Some(getter_body),
+            );
+            let getter =
+                f.new_property_assignment(None, f.new_identifier("get"), None, None, getter_arrow);
             descriptor_properties.push(getter);
 
             if self.has_super_property_assignment.get() {
                 // setter: set: v => super.name = v
-                let v_param = f.new_parameter_declaration(None, None, f.new_identifier("v"), None, None, None);
-                let super_prop = f.new_property_access_expression(f.new_keyword_expression(Kind::SuperKeyword), None, f.new_identifier(name), NodeFlags::None);
+                let v_param = f.new_parameter_declaration(
+                    None,
+                    None,
+                    f.new_identifier("v"),
+                    None,
+                    None,
+                    None,
+                );
+                let super_prop = f.new_property_access_expression(
+                    f.new_keyword_expression(Kind::SuperKeyword),
+                    None,
+                    f.new_identifier(name),
+                    NodeFlags::None,
+                );
                 let assign_expr = f.new_assignment_expression(super_prop, f.new_identifier("v"));
-                let setter_arrow = f.new_arrow_function(None, None, Some(f.new_node_list(vec![v_param])), None, None, Some(f.new_token(Kind::EqualsGreaterThanToken)), Some(assign_expr));
-                let setter = f.new_property_assignment(None, f.new_identifier("set"), None, None, setter_arrow);
+                let setter_arrow = f.new_arrow_function(
+                    None,
+                    None,
+                    Some(f.new_node_list(vec![v_param])),
+                    None,
+                    None,
+                    Some(f.new_token(Kind::EqualsGreaterThanToken)),
+                    Some(assign_expr),
+                );
+                let setter = f.new_property_assignment(
+                    None,
+                    f.new_identifier("set"),
+                    None,
+                    None,
+                    setter_arrow,
+                );
                 descriptor_properties.push(setter);
             }
 
-            let descriptor = f.new_object_literal_expression(f.new_node_list(descriptor_properties), false);
-            let accessor = f.new_property_assignment(None, f.new_identifier(name), None, None, descriptor);
+            let descriptor =
+                f.new_object_literal_expression(f.new_node_list(descriptor_properties), false);
+            let accessor =
+                f.new_property_assignment(None, f.new_identifier(name), None, None, descriptor);
             accessors.push(accessor);
         }
 
         let descriptors_object = f.new_object_literal_expression(f.new_node_list(accessors), true);
 
         let object_create_call = f.new_call_expression(
-            f.new_property_access_expression(f.new_identifier("Object"), None, f.new_identifier("create"), NodeFlags::None),
+            f.new_property_access_expression(
+                f.new_identifier("Object"),
+                None,
+                f.new_identifier("create"),
+                NodeFlags::None,
+            ),
             None,
             None,
             f.new_node_list(vec![f.new_keyword_expression(Kind::NullKeyword), descriptors_object]),
             NodeFlags::None,
         );
 
-        let decl = f.new_variable_declaration(self.super_binding.get().unwrap(), None, None, Some(object_create_call));
-        let decl_list = f.new_variable_declaration_list(f.new_node_list(vec![decl]), NodeFlags::Const);
+        let decl = f.new_variable_declaration(
+            self.super_binding.get().unwrap(),
+            None,
+            None,
+            Some(object_create_call),
+        );
+        let decl_list =
+            f.new_variable_declaration_list(f.new_node_list(vec![decl]), NodeFlags::Const);
         f.new_variable_statement(None, decl_list)
     }
 
@@ -226,7 +355,11 @@ impl superAccessState {
         match node.kind() {
             Kind::PropertyAccessExpression => {
                 if node.expression().unwrap().kind() == Kind::SuperKeyword {
-                    self.captured_super_properties.borrow_mut().as_mut().unwrap().add(node.name().unwrap().text().to_string());
+                    self.captured_super_properties
+                        .borrow_mut()
+                        .as_mut()
+                        .unwrap()
+                        .add(node.name().unwrap().text().to_string());
                 }
             }
             Kind::ElementAccessExpression => {
@@ -236,19 +369,29 @@ impl superAccessState {
             }
             Kind::BinaryExpression => {
                 let b = node.as_binary_expression();
-                if ast::is_assignment_operator(b.operator_token.kind()) && assignment_target_contains_super_property(b.left) {
+                if ast::is_assignment_operator(b.operator_token.kind())
+                    && assignment_target_contains_super_property(b.left)
+                {
                     self.has_super_property_assignment.set(true);
                 }
             }
             Kind::PrefixUnaryExpression => {
-                if is_update_expression(node) && assignment_target_contains_super_property(node.as_prefix_unary_expression().operand) {
+                if is_update_expression(node)
+                    && assignment_target_contains_super_property(
+                        node.as_prefix_unary_expression().operand,
+                    )
+                {
                     self.has_super_property_assignment.set(true);
                 }
             }
             Kind::PostfixUnaryExpression
-                if is_update_expression(node) && assignment_target_contains_super_property(node.as_postfix_unary_expression().operand) => {
-                    self.has_super_property_assignment.set(true);
-                }
+                if is_update_expression(node)
+                    && assignment_target_contains_super_property(
+                        node.as_postfix_unary_expression().operand,
+                    ) =>
+            {
+                self.has_super_property_assignment.set(true);
+            }
             _ => {}
         }
     }
@@ -256,11 +399,19 @@ impl superAccessState {
 
 // utilities.go:280
 // createAccessorPropertyBackingField creates a private backing field for an `accessor` PropertyDeclaration.
-pub(crate) fn create_accessor_property_backing_field(f: &printer::NodeFactory, node: P<Node>, modifiers: Option<P<ModifierList>>, initializer: Option<P<Node>>) -> P<Node> {
+pub(crate) fn create_accessor_property_backing_field(
+    f: &printer::NodeFactory,
+    node: P<Node>,
+    modifiers: Option<P<ModifierList>>,
+    initializer: Option<P<Node>>,
+) -> P<Node> {
     f.update_property_declaration(
         node,
         modifiers,
-        f.new_generated_private_name_for_node_ex(node.name().unwrap(), printer::AutoGenerateOptions { suffix: "_accessor_storage", ..Default::default() }),
+        f.new_generated_private_name_for_node_ex(
+            node.name().unwrap(),
+            printer::AutoGenerateOptions { suffix: "_accessor_storage", ..Default::default() },
+        ),
         None, /*postfixToken*/
         None, /*typeNode*/
         initializer,

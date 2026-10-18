@@ -75,7 +75,10 @@ impl<R: Read> Reader<R> {
             }
 
             let Some(colon) = line.iter().position(|&b| b == b':') else {
-                return Err(Error::tagged(ErrorTag::InvalidHeader, format!("{}: {}", ERR_INVALID_HEADER, go_quote(&line))));
+                return Err(Error::tagged(
+                    ErrorTag::InvalidHeader,
+                    format!("{}: {}", ERR_INVALID_HEADER, go_quote(&line)),
+                ));
             };
             let (key, value) = (&line[..colon], &line[colon + 1..]);
 

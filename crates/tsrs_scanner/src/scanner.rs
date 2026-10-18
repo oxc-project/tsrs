@@ -48,13 +48,16 @@ use tsrs_core::{
 use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
 
-use crate::regexp::{char_code_to_reg_exp_flag, RegExpParser, RegularExpressionFlags};
+use crate::regexp::{RegExpParser, RegularExpressionFlags, char_code_to_reg_exp_flag};
 use crate::utilities::token_is_identifier_or_keyword;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum IdentifierVariant {
     Standard,
-    #[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+    #[expect(
+        clippy::upper_case_acronyms,
+        reason = "The name matches the upstream Go or protocol vocabulary."
+    )]
     JSX,
     RegExpGroupName,
 }
@@ -104,7 +107,10 @@ const NO_KEYWORD: u8 = u8::MAX;
 
 #[inline]
 const fn keyword_hash(b: &[u8]) -> usize {
-    let key = b[0] as u32 | ((b[1] as u32) << 8) | ((b[b.len() - 1] as u32) << 16) | ((b.len() as u32) << 24);
+    let key = b[0] as u32
+        | ((b[1] as u32) << 8)
+        | ((b[b.len() - 1] as u32) << 16)
+        | ((b.len() as u32) << 24);
     (key.wrapping_mul(KEYWORD_HASH_MUL) >> 24) as usize
 }
 
@@ -464,7 +470,9 @@ fn decode_rune_slow(b: &[u8]) -> (Rune, usize) {
                 _ => (0x80, 0xBF),
             };
             match (cont(1, lo, hi), cont(2, 0x80, 0xBF), cont(3, 0x80, 0xBF)) {
-                (Some(c1), Some(c2), Some(c3)) => (((b0 & 0x07) << 18) | (c1 << 12) | (c2 << 6) | c3, 4),
+                (Some(c1), Some(c2), Some(c3)) => {
+                    (((b0 & 0x07) << 18) | (c1 << 12) | (c2 << 6) | c3, 4)
+                }
                 _ => (RUNE_ERROR, 1),
             }
         }
@@ -669,7 +677,9 @@ impl Scanner {
                 return;
             };
             comment_text = &comment_text[i + 1..];
-            if !self.state.token_flags.intersects(TokenFlags::PrecedingJSDocWithDeprecated) && has_jsdoc_tag(comment_text, &["deprecated"]) {
+            if !self.state.token_flags.intersects(TokenFlags::PrecedingJSDocWithDeprecated)
+                && has_jsdoc_tag(comment_text, &["deprecated"])
+            {
                 self.state.token_flags |= TokenFlags::PrecedingJSDocWithDeprecated;
             }
             if !self.state.token_flags.intersects(TokenFlags::PrecedingJSDocWithSeeOrLink)
@@ -677,7 +687,9 @@ impl Scanner {
             {
                 self.state.token_flags |= TokenFlags::PrecedingJSDocWithSeeOrLink;
             }
-            if self.state.token_flags.contains(TokenFlags::PrecedingJSDocWithDeprecated | TokenFlags::PrecedingJSDocWithSeeOrLink) {
+            if self.state.token_flags.contains(
+                TokenFlags::PrecedingJSDocWithDeprecated | TokenFlags::PrecedingJSDocWithSeeOrLink,
+            ) {
                 return;
             }
         }
@@ -716,7 +728,12 @@ impl Scanner {
         args: &[&dyn Display],
     ) {
         if self.on_error {
-            self.errors.push(ScanError { message: diagnostic, start: pos, length, args: args.iter().map(std::string::ToString::to_string).collect() });
+            self.errors.push(ScanError {
+                message: diagnostic,
+                start: pos,
+                length,
+                args: args.iter().map(std::string::ToString::to_string).collect(),
+            });
         }
     }
 
@@ -891,7 +908,10 @@ impl Scanner {
     }
 
     #[cold]
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_whitespace(&mut self) -> Option<Kind> {
         debug_assert!(!self.skip_trivia);
         self.state.pos += 1;
@@ -906,7 +926,10 @@ impl Scanner {
     }
 
     #[cold]
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_line_break(&mut self) -> Option<Kind> {
         debug_assert!(!self.skip_trivia);
         let ch = self.char();
@@ -919,7 +942,10 @@ impl Scanner {
         Some(Kind::NewLineTrivia)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_exclamation(&mut self) -> Option<Kind> {
         let token = if self.char_at(1) == Some(b'=') {
             if self.char_at(2) == Some(b'=') {
@@ -936,18 +962,27 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_string(&mut self) -> Option<Kind> {
         self.state.token_value = self.scan_string(false /*jsxAttributeString*/);
         Some(Kind::StringLiteral)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_template(&mut self) -> Option<Kind> {
         Some(self.scan_template_and_set_token_value(false /*shouldEmitInvalidEscapeError*/))
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_percent(&mut self) -> Option<Kind> {
         let token = if self.char_at(1) == Some(b'=') {
             self.state.pos += 2;
@@ -959,7 +994,10 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_ampersand(&mut self) -> Option<Kind> {
         let next = self.char_at(1);
         let token = if next == Some(b'&') {
@@ -980,13 +1018,19 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_open_paren(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::OpenParenToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_close_paren(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::CloseParenToken)
@@ -1008,14 +1052,8 @@ impl Scanner {
         } else {
             self.state.pos += 1;
             if self.state.skip_jsdoc_leading_asterisks != 0
-                && !self
-                    .state
-                    .token_flags
-                    .intersects(TokenFlags::PrecedingJSDocLeadingAsterisks)
-                && self
-                    .state
-                    .token_flags
-                    .intersects(TokenFlags::PrecedingLineBreak)
+                && !self.state.token_flags.intersects(TokenFlags::PrecedingJSDocLeadingAsterisks)
+                && self.state.token_flags.intersects(TokenFlags::PrecedingLineBreak)
             {
                 self.state.token_flags |= TokenFlags::PrecedingJSDocLeadingAsterisks;
                 return None;
@@ -1025,7 +1063,10 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_plus(&mut self) -> Option<Kind> {
         let next = self.char_at(1);
         let token = if next == Some(b'=') {
@@ -1041,13 +1082,19 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_comma(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::CommaToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_minus(&mut self) -> Option<Kind> {
         let next = self.char_at(1);
         let token = if next == Some(b'=') {
@@ -1063,7 +1110,10 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_dot(&mut self) -> Option<Kind> {
         let next = self.char_at(1);
         let token = if next.is_some_and(|ch| stringutil::is_digit(u32::from(ch))) {
@@ -1166,7 +1216,10 @@ impl Scanner {
         let start = self.state.pos as usize;
         debug_assert!(start <= self.end as usize);
         debug_assert!(
-            self.text[..start].chars().next_back().is_some_and(|ch| stringutil::is_line_break(ch as Rune))
+            self.text[..start]
+                .chars()
+                .next_back()
+                .is_some_and(|ch| stringutil::is_line_break(ch as Rune))
         );
         let remaining = &self.text.as_bytes()[start..self.end as usize];
         let closing = memchr::memmem::find(remaining, b"*/");
@@ -1192,7 +1245,10 @@ impl Scanner {
         (comment_closed, last_line_start as u32)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_number(&mut self) -> Option<Kind> {
         let ch = self.char();
         let token = 'digit: {
@@ -1251,13 +1307,19 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_colon(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::ColonToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_semicolon(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::SemicolonToken)
@@ -1333,9 +1395,14 @@ impl Scanner {
         Some(Kind::GreaterThanToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_question(&mut self) -> Option<Kind> {
-        let token = if self.char_at(1) == Some(b'.') && !self.char_at(2).is_some_and(|ch| stringutil::is_digit(u32::from(ch))) {
+        let token = if self.char_at(1) == Some(b'.')
+            && !self.char_at(2).is_some_and(|ch| stringutil::is_digit(u32::from(ch)))
+        {
             self.state.pos += 2;
             Kind::QuestionDotToken
         } else if self.char_at(1) == Some(b'?') {
@@ -1353,19 +1420,28 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_open_bracket(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::OpenBracketToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_close_bracket(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::CloseBracketToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_caret(&mut self) -> Option<Kind> {
         let token = if self.char_at(1) == Some(b'=') {
             self.state.pos += 2;
@@ -1377,7 +1453,10 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_open_brace(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::OpenBraceToken)
@@ -1409,19 +1488,28 @@ impl Scanner {
         Some(token)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_close_brace(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::CloseBraceToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_tilde(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::TildeToken)
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_at(&mut self) -> Option<Kind> {
         self.state.pos += 1;
         Some(Kind::AtToken)
@@ -1444,7 +1532,10 @@ impl Scanner {
     }
 
     #[cold]
-    #[expect(clippy::unnecessary_wraps, reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "BYTE_HANDLERS requires Option<Kind>; other byte handlers return None to continue scanning trivia."
+    )]
     fn scan_byte_identifier_slow(&mut self) -> Option<Kind> {
         let token = if self.scan_identifier(0, IdentifierVariant::Standard) {
             get_identifier_token(self.state.token_value)
@@ -1527,7 +1618,11 @@ impl Scanner {
 
     fn scan_conflict_marker_trivia_reporting(&mut self, pos: u32) -> u32 {
         let text = self.text;
-        scan_conflict_marker_trivia(text, pos, Some(&mut |diag, pos, length| self.error_at(diag, pos, length, &[])))
+        scan_conflict_marker_trivia(
+            text,
+            pos,
+            Some(&mut |diag, pos, length| self.error_at(diag, pos, length, &[])),
+        )
     }
 
     fn process_comment_directive(&mut self, start: u32, end: u32, multiline: bool) {
@@ -1622,7 +1717,10 @@ impl Scanner {
     }
 
     pub fn re_scan_asterisk_equals_token(&mut self) -> Kind {
-        assert!(self.state.token == Kind::AsteriskEqualsToken, "'ReScanAsteriskEqualsToken' should only be called on a '*='");
+        assert!(
+            self.state.token == Kind::AsteriskEqualsToken,
+            "'ReScanAsteriskEqualsToken' should only be called on a '*='"
+        );
         self.state.pos = self.state.token_start + 1;
         self.state.token = Kind::EqualsToken;
         self.state.token
@@ -1680,7 +1778,8 @@ impl Scanner {
                     && text[(p + 1) as usize] == b'?'
                     && p + 2 < end
                     && text[(p + 2) as usize] == b'<'
-                    && (p + 3 >= end || (text[(p + 3) as usize] != b'=' && text[(p + 3) as usize] != b'!'))
+                    && (p + 3 >= end
+                        || (text[(p + 3) as usize] != b'=' && text[(p + 3) as usize] != b'!'))
                 {
                     named_capture_groups = true;
                 }
@@ -1733,7 +1832,12 @@ impl Scanner {
                         break;
                     }
                 }
-                self.error_at(&diagnostics::Unterminated_regular_expression_literal, self.state.token_start, p - self.state.token_start, &[]);
+                self.error_at(
+                    &diagnostics::Unterminated_regular_expression_literal,
+                    self.state.token_start,
+                    p - self.state.token_start,
+                    &[],
+                );
             } else {
                 // Consume the slash character
                 p += 1;
@@ -1746,11 +1850,24 @@ impl Scanner {
                     }
                     if should_report_errors {
                         match char_code_to_reg_exp_flag(ch) {
-                            None => self.error_at(&diagnostics::Unknown_regular_expression_flag, p, size, &[]),
+                            None => self.error_at(
+                                &diagnostics::Unknown_regular_expression_flag,
+                                p,
+                                size,
+                                &[],
+                            ),
                             Some(flag) if reg_exp_flags.intersects(flag) => {
-                                self.error_at(&diagnostics::Duplicate_regular_expression_flag, p, size, &[]);
+                                self.error_at(
+                                    &diagnostics::Duplicate_regular_expression_flag,
+                                    p,
+                                    size,
+                                    &[],
+                                );
                             }
-                            Some(flag) if (reg_exp_flags | flag).contains(RegularExpressionFlags::AnyUnicodeMode) => {
+                            Some(flag)
+                                if (reg_exp_flags | flag)
+                                    .contains(RegularExpressionFlags::AnyUnicodeMode) =>
+                            {
                                 self.error_at(
                                     &diagnostics::The_Unicode_u_flag_and_the_Unicode_Sets_v_flag_cannot_be_set_simultaneously,
                                     p,
@@ -1815,7 +1932,10 @@ impl Scanner {
     }
 
     pub fn re_scan_question_token(&mut self) -> Kind {
-        assert!(self.state.token == Kind::QuestionQuestionToken, "'reScanQuestionToken' should only be called on a '??'");
+        assert!(
+            self.state.token == Kind::QuestionQuestionToken,
+            "'reScanQuestionToken' should only be called on a '??'"
+        );
         self.state.pos = self.state.token_start + 1;
         self.state.token = Kind::QuestionToken;
         self.state.token
@@ -1862,9 +1982,19 @@ impl Scanner {
                     break;
                 }
                 if ch == '>' as Rune {
-                    self.error_at(&diagnostics::Unexpected_token_Did_you_mean_or_gt, self.state.pos, 1, &[]);
+                    self.error_at(
+                        &diagnostics::Unexpected_token_Did_you_mean_or_gt,
+                        self.state.pos,
+                        1,
+                        &[],
+                    );
                 } else if ch == '}' as Rune {
-                    self.error_at(&diagnostics::Unexpected_token_Did_you_mean_or_rbrace, self.state.pos, 1, &[]);
+                    self.error_at(
+                        &diagnostics::Unexpected_token_Did_you_mean_or_rbrace,
+                        self.state.pos,
+                        1,
+                        &[],
+                    );
                 }
                 // FirstNonWhitespace is 0, then we only see whitespaces so far. If we see a linebreak, we want to ignore that whitespaces.
                 // i.e (- : whitespace)
@@ -1989,7 +2119,9 @@ impl Scanner {
             return true;
         }
         let (ch, _) = decode_rune(&self.text.as_bytes()[self.state.pos as usize..]);
-        is_identifier_start(ch) || stringutil::is_white_space_single_line(ch) || stringutil::is_line_break(ch)
+        is_identifier_start(ch)
+            || stringutil::is_white_space_single_line(ch)
+            || stringutil::is_line_break(ch)
     }
 
     pub fn scan_jsdoc_token(&mut self) -> Kind {
@@ -2062,7 +2194,9 @@ impl Scanner {
         let ch = self.char();
         // Fast path for simple ASCII identifiers
         if variant != IdentifierVariant::JSX
-            && ch.is_some_and(|ch| stringutil::is_ascii_letter(u32::from(ch)) || ch == b'_' || ch == b'$')
+            && ch.is_some_and(|ch| {
+                stringutil::is_ascii_letter(u32::from(ch)) || ch == b'_' || ch == b'$'
+            })
         {
             self.state.pos += 1;
             self.scan_ascii_identifier_parts();
@@ -2075,7 +2209,11 @@ impl Scanner {
         }
         let (mut ch, mut size) = self.char_and_size();
         if is_identifier_start(ch) {
-            let language_variant = if variant == IdentifierVariant::JSX { LanguageVariant::JSX } else { LanguageVariant::Standard };
+            let language_variant = if variant == IdentifierVariant::JSX {
+                LanguageVariant::JSX
+            } else {
+                LanguageVariant::Standard
+            };
             loop {
                 self.state.pos += size;
                 (ch, size) = self.char_and_size();
@@ -2091,10 +2229,12 @@ impl Scanner {
             return true;
         }
         if ch == '\\' as Rune {
-            if let Some(escaped) =
-                self.scan_identifier_escape(is_identifier_start, variant == IdentifierVariant::RegExpGroupName)
-            {
-                let mut value = ArenaStringBuilder::with_capacity((self.state.pos - start) as usize * 2);
+            if let Some(escaped) = self.scan_identifier_escape(
+                is_identifier_start,
+                variant == IdentifierVariant::RegExpGroupName,
+            ) {
+                let mut value =
+                    ArenaStringBuilder::with_capacity((self.state.pos - start) as usize * 2);
                 value.push_str(self.slice(start, identifier_start));
                 value.push(rune_to_char(escaped));
                 value.push_str(self.scan_identifier_parts(variant));
@@ -2108,7 +2248,11 @@ impl Scanner {
     fn scan_identifier_parts(&mut self, variant: IdentifierVariant) -> &'static str {
         let mut sb: Option<ArenaStringBuilder> = None;
         let mut start = self.state.pos;
-        let language_variant = if variant == IdentifierVariant::JSX { LanguageVariant::JSX } else { LanguageVariant::Standard };
+        let language_variant = if variant == IdentifierVariant::JSX {
+            LanguageVariant::JSX
+        } else {
+            LanguageVariant::Standard
+        };
         loop {
             let (ch, size) = self.char_and_size();
             if is_identifier_part_ex(ch, language_variant) {
@@ -2122,7 +2266,9 @@ impl Scanner {
                     variant == IdentifierVariant::RegExpGroupName,
                 ) {
                     let so_far = (escape_start - start) as usize;
-                    let sb = sb.get_or_insert_with(|| ArenaStringBuilder::with_capacity((so_far * 2).max(16)));
+                    let sb = sb.get_or_insert_with(|| {
+                        ArenaStringBuilder::with_capacity((so_far * 2).max(16))
+                    });
                     sb.push_str(self.slice(start, escape_start));
                     sb.push(rune_to_char(escaped));
                     start = self.state.pos;
@@ -2228,7 +2374,8 @@ impl Scanner {
     fn scan_string_slow(&mut self, quote: u8, mut start: u32, table: &[bool; 256]) -> &'static str {
         // Keep the original first-quote capacity estimate on the allocating path.
         let rest = &self.text.as_bytes()[self.state.pos as usize..];
-        let capacity = memchr::memchr(quote, rest).map_or(16, |offset| (self.state.pos - start) as usize + offset);
+        let capacity = memchr::memchr(quote, rest)
+            .map_or(16, |offset| (self.state.pos - start) as usize + offset);
         let mut sb = ArenaStringBuilder::with_capacity(capacity);
         loop {
             sb.push_str(self.slice(start, self.state.pos));
@@ -2242,7 +2389,9 @@ impl Scanner {
                 break;
             }
             if ch == b'\\' {
-                let escaped = self.scan_escape_sequence(EscapeSequenceScanningFlags::String | EscapeSequenceScanningFlags::ReportErrors);
+                let escaped = self.scan_escape_sequence(
+                    EscapeSequenceScanningFlags::String | EscapeSequenceScanningFlags::ReportErrors,
+                );
                 sb.push_str(&escaped);
                 start = self.state.pos;
                 self.scan_string_text(table);
@@ -2278,22 +2427,32 @@ impl Scanner {
                     self.error(&diagnostics::Unterminated_template_literal);
                 }
                 self.finish_template_parts(&mut parts, start, part_end);
-                token = if started_with_backtick { Kind::NoSubstitutionTemplateLiteral } else { Kind::TemplateTail };
+                token = if started_with_backtick {
+                    Kind::NoSubstitutionTemplateLiteral
+                } else {
+                    Kind::TemplateTail
+                };
                 break;
             }
             if ch == Some(b'$') && self.char_at(1) == Some(b'{') {
                 let part_end = self.state.pos;
                 self.state.pos += 2;
                 self.finish_template_parts(&mut parts, start, part_end);
-                token = if started_with_backtick { Kind::TemplateHead } else { Kind::TemplateMiddle };
+                token =
+                    if started_with_backtick { Kind::TemplateHead } else { Kind::TemplateMiddle };
                 break;
             }
             if ch == Some(b'\\') {
                 let so_far = (self.state.pos - start) as usize;
-                let buf = parts.get_or_insert_with(|| ArenaStringBuilder::with_capacity((so_far * 2).max(16)));
+                let buf = parts
+                    .get_or_insert_with(|| ArenaStringBuilder::with_capacity((so_far * 2).max(16)));
                 buf.push_str(self.slice(start, self.state.pos));
                 let flags = EscapeSequenceScanningFlags::String
-                    | if should_emit_invalid_escape_error { EscapeSequenceScanningFlags::ReportErrors } else { EscapeSequenceScanningFlags::empty() };
+                    | if should_emit_invalid_escape_error {
+                        EscapeSequenceScanningFlags::ReportErrors
+                    } else {
+                        EscapeSequenceScanningFlags::empty()
+                    };
                 let escaped = self.scan_escape_sequence(flags);
                 parts.as_mut().unwrap().push_str(&escaped);
                 start = self.state.pos;
@@ -2303,7 +2462,8 @@ impl Scanner {
             // <CR><LF> and <CR> LineTerminatorSequences are normalized to <LF> for Template Values
             if ch == Some(b'\r') {
                 let so_far = (self.state.pos - start) as usize;
-                let buf = parts.get_or_insert_with(|| ArenaStringBuilder::with_capacity((so_far * 2).max(16)));
+                let buf = parts
+                    .get_or_insert_with(|| ArenaStringBuilder::with_capacity((so_far * 2).max(16)));
                 buf.push_str(self.slice(start, self.state.pos));
                 self.state.pos += 1;
                 if self.char() == Some(b'\n') {
@@ -2318,7 +2478,12 @@ impl Scanner {
         token
     }
 
-    fn finish_template_parts(&mut self, parts: &mut Option<ArenaStringBuilder>, start: u32, end: u32) {
+    fn finish_template_parts(
+        &mut self,
+        parts: &mut Option<ArenaStringBuilder>,
+        start: u32,
+        end: u32,
+    ) {
         self.state.token_value = match parts.take() {
             None => self.slice(start, end),
             Some(mut buf) => {
@@ -2328,7 +2493,10 @@ impl Scanner {
         };
     }
 
-    pub(crate) fn scan_escape_sequence(&mut self, flags: EscapeSequenceScanningFlags) -> Cow<'static, str> {
+    pub(crate) fn scan_escape_sequence(
+        &mut self,
+        flags: EscapeSequenceScanningFlags,
+    ) -> Cow<'static, str> {
         let start = self.state.pos;
         self.state.pos += 1;
         let Some(ch) = self.char() else {
@@ -2654,7 +2822,12 @@ impl Scanner {
                     if with_minus {
                         start -= 1;
                     }
-                    self.error_at(&diagnostics::Octal_literals_are_not_allowed_Use_the_syntax_0, start, self.state.pos - start, &[&literal]);
+                    self.error_at(
+                        &diagnostics::Octal_literals_are_not_allowed_Use_the_syntax_0,
+                        start,
+                        self.state.pos - start,
+                        &[&literal],
+                    );
                     return Kind::NumericLiteral;
                 }
             }
@@ -2706,7 +2879,12 @@ impl Scanner {
             self.state.token_value = self.slice(start, end);
         }
         if self.state.token_flags.intersects(TokenFlags::ContainsLeadingZero) {
-            self.error_at(&diagnostics::Decimals_with_leading_zeros_are_not_allowed, start, self.state.pos - start, &[]);
+            self.error_at(
+                &diagnostics::Decimals_with_leading_zeros_are_not_allowed,
+                start,
+                self.state.pos - start,
+                &[],
+            );
             self.state.token_value = Self::canonical_number(self.state.token_value);
             return Kind::NumericLiteral;
         }
@@ -2721,13 +2899,26 @@ impl Scanner {
         if is_identifier_start(ch) {
             let id_start = self.state.pos;
             let id = self.scan_identifier_parts(IdentifierVariant::Standard);
-            if result != Kind::BigIntLiteral && id.len() == 1 && self.text.as_bytes()[id_start as usize] == b'n' {
+            if result != Kind::BigIntLiteral
+                && id.len() == 1
+                && self.text.as_bytes()[id_start as usize] == b'n'
+            {
                 if self.state.token_flags.intersects(TokenFlags::Scientific) {
-                    self.error_at(&diagnostics::A_bigint_literal_cannot_use_exponential_notation, start, self.state.pos - start, &[]);
+                    self.error_at(
+                        &diagnostics::A_bigint_literal_cannot_use_exponential_notation,
+                        start,
+                        self.state.pos - start,
+                        &[],
+                    );
                     return result;
                 }
                 if fixed_part_end < id_start {
-                    self.error_at(&diagnostics::A_bigint_literal_must_be_an_integer, start, self.state.pos - start, &[]);
+                    self.error_at(
+                        &diagnostics::A_bigint_literal_must_be_an_integer,
+                        start,
+                        self.state.pos - start,
+                        &[],
+                    );
                     return result;
                 }
             }
@@ -2748,7 +2939,11 @@ impl Scanner {
         // has no leading zero, so neither conversion nor a temporary formatting String is needed. Longer integers,
         // fractions and exponents still go through Number::string for ECMAScript rounding and formatting.
         let bytes = v.as_bytes();
-        if bytes == b"0" || bytes.len() <= 15 && matches!(bytes.first(), Some(b'1'..=b'9')) && bytes[1..].iter().all(u8::is_ascii_digit) {
+        if bytes == b"0"
+            || bytes.len() <= 15
+                && matches!(bytes.first(), Some(b'1'..=b'9'))
+                && bytes[1..].iter().all(u8::is_ascii_digit)
+        {
             return v;
         }
         let s = crate::number::parse_literal(v).unwrap_or_else(|| jsnum::from_string(v)).string();
@@ -2780,9 +2975,19 @@ impl Scanner {
                 } else {
                     self.state.token_flags |= TokenFlags::ContainsInvalidSeparator;
                     if is_previous_token_separator {
-                        self.error_at(&diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted, self.state.pos, 1, &[]);
+                        self.error_at(
+                            &diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted,
+                            self.state.pos,
+                            1,
+                            &[],
+                        );
                     } else {
-                        self.error_at(&diagnostics::Numeric_separators_are_not_allowed_here, self.state.pos, 1, &[]);
+                        self.error_at(
+                            &diagnostics::Numeric_separators_are_not_allowed_here,
+                            self.state.pos,
+                            1,
+                            &[],
+                        );
                     }
                 }
                 self.state.pos += 1;
@@ -2793,7 +2998,12 @@ impl Scanner {
         }
         if is_previous_token_separator {
             self.state.token_flags |= TokenFlags::ContainsInvalidSeparator;
-            self.error_at(&diagnostics::Numeric_separators_are_not_allowed_here, self.state.pos - 1, 1, &[]);
+            self.error_at(
+                &diagnostics::Numeric_separators_are_not_allowed_here,
+                self.state.pos - 1,
+                1,
+                &[],
+            );
         }
         if result.is_empty() {
             return Cow::Borrowed(self.slice(start, self.state.pos));
@@ -2836,9 +3046,19 @@ impl Scanner {
                     allow_separator = false;
                     is_previous_token_separator = true;
                 } else if is_previous_token_separator {
-                    self.error_at(&diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted, self.state.pos, 1, &[]);
+                    self.error_at(
+                        &diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted,
+                        self.state.pos,
+                        1,
+                        &[],
+                    );
                 } else {
-                    self.error_at(&diagnostics::Numeric_separators_are_not_allowed_here, self.state.pos, 1, &[]);
+                    self.error_at(
+                        &diagnostics::Numeric_separators_are_not_allowed_here,
+                        self.state.pos,
+                        1,
+                        &[],
+                    );
                 }
             } else {
                 break;
@@ -2846,7 +3066,12 @@ impl Scanner {
             self.state.pos += 1;
         }
         if is_previous_token_separator {
-            self.error_at(&diagnostics::Numeric_separators_are_not_allowed_here, self.state.pos - 1, 1, &[]);
+            self.error_at(
+                &diagnostics::Numeric_separators_are_not_allowed_here,
+                self.state.pos - 1,
+                1,
+                &[],
+            );
         }
         if digit_count < min_count {
             return "";
@@ -2899,9 +3124,19 @@ impl Scanner {
                     allow_separator = false;
                     is_previous_token_separator = true;
                 } else if is_previous_token_separator {
-                    self.error_at(&diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted, self.state.pos, 1, &[]);
+                    self.error_at(
+                        &diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted,
+                        self.state.pos,
+                        1,
+                        &[],
+                    );
                 } else {
-                    self.error_at(&diagnostics::Numeric_separators_are_not_allowed_here, self.state.pos, 1, &[]);
+                    self.error_at(
+                        &diagnostics::Numeric_separators_are_not_allowed_here,
+                        self.state.pos,
+                        1,
+                        &[],
+                    );
                 }
             } else {
                 break;
@@ -2909,7 +3144,12 @@ impl Scanner {
             self.state.pos += 1;
         }
         if is_previous_token_separator {
-            self.error_at(&diagnostics::Numeric_separators_are_not_allowed_here, self.state.pos - 1, 1, &[]);
+            self.error_at(
+                &diagnostics::Numeric_separators_are_not_allowed_here,
+                self.state.pos - 1,
+                1,
+                &[],
+            );
         }
         (sb.into_str(), has_digits)
     }
@@ -2921,7 +3161,8 @@ impl Scanner {
             let n = self.slice(self.state.pos, self.state.pos + 1);
             self.state.token_value = self.concat_value(self.state.token_value, n);
             if self.state.token_flags.intersects(TokenFlags::BinaryOrOctalSpecifier) {
-                self.state.token_value = alloc_str(&(jsnum::parse_pseudo_big_int(self.state.token_value) + "n"));
+                self.state.token_value =
+                    alloc_str(&(jsnum::parse_pseudo_big_int(self.state.token_value) + "n"));
             }
             self.state.pos += 1;
             return Kind::BigIntLiteral;
@@ -3011,7 +3252,9 @@ pub fn is_valid_identifier(s: &str) -> bool {
     if s.is_empty() {
         return false;
     }
-    !(s.char_indices().into_iter().any(|(i, ch)| i == 0 && !is_identifier_start(ch as Rune) || i != 0 && !is_identifier_part(ch as Rune)))
+    !(s.char_indices().into_iter().any(|(i, ch)| {
+        i == 0 && !is_identifier_start(ch as Rune) || i != 0 && !is_identifier_part(ch as Rune)
+    }))
 }
 
 // Section 6.1.4
@@ -3021,7 +3264,10 @@ pub(crate) fn is_word_character(ch: Rune) -> bool {
 
 #[inline]
 pub fn is_identifier_start(ch: Rune) -> bool {
-    stringutil::is_ascii_letter(ch) || ch == '_' as Rune || ch == '$' as Rune || ch >= RUNE_SELF && stringutil::is_unicode_identifier_start(ch)
+    stringutil::is_ascii_letter(ch)
+        || ch == '_' as Rune
+        || ch == '$' as Rune
+        || ch >= RUNE_SELF && stringutil::is_unicode_identifier_start(ch)
 }
 
 #[inline]
@@ -3062,7 +3308,11 @@ pub fn string_to_token(s: &str) -> Kind {
 
 pub fn get_viable_keyword_suggestions() -> Vec<&'static str> {
     let mut result = Vec::with_capacity(TEXT_TO_KEYWORD.len());
-    result.extend(TEXT_TO_KEYWORD.iter().filter_map(|&(text, _)| if text.len() > 2 { Some(text) } else { None }));
+    result.extend(
+        TEXT_TO_KEYWORD
+            .iter()
+            .filter_map(|&(text, _)| if text.len() > 2 { Some(text) } else { None }),
+    );
     result
 }
 
@@ -3185,7 +3435,8 @@ pub(crate) fn is_conflict_marker_trivia(text: &str, pos: u32) -> bool {
     }
 
     // Conflict markers must be at the start of a line.
-    let mut at_line_start = pos == 0 || stringutil::is_line_break(u32::from(bytes[(pos - 1) as usize]));
+    let mut at_line_start =
+        pos == 0 || stringutil::is_line_break(u32::from(bytes[(pos - 1) as usize]));
     if !at_line_start && pos >= 2 {
         let (prev, _) = decode_last_rune(&bytes[..(pos - 2) as usize]);
         at_line_start = stringutil::is_line_break(prev);
@@ -3211,7 +3462,11 @@ pub(crate) fn scan_conflict_marker_trivia(
     report_error: Option<&mut dyn FnMut(&'static Message, u32, u32)>,
 ) -> u32 {
     if let Some(report_error) = report_error {
-        report_error(&diagnostics::Merge_conflict_marker_encountered, pos, MERGE_CONFLICT_MARKER_LENGTH);
+        report_error(
+            &diagnostics::Merge_conflict_marker_encountered,
+            pos,
+            MERGE_CONFLICT_MARKER_LENGTH,
+        );
     }
     let bytes = text.as_bytes();
     let mut pos = pos;
@@ -3224,12 +3479,18 @@ pub(crate) fn scan_conflict_marker_trivia(
             (ch, size) = decode_rune(&bytes[pos as usize..]);
         }
     } else {
-        assert!(!(ch != '|' as Rune && ch != '=' as Rune), "Assertion failed: ch must be either '|' or '='");
+        assert!(
+            !(ch != '|' as Rune && ch != '=' as Rune),
+            "Assertion failed: ch must be either '|' or '='"
+        );
         // Consume everything from the start of a ||||||| or ======= marker to the start
         // of the next ======= or >>>>>>> marker.
         while pos < length {
             let current_char = bytes[pos as usize];
-            if (current_char == b'=' || current_char == b'>') && u32::from(current_char) != ch && is_conflict_marker_trivia(text, pos) {
+            if (current_char == b'=' || current_char == b'>')
+                && u32::from(current_char) != ch
+                && is_conflict_marker_trivia(text, pos)
+            {
                 break;
             }
 
@@ -3299,20 +3560,14 @@ pub fn get_token_pos_of_node(
     // With nodes that have no width (i.e. 'Missing' nodes), we actually *don't*
     // want to skip trivia because this will launch us forward to the next token.
     if ast::node_is_missing(Some(node)) {
-        return node
-            .pos()
-            .expect_source("parsed nodes have source positions");
+        return node.pos().expect_source("parsed nodes have source positions");
     }
     if ast::is_jsdoc_node(node) || node.kind() == Kind::JsxText {
         // JsxText cannot actually contain comments, even though the scanner will think it sees comments
         return skip_trivia_ex(
             source_file.text(),
-            node.pos()
-                .expect_source("parsed nodes have source positions"),
-            Some(&SkipTriviaOptions {
-                stop_at_comments: true,
-                ..Default::default()
-            }),
+            node.pos().expect_source("parsed nodes have source positions"),
+            Some(&SkipTriviaOptions { stop_at_comments: true, ..Default::default() }),
         );
     }
     if include_jsdoc {
@@ -3323,8 +3578,7 @@ pub fn get_token_pos_of_node(
     }
     skip_trivia_ex(
         source_file.text(),
-        node.pos()
-            .expect_source("parsed nodes have source positions"),
+        node.pos().expect_source("parsed nodes have source positions"),
         Some(&SkipTriviaOptions {
             in_jsdoc: node.flags().intersects(NodeFlags::JSDoc),
             ..Default::default()
@@ -3335,21 +3589,18 @@ pub fn get_token_pos_of_node(
 fn get_error_range_for_arrow_function(source_file: P<SourceFile>, node: P<Node>) -> TextRange {
     let pos = skip_trivia(
         source_file.text(),
-        node.pos()
-            .expect_source("parsed nodes have source positions"),
+        node.pos().expect_source("parsed nodes have source positions"),
     );
     let body = node.body();
     if let Some(body) = body {
         if body.kind() == Kind::Block {
             let start_line = get_ecma_line_of_position(
                 &*source_file,
-                body.pos()
-                    .expect_source("parsed nodes have source positions"),
+                body.pos().expect_source("parsed nodes have source positions"),
             );
             let end_line = get_ecma_line_of_position(
                 &*source_file,
-                body.end()
-                    .expect_source("parsed nodes have source positions"),
+                body.end().expect_source("parsed nodes have source positions"),
             );
             if start_line < end_line {
                 // The arrow function spans multiple lines, make the error span be the first line, inclusive.
@@ -3359,14 +3610,13 @@ fn get_error_range_for_arrow_function(source_file: P<SourceFile>, node: P<Node>)
             }
         }
     }
-    TextRange::new(
-        pos,
-        node.end()
-            .expect_source("parsed nodes have source positions"),
-    )
+    TextRange::new(pos, node.end().expect_source("parsed nodes have source positions"))
 }
 
-fn find_originating_jsdoc_satisfies_tag(source_file: P<SourceFile>, node: P<Node>) -> Option<P<Node>> {
+fn find_originating_jsdoc_satisfies_tag(
+    source_file: P<SourceFile>,
+    node: P<Node>,
+) -> Option<P<Node>> {
     let target_type = node.as_satisfies_expression().type_;
     if !target_type.flags().intersects(NodeFlags::Reparsed) {
         return None;
@@ -3446,25 +3696,19 @@ pub fn get_error_range_for_node(source_file: P<SourceFile>, node: P<Node>) -> Te
         Kind::CaseClause | Kind::DefaultClause => {
             let start = skip_trivia(
                 source_file.text(),
-                node.pos()
-                    .expect_source("parsed nodes have source positions"),
+                node.pos().expect_source("parsed nodes have source positions"),
             );
-            let mut end = node
-                .end()
-                .expect_source("parsed nodes have source positions");
+            let mut end = node.end().expect_source("parsed nodes have source positions");
             let statements = node.statements();
             if !statements.is_empty() {
-                end = statements[0]
-                    .pos()
-                    .expect_source("parsed nodes have source positions");
+                end = statements[0].pos().expect_source("parsed nodes have source positions");
             }
             return TextRange::new(start, end);
         }
         Kind::ReturnStatement | Kind::YieldExpression => {
             let pos = skip_trivia(
                 source_file.text(),
-                node.pos()
-                    .expect_source("parsed nodes have source positions"),
+                node.pos().expect_source("parsed nodes have source positions"),
             );
             return get_range_of_token_at_position(source_file, pos);
         }
@@ -3496,11 +3740,13 @@ pub fn get_error_range_for_node(source_file: P<SourceFile>, node: P<Node>) -> Te
             } else {
                 let mut scanner = get_scanner_for_source_file(
                     source_file,
-                    node.pos()
-                        .expect_source("parsed nodes have source positions"),
+                    node.pos().expect_source("parsed nodes have source positions"),
                 );
                 let start = scanner.token_start();
-                while scanner.token() != Kind::ConstructorKeyword && scanner.token() != Kind::StringLiteral && scanner.token() != Kind::EndOfFile {
+                while scanner.token() != Kind::ConstructorKeyword
+                    && scanner.token() != Kind::StringLiteral
+                    && scanner.token() != Kind::EndOfFile
+                {
                     scanner.scan();
                 }
                 return TextRange::new(start, scanner.token_end());
@@ -3513,22 +3759,14 @@ pub fn get_error_range_for_node(source_file: P<SourceFile>, node: P<Node>) -> Te
         // construct.
         return get_range_of_token_at_position(
             source_file,
-            node.pos()
-                .expect_source("parsed nodes have source positions"),
+            node.pos().expect_source("parsed nodes have source positions"),
         );
     };
-    let mut pos = error_node
-        .pos()
-        .expect_source("parsed nodes have source positions");
+    let mut pos = error_node.pos().expect_source("parsed nodes have source positions");
     if !ast::node_is_missing(Some(error_node)) && !ast::is_jsx_text(error_node) {
         pos = skip_trivia(source_file.text(), pos);
     }
-    TextRange::new(
-        pos,
-        error_node
-            .end()
-            .expect_source("parsed nodes have source positions"),
-    )
+    TextRange::new(pos, error_node.end().expect_source("parsed nodes have source positions"))
 }
 
 pub fn compute_line_of_position(line_starts: &[u32], pos: u32) -> usize {
@@ -3569,7 +3807,8 @@ pub fn get_ecma_line_and_utf16_character_of_position(
 ) -> (usize, UTF16Offset) {
     let line_map = get_ecma_line_starts(source_file);
     let line = compute_line_of_position(line_map, pos);
-    let character = tsrs_core::utf16_len(&source_file.text()[line_map[line] as usize..pos as usize]);
+    let character =
+        tsrs_core::utf16_len(&source_file.text()[line_map[line] as usize..pos as usize]);
     (line, character)
 }
 
@@ -3608,7 +3847,13 @@ pub fn get_ecma_position_of_line_and_utf16_character(
     character: UTF16Offset,
 ) -> u32 {
     let line_starts = get_ecma_line_starts(source_file);
-    compute_position_of_line_and_utf16_character(line_starts, line, character, source_file.text(), false)
+    compute_position_of_line_and_utf16_character(
+        line_starts,
+        line,
+        character,
+        source_file.text(),
+        false,
+    )
 }
 
 // GetECMAPositionOfLineAndByteOffset converts a 0-based line number and byte offset
@@ -3629,7 +3874,8 @@ pub fn compute_position_of_line_and_byte_offset(
     line: usize,
     byte_offset: u32,
 ) -> u32 {
-    assert!(line < line_starts.len(),
+    assert!(
+        line < line_starts.len(),
         "Bad line number. Line: {}, lineStarts.length: {}.",
         line,
         line_starts.len()
@@ -3678,7 +3924,10 @@ pub fn compute_position_of_line_and_utf16_character(
             pos += size as u32;
         }
         if !allow_edits {
-            assert!(!(pos == line_end && utf16_count < character), "Bad UTF-16 character offset. Line: {line}, character: {character}.");
+            assert!(
+                !(pos == line_end && utf16_count < character),
+                "Bad UTF-16 character offset. Line: {line}, character: {character}."
+            );
             assert!(pos <= text_len);
             return pos;
         }
@@ -3704,11 +3953,7 @@ pub fn compute_position_of_line_and_utf16_character(
 /// Go `(*ast.NodeFactory).NewCommentRange`; the factory argument of `GetLeadingCommentRanges` /
 /// `GetTrailingCommentRanges` only served this constructor and is dropped.
 fn new_comment_range(kind: Kind, pos: u32, end: u32, has_trailing_new_line: bool) -> CommentRange {
-    CommentRange {
-        text_range: TextRange::new(pos, end),
-        kind,
-        has_trailing_new_line,
-    }
+    CommentRange { text_range: TextRange::new(pos, end), kind, has_trailing_new_line }
 }
 
 pub fn get_leading_comment_ranges(text: &'static str, pos: u32) -> CommentRangeIter {
@@ -3856,7 +4101,12 @@ impl Iterator for CommentRangeIter {
 
         self.done = true;
         if self.has_pending_comment_range {
-            return Some(new_comment_range(self.pending_kind, self.pending_pos, self.pending_end, self.pending_has_trailing_new_line));
+            return Some(new_comment_range(
+                self.pending_kind,
+                self.pending_pos,
+                self.pending_end,
+                self.pending_has_trailing_new_line,
+            ));
         }
         None
     }

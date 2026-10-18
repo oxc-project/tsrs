@@ -2,7 +2,7 @@
 // inputs from go_json_oracle_cases.py): duplicate member names, unpaired surrogate escapes and invalid
 // UTF-8 are rejected with jsontext's error text; valid input (including escaped astral pairs) decodes.
 
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
 
 use serde_json::Value;
@@ -27,14 +27,20 @@ impl Caller for Fixed {
 }
 
 fn read_file_via_callback(response: Vec<u8>) -> Result<Option<String>, String> {
-    let fs = CallbackFs::new(Arc::new(tsrs_vfs::osvfs::fs()), &CallbackConfig::parse(&["readFile"]).unwrap(), None);
+    let fs = CallbackFs::new(
+        Arc::new(tsrs_vfs::osvfs::fs()),
+        &CallbackConfig::parse(&["readFile"]).unwrap(),
+        None,
+    );
     fs.set_connection(Arc::new(Fixed(response)));
-    catch_unwind(AssertUnwindSafe(|| fs.read_file("/x.ts"))).map_err(|p| p.downcast_ref::<String>().cloned().unwrap_or_default())
+    catch_unwind(AssertUnwindSafe(|| fs.read_file("/x.ts")))
+        .map_err(|p| p.downcast_ref::<String>().cloned().unwrap_or_default())
 }
 
 #[test]
 fn decoders_match_pinned_go() {
-    let cases: Vec<Value> = serde_json::from_str(include_str!("fixtures/go_json_oracle.json")).unwrap();
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/go_json_oracle.json")).unwrap();
     let (mut rejected, mut accepted) = (0, 0);
     for case in &cases {
         let input = hex(case["input"].as_str().unwrap());
@@ -53,9 +59,17 @@ fn decoders_match_pinned_go() {
                 let ours = read_file_via_callback(input.clone());
                 if go_err.is_empty() {
                     let content = ours.unwrap_or_else(|e| panic!("{shown}: {e}")).unwrap();
-                    assert_eq!(content.as_bytes(), &hex(case["hex"].as_str().unwrap())[..], "{shown}");
+                    assert_eq!(
+                        content.as_bytes(),
+                        &hex(case["hex"].as_str().unwrap())[..],
+                        "{shown}"
+                    );
                 } else {
-                    assert_eq!(ours.unwrap_err(), go_err.strip_prefix("response: ").unwrap(), "{shown}");
+                    assert_eq!(
+                        ours.unwrap_err(),
+                        go_err.strip_prefix("response: ").unwrap(),
+                        "{shown}"
+                    );
                 }
             }
             "jsonrpc" => {
@@ -90,16 +104,27 @@ fn deep_nesting_is_bounded() {
 /// accepted or rejected exactly as Go does, with Go's error text (pointer and offset rules included).
 #[test]
 fn syntax_errors_match_pinned_go_text() {
-    let cases: Vec<Value> = serde_json::from_str(include_str!("fixtures/go_syntax_oracle.json")).unwrap();
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/go_syntax_oracle.json")).unwrap();
     let mut mismatches = Vec::new();
     mismatches.extend(cases.iter().filter_map(|case| {
         let input = hex(case["input"].as_str().unwrap());
         let go = case["error"].as_str().unwrap();
         let ours = tsrs_api_transport::strictjson::validate(&input).err().unwrap_or_default();
-        if ours != go { Some(format!("{:?}\n   go: {go}\n  ours: {ours}", String::from_utf8_lossy(&input))) } else { None }
+        if ours != go {
+            Some(format!("{:?}\n   go: {go}\n  ours: {ours}", String::from_utf8_lossy(&input)))
+        } else {
+            None
+        }
     }));
     assert!(cases.len() >= 100, "{}", cases.len());
-    assert!(mismatches.is_empty(), "{} of {} differ:\n{}", mismatches.len(), cases.len(), mismatches.join("\n"));
+    assert!(
+        mismatches.is_empty(),
+        "{} of {} differ:\n{}",
+        mismatches.len(),
+        cases.len(),
+        mismatches.join("\n")
+    );
 }
 
 /// readFile `value` decoding follows Go's json.Unmarshal into a string (absent, null, wrong kinds).
@@ -109,15 +134,26 @@ fn read_file_value_kinds_match_pinned_go() {
         (r#"{"kind":"value"}"#, Err("jsontext: unexpected EOF")),
         (r#"{"kind":"value","value":null}"#, Ok("")),
         (r#"{"kind":"value","value":5}"#, Err("json: cannot unmarshal JSON number into Go string")),
-        (r#"{"kind":"value","value":true}"#, Err("json: cannot unmarshal JSON boolean into Go string")),
+        (
+            r#"{"kind":"value","value":true}"#,
+            Err("json: cannot unmarshal JSON boolean into Go string"),
+        ),
         (r#"{"kind":"value","value":[]}"#, Err("json: cannot unmarshal JSON array into Go string")),
-        (r#"{"kind":"value","value":{}}"#, Err("json: cannot unmarshal JSON object into Go string")),
-        (r#"{"kind":"value","value":-1.5e3}"#, Err("json: cannot unmarshal JSON number into Go string")),
+        (
+            r#"{"kind":"value","value":{}}"#,
+            Err("json: cannot unmarshal JSON object into Go string"),
+        ),
+        (
+            r#"{"kind":"value","value":-1.5e3}"#,
+            Err("json: cannot unmarshal JSON number into Go string"),
+        ),
     ];
     for (input, want) in cases {
         let got = read_file_via_callback(input.as_bytes().to_vec());
         match want {
-            Ok(content) => assert_eq!(got.as_ref().map(|c| c.as_deref()), Ok(Some(content)), "{input}"),
+            Ok(content) => {
+                assert_eq!(got.as_ref().map(|c| c.as_deref()), Ok(Some(content)), "{input}");
+            }
             Err(text) => assert_eq!(got.unwrap_err(), text, "{input}"),
         }
     }

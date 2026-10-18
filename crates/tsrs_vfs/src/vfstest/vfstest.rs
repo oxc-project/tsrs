@@ -86,7 +86,10 @@ struct MapFSInner {
 // The paths must be normalized absolute paths according to the tspath package,
 // without trailing directory separators.
 // The paths must be all POSIX-style or all Windows-style, but not both.
-pub fn from_map<K: AsRef<str>, F: Into<MapFile>>(m: impl IntoIterator<Item = (K, F)>, use_case_sensitive_file_names: bool) -> IoVFS<MapFS> {
+pub fn from_map<K: AsRef<str>, F: Into<MapFile>>(
+    m: impl IntoIterator<Item = (K, F)>,
+    use_case_sensitive_file_names: bool,
+) -> IoVFS<MapFS> {
     from_map_with_clock_option(m, use_case_sensitive_file_names, None)
 }
 
@@ -114,7 +117,8 @@ fn from_map_with_clock_option<K: AsRef<str>, F: Into<MapFile>>(
     let mut check_path = |p: &str| {
         assert!(tspath::is_rooted_disk_path(p), "non-rooted path {p:?}");
 
-        let normal = tspath::remove_trailing_directory_separator(&tspath::normalize_path(p)).to_string();
+        let normal =
+            tspath::remove_trailing_directory_separator(&tspath::normalize_path(p)).to_string();
         assert!(normal == p, "non-normalized path {p:?}");
 
         if p.starts_with('/') {
@@ -124,7 +128,8 @@ fn from_map_with_clock_option<K: AsRef<str>, F: Into<MapFile>>(
         }
     };
 
-    let mut input: Vec<(String, MapFile)> = m.into_iter().map(|(k, f)| (k.as_ref().to_string(), f.into())).collect();
+    let mut input: Vec<(String, MapFile)> =
+        m.into_iter().map(|(k, f)| (k.as_ref().to_string(), f.into())).collect();
     // Sorted creation to ensure times are always guaranteed to be in order.
     input.sort_by(|a, b| compare_paths_by_parts(&a.0, &b.0));
     let mut mfs: Vec<(String, MapFile)> = Vec::with_capacity(input.len());
@@ -168,7 +173,11 @@ fn convert_map_fs(input: Vec<(String, MapFile)>, use_case_sensitive_file_names: 
         if let Some(other) = canonical_paths.get(&canonical) {
             if *other != path {
                 // Ensure consistent panic messages
-                let (path, other) = if path.as_str() < other.as_str() { (path.as_str(), other.as_str()) } else { (other.as_str(), path.as_str()) };
+                let (path, other) = if path.as_str() < other.as_str() {
+                    (path.as_str(), other.as_str())
+                } else {
+                    (other.as_str(), path.as_str())
+                };
                 panic!("duplicate path: {path:?} and {other:?} have the same canonical path");
             }
         }
@@ -191,7 +200,9 @@ fn convert_map_fs(input: Vec<(String, MapFile)>, use_case_sensitive_file_names: 
             // harder to reapply a realpath onto those when we're deep in some FileInfo method.
             let dir = dir_name(&p);
             if !dir.is_empty() {
-                if let Err(err) = m.mkdir_all_locked(&mut inner, dir, FileMode::from_bits_retain(0o777)) {
+                if let Err(err) =
+                    m.mkdir_all_locked(&mut inner, dir, FileMode::from_bits_retain(0o777))
+                {
                     panic!("failed to create intermediate directories for {p:?}: {err}");
                 }
             }
@@ -233,11 +244,7 @@ fn cut(s: &str, sep: char) -> (&str, &str, bool) {
 
 // Symlink returns a MapFile describing a symbolic link to target.
 pub fn symlink(target: &str) -> MapFile {
-    MapFile {
-        data: target.as_bytes().to_vec(),
-        mode: FileMode::Symlink,
-        mod_time: None,
-    }
+    MapFile { data: target.as_bytes().to_vec(), mode: FileMode::Symlink, mod_time: None }
 }
 
 fn split_path(s: &str, offset: usize) -> (&str, &str) {
@@ -286,7 +293,7 @@ impl MapFS {
         let canonical = self.get_canonical_path(path);
         let Some(file_info) = inner.m.remove(&canonical) else {
             // file does not exist
-            return ;
+            return;
         };
         inner.symlinks.remove(&canonical);
 
@@ -295,7 +302,6 @@ impl MapFS {
             inner.m.retain(|path, _| !path.starts_with(&prefix));
             inner.symlinks.retain(|path, _| !path.starts_with(&prefix));
         }
-
     }
 
     // getFollowingSymlinks returns the resolved canonical path; on success the
@@ -304,7 +310,12 @@ impl MapFS {
         Self::get_following_symlinks_worker(inner, p.to_string(), String::new(), String::new())
     }
 
-    fn get_following_symlinks_worker(inner: &MapFSInner, p: String, symlink_from: String, symlink_to: String) -> (String, Result<(), FsError>) {
+    fn get_following_symlinks_worker(
+        inner: &MapFSInner,
+        p: String,
+        symlink_from: String,
+        symlink_to: String,
+    ) -> (String, Result<(), FsError>) {
         if let Some(file) = inner.m.get(&p) {
             if !file.file.mode.intersects(FileMode::Symlink) {
                 return (p, Ok(()));
@@ -322,10 +333,19 @@ impl MapFS {
         let outer = inner
             .symlinks
             .iter()
-            .filter(|(other, _)| other.len() < p.len() && p.starts_with(other.as_str()) && p.as_bytes()[other.len()] == b'/')
+            .filter(|(other, _)| {
+                other.len() < p.len()
+                    && p.starts_with(other.as_str())
+                    && p.as_bytes()[other.len()] == b'/'
+            })
             .min_by_key(|(other, _)| other.len());
         if let Some((other, target)) = outer {
-            return Self::get_following_symlinks_worker(inner, format!("{}{}", target, &p[other.len()..]), other.clone(), target.clone());
+            return Self::get_following_symlinks_worker(
+                inner,
+                format!("{}{}", target, &p[other.len()..]),
+                other.clone(),
+                target.clone(),
+            );
         }
 
         let err = if !symlink_from.is_empty() {
@@ -340,27 +360,34 @@ impl MapFS {
         assert!(!(realpath.is_empty() || canonical.is_empty()), "empty path");
 
         let is_symlink = file.mode.intersects(FileMode::Symlink);
-        let target = if is_symlink { Some(self.get_canonical_path(&tsrs_core::utf8::from_utf8_lossy(&file.data))) } else { None };
-        inner.m.insert(
-            canonical.to_string(),
-            MapEntry {
-                file,
-                realpath: realpath.to_string(),
-            },
-        );
+        let target = if is_symlink {
+            Some(self.get_canonical_path(&tsrs_core::utf8::from_utf8_lossy(&file.data)))
+        } else {
+            None
+        };
+        inner.m.insert(canonical.to_string(), MapEntry { file, realpath: realpath.to_string() });
 
         if let Some(target) = target {
             inner.symlinks.insert(canonical.to_string(), target);
         }
     }
 
-    fn mkdir_all_locked(&self, inner: &mut MapFSInner, p: &str, perm: FileMode) -> Result<(), FsError> {
+    fn mkdir_all_locked(
+        &self,
+        inner: &mut MapFSInner,
+        p: &str,
+        perm: FileMode,
+    ) -> Result<(), FsError> {
         assert!(!p.is_empty(), "empty path");
 
         // Fast path; already exists.
-        if let (other_path, Ok(())) = Self::get_following_symlinks(inner, &self.get_canonical_path(p)) {
+        if let (other_path, Ok(())) =
+            Self::get_following_symlinks(inner, &self.get_canonical_path(p))
+        {
             if !inner.m[&other_path].file.mode.is_dir() {
-                return Err(FsError::Other(format!("mkdir {p:?}: path exists but is not a directory")));
+                return Err(FsError::Other(format!(
+                    "mkdir {p:?}: path exists but is not a directory"
+                )));
             }
             return Ok(());
         }
@@ -381,7 +408,9 @@ impl MapFS {
             } else {
                 let other = &inner.m[&other_path];
                 if !other.file.mode.is_dir() {
-                    return Err(FsError::Other(format!("mkdir {other_path:?}: path exists but is not a directory")));
+                    return Err(FsError::Other(format!(
+                        "mkdir {other_path:?}: path exists but is not a directory"
+                    )));
                 }
                 if canonical != other_path {
                     // We have a symlinked parent, reset and start again.
@@ -448,7 +477,11 @@ impl MapFS {
         let mut entries: Vec<IoDirEntry> = Vec::new();
         let mut has_synthesized_child = false;
         let prefix = if cp == "." { String::new() } else { format!("{cp}/") };
-        let range = if prefix.is_empty() { inner.m.range::<String, _>(..) } else { inner.m.range::<String, _>(prefix.clone()..) };
+        let range = if prefix.is_empty() {
+            inner.m.range::<String, _>(..)
+        } else {
+            inner.m.range::<String, _>(prefix.clone()..)
+        };
         for (fname, f) in range {
             if !fname.starts_with(&prefix) {
                 break;
@@ -473,7 +506,9 @@ impl MapFS {
             return Err(FsError::NotExist);
         }
 
-        let info = if let Some(file) = file { Self::convert_info(file) } else {
+        let info = if let Some(file) = file {
+            Self::convert_info(file)
+        } else {
             // This is a synthesized dir.
             assert!(name == ".", "unexpected synthesized dir: {name:?}");
             FileInfo {
@@ -502,11 +537,7 @@ impl MapFS {
             &mut inner,
             path,
             &canonical,
-            MapFile {
-                data: target.as_bytes().to_vec(),
-                mode: FileMode::Symlink,
-                mod_time: None,
-            },
+            MapFile { data: target.as_bytes().to_vec(), mode: FileMode::Symlink, mod_time: None },
         );
     }
 
@@ -521,7 +552,9 @@ impl MapFS {
                 return Err(FsError::Other(format!("write {path:?}: {err}")));
             }
             if !inner.m[&parent_path].file.mode.is_dir() {
-                return Err(FsError::Other(format!("write {path:?}: parent path exists but is not a directory")));
+                return Err(FsError::Other(format!(
+                    "write {path:?}: parent path exists but is not a directory"
+                )));
             }
         }
 
@@ -529,11 +562,17 @@ impl MapFS {
         match err {
             Err(err) => {
                 // No other errors are possible.
-                assert!(!(!err.is_not_exist() && !matches!(err, FsError::BrokenSymlink { .. })), "{}", err);
+                assert!(
+                    !(!err.is_not_exist() && !matches!(err, FsError::BrokenSymlink { .. })),
+                    "{}",
+                    err
+                );
             }
             Ok(()) => {
                 if !inner.m[&cp].file.mode.is_regular() {
-                    return Err(FsError::Other(format!("write {path:?}: path exists but is not a regular file")));
+                    return Err(FsError::Other(format!(
+                        "write {path:?}: path exists but is not a regular file"
+                    )));
                 }
             }
         }
@@ -563,7 +602,9 @@ impl MapFS {
                 return Err(FsError::Other(format!("append {path:?}: {err}")));
             }
             if !inner.m[&parent_path].file.mode.is_dir() {
-                return Err(FsError::Other(format!("append {path:?}: parent path exists but is not a directory")));
+                return Err(FsError::Other(format!(
+                    "append {path:?}: parent path exists but is not a directory"
+                )));
             }
         }
 
@@ -572,11 +613,17 @@ impl MapFS {
         let (cp, err) = Self::get_following_symlinks(&inner, &self.get_canonical_path(path));
         if let Err(err) = err {
             // No other errors are possible.
-            assert!(!(!err.is_not_exist() && !matches!(err, FsError::BrokenSymlink { .. })), "{}", err);
+            assert!(
+                !(!err.is_not_exist() && !matches!(err, FsError::BrokenSymlink { .. })),
+                "{}",
+                err
+            );
         } else {
             let file = &inner.m[&cp];
             if !file.file.mode.is_regular() {
-                return Err(FsError::Other(format!("append {path:?}: path exists but is not a regular file")));
+                return Err(FsError::Other(format!(
+                    "append {path:?}: path exists but is not a regular file"
+                )));
             }
             existing.clone_from(&file.file.data);
             existing_mode = file.file.mode;
@@ -595,24 +642,28 @@ impl MapFS {
             &mut inner,
             path,
             &cp,
-            MapFile {
-                data: combined,
-                mod_time: Some(self.now()),
-                mode,
-            },
+            MapFile { data: combined, mod_time: Some(self.now()), mode },
         );
 
         Ok(())
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "The in-memory filesystem keeps the fallible Remove API shared with OS-backed file operations.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "The in-memory filesystem keeps the fallible Remove API shared with OS-backed file operations."
+    )]
     pub fn remove(&self, path: &str) -> Result<(), FsError> {
         let mut inner = self.inner.write().unwrap();
         self.remove_locked(&mut inner, path);
         Ok(())
     }
 
-    pub fn chtimes(&self, path: &str, _a_time: SystemTime, m_time: SystemTime) -> Result<(), FsError> {
+    pub fn chtimes(
+        &self,
+        path: &str,
+        _a_time: SystemTime,
+        m_time: SystemTime,
+    ) -> Result<(), FsError> {
         let mut inner = self.inner.write().unwrap();
         let canonical = self.get_canonical_path(path);
         let Some(file_info) = inner.m.get_mut(&canonical) else {
@@ -629,7 +680,10 @@ impl MapFS {
         let canonical = self.get_canonical_path(path);
         if let Some(file_info) = inner.m.get(&canonical) {
             if file_info.file.mode.intersects(FileMode::Symlink) {
-                return Some(format!("/{}", tsrs_core::utf8::from_utf8_lossy(&file_info.file.data)));
+                return Some(format!(
+                    "/{}",
+                    tsrs_core::utf8::from_utf8_lossy(&file_info.file.data)
+                ));
             }
         }
         None

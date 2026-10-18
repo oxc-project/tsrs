@@ -4,15 +4,17 @@ use std::time::Instant;
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::SourceFile;
 use tsrs_compiler::Program;
-use tsrs_core::collections::{new_set_from_items, Set, SyncMap};
 use tsrs_core::arena::Region;
+use tsrs_core::collections::{Set, SyncMap, new_set_from_items};
 use tsrs_core::context::Context;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{Tristate, P};
+use tsrs_core::{P, Tristate};
 use tsrs_lsproto as lsproto;
 use tsrs_module::packagejson::InfoCacheEntry;
 use tsrs_module::symlinks::KnownSymlinks;
-use tsrs_module::{self as module, DefaultResolver, ResolutionHost, ResolvedEntrypoint, ResolverOptions};
+use tsrs_module::{
+    self as module, DefaultResolver, ResolutionHost, ResolvedEntrypoint, ResolverOptions,
+};
 use tsrs_projectutil::dirty::{self, Cloneable, Shared, SharedMap};
 use tsrs_projectutil::logging::LogTree;
 use tsrs_vfs::vfsmatch::SpecMatcher;
@@ -22,8 +24,9 @@ use super::export::Export;
 use super::extract::new_export_extractor;
 use super::index::Index;
 use super::util::{
-    add_package_json_dependencies, add_project_reference_output_mappings, create_checker_pool, get_module_resolver, get_package_names_in_node_modules,
-    get_package_realpath_funcs, get_resolved_package_names, PathFunc,
+    PathFunc, add_package_json_dependencies, add_project_reference_output_mappings,
+    create_checker_pool, get_module_resolver, get_package_names_in_node_modules,
+    get_package_realpath_funcs, get_resolved_package_names,
 };
 use crate::lsconv;
 use crate::lsutil::UserPreferences;
@@ -128,7 +131,9 @@ pub struct bucketBuildPreferences {
 }
 
 // registry.go:103
-fn bucket_build_preferences_from_user_preferences(prefs: &UserPreferences) -> bucketBuildPreferences {
+fn bucket_build_preferences_from_user_preferences(
+    prefs: &UserPreferences,
+) -> bucketBuildPreferences {
     bucketBuildPreferences {
         file_exclude_patterns: prefs.auto_import_file_exclude_patterns.clone().unwrap_or_default(),
         auto_import_entrypoint_directory_search: prefs.auto_import_entrypoint_directory_search,
@@ -139,7 +144,8 @@ impl bucketBuildPreferences {
     // registry.go:110
     fn equal(&self, other: &bucketBuildPreferences) -> bool {
         tsrs_core::unordered_equal(&self.file_exclude_patterns, &other.file_exclude_patterns)
-            && self.auto_import_entrypoint_directory_search == other.auto_import_entrypoint_directory_search
+            && self.auto_import_entrypoint_directory_search
+                == other.auto_import_entrypoint_directory_search
     }
 }
 
@@ -208,7 +214,10 @@ pub struct BucketState {
 impl BucketState {
     // registry.go:173
     pub fn dirty(&self) -> bool {
-        self.multiple_files_dirty || !self.dirty_file.is_empty() || self.new_program_structure > newProgramStructure::False || set_len(self.dirty_packages.as_ref()) > 0
+        self.multiple_files_dirty
+            || !self.dirty_file.is_empty()
+            || self.new_program_structure > newProgramStructure::False
+            || set_len(self.dirty_packages.as_ref()) > 0
     }
 
     // registry.go:177
@@ -236,7 +245,9 @@ impl BucketState {
     fn possibly_needs_rebuild_for_file(&self, file: &Path, preferences: &UserPreferences) -> bool {
         self.new_program_structure > newProgramStructure::False
             || self.has_dirty_file_besides(file)
-            || !self.build_preferences.equal(&bucket_build_preferences_from_user_preferences(preferences))
+            || !self
+                .build_preferences
+                .equal(&bucket_build_preferences_from_user_preferences(preferences))
             || set_len(self.dirty_packages.as_ref()) > 0
     }
 
@@ -321,7 +332,11 @@ pub struct RegistryBucket {
 // registry.go:277
 fn new_registry_bucket() -> RegistryBucket {
     RegistryBucket {
-        state: BucketState { multiple_files_dirty: true, new_program_structure: newProgramStructure::DifferentFileNames, ..Default::default() },
+        state: BucketState {
+            multiple_files_dirty: true,
+            new_program_structure: newProgramStructure::DifferentFileNames,
+            ..Default::default()
+        },
         ..Default::default()
     }
 }
@@ -379,7 +394,11 @@ pub(crate) struct directory {
 // registry.go:335
 impl Cloneable for directory {
     fn clone_value(&self) -> directory {
-        directory { name: self.name.clone(), package_json: self.package_json, has_node_modules: self.has_node_modules }
+        directory {
+            name: self.name.clone(),
+            package_json: self.package_json,
+            has_node_modules: self.has_node_modules,
+        }
     }
 }
 
@@ -405,7 +424,10 @@ pub struct Registry {
 
     // Memory regions (docs/LSP.md "Memory plan"), not in Go: the regions holding the arena values this version
     // refers to (its directories' package.json entries), shared with the older and newer versions that keep them.
-    #[expect(dead_code, reason = "never read: holding the regions keeps them alive as long as this version")]
+    #[expect(
+        dead_code,
+        reason = "never read: holding the regions keeps them alive as long as this version"
+    )]
     regions: Vec<Region>,
 }
 
@@ -426,11 +448,21 @@ pub fn new_registry(to_path: ToPath, preferences: UserPreferences) -> Arc<Regist
 
 // Go's nil-receiver `(*Registry).IsPreparedForImportingFile` (registry.go:368): a nil registry is never prepared.
 pub trait RegistryExt {
-    fn is_prepared_for_importing_file(&self, file_name: &str, project_id: &ProjectID, preferences: &UserPreferences) -> bool;
+    fn is_prepared_for_importing_file(
+        &self,
+        file_name: &str,
+        project_id: &ProjectID,
+        preferences: &UserPreferences,
+    ) -> bool;
 }
 
 impl RegistryExt for Option<Arc<Registry>> {
-    fn is_prepared_for_importing_file(&self, file_name: &str, project_id: &ProjectID, preferences: &UserPreferences) -> bool {
+    fn is_prepared_for_importing_file(
+        &self,
+        file_name: &str,
+        project_id: &ProjectID,
+        preferences: &UserPreferences,
+    ) -> bool {
         match self {
             None => false,
             Some(r) => r.is_prepared_for_importing_file(file_name, project_id, preferences),
@@ -444,7 +476,12 @@ impl Registry {
     }
 
     // registry.go:368
-    pub fn is_prepared_for_importing_file(&self, file_name: &str, project_id: &ProjectID, preferences: &UserPreferences) -> bool {
+    pub fn is_prepared_for_importing_file(
+        &self,
+        file_name: &str,
+        project_id: &ProjectID,
+        preferences: &UserPreferences,
+    ) -> bool {
         let Some(project_bucket) = self.projects.get(project_id) else {
             return false;
         };
@@ -475,7 +512,10 @@ impl Registry {
         // pure inserts into the returned map; Go ranges the map too
         dirs.extend(self.directories.iter().filter_map(|(dir_path, dir)| {
             if dir.has_node_modules {
-                Some((Path::new(tspath::combine_paths(dir_path.as_str(), &["node_modules"])), tspath::combine_paths(&dir.name, &["node_modules"])))
+                Some((
+                    Path::new(tspath::combine_paths(dir_path.as_str(), &["node_modules"])),
+                    tspath::combine_paths(&dir.name, &["node_modules"]),
+                ))
             } else {
                 None
             }
@@ -490,7 +530,13 @@ impl Registry {
     // the arena (module and alias resolvers, the extraction checkers' types and symbols, resolution caches) goes
     // to a scratch region freed before this returns; the finished registry holds no reference into it. The
     // package.json entries the new version keeps in `directories` go to a region of their own (`regions`).
-    pub fn clone_registry(&self, ctx: &Context, change: &RegistryChange, host: &dyn RegistryCloneHost, logger: LogTree) -> Arc<Registry> {
+    pub fn clone_registry(
+        &self,
+        ctx: &Context,
+        change: &RegistryChange,
+        host: &dyn RegistryCloneHost,
+        logger: LogTree,
+    ) -> Arc<Registry> {
         let scratch = Region::new(SCRATCH_REGION_FIRST_CHUNK);
         let scratch_scope = scratch.enter();
         let registry = self.clone_registry_in_scratch(ctx, change, host, logger);
@@ -499,7 +545,13 @@ impl Registry {
         registry
     }
 
-    fn clone_registry_in_scratch(&self, ctx: &Context, change: &RegistryChange, host: &dyn RegistryCloneHost, logger: LogTree) -> Arc<Registry> {
+    fn clone_registry_in_scratch(
+        &self,
+        ctx: &Context,
+        change: &RegistryChange,
+        host: &dyn RegistryCloneHost,
+        logger: LogTree,
+    ) -> Arc<Registry> {
         let start = Instant::now();
         let mut logger = logger;
         if !logger.is_nil() {
@@ -509,8 +561,15 @@ impl Registry {
         if let Some(user_preferences) = &change.user_preferences {
             builder.user_preferences = user_preferences.clone();
             if !tsrs_core::unordered_equal(
-                builder.user_preferences.auto_import_specifier_exclude_regexes.as_deref().unwrap_or(&[]),
-                self.user_preferences.auto_import_specifier_exclude_regexes.as_deref().unwrap_or(&[]),
+                builder
+                    .user_preferences
+                    .auto_import_specifier_exclude_regexes
+                    .as_deref()
+                    .unwrap_or(&[]),
+                self.user_preferences
+                    .auto_import_specifier_exclude_regexes
+                    .as_deref()
+                    .unwrap_or(&[]),
             ) {
                 builder.specifier_cache.clear();
             }
@@ -529,7 +588,8 @@ impl Registry {
 
     // registry.go:452
     pub fn get_cache_stats(&self) -> CacheStats {
-        let mut stats = CacheStats { unique_package_count: self.unique_package_count, ..Default::default() };
+        let mut stats =
+            CacheStats { unique_package_count: self.unique_package_count, ..Default::default() };
 
         // the stats Vec is sorted by unique bucket name after; Go ranges the map too
         stats.project_buckets.extend(self.projects.iter().map(|(project_id, bucket)| {
@@ -544,7 +604,10 @@ impl Registry {
             }
         }));
 
-        #[expect(clippy::iter_over_hash_type, reason = "the stats Vec is sorted by unique bucket name after; the inner loop only adds to a set and sums; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "the stats Vec is sorted by unique bucket name after; the inner loop only adds to a set and sums; Go ranges the map too"
+        )]
         for (path, bucket) in self.node_modules.iter() {
             let export_count = bucket.index.as_ref().map_or(0, |i| i.entries.len());
             // Derive PackageNames from PackageFiles keys
@@ -581,7 +644,10 @@ const SCRATCH_REGION_FIRST_CHUNK: usize = 1 << 20;
 // region of the update that read it).
 fn regions_of_directories(directories: &SharedMap<Path, directory>) -> Vec<Region> {
     let mut regions: Vec<Region> = Vec::new();
-    for region in Region::containing_all(directories.values().map(|dir| dir.package_json.addr())).into_iter().flatten() {
+    for region in Region::containing_all(directories.values().map(|dir| dir.package_json.addr()))
+        .into_iter()
+        .flatten()
+    {
         if !regions.iter().any(|r| r.ptr_eq(&region)) {
             regions.push(region);
         }
@@ -640,7 +706,8 @@ pub trait RegistryCloneHost: ResolutionHost {
 }
 
 type SpecifierCacheBuilder = dirty::MapBuilder<Path, SpecifierCache, SpecifierCache>;
-type EntrypointsBuilder = dirty::MapBuilder<Path, Vec<Arc<ResolvedEntrypoint>>, Vec<Arc<ResolvedEntrypoint>>>;
+type EntrypointsBuilder =
+    dirty::MapBuilder<Path, Vec<Arc<ResolvedEntrypoint>>, Vec<Arc<ResolvedEntrypoint>>>;
 
 // registry.go:524
 struct registryBuilder<'r> {
@@ -662,7 +729,10 @@ struct registryBuilder<'r> {
 }
 
 // registry.go:539
-fn new_registry_builder<'r>(registry: &'r Registry, host: &'static dyn RegistryCloneHost) -> registryBuilder<'r> {
+fn new_registry_builder<'r>(
+    registry: &'r Registry,
+    host: &'static dyn RegistryCloneHost,
+) -> registryBuilder<'r> {
     registryBuilder {
         host,
         base: registry,
@@ -671,9 +741,17 @@ fn new_registry_builder<'r>(registry: &'r Registry, host: &'static dyn RegistryC
         directories: dirty::new_map(Arc::clone(&registry.directories)),
         node_modules: dirty::new_map(Arc::clone(&registry.node_modules)),
         projects: dirty::new_map(Arc::clone(&registry.projects)),
-        specifier_cache: dirty::new_map_builder(Arc::clone(&registry.specifier_cache), |v: &SpecifierCache| Arc::clone(v), |v| v),
+        specifier_cache: dirty::new_map_builder(
+            Arc::clone(&registry.specifier_cache),
+            |v: &SpecifierCache| Arc::clone(v),
+            |v| v,
+        ),
         unique_package_count: registry.unique_package_count,
-        entrypoints: dirty::new_map_builder(Arc::clone(&registry.entrypoints), |v: &Vec<Arc<ResolvedEntrypoint>>| v.clone(), |v| v),
+        entrypoints: dirty::new_map_builder(
+            Arc::clone(&registry.entrypoints),
+            |v: &Vec<Arc<ResolvedEntrypoint>>| v.clone(),
+            |v| v,
+        ),
         package_json_region: None,
     }
 }
@@ -727,7 +805,10 @@ impl registryBuilder<'_> {
         // Go maps (random iteration order).
         let mut needed_projects: FxHashSet<ProjectID> = FxHashSet::default();
         let mut needed_directories: FxHashMap<Path, String> = FxHashMap::default();
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills the needed project set and directory map keyed by path; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills the needed project set and directory map keyed by path; Go ranges the map too"
+        )]
         for (path, file_name) in &change.open_files {
             if let (Some(project_id), _) = self.host.get_default_project(path) {
                 needed_projects.insert(project_id);
@@ -760,11 +841,15 @@ impl registryBuilder<'_> {
                 needed_projects.insert(project_id);
             }
             if !self.specifier_cache.has(&change.requested_file) {
-                self.specifier_cache.set(change.requested_file.clone(), Arc::new(SyncMap::default()));
+                self.specifier_cache
+                    .set(change.requested_file.clone(), Arc::new(SyncMap::default()));
             }
         }
 
-        #[expect(clippy::iter_over_hash_type, reason = "keys are only deleted from specifier_cache; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "keys are only deleted from specifier_cache; Go ranges the map too"
+        )]
         for path in self.base.specifier_cache.keys() {
             if !change.open_files.contains_key(path) && *path != change.requested_file {
                 self.specifier_cache.delete(path.clone());
@@ -804,13 +889,19 @@ impl registryBuilder<'_> {
         }
 
         let host = self.host;
-        let update_directory = |b: &mut registryBuilder, dir_path: &Path, dir_name: &str, package_json_changed: bool| {
+        let update_directory = |b: &mut registryBuilder,
+                                dir_path: &Path,
+                                dir_name: &str,
+                                package_json_changed: bool| {
             let package_json_file_name = tspath::combine_paths(dir_name, &["package.json"]);
-            let has_node_modules = host.fs().directory_exists(&tspath::combine_paths(dir_name, &["node_modules"]));
+            let has_node_modules =
+                host.fs().directory_exists(&tspath::combine_paths(dir_name, &["node_modules"]));
             if let Some(entry) = b.directories.get(dir_path) {
                 // (Go reads the package.json inside the apply function; it is read first here so that the entry is
                 // allocated in this update's package.json region.)
-                if entry.value().is_some_and(|dir| package_json_changed || dir.has_node_modules != has_node_modules) {
+                if entry.value().is_some_and(|dir| {
+                    package_json_changed || dir.has_node_modules != has_node_modules
+                }) {
                     let package_json = b.get_directory_package_json(&package_json_file_name);
                     entry.change_if(
                         |dir| package_json_changed || dir.has_node_modules != has_node_modules,
@@ -822,7 +913,14 @@ impl registryBuilder<'_> {
                 }
             } else {
                 let package_json = b.get_directory_package_json(&package_json_file_name);
-                b.directories.add(dir_path.clone(), Shared::new(directory { name: dir_name.to_string(), package_json, has_node_modules }));
+                b.directories.add(
+                    dir_path.clone(),
+                    Shared::new(directory {
+                        name: dir_name.to_string(),
+                        package_json,
+                        has_node_modules,
+                    }),
+                );
             }
 
             if has_node_modules {
@@ -837,12 +935,18 @@ impl registryBuilder<'_> {
         let mut added_node_modules_dirs: Vec<Path> = Vec::new();
         let mut removed_node_modules_dirs: Vec<Path> = Vec::new();
         let package_json_changed = |dir_name: &str| -> bool {
-            let uri = lsconv::file_name_to_document_uri(&tspath::combine_paths(dir_name, &["package.json"]));
+            let uri = lsconv::file_name_to_document_uri(&tspath::combine_paths(
+                dir_name,
+                &["package.json"],
+            ));
             change.changed.has(&uri) || change.deleted.has(&uri) || change.created.has(&uri)
         };
         // core.DiffMapsFunc(base.directories, neededDirectories, equalValues, onAdded, onRemoved, onChanged)
         let base_directories = Arc::clone(&self.base.directories);
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: updates each directory entry by its own key; the order only reaches log lines (Go's DiffMapsFunc ranges a map too)")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: updates each directory entry by its own key; the order only reaches log lines (Go's DiffMapsFunc ranges a map too)"
+        )]
         for (dir_path, dir_name) in &needed_directories {
             match base_directories.get(dir_path) {
                 None => {
@@ -858,7 +962,11 @@ impl registryBuilder<'_> {
                 }
                 Some(dir) => {
                     let equal = !package_json_changed(dir_name)
-                        && dir.has_node_modules == host.fs().directory_exists(&tspath::combine_paths(dir_name, &["node_modules"]));
+                        && dir.has_node_modules
+                            == host.fs().directory_exists(&tspath::combine_paths(
+                                dir_name,
+                                &["node_modules"],
+                            ));
                     if !equal {
                         update_directory(self, dir_path, dir_name, package_json_changed(dir_name));
                         if !logger.is_nil() {
@@ -868,7 +976,10 @@ impl registryBuilder<'_> {
                 }
             }
         }
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: deletes each unneeded directory by its own key; the order only reaches log lines (Go's DiffMapsFunc ranges a map too)")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: deletes each unneeded directory by its own key; the order only reaches log lines (Go's DiffMapsFunc ranges a map too)"
+        )]
         for dir_path in base_directories.keys() {
             if !needed_directories.contains_key(dir_path) {
                 // Have and don't need
@@ -898,12 +1009,18 @@ impl registryBuilder<'_> {
     // registry.go:707
     fn mark_buckets_dirty(&mut self, change: &RegistryChange, _logger: &LogTree) {
         // Mark new program structures
-        #[expect(clippy::iter_over_hash_type, reason = "each project bucket is updated independently; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "each project bucket is updated independently; Go ranges the map too"
+        )]
         for (project_id, &new_file_names) in &change.rebuilt_programs {
             if let Some(bucket) = self.projects.get(project_id) {
                 bucket.change(|bucket| {
-                    bucket.state.new_program_structure =
-                        if new_file_names { newProgramStructure::DifferentFileNames } else { newProgramStructure::SameFileNames };
+                    bucket.state.new_program_structure = if new_file_names {
+                        newProgramStructure::DifferentFileNames
+                    } else {
+                        newProgramStructure::SameFileNames
+                    };
                 });
             }
         }
@@ -939,7 +1056,13 @@ impl registryBuilder<'_> {
                         if clean_node_modules_buckets.contains(&dir_path) {
                             let entry = b.node_modules.get(&dir_path).unwrap();
                             // Look up the package name for granular updates
-                            let package_name = entry.value().unwrap().paths.get(&path).cloned().unwrap_or_default();
+                            let package_name = entry
+                                .value()
+                                .unwrap()
+                                .paths
+                                .get(&path)
+                                .cloned()
+                                .unwrap_or_default();
                             entry.change(|bucket| bucket.mark_node_modules_dirty(&package_name));
                             if !entry.value().unwrap().state.multiple_files_dirty {
                                 clean_node_modules_buckets.remove(&dir_path);
@@ -948,13 +1071,15 @@ impl registryBuilder<'_> {
                     } else {
                         // Check if this path (possibly a realpath of a workspace package) is in any bucket's Paths.
                         // This handles local workspace packages where the realpath doesn't contain /node_modules/.
-                        let bucket_dir_paths: Vec<Path> = clean_node_modules_buckets.iter().cloned().collect();
+                        let bucket_dir_paths: Vec<Path> =
+                            clean_node_modules_buckets.iter().cloned().collect();
                         for bucket_dir_path in bucket_dir_paths {
                             let entry = b.node_modules.get(&bucket_dir_path).unwrap();
                             let package_name = entry.value().unwrap().paths.get(&path).cloned();
                             if let Some(package_name) = package_name {
                                 // Use the package name for granular updates
-                                entry.change(|bucket| bucket.mark_node_modules_dirty(&package_name));
+                                entry
+                                    .change(|bucket| bucket.mark_node_modules_dirty(&package_name));
                                 if !entry.value().unwrap().state.multiple_files_dirty {
                                     clean_node_modules_buckets.remove(&bucket_dir_path);
                                 }
@@ -966,7 +1091,8 @@ impl registryBuilder<'_> {
                 // For projects, mark the bucket dirty if the bucket contains the file directly.
                 // Any other significant change, like a created failed lookup location, is
                 // handled by newProgramStructure.
-                let project_dir_paths: Vec<ProjectID> = clean_project_buckets.iter().cloned().collect();
+                let project_dir_paths: Vec<ProjectID> =
+                    clean_project_buckets.iter().cloned().collect();
                 for project_dir_path in project_dir_paths {
                     let entry = b.projects.get(&project_dir_path).unwrap();
                     if entry.value().unwrap().paths.contains_key(&path) {
@@ -998,7 +1124,8 @@ impl registryBuilder<'_> {
         // Project reference output mappings are needed to redirect extraction from output .d.ts files
         // to source files for packages that are project references.
         // We need all projects because a node_modules directory can be used by multiple projects.
-        let mut all_resolved_package_names: FxHashMap<ProjectID, Option<Set<String>>> = FxHashMap::default();
+        let mut all_resolved_package_names: FxHashMap<ProjectID, Option<Set<String>>> =
+            FxHashMap::default();
         let mut project_reference_outputs: FxHashMap<Path, String> = FxHashMap::default();
         // Compute which packages have implicit deep imports (subpath imports in packages
         // without exports). These packages need recursive directory search to discover
@@ -1008,15 +1135,20 @@ impl registryBuilder<'_> {
         self.projects.range(|entry| {
             let program = host.get_program_for_project(&entry.key());
             if let Some(program) = program {
-                all_resolved_package_names.insert(entry.key(), Some(get_resolved_package_names(ctx, program)));
+                all_resolved_package_names
+                    .insert(entry.key(), Some(get_resolved_package_names(ctx, program)));
                 add_project_reference_output_mappings(program, &mut project_reference_outputs);
                 // pure set inserts; Go ranges the set too
-                all_deep_import_packages.m.extend(program.deep_import_package_names().keys().iter().map(std::clone::Clone::clone));
+                all_deep_import_packages.m.extend(
+                    program.deep_import_package_names().keys().iter().map(std::clone::Clone::clone),
+                );
             }
             true
         });
 
-        let file_exclude_patterns = self.user_preferences.parsed_auto_import_file_exclude_patterns(self.host.fs().use_case_sensitive_file_names());
+        let file_exclude_patterns = self.user_preferences.parsed_auto_import_file_exclude_patterns(
+            self.host.fs().use_case_sensitive_file_names(),
+        );
 
         // Determine which packages need recursive directory search for this build.
         // nil means all packages (preference is enabled for all).
@@ -1029,17 +1161,29 @@ impl registryBuilder<'_> {
         let mut node_modules_tasks: Vec<nodeModulesBucketTask> = Vec::new();
         change.requested_file.for_each_ancestor_directory(|dir_path| -> Option<()> {
             if let Some(node_modules_bucket) = self.node_modules.get(dir_path) {
-                let dir_name = self.directories.get(dir_path).unwrap().value().unwrap().name.clone();
-                let dependencies = self.compute_dependencies_for_node_modules_directory(change, &all_resolved_package_names, &dir_name, dir_path);
+                let dir_name =
+                    self.directories.get(dir_path).unwrap().value().unwrap().name.clone();
+                let dependencies = self.compute_dependencies_for_node_modules_directory(
+                    change,
+                    &all_resolved_package_names,
+                    &dir_name,
+                    dir_path,
+                );
                 let bucket_value = node_modules_bucket.value().unwrap();
                 let bucket_state = &bucket_value.state;
                 // !!! Optimization: handle different dependency set via granular updates
                 let needs_full_rebuild = bucket_state.multiple_files_dirty
                     || !set_equals(bucket_value.dependency_names.as_ref(), dependencies.as_ref())
-                    || !bucket_state.build_preferences.equal(&bucket_build_preferences_from_user_preferences(&self.user_preferences))
-                    || !recursive_search_subset(target_recursive_packages.as_ref(), bucket_state.recursive_search_packages.as_ref());
+                    || !bucket_state.build_preferences.equal(
+                        &bucket_build_preferences_from_user_preferences(&self.user_preferences),
+                    )
+                    || !recursive_search_subset(
+                        target_recursive_packages.as_ref(),
+                        bucket_state.recursive_search_packages.as_ref(),
+                    );
                 let dirty_packages = bucket_state.dirty_packages();
-                let can_do_granular_update = !needs_full_rebuild && set_len(dirty_packages.as_ref()) > 0;
+                let can_do_granular_update =
+                    !needs_full_rebuild && set_len(dirty_packages.as_ref()) > 0;
 
                 if needs_full_rebuild {
                     node_modules_tasks.push(nodeModulesBucketTask {
@@ -1084,15 +1228,23 @@ impl registryBuilder<'_> {
             if task.is_update {
                 task.package_names = task.dirty_packages.clone();
             } else {
-                task.directory_package_names =
-                    Some(get_package_names_in_node_modules(&tspath::combine_paths(&task.dir_name, &["node_modules"]), self.host.fs()));
+                task.directory_package_names = Some(get_package_names_in_node_modules(
+                    &tspath::combine_paths(&task.dir_name, &["node_modules"]),
+                    self.host.fs(),
+                ));
                 // Go's `core.Coalesce` of two set pointers.
-                task.package_names = task.dependency_names.clone().or_else(|| task.directory_package_names.clone());
+                task.package_names =
+                    task.dependency_names.clone().or_else(|| task.directory_package_names.clone());
             }
-            task.discovered = self.discover_bucket_packages(task.package_names.as_ref(), &task.dir_name, &task.dir_path);
+            task.discovered = self.discover_bucket_packages(
+                task.package_names.as_ref(),
+                &task.dir_name,
+                &task.dir_path,
+            );
         }
         if !node_modules_logger.is_nil() {
-            node_modules_logger.logf(format_args!("Discovered packages: {:?}", discovery_start.elapsed()));
+            node_modules_logger
+                .logf(format_args!("Discovered packages: {:?}", discovery_start.elapsed()));
         }
 
         // --- Phase 2: Extraction (parallel per unique realpath in Go) ---
@@ -1101,7 +1253,8 @@ impl registryBuilder<'_> {
         // package extract directly from @types in the primary pass.
         let extraction_start = Instant::now();
         let mut seen: FxHashMap<String, bool> = FxHashMap::default();
-        let mut extraction_cache: FxHashMap<String, Arc<perPackageExtractionResult>> = FxHashMap::default();
+        let mut extraction_cache: FxHashMap<String, Arc<perPackageExtractionResult>> =
+            FxHashMap::default();
         // Collect all packages that have an @types fallback. After the primary pass, we
         // filter to only those whose main extraction failed, then deduplicate by typesRealpath.
         let mut types_fallback_candidates: Vec<Arc<discoveredPackage>> = Vec::new();
@@ -1137,7 +1290,9 @@ impl registryBuilder<'_> {
                     if !pkg.types_realpath.is_empty() {
                         types_fallback_candidates.push(Arc::clone(pkg));
                     }
-                } else if !pkg.types_realpath.is_empty() && !seen.get(&pkg.types_realpath).copied().unwrap_or(false) {
+                } else if !pkg.types_realpath.is_empty()
+                    && !seen.get(&pkg.types_realpath).copied().unwrap_or(false)
+                {
                     seen.insert(pkg.types_realpath.clone(), true);
                     // @types packages always get directory search
                     if let Some(t) = &mut target_recursive_packages {
@@ -1186,7 +1341,11 @@ impl registryBuilder<'_> {
             }
         }
         if !node_modules_logger.is_nil() {
-            node_modules_logger.logf(format_args!("Extracted exports: {:?} ({} packages)", extraction_start.elapsed(), seen.len()));
+            node_modules_logger.logf(format_args!(
+                "Extracted exports: {:?} ({} packages)",
+                extraction_start.elapsed(),
+                seen.len()
+            ));
         }
         self.unique_package_count = seen.len();
 
@@ -1195,7 +1354,10 @@ impl registryBuilder<'_> {
         let mut all_results: Vec<bucketBuildResult> = Vec::new();
 
         for task in &node_modules_tasks {
-            let mut br = bucketBuildResult::new(bucketTarget::NodeModules(Arc::clone(&task.entry)), task.entry.key());
+            let mut br = bucketBuildResult::new(
+                bucketTarget::NodeModules(Arc::clone(&task.entry)),
+                task.entry.key(),
+            );
             if task.is_update {
                 self.update_node_modules_bucket(
                     ctx,
@@ -1226,20 +1388,39 @@ impl registryBuilder<'_> {
         // Project bucket (not part of the three-phase pipeline — no cross-bucket dedup needed).
         if let Some(project) = self.projects.get(&project_id) {
             let program = self.host.get_program_for_project(&project_id).unwrap();
-            let resolved_package_names = all_resolved_package_names.get(&project_id).cloned().flatten();
+            let resolved_package_names =
+                all_resolved_package_names.get(&project_id).cloned().flatten();
             let project_value = project.value().unwrap();
-            let mut should_rebuild = project_value.state.has_dirty_file_besides(&change.requested_file)
-                || !project_value.state.build_preferences.equal(&bucket_build_preferences_from_user_preferences(&self.user_preferences));
-            if !should_rebuild && project_value.state.new_program_structure > newProgramStructure::False {
-                if !set_equals(project_value.resolved_package_names.as_ref(), resolved_package_names.as_ref()) || has_new_non_node_modules_files(program, &project_value) {
+            let mut should_rebuild =
+                project_value.state.has_dirty_file_besides(&change.requested_file)
+                    || !project_value.state.build_preferences.equal(
+                        &bucket_build_preferences_from_user_preferences(&self.user_preferences),
+                    );
+            if !should_rebuild
+                && project_value.state.new_program_structure > newProgramStructure::False
+            {
+                if !set_equals(
+                    project_value.resolved_package_names.as_ref(),
+                    resolved_package_names.as_ref(),
+                ) || has_new_non_node_modules_files(program, &project_value)
+                {
                     should_rebuild = true;
                 } else {
                     project.change(|b| b.state.new_program_structure = newProgramStructure::False);
                 }
             }
             if should_rebuild {
-                let mut br = bucketBuildResult::new(bucketTarget::Project(project), (self.base.to_path)(program.get_current_directory()));
-                self.build_project_bucket(ctx, &mut br, &project_id, resolved_package_names, &logger.fork(&format!("Building project bucket {project_id}")));
+                let mut br = bucketBuildResult::new(
+                    bucketTarget::Project(project),
+                    (self.base.to_path)(program.get_current_directory()),
+                );
+                self.build_project_bucket(
+                    ctx,
+                    &mut br,
+                    &project_id,
+                    resolved_package_names,
+                    &logger.fork(&format!("Building project bucket {project_id}")),
+                );
                 all_results.push(br);
             }
         }
@@ -1251,7 +1432,10 @@ impl registryBuilder<'_> {
             for path in &br.removed_entrypoint_paths {
                 self.entrypoints.delete(path.clone());
             }
-            #[expect(clippy::iter_over_hash_type, reason = "distinct keys are set into entrypoints; Go ranges the map too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "distinct keys are set into entrypoints; Go ranges the map too"
+            )]
             for (path, entries) in &br.entrypoints {
                 self.entrypoints.set(path.clone(), entries.clone());
             }
@@ -1285,16 +1469,23 @@ impl registryBuilder<'_> {
                     if root_files.contains_key(&file_name) {
                         continue;
                     }
-                    root_files.insert(file_name.clone(), self.host.get_source_file(&file_name, &(self.base.to_path)(&file_name)));
+                    root_files.insert(
+                        file_name.clone(),
+                        self.host.get_source_file(&file_name, &(self.base.to_path)(&file_name)),
+                    );
                     root_file_order.push(file_name);
                     second_pass_file_count += 1;
                 }
             }
             if !root_files.is_empty() {
                 let module_resolver: &'static DefaultResolver =
-                    tsrs_core::alloc(module::new_resolver(ResolverOptions::new(self.host, tsrs_core::empty_compiler_options())));
+                    tsrs_core::alloc(module::new_resolver(ResolverOptions::new(
+                        self.host,
+                        tsrs_core::empty_compiler_options(),
+                    )));
                 // Go collects `maps.Values(rootFiles)` (random order, nil files included; the checker skips nothing).
-                let files: Vec<P<SourceFile>> = root_file_order.iter().filter_map(|f| root_files[f]).collect();
+                let files: Vec<P<SourceFile>> =
+                    root_file_order.iter().filter_map(|f| root_files[f]).collect();
                 let alias_resolver = new_alias_resolver(
                     files,
                     FxHashMap::default(),
@@ -1305,21 +1496,32 @@ impl registryBuilder<'_> {
                         // no-op
                     }),
                 );
-                let alias_resolver: &'static super::aliasresolver::aliasResolver = tsrs_core::alloc(alias_resolver);
+                let alias_resolver: &'static super::aliasresolver::aliasResolver =
+                    tsrs_core::alloc(alias_resolver);
                 let mut ch = tsrs_checker::new_checker(alias_resolver);
                 let sources = br.possible_failed_ambient_module_lookup_sources.to_map();
                 let bucket = br.bucket.as_mut().unwrap();
                 let mut index = bucket.index.as_ref().map(|i| (**i).clone()).unwrap_or_default();
-                #[expect(clippy::iter_over_hash_type, reason = "order-independent: only fills the export index, whose searches are sorted by fix preference (View.GetCompletions, sortFixInfo); Go ranges the map too")]
+                #[expect(
+                    clippy::iter_over_hash_type,
+                    reason = "order-independent: only fills the export index, whose searches are sorted by fix preference (View.GetCompletions, sortFixInfo); Go ranges the map too"
+                )]
                 for source in sources.values() {
                     let (file_name, package_name) = {
                         let s = source.lock().unwrap();
                         (s.file_name.clone(), s.package_name.clone())
                     };
-                    let source_file = alias_resolver.get_source_file(&file_name).expect("nil source file");
+                    let source_file =
+                        alias_resolver.get_source_file(&file_name).expect("nil source file");
                     let fs = self.host.fs();
                     let realpath: PathFunc = Arc::new(move |s: &str| fs.realpath(s));
-                    let mut extractor = new_export_extractor(&package_name, &mut ch, module_resolver, Arc::clone(&self.base.to_path), Some(realpath));
+                    let mut extractor = new_export_extractor(
+                        &package_name,
+                        &mut ch,
+                        module_resolver,
+                        Arc::clone(&self.base.to_path),
+                        Some(realpath),
+                    );
                     let file_exports = extractor.extract_from_file(source_file);
                     for exp in file_exports {
                         index.insert_as_words(exp);
@@ -1333,8 +1535,11 @@ impl registryBuilder<'_> {
 
         if !node_modules_logger.is_nil() {
             if second_pass_file_count > 0 {
-                node_modules_logger
-                    .logf(format_args!("{} files required second pass, took {:?}", second_pass_file_count, second_pass_start.elapsed()));
+                node_modules_logger.logf(format_args!(
+                    "{} files required second pass, took {:?}",
+                    second_pass_file_count,
+                    second_pass_start.elapsed()
+                ));
             }
             node_modules_logger.logf(format_args!("Total: {:?}", discovery_start.elapsed()));
         }
@@ -1347,7 +1552,10 @@ fn has_new_non_node_modules_files(program: &'static Program, bucket: &RegistryBu
         return false;
     }
     if program.get_source_files().iter().any(|&file| {
-        if file.is_content_mapper_supplemental() || file.file_name().contains("/node_modules/") || is_ignored_file(program, file) {
+        if file.is_content_mapper_supplemental()
+            || file.file_name().contains("/node_modules/")
+            || is_ignored_file(program, file)
+        {
             return false;
         }
         !bucket.paths.contains_key(file.path())
@@ -1359,14 +1567,19 @@ fn has_new_non_node_modules_files(program: &'static Program, bucket: &RegistryBu
 
 // registry.go:1146
 fn is_ignored_file(program: &'static Program, file: P<SourceFile>) -> bool {
-    program.is_source_file_default_library(file.path()) || program.is_global_typings_file(file.file_name())
+    program.is_source_file_default_library(file.path())
+        || program.is_global_typings_file(file.file_name())
 }
 
 // registry.go:1153
 // hasSymlinkToNodeModules checks if a file's realpath has a symlink that points
 // to a node_modules directory. This is used to skip files in the project bucket
 // that would be duplicated by the node_modules bucket via their symlink.
-fn has_symlink_to_node_modules(file_path: &Path, project_root_path: &Path, symlink_cache: Option<P<KnownSymlinks>>) -> bool {
+fn has_symlink_to_node_modules(
+    file_path: &Path,
+    project_root_path: &Path,
+    symlink_cache: Option<P<KnownSymlinks>>,
+) -> bool {
     let Some(symlink_cache) = symlink_cache else {
         return false;
     };
@@ -1395,7 +1608,8 @@ fn has_symlink_to_node_modules(file_path: &Path, project_root_path: &Path, symli
     let directories_by_realpath = symlink_cache.directories_by_realpath();
     let mut found = false;
     file_path.for_each_ancestor_directory(|dir_path| -> Option<()> {
-        let symlink_paths = directories_by_realpath.load(&dir_path.ensure_trailing_directory_separator())?;
+        let symlink_paths =
+            directories_by_realpath.load(&dir_path.ensure_trailing_directory_separator())?;
         // Check if any of the symlinks point to a node_modules directory
         symlink_paths.range(|symlink_path: &String| {
             if symlink_path.contains("/node_modules/") {
@@ -1439,7 +1653,8 @@ struct bucketBuildResult {
     // the registry-level map before merging new entrypoints. Used for granular updates.
     removed_entrypoint_paths: Vec<Path>,
     // File path to filename and package name
-    possible_failed_ambient_module_lookup_sources: Arc<SyncMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>>,
+    possible_failed_ambient_module_lookup_sources:
+        Arc<SyncMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>>,
     // Likely ambient module name
     possible_failed_ambient_module_lookup_targets: Option<Set<String>>,
 }
@@ -1483,10 +1698,13 @@ impl registryBuilder<'_> {
         }
 
         let start = Instant::now();
-        let file_exclude_patterns = self.user_preferences.parsed_auto_import_file_exclude_patterns(self.host.fs().use_case_sensitive_file_names());
+        let file_exclude_patterns = self.user_preferences.parsed_auto_import_file_exclude_patterns(
+            self.host.fs().use_case_sensitive_file_names(),
+        );
         result.bucket = Some(RegistryBucket::default());
-        let module_resolver: &'static DefaultResolver =
-            tsrs_core::alloc(module::new_resolver(ResolverOptions::new(self.host, tsrs_core::empty_compiler_options())));
+        let module_resolver: &'static DefaultResolver = tsrs_core::alloc(module::new_resolver(
+            ResolverOptions::new(self.host, tsrs_core::empty_compiler_options()),
+        ));
         let program = self.host.get_program_for_project(project_id).unwrap();
         let project_root_path = (self.base.to_path)(program.get_current_directory());
         let symlink_cache = Some(program.get_symlink_cache());
@@ -1508,25 +1726,37 @@ impl registryBuilder<'_> {
             // Ordinary node_modules files are owned by node_modules buckets. Content-mapped files are not
             // discovered by those buckets, but files already transformed in the Program can be indexed here.
             if file.content_mapper().is_empty()
-                && (file.file_name().contains("/node_modules/") || has_symlink_to_node_modules(file.path(), &project_root_path, symlink_cache))
+                && (file.file_name().contains("/node_modules/")
+                    || has_symlink_to_node_modules(file.path(), &project_root_path, symlink_cache))
             {
                 continue;
             }
             if ctx.err().is_none() {
                 let checker = pool.get_checker();
-                let mut extractor = new_export_extractor("", checker, module_resolver, Arc::clone(&self.base.to_path), None);
+                let mut extractor = new_export_extractor(
+                    "",
+                    checker,
+                    module_resolver,
+                    Arc::clone(&self.base.to_path),
+                    None,
+                );
                 let file_exports = extractor.extract_from_file(file);
                 exports.insert(file.path().clone(), file_exports);
                 let stats = extractor.stats();
                 combined_exports += stats.exports.load(std::sync::atomic::Ordering::Relaxed);
-                combined_used_checker += stats.used_checker.load(std::sync::atomic::Ordering::Relaxed);
+                combined_used_checker +=
+                    stats.used_checker.load(std::sync::atomic::Ordering::Relaxed);
             }
         }
 
         let index_start = Instant::now();
         let mut idx: Index<Arc<Export>> = Index::default();
-        let mut paths: FxHashMap<Path, String> = FxHashMap::with_capacity_and_hasher(exports.len(), rustc_hash::FxBuildHasher);
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills the paths map and the export index, whose searches are sorted by fix preference; Go ranges the map too")]
+        let mut paths: FxHashMap<Path, String> =
+            FxHashMap::with_capacity_and_hasher(exports.len(), rustc_hash::FxBuildHasher);
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills the paths map and the export index, whose searches are sorted by fix preference; Go ranges the map too"
+        )]
         for (path, file_exports) in exports {
             paths.insert(path, String::new()); // Empty string for project buckets
             for exp in file_exports {
@@ -1538,7 +1768,8 @@ impl registryBuilder<'_> {
         bucket.paths = Arc::new(paths);
         bucket.index = Some(Arc::new(idx));
         bucket.resolved_package_names = resolved_package_names;
-        bucket.state.build_preferences = bucket_build_preferences_from_user_preferences(&self.user_preferences);
+        bucket.state.build_preferences =
+            bucket_build_preferences_from_user_preferences(&self.user_preferences);
 
         if !logger.is_nil() {
             logger.logf(format_args!(
@@ -1549,7 +1780,9 @@ impl registryBuilder<'_> {
                 pool.created_count()
             ));
             if skipped_file_count > 0 {
-                logger.logf(format_args!("Skipped {skipped_file_count} files due to exclude patterns"));
+                logger.logf(format_args!(
+                    "Skipped {skipped_file_count} files due to exclude patterns"
+                ));
             }
             logger.logf(format_args!("Built index: {:?}", index_start.elapsed()));
             logger.logf(format_args!("Bucket total: {:?}", start.elapsed()));
@@ -1568,7 +1801,13 @@ impl registryBuilder<'_> {
         // we need to add all packages in this node_modules directory.
         // any match returns the same constant; no other effect; Go ranges the map too
         if let Some(result) = change.open_files.keys().into_iter().find_map(|path| {
-            if dir_path.contains_path(path) && self.get_nearest_ancestor_directory_with_package_json(path).is_none() { Some(None) } else { None }
+            if dir_path.contains_path(path)
+                && self.get_nearest_ancestor_directory_with_package_json(path).is_none()
+            {
+                Some(None)
+            } else {
+                None
+            }
         }) {
             return result;
         }
@@ -1578,7 +1817,10 @@ impl registryBuilder<'_> {
         self.directories.range(|entry| {
             let value = entry.value().unwrap();
             if value.package_json.exists() && dir_path.contains_path(&entry.key()) {
-                add_package_json_dependencies(&value.package_json.contents.unwrap(), &mut dependencies);
+                add_package_json_dependencies(
+                    &value.package_json.contents.unwrap(),
+                    &mut dependencies,
+                );
             }
             true
         });
@@ -1622,7 +1864,8 @@ struct perPackageExtractionResult {
     stats_used_checker: usize,
     skipped_entrypoints: usize,
     is_symlinked: bool,
-    failed_ambient_module_lookup_sources: FxHashMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>,
+    failed_ambient_module_lookup_sources:
+        FxHashMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>,
     failed_ambient_module_lookup_targets: Set<String>,
 }
 
@@ -1635,7 +1878,8 @@ struct packageExtractionResult {
     ambient_module_names: FxHashMap<String, Vec<String>>,
     entrypoints: Vec<Vec<Arc<ResolvedEntrypoint>>>,
     workspace_packages: Set<String>,
-    possible_failed_ambient_module_lookup_sources: Arc<SyncMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>>,
+    possible_failed_ambient_module_lookup_sources:
+        Arc<SyncMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>>,
     possible_failed_ambient_module_lookup_targets: Set<String>,
     stats_exports: usize,
     stats_used_checker: usize,
@@ -1646,18 +1890,30 @@ impl registryBuilder<'_> {
     // registry.go:1392
     // discoverBucketPackages resolves the package.json and realpath for each package name
     // in a node_modules directory. This is the discovery phase of the three-phase extraction pipeline.
-    fn discover_bucket_packages(&self, package_names: Option<&Set<String>>, dir_name: &str, _dir_path: &Path) -> Vec<Arc<discoveredPackage>> {
-        let mut result = Vec::with_capacity(package_names.map_or(0, tsrs_core::collections::Set::len));
+    fn discover_bucket_packages(
+        &self,
+        package_names: Option<&Set<String>>,
+        dir_name: &str,
+        _dir_path: &Path,
+    ) -> Vec<Arc<discoveredPackage>> {
+        let mut result =
+            Vec::with_capacity(package_names.map_or(0, tsrs_core::collections::Set::len));
         let Some(package_names) = package_names else {
             return result;
         };
         // Go ranges packageNames.Keys() too, so the discovered packages come in map order there as well
         result.extend(package_names.keys().iter().map(|package_name| {
             let types_package_name = module::get_types_package_name(package_name);
-            let package_json = self.host.get_package_json(&tspath::combine_paths(dir_name, &["node_modules", package_name, "package.json"]));
+            let package_json = self.host.get_package_json(&tspath::combine_paths(
+                dir_name,
+                &["node_modules", package_name, "package.json"],
+            ));
             let mut types_package_json: Option<P<InfoCacheEntry>> = None;
             if *package_name != types_package_name {
-                let types_json = self.host.get_package_json(&tspath::combine_paths(dir_name, &["node_modules", &types_package_name, "package.json"]));
+                let types_json = self.host.get_package_json(&tspath::combine_paths(
+                    dir_name,
+                    &["node_modules", &types_package_name, "package.json"],
+                ));
                 if types_json.directory_exists {
                     types_package_json = Some(types_json);
                 }
@@ -1675,9 +1931,22 @@ impl registryBuilder<'_> {
                 && tspath::contains_path(
                     self.host.get_current_directory(),
                     &realpath,
-                    &ComparePathsOptions { use_case_sensitive_file_names: self.host.fs().use_case_sensitive_file_names(), ..Default::default() },
+                    &ComparePathsOptions {
+                        use_case_sensitive_file_names: self
+                            .host
+                            .fs()
+                            .use_case_sensitive_file_names(),
+                        ..Default::default()
+                    },
                 );
-            Arc::new(discoveredPackage { package_name: package_name.clone(), package_json, realpath, types_package_json, types_realpath, is_local })
+            Arc::new(discoveredPackage {
+                package_name: package_name.clone(),
+                package_json,
+                realpath,
+                types_package_json,
+                types_realpath,
+                is_local,
+            })
         }));
         result
     }
@@ -1699,23 +1968,34 @@ impl registryBuilder<'_> {
         if !package_json.directory_exists {
             return None;
         }
-        let (to_realpath, to_symlink) = get_package_realpath_funcs(self.host.fs(), package_json.package_directory);
-        let resolver: &'static DefaultResolver = tsrs_core::alloc(get_module_resolver(self.host, Arc::clone(&to_realpath)));
-        let mut package_entrypoints = resolver.get_entrypoints_from_package_json_info(package_json, package_name, enable_directory_search)?;
+        let (to_realpath, to_symlink) =
+            get_package_realpath_funcs(self.host.fs(), package_json.package_directory);
+        let resolver: &'static DefaultResolver =
+            tsrs_core::alloc(get_module_resolver(self.host, Arc::clone(&to_realpath)));
+        let mut package_entrypoints = resolver.get_entrypoints_from_package_json_info(
+            package_json,
+            package_name,
+            enable_directory_search,
+        )?;
 
         let mut skipped_entrypoints = 0;
         if let Some(file_exclude_patterns) = file_exclude_patterns {
             let count = package_entrypoints.len();
-            package_entrypoints.retain(|entrypoint| !file_exclude_patterns.match_string(&entrypoint.resolved_file_name));
+            package_entrypoints.retain(|entrypoint| {
+                !file_exclude_patterns.match_string(&entrypoint.resolved_file_name)
+            });
             skipped_entrypoints = count - package_entrypoints.len();
         }
         if package_entrypoints.is_empty() {
             return None;
         }
 
-        let package_entrypoints: Vec<Arc<ResolvedEntrypoint>> = package_entrypoints.into_iter().map(Arc::new).collect();
+        let package_entrypoints: Vec<Arc<ResolvedEntrypoint>> =
+            package_entrypoints.into_iter().map(Arc::new).collect();
         let failed_targets: Arc<Mutex<Set<String>>> = Arc::new(Mutex::new(Set::new()));
-        let failed_sources: Arc<Mutex<FxHashMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>>> = Arc::new(Mutex::new(FxHashMap::default()));
+        let failed_sources: Arc<
+            Mutex<FxHashMap<Path, Arc<Mutex<failedAmbientModuleLookupSource>>>>,
+        > = Arc::new(Mutex::new(FxHashMap::default()));
         let mut result = perPackageExtractionResult {
             package_files: FxHashMap::default(),
             entrypoints: package_entrypoints.clone(),
@@ -1730,8 +2010,10 @@ impl registryBuilder<'_> {
         };
 
         // Resolve entrypoint source files and build the alias resolver.
-        let mut seen_files: Set<Path> = tsrs_core::collections::new_set_with_size_hint(package_entrypoints.len());
-        let mut root_files: Vec<Option<P<SourceFile>>> = Vec::with_capacity(package_entrypoints.len());
+        let mut seen_files: Set<Path> =
+            tsrs_core::collections::new_set_with_size_hint(package_entrypoints.len());
+        let mut root_files: Vec<Option<P<SourceFile>>> =
+            Vec::with_capacity(package_entrypoints.len());
         let mut symlinks: FxHashMap<Path, pathAndFileName> = FxHashMap::default();
         for entrypoint in &package_entrypoints {
             let mut file_name = entrypoint.symlink_or_realpath().to_string();
@@ -1749,7 +2031,10 @@ impl registryBuilder<'_> {
             }
             if file_name != realpath_file_name {
                 let symlink_path = (self.base.to_path)(&file_name);
-                symlinks.insert(realpath_path.clone(), pathAndFileName { path: symlink_path, file_name: file_name.clone() });
+                symlinks.insert(
+                    realpath_path.clone(),
+                    pathAndFileName { path: symlink_path, file_name: file_name.clone() },
+                );
                 result.is_symlinked = true;
             }
             let file = self.host.get_source_file(&realpath_file_name, &realpath_path);
@@ -1770,15 +2055,27 @@ impl registryBuilder<'_> {
             Arc::clone(&self.base.to_path),
             Box::new(move |source: P<SourceFile>, module_name: &str| {
                 on_failed_targets.lock().unwrap().add(module_name.to_string());
-                on_failed_sources.lock().unwrap().entry(source.path().clone()).or_insert_with(|| {
-                    Arc::new(Mutex::new(failedAmbientModuleLookupSource { file_name: source.file_name().to_string(), package_name: String::new() }))
-                });
+                on_failed_sources.lock().unwrap().entry(source.path().clone()).or_insert_with(
+                    || {
+                        Arc::new(Mutex::new(failedAmbientModuleLookupSource {
+                            file_name: source.file_name().to_string(),
+                            package_name: String::new(),
+                        }))
+                    },
+                );
             }),
         );
-        let alias_resolver: &'static super::aliasresolver::aliasResolver = tsrs_core::alloc(alias_resolver);
+        let alias_resolver: &'static super::aliasresolver::aliasResolver =
+            tsrs_core::alloc(alias_resolver);
 
         let mut ch = tsrs_checker::new_checker(alias_resolver);
-        let mut extractor = new_export_extractor(package_name, &mut ch, resolver, Arc::clone(&self.base.to_path), Some(to_realpath));
+        let mut extractor = new_export_extractor(
+            package_name,
+            &mut ch,
+            resolver,
+            Arc::clone(&self.base.to_path),
+            Some(to_realpath),
+        );
 
         let mut non_module_files: Set<Path> = Set::new();
         for &entrypoint in &alias_resolver.root_files {
@@ -1787,15 +2084,22 @@ impl registryBuilder<'_> {
             }
             let file_exports = extractor.extract_from_file(entrypoint);
             for &name in entrypoint.ambient_module_names() {
-                result.ambient_modules.entry(name.to_string()).or_default().push(entrypoint.file_name().to_string());
+                result
+                    .ambient_modules
+                    .entry(name.to_string())
+                    .or_default()
+                    .push(entrypoint.file_name().to_string());
             }
-            result.package_files.insert(entrypoint.path().clone(), entrypoint.file_name().to_string());
+            result
+                .package_files
+                .insert(entrypoint.path().clone(), entrypoint.file_name().to_string());
             let symlink = alias_resolver.symlinks.get(entrypoint.path());
             if let Some(symlink) = symlink {
                 result.package_files.insert(symlink.path.clone(), symlink.file_name.clone());
             }
 
-            let mut has_exports = !file_exports.is_empty() && entrypoint.external_module_indicator().is_some();
+            let mut has_exports =
+                !file_exports.is_empty() && entrypoint.external_module_indicator().is_some();
             let source = failed_sources.lock().unwrap().get(entrypoint.path()).cloned();
             match source {
                 None => {
@@ -1822,8 +2126,10 @@ impl registryBuilder<'_> {
         let stats = extractor.stats();
         result.stats_exports = stats.exports.load(std::sync::atomic::Ordering::Relaxed);
         result.stats_used_checker = stats.used_checker.load(std::sync::atomic::Ordering::Relaxed);
-        result.failed_ambient_module_lookup_targets = std::mem::take(&mut *failed_targets.lock().unwrap());
-        result.failed_ambient_module_lookup_sources = std::mem::take(&mut *failed_sources.lock().unwrap());
+        result.failed_ambient_module_lookup_targets =
+            std::mem::take(&mut *failed_targets.lock().unwrap());
+        result.failed_ambient_module_lookup_sources =
+            std::mem::take(&mut *failed_sources.lock().unwrap());
         Some(result)
     }
 }
@@ -1831,7 +2137,10 @@ impl registryBuilder<'_> {
 // registry.go:1575
 // installExtractions aggregates pre-extracted per-package results into a single
 // packageExtractionResult for one bucket. This is the install phase of the three-phase pipeline.
-fn install_extractions(discovered: &[Arc<discoveredPackage>], extraction_cache: &FxHashMap<String, Arc<perPackageExtractionResult>>) -> packageExtractionResult {
+fn install_extractions(
+    discovered: &[Arc<discoveredPackage>],
+    extraction_cache: &FxHashMap<String, Arc<perPackageExtractionResult>>,
+) -> packageExtractionResult {
     let mut result = packageExtractionResult::default();
 
     for pkg in discovered {
@@ -1847,20 +2156,35 @@ fn install_extractions(discovered: &[Arc<discoveredPackage>], extraction_cache: 
         let package_files = result.package_files.entry(pkg.package_name.clone()).or_default();
         // copies distinct keys into a map (maps.Copy in Go)
         package_files.extend(extraction.package_files.iter().map(|(k, v)| (k.clone(), v.clone())));
-        #[expect(clippy::iter_over_hash_type, reason = "names are distinct, so each per-key append is independent of the others; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "names are distinct, so each per-key append is independent of the others; Go ranges the map too"
+        )]
         for (name, file_names) in &extraction.ambient_modules {
-            result.ambient_module_names.entry(name.clone()).or_default().extend(file_names.iter().cloned());
+            result
+                .ambient_module_names
+                .entry(name.clone())
+                .or_default()
+                .extend(file_names.iter().cloned());
         }
         result.entrypoints.push(extraction.entrypoints.clone());
-        #[expect(clippy::iter_over_hash_type, reason = "stores distinct keys; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "stores distinct keys; Go ranges the map too"
+        )]
         for (path, source) in &extraction.failed_ambient_module_lookup_sources {
-            result.possible_failed_ambient_module_lookup_sources.load_or_store(path.clone(), Arc::clone(source));
+            result
+                .possible_failed_ambient_module_lookup_sources
+                .load_or_store(path.clone(), Arc::clone(source));
         }
         // pure set inserts; Go ranges the set too
-        result
-            .possible_failed_ambient_module_lookup_targets
-            .m
-            .extend(extraction.failed_ambient_module_lookup_targets.keys().iter().map(std::clone::Clone::clone));
+        result.possible_failed_ambient_module_lookup_targets.m.extend(
+            extraction
+                .failed_ambient_module_lookup_targets
+                .keys()
+                .iter()
+                .map(std::clone::Clone::clone),
+        );
         if extraction.is_symlinked && pkg.is_local {
             result.workspace_packages.add(pkg.package_name.clone());
         }
@@ -1899,15 +2223,21 @@ impl registryBuilder<'_> {
         let mut all_package_files: PackageFiles = PackageFiles::default();
         if let Some(directory_package_names) = directory_package_names {
             // pure inserts into all_package_files; Go ranges the set too
-            all_package_files.extend(
-                directory_package_names.keys().iter().map(|pkg_name| (pkg_name.clone(), extraction.package_files.get(pkg_name).map(|m| Arc::new(m.clone())))),
-            );
+            all_package_files.extend(directory_package_names.keys().iter().map(|pkg_name| {
+                (
+                    pkg_name.clone(),
+                    extraction.package_files.get(pkg_name).map(|m| Arc::new(m.clone())),
+                )
+            }));
         }
 
         // Build Paths as reverse mapping from path to package name.
         // Only include paths for local workspace packages (eligible for granular updates).
         let mut paths: FxHashMap<Path, String> = FxHashMap::default();
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills the paths map from each workspace package's files; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills the paths map from each workspace package's files; Go ranges the set too"
+        )]
         for pkg_name in extraction.workspace_packages.keys() {
             if let Some(files) = extraction.package_files.get(pkg_name) {
                 // distinct keys inserted with the same value; Go ranges the map too
@@ -1916,7 +2246,10 @@ impl registryBuilder<'_> {
         }
 
         let mut index: Index<Arc<Export>> = Index::default();
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: only fills the export index, whose searches are sorted by fix preference; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: only fills the export index, whose searches are sorted by fix preference; Go ranges the map too"
+        )]
         for file_exports in extraction.exports.values() {
             for exp in file_exports {
                 index.insert_as_words(Arc::clone(exp));
@@ -1930,14 +2263,21 @@ impl registryBuilder<'_> {
             paths: Arc::new(paths),
             resolved_package_names: None,
             state: BucketState {
-                build_preferences: bucket_build_preferences_from_user_preferences(&self.user_preferences),
+                build_preferences: bucket_build_preferences_from_user_preferences(
+                    &self.user_preferences,
+                ),
                 recursive_search_packages: recursive_search_packages.cloned(),
                 ..Default::default()
             },
         });
-        result.entrypoints = FxHashMap::with_capacity_and_hasher(extraction.exports.len(), rustc_hash::FxBuildHasher);
-        result.possible_failed_ambient_module_lookup_sources = extraction.possible_failed_ambient_module_lookup_sources;
-        result.possible_failed_ambient_module_lookup_targets = Some(extraction.possible_failed_ambient_module_lookup_targets);
+        result.entrypoints = FxHashMap::with_capacity_and_hasher(
+            extraction.exports.len(),
+            rustc_hash::FxBuildHasher,
+        );
+        result.possible_failed_ambient_module_lookup_sources =
+            extraction.possible_failed_ambient_module_lookup_sources;
+        result.possible_failed_ambient_module_lookup_targets =
+            Some(extraction.possible_failed_ambient_module_lookup_targets);
         for entrypoint_set in &extraction.entrypoints {
             for entrypoint in entrypoint_set {
                 let path = (self.base.to_path)(&entrypoint.resolved_file_name);
@@ -1952,17 +2292,27 @@ impl registryBuilder<'_> {
             if let Some(package_files) = &old_bucket.package_files {
                 for files in package_files.values().flatten() {
                     // the collected paths are only deleted from entrypoints; Go ranges the map too
-                    result
-                        .removed_entrypoint_paths
-                        .extend(files.keys().filter_map(|path| if self.base.entrypoints.contains_key(path) { Some(path.clone()) } else { None }));
+                    result.removed_entrypoint_paths.extend(files.keys().filter_map(|path| {
+                        if self.base.entrypoints.contains_key(path) {
+                            Some(path.clone())
+                        } else {
+                            None
+                        }
+                    }));
                 }
             }
         }
 
         if !logger.is_nil() {
-            logger.logf(format_args!("Installed {} exports ({} used checker)", extraction.stats_exports, extraction.stats_used_checker));
+            logger.logf(format_args!(
+                "Installed {} exports ({} used checker)",
+                extraction.stats_exports, extraction.stats_used_checker
+            ));
             if extraction.skipped_entrypoints_count > 0 {
-                logger.logf(format_args!("Skipped {} entrypoints due to exclude patterns", extraction.skipped_entrypoints_count));
+                logger.logf(format_args!(
+                    "Skipped {} entrypoints due to exclude patterns",
+                    extraction.skipped_entrypoints_count
+                ));
             }
             logger.logf(format_args!("Built index: {:?}", index_start.elapsed()));
         }
@@ -1995,20 +2345,32 @@ impl registryBuilder<'_> {
         let index_start = Instant::now();
 
         // Clone the existing index, excluding exports from dirty packages
-        let mut new_index = existing_bucket.index.as_ref().map(|idx| idx.clone_filtered(|exp| !dirty_packages.has(&exp.package_name)));
+        let mut new_index = existing_bucket
+            .index
+            .as_ref()
+            .map(|idx| idx.clone_filtered(|exp| !dirty_packages.has(&exp.package_name)));
 
         // Clone PackageFiles, removing dirty packages
-        let mut new_package_files: PackageFiles = existing_bucket.package_files.as_ref().map(|p| (**p).clone()).unwrap_or_default();
-        #[expect(clippy::iter_over_hash_type, reason = "keys are only removed; Go ranges the set too")]
+        let mut new_package_files: PackageFiles =
+            existing_bucket.package_files.as_ref().map(|p| (**p).clone()).unwrap_or_default();
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "keys are only removed; Go ranges the set too"
+        )]
         for pkg_name in dirty_packages.keys() {
             new_package_files.remove(pkg_name);
         }
         // Add newly extracted package files
         // copies distinct keys into a map (maps.Copy in Go)
-        new_package_files.extend(extraction.package_files.iter().map(|(k, v)| (k.clone(), Some(Arc::new(v.clone())))));
+        new_package_files.extend(
+            extraction.package_files.iter().map(|(k, v)| (k.clone(), Some(Arc::new(v.clone())))),
+        );
 
         // Clone Paths, removing dirty package paths
-        let mut new_paths: FxHashMap<Path, String> = FxHashMap::with_capacity_and_hasher(existing_bucket.paths.len(), rustc_hash::FxBuildHasher);
+        let mut new_paths: FxHashMap<Path, String> = FxHashMap::with_capacity_and_hasher(
+            existing_bucket.paths.len(),
+            rustc_hash::FxBuildHasher,
+        );
         // filtered copy of distinct keys into a new map; Go ranges the map too
         new_paths.extend(existing_bucket.paths.iter().filter_map(|(path, pkg_name)| {
             if dirty_packages.has(pkg_name) {
@@ -2017,7 +2379,10 @@ impl registryBuilder<'_> {
             Some((path.clone(), pkg_name.clone()))
         }));
         // Add paths for newly extracted workspace packages
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills the paths map from each workspace package's files; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills the paths map from each workspace package's files; Go ranges the set too"
+        )]
         for pkg_name in extraction.workspace_packages.keys() {
             if let Some(files) = extraction.package_files.get(pkg_name) {
                 // distinct keys inserted with the same value; Go ranges the map too
@@ -2027,26 +2392,37 @@ impl registryBuilder<'_> {
 
         // Clone AmbientModuleNames, removing dirty package entries
         let mut new_ambient_module_names: FxHashMap<String, Vec<String>> =
-            FxHashMap::with_capacity_and_hasher(existing_bucket.ambient_module_names.len(), rustc_hash::FxBuildHasher);
+            FxHashMap::with_capacity_and_hasher(
+                existing_bucket.ambient_module_names.len(),
+                rustc_hash::FxBuildHasher,
+            );
         // filtered copy of distinct keys into a new map; Go ranges the map too
-        new_ambient_module_names.extend(existing_bucket.ambient_module_names.iter().filter_map(|(module_name, file_names)| {
-            // Filter out files from dirty packages
-            let mut filtered: Vec<String> = Vec::new();
-            filtered.extend(file_names.iter().filter_map(|file_name| {
-                let path = (self.base.to_path)(file_name);
-                if let Some(pkg_name) = existing_bucket.paths.get(&path) {
-                    if dirty_packages.has(pkg_name) {
-                        return None;
+        new_ambient_module_names.extend(existing_bucket.ambient_module_names.iter().filter_map(
+            |(module_name, file_names)| {
+                // Filter out files from dirty packages
+                let mut filtered: Vec<String> = Vec::new();
+                filtered.extend(file_names.iter().filter_map(|file_name| {
+                    let path = (self.base.to_path)(file_name);
+                    if let Some(pkg_name) = existing_bucket.paths.get(&path) {
+                        if dirty_packages.has(pkg_name) {
+                            return None;
+                        }
                     }
-                }
-                Some(file_name.clone())
-            }));
-            if !filtered.is_empty() { Some((module_name.clone(), filtered)) } else { None }
-        }));
+                    Some(file_name.clone())
+                }));
+                if !filtered.is_empty() { Some((module_name.clone(), filtered)) } else { None }
+            },
+        ));
         // Add newly extracted ambient module names
-        #[expect(clippy::iter_over_hash_type, reason = "names are distinct, so each per-key append is independent of the others; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "names are distinct, so each per-key append is independent of the others; Go ranges the map too"
+        )]
         for (module_name, file_names) in &extraction.ambient_module_names {
-            new_ambient_module_names.entry(module_name.clone()).or_default().extend(file_names.iter().cloned());
+            new_ambient_module_names
+                .entry(module_name.clone())
+                .or_default()
+                .extend(file_names.iter().cloned());
         }
 
         // Collect entrypoint paths that need to be removed from the registry-level map
@@ -2054,10 +2430,15 @@ impl registryBuilder<'_> {
         let mut removed_entrypoint_paths: Vec<Path> = Vec::new();
         // the collected paths are only deleted from entrypoints; Go ranges the map too
         removed_entrypoint_paths.extend(self.base.entrypoints.keys().filter_map(|path| {
-            if let Some(pkg_name) = existing_bucket.paths.get(path) { if dirty_packages.has(pkg_name) { Some(path.clone()) } else { None } } else { None }
+            if let Some(pkg_name) = existing_bucket.paths.get(path) {
+                if dirty_packages.has(pkg_name) { Some(path.clone()) } else { None }
+            } else {
+                None
+            }
         }));
         // Build new entrypoints from extraction
-        let mut new_entrypoints: FxHashMap<Path, Vec<Arc<ResolvedEntrypoint>>> = FxHashMap::default();
+        let mut new_entrypoints: FxHashMap<Path, Vec<Arc<ResolvedEntrypoint>>> =
+            FxHashMap::default();
         for entrypoint_set in &extraction.entrypoints {
             for entrypoint in entrypoint_set {
                 let path = (self.base.to_path)(&entrypoint.resolved_file_name);
@@ -2069,7 +2450,10 @@ impl registryBuilder<'_> {
         // (Go calls insertAsWords on the cloned index, which is nil when the existing bucket had none: a nil
         // pointer dereference.)
         let index = new_index.as_mut().expect("nil Index");
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: only fills the export index, whose searches are sorted by fix preference; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: only fills the export index, whose searches are sorted by fix preference; Go ranges the map too"
+        )]
         for file_exports in extraction.exports.values() {
             for exp in file_exports {
                 index.insert_as_words(Arc::clone(exp));
@@ -2084,15 +2468,19 @@ impl registryBuilder<'_> {
             paths: Arc::new(new_paths),
             resolved_package_names: None,
             state: BucketState {
-                build_preferences: bucket_build_preferences_from_user_preferences(&self.user_preferences),
+                build_preferences: bucket_build_preferences_from_user_preferences(
+                    &self.user_preferences,
+                ),
                 recursive_search_packages: recursive_search_packages.cloned(),
                 ..Default::default()
             },
         });
         result.entrypoints = new_entrypoints;
         result.removed_entrypoint_paths = removed_entrypoint_paths;
-        result.possible_failed_ambient_module_lookup_sources = extraction.possible_failed_ambient_module_lookup_sources;
-        result.possible_failed_ambient_module_lookup_targets = Some(extraction.possible_failed_ambient_module_lookup_targets);
+        result.possible_failed_ambient_module_lookup_sources =
+            extraction.possible_failed_ambient_module_lookup_sources;
+        result.possible_failed_ambient_module_lookup_targets =
+            Some(extraction.possible_failed_ambient_module_lookup_targets);
 
         if !logger.is_nil() {
             logger.logf(format_args!(
@@ -2108,7 +2496,10 @@ impl registryBuilder<'_> {
     }
 
     // registry.go:1830
-    fn get_nearest_ancestor_directory_with_package_json(&self, file_path: &Path) -> Option<Shared<directory>> {
+    fn get_nearest_ancestor_directory_with_package_json(
+        &self,
+        file_path: &Path,
+    ) -> Option<Shared<directory>> {
         file_path.get_directory_path().for_each_ancestor_directory(|dir_path| {
             if let Some(dir_entry) = self.directories.get(dir_path) {
                 let value = dir_entry.value().unwrap();
@@ -2125,7 +2516,9 @@ impl registryBuilder<'_> {
         from_path
             .for_each_ancestor_directory(|dir_path| {
                 if let Some(bucket) = self.node_modules.get(dir_path) {
-                    if let Some(file_names) = bucket.value().unwrap().ambient_module_names.get(module_name) {
+                    if let Some(file_names) =
+                        bucket.value().unwrap().ambient_module_names.get(module_name)
+                    {
                         return Some(file_names.clone());
                     }
                 }

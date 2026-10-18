@@ -82,7 +82,10 @@ impl ExpectedValue for Vec<String> {
     }
 }
 
-#[expect(clippy::implicit_hasher, reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy.")]
+#[expect(
+    clippy::implicit_hasher,
+    reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy."
+)]
 impl ExpectedValue for FxHashMap<String, String> {
     fn unmarshal_from(&mut self, value: &Json) -> bool {
         match value {
@@ -145,7 +148,12 @@ pub struct Expected<T> {
 impl<T: ExpectedValue> Expected<T> {
     pub(crate) fn unmarshal_json(&mut self, data: &Json) {
         if matches!(data, Json::Null) {
-            *self = Expected { actual_json_type: "null", null: true, valid: false, value: T::default() };
+            *self = Expected {
+                actual_json_type: "null",
+                null: true,
+                valid: false,
+                value: T::default(),
+            };
             return;
         }
         // Go decodes the raw value with a fresh `json.Unmarshal`, which rejects duplicate names.
@@ -166,11 +174,7 @@ impl<T: ExpectedValue> Expected<T> {
     }
 
     pub fn get_value(&self) -> Option<&T> {
-        if self.valid {
-            Some(&self.value)
-        } else {
-            None
-        }
+        if self.valid { Some(&self.value) } else { None }
     }
 
     pub fn is_valid(&self) -> bool {

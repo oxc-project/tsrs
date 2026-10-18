@@ -1,16 +1,24 @@
 use crate::*;
+use tsrs_ast as ast;
 use tsrs_ast::*;
 use tsrs_core::*;
-use tsrs_ast as ast;
 
 impl Checker {
     // services.go:17
-    pub fn get_symbols_in_scope_exported(&mut self, location: P<Node>, meaning: SymbolFlags) -> Vec<P<Symbol>> {
+    pub fn get_symbols_in_scope_exported(
+        &mut self,
+        location: P<Node>,
+        meaning: SymbolFlags,
+    ) -> Vec<P<Symbol>> {
         self.get_symbols_in_scope(location, meaning)
     }
 
     // services.go:21
-    pub(crate) fn get_symbols_in_scope(&mut self, location: P<Node>, meaning: SymbolFlags) -> Vec<P<Symbol>> {
+    pub(crate) fn get_symbols_in_scope(
+        &mut self,
+        location: P<Node>,
+        meaning: SymbolFlags,
+    ) -> Vec<P<Symbol>> {
         if location.flags().intersects(NodeFlags::InWithStatement) {
             // We cannot answer semantic questions within a with block, do not proceed any further
             return Vec::new();
@@ -43,27 +51,32 @@ impl Checker {
             }
         };
 
-        let copy_locally_visible_export_symbols = |source: Option<P<SymbolTable>>, meaning: SymbolFlags| {
-            if !meaning.is_empty() {
-                if let Some(source) = source {
-                    for (_, symbol) in source.entries() {
-                        // Similar condition as in `resolveNameHelper`
-                        if ast::get_declaration_of_kind(symbol, Kind::ExportSpecifier).is_none()
-                            && ast::get_declaration_of_kind(symbol, Kind::NamespaceExport).is_none()
-                            && symbol.name() != InternalSymbolNameDefault
-                        {
-                            copy_symbol(symbol, meaning);
+        let copy_locally_visible_export_symbols =
+            |source: Option<P<SymbolTable>>, meaning: SymbolFlags| {
+                if !meaning.is_empty() {
+                    if let Some(source) = source {
+                        for (_, symbol) in source.entries() {
+                            // Similar condition as in `resolveNameHelper`
+                            if ast::get_declaration_of_kind(symbol, Kind::ExportSpecifier).is_none()
+                                && ast::get_declaration_of_kind(symbol, Kind::NamespaceExport)
+                                    .is_none()
+                                && symbol.name() != InternalSymbolNameDefault
+                            {
+                                copy_symbol(symbol, meaning);
+                            }
                         }
                     }
                 }
-            }
-        };
+            };
 
         // populateSymbols
         let mut location = Some(location);
         let mut last_location: Option<P<Node>> = None;
         while let Some(loc) = location {
-            if ast::is_module_declaration(loc) && loc.as_module_declaration().attributes.is_some() && last_location == loc.as_module_declaration().attributes {
+            if ast::is_module_declaration(loc)
+                && loc.as_module_declaration().attributes.is_some()
+                && last_location == loc.as_module_declaration().attributes
+            {
                 // Module declaration is not in scope inside its attributes.
                 last_location = Some(loc);
                 location = loc.parent();
@@ -76,9 +89,14 @@ impl Checker {
 
             match loc.kind() {
                 Kind::SourceFile | Kind::ModuleDeclaration => {
-                    if loc.kind() == Kind::ModuleDeclaration || ast::is_external_module(loc.as_source_file_p()) {
+                    if loc.kind() == Kind::ModuleDeclaration
+                        || ast::is_external_module(loc.as_source_file_p())
+                    {
                         let exports = self.get_symbol_of_declaration(loc).unwrap().exports();
-                        copy_locally_visible_export_symbols(exports, meaning & SymbolFlags::ModuleMember);
+                        copy_locally_visible_export_symbols(
+                            exports,
+                            meaning & SymbolFlags::ModuleMember,
+                        );
                     }
                 }
                 Kind::EnumDeclaration => {
@@ -135,14 +153,19 @@ impl Checker {
     }
 
     // services.go:136
-    pub fn for_each_export_and_property_of_module(&mut self, module_symbol: P<Symbol>, mut cb: impl FnMut(&mut Checker, P<Symbol>, &str)) {
+    pub fn for_each_export_and_property_of_module(
+        &mut self,
+        module_symbol: P<Symbol>,
+        mut cb: impl FnMut(&mut Checker, P<Symbol>, &str),
+    ) {
         for (key, exported_symbol) in self.get_exports_of_module(module_symbol).entries() {
             if !is_reserved_member_name(key) {
                 cb(self, exported_symbol, key);
             }
         }
 
-        let export_equals = self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
+        let export_equals =
+            self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
         if export_equals == module_symbol {
             return;
         }
@@ -168,7 +191,11 @@ impl Checker {
     }
 
     // services.go:165
-    pub fn is_valid_property_access_exported(&mut self, node: P<Node>, property_name: &str) -> bool {
+    pub fn is_valid_property_access_exported(
+        &mut self,
+        node: P<Node>,
+        property_name: &str,
+    ) -> bool {
         self.is_valid_property_access(node, property_name)
     }
 
@@ -179,23 +206,44 @@ impl Checker {
                 let expression = node.expression().unwrap();
                 let t = self.check_expression(expression);
                 let t = self.get_widened_type(t);
-                self.is_valid_property_access_with_type(node, expression.kind() == Kind::SuperKeyword, property_name, t)
+                self.is_valid_property_access_with_type(
+                    node,
+                    expression.kind() == Kind::SuperKeyword,
+                    property_name,
+                    t,
+                )
             }
             Kind::QualifiedName => {
                 let t = self.check_expression(node.as_qualified_name().left);
                 let t = self.get_widened_type(t);
-                self.is_valid_property_access_with_type(node, false /*isSuper*/, property_name, t)
+                self.is_valid_property_access_with_type(
+                    node,
+                    false, /*isSuper*/
+                    property_name,
+                    t,
+                )
             }
             Kind::ImportType => {
                 let t = self.get_type_from_type_node(node);
-                self.is_valid_property_access_with_type(node, false /*isSuper*/, property_name, t)
+                self.is_valid_property_access_with_type(
+                    node,
+                    false, /*isSuper*/
+                    property_name,
+                    t,
+                )
             }
             _ => panic!("Unexpected node kind in isValidPropertyAccess: {:?}", node.kind()),
         }
     }
 
     // services.go:181
-    pub(crate) fn is_valid_property_access_with_type(&mut self, node: P<Node>, is_super: bool, property_name: &str, t: P<Type>) -> bool {
+    pub(crate) fn is_valid_property_access_with_type(
+        &mut self,
+        node: P<Node>,
+        is_super: bool,
+        property_name: &str,
+        t: P<Type>,
+    ) -> bool {
         // Short-circuiting for improved performance.
         if is_type_any(Some(t)) {
             return true;
@@ -203,7 +251,9 @@ impl Checker {
 
         let prop = self.get_property_of_type(t, property_name);
         match prop {
-            Some(prop) => self.is_property_accessible(node, is_super, false /*isWrite*/, t, prop),
+            Some(prop) => {
+                self.is_property_accessible(node, is_super, false /*isWrite*/, t, prop)
+            }
             None => false,
         }
     }
@@ -217,10 +267,16 @@ impl Checker {
     // computing whether this is a `super` property access.
     // type: the type whose property we are checking.
     // property: the accessed property's symbol.
-    pub fn is_valid_property_access_for_completions_exported(&mut self, node: P<Node>, t: P<Type>, property: P<Symbol>) -> bool {
+    pub fn is_valid_property_access_for_completions_exported(
+        &mut self,
+        node: P<Node>,
+        t: P<Type>,
+        property: P<Symbol>,
+    ) -> bool {
         self.is_property_accessible(
             node,
-            node.kind() == Kind::PropertyAccessExpression && node.expression().unwrap().kind() == Kind::SuperKeyword,
+            node.kind() == Kind::PropertyAccessExpression
+                && node.expression().unwrap().kind() == Kind::SuperKeyword,
             false, /*isWrite*/
             t,
             property,
@@ -240,7 +296,11 @@ impl Checker {
             let augmented_props = self.get_augmented_properties_of_type(member_type);
             for p in augmented_props {
                 if !props.has(p.name()) {
-                    let prop = self.create_union_or_intersection_property(union_type, p.name(), false /*skipObjectFunctionPropertyAugment*/);
+                    let prop = self.create_union_or_intersection_property(
+                        union_type,
+                        p.name(),
+                        false, /*skipObjectFunctionPropertyAugment*/
+                    );
                     // May be undefined if the property is private
                     if let Some(prop) = prop {
                         props.set(p.name(), prop);
@@ -326,13 +386,18 @@ impl Checker {
     }
 
     // services.go:296
-    pub fn try_get_member_in_module_exports_and_properties(&mut self, member_name: &str, module_symbol: P<Symbol>) -> Option<P<Symbol>> {
+    pub fn try_get_member_in_module_exports_and_properties(
+        &mut self,
+        member_name: &str,
+        module_symbol: P<Symbol>,
+    ) -> Option<P<Symbol>> {
         let symbol = self.try_get_member_in_module_exports(member_name, module_symbol);
         if symbol.is_some() {
             return symbol;
         }
 
-        let export_equals = self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
+        let export_equals =
+            self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
         if export_equals == module_symbol {
             return None;
         }
@@ -345,13 +410,20 @@ impl Checker {
     }
 
     // services.go:314
-    pub fn try_get_member_in_module_exports(&mut self, member_name: &str, module_symbol: P<Symbol>) -> Option<P<Symbol>> {
+    pub fn try_get_member_in_module_exports(
+        &mut self,
+        member_name: &str,
+        module_symbol: P<Symbol>,
+    ) -> Option<P<Symbol>> {
         let symbol_table = self.get_exports_of_module(module_symbol);
         symbol_table.lookup(member_name)
     }
 
     // services.go:319
-    pub(crate) fn should_treat_properties_of_external_module_as_exports(&self, resolved_external_module_type: P<Type>) -> bool {
+    pub(crate) fn should_treat_properties_of_external_module_as_exports(
+        &self,
+        resolved_external_module_type: P<Type>,
+    ) -> bool {
         !resolved_external_module_type.flags().intersects(TypeFlags::Primitive)
             || resolved_external_module_type.object_flags().intersects(ObjectFlags::Class)
             // `isArrayOrTupleLikeType` is too expensive to use in this auto-imports hot path.
@@ -360,15 +432,25 @@ impl Checker {
     }
 
     // services.go:327
-    pub fn get_contextual_type_exported(&mut self, node: P<Node>, context_flags: ContextFlags) -> Option<P<Type>> {
+    pub fn get_contextual_type_exported(
+        &mut self,
+        node: P<Node>,
+        context_flags: ContextFlags,
+    ) -> Option<P<Type>> {
         if context_flags.intersects(ContextFlags::IgnoreNodeInferences) {
-            return self.run_with_inference_blocked_from_source_node(node, |c| c.get_contextual_type(node, context_flags));
+            return self.run_with_inference_blocked_from_source_node(node, |c| {
+                c.get_contextual_type(node, context_flags)
+            });
         }
         self.get_contextual_type(node, context_flags)
     }
 
     // services.go:334
-    pub(crate) fn run_with_inference_blocked_from_source_node<T>(&mut self, node: P<Node>, f: impl FnOnce(&mut Checker) -> T) -> T {
+    pub(crate) fn run_with_inference_blocked_from_source_node<T>(
+        &mut self,
+        node: P<Node>,
+        f: impl FnOnce(&mut Checker) -> T,
+    ) -> T {
         let containing_call = ast::find_ancestor(node, ast::is_call_like_expression);
         if containing_call.is_some() {
             let mut to_mark_skip = Some(node);
@@ -403,14 +485,21 @@ pub fn get_resolved_signature_for_signature_help(
 
 impl Checker {
     // services.go:367
-    pub(crate) fn run_without_resolved_signature_caching<T>(&mut self, node: P<Node>, f: impl FnOnce(&mut Checker) -> T) -> T {
-        let mut ancestor_node = ast::find_ancestor(node, ast::is_call_like_or_function_like_expression);
+    pub(crate) fn run_without_resolved_signature_caching<T>(
+        &mut self,
+        node: P<Node>,
+        f: impl FnOnce(&mut Checker) -> T,
+    ) -> T {
+        let mut ancestor_node =
+            ast::find_ancestor(node, ast::is_call_like_or_function_like_expression);
         if ancestor_node.is_some() {
-            let mut cached_resolved_signatures: Vec<(P<SignatureLinks>, Option<P<Signature>>)> = Vec::new();
+            let mut cached_resolved_signatures: Vec<(P<SignatureLinks>, Option<P<Signature>>)> =
+                Vec::new();
             let mut cached_types: Vec<(P<ValueSymbolLinks>, Option<P<Type>>)> = Vec::new();
             while let Some(an) = ancestor_node {
                 let signature_links = self.signature_links.get(an);
-                cached_resolved_signatures.push((signature_links, signature_links.resolved_signature.get()));
+                cached_resolved_signatures
+                    .push((signature_links, signature_links.resolved_signature.get()));
                 signature_links.resolved_signature.set(None);
                 if ast::is_function_expression_or_arrow_function(an) {
                     let symbol = self.get_symbol_of_declaration(an).unwrap();
@@ -419,7 +508,8 @@ impl Checker {
                     cached_types.push((symbol_links, resolved_type));
                     symbol_links.resolved_type.set(None);
                 }
-                ancestor_node = ast::find_ancestor(an.parent(), ast::is_call_like_or_function_like_expression);
+                ancestor_node =
+                    ast::find_ancestor(an.parent(), ast::is_call_like_or_function_like_expression);
             }
             let result = f(self);
             for (signature_links, resolved_signature) in cached_resolved_signatures {
@@ -463,9 +553,12 @@ impl Checker {
     // services.go:422
     pub(crate) fn get_immediate_root_symbols(&mut self, symbol: P<Symbol>) -> Vec<P<Symbol>> {
         if symbol.check_flags().intersects(CheckFlags::Synthetic) {
-            let types = self.value_symbol_links.get(symbol).containing_type().unwrap().types().to_vec();
+            let types =
+                self.value_symbol_links.get(symbol).containing_type().unwrap().types().to_vec();
             let mut result = Vec::new();
-            result.extend(types.into_iter().filter_map(|t| self.get_property_of_type(t, symbol.name())));
+            result.extend(
+                types.into_iter().filter_map(|t| self.get_property_of_type(t, symbol.name())),
+            );
             return result;
         }
         if symbol.flags().intersects(SymbolFlags::Transient) {
@@ -522,59 +615,105 @@ impl Checker {
         match node.kind() {
             Kind::ExportSpecifier => {
                 if node.parent().unwrap().parent().unwrap().module_specifier().is_some() {
-                    return self.get_external_module_member(node.parent().unwrap().parent().unwrap(), node, false /*dontResolveAlias*/);
+                    return self.get_external_module_member(
+                        node.parent().unwrap().parent().unwrap(),
+                        node,
+                        false, /*dontResolveAlias*/
+                    );
                 }
                 let name = node.property_name_or_name().unwrap();
                 if name.kind() == Kind::StringLiteral {
                     // Skip for invalid syntax like this: export { "x" }
                     return None;
                 }
-                self.resolve_entity_name(name, SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace | SymbolFlags::Alias, true /*ignoreErrors*/, false, None)
+                self.resolve_entity_name(
+                    name,
+                    SymbolFlags::Value
+                        | SymbolFlags::Type
+                        | SymbolFlags::Namespace
+                        | SymbolFlags::Alias,
+                    true, /*ignoreErrors*/
+                    false,
+                    None,
+                )
             }
             Kind::Identifier => {
-                self.resolve_entity_name(node, SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace | SymbolFlags::Alias, true /*ignoreErrors*/, false, None)
+                self.resolve_entity_name(
+                    node,
+                    SymbolFlags::Value
+                        | SymbolFlags::Type
+                        | SymbolFlags::Namespace
+                        | SymbolFlags::Alias,
+                    true, /*ignoreErrors*/
+                    false,
+                    None,
+                )
             }
-            _ => panic!("Unhandled case in getExportSpecifierLocalTargetSymbol, node should be ExportSpecifier | Identifier"),
+            _ => panic!(
+                "Unhandled case in getExportSpecifierLocalTargetSymbol, node should be ExportSpecifier | Identifier"
+            ),
         }
     }
 
     // services.go:495
-    pub fn get_shorthand_assignment_value_symbol(&mut self, location: Option<P<Node>>) -> Option<P<Symbol>> {
+    pub fn get_shorthand_assignment_value_symbol(
+        &mut self,
+        location: Option<P<Node>>,
+    ) -> Option<P<Symbol>> {
         if let Some(location) = location {
             if location.kind() == Kind::ShorthandPropertyAssignment {
-                return self.resolve_entity_name(location.name().unwrap(), SymbolFlags::Value | SymbolFlags::Alias, true /*ignoreErrors*/, false, None);
+                return self.resolve_entity_name(
+                    location.name().unwrap(),
+                    SymbolFlags::Value | SymbolFlags::Alias,
+                    true, /*ignoreErrors*/
+                    false,
+                    None,
+                );
             }
         }
         None
     }
 
-
     // services.go:508
     /**
-    * Get symbols that represent parameter-property-declaration as parameter and as property declaration
-    * @param parameter a parameterDeclaration node
-    * @param parameterName a name of the parameter to get the symbols for.
-    * @return a tuple of two symbols
+     * Get symbols that represent parameter-property-declaration as parameter and as property declaration
+     * @param parameter a parameterDeclaration node
+     * @param parameterName a name of the parameter to get the symbols for.
+     * @return a tuple of two symbols
      */
-    pub fn get_symbols_of_parameter_property_declaration(&mut self, parameter: P<Node> /*ParameterPropertyDeclaration*/, parameter_name: &str) -> (P<Symbol>, P<Symbol>) {
+    pub fn get_symbols_of_parameter_property_declaration(
+        &mut self,
+        parameter: P<Node>, /*ParameterPropertyDeclaration*/
+        parameter_name: &str,
+    ) -> (P<Symbol>, P<Symbol>) {
         let constructor_declaration = parameter.parent().unwrap();
         let class_declaration = parameter.parent().unwrap().parent().unwrap();
 
-        let parameter_symbol = self.get_symbol(constructor_declaration.locals(), parameter_name, SymbolFlags::Value);
+        let parameter_symbol =
+            self.get_symbol(constructor_declaration.locals(), parameter_name, SymbolFlags::Value);
         let members = self.get_members_of_symbol(class_declaration.symbol().unwrap());
         let property_symbol = self.get_symbol(members, parameter_name, SymbolFlags::Value);
 
-        if let (Some(parameter_symbol), Some(property_symbol)) = (parameter_symbol, property_symbol) {
+        if let (Some(parameter_symbol), Some(property_symbol)) = (parameter_symbol, property_symbol)
+        {
             return (parameter_symbol, property_symbol);
         }
 
-        panic!("There should exist two symbols, one as property declaration and one as parameter declaration");
+        panic!(
+            "There should exist two symbols, one as property declaration and one as parameter declaration"
+        );
     }
 
     // services.go:524
     // IsDeclarationUsed checks if an import declaration identifier is used in the source file.
     // This is primarily used for organizing imports to determine which imports can be removed.
-    pub fn is_declaration_used(&mut self, source_file: P<SourceFile>, identifier: P<Node>, jsx_elements_present: bool, jsx_mode_needs_explicit_import: bool) -> bool {
+    pub fn is_declaration_used(
+        &mut self,
+        source_file: P<SourceFile>,
+        identifier: P<Node>,
+        jsx_elements_present: bool,
+        jsx_mode_needs_explicit_import: bool,
+    ) -> bool {
         if jsx_elements_present && jsx_mode_needs_explicit_import {
             let jsx_namespace = self.get_jsx_namespace(Some(source_file.as_node()));
             let jsx_fragment_factory = self.get_jsx_fragment_factory(source_file.as_node());
@@ -598,9 +737,20 @@ impl Checker {
     // services.go:552
     // IsSymbolReferencedInFile checks if a symbol is referenced in the source file (besides its definition).
     // This is used as a quick check for whether a symbol is used at all in a file.
-    pub fn is_symbol_referenced_in_file(&mut self, source_file: P<SourceFile>, definition: P<Node>, symbol: P<Symbol>) -> bool {
+    pub fn is_symbol_referenced_in_file(
+        &mut self,
+        source_file: P<SourceFile>,
+        definition: P<Node>,
+        symbol: P<Symbol>,
+    ) -> bool {
         let identifier_text = definition.text();
-        if get_possible_symbol_reference_nodes(source_file, identifier_text, Some(source_file.as_node())).into_iter().any(|token| {
+        if get_possible_symbol_reference_nodes(
+            source_file,
+            identifier_text,
+            Some(source_file.as_node()),
+        )
+        .into_iter()
+        .any(|token| {
             if !ast::is_identifier(token) {
                 return false;
             }
@@ -621,7 +771,8 @@ impl Checker {
             }
             if let Some(parent) = token.parent() {
                 if ast::is_export_specifier(parent) {
-                    let local_symbol = self.get_local_symbol_for_export_specifier(token, ref_symbol, parent);
+                    let local_symbol =
+                        self.get_local_symbol_for_export_specifier(token, ref_symbol, parent);
                     if local_symbol == Some(symbol) {
                         return true;
                     }
@@ -637,44 +788,63 @@ impl Checker {
 
     // services.go:587
     // GetReferencesToSymbolInFile returns all identifier nodes in the file that reference the given symbol.
-    pub fn get_references_to_symbol_in_file(&mut self, source_file: P<SourceFile>, symbol: P<Symbol>) -> Vec<P<Node>> {
+    pub fn get_references_to_symbol_in_file(
+        &mut self,
+        source_file: P<SourceFile>,
+        symbol: P<Symbol>,
+    ) -> Vec<P<Node>> {
         let identifier_text = symbol.name();
         let mut result = Vec::new();
-        result.extend(get_possible_symbol_reference_nodes(source_file, identifier_text, Some(source_file.as_node())).into_iter().filter(|&token| {
-            if !ast::is_identifier(token) {
-                return false;
-            }
-            if token.text() != identifier_text {
-                return false;
-            }
-            let ref_symbol = self.get_symbol_at_location_exported(token);
-            if ref_symbol == Some(symbol) {
-                return true;
-            }
-            if let Some(parent) = token.parent() {
-                if parent.kind() == Kind::ShorthandPropertyAssignment {
-                    let shorthand_symbol = self.get_shorthand_assignment_value_symbol(Some(parent));
-                    if shorthand_symbol == Some(symbol) {
-                        return true;
+        result.extend(
+            get_possible_symbol_reference_nodes(
+                source_file,
+                identifier_text,
+                Some(source_file.as_node()),
+            )
+            .into_iter()
+            .filter(|&token| {
+                if !ast::is_identifier(token) {
+                    return false;
+                }
+                if token.text() != identifier_text {
+                    return false;
+                }
+                let ref_symbol = self.get_symbol_at_location_exported(token);
+                if ref_symbol == Some(symbol) {
+                    return true;
+                }
+                if let Some(parent) = token.parent() {
+                    if parent.kind() == Kind::ShorthandPropertyAssignment {
+                        let shorthand_symbol =
+                            self.get_shorthand_assignment_value_symbol(Some(parent));
+                        if shorthand_symbol == Some(symbol) {
+                            return true;
+                        }
                     }
                 }
-            }
-            if let Some(parent) = token.parent() {
-                if ast::is_export_specifier(parent) {
-                    let local_symbol = self.get_local_symbol_for_export_specifier(token, ref_symbol, parent);
-                    local_symbol == Some(symbol)
+                if let Some(parent) = token.parent() {
+                    if ast::is_export_specifier(parent) {
+                        let local_symbol =
+                            self.get_local_symbol_for_export_specifier(token, ref_symbol, parent);
+                        local_symbol == Some(symbol)
+                    } else {
+                        false
+                    }
                 } else {
                     false
                 }
-            } else {
-                false
-            }
-        }));
+            }),
+        );
         result
     }
 
     // services.go:624
-    pub(crate) fn get_local_symbol_for_export_specifier(&mut self, reference_location: P<Node>, reference_symbol: Option<P<Symbol>>, export_specifier: P<Node>) -> Option<P<Symbol>> {
+    pub(crate) fn get_local_symbol_for_export_specifier(
+        &mut self,
+        reference_location: P<Node>,
+        reference_symbol: Option<P<Symbol>>,
+        export_specifier: P<Node>,
+    ) -> Option<P<Symbol>> {
         if is_export_specifier_alias(reference_location, export_specifier) {
             if let Some(symbol) = self.get_export_specifier_local_target_symbol(export_specifier) {
                 return Some(symbol);
@@ -685,9 +855,13 @@ impl Checker {
 }
 
 // services.go:633
-pub(crate) fn is_export_specifier_alias(reference_location: P<Node>, export_specifier: P<Node>) -> bool {
+pub(crate) fn is_export_specifier_alias(
+    reference_location: P<Node>,
+    export_specifier: P<Node>,
+) -> bool {
     assert!(
-        export_specifier.property_name() == Some(reference_location) || export_specifier.name() == Some(reference_location),
+        export_specifier.property_name() == Some(reference_location)
+            || export_specifier.name() == Some(reference_location),
         "referenceLocation is not export specifier name or property name"
     );
     let property_name = export_specifier.property_name();
@@ -702,14 +876,21 @@ pub(crate) fn is_export_specifier_alias(reference_location: P<Node>, export_spec
 }
 
 // services.go:646
-pub(crate) fn get_possible_symbol_reference_nodes(source_file: P<SourceFile>, symbol_name: &str, container: Option<P<Node>>) -> Vec<P<Node>> {
-    map_non_nil(&get_possible_symbol_reference_positions(source_file, symbol_name, container), |&pos| {
-        let reference_location = astnav::get_touching_property_name(source_file, pos);
-        if reference_location != source_file.as_node() {
-            return Some(reference_location);
-        }
-        None
-    })
+pub(crate) fn get_possible_symbol_reference_nodes(
+    source_file: P<SourceFile>,
+    symbol_name: &str,
+    container: Option<P<Node>>,
+) -> Vec<P<Node>> {
+    map_non_nil(
+        &get_possible_symbol_reference_positions(source_file, symbol_name, container),
+        |&pos| {
+            let reference_location = astnav::get_touching_property_name(source_file, pos);
+            if reference_location != source_file.as_node() {
+                return Some(reference_location);
+            }
+            None
+        },
+    )
 }
 
 // services.go:655
@@ -735,16 +916,14 @@ pub(crate) fn get_possible_symbol_reference_positions(
 
     let container = container.unwrap_or(source_file.as_node());
 
-    let container_start = container
-        .pos()
-        .expect_source("parsed containers have source positions")
-        as usize;
-    let Some(mut position) = tsrs_core::index_bytes(&bytes[container_start..], symbol_name.as_bytes()) else {
+    let container_start =
+        container.pos().expect_source("parsed containers have source positions") as usize;
+    let Some(mut position) =
+        tsrs_core::index_bytes(&bytes[container_start..], symbol_name.as_bytes())
+    else {
         return positions;
     };
-    let end_pos = container
-        .end()
-        .expect_source("parsed containers have source positions") as usize;
+    let end_pos = container.end().expect_source("parsed containers have source positions") as usize;
     while position < end_pos {
         // We found a match.  Make sure it's not part of a larger word (i.e. the char
         // before and after it have to be a non-identifier char).
@@ -761,7 +940,9 @@ pub(crate) fn get_possible_symbol_reference_positions(
         if start_index > text.len() {
             break;
         }
-        if let Some(found_index) = tsrs_core::index_bytes(&bytes[start_index..], symbol_name.as_bytes()) {
+        if let Some(found_index) =
+            tsrs_core::index_bytes(&bytes[start_index..], symbol_name.as_bytes())
+        {
             position = start_index + found_index;
         } else {
             break;
@@ -783,7 +964,10 @@ impl Checker {
 
     // services.go:708
     // getUninstantiatedSignatures gets generic signatures from the function's/constructor's type.
-    pub(crate) fn get_uninstantiated_signatures(&mut self, node: P<Node>) -> &'static [P<Signature>] {
+    pub(crate) fn get_uninstantiated_signatures(
+        &mut self,
+        node: P<Node>,
+    ) -> &'static [P<Signature>] {
         match node.kind() {
             Kind::CallExpression | Kind::Decorator => {
                 let t = self.get_type_of_expression(node.expression().unwrap());
@@ -810,7 +994,11 @@ impl Checker {
     }
 
     // services.go:727
-    pub(crate) fn get_type_parameter_constraint_for_position_across_signatures(&mut self, signatures: &[P<Signature>], position: usize) -> P<Type> {
+    pub(crate) fn get_type_parameter_constraint_for_position_across_signatures(
+        &mut self,
+        signatures: &[P<Signature>],
+        position: usize,
+    ) -> P<Type> {
         let mut relevant_constraints = Vec::new();
         relevant_constraints.extend(signatures.iter().filter_map(|signature| {
             if position >= signature.type_parameters().len() {
@@ -844,21 +1032,39 @@ impl Checker {
 
             if ast::is_call_like_expression(parent) {
                 let signatures = self.get_uninstantiated_signatures(parent);
-                return Some(self.get_type_parameter_constraint_for_position_across_signatures(signatures, type_argument_position));
+                return Some(self.get_type_parameter_constraint_for_position_across_signatures(
+                    signatures,
+                    type_argument_position,
+                ));
             }
 
             if ast::is_decorator(parent.parent().unwrap()) {
                 let signatures = self.get_uninstantiated_signatures(parent.parent().unwrap());
-                return Some(self.get_type_parameter_constraint_for_position_across_signatures(signatures, type_argument_position));
+                return Some(self.get_type_parameter_constraint_for_position_across_signatures(
+                    signatures,
+                    type_argument_position,
+                ));
             }
 
-            if ast::is_expression_with_type_arguments(parent) && ast::is_expression_statement(parent.parent().unwrap()) {
+            if ast::is_expression_with_type_arguments(parent)
+                && ast::is_expression_statement(parent.parent().unwrap())
+            {
                 let uninstantiated_type = self.check_expression(parent.expression().unwrap());
 
-                let call_signatures = self.get_signatures_of_type(uninstantiated_type, SignatureKind::Call);
-                let call_constraint = self.get_type_parameter_constraint_for_position_across_signatures(call_signatures, type_argument_position);
-                let construct_signatures = self.get_signatures_of_type(uninstantiated_type, SignatureKind::Construct);
-                let construct_constraint = self.get_type_parameter_constraint_for_position_across_signatures(construct_signatures, type_argument_position);
+                let call_signatures =
+                    self.get_signatures_of_type(uninstantiated_type, SignatureKind::Call);
+                let call_constraint = self
+                    .get_type_parameter_constraint_for_position_across_signatures(
+                        call_signatures,
+                        type_argument_position,
+                    );
+                let construct_signatures =
+                    self.get_signatures_of_type(uninstantiated_type, SignatureKind::Construct);
+                let construct_constraint = self
+                    .get_type_parameter_constraint_for_position_across_signatures(
+                        construct_signatures,
+                        type_argument_position,
+                    );
 
                 // An instantiation expression instantiates both call and construct signatures, so
                 // if both exist type arguments must be assignable to both constraints.
@@ -882,8 +1088,15 @@ impl Checker {
                 let relevant_type_parameter = type_parameters[type_argument_position];
                 let constraint = self.get_constraint_of_type_parameter(relevant_type_parameter);
                 if let Some(constraint) = constraint {
-                    let type_arguments = self.get_effective_type_arguments(parent, &type_parameters);
-                    return Some(self.instantiate_type(constraint, Some(new_type_mapper(alloc_vec(type_parameters), alloc_vec(type_arguments)))));
+                    let type_arguments =
+                        self.get_effective_type_arguments(parent, &type_parameters);
+                    return Some(self.instantiate_type(
+                        constraint,
+                        Some(new_type_mapper(
+                            alloc_vec(type_parameters),
+                            alloc_vec(type_arguments),
+                        )),
+                    ));
                 }
             }
         }
@@ -891,7 +1104,11 @@ impl Checker {
     }
 
     // services.go:816
-    pub fn is_type_invalid_due_to_union_discriminant(&mut self, contextual_type: P<Type>, obj: P<Node>) -> bool {
+    pub fn is_type_invalid_due_to_union_discriminant(
+        &mut self,
+        contextual_type: P<Type>,
+        obj: P<Node>,
+    ) -> bool {
         let properties = obj.properties();
         properties.iter().any(|&property| {
             let mut name_type = None;
@@ -928,9 +1145,13 @@ impl Checker {
 
     // services.go:841
     // Unlike `getExportsOfModule`, this includes properties of an `export =` value.
-    pub fn get_exports_and_properties_of_module(&mut self, module_symbol: P<Symbol>) -> Vec<P<Symbol>> {
+    pub fn get_exports_and_properties_of_module(
+        &mut self,
+        module_symbol: P<Symbol>,
+    ) -> Vec<P<Symbol>> {
         let mut exports = self.get_exports_of_module_as_array(module_symbol);
-        let export_equals = self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
+        let export_equals =
+            self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/);
         if export_equals != module_symbol {
             let t = self.get_type_of_symbol(export_equals);
             if self.should_treat_properties_of_external_module_as_exports(t) {
@@ -941,7 +1162,10 @@ impl Checker {
     }
 
     // services.go:853
-    pub(crate) fn get_exports_of_module_as_array(&mut self, module_symbol: P<Symbol>) -> Vec<P<Symbol>> {
+    pub(crate) fn get_exports_of_module_as_array(
+        &mut self,
+        module_symbol: P<Symbol>,
+    ) -> Vec<P<Symbol>> {
         symbols_to_array(Some(self.get_exports_of_module(module_symbol)))
     }
 
@@ -953,7 +1177,10 @@ impl Checker {
     }
 
     // services.go:866
-    pub fn get_contextual_type_for_jsx_attribute_exported(&mut self, attribute: P<Node>) -> Option<P<Type>> {
+    pub fn get_contextual_type_for_jsx_attribute_exported(
+        &mut self,
+        attribute: P<Node>,
+    ) -> Option<P<Type>> {
         self.get_contextual_type_for_jsx_attribute(attribute, ContextFlags::None)
     }
 
@@ -989,7 +1216,6 @@ impl Checker {
         None
     }
 
-
     // services.go:899
     pub(crate) fn get_resolved_signature_worker(
         &mut self,
@@ -1004,28 +1230,41 @@ impl Checker {
         let mut candidates_out_array = Vec::new();
         let mut res = None;
         if let Some(parsed_node) = parsed_node {
-            res = Some(self.get_resolved_signature(parsed_node, Some(&mut candidates_out_array), check_mode));
+            res = Some(self.get_resolved_signature(
+                parsed_node,
+                Some(&mut candidates_out_array),
+                check_mode,
+            ));
         }
         self.apparent_argument_count = None;
         (res, candidates_out_array)
     }
 
     // services.go:911
-    pub fn get_candidate_signatures_for_string_literal_completions(&mut self, call: P<Node>, editing_argument: P<Node>) -> Vec<P<Signature>> {
+    pub fn get_candidate_signatures_for_string_literal_completions(
+        &mut self,
+        call: P<Node>,
+        editing_argument: P<Node>,
+    ) -> Vec<P<Signature>> {
         // first, get candidates when inference is blocked from the source node.
-        let mut candidates = self.run_with_inference_blocked_from_source_node(editing_argument, |c| {
-            let (_, blocked_inference_candidates) = c.get_resolved_signature_worker(call, CheckMode::Normal, 0);
-            blocked_inference_candidates
-        });
+        let mut candidates =
+            self.run_with_inference_blocked_from_source_node(editing_argument, |c| {
+                let (_, blocked_inference_candidates) =
+                    c.get_resolved_signature_worker(call, CheckMode::Normal, 0);
+                blocked_inference_candidates
+            });
         let candidates_set: FxHashSet<P<Signature>> = candidates.iter().copied().collect();
 
         // next, get candidates where the source node is considered for inference.
         let other_candidates = self.run_without_resolved_signature_caching(editing_argument, |c| {
-            let (_, inference_candidates) = c.get_resolved_signature_worker(call, CheckMode::Normal, 0);
+            let (_, inference_candidates) =
+                c.get_resolved_signature_worker(call, CheckMode::Normal, 0);
             inference_candidates
         });
 
-        candidates.extend(other_candidates.into_iter().filter(|candidate| !candidates_set.contains(candidate)));
+        candidates.extend(
+            other_candidates.into_iter().filter(|candidate| !candidates_set.contains(candidate)),
+        );
 
         candidates
     }
@@ -1062,11 +1301,7 @@ impl Checker {
         let mut element_index = 0;
         let elements = array_literal.elements();
         for (i, &elem) in elements.iter().enumerate() {
-            if elem
-                .pos()
-                .expect_source("parsed nodes have source positions")
-                < position
-            {
+            if elem.pos().expect_source("parsed nodes have source positions") < position {
                 element_index += 1;
             }
             if ast::is_spread_element(elem) {
@@ -1143,7 +1378,12 @@ impl Checker {
 
     // services.go:1026
     // Gets all symbols for one property. Does not get symbols for every property.
-    pub fn get_property_symbols_from_contextual_type(&mut self, node: P<Node>, contextual_type: P<Type>, union_symbol_ok: bool) -> Vec<P<Symbol>> {
+    pub fn get_property_symbols_from_contextual_type(
+        &mut self,
+        node: P<Node>,
+        contextual_type: P<Type>,
+        union_symbol_ok: bool,
+    ) -> Vec<P<Symbol>> {
         let name = ast::get_text_of_property_name(node.name().unwrap());
         if name.is_empty() {
             return Vec::new();
@@ -1159,15 +1399,23 @@ impl Checker {
         if ast::is_object_literal_expression(parent) || ast::is_jsx_attributes(parent) {
             filtered_types.retain(|&t| !self.is_type_invalid_due_to_union_discriminant(t, parent));
         }
-        let discriminated_property_symbols: Vec<P<Symbol>> = filtered_types.iter().filter_map(|&t| self.get_property_of_type(t, &name)).collect();
-        if union_symbol_ok && (discriminated_property_symbols.is_empty() || discriminated_property_symbols.len() == contextual_type.types().len()) {
+        let discriminated_property_symbols: Vec<P<Symbol>> =
+            filtered_types.iter().filter_map(|&t| self.get_property_of_type(t, &name)).collect();
+        if union_symbol_ok
+            && (discriminated_property_symbols.is_empty()
+                || discriminated_property_symbols.len() == contextual_type.types().len())
+        {
             if let Some(symbol) = self.get_property_of_type(contextual_type, &name) {
                 return vec![symbol];
             }
         }
         if filtered_types.is_empty() && discriminated_property_symbols.is_empty() {
             // Bad discriminant -- do again without discriminating
-            return contextual_type.types().iter().filter_map(|&t| self.get_property_of_type(t, &name)).collect();
+            return contextual_type
+                .types()
+                .iter()
+                .filter_map(|&t| self.get_property_of_type(t, &name))
+                .collect();
         }
         // by eliminating duplicates we might even end up with a single symbol
         // that helps with displaying better quick infos on properties of union types
@@ -1184,11 +1432,16 @@ impl Checker {
     // 'property1' at location 'a' from:
     //
     //	[a] = [ property1, property2 ]
-    pub fn get_property_symbol_of_destructuring_assignment(&mut self, location: P<Node>) -> Option<P<Symbol>> {
+    pub fn get_property_symbol_of_destructuring_assignment(
+        &mut self,
+        location: P<Node>,
+    ) -> Option<P<Symbol>> {
         let grandparent = location.parent().unwrap().parent();
         if ast::is_array_literal_or_object_literal_destructuring_pattern(grandparent) {
             // Get the type of the object or array literal and then look for property of given name in the type
-            if let Some(type_of_object_literal) = self.get_type_of_assignment_pattern(grandparent.unwrap()) {
+            if let Some(type_of_object_literal) =
+                self.get_type_of_assignment_pattern(grandparent.unwrap())
+            {
                 return self.get_property_of_type(type_of_object_literal, location.text());
             }
         }
@@ -1212,21 +1465,31 @@ impl Checker {
         //     }
         if ast::is_for_of_statement(parent) {
             let iterated_type = self.check_right_hand_side_of_for_of(parent);
-            return Some(self.check_destructuring_assignment(expr, iterated_type, CheckMode::Normal, false));
+            return Some(self.check_destructuring_assignment(
+                expr,
+                iterated_type,
+                CheckMode::Normal,
+                false,
+            ));
         }
         // If this is from "for" initializer
         //     for ({a } = elems[0];.....) { }
         if ast::is_binary_expression(parent) {
-            let iterated_type = self.get_type_of_expression(parent.as_binary_expression().right.get());
-            return Some(self.check_destructuring_assignment(expr, iterated_type, CheckMode::Normal, false));
+            let iterated_type =
+                self.get_type_of_expression(parent.as_binary_expression().right.get());
+            return Some(self.check_destructuring_assignment(
+                expr,
+                iterated_type,
+                CheckMode::Normal,
+                false,
+            ));
         }
         // If this is from nested object binding pattern
         //     for ({ skills: { primary, secondary } } = multiRobot, i = 0; i < 1; i++) {
         if ast::is_property_assignment(parent) {
             let node = parent.parent().unwrap();
-            let type_of_parent_object_literal = self
-                .get_type_of_assignment_pattern(node)
-                .unwrap_or(self.error_type);
+            let type_of_parent_object_literal =
+                self.get_type_of_assignment_pattern(node).unwrap_or(self.error_type);
             let property_index = index_of_node(node.properties(), parent)?;
             return self.check_object_literal_destructuring_property_assignment(
                 node,
@@ -1239,9 +1502,8 @@ impl Checker {
         // Array literal assignment - array destructuring pattern
         let node = parent;
         //    [{ property1: p1, property2 }] = elems;
-        let type_of_array_literal = self
-            .get_type_of_assignment_pattern(node)
-            .unwrap_or(self.error_type);
+        let type_of_array_literal =
+            self.get_type_of_assignment_pattern(node).unwrap_or(self.error_type);
         let element_type = self.check_iterated_type_or_element_type(
             IterationUse::Destructuring,
             type_of_array_literal,

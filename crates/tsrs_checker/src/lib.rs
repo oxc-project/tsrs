@@ -7,18 +7,26 @@ pub(crate) use std::cell::{Cell, RefCell};
 
 pub(crate) use rustc_hash::{FxHashMap, FxHashSet};
 pub(crate) use tsrs_ast as ast;
-pub(crate) use tsrs_ast::{CheckFlags, Diagnostic, FlowNode, Kind, ModifierFlags, Node, NodeFlags, NodeId, SourceFile, Symbol, SymbolFlags, SymbolId, SymbolTable};
+pub(crate) use tsrs_ast::{
+    CheckFlags, Diagnostic, FlowNode, Kind, ModifierFlags, Node, NodeFlags, NodeId, SourceFile,
+    Symbol, SymbolFlags, SymbolId, SymbolTable,
+};
 pub(crate) use tsrs_binder::{NameResolver, ReferenceResolver};
 pub(crate) use tsrs_core::collections::{OrderedMap, OrderedSet, Set};
 pub(crate) use tsrs_core::jsnum::{self, Number, PseudoBigInt};
-pub(crate) use tsrs_core::{alloc, alloc_slice, alloc_str, alloc_vec, CompilerOptions, ModuleKind, ModuleResolutionKind, ResolutionMode, ScriptTarget, Tristate, P};
+pub(crate) use tsrs_core::{
+    CompilerOptions, ModuleKind, ModuleResolutionKind, P, ResolutionMode, ScriptTarget, Tristate,
+    alloc, alloc_slice, alloc_str, alloc_vec,
+};
 pub(crate) use tsrs_diagnostics::{self as diagnostics, Message};
 pub(crate) use tsrs_module::ResolvedModule;
-pub(crate) use tsrs_scanner::Scanner;
-pub(crate) use tsrs_pseudochecker as pseudochecker;
 pub(crate) use tsrs_modulespecifiers as modulespecifiers;
 pub(crate) use tsrs_modulespecifiers::ModuleSpecifierGenerationHost;
-pub(crate) use tsrs_pseudochecker::{new_pseudo_checker, PseudoChecker, PseudoParameter, PseudoType};
+pub(crate) use tsrs_pseudochecker as pseudochecker;
+pub(crate) use tsrs_pseudochecker::{
+    PseudoChecker, PseudoParameter, PseudoType, new_pseudo_checker,
+};
+pub(crate) use tsrs_scanner::Scanner;
 
 // The regular `bitflags!` form generates a public wrapper and a private flags type, duplicating
 // methods, operators and iterators. The checker has enough flags types for that duplication to be
@@ -71,22 +79,22 @@ macro_rules! direct_bitflags {
 pub(crate) use direct_bitflags;
 
 // Data model (checker-foundation).
-pub mod workcensus;
-pub mod sitecount;
 pub mod checker;
 pub mod evaluator;
 pub mod flow_types;
 pub mod inference_types;
 pub mod jsx_types;
 pub mod links;
-pub mod merged_symbols;
 pub mod mapper;
+pub mod merged_symbols;
 pub mod nodebuilder_types;
 pub mod printer_types;
 pub mod program;
 pub mod relater_types;
+pub mod sitecount;
 pub mod types;
 pub mod utilities_types;
+pub mod workcensus;
 
 pub use checker::*;
 pub use flow_types::*;
@@ -130,26 +138,26 @@ mod checker_15;
 pub(crate) use checker_15::*;
 mod relater_1;
 pub(crate) use relater_1::*;
+mod flow;
+mod infermemo;
 mod relater_2;
 mod unioncache;
 mod uniontrace;
-mod infermemo;
-mod flow;
 pub(crate) use flow::*;
+pub mod basedmap;
 pub mod flowmemo;
 pub mod packedmap;
-pub mod basedmap;
 pub use packedmap::{GoPackedMap, PackedMap, StringLiteralTypes};
 mod inference;
 pub(crate) use inference::*;
 mod grammarchecks;
 pub(crate) use grammarchecks::*;
 mod utilities;
-pub(crate) use utilities::*;
 pub use utilities::new_diagnostic_for_node;
-mod jsx;
+pub(crate) use utilities::*;
 mod exports;
 mod jsdoc;
+mod jsx;
 mod printer;
 pub(crate) use printer::*;
 mod nodebuilder;
@@ -157,10 +165,10 @@ mod nodebuilderimpl_1;
 pub(crate) use nodebuilderimpl_1::*;
 mod nodebuilderimpl_2;
 pub(crate) use nodebuilderimpl_2::*;
+mod emitresolver;
 mod nodebuilderscopes;
 mod nodecopy;
 mod pseudotypenodebuilder;
-mod emitresolver;
 pub(crate) use emitresolver::*;
 mod nodebuilder_hover;
 pub(crate) use nodebuilder_hover::*;
@@ -168,18 +176,20 @@ mod services;
 pub use tsrs_astnav as astnav;
 
 // Exported Go package-level functions (the baseline writer, the language service and the project system call them).
-pub use exports::{
-    get_declaration_modifier_flags_from_symbol_exported, get_property_name_from_type_exported, is_distributed_type_parameter, is_tuple_type_exported,
-    is_tuple_type_target, is_type_usable_as_property_name_exported,
-};
 pub use checker_09::is_non_deferred_type_reference;
 pub use checker_14::get_mapped_type_modifiers;
+pub use exports::{
+    get_declaration_modifier_flags_from_symbol_exported, get_property_name_from_type_exported,
+    is_distributed_type_parameter, is_tuple_type_exported, is_tuple_type_target,
+    is_type_usable_as_property_name_exported,
+};
 pub use nodebuilder::{new_node_builder, new_node_builder_ex};
 pub use nodebuilderimpl_1::try_get_module_specifier_from_declaration;
 pub use printer::new_symbol_tracker_impl;
 pub use services::get_resolved_signature_for_signature_help;
 pub use utilities::{
-    compare_types, create_mode_mismatch_details, create_module_not_found_chain, get_set_accessor_value_parameter, get_single_variable_of_variable_statement,
-    is_external_module_symbol, is_in_type_query, is_known_symbol, is_private_identifier_symbol, is_type_any, new_diagnostic_chain_for_node, skip_alias,
-    value_to_string,
+    compare_types, create_mode_mismatch_details, create_module_not_found_chain,
+    get_set_accessor_value_parameter, get_single_variable_of_variable_statement,
+    is_external_module_symbol, is_in_type_query, is_known_symbol, is_private_identifier_symbol,
+    is_type_any, new_diagnostic_chain_for_node, skip_alias, value_to_string,
 };

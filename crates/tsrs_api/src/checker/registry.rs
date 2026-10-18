@@ -66,7 +66,10 @@ impl CheckerRegistry {
     }
 
     /// Takes over one reference of `snapshot` until `release` (see `retained`).
-    pub fn retain_snapshot(&self, snapshot: std::sync::Arc<tsrs_project::Snapshot>) -> CheckerResult<()> {
+    pub fn retain_snapshot(
+        &self,
+        snapshot: std::sync::Arc<tsrs_project::Snapshot>,
+    ) -> CheckerResult<()> {
         let mut st = self.lock();
         if st.released {
             drop(st);
@@ -96,8 +99,15 @@ impl CheckerRegistry {
     }
 
     /// Go `registerSymbol`. Returns the symbol id and its canonical project.
-    pub fn register_symbol(&self, symbol: P<Symbol>, canonical_project: &str) -> CheckerResult<(u64, String)> {
-        assert!(!canonical_project.is_empty(), "registerSymbol requires a non-empty canonical project");
+    pub fn register_symbol(
+        &self,
+        symbol: P<Symbol>,
+        canonical_project: &str,
+    ) -> CheckerResult<(u64, String)> {
+        assert!(
+            !canonical_project.is_empty(),
+            "registerSymbol requires a non-empty canonical project"
+        );
         let id = tsrs_ast::get_symbol_id(symbol).0;
         let mut st = self.lock();
         Self::check_live(&st)?;
@@ -107,7 +117,8 @@ impl CheckerRegistry {
                 entry.insert(symbol);
             }
         }
-        let project = st.symbol_projects.entry(id).or_insert_with(|| canonical_project.to_string()).clone();
+        let project =
+            st.symbol_projects.entry(id).or_insert_with(|| canonical_project.to_string()).clone();
         Ok((id, project))
     }
 
@@ -118,10 +129,16 @@ impl CheckerRegistry {
         }
         let st = self.lock();
         Self::check_live(&st)?;
-        st.symbols.get(&id).copied().ok_or_else(|| CheckerError::client(format!("symbol handle {id} not found in snapshot registry")))
+        st.symbols.get(&id).copied().ok_or_else(|| {
+            CheckerError::client(format!("symbol handle {id} not found in snapshot registry"))
+        })
     }
 
-    fn project_for_checker<'a>(st: &'a mut RegistryState, project: &str, checker_id: u32) -> &'a mut ProjectRegistry {
+    fn project_for_checker<'a>(
+        st: &'a mut RegistryState,
+        project: &str,
+        checker_id: u32,
+    ) -> &'a mut ProjectRegistry {
         let reg = st.projects.entry(project.to_string()).or_default();
         if reg.checker_id != checker_id {
             // The project's API checker changed: handles from the previous checker are stale.
@@ -147,7 +164,12 @@ impl CheckerRegistry {
     }
 
     /// Go `resolveTypeHandle`. With `checker_id = Some(id)` the handle must come from that checker.
-    pub fn resolve_type(&self, project: &str, id: u32, checker_id: Option<u32>) -> CheckerResult<P<Type>> {
+    pub fn resolve_type(
+        &self,
+        project: &str,
+        id: u32,
+        checker_id: Option<u32>,
+    ) -> CheckerResult<P<Type>> {
         if id == 0 {
             return Err(CheckerError::client("empty type handle"));
         }
@@ -157,16 +179,27 @@ impl CheckerRegistry {
         let st = self.lock();
         Self::check_live(&st)?;
         let Some(reg) = st.projects.get(project) else {
-            return Err(CheckerError::client(format!("type handle {id} not found (no registry for project {project})")));
+            return Err(CheckerError::client(format!(
+                "type handle {id} not found (no registry for project {project})"
+            )));
         };
         if checker_id.is_some_and(|c| c != reg.checker_id) {
-            return Err(CheckerError::client(format!("type handle {id} is stale (the project's API checker was replaced)")));
+            return Err(CheckerError::client(format!(
+                "type handle {id} is stale (the project's API checker was replaced)"
+            )));
         }
-        reg.types.get(&id).copied().ok_or_else(|| CheckerError::client(format!("type handle {id} not found in project registry")))
+        reg.types.get(&id).copied().ok_or_else(|| {
+            CheckerError::client(format!("type handle {id} not found in project registry"))
+        })
     }
 
     /// Go `registerSignature`.
-    pub fn register_signature(&self, project: &str, checker_id: u32, sig: P<Signature>) -> CheckerResult<u64> {
+    pub fn register_signature(
+        &self,
+        project: &str,
+        checker_id: u32,
+        sig: P<Signature>,
+    ) -> CheckerResult<u64> {
         assert!(!project.is_empty(), "registerSignature: empty project ID");
         let id = sig.id().0 as u64;
         let mut st = self.lock();
@@ -182,22 +215,35 @@ impl CheckerRegistry {
     }
 
     /// Go `resolveSignatureHandle`.
-    pub fn resolve_signature(&self, project: &str, id: u64, checker_id: Option<u32>) -> CheckerResult<P<Signature>> {
+    pub fn resolve_signature(
+        &self,
+        project: &str,
+        id: u64,
+        checker_id: Option<u32>,
+    ) -> CheckerResult<P<Signature>> {
         if id == 0 {
             return Err(CheckerError::client("empty signature handle"));
         }
         if project.is_empty() {
-            return Err(CheckerError::client(format!("empty project ID for signature handle {id}")));
+            return Err(CheckerError::client(format!(
+                "empty project ID for signature handle {id}"
+            )));
         }
         let st = self.lock();
         Self::check_live(&st)?;
         let Some(reg) = st.projects.get(project) else {
-            return Err(CheckerError::client(format!("signature handle {id} not found (no registry for project {project})")));
+            return Err(CheckerError::client(format!(
+                "signature handle {id} not found (no registry for project {project})"
+            )));
         };
         if checker_id.is_some_and(|c| c != reg.checker_id) {
-            return Err(CheckerError::client(format!("signature handle {id} is stale (the project's API checker was replaced)")));
+            return Err(CheckerError::client(format!(
+                "signature handle {id} is stale (the project's API checker was replaced)"
+            )));
         }
-        reg.signatures.get(&id).copied().ok_or_else(|| CheckerError::client(format!("signature handle {id} not found in project registry")))
+        reg.signatures.get(&id).copied().ok_or_else(|| {
+            CheckerError::client(format!("signature handle {id} not found in project registry"))
+        })
     }
 
     /// Checker that produced the project's registered types/signatures (0 if none yet).

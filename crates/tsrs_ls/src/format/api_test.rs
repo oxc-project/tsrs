@@ -9,19 +9,13 @@ pub(crate) fn apply_bulk_edits(text: &str, edits: &[TextChange]) -> String {
     let mut b = String::with_capacity(text.len());
     let mut last_end = 0usize;
     for e in edits {
-        let start = e
-            .text_range
-            .pos()
-            .expect_source("format edits have source positions") as usize;
+        let start = e.text_range.pos().expect_source("format edits have source positions") as usize;
         if start != last_end {
             b.push_str(&text[last_end..start]);
         }
         b.push_str(&e.new_text);
 
-        last_end = e
-            .text_range
-            .end()
-            .expect_source("format edits have source positions") as usize;
+        last_end = e.text_range.end().expect_source("format edits have source positions") as usize;
     }
     b.push_str(&text[last_end..]);
 
@@ -56,7 +50,9 @@ pub(crate) fn settings(
 fn test_format_checker_ts() {
     let ctx = with_format_code_settings(
         &FormatContext::default(),
-        settings(4, 4, 4, Tristate::True, |s| s.insert_space_before_type_annotation = Tristate::True),
+        settings(4, 4, 4, Tristate::True, |s| {
+            s.insert_space_before_type_annotation = Tristate::True;
+        }),
         "\n",
     );
     let file_path = repo_root().join("ts-ref/tsc/testdata/fixtures/compiler/checker.ts");
@@ -72,19 +68,30 @@ fn test_format_checker_ts() {
 // building gigabyte indentation strings.
 #[test]
 fn huge_indent_sizes_are_clamped() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(1_000_000_000, 1_000_000_000, 0, Tristate::True, |_| {}), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(1_000_000_000, 1_000_000_000, 0, Tristate::True, |_| {}),
+        "\n",
+    );
     let text = "function f() {\nif(a) {\nb();\n}\n}\n";
     let source_file = parse_for_test("/a.ts", text, ScriptKind::TS);
     let new_text = apply_bulk_edits(text, &format_document(&ctx, source_file));
     let pad = |level: usize| " ".repeat(level * MAX_INDENT_SIZE as usize);
-    assert_eq!(new_text, format!("function f() {{\n{}if(a) {{\n{}b();\n{}}}\n}}\n", pad(1), pad(2), pad(1)));
+    assert_eq!(
+        new_text,
+        format!("function f() {{\n{}if(a) {{\n{}b();\n{}}}\n}}\n", pad(1), pad(2), pad(1))
+    );
 }
 
 // tsrs-only: a selection from a comment to inside the first token after more comments trims each line once. Go (and
 // TypeScript) trimmed the lines after the first comment twice, sending the same delete edits twice.
 #[test]
 fn selection_trims_trailing_whitespace_once() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::True, |_| {}), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::True, |_| {}),
+        "\n",
+    );
     let text = "/* a\n*/  \n\n \t\n// b\ndeclare module \"x\" { }\n";
     let source_file = parse_for_test("/a.d.ts", text, ScriptKind::TS);
     let start = text.find("*/").unwrap() as u32;

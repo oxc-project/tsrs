@@ -15,7 +15,14 @@ const B_TS: &str = "export const environment = { name: \"b\" }\n";
 fn edit_keeps_module_resolutions_of_the_edited_file() {
     let tsconfig = r#"{ "compilerOptions": { "strict": true, "module": "esnext", "moduleResolution": "bundler", "noEmit": true }, "files": ["a.ts"] }"#;
     // Insert an undeclared identifier into main's body; the import is unchanged, so the program is reused.
-    let (before, after) = diagnostics_after_edits("resolutions", &[("tsconfig.json", tsconfig), ("a.ts", A_TS), ("b.ts", B_TS)], "a.ts", "typescript", 3, 1);
+    let (before, after) = diagnostics_after_edits(
+        "resolutions",
+        &[("tsconfig.json", tsconfig), ("a.ts", A_TS), ("b.ts", B_TS)],
+        "a.ts",
+        "typescript",
+        3,
+        1,
+    );
 
     assert!(!before.contains("\"code\":"), "unexpected diagnostics before the edit: {before}");
     assert!(after.contains("\"code\":2304"), "the edit's error is missing: {after}");
@@ -39,17 +46,28 @@ fn edit_of_a_jsx_file_keeps_the_jsx_runtime() {
         ("node_modules/react/package.json", r#"{ "name": "react", "version": "1.0.0" }"#),
         ("node_modules/react/jsx-runtime.d.ts", JSX_RUNTIME_D_TS),
     ];
-    let (before, after) = diagnostics_after_edits("jsx-runtime", &files, "a.tsx", "typescriptreact", 1, 4);
+    let (before, after) =
+        diagnostics_after_edits("jsx-runtime", &files, "a.tsx", "typescriptreact", 1, 4);
 
     assert!(!before.contains("\"code\":"), "unexpected diagnostics before the edit: {before}");
     assert!(after.contains("\"code\":2304"), "the edit's error is missing: {after}");
-    assert!(!after.contains("\"code\":2875"), "the JSX runtime lost its resolution after the edit: {after}");
+    assert!(
+        !after.contains("\"code\":2875"),
+        "the JSX runtime lost its resolution after the edit: {after}"
+    );
 }
 
 /// Writes `files` to a temporary project, opens `open` in `tsrs --lsp` (with `TSRS_ARENA_POISON=1`), `edits`
 /// times inserts an undeclared identifier `c` as a new line before line `line` (0-based), and returns the
 /// file's diagnostics before the first edit and after the last.
-fn diagnostics_after_edits(name: &str, files: &[(&str, &str)], open: &str, language_id: &str, line: u32, edits: u32) -> (String, String) {
+fn diagnostics_after_edits(
+    name: &str,
+    files: &[(&str, &str)],
+    open: &str,
+    language_id: &str,
+    line: u32,
+    edits: u32,
+) -> (String, String) {
     let dir = std::env::temp_dir().join(format!("tsrs-lsp-edit-{name}-{}", std::process::id()));
     for (path, text) in files {
         let path = dir.join(path);
@@ -84,7 +102,9 @@ fn diagnostics_after_edits(name: &str, files: &[(&str, &str)], open: &str, langu
         r#"{{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{{"textDocument":{{"uri":"{uri}","languageId":"{language_id}","version":1,"text":{}}}}}}}"#,
         json_string(open_text)
     ));
-    send(format!(r#"{{"jsonrpc":"2.0","id":2,"method":"textDocument/diagnostic","params":{{"textDocument":{{"uri":"{uri}"}}}}}}"#));
+    send(format!(
+        r#"{{"jsonrpc":"2.0","id":2,"method":"textDocument/diagnostic","params":{{"textDocument":{{"uri":"{uri}"}}}}}}"#
+    ));
     let before = response(&mut stdout, 2, &mut send);
 
     let mut after = String::new();
@@ -93,7 +113,9 @@ fn diagnostics_after_edits(name: &str, files: &[(&str, &str)], open: &str, langu
         send(format!(
             r#"{{"jsonrpc":"2.0","method":"textDocument/didChange","params":{{"textDocument":{{"uri":"{uri}","version":{version}}},"contentChanges":[{{"range":{{"start":{{"line":{line},"character":0}},"end":{{"line":{line},"character":0}}}},"text":"\tc\n"}}]}}}}"#
         ));
-        send(format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"textDocument/diagnostic","params":{{"textDocument":{{"uri":"{uri}"}}}}}}"#));
+        send(format!(
+            r#"{{"jsonrpc":"2.0","id":{id},"method":"textDocument/diagnostic","params":{{"textDocument":{{"uri":"{uri}"}}}}}}"#
+        ));
         after = response(&mut stdout, id, &mut send);
     }
 

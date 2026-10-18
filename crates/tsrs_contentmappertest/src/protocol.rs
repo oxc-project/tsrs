@@ -3,22 +3,29 @@
 use std::sync::Arc;
 
 use tsrs_contentmapper::{
-    unmarshal, CloseProjectParams, InitializeResult, MappedOutput, OpenProjectParams, OpenProjectResult, OptionDiagnosticResult,
-    PositionEncoding, ProtocolJson, METHOD_CLOSE_PROJECT, METHOD_OPEN_PROJECT,
+    CloseProjectParams, InitializeResult, METHOD_CLOSE_PROJECT, METHOD_OPEN_PROJECT, MappedOutput,
+    OpenProjectParams, OpenProjectResult, OptionDiagnosticResult, PositionEncoding, ProtocolJson,
+    unmarshal,
 };
 use tsrs_core::json::{self, Value};
 use tsrs_ipc::{self as ipc, Handler};
 use tsrs_spanmap::{Feature, Kind, Segment};
 
 // protocol.go:14 noNotifications, which every handler of the package embeds for its HandleNotification.
-#[expect(clippy::unnecessary_wraps, reason = "This no-op implementation supplies the Result-returning Handler::handle_notification contract.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "This no-op implementation supplies the Result-returning Handler::handle_notification contract."
+)]
 pub(crate) fn no_notifications() -> Result<(), ipc::Error> {
     Ok(())
 }
 
 // protocol.go:20
 pub(crate) fn initialize_result(source: &str) -> InitializeResult {
-    InitializeResult { position_encoding: PositionEncoding::UTF8, diagnostic_source: source.to_string() }
+    InitializeResult {
+        position_encoding: PositionEncoding::UTF8,
+        diagnostic_source: source.to_string(),
+    }
 }
 
 // protocol.go:27
@@ -30,7 +37,12 @@ pub(crate) fn identity_mapped_output(content: &str) -> Result<MappedOutput, ipc:
         features: Feature::All,
         ..Default::default()
     }])?;
-    Ok(MappedOutput { text: content.to_string(), extension: ".ts".to_string(), mappings: Some(mappings), ..Default::default() })
+    Ok(MappedOutput {
+        text: content.to_string(),
+        extension: ".ts".to_string(),
+        mappings: Some(mappings),
+        ..Default::default()
+    })
 }
 
 // protocol.go:40 (Go embeds the ipc.Handler it wraps.)
@@ -66,12 +78,17 @@ impl Handler for staticProjectHandler {
                 let mut diagnostics = Vec::new();
                 if options == r#"{"plugins":[{"name":1}]}"# {
                     diagnostics = vec![OptionDiagnosticResult {
-                        path: vec![Value::String("plugins".to_string()), Value::Number(0.0), Value::String("name".to_string())],
+                        path: vec![
+                            Value::String("plugins".to_string()),
+                            Value::Number(0.0),
+                            Value::String("name".to_string()),
+                        ],
                         message_text: "Option 'name' requires a string.".to_string(),
                         code: 123,
                     }];
                 }
-                Ok(OpenProjectResult { option_diagnostics: diagnostics, ..Default::default() }.marshal_json())
+                Ok(OpenProjectResult { option_diagnostics: diagnostics, ..Default::default() }
+                    .marshal_json())
             }
             METHOD_CLOSE_PROJECT => {
                 let p: CloseProjectParams = unmarshal_params(params)?;
@@ -97,7 +114,8 @@ pub(crate) fn unmarshal_params<T: ProtocolJson>(params: Option<&Value>) -> Resul
 // Go's `json.Value(spanmap.New(segments).Marshal())`: the span map's tuple-array JSON, as the value it is sent as.
 pub(crate) fn marshal_span_map(segments: &[Segment]) -> Result<Value, ipc::Error> {
     let data = tsrs_spanmap::new(segments).marshal().map_err(ipc::Error::new)?;
-    let text = tsrs_core::utf8::into_string(data).map_err(|err| ipc::Error::new(err.to_string()))?;
+    let text =
+        tsrs_core::utf8::into_string(data).map_err(|err| ipc::Error::new(err.to_string()))?;
     json::unmarshal(&text).map_err(ipc::Error::new)
 }
 

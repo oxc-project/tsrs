@@ -43,7 +43,19 @@ pub struct TestResult {
 
 impl TestResult {
     pub fn harness(class: Class, ms: u64, panic: String) -> TestResult {
-        TestResult { class, ms, diff: String::new(), panic, loc: String::new(), skip: String::new(), types: None, symbols: None, js: None, jsmap: None, sourcemap: None }
+        TestResult {
+            class,
+            ms,
+            diff: String::new(),
+            panic,
+            loc: String::new(),
+            skip: String::new(),
+            types: None,
+            symbols: None,
+            js: None,
+            jsmap: None,
+            sourcemap: None,
+        }
     }
 }
 
@@ -71,7 +83,13 @@ fn stderr_tail(buf: &Arc<Mutex<Vec<u8>>>) -> String {
     lines[start..].join(" | ")
 }
 
-fn spawn(id: usize, items: &[TestItem], batch: Vec<usize>, opts: &PoolOptions, tx: &Sender<Event>) -> Worker {
+fn spawn(
+    id: usize,
+    items: &[TestItem],
+    batch: Vec<usize>,
+    opts: &PoolOptions,
+    tx: &Sender<Event>,
+) -> Worker {
     let exe = std::env::current_exe().expect("current_exe");
     let mut child = Command::new(exe)
         .arg("__worker")
@@ -136,7 +154,10 @@ fn parse_result(v: &Value) -> TestResult {
         symbols: v["symbols"].as_str().and_then(Class::parse).map(|c| (c, s("symbols_diff"))),
         js: v["js"].as_str().and_then(Class::parse).map(|c| (c, s("js_diff"))),
         jsmap: v["js.map"].as_str().and_then(Class::parse).map(|c| (c, s("js.map_diff"))),
-        sourcemap: v["sourcemap.txt"].as_str().and_then(Class::parse).map(|c| (c, s("sourcemap.txt_diff"))),
+        sourcemap: v["sourcemap.txt"]
+            .as_str()
+            .and_then(Class::parse)
+            .map(|c| (c, s("sourcemap.txt_diff"))),
     }
 }
 
@@ -174,7 +195,9 @@ pub fn run_pool(items: &[TestItem], opts: &PoolOptions) -> Vec<Option<TestResult
         match event {
             Ok(Event::Line(id, line)) => {
                 let w = &mut workers[id];
-                let Ok(v) = serde_json::from_str::<Value>(&line) else { continue };
+                let Ok(v) = serde_json::from_str::<Value>(&line) else {
+                    continue;
+                };
                 if let Some(i) = v["start"].as_u64() {
                     w.running = Some((i as usize, now));
                 } else if let Some(i) = v["i"].as_u64() {
@@ -224,7 +247,11 @@ pub fn run_pool(items: &[TestItem], opts: &PoolOptions) -> Vec<Option<TestResult
                     w.alive = false;
                     active -= 1;
                     let idx = w.batch[i];
-                    results[idx] = Some(TestResult::harness(Class::Timeout, opts.timeout.as_millis() as u64, String::new()));
+                    results[idx] = Some(TestResult::harness(
+                        Class::Timeout,
+                        opts.timeout.as_millis() as u64,
+                        String::new(),
+                    ));
                     completed += 1;
                     for &rest in w.batch[i + 1..].iter().rev() {
                         queue.push_front(rest);
@@ -237,20 +264,30 @@ pub fn run_pool(items: &[TestItem], opts: &PoolOptions) -> Vec<Option<TestResult
         // Memory limit
         if opts.mem_limit_mb > 0 && last_mem_check.elapsed() > Duration::from_secs(2) {
             last_mem_check = Instant::now();
-            let live: Vec<usize> = (0..workers.len()).filter(|&i| workers[i].alive && workers[i].running.is_some()).collect();
+            let live: Vec<usize> = (0..workers.len())
+                .filter(|&i| workers[i].alive && workers[i].running.is_some())
+                .collect();
             let rss = resident_mb(&live.iter().map(|&i| workers[i].child.id()).collect::<Vec<_>>());
             for i in live {
                 let w = &mut workers[i];
-                let Some(&mb) = rss.get(&w.child.id()) else { continue };
+                let Some(&mb) = rss.get(&w.child.id()) else {
+                    continue;
+                };
                 if mb <= opts.mem_limit_mb {
                     continue;
                 }
-                let Some((running, _)) = w.running else { continue };
+                let Some((running, _)) = w.running else {
+                    continue;
+                };
                 let _ = w.child.kill();
                 let _ = w.child.wait();
                 w.alive = false;
                 active -= 1;
-                results[w.batch[running]] = Some(TestResult::harness(Class::Crash, 0, format!("memory limit exceeded ({mb} MB)")));
+                results[w.batch[running]] = Some(TestResult::harness(
+                    Class::Crash,
+                    0,
+                    format!("memory limit exceeded ({mb} MB)"),
+                ));
                 completed += 1;
                 for &rest in w.batch[running + 1..].iter().rev() {
                     queue.push_front(rest);
@@ -274,10 +311,14 @@ fn resident_mb(pids: &[u32]) -> rustc_hash::FxHashMap<u32, u64> {
         return out;
     }
     let list = pids.iter().map(u32::to_string).collect::<Vec<_>>().join(",");
-    let Ok(o) = Command::new("ps").args(["-o", "pid=,rss=", "-p", &list]).output() else { return out };
+    let Ok(o) = Command::new("ps").args(["-o", "pid=,rss=", "-p", &list]).output() else {
+        return out;
+    };
     out.extend(tsrs_core::utf8::from_utf8_lossy(&o.stdout).lines().filter_map(|line| {
         let mut it = line.split_whitespace();
-        if let (Some(pid), Some(kb)) = (it.next().and_then(|p| p.parse().ok()), it.next().and_then(|k| k.parse::<u64>().ok())) {
+        if let (Some(pid), Some(kb)) =
+            (it.next().and_then(|p| p.parse().ok()), it.next().and_then(|k| k.parse::<u64>().ok()))
+        {
             Some((pid, kb / 1024))
         } else {
             None

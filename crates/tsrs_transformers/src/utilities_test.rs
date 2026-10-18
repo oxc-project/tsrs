@@ -1,8 +1,8 @@
 // utilities.rs against Go's behaviour on synthesized nodes (position -1).
 
 use tsrs_ast::SourceFileParseOptions;
-use tsrs_core::{get_script_kind_from_file_name, P};
 use tsrs_core::tspath::Path;
+use tsrs_core::{P, get_script_kind_from_file_name};
 
 use crate::is_original_node_single_line;
 
@@ -10,7 +10,12 @@ use crate::is_original_node_single_line;
 fn a_synthesized_original_node_is_single_line() {
     let file_name = "/a.ts";
     let file = tsrs_parser::parse_source_file(
-        SourceFileParseOptions { file_name: file_name.to_string(), path: Path::new(file_name.to_string()), external_module_indicator_options: tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default() },
+        SourceFileParseOptions {
+            file_name: file_name.to_string(),
+            path: Path::new(file_name.to_string()),
+            external_module_indicator_options:
+                tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+        },
         "const a = 1;\nconst b = 2;\n",
         get_script_kind_from_file_name(file_name),
     );

@@ -21,7 +21,8 @@ fn test_compiler_options_declaration() {
         "suppressOutputPathCheck",
         "build",
     ];
-    let internal_options_map: FxHashMap<String, &str> = internal_options.iter().map(|o| (o.to_lowercase(), *o)).collect();
+    let internal_options_map: FxHashMap<String, &str> =
+        internal_options.iter().map(|o| (o.to_lowercase(), *o)).collect();
 
     let mut errors: Vec<String> = Vec::new();
     macro_rules! check {
@@ -53,6 +54,10 @@ fn test_compiler_options_declaration() {
         decls.remove(&opt.to_lowercase());
     }
 
-    errors.extend(decls.values().map(|decl| format!("Option declaration {} is not present in CompilerOptions", decl.name)));
+    errors.extend(
+        decls.values().map(|decl| {
+            format!("Option declaration {} is not present in CompilerOptions", decl.name)
+        }),
+    );
     assert!(errors.is_empty(), "{errors:#?}");
 }

@@ -1,6 +1,6 @@
 use super::*;
 use crate::iovfs::IoVFS;
-use crate::vfstest::{from_map, symlink, MapFS, MapFile};
+use crate::vfstest::{MapFS, MapFile, from_map, symlink};
 
 // Test cases modeled after TypeScript's matchFiles tests in
 // tsc/testdata/fixtures/testRunner/unittests/config/matchFiles.ts
@@ -180,7 +180,16 @@ fn run_read_directory_case(tc: &ReadDirTestCase) {
     let path = if tc.path.is_empty() { "/dev" } else { tc.path };
     let depth = if tc.depth == 0 { UNLIMITED_DEPTH } else { tc.depth };
     let host = (tc.host)();
-    let got = match_files(path, &tc.extensions, &tc.excludes, &tc.includes, host.use_case_sensitive_file_names(), current_dir, depth, &host);
+    let got = match_files(
+        path,
+        &tc.extensions,
+        &tc.excludes,
+        &tc.includes,
+        host.use_case_sensitive_file_names(),
+        current_dir,
+        depth,
+        &host,
+    );
     (tc.expect)(tc.name, &got);
 }
 
@@ -233,9 +242,13 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["a.js", "b.js"],
-            ..rd("literal includes with non ts extensions excluded", case_insensitive_host, |name, got| {
-                assert_eq!(got.len(), 0, "{name}");
-            })
+            ..rd(
+                "literal includes with non ts extensions excluded",
+                case_insensitive_host,
+                |name, got| {
+                    assert_eq!(got.len(), 0, "{name}");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -278,14 +291,24 @@ fn test_read_directory() {
         },
         ReadDirTestCase {
             extensions: ts_exts(),
-            includes: vec!["a.ts", "b.ts", "node_modules/a.ts", "bower_components/a.ts", "jspm_packages/a.ts"],
-            ..rd("explicit includes keep common package folders", common_folders_host, |name, got| {
-                assert_has(name, got, "/dev/a.ts");
-                assert_has(name, got, "/dev/b.ts");
-                assert_has(name, got, "/dev/node_modules/a.ts");
-                assert_has(name, got, "/dev/bower_components/a.ts");
-                assert_has(name, got, "/dev/jspm_packages/a.ts");
-            })
+            includes: vec![
+                "a.ts",
+                "b.ts",
+                "node_modules/a.ts",
+                "bower_components/a.ts",
+                "jspm_packages/a.ts",
+            ],
+            ..rd(
+                "explicit includes keep common package folders",
+                common_folders_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/a.ts");
+                    assert_has(name, got, "/dev/b.ts");
+                    assert_has(name, got, "/dev/node_modules/a.ts");
+                    assert_has(name, got, "/dev/bower_components/a.ts");
+                    assert_has(name, got, "/dev/jspm_packages/a.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -308,19 +331,26 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["*.ts"],
-            ..rd("wildcard include same named declarations excluded", case_insensitive_host, |name, got| {
-                assert_has(name, got, "/dev/a.ts");
-                assert_has(name, got, "/dev/b.ts");
-                assert_has(name, got, "/dev/a.d.ts");
-                assert_has(name, got, "/dev/c.d.ts");
-            })
+            ..rd(
+                "wildcard include same named declarations excluded",
+                case_insensitive_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/a.ts");
+                    assert_has(name, got, "/dev/b.ts");
+                    assert_has(name, got, "/dev/a.d.ts");
+                    assert_has(name, got, "/dev/c.d.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["*"],
             ..rd("wildcard star matches only ts files", case_insensitive_host, |name, got| {
                 for f in got {
-                    assert!(f.contains(".ts") || f.contains(".tsx") || f.contains(".d.ts"), "{name}: unexpected file: {f}");
+                    assert!(
+                        f.contains(".ts") || f.contains(".tsx") || f.contains(".d.ts"),
+                        "{name}: unexpected file: {f}"
+                    );
                 }
                 assert_lacks(name, got, "/dev/a.js");
                 assert_lacks(name, got, "/dev/b.js");
@@ -346,11 +376,15 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["x/**/a.ts"],
-            ..rd("double asterisk matches zero-or-more directories", case_insensitive_host, |name, got| {
-                assert_eq!(got.len(), 2, "{name}");
-                assert_has(name, got, "/dev/x/a.ts");
-                assert_has(name, got, "/dev/x/y/a.ts");
-            })
+            ..rd(
+                "double asterisk matches zero-or-more directories",
+                case_insensitive_host,
+                |name, got| {
+                    assert_eq!(got.len(), 2, "{name}");
+                    assert_has(name, got, "/dev/x/a.ts");
+                    assert_has(name, got, "/dev/x/y/a.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -369,7 +403,9 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["*/z.ts"],
-            ..rd("wildcard missing files excluded", case_insensitive_host, |name, got| assert_eq!(got.len(), 0, "{name}"))
+            ..rd("wildcard missing files excluded", case_insensitive_host, |name, got| {
+                assert_eq!(got.len(), 0, "{name}");
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -377,7 +413,10 @@ fn test_read_directory() {
             includes: vec!["**/*"],
             ..rd("exclude folders with wildcards", case_insensitive_host, |name, got| {
                 for f in got {
-                    assert!(!f.contains("/z/") && !f.contains("/x/"), "{name}: should not contain z or x: {f}");
+                    assert!(
+                        !f.contains("/z/") && !f.contains("/x/"),
+                        "{name}: should not contain z or x: {f}"
+                    );
                 }
                 assert_has(name, got, "/dev/a.ts");
                 assert_has(name, got, "/dev/b.ts");
@@ -430,10 +469,14 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**/a.ts", "**/node_modules/a.ts"],
-            ..rd("common package folders explicit recursive include", common_folders_host, |name, got| {
-                assert_has(name, got, "/dev/a.ts");
-                assert_has(name, got, "/dev/node_modules/a.ts");
-            })
+            ..rd(
+                "common package folders explicit recursive include",
+                common_folders_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/a.ts");
+                    assert_has(name, got, "/dev/node_modules/a.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -446,10 +489,14 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["*/a.ts", "node_modules/a.ts"],
-            ..rd("common package folders explicit wildcard include", common_folders_host, |name, got| {
-                assert_has(name, got, "/dev/x/a.ts");
-                assert_has(name, got, "/dev/node_modules/a.ts");
-            })
+            ..rd(
+                "common package folders explicit wildcard include",
+                common_folders_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/x/a.ts");
+                    assert_has(name, got, "/dev/node_modules/a.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -473,41 +520,59 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**/.*/*"],
-            ..rd("dotted folders recursive wildcard matches directories", dotted_folders_host, |name, got| {
-                assert_has(name, got, "/dev/x/.y/a.ts");
-                assert_has(name, got, "/dev/.z/c.ts");
-                assert_has(name, got, "/dev/w/.u/e.ts");
-            })
+            ..rd(
+                "dotted folders recursive wildcard matches directories",
+                dotted_folders_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/x/.y/a.ts");
+                    assert_has(name, got, "/dev/.z/c.ts");
+                    assert_has(name, got, "/dev/w/.u/e.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**"],
-            ..rd("trailing recursive include returns empty", case_insensitive_host, |name, got| assert_eq!(got.len(), 0, "{name}"))
+            ..rd("trailing recursive include returns empty", case_insensitive_host, |name, got| {
+                assert_eq!(got.len(), 0, "{name}");
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             excludes: vec!["**"],
             includes: vec!["**/*"],
-            ..rd("trailing recursive exclude removes everything", case_insensitive_host, |name, got| assert_eq!(got.len(), 0, "{name}"))
+            ..rd(
+                "trailing recursive exclude removes everything",
+                case_insensitive_host,
+                |name, got| assert_eq!(got.len(), 0, "{name}"),
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**/x/**/*"],
-            ..rd("multiple recursive directory patterns in includes", case_insensitive_host, |name, got| {
-                assert_has(name, got, "/dev/x/a.ts");
-                assert_has(name, got, "/dev/x/y/a.ts");
-            })
+            ..rd(
+                "multiple recursive directory patterns in includes",
+                case_insensitive_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/x/a.ts");
+                    assert_has(name, got, "/dev/x/y/a.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             excludes: vec!["**/x/**"],
             includes: vec!["**/a.ts"],
-            ..rd("multiple recursive directory patterns in excludes", case_insensitive_host, |name, got| {
-                assert_has(name, got, "/dev/a.ts");
-                assert_has(name, got, "/dev/z/a.ts");
-                assert_lacks(name, got, "/dev/x/a.ts");
-                assert_lacks(name, got, "/dev/x/y/a.ts");
-            })
+            ..rd(
+                "multiple recursive directory patterns in excludes",
+                case_insensitive_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/a.ts");
+                    assert_has(name, got, "/dev/z/a.ts");
+                    assert_lacks(name, got, "/dev/x/a.ts");
+                    assert_lacks(name, got, "/dev/x/y/a.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -541,7 +606,10 @@ fn test_read_directory() {
             ..rd("depth limit one", case_insensitive_host, |name, got| {
                 for f in got {
                     let suffix = &f["/dev/".len()..];
-                    assert!(!suffix.contains('/'), "{name}: depth 1 should not include nested files: {f}");
+                    assert!(
+                        !suffix.contains('/'),
+                        "{name}: depth 1 should not include nested files: {f}"
+                    );
                 }
             })
         },
@@ -557,7 +625,10 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: vec![".ts"],
             ..rd("mixed extensions only ts", mixed_extension_host, |name, got| {
-                #[expect(clippy::case_sensitive_file_extension_comparisons, reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher.")]
+                #[expect(
+                    clippy::case_sensitive_file_extension_comparisons,
+                    reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher."
+                )]
                 for f in got {
                     assert!(f.ends_with(".ts"), "{name}: should only have .ts files: {f}");
                 }
@@ -566,18 +637,30 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: vec![".ts", ".tsx"],
             ..rd("mixed extensions ts and tsx", mixed_extension_host, |name, got| {
-                #[expect(clippy::case_sensitive_file_extension_comparisons, reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher.")]
+                #[expect(
+                    clippy::case_sensitive_file_extension_comparisons,
+                    reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher."
+                )]
                 for f in got {
-                    assert!(f.ends_with(".ts") || f.ends_with(".tsx"), "{name}: should only have .ts or .tsx files: {f}");
+                    assert!(
+                        f.ends_with(".ts") || f.ends_with(".tsx"),
+                        "{name}: should only have .ts or .tsx files: {f}"
+                    );
                 }
             })
         },
         ReadDirTestCase {
             extensions: vec![".js", ".jsx"],
             ..rd("mixed extensions js and jsx", mixed_extension_host, |name, got| {
-                #[expect(clippy::case_sensitive_file_extension_comparisons, reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher.")]
+                #[expect(
+                    clippy::case_sensitive_file_extension_comparisons,
+                    reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher."
+                )]
                 for f in got {
-                    assert!(f.ends_with(".js") || f.ends_with(".jsx"), "{name}: should only have .js or .jsx files: {f}");
+                    assert!(
+                        f.ends_with(".js") || f.ends_with(".jsx"),
+                        "{name}: should only have .js or .jsx files: {f}"
+                    );
                 }
             })
         },
@@ -594,12 +677,16 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: vec![".js"],
             includes: vec!["js/*"],
-            ..rd("min js exclusion is case-sensitive on case-sensitive FS", case_sensitive_host, |name, got| {
-                assert_has(name, got, "/dev/js/a.js");
-                assert_has(name, got, "/dev/js/b.js");
-                // Legacy behavior: only lowercase ".min.js" is excluded by default when matching is case-sensitive.
-                assert_has(name, got, "/dev/js/d.MIN.js");
-            })
+            ..rd(
+                "min js exclusion is case-sensitive on case-sensitive FS",
+                case_sensitive_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/js/a.js");
+                    assert_has(name, got, "/dev/js/b.js");
+                    // Legacy behavior: only lowercase ".min.js" is excluded by default when matching is case-sensitive.
+                    assert_has(name, got, "/dev/js/d.MIN.js");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: vec![".js"],
@@ -612,11 +699,15 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: vec![".js"],
             includes: vec!["js/*.min.*"],
-            ..rd("min js files included when pattern mentions .min.", case_insensitive_host, |name, got| {
-                assert_eq!(got.len(), 2, "{name}");
-                assert_has(name, got, "/dev/js/d.min.js");
-                assert_has(name, got, "/dev/js/ab.min.js");
-            })
+            ..rd(
+                "min js files included when pattern mentions .min.",
+                case_insensitive_host,
+                |name, got| {
+                    assert_eq!(got.len(), 2, "{name}");
+                    assert_has(name, got, "/dev/js/d.min.js");
+                    assert_has(name, got, "/dev/js/ab.min.js");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -630,17 +721,26 @@ fn test_read_directory() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["*.ts"],
-            ..rd("same named declarations include ts", same_named_declarations_host, |name, got| assert!(!got.is_empty(), "{name}"))
+            ..rd("same named declarations include ts", same_named_declarations_host, |name, got| {
+                assert!(!got.is_empty(), "{name}");
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["*.tsx"],
-            ..rd("same named declarations include tsx", same_named_declarations_host, |name, got| {
-                #[expect(clippy::case_sensitive_file_extension_comparisons, reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher.")]
-                for f in got {
-                    assert!(f.ends_with(".tsx"), "{name}: should only have .tsx files: {f}");
-                }
-            })
+            ..rd(
+                "same named declarations include tsx",
+                same_named_declarations_host,
+                |name, got| {
+                    #[expect(
+                        clippy::case_sensitive_file_extension_comparisons,
+                        reason = "These assertions require the exact fixture extension casing returned by the Go-compatible matcher."
+                    )]
+                    for f in got {
+                        assert!(f.ends_with(".tsx"), "{name}: should only have .tsx files: {f}");
+                    }
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -692,12 +792,16 @@ fn test_read_directory_edge_cases() {
         ReadDirTestCase {
             extensions: vec![".ts"],
             includes: vec!["/dev/a.ts"],
-            ..rd("rooted include path", case_insensitive_host, |name, got| assert_has(name, got, "/dev/a.ts"))
+            ..rd("rooted include path", case_insensitive_host, |name, got| {
+                assert_has(name, got, "/dev/a.ts");
+            })
         },
         ReadDirTestCase {
             extensions: vec![".ts"],
             includes: vec!["a.ts"],
-            ..rd("include with extension in path", case_insensitive_host, |name, got| assert_has(name, got, "/dev/a.ts"))
+            ..rd("include with extension in path", case_insensitive_host, |name, got| {
+                assert_has(name, got, "/dev/a.ts");
+            })
         },
         ReadDirTestCase {
             extensions: vec![".ts"],
@@ -724,15 +828,21 @@ fn test_read_directory_edge_cases() {
         ReadDirTestCase {
             extensions: vec![".ts"],
             includes: vec!["?.ts"],
-            ..rd("include pattern starting with question mark", case_insensitive_host, |name, got| {
-                assert_has(name, got, "/dev/a.ts");
-                assert_has(name, got, "/dev/b.ts");
-            })
+            ..rd(
+                "include pattern starting with question mark",
+                case_insensitive_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/a.ts");
+                    assert_has(name, got, "/dev/b.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: vec![".ts"],
             includes: vec!["*b.ts"],
-            ..rd("include pattern starting with star", case_insensitive_host, |name, got| assert_has(name, got, "/dev/b.ts"))
+            ..rd("include pattern starting with star", case_insensitive_host, |name, got| {
+                assert_has(name, got, "/dev/b.ts");
+            })
         },
         ReadDirTestCase {
             extensions: vec![".ts"],
@@ -746,12 +856,16 @@ fn test_read_directory_edge_cases() {
         ReadDirTestCase {
             extensions: vec![".ts"],
             includes: vec!["q/a/c/b/d.ts"],
-            ..rd("nested subdirectory base path", case_sensitive_host, |name, got| assert_has(name, got, "/dev/q/a/c/b/d.ts"))
+            ..rd("nested subdirectory base path", case_sensitive_host, |name, got| {
+                assert_has(name, got, "/dev/q/a/c/b/d.ts");
+            })
         },
         ReadDirTestCase {
             extensions: vec![".ts"],
             includes: vec!["z/*.ts"],
-            ..rd("current directory differs from path", case_insensitive_host, |name, got| assert!(!got.is_empty(), "{name}"))
+            ..rd("current directory differs from path", case_insensitive_host, |name, got| {
+                assert!(!got.is_empty(), "{name}");
+            })
         },
     ];
 
@@ -875,7 +989,12 @@ fn test_read_directory_matches_type_script_baselines() {
                     )
                 },
                 |name, got| {
-                    let expected = ["/dev/.z/c.ts", "/dev/g.min.js/.g/g.ts", "/dev/w/.u/e.ts", "/dev/x/.y/a.ts"];
+                    let expected = [
+                        "/dev/.z/c.ts",
+                        "/dev/g.min.js/.g/g.ts",
+                        "/dev/w/.u/e.ts",
+                        "/dev/x/.y/a.ts",
+                    ];
                     assert_eq!(got.len(), expected.len(), "{name}: {got:?}");
                     for want in expected {
                         assert_has(name, got, want);
@@ -911,7 +1030,17 @@ fn test_read_directory_matches_type_script_baselines() {
             includes: vec!["js/*"],
             ..rd(
                 "js wildcard excludes min js files",
-                || from_map([("/dev/js/a.js", ""), ("/dev/js/b.js", ""), ("/dev/js/d.min.js", ""), ("/dev/js/ab.min.js", "")], false),
+                || {
+                    from_map(
+                        [
+                            ("/dev/js/a.js", ""),
+                            ("/dev/js/b.js", ""),
+                            ("/dev/js/d.min.js", ""),
+                            ("/dev/js/ab.min.js", ""),
+                        ],
+                        false,
+                    )
+                },
                 |name, got| assert_list(name, got, &["/dev/js/a.js", "/dev/js/b.js"]),
             )
         },
@@ -920,7 +1049,17 @@ fn test_read_directory_matches_type_script_baselines() {
             includes: vec!["js/*.min.js"],
             ..rd(
                 "explicit min js pattern includes min files",
-                || from_map([("/dev/js/a.js", ""), ("/dev/js/b.js", ""), ("/dev/js/d.min.js", ""), ("/dev/js/ab.min.js", "")], false),
+                || {
+                    from_map(
+                        [
+                            ("/dev/js/a.js", ""),
+                            ("/dev/js/b.js", ""),
+                            ("/dev/js/d.min.js", ""),
+                            ("/dev/js/ab.min.js", ""),
+                        ],
+                        false,
+                    )
+                },
                 |name, got| {
                     let expected = ["/dev/js/ab.min.js", "/dev/js/d.min.js"];
                     assert_eq!(got.len(), expected.len(), "{name}: {got:?}");
@@ -934,13 +1073,17 @@ fn test_read_directory_matches_type_script_baselines() {
             extensions: ts_exts(),
             excludes: vec!["b.ts"],
             includes: vec!["a.ts", "b.ts"],
-            ..rd("literal excludes baseline", case_insensitive_host, |name, got| assert_list(name, got, &["/dev/a.ts"]))
+            ..rd("literal excludes baseline", case_insensitive_host, |name, got| {
+                assert_list(name, got, &["/dev/a.ts"]);
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             excludes: vec!["*.ts", "z/??z.ts", "*/b.ts"],
             includes: vec!["a.ts", "b.ts", "z/a.ts", "z/abz.ts", "z/aba.ts", "x/b.ts"],
-            ..rd("wildcard excludes baseline", case_insensitive_host, |name, got| assert_list(name, got, &["/dev/z/a.ts", "/dev/z/aba.ts"]))
+            ..rd("wildcard excludes baseline", case_insensitive_host, |name, got| {
+                assert_list(name, got, &["/dev/z/a.ts", "/dev/z/aba.ts"]);
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -953,19 +1096,27 @@ fn test_read_directory_matches_type_script_baselines() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["x/?.ts"],
-            ..rd("question mark baseline", case_insensitive_host, |name, got| assert_list(name, got, &["/dev/x/a.ts", "/dev/x/b.ts"]))
+            ..rd("question mark baseline", case_insensitive_host, |name, got| {
+                assert_list(name, got, &["/dev/x/a.ts", "/dev/x/b.ts"]);
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**/a.ts"],
             ..rd("recursive directory pattern baseline", case_insensitive_host, |name, got| {
-                assert_list(name, got, &["/dev/a.ts", "/dev/x/a.ts", "/dev/x/y/a.ts", "/dev/z/a.ts"]);
+                assert_list(
+                    name,
+                    got,
+                    &["/dev/a.ts", "/dev/x/a.ts", "/dev/x/y/a.ts", "/dev/z/a.ts"],
+                );
             })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**/A.ts"],
-            ..rd("case sensitive baseline", case_sensitive_host, |name, got| assert_list(name, got, &["/dev/A.ts"]))
+            ..rd("case sensitive baseline", case_sensitive_host, |name, got| {
+                assert_list(name, got, &["/dev/A.ts"]);
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -973,7 +1124,10 @@ fn test_read_directory_matches_type_script_baselines() {
             includes: vec!["**/*"],
             ..rd("exclude folders baseline", case_insensitive_host, |name, got| {
                 for f in got {
-                    assert!(!f.contains("/z/") && !f.contains("/x/"), "{name}: should not contain z or x: {f}");
+                    assert!(
+                        !f.contains("/z/") && !f.contains("/x/"),
+                        "{name}: should not contain z or x: {f}"
+                    );
                 }
                 assert_has(name, got, "/dev/a.ts");
                 assert_has(name, got, "/dev/b.ts");
@@ -983,30 +1137,51 @@ fn test_read_directory_matches_type_script_baselines() {
             extensions: ts_exts(),
             includes: vec!["z"],
             ..rd("implicit glob expansion baseline", case_insensitive_host, |name, got| {
-                assert_list(name, got, &["/dev/z/a.ts", "/dev/z/aba.ts", "/dev/z/abz.ts", "/dev/z/b.ts", "/dev/z/bba.ts", "/dev/z/bbz.ts"]);
+                assert_list(
+                    name,
+                    got,
+                    &[
+                        "/dev/z/a.ts",
+                        "/dev/z/aba.ts",
+                        "/dev/z/abz.ts",
+                        "/dev/z/b.ts",
+                        "/dev/z/bba.ts",
+                        "/dev/z/bbz.ts",
+                    ],
+                );
             })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**"],
-            ..rd("trailing recursive directory baseline", case_insensitive_host, |name, got| assert_eq!(got.len(), 0, "{name}"))
+            ..rd("trailing recursive directory baseline", case_insensitive_host, |name, got| {
+                assert_eq!(got.len(), 0, "{name}");
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             excludes: vec!["**"],
             includes: vec!["**/*"],
-            ..rd("exclude trailing recursive directory baseline", case_insensitive_host, |name, got| assert_eq!(got.len(), 0, "{name}"))
+            ..rd(
+                "exclude trailing recursive directory baseline",
+                case_insensitive_host,
+                |name, got| assert_eq!(got.len(), 0, "{name}"),
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["**/x/**/*"],
-            ..rd("multiple recursive directory patterns baseline", case_insensitive_host, |name, got| {
-                assert_has(name, got, "/dev/x/a.ts");
-                assert_has(name, got, "/dev/x/aa.ts");
-                assert_has(name, got, "/dev/x/b.ts");
-                assert_has(name, got, "/dev/x/y/a.ts");
-                assert_has(name, got, "/dev/x/y/b.ts");
-            })
+            ..rd(
+                "multiple recursive directory patterns baseline",
+                case_insensitive_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/x/a.ts");
+                    assert_has(name, got, "/dev/x/aa.ts");
+                    assert_has(name, got, "/dev/x/b.ts");
+                    assert_has(name, got, "/dev/x/y/a.ts");
+                    assert_has(name, got, "/dev/x/y/b.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -1020,13 +1195,17 @@ fn test_read_directory_matches_type_script_baselines() {
         ReadDirTestCase {
             extensions: ts_exts(),
             includes: vec!["x/**/*", "w/*/*"],
-            ..rd("dotted folders not implicitly included baseline", dotted_folders_host, |name, got| {
-                assert_has(name, got, "/dev/x/d.ts");
-                assert_has(name, got, "/dev/x/y/d.ts");
-                assert_lacks(name, got, "/dev/x/.y/a.ts");
-                assert_lacks(name, got, "/dev/x/y/.e.ts");
-                assert_lacks(name, got, "/dev/w/.u/e.ts");
-            })
+            ..rd(
+                "dotted folders not implicitly included baseline",
+                dotted_folders_host,
+                |name, got| {
+                    assert_has(name, got, "/dev/x/d.ts");
+                    assert_has(name, got, "/dev/x/y/d.ts");
+                    assert_lacks(name, got, "/dev/x/.y/a.ts");
+                    assert_lacks(name, got, "/dev/x/y/.e.ts");
+                    assert_lacks(name, got, "/dev/w/.u/e.ts");
+                },
+            )
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -1040,7 +1219,9 @@ fn test_read_directory_matches_type_script_baselines() {
             extensions: ts_exts(),
             excludes: vec!["**"],
             includes: vec!["/ext/b/a..b.ts"],
-            ..rd("include files with double dots baseline", case_insensitive_host, |name, got| assert_has(name, got, "/ext/b/a..b.ts"))
+            ..rd("include files with double dots baseline", case_insensitive_host, |name, got| {
+                assert_has(name, got, "/ext/b/a..b.ts");
+            })
         },
         ReadDirTestCase {
             extensions: ts_exts(),
@@ -1119,7 +1300,9 @@ fn test_spec_matcher() {
 
     for tc in &cases {
         let name = tc.name;
-        let Some(matcher) = new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names) else {
+        let Some(matcher) =
+            new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names)
+        else {
             panic!("{name}: matcher should not be nil");
         };
         for path in &tc.matching_paths {
@@ -1175,7 +1358,8 @@ fn test_spec_matcher_match_string() {
     for tc in &cases {
         let name = tc.name;
         assert_eq!(tc.paths.len(), tc.expected.len(), "{name}");
-        let m = new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
+        let m =
+            new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
         let Some(m) = m else { panic!("{name}: matcher should not be nil") };
         for (i, path) in tc.paths.iter().enumerate() {
             assert_eq!(m.match_string(path), tc.expected[i], "{name}: path: {path}");
@@ -1218,7 +1402,8 @@ fn test_single_spec_matcher_match_string() {
     for tc in &cases {
         let name = tc.name;
         assert_eq!(tc.paths.len(), tc.expected.len(), "{name}");
-        let m = new_spec_matcher(&[tc.spec], tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
+        let m =
+            new_spec_matcher(&[tc.spec], tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
         let Some(m) = m else { panic!("{name}: matcher should not be nil") };
         for (i, path) in tc.paths.iter().enumerate() {
             assert_eq!(m.match_string(path), tc.expected[i], "{name}: path: {path}");
@@ -1267,7 +1452,8 @@ fn test_spec_matchers_match_index() {
     for tc in &cases {
         let name = tc.name;
         assert_eq!(tc.paths.len(), tc.expected.len(), "{name}");
-        let m = new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
+        let m =
+            new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
         let Some(m) = m else { panic!("{name}: matcher should not be nil") };
         for (i, path) in tc.paths.iter().enumerate() {
             assert_eq!(m.match_index(path), tc.expected[i], "{name}: path: {path}");
@@ -1322,7 +1508,8 @@ fn test_single_spec_matcher() {
 
     for tc in &cases {
         let name = tc.name;
-        let matcher = new_spec_matcher(&[tc.spec], tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
+        let matcher =
+            new_spec_matcher(&[tc.spec], tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
         if tc.expect_nil {
             assert!(matcher.is_none(), "{name}: should be nil");
             continue;
@@ -1376,7 +1563,8 @@ fn test_spec_matchers() {
 
     for tc in &cases {
         let name = tc.name;
-        let matchers = new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
+        let matchers =
+            new_spec_matcher(&tc.specs, tc.base_path, tc.usage, tc.use_case_sensitive_file_names);
         if tc.expect_nil {
             assert!(matchers.is_none(), "{name}: should be nil");
             continue;
@@ -1392,7 +1580,8 @@ fn test_spec_matchers() {
 // Returns the part as text sliced from the virtual string prefix+suffix, plus the next offset.
 fn next_part(prefix: &str, suffix: &str, offset: usize) -> Option<(String, usize)> {
     let virt = format!("{prefix}{suffix}");
-    next_path_part_parts(prefix, suffix, offset).map(|(start, end, next)| (virt[start..end].to_string(), next))
+    next_path_part_parts(prefix, suffix, offset)
+        .map(|(start, end, next)| (virt[start..end].to_string(), next))
 }
 
 // TestGlobPatternInternals tests internal glob pattern matching logic
@@ -1530,7 +1719,16 @@ fn test_glob_pattern_internals_literal_component_with_package_folder_in_include(
     let host = from_map([("/dev/node_modules/pkg/index.ts", "")], false);
 
     // Explicit literal path should work
-    let got = match_files("/dev", &[".ts"], &[] as &[&str], &["node_modules/pkg/index.ts"], false, "/", UNLIMITED_DEPTH, &host);
+    let got = match_files(
+        "/dev",
+        &[".ts"],
+        &[] as &[&str],
+        &["node_modules/pkg/index.ts"],
+        false,
+        "/",
+        UNLIMITED_DEPTH,
+        &host,
+    );
     assert!(has(&got, "/dev/node_modules/pkg/index.ts"), "{got:?}");
 }
 
@@ -1691,7 +1889,16 @@ fn test_read_directory_consecutive_slashes() {
     let host = from_map([("/dev/a.ts", ""), ("/dev/x/b.ts", "")], false);
 
     // The matchFilesNoRegex function normalizes paths, but we can test internal handling
-    let got = match_files("/dev", &[".ts"], &[] as &[&str], &["**/*.ts"], false, "/", UNLIMITED_DEPTH, &host);
+    let got = match_files(
+        "/dev",
+        &[".ts"],
+        &[] as &[&str],
+        &["**/*.ts"],
+        false,
+        "/",
+        UNLIMITED_DEPTH,
+        &host,
+    );
     assert!(got.len() >= 2, "should find files");
     assert!(has(&got, "/dev/a.ts"), "{got:?}");
     assert!(has(&got, "/dev/x/b.ts"), "{got:?}");
@@ -1703,7 +1910,16 @@ fn test_glob_pattern_literal_with_package_folders_wildcard_skips_package_folders
     // Wildcard patterns should skip node_modules
     let host = from_map([("/dev/a.ts", ""), ("/dev/node_modules/b.ts", "")], false);
 
-    let got = match_files("/dev", &[".ts"], &[] as &[&str], &["*/*.ts"], false, "/", UNLIMITED_DEPTH, &host);
+    let got = match_files(
+        "/dev",
+        &[".ts"],
+        &[] as &[&str],
+        &["*/*.ts"],
+        false,
+        "/",
+        UNLIMITED_DEPTH,
+        &host,
+    );
     assert!(!has(&got, "/dev/node_modules/b.ts"), "should skip node_modules with wildcard");
 }
 
@@ -1712,7 +1928,16 @@ fn test_glob_pattern_literal_with_package_folders_explicit_literal_includes_pack
     // Explicit literal paths should include package folders
     let host = from_map([("/dev/node_modules/b.ts", "")], false);
 
-    let got = match_files("/dev", &[".ts"], &[] as &[&str], &["node_modules/b.ts"], false, "/", UNLIMITED_DEPTH, &host);
+    let got = match_files(
+        "/dev",
+        &[".ts"],
+        &[] as &[&str],
+        &["node_modules/b.ts"],
+        false,
+        "/",
+        UNLIMITED_DEPTH,
+        &host,
+    );
     assert!(has(&got, "/dev/node_modules/b.ts"), "should include explicit node_modules path");
 }
 
@@ -1726,7 +1951,11 @@ fn test_get_base_paths_case_sensitivity_case_sensitive_does_not_dedup_differentl
     // When they're both included as base paths, they should not be deduplicated.
     // Use include patterns that point to directories outside the root path so the root
     // path doesn't subsume them via containsPath.
-    let base_paths = get_base_paths("/root", &["../Other/**/*.ts", "../other/**/*.ts"], true /*caseSensitive*/);
+    let base_paths = get_base_paths(
+        "/root",
+        &["../Other/**/*.ts", "../other/**/*.ts"],
+        true, /*caseSensitive*/
+    );
     // Both /Other and /other should appear because they differ by case on a case-sensitive FS.
     assert!(has(&base_paths, "/Other"), "expected /Other in base paths: {base_paths:?}");
     assert!(has(&base_paths, "/other"), "expected /other in base paths: {base_paths:?}");
@@ -1736,7 +1965,11 @@ fn test_get_base_paths_case_sensitivity_case_sensitive_does_not_dedup_differentl
 fn test_get_base_paths_case_sensitivity_case_insensitive_dedups_differently_cased_paths() {
     // On a case-insensitive file system, /Other and /other refer to the same directory;
     // only one should appear.
-    let base_paths = get_base_paths("/root", &["../Other/**/*.ts", "../other/**/*.ts"], false /*caseSensitive*/);
+    let base_paths = get_base_paths(
+        "/root",
+        &["../Other/**/*.ts", "../other/**/*.ts"],
+        false, /*caseSensitive*/
+    );
     let count = base_paths.iter().filter(|bp| *bp == "/Other" || *bp == "/other").count();
     assert!(count <= 1, "expected at most one of /Other or /other in base paths: {base_paths:?}");
 }

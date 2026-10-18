@@ -128,7 +128,9 @@ pub fn resident(start: usize, len: usize) -> usize {
     }
     let mut vec = vec![0u8; (e - s) / page];
     // SAFETY: mincore only reads the page tables of the range and writes one byte per page into `vec`.
-    let rc = unsafe { libc::mincore(std::ptr::without_provenance_mut(s), e - s, vec.as_mut_ptr().cast()) };
+    let rc = unsafe {
+        libc::mincore(std::ptr::without_provenance_mut(s), e - s, vec.as_mut_ptr().cast())
+    };
     if rc != 0 {
         return 0;
     }
@@ -172,7 +174,8 @@ pub fn report(what: &str) {
         arenas.capacity += r.capacity;
         arenas.used += r.used;
         arenas.tail_resident += r.current_unused.map_or(0, |(s, l)| resident(s, l));
-        arenas.retired_resident += r.retired_unused.iter().map(|&(s, l)| resident(s, l)).sum::<usize>();
+        arenas.retired_resident +=
+            r.retired_unused.iter().map(|&(s, l)| resident(s, l)).sum::<usize>();
         arenas.huge_current += usize::from(r.current_huge);
     }
     let _ = writeln!(
@@ -186,7 +189,8 @@ pub fn report(what: &str) {
         arenas.huge_current
     );
     #[cfg(compressed_ptrs)]
-    let _ = writeln!(out, "  reservation: {} MiB in chunks", mib(crate::reserve::reserved_in_use()));
+    let _ =
+        writeln!(out, "  reservation: {} MiB in chunks", mib(crate::reserve::reserved_in_use()));
     let heap = HEAP_STATS.get().map(|f| f());
     if let Some(h) = heap {
         let _ = writeln!(
@@ -202,7 +206,11 @@ pub fn report(what: &str) {
     let stacks = CHECKER_STACKS.swap(0, Ordering::Relaxed);
     let stack_threads = CHECKER_STACK_THREADS.swap(0, Ordering::Relaxed);
     if stack_threads > 0 {
-        let _ = writeln!(out, "  checker stacks (own mincore): {stack_threads} threads, {} MiB resident", mib(stacks));
+        let _ = writeln!(
+            out,
+            "  checker stacks (own mincore): {stack_threads} threads, {} MiB resident",
+            mib(stacks)
+        );
     }
     #[cfg(target_os = "linux")]
     linux::append(&mut out, &arenas, heap);
@@ -211,7 +219,7 @@ pub fn report(what: &str) {
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use super::{mib, ArenaTotals, HeapStats};
+    use super::{ArenaTotals, HeapStats, mib};
     use std::fmt::Write;
 
     #[derive(Default)]
@@ -228,7 +236,11 @@ mod linux {
     pub(super) fn append(out: &mut String, arenas: &ArenaTotals, heap: Option<HeapStats>) {
         let status = crate::utf8::read_to_string("/proc/self/status").unwrap_or_default();
         let field = |name: &str| status.lines().find(|l| l.starts_with(name)).map_or(0, kb);
-        let threads = status.lines().find(|l| l.starts_with("Threads:")).and_then(|l| l.split_whitespace().nth(1)).unwrap_or("?");
+        let threads = status
+            .lines()
+            .find(|l| l.starts_with("Threads:"))
+            .and_then(|l| l.split_whitespace().nth(1))
+            .unwrap_or("?");
         let _ = writeln!(
             out,
             "  status: VmRSS {} MiB, VmHWM {} MiB, RssAnon {} MiB, RssFile {} MiB, threads {threads}",
@@ -239,18 +251,26 @@ mod linux {
         );
         let smaps = crate::utf8::read_to_string("/proc/self/smaps").unwrap_or_default();
         #[cfg(compressed_ptrs)]
-        let arena_range = (crate::reserve::BASE_ADDR, crate::reserve::BASE_ADDR + crate::reserve::RESERVE);
+        let arena_range =
+            (crate::reserve::BASE_ADDR, crate::reserve::BASE_ADDR + crate::reserve::RESERVE);
         #[cfg(not(compressed_ptrs))]
         let arena_range = (0usize, 0usize);
-        let names = ["arena reservation", "thread stacks", "heap and other anonymous", "file-backed"];
+        let names =
+            ["arena reservation", "thread stacks", "heap and other anonymous", "file-backed"];
         let mut buckets: [Bucket; 4] = Default::default();
-        let mut stacks_by_size: std::collections::BTreeMap<usize, (usize, usize)> = std::collections::BTreeMap::new();
+        let mut stacks_by_size: std::collections::BTreeMap<usize, (usize, usize)> =
+            std::collections::BTreeMap::new();
         let mut cur: Option<(usize, usize)> = None;
         for line in smaps.lines() {
             let mut words = line.split_whitespace();
             let first = words.next().unwrap_or("");
-            if let Some((a, b)) = first.split_once('-').filter(|(a, _)| a.chars().all(|c| c.is_ascii_hexdigit()) && !a.is_empty()) {
-                let (Ok(start), Ok(end)) = (usize::from_str_radix(a, 16), usize::from_str_radix(b, 16)) else {
+            if let Some((a, b)) = first
+                .split_once('-')
+                .filter(|(a, _)| a.chars().all(|c| c.is_ascii_hexdigit()) && !a.is_empty())
+            {
+                let (Ok(start), Ok(end)) =
+                    (usize::from_str_radix(a, 16), usize::from_str_radix(b, 16))
+                else {
                     continue;
                 };
                 let perms = words.next().unwrap_or("");
@@ -260,7 +280,11 @@ mod linux {
                 // (nothing else maps anonymous memory of that size).
                 let class = if start >= arena_range.0 && end <= arena_range.1 {
                     0
-                } else if path == "[stack]" || (path.is_empty() && perms.starts_with("rw") && (200 << 20..=600 << 20).contains(&size)) {
+                } else if path == "[stack]"
+                    || (path.is_empty()
+                        && perms.starts_with("rw")
+                        && (200 << 20..=600 << 20).contains(&size))
+                {
                     1
                 } else if path.starts_with('/') {
                     3
@@ -320,8 +344,8 @@ mod linux {
 ///
 /// Re-read at most every 5 ms; callers between two checked files share the value.
 pub fn process_memory() -> usize {
-    use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
     use std::sync::OnceLock;
+    use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
     static START: OnceLock<std::time::Instant> = OnceLock::new();
     static LAST_NS: AtomicU64 = AtomicU64::new(0);
     static VALUE: AtomicUsize = AtomicUsize::new(0);
@@ -343,7 +367,12 @@ pub fn process_memory() -> usize {
 fn read_process_memory() -> usize {
     unsafe extern "C" {
         static mach_task_self_: u32;
-        fn task_info(target_task: u32, flavor: i32, task_info_out: *mut u32, count: *mut u32) -> i32;
+        fn task_info(
+            target_task: u32,
+            flavor: i32,
+            task_info_out: *mut u32,
+            count: *mut u32,
+        ) -> i32;
     }
     const TASK_VM_INFO: i32 = 22;
     // `task_vm_info_data_t`: `phys_footprint` is the u64 at byte 144 (revision 1 and later).

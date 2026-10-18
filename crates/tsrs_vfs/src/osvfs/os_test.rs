@@ -7,7 +7,11 @@ use super::*;
 // A fresh directory under the system temp dir (t.TempDir()).
 pub(super) fn temp_dir() -> String {
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
-    let dir = std::env::temp_dir().join(format!("tsrs_vfs_test_{}_{}", std::process::id(), COUNTER.fetch_add(1, Ordering::SeqCst)));
+    let dir = std::env::temp_dir().join(format!(
+        "tsrs_vfs_test_{}_{}",
+        std::process::id(),
+        COUNTER.fetch_add(1, Ordering::SeqCst)
+    ));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     dir.to_string_lossy().into_owned()

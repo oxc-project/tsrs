@@ -1,10 +1,10 @@
+use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
-use std::sync::Arc;
 
 use tsrs_contentmapper::{
-    OpenProjectParams, OpenProjectResult, OptionDiagnosticResult, ProtocolJson, TransformParams, METHOD_CLOSE_PROJECT,
-    METHOD_OPEN_PROJECT, METHOD_TRANSFORM,
+    METHOD_CLOSE_PROJECT, METHOD_OPEN_PROJECT, METHOD_TRANSFORM, OpenProjectParams,
+    OpenProjectResult, OptionDiagnosticResult, ProtocolJson, TransformParams,
 };
 use tsrs_core::json::Value;
 use tsrs_core::tspath;
@@ -42,7 +42,11 @@ impl ipc::Handler for dynamicVerbatimHandler {
                 let mut diagnostics = Vec::new();
                 if options == r#"{"plugins":[{"name":1}]}"# {
                     diagnostics = vec![OptionDiagnosticResult {
-                        path: vec![Value::String("plugins".to_string()), Value::Number(0.0), Value::String("name".to_string())],
+                        path: vec![
+                            Value::String("plugins".to_string()),
+                            Value::Number(0.0),
+                            Value::String("name".to_string()),
+                        ],
                         message_text: "Option 'name' requires a string.".to_string(),
                         code: 123,
                     }];
@@ -53,7 +57,10 @@ impl ipc::Handler for dynamicVerbatimHandler {
                 }
                 return Ok(OpenProjectResult {
                     config_identity: identity,
-                    watched_files: vec![tspath::combine_paths(&watch_directory, &["mapper.config.json"])],
+                    watched_files: vec![tspath::combine_paths(
+                        &watch_directory,
+                        &["mapper.config.json"],
+                    )],
                     option_diagnostics: diagnostics,
                 }
                 .marshal_json());
@@ -67,7 +74,9 @@ impl ipc::Handler for dynamicVerbatimHandler {
             METHOD_TRANSFORM => {
                 let p: TransformParams = unmarshal_params(params)?;
                 if p.project_handle.is_empty() {
-                    return Err(ipc::Error::new("content mapper transform requires a project handle"));
+                    return Err(ipc::Error::new(
+                        "content mapper transform requires a project handle",
+                    ));
                 }
             }
             _ => {}

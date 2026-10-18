@@ -3,7 +3,7 @@
 use rustc_hash::FxHashSet;
 use tsrs_ast::{self as ast, Kind, ModifierFlags, Node, SourceFile, Symbol};
 use tsrs_core::context::Context;
-use tsrs_core::{TextRange, P};
+use tsrs_core::{P, TextRange};
 use tsrs_diagnostics as diagnostics;
 use tsrs_lsproto as lsproto;
 use tsrs_lsproto::Json as _;
@@ -39,16 +39,30 @@ impl CodeLensVisitor<'_> {
         if self.last_symbol != current_symbol {
             self.last_symbol = current_symbol;
 
-            if self.user_prefs.references_code_lens_enabled.is_true() && is_valid_reference_lens_node(node, self.user_prefs) {
-                if let Some(code_lens) = self.l.new_code_lens_for_node(self.document_uri, self.projection, node, lsproto::CodeLensKind::References) {
+            if self.user_prefs.references_code_lens_enabled.is_true()
+                && is_valid_reference_lens_node(node, self.user_prefs)
+            {
+                if let Some(code_lens) = self.l.new_code_lens_for_node(
+                    self.document_uri,
+                    self.projection,
+                    node,
+                    lsproto::CodeLensKind::References,
+                ) {
                     if self.seen.insert(key_for_code_lens(&code_lens)) {
                         self.result.push(code_lens);
                     }
                 }
             }
 
-            if self.user_prefs.implementations_code_lens_enabled.is_true() && is_valid_implementations_code_lens_node(node, self.user_prefs) {
-                if let Some(code_lens) = self.l.new_code_lens_for_node(self.document_uri, self.projection, node, lsproto::CodeLensKind::Implementations) {
+            if self.user_prefs.implementations_code_lens_enabled.is_true()
+                && is_valid_implementations_code_lens_node(node, self.user_prefs)
+            {
+                if let Some(code_lens) = self.l.new_code_lens_for_node(
+                    self.document_uri,
+                    self.projection,
+                    node,
+                    lsproto::CodeLensKind::Implementations,
+                ) {
                     if self.seen.insert(key_for_code_lens(&code_lens)) {
                         self.result.push(code_lens);
                     }
@@ -65,12 +79,21 @@ impl CodeLensVisitor<'_> {
 
 impl LanguageService {
     // codelens.go:18
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_code_lenses(&self, ctx: &Context, document_uri: &lsproto::DocumentUri) -> Result<lsproto::CodeLensResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_code_lenses(
+        &self,
+        ctx: &Context,
+        document_uri: &lsproto::DocumentUri,
+    ) -> Result<lsproto::CodeLensResponse, lsproto::Error> {
         let (_, file) = self.get_program_and_file(document_uri);
 
         let user_prefs = &self.user_preferences().code_lens;
-        if !user_prefs.references_code_lens_enabled.is_true() && !user_prefs.implementations_code_lens_enabled.is_true() {
+        if !user_prefs.references_code_lens_enabled.is_true()
+            && !user_prefs.implementations_code_lens_enabled.is_true()
+        {
             return Ok(lsproto::CodeLensResponse::default());
         }
 
@@ -79,7 +102,16 @@ impl LanguageService {
         let mut projections = vec![file];
         projections.extend_from_slice(file.supplemental_source_files());
         for projection in projections {
-            let mut v = CodeLensVisitor { l: self, ctx, document_uri, projection, user_prefs, result: &mut result, seen: &mut seen, last_symbol: None };
+            let mut v = CodeLensVisitor {
+                l: self,
+                ctx,
+                document_uri,
+                projection,
+                user_prefs,
+                result: &mut result,
+                seen: &mut seen,
+                last_symbol: None,
+            };
             v.visit(projection.as_node());
         }
 
@@ -122,8 +154,13 @@ impl LanguageService {
         let uri = data.uri.clone();
         let text_doc = lsproto::TextDocumentIdentifier { uri: uri.clone() };
         let (program, file) = self.get_program_and_file(&uri);
-        let Some(file) = source_file_for_supplemental_file_index(file, data.supplemental_file_index) else {
-            return Err(lsproto::Error::new(format!("supplemental source file index not found: {}", data.supplemental_file_index.unwrap())));
+        let Some(file) =
+            source_file_for_supplemental_file_index(file, data.supplemental_file_index)
+        else {
+            return Err(lsproto::Error::new(format!(
+                "supplemental source file index not found: {}",
+                data.supplemental_file_index.unwrap()
+            )));
         };
         let position = u32::try_from(data.position)
             .map_err(|_| lsproto::Error::new("code lens position must be non-negative"))?;
@@ -169,10 +206,17 @@ impl LanguageService {
                     .unwrap_or_default();
                 let implementations = self.provide_implementations_from_data(
                     ctx,
-                    &lsproto::ImplementationParams { text_document: text_doc, position: code_lens.range.start, ..Default::default() },
+                    &lsproto::ImplementationParams {
+                        text_document: text_doc,
+                        position: code_lens.range.start,
+                        ..Default::default()
+                    },
                     // "Force" link support to be false so that we only get `Locations` back,
                     // and don't include the "current" node in the results.
-                    SymbolEntryTransformOptions { require_locations_result: true, drop_origin_nodes: true },
+                    SymbolEntryTransformOptions {
+                        require_locations_result: true,
+                        drop_origin_nodes: true,
+                    },
                     orchestrator,
                     &symbols_data,
                 )?;
@@ -191,9 +235,12 @@ impl LanguageService {
         }
 
         let mut cmd = lsproto::Command { title: lens_title, ..Default::default() };
-        if let Some(show_locations_command_name) = show_locations_command_name.filter(|_| !locs.is_empty()) {
+        if let Some(show_locations_command_name) =
+            show_locations_command_name.filter(|_| !locs.is_empty())
+        {
             cmd.command.clone_from(show_locations_command_name);
-            cmd.arguments = Some(vec![uri.to_json(), code_lens.range.start.to_json(), locs.to_json()]);
+            cmd.arguments =
+                Some(vec![uri.to_json(), code_lens.range.start.to_json(), locs.to_json()]);
         }
 
         code_lens.command = Some(cmd);
@@ -201,21 +248,21 @@ impl LanguageService {
     }
 
     // codelens.go:175
-    fn new_code_lens_for_node(&self, file_uri: &lsproto::DocumentUri, file: P<SourceFile>, node: P<Node>, kind: lsproto::CodeLensKind) -> Option<lsproto::CodeLens> {
+    fn new_code_lens_for_node(
+        &self,
+        file_uri: &lsproto::DocumentUri,
+        file: P<SourceFile>,
+        node: P<Node>,
+        kind: lsproto::CodeLensKind,
+    ) -> Option<lsproto::CodeLens> {
         let node_for_range = node.name().unwrap_or(node);
         let pos = scanner::skip_trivia(
             file.text(),
-            node_for_range
-                .pos()
-                .expect_source("parsed nodes have source positions"),
+            node_for_range.pos().expect_source("parsed nodes have source positions"),
         );
         let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
             &file,
-            TextRange::new(
-                pos,
-                node.end()
-                    .expect_source("parsed nodes have source positions"),
-            ),
+            TextRange::new(pos, node.end().expect_source("parsed nodes have source positions")),
             Feature::CodeLens,
         );
         if fidelity.is_none() {
@@ -238,7 +285,10 @@ impl LanguageService {
 }
 
 // codelens.go:197
-fn is_valid_implementations_code_lens_node(node: P<Node>, user_prefs: &CodeLensUserPreferences) -> bool {
+fn is_valid_implementations_code_lens_node(
+    node: P<Node>,
+    user_prefs: &CodeLensUserPreferences,
+) -> bool {
     match node.kind() {
         // Always show on interfaces
         Kind::InterfaceDeclaration => {
@@ -248,22 +298,28 @@ fn is_valid_implementations_code_lens_node(node: P<Node>, user_prefs: &CodeLensU
 
         // If configured, show on interface methods
         Kind::MethodSignature => {
-            user_prefs.implementations_code_lens_show_on_interface_methods.is_true() && node.parent().unwrap().kind() == Kind::InterfaceDeclaration
+            user_prefs.implementations_code_lens_show_on_interface_methods.is_true()
+                && node.parent().unwrap().kind() == Kind::InterfaceDeclaration
         }
 
         // If configured, show on all class methods - but not private ones.
         Kind::MethodDeclaration => {
-            if user_prefs.implementations_code_lens_show_on_all_class_methods.is_true() && node.parent().unwrap().kind() == Kind::ClassDeclaration {
-                return !ast::has_modifier(node, ModifierFlags::Private) && node.name().unwrap().kind() != Kind::PrivateIdentifier;
+            if user_prefs.implementations_code_lens_show_on_all_class_methods.is_true()
+                && node.parent().unwrap().kind() == Kind::ClassDeclaration
+            {
+                return !ast::has_modifier(node, ModifierFlags::Private)
+                    && node.name().unwrap().kind() != Kind::PrivateIdentifier;
             }
             // fallthrough
             ast::has_modifier(node, ModifierFlags::Abstract)
         }
 
         // Always show on abstract classes/properties/methods
-        Kind::ClassDeclaration | Kind::Constructor | Kind::GetAccessor | Kind::SetAccessor | Kind::PropertyDeclaration => {
-            ast::has_modifier(node, ModifierFlags::Abstract)
-        }
+        Kind::ClassDeclaration
+        | Kind::Constructor
+        | Kind::GetAccessor
+        | Kind::SetAccessor
+        | Kind::PropertyDeclaration => ast::has_modifier(node, ModifierFlags::Abstract),
 
         _ => false,
     }
@@ -273,14 +329,20 @@ fn is_valid_implementations_code_lens_node(node: P<Node>, user_prefs: &CodeLensU
 fn is_valid_reference_lens_node(node: P<Node>, user_prefs: &CodeLensUserPreferences) -> bool {
     match node.kind() {
         Kind::FunctionDeclaration | Kind::VariableDeclaration => {
-            if node.kind() == Kind::FunctionDeclaration && user_prefs.references_code_lens_show_on_all_functions.is_true() {
+            if node.kind() == Kind::FunctionDeclaration
+                && user_prefs.references_code_lens_show_on_all_functions.is_true()
+            {
                 return true;
             }
             // fallthrough
             ast::get_combined_modifier_flags(node).intersects(ModifierFlags::Export)
         }
 
-        Kind::ClassDeclaration | Kind::InterfaceDeclaration | Kind::TypeAliasDeclaration | Kind::EnumDeclaration | Kind::EnumMember => true,
+        Kind::ClassDeclaration
+        | Kind::InterfaceDeclaration
+        | Kind::TypeAliasDeclaration
+        | Kind::EnumDeclaration
+        | Kind::EnumMember => true,
 
         Kind::MethodDeclaration
         | Kind::MethodSignature
@@ -293,7 +355,10 @@ fn is_valid_reference_lens_node(node: P<Node>, user_prefs: &CodeLensUserPreferen
             // For https://github.com/microsoft/vscode/issues/90396
             // !!!
 
-            matches!(node.parent().unwrap().kind(), Kind::ClassDeclaration | Kind::InterfaceDeclaration | Kind::TypeLiteral)
+            matches!(
+                node.parent().unwrap().kind(),
+                Kind::ClassDeclaration | Kind::InterfaceDeclaration | Kind::TypeLiteral
+            )
         }
 
         _ => false,

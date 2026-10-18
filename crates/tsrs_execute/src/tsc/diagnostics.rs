@@ -21,12 +21,23 @@ pub type DiagnosticReporter<'a> = Box<dyn Fn(P<Diagnostic>) + Send + Sync + 'a>;
 // Go `io.Writer` for the reporters: `sys.Writer()` or a build task's output buffer.
 pub type Writer<'a> = std::sync::Arc<dyn Fn(&str) + Send + Sync + 'a>;
 
-pub fn create_diagnostic_reporter<'a>(sys: &'a dyn System, options: Option<&CompilerOptions>) -> DiagnosticReporter<'a> {
-    create_diagnostic_reporter_with_writer(sys, std::sync::Arc::new(move |t: &str| sys.write(t)), options)
+pub fn create_diagnostic_reporter<'a>(
+    sys: &'a dyn System,
+    options: Option<&CompilerOptions>,
+) -> DiagnosticReporter<'a> {
+    create_diagnostic_reporter_with_writer(
+        sys,
+        std::sync::Arc::new(move |t: &str| sys.write(t)),
+        options,
+    )
 }
 
 // diagnostics.go:27 CreateDiagnosticReporter(sys, w, locale, options)
-pub fn create_diagnostic_reporter_with_writer<'a>(sys: &'a dyn System, w: Writer<'a>, options: Option<&CompilerOptions>) -> DiagnosticReporter<'a> {
+pub fn create_diagnostic_reporter_with_writer<'a>(
+    sys: &'a dyn System,
+    w: Writer<'a>,
+    options: Option<&CompilerOptions>,
+) -> DiagnosticReporter<'a> {
     if options.is_some_and(|o| o.quiet.is_true()) {
         return Box::new(|_| {});
     }
@@ -37,7 +48,11 @@ pub fn create_diagnostic_reporter_with_writer<'a>(sys: &'a dyn System, w: Writer
     if should_be_pretty(sys, options) {
         return Box::new(move |diagnostic| {
             let mut out = Vec::new();
-            diagnosticwriter::format_diagnostic_with_color_and_context(&mut out, diagnostic, &format_opts);
+            diagnosticwriter::format_diagnostic_with_color_and_context(
+                &mut out,
+                diagnostic,
+                &format_opts,
+            );
             out.extend_from_slice(format_opts.new_line.as_bytes());
             w(&tsrs_core::utf8::from_utf8_lossy(&out));
         });
@@ -69,9 +84,19 @@ pub fn create_builder_status_reporter<'a>(
         let mut out = Vec::new();
         let time = sys.format_time_now();
         if pretty {
-            diagnosticwriter::format_diagnostics_status_with_color_and_time(&mut out, &time, diagnostic, &format_opts);
+            diagnosticwriter::format_diagnostics_status_with_color_and_time(
+                &mut out,
+                &time,
+                diagnostic,
+                &format_opts,
+            );
         } else {
-            diagnosticwriter::format_diagnostics_status_and_time(&mut out, &time, diagnostic, &format_opts);
+            diagnosticwriter::format_diagnostics_status_and_time(
+                &mut out,
+                &time,
+                diagnostic,
+                &format_opts,
+            );
         }
         out.extend_from_slice(format_opts.new_line.as_bytes());
         out.extend_from_slice(format_opts.new_line.as_bytes());
@@ -100,9 +125,19 @@ pub fn create_watch_status_reporter<'a>(
         diagnosticwriter::try_clear_screen(&mut out, diagnostic, &options);
         let time = sys.format_time_now();
         if pretty {
-            diagnosticwriter::format_diagnostics_status_with_color_and_time(&mut out, &time, diagnostic, &format_opts);
+            diagnosticwriter::format_diagnostics_status_with_color_and_time(
+                &mut out,
+                &time,
+                diagnostic,
+                &format_opts,
+            );
         } else {
-            diagnosticwriter::format_diagnostics_status_and_time(&mut out, &time, diagnostic, &format_opts);
+            diagnosticwriter::format_diagnostics_status_and_time(
+                &mut out,
+                &time,
+                diagnostic,
+                &format_opts,
+            );
         }
         out.extend_from_slice(format_opts.new_line.as_bytes());
         out.extend_from_slice(format_opts.new_line.as_bytes());
@@ -143,7 +178,10 @@ fn should_be_pretty(sys: &dyn System, options: Option<&CompilerOptions>) -> bool
 
 pub type DiagnosticsReporter<'a> = Box<dyn Fn(&[P<Diagnostic>]) + Send + Sync + 'a>;
 
-pub fn create_report_error_summary<'a>(sys: &'a dyn System, options: &CompilerOptions) -> DiagnosticsReporter<'a> {
+pub fn create_report_error_summary<'a>(
+    sys: &'a dyn System,
+    options: &CompilerOptions,
+) -> DiagnosticsReporter<'a> {
     if sys.diagnostic_sink().is_none() && should_be_pretty(sys, Some(options)) {
         let format_opts = get_format_opts_of_sys(sys);
         return Box::new(move |diagnostics| {

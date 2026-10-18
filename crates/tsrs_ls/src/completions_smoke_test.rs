@@ -9,20 +9,20 @@
 
 use std::sync::Arc;
 
-use tsrs_compiler::{new_compiler_host, new_program, CompilerHost, Program, ProgramOptions};
+use tsrs_compiler::{CompilerHost, Program, ProgramOptions, new_compiler_host, new_program};
+use tsrs_core::P;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::context::Context;
 use tsrs_core::json::{self, Value};
-use tsrs_core::P;
 use tsrs_lsproto::{self as lsproto, Json};
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{bundled, vfsmatch, vfstest, FS};
+use tsrs_vfs::{FS, bundled, vfsmatch, vfstest};
 
 use crate::autoimport::{ProjectID, Registry};
-use crate::lsconv::{self, compute_lsp_line_starts, Converters};
-use crate::lsutil::{parse_user_preferences, UserPreferences};
+use crate::lsconv::{self, Converters, compute_lsp_line_starts};
+use crate::lsutil::{UserPreferences, parse_user_preferences};
 use crate::sourcemap::ECMALineInfo;
-use crate::{compare_completion_entries, new_language_service, Host, LanguageService};
+use crate::{Host, LanguageService, compare_completion_entries, new_language_service};
 
 const DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/testdata/completions_smoke");
 
@@ -51,8 +51,24 @@ impl Host for TestHost {
     fn auto_import_registry(&self) -> Option<Arc<Registry>> {
         None
     }
-    fn read_directory(&self, current_dir: &str, path: &str, extensions: &[String], excludes: &[String], includes: &[String], depth: usize) -> Vec<String> {
-        vfsmatch::read_directory(&*self.fs, current_dir, path, extensions, excludes, includes, depth)
+    fn read_directory(
+        &self,
+        current_dir: &str,
+        path: &str,
+        extensions: &[String],
+        excludes: &[String],
+        includes: &[String],
+        depth: usize,
+    ) -> Vec<String> {
+        vfsmatch::read_directory(
+            &*self.fs,
+            current_dir,
+            path,
+            extensions,
+            excludes,
+            includes,
+            depth,
+        )
     }
     fn get_directories(&self, path: &str) -> Vec<String> {
         self.fs.get_accessible_entries(path).directories
@@ -98,20 +114,35 @@ fn project_files() -> Vec<(String, String)> {
 
 fn setup(spec: &Value) -> (LanguageService, Context, Vec<(String, String)>) {
     let files = project_files();
-    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|(k, v)| (k.as_str(), v.as_str())), true)));
-    let config_host: &'static parseConfigHost = Box::leak(Box::new(parseConfigHost { fs: std::sync::Arc::clone(&fs) }));
-    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file("/tsconfig.json", None, None, config_host, None);
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.as_str(), v.as_str())),
+        true,
+    )));
+    let config_host: &'static parseConfigHost =
+        Box::leak(Box::new(parseConfigHost { fs: std::sync::Arc::clone(&fs) }));
+    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
+        "/tsconfig.json",
+        None,
+        None,
+        config_host,
+        None,
+    );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
-    let host: Arc<dyn CompilerHost> = new_compiler_host("/", std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
+    let host: Arc<dyn CompilerHost> =
+        new_compiler_host("/", std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
     let program: &'static Program = new_program(ProgramOptions::new(P::new(config.unwrap()), host));
     let fs_for_lines = std::sync::Arc::clone(&fs);
-    let converters = lsconv::new_converters(lsproto::PositionEncodingKind::UTF16, move |file_name| fs_for_lines.read_file(file_name).map(|text| compute_lsp_line_starts(&text)));
+    let converters =
+        lsconv::new_converters(lsproto::PositionEncodingKind::UTF16, move |file_name| {
+            fs_for_lines.read_file(file_name).map(|text| compute_lsp_line_starts(&text))
+        });
     // Go: lsutil.ParseUserPreferences(map[string]any{"js/ts": initializationOptions.userPreferences})
     let mut items: OrderedMap<String, Value> = OrderedMap::default();
     items.insert("js/ts".to_string(), field(spec, "preferences").clone());
     let preferences = parse_user_preferences(&items);
     let host = Arc::new(TestHost { fs, converters, preferences });
-    let ls = new_language_service(ProjectID("/tsconfig.json".to_string()), program, host, "/index.ts");
+    let ls =
+        new_language_service(ProjectID("/tsconfig.json".to_string()), program, host, "/index.ts");
     let caps = lsproto::ClientCapabilities::from_json(field(spec, "capabilities")).unwrap();
     let ctx = lsproto::with_client_capabilities(&Context::background(), Arc::new(caps.resolve()));
     (ls, ctx, files)
@@ -133,7 +164,8 @@ fn str_field<'a>(v: &'a Value, name: &str) -> &'a str {
 
 fn position_of(text: &str, caret: &str) -> lsproto::Position {
     let needle = caret.replace('|', "");
-    let offset = text.find(&needle).unwrap_or_else(|| panic!("caret not found: {caret}")) + caret.find('|').unwrap();
+    let offset = text.find(&needle).unwrap_or_else(|| panic!("caret not found: {caret}"))
+        + caret.find('|').unwrap();
     let before = &text[..offset];
     let line = before.matches('\n').count() as u32;
     let character = before[before.rfind('\n').map_or(0, |i| i + 1)..].encode_utf16().count() as u32;
@@ -145,10 +177,8 @@ fn normalize(result: &Value) -> String {
     let mut result = result.clone();
     if let Value::Object(m) = &mut result {
         if let Some(Value::Array(items)) = m.get("items") {
-            let mut parsed: Vec<lsproto::CompletionItem> = items
-                .iter()
-                .map(|i| lsproto::CompletionItem::from_json(i).unwrap())
-                .collect();
+            let mut parsed: Vec<lsproto::CompletionItem> =
+                items.iter().map(|i| lsproto::CompletionItem::from_json(i).unwrap()).collect();
             parsed.sort_by(compare_completion_entries);
             let sorted: Vec<Value> = parsed.iter().map(tsrs_lsproto::Json::to_json).collect();
             m.insert("items".to_string(), Value::Array(sorted));
@@ -184,7 +214,8 @@ fn rich_expected() -> OrderedMap<String, Value> {
 }
 
 fn run_profile(name: &str) {
-    let spec = json::unmarshal(&std::fs::read_to_string(format!("{DIR}/{name}.json")).unwrap()).unwrap();
+    let spec =
+        json::unmarshal(&std::fs::read_to_string(format!("{DIR}/{name}.json")).unwrap()).unwrap();
     let expected = read_expected(name);
     let (ls, ctx, files) = setup(&spec);
     let Value::Array(cases) = field(&spec, "cases") else { panic!("cases") };
@@ -193,7 +224,9 @@ fn run_profile(name: &str) {
         let id = str_field(case, "id");
         let method = str_field(case, "method");
         if let Value::String(message) = field(case, "expect_error") {
-            let err = ls.provide_completion(&ctx, &uri_of(case), position_in(case, &files), None).unwrap_err();
+            let err = ls
+                .provide_completion(&ctx, &uri_of(case), position_in(case, &files), None)
+                .unwrap_err();
             if err.message != *message {
                 failures.push(format!("{id}: want error {message:?}, got {:?}", err.message));
             }
@@ -205,8 +238,11 @@ fn run_profile(name: &str) {
         };
         let actual: Value = if method == "completionItem/resolve" {
             let from = &expected[str_field(case, "from")];
-            let Value::Array(items) = field(field(from, "result"), "items") else { panic!("items") };
-            let item = items.iter().find(|i| str_field(i, "label") == str_field(case, "label")).unwrap();
+            let Value::Array(items) = field(field(from, "result"), "items") else {
+                panic!("items")
+            };
+            let item =
+                items.iter().find(|i| str_field(i, "label") == str_field(case, "label")).unwrap();
             let item = lsproto::CompletionItem::from_json(item).unwrap();
             let data = item.data.clone();
             ls.resolve_completion_item(&ctx, item, data.as_ref()).unwrap().to_json()
@@ -218,13 +254,20 @@ fn run_profile(name: &str) {
             match method {
                 "textDocument/completion" => {
                     let context = match field(case, "context") {
-                        Value::Null => lsproto::CompletionContext { trigger_kind: lsproto::CompletionTriggerKind::Invoked, ..Default::default() },
+                        Value::Null => lsproto::CompletionContext {
+                            trigger_kind: lsproto::CompletionTriggerKind::Invoked,
+                            ..Default::default()
+                        },
                         c => lsproto::CompletionContext::from_json(c).unwrap(),
                     };
                     ls.provide_completion(&ctx, &uri, position, Some(&context)).unwrap().to_json()
                 }
                 "textDocument/linkedEditingRange" => {
-                    let params = lsproto::LinkedEditingRangeParams { text_document: lsproto::TextDocumentIdentifier { uri }, position, ..Default::default() };
+                    let params = lsproto::LinkedEditingRangeParams {
+                        text_document: lsproto::TextDocumentIdentifier { uri },
+                        position,
+                        ..Default::default()
+                    };
                     ls.provide_linked_editing_range(&ctx, &params).unwrap().to_json()
                 }
                 "textDocument/_vs_onAutoInsert" => {
@@ -232,7 +275,6 @@ fn run_profile(name: &str) {
                         vs_text_document: lsproto::TextDocumentIdentifier { uri },
                         vs_position: position,
                         vs_ch: str_field(case, "ch").to_string(),
-
                     };
                     ls.provide_on_auto_insert(&ctx, &params).unwrap().to_json()
                 }
@@ -245,7 +287,13 @@ fn run_profile(name: &str) {
             failures.push(format!("{id}:\n  want {want}\n  got  {got}"));
         }
     }
-    assert!(failures.is_empty(), "{} of {} responses differ:\n{}", failures.len(), cases.len(), failures.join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} of {} responses differ:\n{}",
+        failures.len(),
+        cases.len(),
+        failures.join("\n")
+    );
 }
 
 #[test]

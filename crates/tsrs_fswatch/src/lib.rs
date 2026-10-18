@@ -12,7 +12,13 @@ mod fsevents_darwin;
 mod fsevents_darwin_ffi;
 #[cfg(target_os = "linux")]
 mod inotify_linux;
-#[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd", target_os = "dragonfly"))]
+#[cfg(any(
+    target_os = "macos",
+    target_os = "freebsd",
+    target_os = "openbsd",
+    target_os = "netbsd",
+    target_os = "dragonfly"
+))]
 mod kqueue;
 mod pathcompare;
 mod pathkey;
@@ -21,9 +27,9 @@ mod walkdir_unix;
 mod watcher;
 
 #[cfg(test)]
-mod testutil_test;
-#[cfg(test)]
 mod eventlist_test;
+#[cfg(test)]
+mod testutil_test;
 #[cfg(test)]
 mod watcher_test;
 
@@ -31,5 +37,8 @@ pub use canonicalize::path_comparer_for_path;
 pub use event::{Event, EventKind};
 pub use pathkey::{NativePathComparisonAvailable, PathComparer};
 pub use watcher::{
-    all_watchers, default, set_write_settling, fanotify, fsevents, inotify, kqueue, windows, with_ignore, with_recursive, Error, ErrFilesystemUnsupported, ErrOverflow, ErrUnavailable, ErrWatchTerminated, IgnoreFunc, Sentinel, Watch, WatchCallback, WatchDirectoryRequest, WatchOption, Watcher,
+    ErrFilesystemUnsupported, ErrOverflow, ErrUnavailable, ErrWatchTerminated, Error, IgnoreFunc,
+    Sentinel, Watch, WatchCallback, WatchDirectoryRequest, WatchOption, Watcher, all_watchers,
+    default, fanotify, fsevents, inotify, kqueue, set_write_settling, windows, with_ignore,
+    with_recursive,
 };

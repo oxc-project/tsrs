@@ -26,7 +26,12 @@ fn run(args: &[&str]) -> String {
         .unwrap();
     let stdout = String::from_utf8(out.stdout).unwrap();
     let expected_code = if stdout.is_empty() { 0 } else { 2 };
-    assert_eq!(out.status.code(), Some(expected_code), "{args:?}: {}", String::from_utf8_lossy(&out.stderr));
+    assert_eq!(
+        out.status.code(),
+        Some(expected_code),
+        "{args:?}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     stdout
 }
 
@@ -38,7 +43,11 @@ fn base_type_cycle_is_entered_at_its_first_declared_member() {
         assert_eq!(run(&["--checkers", checkers]), expected, "--checkers {checkers}");
         for seed in 1..=8 {
             let assignment = format!("random:{seed}");
-            assert_eq!(run(&["--checkers", checkers, "--checkerAssignment", &assignment]), expected, "--checkers {checkers} {assignment}");
+            assert_eq!(
+                run(&["--checkers", checkers, "--checkerAssignment", &assignment]),
+                expected,
+                "--checkers {checkers} {assignment}"
+            );
         }
     }
     // Go's history: one checker checks read-env.ts first and enters the cycle at `Env`, as tsgo-ref does.

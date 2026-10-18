@@ -39,14 +39,20 @@ pub(crate) fn get_wildcard_directories(
     let mut recursive_keys: Vec<String> = Vec::new();
 
     for file in include {
-        let spec = tspath::normalize_path(&tspath::combine_paths(&compare_paths_options.current_directory, &[file]));
+        let spec = tspath::normalize_path(&tspath::combine_paths(
+            &compare_paths_options.current_directory,
+            &[file],
+        ));
         if let Some(exclude_matcher) = &exclude_matcher {
             if exclude_matcher.match_string(&spec) {
                 continue;
             }
         }
 
-        let match_ = get_wildcard_directory_from_spec(&spec, compare_paths_options.use_case_sensitive_file_names);
+        let match_ = get_wildcard_directory_from_spec(
+            &spec,
+            compare_paths_options.use_case_sensitive_file_names,
+        );
         if let Some(match_) = match_ {
             let key = match_.key;
             let path = match_.path;
@@ -56,7 +62,8 @@ pub(crate) fn get_wildcard_directories(
             let mut existing_recursive = false;
 
             if let Some(existing_path) = &existing_path {
-                existing_recursive = wildcard_directories.get(existing_path).copied().unwrap_or(false);
+                existing_recursive =
+                    wildcard_directories.get(existing_path).copied().unwrap_or(false);
             }
 
             if existing_path.is_none() || (!existing_recursive && recursive) {
@@ -80,8 +87,11 @@ pub(crate) fn get_wildcard_directories(
         let paths: Vec<String> = wildcard_directories.keys().cloned().collect();
         for path in paths {
             for recursive_key in &recursive_keys {
-                let key = to_canonical_key(&path, compare_paths_options.use_case_sensitive_file_names);
-                if key != *recursive_key && tspath::contains_path(recursive_key, &key, compare_paths_options) {
+                let key =
+                    to_canonical_key(&path, compare_paths_options.use_case_sensitive_file_names);
+                if key != *recursive_key
+                    && tspath::contains_path(recursive_key, &key, compare_paths_options)
+                {
                     wildcard_directories.delete(&path);
                 }
             }
@@ -105,11 +115,16 @@ struct WildcardDirectoryMatch {
     recursive: bool,
 }
 
-fn get_wildcard_directory_from_spec(spec: &str, use_case_sensitive_file_names: bool) -> Option<WildcardDirectoryMatch> {
+fn get_wildcard_directory_from_spec(
+    spec: &str,
+    use_case_sensitive_file_names: bool,
+) -> Option<WildcardDirectoryMatch> {
     // Find the first occurrence of a wildcard character
     if let Some(first_wildcard) = spec.find(['*', '?']) {
         // Find the last directory separator before the wildcard
-        if let Some(last_sep_before_wildcard) = spec[..first_wildcard].rfind(tspath::DIRECTORY_SEPARATOR as char) {
+        if let Some(last_sep_before_wildcard) =
+            spec[..first_wildcard].rfind(tspath::DIRECTORY_SEPARATOR as char)
+        {
             let path = &spec[..last_sep_before_wildcard];
             // Determine if this should be watched recursively:
             // recursive if the wildcard appears in a directory segment (not just the final file segment)

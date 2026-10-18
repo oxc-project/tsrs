@@ -1,20 +1,25 @@
 use tsrs_ast::{self as ast, CheckFlags, Kind, Node, NodeList, SourceFile, Symbol, SymbolFlags};
-use tsrs_checker::{self as checker, Checker, ContextFlags, ElementFlags, Flags, InternalFlags, Signature, SymbolFormatFlags, Type};
+use tsrs_checker::{
+    self as checker, Checker, ContextFlags, ElementFlags, Flags, InternalFlags, Signature,
+    SymbolFormatFlags, Type,
+};
 use tsrs_compiler::Program;
 use tsrs_core::context::Context;
-use tsrs_core::{NewLineKind, TextRange, P};
+use tsrs_core::{NewLineKind, P, TextRange};
 use tsrs_lsproto as lsproto;
 use tsrs_printer::{self as printer, EmitTextWriter, Printer, PrinterOptions};
 use tsrs_scanner as scanner;
 
 use crate::astnav;
-use crate::displaypartswriter::{new_display_parts_writer, DisplayPartsWriter};
+use crate::displaypartswriter::{DisplayPartsWriter, new_display_parts_writer};
 use crate::hover::get_documentation_from_declaration;
 use crate::languageservice::LanguageService;
 use crate::spanmap::Feature;
 use crate::utilities::{
-    find_containing_list, get_children_from_non_jsdoc_node, get_possible_generic_signatures, get_possible_type_arguments_info, is_in_comment, is_in_string,
-    is_inside_template_literal, is_no_substitution_template_literal, is_tagged_template_expression, is_template_head, is_template_tail, range_contains_range,
+    find_containing_list, get_children_from_non_jsdoc_node, get_possible_generic_signatures,
+    get_possible_type_arguments_info, is_in_comment, is_in_string, is_inside_template_literal,
+    is_no_substitution_template_literal, is_tagged_template_expression, is_template_head,
+    is_template_tail, range_contains_range,
 };
 
 // SignatureHelpTriggerCharacters and SignatureHelpRetriggerCharacters are the characters that trigger and
@@ -62,7 +67,11 @@ impl LanguageService {
         context: Option<&lsproto::SignatureHelpContext>,
     ) -> Result<lsproto::SignatureHelpResponse, lsproto::Error> {
         let (program, source_file) = self.get_program_and_file(document_uri);
-        let positions = self.converters.from_lsp_position_for_source_file(source_file, position, Feature::SignatureHelp);
+        let positions = self.converters.from_lsp_position_for_source_file(
+            source_file,
+            position,
+            Feature::SignatureHelp,
+        );
         if let Some(result) = positions.into_iter().find_map(|projection| {
             if !projection.fidelity.is_single_segment() {
                 return None;
@@ -131,28 +140,46 @@ impl LanguageService {
                         signatureHelpTriggerReasonKind::CharacterTyped
                     }
                 }
-                lsproto::SignatureHelpTriggerKind::Invoked => signatureHelpTriggerReasonKind::Invoked,
+                lsproto::SignatureHelpTriggerKind::Invoked => {
+                    signatureHelpTriggerReasonKind::Invoked
+                }
                 _ => signatureHelpTriggerReasonKind::Invoked,
             };
         }
 
         // Only need to be careful if the user typed a character and signature help wasn't showing.
-        let only_use_syntactic_owners = trigger_reason_kind == signatureHelpTriggerReasonKind::CharacterTyped;
+        let only_use_syntactic_owners =
+            trigger_reason_kind == signatureHelpTriggerReasonKind::CharacterTyped;
 
         // Bail out quickly in the middle of a string or comment, don't provide signature help unless the user explicitly requested it.
-        if only_use_syntactic_owners && (is_in_string(source_file, position, Some(starting_token)) || is_in_comment(source_file, position, starting_token).is_some()) {
+        if only_use_syntactic_owners
+            && (is_in_string(source_file, position, Some(starting_token))
+                || is_in_comment(source_file, position, starting_token).is_some())
+        {
             return None;
         }
 
         let is_manually_invoked = trigger_reason_kind == signatureHelpTriggerReasonKind::Invoked;
-        let argument_info = get_containing_argument_info(starting_token, source_file, type_checker, is_manually_invoked, position)?;
+        let argument_info = get_containing_argument_info(
+            starting_token,
+            source_file,
+            type_checker,
+            is_manually_invoked,
+            position,
+        )?;
 
         if ctx.err().is_some() {
             return None;
         }
 
         // Extra syntactic and semantic filtering of signature help
-        let candidate_info = get_candidate_or_type_info(&argument_info, type_checker, source_file, starting_token, only_use_syntactic_owners);
+        let candidate_info = get_candidate_or_type_info(
+            &argument_info,
+            type_checker,
+            source_file,
+            starting_token,
+            only_use_syntactic_owners,
+        );
 
         if ctx.err().is_some() {
             return None;
@@ -162,7 +189,12 @@ impl LanguageService {
             // For JS files, try a fallback that searches all source files for declarations
             // with matching names that have call signatures. This is a heuristic for untyped JS code.
             if ast::is_source_file_js(source_file) {
-                return self.create_js_signature_help_items(ctx, &argument_info, program, type_checker);
+                return self.create_js_signature_help_items(
+                    ctx,
+                    &argument_info,
+                    program,
+                    type_checker,
+                );
             }
             return None;
         };
@@ -179,17 +211,36 @@ impl LanguageService {
                 only_use_syntactic_owners,
             );
         }
-        create_type_help_items(ctx, candidate_info.type_info.unwrap(), &argument_info, source_file, type_checker)
+        create_type_help_items(
+            ctx,
+            candidate_info.type_info.unwrap(),
+            &argument_info,
+            source_file,
+            type_checker,
+        )
     }
 }
 
 // signaturehelp.go:169
-fn create_type_help_items(ctx: &Context, symbol: P<Symbol>, argument_info: &argumentListInfo, source_file: P<SourceFile>, c: &mut Checker) -> Option<lsproto::SignatureHelp> {
-    let type_parameters = c.get_local_type_parameters_of_class_or_interface_or_type_alias_exported(symbol);
+fn create_type_help_items(
+    ctx: &Context,
+    symbol: P<Symbol>,
+    argument_info: &argumentListInfo,
+    source_file: P<SourceFile>,
+    c: &mut Checker,
+) -> Option<lsproto::SignatureHelp> {
+    let type_parameters =
+        c.get_local_type_parameters_of_class_or_interface_or_type_alias_exported(symbol);
     if type_parameters.is_empty() {
         return None;
     }
-    let item = get_type_help_item(symbol, &type_parameters, get_enclosing_declaration_from_invocation(&argument_info.invocation), source_file, c);
+    let item = get_type_help_item(
+        symbol,
+        &type_parameters,
+        get_enclosing_declaration_from_invocation(&argument_info.invocation),
+        source_file,
+        c,
+    );
 
     // Check client capabilities for activeParameter handling
     let caps = lsproto::get_client_capabilities(ctx);
@@ -197,51 +248,83 @@ fn create_type_help_items(ctx: &Context, symbol: P<Symbol>, argument_info: &argu
     let supports_per_signature_active_param = sig_info_caps.active_parameter_support;
 
     // Converting signatureHelpParameter to *lsproto.ParameterInformation
-    let parameters: Vec<lsproto::ParameterInformation> = item.parameters.iter().map(|param| param.parameter_info.clone()).collect();
+    let parameters: Vec<lsproto::ParameterInformation> =
+        item.parameters.iter().map(|param| param.parameter_info.clone()).collect();
 
-    let mut sig_info = lsproto::SignatureInformation { label: item.label.clone(), documentation: None, parameters: Some(parameters), ..Default::default() };
+    let mut sig_info = lsproto::SignatureInformation {
+        label: item.label.clone(),
+        documentation: None,
+        parameters: Some(parameters),
+        ..Default::default()
+    };
 
     // If client supports per-signature activeParameter, set it on SignatureInformation
     if supports_per_signature_active_param && !item.parameters.is_empty() {
-        sig_info.active_parameter = Some(lsproto::UintegerOrNull { uinteger: Some(argument_info.argument_index as u32) });
+        sig_info.active_parameter =
+            Some(lsproto::UintegerOrNull { uinteger: Some(argument_info.argument_index as u32) });
     }
 
-    let mut help = lsproto::SignatureHelp { signatures: vec![sig_info], active_signature: Some(0), ..Default::default() };
+    let mut help = lsproto::SignatureHelp {
+        signatures: vec![sig_info],
+        active_signature: Some(0),
+        ..Default::default()
+    };
 
     // If client doesn't support per-signature activeParameter, set it on the top-level SignatureHelp
     if !supports_per_signature_active_param && !item.parameters.is_empty() {
-        help.active_parameter = Some(lsproto::UintegerOrNull { uinteger: Some(argument_info.argument_index as u32) });
+        help.active_parameter =
+            Some(lsproto::UintegerOrNull { uinteger: Some(argument_info.argument_index as u32) });
     }
 
     Some(help)
 }
 
 // signaturehelp.go:211
-fn get_type_help_item(symbol: P<Symbol>, type_parameter: &[P<Type>], enclosing_declaration: P<Node>, source_file: P<SourceFile>, c: &mut Checker) -> signatureInformation {
-    let mut printer = printer::new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, printer::PrintHandlers::default(), None);
+fn get_type_help_item(
+    symbol: P<Symbol>,
+    type_parameter: &[P<Type>],
+    enclosing_declaration: P<Node>,
+    source_file: P<SourceFile>,
+    c: &mut Checker,
+) -> signatureInformation {
+    let mut printer = printer::new_printer(
+        PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+        printer::PrintHandlers::default(),
+        None,
+    );
 
     let mut parameters: Vec<signatureHelpParameter> = Vec::with_capacity(type_parameter.len());
-    parameters.extend(
-        type_parameter
-            .iter()
-            .map(|&type_param| create_signature_help_parameter_for_type_parameter(type_param, source_file, enclosing_declaration, c, &mut printer)),
-    );
+    parameters.extend(type_parameter.iter().map(|&type_param| {
+        create_signature_help_parameter_for_type_parameter(
+            type_param,
+            source_file,
+            enclosing_declaration,
+            c,
+            &mut printer,
+        )
+    }));
 
     // Creating display label
     let mut display_parts = String::new();
     display_parts.push_str(&c.symbol_to_string_exported(symbol));
     if !parameters.is_empty() {
         display_parts.push_str(scanner::token_to_string(Kind::LessThanToken));
-        display_parts.extend(
-            parameters
-                .iter()
-                .enumerate()
-                .flat_map(|(i, type_parameter)| [if i > 0 { ", " } else { "" }, type_parameter.parameter_info.label.string.as_deref().unwrap()]),
-        );
+        display_parts.extend(parameters.iter().enumerate().flat_map(|(i, type_parameter)| {
+            [
+                if i > 0 { ", " } else { "" },
+                type_parameter.parameter_info.label.string.as_deref().unwrap(),
+            ]
+        }));
         display_parts.push_str(scanner::token_to_string(Kind::GreaterThanToken));
     }
 
-    signatureInformation { label: display_parts, documentation: None, parameters, is_variadic: false, colorized_runs: Vec::new() }
+    signatureInformation {
+        label: display_parts,
+        documentation: None,
+        parameters,
+        is_variadic: false,
+        colorized_runs: Vec::new(),
+    }
 }
 
 impl LanguageService {
@@ -249,7 +332,13 @@ impl LanguageService {
     // doesn't produce results. It searches all source files for declarations with matching names
     // that have call signatures.
     // signaturehelp.go:244
-    fn create_js_signature_help_items(&self, ctx: &Context, argument_info: &argumentListInfo, program: &'static Program, c: &mut Checker) -> Option<lsproto::SignatureHelp> {
+    fn create_js_signature_help_items(
+        &self,
+        ctx: &Context,
+        argument_info: &argumentListInfo,
+        program: &'static Program,
+        c: &mut Checker,
+    ) -> Option<lsproto::SignatureHelp> {
         if argument_info.invocation.contextual_invocation.is_some() {
             return None;
         }
@@ -264,7 +353,8 @@ impl LanguageService {
         }
 
         if let Some(result) = program.get_source_files().iter().find_map(|&sf| {
-            let result = self.find_signature_help_from_named_declarations(ctx, sf, name, argument_info, c);
+            let result =
+                self.find_signature_help_from_named_declarations(ctx, sf, name, argument_info, c);
             if result.is_some() {
                 return Some(result);
             }
@@ -303,7 +393,15 @@ impl LanguageService {
                     if let Some(t) = c.get_type_of_symbol_at_location(symbol, Some(node)) {
                         let call_signatures = c.get_call_signatures(t);
                         if !call_signatures.is_empty() {
-                            *result = l.create_signature_help_items(ctx, call_signatures, Some(call_signatures[0]), argument_info, source_file, c, true /*useFullPrefix*/);
+                            *result = l.create_signature_help_items(
+                                ctx,
+                                call_signatures,
+                                Some(call_signatures[0]),
+                                argument_info,
+                                source_file,
+                                c,
+                                true, /*useFullPrefix*/
+                            );
                             if result.is_some() {
                                 return true;
                             }
@@ -311,7 +409,9 @@ impl LanguageService {
                     }
                 }
             }
-            node.for_each_child(&mut |child| visit(l, ctx, child, source_file, name, argument_info, c, result));
+            node.for_each_child(&mut |child| {
+                visit(l, ctx, child, source_file, name, argument_info, c, result)
+            });
             result.is_some()
         }
         let mut result: Option<lsproto::SignatureHelp> = None;
@@ -331,16 +431,20 @@ impl LanguageService {
         use_full_prefix: bool,
     ) -> Option<lsproto::SignatureHelp> {
         let caps = lsproto::get_client_capabilities(ctx);
-        let doc_format = lsproto::preferred_markup_kind(&caps.text_document.signature_help.signature_information.documentation_format);
+        let doc_format = lsproto::preferred_markup_kind(
+            &caps.text_document.signature_help.signature_information.documentation_format,
+        );
         let vs_capability = caps.vs_supports_visual_studio_extensions;
 
         // Go checks the enclosing declaration for nil; every invocation kind has a node.
-        let enclosing_declaration = get_enclosing_declaration_from_invocation(&argument_info.invocation);
+        let enclosing_declaration =
+            get_enclosing_declaration_from_invocation(&argument_info.invocation);
         let mut call_target_symbol: Option<P<Symbol>>;
         if let Some(contextual_invocation) = argument_info.invocation.contextual_invocation {
             call_target_symbol = Some(contextual_invocation.symbol);
         } else {
-            call_target_symbol = c.get_symbol_at_location_exported(get_expression_from_invocation(argument_info));
+            call_target_symbol =
+                c.get_symbol_at_location_exported(get_expression_from_invocation(argument_info));
             if call_target_symbol.is_none() && use_full_prefix {
                 if let Some(declaration) = resolved_signature.unwrap().declaration() {
                     call_target_symbol = declaration.symbol();
@@ -364,7 +468,8 @@ impl LanguageService {
                         SymbolFormatFlags::UseAliasDefinedOutsideCurrentScope,
                     ));
                 } else {
-                    call_target_display_parts.push_str(&c.symbol_to_string_exported(call_target_symbol));
+                    call_target_display_parts
+                        .push_str(&c.symbol_to_string_exported(call_target_symbol));
                 }
             }
         }
@@ -411,35 +516,62 @@ impl LanguageService {
         let supports_null_active_param = sig_info_caps.no_active_parameter_support;
 
         // Converting []signatureInformation to []*lsproto.SignatureInformation
-        let mut signature_information: Vec<lsproto::SignatureInformation> = Vec::with_capacity(flattened_signatures.len());
+        let mut signature_information: Vec<lsproto::SignatureInformation> =
+            Vec::with_capacity(flattened_signatures.len());
         for item in &flattened_signatures {
-            let parameters: Vec<lsproto::ParameterInformation> = item.parameters.iter().map(|param| param.parameter_info.clone()).collect();
+            let parameters: Vec<lsproto::ParameterInformation> =
+                item.parameters.iter().map(|param| param.parameter_info.clone()).collect();
             let mut documentation: Option<lsproto::StringOrMarkupContent> = None;
             if let Some(doc) = &item.documentation {
-                documentation =
-                    Some(lsproto::StringOrMarkupContent { markup_content: Some(lsproto::MarkupContent { kind: doc_format, value: doc.clone() }), ..Default::default() });
+                documentation = Some(lsproto::StringOrMarkupContent {
+                    markup_content: Some(lsproto::MarkupContent {
+                        kind: doc_format,
+                        value: doc.clone(),
+                    }),
+                    ..Default::default()
+                });
             }
-            let mut sig_info = lsproto::SignatureInformation { label: item.label.clone(), documentation, parameters: Some(parameters), ..Default::default() };
+            let mut sig_info = lsproto::SignatureInformation {
+                label: item.label.clone(),
+                documentation,
+                parameters: Some(parameters),
+                ..Default::default()
+            };
 
             // Set VS-specific colorized label if we have classified runs
             if !item.colorized_runs.is_empty() {
-                sig_info.vs_colorized_label = Some(lsproto::VSClassifiedTextElement { runs: item.colorized_runs.clone(), ..Default::default() });
+                sig_info.vs_colorized_label = Some(lsproto::VSClassifiedTextElement {
+                    runs: item.colorized_runs.clone(),
+                    ..Default::default()
+                });
             }
 
             // If client supports per-signature activeParameter, set it on each SignatureInformation
             if supports_per_signature_active_param {
-                sig_info.active_parameter = Self::compute_active_parameter(item, argument_info.argument_index, supports_null_active_param);
+                sig_info.active_parameter = Self::compute_active_parameter(
+                    item,
+                    argument_info.argument_index,
+                    supports_null_active_param,
+                );
             }
 
             signature_information.push(sig_info);
         }
 
-        let mut help = lsproto::SignatureHelp { signatures: signature_information, active_signature: Some(selected_item_index as u32), ..Default::default() };
+        let mut help = lsproto::SignatureHelp {
+            signatures: signature_information,
+            active_signature: Some(selected_item_index as u32),
+            ..Default::default()
+        };
 
         // If client doesn't support per-signature activeParameter, set it on the top-level SignatureHelp
         if !supports_per_signature_active_param {
             let active_signature = &flattened_signatures[selected_item_index];
-            help.active_parameter = Self::compute_active_parameter(active_signature, argument_info.argument_index, supports_null_active_param);
+            help.active_parameter = Self::compute_active_parameter(
+                active_signature,
+                argument_info.argument_index,
+                supports_null_active_param,
+            );
         }
 
         Some(help)
@@ -498,18 +630,46 @@ impl LanguageService {
         vs_capability: bool,
     ) -> Vec<signatureInformation> {
         let infos = if is_type_parameter_list {
-            Self::item_info_for_type_parameters(candidate, c, enclosing_declaration, source_file, doc_format, vs_capability)
+            Self::item_info_for_type_parameters(
+                candidate,
+                c,
+                enclosing_declaration,
+                source_file,
+                doc_format,
+                vs_capability,
+            )
         } else {
-            self.item_info_for_parameters(candidate, c, enclosing_declaration, source_file, doc_format, vs_capability)
+            self.item_info_for_parameters(
+                candidate,
+                c,
+                enclosing_declaration,
+                source_file,
+                doc_format,
+                vs_capability,
+            )
         };
 
-        let suffix_dpw = return_type_to_display_parts(candidate, c, enclosing_declaration, source_file, vs_capability);
+        let suffix_dpw = return_type_to_display_parts(
+            candidate,
+            c,
+            enclosing_declaration,
+            source_file,
+            vs_capability,
+        );
 
         // Generate documentation from the signature's declaration
         let mut documentation: Option<String> = None;
         if let Some(declaration) = candidate.declaration() {
             let mapper = self.documentation_location_mapper(Feature::SignatureHelp);
-            let doc = get_documentation_from_declaration(&mapper, c, None, Some(declaration), None, doc_format, true /*commentOnly*/);
+            let doc = get_documentation_from_declaration(
+                &mapper,
+                c,
+                None,
+                Some(declaration),
+                None,
+                doc_format,
+                true, /*commentOnly*/
+            );
             if !doc.is_empty() {
                 documentation = Some(doc);
             }
@@ -537,7 +697,13 @@ impl LanguageService {
 }
 
 // signaturehelp.go:488
-fn return_type_to_display_parts(candidate_signature: P<Signature>, c: &mut Checker, enclosing_declaration: P<Node>, source_file: P<SourceFile>, vs_capability: bool) -> DisplayPartsWriter {
+fn return_type_to_display_parts(
+    candidate_signature: P<Signature>,
+    c: &mut Checker,
+    enclosing_declaration: P<Node>,
+    source_file: P<SourceFile>,
+    vs_capability: bool,
+) -> DisplayPartsWriter {
     let mut dpw = new_display_parts_writer(vs_capability);
 
     // Add ": " prefix
@@ -548,9 +714,18 @@ fn return_type_to_display_parts(candidate_signature: P<Signature>, c: &mut Check
         dpw.write(&c.type_predicate_to_string_exported(predicate));
     } else {
         let return_type = c.get_return_type_of_signature_exported(candidate_signature);
-        let type_node = c.type_to_type_node(return_type, Some(enclosing_declaration), SIGNATURE_HELP_NODE_BUILDER_FLAGS, None);
+        let type_node = c.type_to_type_node(
+            return_type,
+            Some(enclosing_declaration),
+            SIGNATURE_HELP_NODE_BUILDER_FLAGS,
+            None,
+        );
         if let Some(type_node) = type_node {
-            let mut p = printer::new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, printer::PrintHandlers::default(), Some(printer::new_emit_context()));
+            let mut p = printer::new_printer(
+                PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+                printer::PrintHandlers::default(),
+                Some(printer::new_emit_context()),
+            );
             // Use a temporary writer for p.Write since the printer calls Clear() on its writer
             let mut temp_dpw = new_display_parts_writer(vs_capability);
             p.write(type_node, Some(source_file), &mut temp_dpw, None);
@@ -573,15 +748,28 @@ impl LanguageService {
         vs_capability: bool,
     ) -> Vec<signatureHelpItemInfo> {
         let emit_context = printer::new_emit_context();
-        let mut p = printer::new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, printer::PrintHandlers::default(), Some(emit_context));
-
-        let type_parameters: &[P<Type>] = if let Some(target) = candidate_signature.target() { target.type_parameters() } else { candidate_signature.type_parameters() };
-        let mut signature_help_type_parameters: Vec<signatureHelpParameter> = Vec::with_capacity(type_parameters.len());
-        signature_help_type_parameters.extend(
-            type_parameters
-                .iter()
-                .map(|&type_parameter| create_signature_help_parameter_for_type_parameter(type_parameter, source_file, enclosing_declaration, c, &mut p)),
+        let mut p = printer::new_printer(
+            PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+            printer::PrintHandlers::default(),
+            Some(emit_context),
         );
+
+        let type_parameters: &[P<Type>] = if let Some(target) = candidate_signature.target() {
+            target.type_parameters()
+        } else {
+            candidate_signature.type_parameters()
+        };
+        let mut signature_help_type_parameters: Vec<signatureHelpParameter> =
+            Vec::with_capacity(type_parameters.len());
+        signature_help_type_parameters.extend(type_parameters.iter().map(|&type_parameter| {
+            create_signature_help_parameter_for_type_parameter(
+                type_parameter,
+                source_file,
+                enclosing_declaration,
+                c,
+                &mut p,
+            )
+        }));
 
         // Creating type parameter display label
         let mut dpw = new_display_parts_writer(vs_capability);
@@ -612,7 +800,14 @@ impl LanguageService {
 
             for (j, &param) in parameter_list.iter().enumerate() {
                 let param_node = checker::new_node_builder(c, emit_context)
-                    .symbol_to_parameter_declaration(c, param, Some(enclosing_declaration), SIGNATURE_HELP_NODE_BUILDER_FLAGS, InternalFlags::None, None)
+                    .symbol_to_parameter_declaration(
+                        c,
+                        param,
+                        Some(enclosing_declaration),
+                        SIGNATURE_HELP_NODE_BUILDER_FLAGS,
+                        InternalFlags::None,
+                        None,
+                    )
                     .unwrap();
 
                 if j > 0 {
@@ -626,7 +821,11 @@ impl LanguageService {
             let close_paren = scanner::token_to_string(Kind::CloseParenToken);
             param_dpw.write_punctuation(close_paren);
 
-            result.push(signatureHelpItemInfo { is_variadic: false, parameters: signature_help_type_parameters.clone(), writer: param_dpw });
+            result.push(signatureHelpItemInfo {
+                is_variadic: false,
+                parameters: signature_help_type_parameters.clone(),
+                writer: param_dpw,
+            });
         }
         result
     }
@@ -642,15 +841,25 @@ impl LanguageService {
         vs_capability: bool,
     ) -> Vec<signatureHelpItemInfo> {
         let emit_context = printer::new_emit_context();
-        let mut p = printer::new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, printer::PrintHandlers::default(), Some(emit_context));
+        let mut p = printer::new_printer(
+            PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+            printer::PrintHandlers::default(),
+            Some(emit_context),
+        );
 
-        let mut signature_help_type_parameters: Vec<signatureHelpParameter> = Vec::with_capacity(candidate_signature.type_parameters().len());
+        let mut signature_help_type_parameters: Vec<signatureHelpParameter> =
+            Vec::with_capacity(candidate_signature.type_parameters().len());
         if !candidate_signature.type_parameters().is_empty() {
             signature_help_type_parameters.extend(
-                candidate_signature
-                    .type_parameters()
-                    .iter()
-                    .map(|&type_parameter| create_signature_help_parameter_for_type_parameter(type_parameter, source_file, enclosing_declaratipn, c, &mut p)),
+                candidate_signature.type_parameters().iter().map(|&type_parameter| {
+                    create_signature_help_parameter_for_type_parameter(
+                        type_parameter,
+                        source_file,
+                        enclosing_declaratipn,
+                        c,
+                        &mut p,
+                    )
+                }),
             );
         }
 
@@ -686,18 +895,29 @@ impl LanguageService {
             if lists_len == 1 {
                 return true;
             }
-            !parameter_list.is_empty() && parameter_list[parameter_list.len() - 1].check_flags().intersects(CheckFlags::RestParameter)
+            !parameter_list.is_empty()
+                && parameter_list[parameter_list.len() - 1]
+                    .check_flags()
+                    .intersects(CheckFlags::RestParameter)
         };
 
         let mut result: Vec<signatureHelpItemInfo> = Vec::with_capacity(lists.len());
         for parameter_list in &lists {
-            let mut parameters: Vec<signatureHelpParameter> = Vec::with_capacity(parameter_list.len());
+            let mut parameters: Vec<signatureHelpParameter> =
+                Vec::with_capacity(parameter_list.len());
             let mut param_dpw = new_display_parts_writer(vs_capability);
             param_dpw.write_from(&dpw);
 
             for (j, &param) in parameter_list.iter().enumerate() {
                 let param_node = checker::new_node_builder(c, emit_context)
-                    .symbol_to_parameter_declaration(c, param, Some(enclosing_declaratipn), SIGNATURE_HELP_NODE_BUILDER_FLAGS, InternalFlags::None, None)
+                    .symbol_to_parameter_declaration(
+                        c,
+                        param,
+                        Some(enclosing_declaratipn),
+                        SIGNATURE_HELP_NODE_BUILDER_FLAGS,
+                        InternalFlags::None,
+                        None,
+                    )
                     .unwrap();
 
                 if j > 0 {
@@ -709,49 +929,99 @@ impl LanguageService {
                 let param_label = temp_dpw.string();
                 param_dpw.write_from(&temp_dpw);
 
-                let parameter = self.create_signature_help_parameter_from_label(param, &param_label, c, doc_format);
+                let parameter = self.create_signature_help_parameter_from_label(
+                    param,
+                    &param_label,
+                    c,
+                    doc_format,
+                );
                 parameters.push(parameter);
             }
             let close_paren = scanner::token_to_string(Kind::CloseParenToken);
             param_dpw.write_punctuation(close_paren);
 
-            result.push(signatureHelpItemInfo { is_variadic: is_variadic(c, parameter_list), parameters, writer: param_dpw });
+            result.push(signatureHelpItemInfo {
+                is_variadic: is_variadic(c, parameter_list),
+                parameters,
+                writer: param_dpw,
+            });
         }
         result
     }
 }
 
 // signaturehelp.go:666
-const SIGNATURE_HELP_NODE_BUILDER_FLAGS: Flags = Flags::OmitParameterModifiers.union(Flags::IgnoreErrors).union(Flags::UseAliasDefinedOutsideCurrentScope);
+const SIGNATURE_HELP_NODE_BUILDER_FLAGS: Flags = Flags::OmitParameterModifiers
+    .union(Flags::IgnoreErrors)
+    .union(Flags::UseAliasDefinedOutsideCurrentScope);
 
 impl LanguageService {
     // createSignatureHelpParameterFromLabel creates a signatureHelpParameter from a pre-computed label string.
     // signaturehelp.go:669
-    fn create_signature_help_parameter_from_label(&self, parameter: P<Symbol>, label: &str, c: &mut Checker, doc_format: lsproto::MarkupKind) -> signatureHelpParameter {
+    fn create_signature_help_parameter_from_label(
+        &self,
+        parameter: P<Symbol>,
+        label: &str,
+        c: &mut Checker,
+        doc_format: lsproto::MarkupKind,
+    ) -> signatureHelpParameter {
         let is_rest = parameter.check_flags().intersects(CheckFlags::RestParameter);
         let mut documentation: Option<lsproto::StringOrMarkupContent> = None;
         if let Some(value_declaration) = parameter.value_declaration() {
             let mapper = self.documentation_location_mapper(Feature::SignatureHelp);
-            let doc = get_documentation_from_declaration(&mapper, c, None, Some(value_declaration), None, doc_format, true /*commentOnly*/);
+            let doc = get_documentation_from_declaration(
+                &mapper,
+                c,
+                None,
+                Some(value_declaration),
+                None,
+                doc_format,
+                true, /*commentOnly*/
+            );
             if !doc.is_empty() {
-                documentation = Some(lsproto::StringOrMarkupContent { markup_content: Some(lsproto::MarkupContent { kind: doc_format, value: doc }), ..Default::default() });
+                documentation = Some(lsproto::StringOrMarkupContent {
+                    markup_content: Some(lsproto::MarkupContent { kind: doc_format, value: doc }),
+                    ..Default::default()
+                });
             }
         }
         signatureHelpParameter {
-            parameter_info: lsproto::ParameterInformation { label: lsproto::StringOrTuple { string: Some(label.to_string()), ..Default::default() }, documentation },
+            parameter_info: lsproto::ParameterInformation {
+                label: lsproto::StringOrTuple {
+                    string: Some(label.to_string()),
+                    ..Default::default()
+                },
+                documentation,
+            },
             is_rest,
         }
     }
 }
 
 // signaturehelp.go:699
-fn create_signature_help_parameter_for_type_parameter(t: P<Type>, source_file: P<SourceFile>, enclosing_declaration: P<Node>, c: &mut Checker, p: &mut Printer) -> signatureHelpParameter {
+fn create_signature_help_parameter_for_type_parameter(
+    t: P<Type>,
+    source_file: P<SourceFile>,
+    enclosing_declaration: P<Node>,
+    c: &mut Checker,
+    p: &mut Printer,
+) -> signatureHelpParameter {
     let node = checker::new_node_builder(c, printer::new_emit_context())
-        .type_parameter_to_declaration(c, t, Some(enclosing_declaration), SIGNATURE_HELP_NODE_BUILDER_FLAGS, InternalFlags::None, None)
+        .type_parameter_to_declaration(
+            c,
+            t,
+            Some(enclosing_declaration),
+            SIGNATURE_HELP_NODE_BUILDER_FLAGS,
+            InternalFlags::None,
+            None,
+        )
         .unwrap();
     let display = p.emit(node, Some(source_file));
     signatureHelpParameter {
-        parameter_info: lsproto::ParameterInformation { label: lsproto::StringOrTuple { string: Some(display), ..Default::default() }, ..Default::default() },
+        parameter_info: lsproto::ParameterInformation {
+            label: lsproto::StringOrTuple { string: Some(display), ..Default::default() },
+            ..Default::default()
+        },
         is_rest: false,
     }
 }
@@ -821,18 +1091,33 @@ struct CandidateOrTypeInfo {
 }
 
 // signaturehelp.go:767
-fn get_candidate_or_type_info(info: &argumentListInfo, c: &mut Checker, source_file: P<SourceFile>, starting_token: P<Node>, only_use_syntactic_owners: bool) -> Option<CandidateOrTypeInfo> {
+fn get_candidate_or_type_info(
+    info: &argumentListInfo,
+    c: &mut Checker,
+    source_file: P<SourceFile>,
+    starting_token: P<Node>,
+    only_use_syntactic_owners: bool,
+) -> Option<CandidateOrTypeInfo> {
     if let Some(call_invocation) = info.invocation.call_invocation {
-        if only_use_syntactic_owners && !is_syntactic_owner(starting_token, call_invocation.node, source_file) {
+        if only_use_syntactic_owners
+            && !is_syntactic_owner(starting_token, call_invocation.node, source_file)
+        {
             return None;
         }
 
-        let (resolved_signature, candidates) = checker::get_resolved_signature_for_signature_help(call_invocation.node, info.argument_count, c);
+        let (resolved_signature, candidates) = checker::get_resolved_signature_for_signature_help(
+            call_invocation.node,
+            info.argument_count,
+            c,
+        );
         if candidates.is_empty() {
             return None;
         }
 
-        return Some(CandidateOrTypeInfo { candidate_info: Some(candidateInfo { candidates, resolved_signature }), type_info: None });
+        return Some(CandidateOrTypeInfo {
+            candidate_info: Some(candidateInfo { candidates, resolved_signature }),
+            type_info: None,
+        });
     }
     if let Some(type_args_invocation) = info.invocation.type_args_invocation {
         let called = type_args_invocation.called;
@@ -841,14 +1126,19 @@ fn get_candidate_or_type_info(info: &argumentListInfo, c: &mut Checker, source_f
             container = called.parent().unwrap();
         }
 
-        if only_use_syntactic_owners && !contains_preceding_token(starting_token, source_file, container) {
+        if only_use_syntactic_owners
+            && !contains_preceding_token(starting_token, source_file, container)
+        {
             return None;
         }
 
         let candidates = get_possible_generic_signatures(called, info.argument_count, c);
         if !candidates.is_empty() {
             let resolved_signature = Some(candidates[0]);
-            return Some(CandidateOrTypeInfo { candidate_info: Some(candidateInfo { candidates, resolved_signature }), type_info: None });
+            return Some(CandidateOrTypeInfo {
+                candidate_info: Some(candidateInfo { candidates, resolved_signature }),
+                type_info: None,
+            });
         }
 
         if let Some(symbol) = c.get_symbol_at_location_exported(called) {
@@ -861,7 +1151,10 @@ fn get_candidate_or_type_info(info: &argumentListInfo, c: &mut Checker, source_f
 
     if let Some(contextual_invocation) = info.invocation.contextual_invocation {
         return Some(CandidateOrTypeInfo {
-            candidate_info: Some(candidateInfo { candidates: vec![contextual_invocation.signature], resolved_signature: Some(contextual_invocation.signature) }),
+            candidate_info: Some(candidateInfo {
+                candidates: vec![contextual_invocation.signature],
+                resolved_signature: Some(contextual_invocation.signature),
+            }),
             type_info: None,
         });
     }
@@ -876,7 +1169,9 @@ fn is_syntactic_owner(starting_token: P<Node>, node: P<Node>, source_file: P<Sou
     let invocation_children = get_children_from_non_jsdoc_node(node, source_file);
     match starting_token.kind() {
         Kind::OpenParenToken | Kind::CommaToken => invocation_children.contains(&starting_token),
-        Kind::LessThanToken => contains_preceding_token(starting_token, source_file, node.expression().unwrap()),
+        Kind::LessThanToken => {
+            contains_preceding_token(starting_token, source_file, node.expression().unwrap())
+        }
         _ => false,
     }
 }
@@ -887,9 +1182,7 @@ fn contains_preceding_token(
     source_file: P<SourceFile>,
     container: P<Node>,
 ) -> bool {
-    let pos = starting_token
-        .pos()
-        .expect_source("parsed tokens have source positions");
+    let pos = starting_token.pos().expect_source("parsed tokens have source positions");
     // There's a possibility that `startingToken.parent` contains only `startingToken` and
     // missing nodes, none of which are valid to be returned by `findPrecedingToken`. In that
     // case, the preceding token we want is actually higher up the tree—almost definitely the
@@ -897,7 +1190,12 @@ fn contains_preceding_token(
     // multiple nested levels.
     let mut current_parent = starting_token.parent();
     while let Some(parent) = current_parent {
-        let preceding_token = astnav::find_preceding_token_ex(source_file, pos, Some(parent), true /*excludeJSDoc*/);
+        let preceding_token = astnav::find_preceding_token_ex(
+            source_file,
+            pos,
+            Some(parent),
+            true, /*excludeJSDoc*/
+        );
         if let Some(preceding_token) = preceding_token {
             return range_contains_range(container.loc(), preceding_token.loc());
         }
@@ -919,8 +1217,18 @@ fn get_containing_argument_info(
     while !ast::is_source_file(n) && (is_manually_invoked || !ast::is_block(n)) {
         // If the node is not a subspan of its parent, this is a big problem.
         // There have been crashes that might be caused by this violation.
-        assert!(range_contains_range(n.parent().unwrap().loc(), n.loc()), "Not a subspan. Child: {}, parent: {}", n.kind_string(), n.parent().unwrap().kind_string());
-        let argument_info = get_immediately_containing_argument_or_contextual_parameter_info(n, position, source_file, checker);
+        assert!(
+            range_contains_range(n.parent().unwrap().loc(), n.loc()),
+            "Not a subspan. Child: {}, parent: {}",
+            n.kind_string(),
+            n.parent().unwrap().kind_string()
+        );
+        let argument_info = get_immediately_containing_argument_or_contextual_parameter_info(
+            n,
+            position,
+            source_file,
+            checker,
+        );
         if let Some(argument_info) = argument_info {
             // For contextual invocations (e.g., arrow functions with contextual types),
             // always return immediately without checking the position.
@@ -1023,7 +1331,10 @@ pub(crate) fn get_immediately_containing_argument_info(
         }
         return Some(argumentListInfo {
             is_type_parameter_list,
-            invocation: invocation { call_invocation: Some(callInvocation { node: parent }), ..Default::default() },
+            invocation: invocation {
+                call_invocation: Some(callInvocation { node: parent }),
+                ..Default::default()
+            },
             arguments_span,
             argument_index,
             argument_count,
@@ -1035,7 +1346,9 @@ pub(crate) fn get_immediately_containing_argument_info(
             return Some(get_argument_list_info_for_template(parent, 0, source_file));
         }
         return None;
-    } else if is_template_head(node) && parent.parent().unwrap().kind() == Kind::TaggedTemplateExpression {
+    } else if is_template_head(node)
+        && parent.parent().unwrap().kind() == Kind::TaggedTemplateExpression
+    {
         let template_expression = parent;
         let tag_expression = template_expression.parent().unwrap();
 
@@ -1043,8 +1356,14 @@ pub(crate) fn get_immediately_containing_argument_info(
         if is_inside_template_literal(node, position, source_file) {
             argument_index = 0;
         }
-        return Some(get_argument_list_info_for_template(tag_expression, argument_index, source_file));
-    } else if ast::is_template_span(parent) && is_tagged_template_expression(parent.parent().unwrap().parent().unwrap()) {
+        return Some(get_argument_list_info_for_template(
+            tag_expression,
+            argument_index,
+            source_file,
+        ));
+    } else if ast::is_template_span(parent)
+        && is_tagged_template_expression(parent.parent().unwrap().parent().unwrap())
+    {
         let template_span = parent;
         let tag_expression = parent.parent().unwrap().parent().unwrap();
 
@@ -1054,12 +1373,7 @@ pub(crate) fn get_immediately_containing_argument_info(
         }
 
         let span_index = ast::index_of_node(
-            template_span
-                .parent()
-                .unwrap()
-                .as_template_expression()
-                .template_spans
-                .nodes(),
+            template_span.parent().unwrap().as_template_expression().template_spans.nodes(),
             template_span,
         )?;
         let argument_index =
@@ -1139,11 +1453,7 @@ fn get_argument_index_for_template_piece(
     //              ^       ^ ^       ^   ^          ^ ^      ^     ^
     // Case:        1       1 3       2   1          3 2      2     1
     assert!(
-        position
-            >= node
-                .loc()
-                .pos()
-                .expect_source("parsed template nodes have source positions"),
+        position >= node.loc().pos().expect_source("parsed template nodes have source positions"),
         "Assumed 'position' could not occur before node."
     );
     if ast::is_template_literal_token(node) {
@@ -1162,7 +1472,10 @@ fn get_adjusted_node(node: P<Node>) -> Option<P<Node>> {
         _ => ast::find_ancestor(node.parent(), |n| {
             if ast::is_parameter_declaration(n) {
                 return true;
-            } else if ast::is_binding_element(n) || ast::is_object_binding_pattern(n) || ast::is_array_binding_pattern(n) {
+            } else if ast::is_binding_element(n)
+                || ast::is_object_binding_pattern(n)
+                || ast::is_array_binding_pattern(n)
+            {
                 return false;
             }
             false
@@ -1189,7 +1502,8 @@ fn get_spread_element_count(node: P<Node>, c: &mut Checker) -> usize {
             return 0;
         }
 
-        let first_optional_index = element_flags.iter().position(|f| !f.intersects(ElementFlags::Required));
+        let first_optional_index =
+            element_flags.iter().position(|f| !f.intersects(ElementFlags::Required));
         let Some(first_optional_index) = first_optional_index else {
             return fixed_length;
         };
@@ -1282,7 +1596,11 @@ struct argumentOrParameterListInfo {
 }
 
 // signaturehelp.go:1155
-fn get_argument_or_parameter_list_info(node: P<Node>, source_file: P<SourceFile>, c: &mut Checker) -> Option<argumentOrParameterListInfo> {
+fn get_argument_or_parameter_list_info(
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    c: &mut Checker,
+) -> Option<argumentOrParameterListInfo> {
     let info = get_argument_or_parameter_list_and_index(node, source_file, c)?;
     let list = info.list;
     let argument_index = info.argument_index;
@@ -1292,7 +1610,11 @@ fn get_argument_or_parameter_list_info(node: P<Node>, source_file: P<SourceFile>
 }
 
 // signaturehelp.go:1172
-fn get_applicable_span_for_arguments(argument_list: Option<P<NodeList>>, node: Option<P<Node>>, source_file: P<SourceFile>) -> TextRange {
+fn get_applicable_span_for_arguments(
+    argument_list: Option<P<NodeList>>,
+    node: Option<P<Node>>,
+    source_file: P<SourceFile>,
+) -> TextRange {
     // We use full start and skip trivia on the end because we want to include trivia on
     // both sides. For example,
     //
@@ -1307,27 +1629,18 @@ fn get_applicable_span_for_arguments(argument_list: Option<P<NodeList>>, node: O
             // For example, foo(    )
             //                  |  |
             // The span should include positions inside the parentheses.
-            let span_start = node
-                .end()
-                .expect_source("parsed nodes have source positions");
+            let span_start = node.end().expect_source("parsed nodes have source positions");
             let mut span_end = scanner::skip_trivia(source_file.text(), span_start);
             span_end = ensure_minimum_span_size(span_start, span_end);
             return TextRange::new(span_start, span_end);
         }
     }
     let argument_list = argument_list.unwrap();
-    let applicable_span_start = argument_list
-        .loc
-        .get()
-        .pos()
-        .expect_source("parsed argument lists have source positions");
+    let applicable_span_start =
+        argument_list.loc.get().pos().expect_source("parsed argument lists have source positions");
     let mut applicable_span_end = scanner::skip_trivia(
         source_file.text(),
-        argument_list
-            .loc
-            .get()
-            .end()
-            .expect_source("parsed argument lists have source positions"),
+        argument_list.loc.get().end().expect_source("parsed argument lists have source positions"),
     );
 
     // If the argument list is empty (Pos == End), extend the span to include at least
@@ -1355,7 +1668,11 @@ struct argumentOrParameterListAndIndex {
 }
 
 // signaturehelp.go:1216
-fn get_argument_or_parameter_list_and_index(node: P<Node>, source_file: P<SourceFile>, c: &mut Checker) -> Option<argumentOrParameterListAndIndex> {
+fn get_argument_or_parameter_list_and_index(
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    c: &mut Checker,
+) -> Option<argumentOrParameterListAndIndex> {
     if node.kind() == Kind::LessThanToken || node.kind() == Kind::OpenParenToken {
         // Find the list that starts right *after* the < or ( token.
         // If the user has just opened a list, consider this item 0.
@@ -1378,7 +1695,10 @@ fn get_argument_or_parameter_list_and_index(node: P<Node>, source_file: P<Source
 }
 
 // signaturehelp.go:1244
-fn get_child_list_that_starts_with_opener_token(parent: P<Node>, opener_token: P<Node>) -> Option<P<NodeList>> {
+fn get_child_list_that_starts_with_opener_token(
+    parent: P<Node>,
+    opener_token: P<Node>,
+) -> Option<P<NodeList>> {
     if (ast::is_call_expression(parent)) || (ast::is_new_expression(parent)) {
         if opener_token.kind() == Kind::LessThanToken {
             return parent.type_argument_list();
@@ -1389,7 +1709,11 @@ fn get_child_list_that_starts_with_opener_token(parent: P<Node>, opener_token: P
 }
 
 // signaturehelp.go:1261
-fn try_get_parameter_info(starting_token: P<Node>, source_file: P<SourceFile>, c: &mut Checker) -> Option<argumentListInfo> {
+fn try_get_parameter_info(
+    starting_token: P<Node>,
+    source_file: P<SourceFile>,
+    c: &mut Checker,
+) -> Option<argumentListInfo> {
     let node = get_adjusted_node(starting_token)?;
     let info = get_contextual_signature_location_info(node, source_file, c)?;
 
@@ -1399,16 +1723,26 @@ fn try_get_parameter_info(starting_token: P<Node>, source_file: P<SourceFile>, c
 
     let symbol = non_nullable_contextual_type.symbol()?;
 
-    let signatures = c.get_signatures_of_type_exported(non_nullable_contextual_type, checker::SignatureKind::Call);
+    let signatures = c.get_signatures_of_type_exported(
+        non_nullable_contextual_type,
+        checker::SignatureKind::Call,
+    );
     if signatures.is_empty() {
         return None;
     }
     let signature = signatures[signatures.len() - 1];
 
-    let contextual_invocation = contextualInvocation { signature, node: starting_token, symbol: choose_better_symbol(symbol) };
+    let contextual_invocation = contextualInvocation {
+        signature,
+        node: starting_token,
+        symbol: choose_better_symbol(symbol),
+    };
     Some(argumentListInfo {
         is_type_parameter_list: false,
-        invocation: invocation { contextual_invocation: Some(contextual_invocation), ..Default::default() },
+        invocation: invocation {
+            contextual_invocation: Some(contextual_invocation),
+            ..Default::default()
+        },
         arguments_span: info.arguments_span,
         argument_index: info.argument_index,
         argument_count: info.argument_count,
@@ -1433,28 +1767,44 @@ fn choose_better_symbol(s: P<Symbol>) -> P<Symbol> {
 }
 
 // signaturehelp.go:1313
-fn get_contextual_signature_location_info(node: P<Node>, source_file: P<SourceFile>, c: &mut Checker) -> Option<contextualSignatureLocationInfo> {
+fn get_contextual_signature_location_info(
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    c: &mut Checker,
+) -> Option<contextualSignatureLocationInfo> {
     let parent = node.parent().unwrap();
     match parent.kind() {
-        Kind::ParenthesizedExpression | Kind::MethodDeclaration | Kind::FunctionExpression | Kind::ArrowFunction => {
+        Kind::ParenthesizedExpression
+        | Kind::MethodDeclaration
+        | Kind::FunctionExpression
+        | Kind::ArrowFunction => {
             let info = get_argument_or_parameter_list_info(node, source_file, c)?;
             let argument_index = info.argument_index;
             let argument_count = info.argument_count;
             let arguments_span = info.arguments_span;
 
             let contextual_type = if ast::is_method_declaration(parent) {
-                c.get_contextual_type_for_object_literal_element_exported(parent, ContextFlags::None)
+                c.get_contextual_type_for_object_literal_element_exported(
+                    parent,
+                    ContextFlags::None,
+                )
             } else {
                 c.get_contextual_type_exported(parent, ContextFlags::None)
             };
             if let Some(contextual_type) = contextual_type {
-                return Some(contextualSignatureLocationInfo { contextual_type, argument_index, argument_count, arguments_span });
+                return Some(contextualSignatureLocationInfo {
+                    contextual_type,
+                    argument_index,
+                    argument_count,
+                    arguments_span,
+                });
             }
             None
         }
         Kind::BinaryExpression => {
             let highest_binary = get_highest_binary(parent);
-            let contextual_type = c.get_contextual_type_exported(highest_binary, ContextFlags::None);
+            let contextual_type =
+                c.get_contextual_type_exported(highest_binary, ContextFlags::None);
             if node.kind() != Kind::OpenParenToken {
                 let argument_index = count_binary_expression_parameters(parent) - 1;
                 let argument_count = count_binary_expression_parameters(highest_binary);
@@ -1493,41 +1843,41 @@ fn count_binary_expression_parameters(b: P<Node>) -> usize {
 }
 
 // signaturehelp.go:1375
-fn get_token_from_node_list(node_list: Option<P<NodeList>>, node_list_parent: Option<P<Node>>, source_file: P<SourceFile>) -> Vec<P<Node>> {
+fn get_token_from_node_list(
+    node_list: Option<P<NodeList>>,
+    node_list_parent: Option<P<Node>>,
+    source_file: P<SourceFile>,
+) -> Vec<P<Node>> {
     let (Some(node_list), Some(node_list_parent)) = (node_list, node_list_parent) else {
         return Vec::new();
     };
-    let mut left = node_list
-        .loc
-        .get()
-        .pos()
-        .expect_source("parsed node lists have source positions");
+    let mut left =
+        node_list.loc.get().pos().expect_source("parsed node lists have source positions");
     let mut node_list_index = 0;
     let mut tokens = Vec::new();
     let nodes = node_list.nodes();
-    let node_list_end = node_list
-        .loc
-        .get()
-        .end()
-        .expect_source("parsed node lists have source positions");
+    let node_list_end =
+        node_list.loc.get().end().expect_source("parsed node lists have source positions");
     while left < node_list_end {
         if nodes.len() > node_list_index
             && left
-                == nodes[node_list_index]
-                    .pos()
-                    .expect_source("parsed nodes have source positions")
+                == nodes[node_list_index].pos().expect_source("parsed nodes have source positions")
         {
             tokens.push(nodes[node_list_index]);
-            left = nodes[node_list_index]
-                .end()
-                .expect_source("parsed nodes have source positions");
+            left = nodes[node_list_index].end().expect_source("parsed nodes have source positions");
             node_list_index += 1;
         } else {
             let scanner = scanner::get_scanner_for_source_file(source_file, left);
             let token = scanner.token();
             let token_full_start = scanner.token_full_start();
             let token_end = scanner.token_end();
-            tokens.push(source_file.get_or_create_token(token, token_full_start, token_end, node_list_parent, scanner.token_flags()));
+            tokens.push(source_file.get_or_create_token(
+                token,
+                token_full_start,
+                token_end,
+                node_list_parent,
+                scanner.token_flags(),
+            ));
             left = token_end;
         }
     }
@@ -1544,19 +1894,17 @@ fn get_argument_list_info_for_template(
     let template = tag_expression.as_tagged_template_expression().template;
     let mut argument_count = 1;
     if !is_no_substitution_template_literal(template) {
-        argument_count = template
-            .as_template_expression()
-            .template_spans
-            .nodes()
-            .len()
-            + 1;
+        argument_count = template.as_template_expression().template_spans.nodes().len() + 1;
     }
     if argument_index != 0 {
         assert!(argument_index < argument_count);
     }
     argumentListInfo {
         is_type_parameter_list: false,
-        invocation: invocation { call_invocation: Some(callInvocation { node: tag_expression }), ..Default::default() },
+        invocation: invocation {
+            call_invocation: Some(callInvocation { node: tag_expression }),
+            ..Default::default()
+        },
         argument_index,
         argument_count,
         arguments_span: get_applicable_range_for_tagged_template(tag_expression, source_file),
@@ -1564,12 +1912,14 @@ fn get_argument_list_info_for_template(
 }
 
 // signaturehelp.go:1417
-fn get_applicable_range_for_tagged_template(tagged_template: P<Node>, source_file: P<SourceFile>) -> TextRange {
+fn get_applicable_range_for_tagged_template(
+    tagged_template: P<Node>,
+    source_file: P<SourceFile>,
+) -> TextRange {
     let template = tagged_template.as_tagged_template_expression().template;
     let applicable_span_start = scanner::get_token_pos_of_node(template, source_file, false);
-    let mut applicable_span_end = template
-        .end()
-        .expect_source("parsed templates have source positions");
+    let mut applicable_span_end =
+        template.end().expect_source("parsed templates have source positions");
 
     // We need to adjust the end position for the case where the template does not have a tail.
     // Otherwise, we will not show signature help past the expression.

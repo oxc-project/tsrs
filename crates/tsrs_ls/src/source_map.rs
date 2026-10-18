@@ -1,5 +1,5 @@
 use tsrs_ast::SourceFile;
-use tsrs_core::{tspath, TextPos, TextRange, P};
+use tsrs_core::{P, TextPos, TextRange, tspath};
 use tsrs_lsproto as lsproto;
 use tsrs_tsoptions::outputpaths;
 
@@ -14,7 +14,11 @@ impl LanguageService {
     // for cross-file results instead of calling getMappedLocation or lsconv.ToLSPLocation directly.
     // This unfiltered form is appropriate for diagnostics and text edits.
     // source_map.go:17
-    pub(crate) fn source_file_range_to_lsp_location(&self, file: P<SourceFile>, file_range: TextRange) -> (lsproto::Location, Fidelity) {
+    pub(crate) fn source_file_range_to_lsp_location(
+        &self,
+        file: P<SourceFile>,
+        file_range: TextRange,
+    ) -> (lsproto::Location, Fidelity) {
         if !file.content_mapper().is_empty() {
             return self.converters.to_lsp_location(&file, file_range);
         }
@@ -25,7 +29,12 @@ impl LanguageService {
     // come from another file. It applies content-mapper feature filtering and follows declaration source maps.
     // Do not use it for diagnostics or text edits.
     // source_map.go:27
-    pub(crate) fn source_file_range_to_lsp_location_for_feature(&self, file: P<SourceFile>, file_range: TextRange, feature: Feature) -> (lsproto::Location, Fidelity) {
+    pub(crate) fn source_file_range_to_lsp_location_for_feature(
+        &self,
+        file: P<SourceFile>,
+        file_range: TextRange,
+        feature: Feature,
+    ) -> (lsproto::Location, Fidelity) {
         if !file.content_mapper().is_empty() {
             return self.converters.to_lsp_location_for_feature(&file, file_range, feature);
         }
@@ -45,7 +54,13 @@ impl LanguageService {
             // Go passes the nil *script to the converters, which dereference it.
             let script = self.get_script(file_name).expect("nil script");
             let (lsp_range, fidelity) = self.create_lsp_range_from_range(file_range, &script);
-            return (lsproto::Location { uri: lsconv::file_name_to_document_uri(file_name), range: lsp_range }, fidelity);
+            return (
+                lsproto::Location {
+                    uri: lsconv::file_name_to_document_uri(file_name),
+                    range: lsp_range,
+                },
+                fidelity,
+            );
         };
         let mut end_pos = self.try_get_source_position(file_name, file_range.end());
         if end_pos
@@ -58,16 +73,20 @@ impl LanguageService {
             end_pos = Some(DocumentPosition {
                 file_name: start_pos.file_name.clone(),
                 pos: start_pos.pos
-                    + file_range
-                        .len()
-                        .expect("mapped source ranges have source positions"),
+                    + file_range.len().expect("mapped source ranges have source positions"),
             });
         }
         let end_pos = end_pos.unwrap();
         let new_range = TextRange::new(start_pos.pos, end_pos.pos);
         let script = self.get_script(&start_pos.file_name).expect("nil script");
         let (lsp_range, fidelity) = self.create_lsp_range_from_range(new_range, &script);
-        (lsproto::Location { uri: lsconv::file_name_to_document_uri(&start_pos.file_name), range: lsp_range }, fidelity)
+        (
+            lsproto::Location {
+                uri: lsconv::file_name_to_document_uri(&start_pos.file_name),
+                range: lsp_range,
+            },
+            fidelity,
+        )
     }
 }
 
@@ -112,7 +131,11 @@ impl LanguageService {
     }
 
     // source_map.go:93
-    pub(crate) fn try_get_source_position(&self, file_name: &str, position: TextPos) -> Option<DocumentPosition> {
+    pub(crate) fn try_get_source_position(
+        &self,
+        file_name: &str,
+        position: TextPos,
+    ) -> Option<DocumentPosition> {
         let new_pos = self.try_get_source_position_worker(file_name, position);
         if let Some(new_pos) = &new_pos {
             self.read_file(&new_pos.file_name)?;
@@ -121,19 +144,21 @@ impl LanguageService {
     }
 
     // source_map.go:106
-    pub(crate) fn try_get_source_position_worker(&self, file_name: &str, position: TextPos) -> Option<DocumentPosition> {
+    pub(crate) fn try_get_source_position_worker(
+        &self,
+        file_name: &str,
+        position: TextPos,
+    ) -> Option<DocumentPosition> {
         if !tspath::is_declaration_file_name(file_name) {
             return None;
         }
 
         let position = position.source_offset()?;
         let position_mapper = self.get_document_position_mapper(file_name);
-        let document_pos = position_mapper
-            .as_ref()?
-            .get_source_position(&DocumentPosition {
-                file_name: file_name.to_string(),
-                pos: position,
-            })?;
+        let document_pos = position_mapper.as_ref()?.get_source_position(&DocumentPosition {
+            file_name: file_name.to_string(),
+            pos: position,
+        })?;
         if let Some(new_pos) =
             self.try_get_source_position_worker(&document_pos.file_name, document_pos.pos.into())
         {
@@ -143,7 +168,11 @@ impl LanguageService {
     }
 
     // source_map.go:124
-    pub(crate) fn try_get_generated_position(&self, file_name: &str, position: TextPos) -> Option<DocumentPosition> {
+    pub(crate) fn try_get_generated_position(
+        &self,
+        file_name: &str,
+        position: TextPos,
+    ) -> Option<DocumentPosition> {
         let new_pos = self.try_get_generated_position_worker(file_name, position);
         if let Some(new_pos) = &new_pos {
             self.read_file(&new_pos.file_name)?;
@@ -152,7 +181,11 @@ impl LanguageService {
     }
 
     // source_map.go:137
-    pub(crate) fn try_get_generated_position_worker(&self, file_name: &str, position: TextPos) -> Option<DocumentPosition> {
+    pub(crate) fn try_get_generated_position_worker(
+        &self,
+        file_name: &str,
+        position: TextPos,
+    ) -> Option<DocumentPosition> {
         if tspath::is_declaration_file_name(file_name) {
             return None;
         }
@@ -173,12 +206,10 @@ impl LanguageService {
             program,
         );
         let position_mapper = self.get_document_position_mapper(&declaration_file_name);
-        let document_pos = position_mapper
-            .as_ref()?
-            .get_generated_position(&DocumentPosition {
-                file_name: file_name.to_string(),
-                pos: position,
-            })?;
+        let document_pos = position_mapper.as_ref()?.get_generated_position(&DocumentPosition {
+            file_name: file_name.to_string(),
+            pos: position,
+        })?;
         if let Some(new_pos) =
             self.try_get_generated_position_worker(&document_pos.file_name, document_pos.pos.into())
         {

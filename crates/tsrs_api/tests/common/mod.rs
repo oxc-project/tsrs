@@ -6,13 +6,18 @@ use std::sync::Arc;
 
 use tsrs_api::{Handler, Response, Session, SessionOptions};
 use tsrs_core::json::{self, Value};
-use tsrs_vfs::{bundled, osvfs, FS};
+use tsrs_vfs::{FS, bundled, osvfs};
 
 pub struct TempDir(pub PathBuf);
 
 impl TempDir {
     pub fn new(name: &str) -> TempDir {
-        let base = std::env::temp_dir().join(format!("tsrs-api-test-{}-{}-{}", name, std::process::id(), rand_suffix()));
+        let base = std::env::temp_dir().join(format!(
+            "tsrs-api-test-{}-{}-{}",
+            name,
+            std::process::id(),
+            rand_suffix()
+        ));
         std::fs::create_dir_all(&base).unwrap();
         TempDir(base.canonicalize().unwrap())
     }
@@ -39,7 +44,12 @@ impl Drop for TempDir {
 fn rand_suffix() -> u64 {
     use std::sync::atomic::{AtomicU64, Ordering};
     static N: AtomicU64 = AtomicU64::new(0);
-    N.fetch_add(1, Ordering::SeqCst) * 1000 + (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_nanos() as u64 % 1000)
+    N.fetch_add(1, Ordering::SeqCst) * 1000
+        + (std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .subsec_nanos() as u64
+            % 1000)
 }
 
 pub fn session(cwd: &str, binary: bool) -> Arc<Session> {
@@ -56,8 +66,12 @@ pub fn session(cwd: &str, binary: bool) -> Arc<Session> {
 /// Sends a JSON request and returns the parsed JSON result, panicking on error.
 pub fn call(s: &Session, method: &str, params: &str) -> Value {
     match s.handle_request(method, params.as_bytes()) {
-        Ok(Response::Json(text)) => json::unmarshal(&text).unwrap_or_else(|e| panic!("{method}: bad JSON {e}: {text}")),
-        Ok(Response::Binary(b)) => panic!("{method}: unexpected binary response ({} bytes)", b.len()),
+        Ok(Response::Json(text)) => {
+            json::unmarshal(&text).unwrap_or_else(|e| panic!("{method}: bad JSON {e}: {text}"))
+        }
+        Ok(Response::Binary(b)) => {
+            panic!("{method}: unexpected binary response ({} bytes)", b.len())
+        }
         Err(e) => panic!("{method} failed: {e}"),
     }
 }
@@ -73,7 +87,9 @@ pub fn get<'a>(v: &'a Value, path: &str) -> &'a Value {
     let mut cur = v;
     cur = path.split('.').fold(cur, |mut cur, key| {
         cur = match cur {
-            Value::Object(o) => o.get(key).unwrap_or_else(|| panic!("missing {key} in {}", json::marshal(v).unwrap())),
+            Value::Object(o) => o
+                .get(key)
+                .unwrap_or_else(|| panic!("missing {key} in {}", json::marshal(v).unwrap())),
             Value::Array(a) => &a[key.parse::<usize>().unwrap()],
             _ => panic!("cannot index {key} in {}", json::marshal(v).unwrap()),
         };

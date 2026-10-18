@@ -8,19 +8,22 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_ast::{new_compiler_diagnostic, SourceFile, SourceFileParseOptions};
-use tsrs_compiler::{new_compiler_host, new_program, CompilerHost, Program, ProgramOptions};
+use tsrs_ast::{SourceFile, SourceFileParseOptions, new_compiler_diagnostic};
+use tsrs_compiler::{CompilerHost, Program, ProgramOptions, new_compiler_host, new_program};
 use tsrs_contentmapper as contentmapper;
+use tsrs_core::arena::Region;
 use tsrs_core::collections::SyncMap;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::arena::Region;
 use tsrs_core::{CompilerOptions, P};
 use tsrs_diagnostics as diagnostics;
 use tsrs_fswatch::EventKind;
 use tsrs_tsoptions::{self as tsoptions, CompilerOptionsValue, Mapper, ParsedCommandLine};
-use tsrs_vfs::{cachedvfs, trackingvfs, FS};
+use tsrs_vfs::{FS, cachedvfs, trackingvfs};
 
-use crate::tsc::{self, CommandLineTesting, DiagnosticReporter, DiagnosticsReporter, EmitInput, ExtendedConfigCache, System};
+use crate::tsc::{
+    self, CommandLineTesting, DiagnosticReporter, DiagnosticsReporter, EmitInput,
+    ExtendedConfigCache, System,
+};
 use crate::watchmanager::{self, DirWatchSet, WatchManager, WatchState};
 use crate::watchmem::{FileRegions, Freer};
 
@@ -81,13 +84,23 @@ impl CompilerHost for watchCompilerHost {
     ) -> Result<contentmapper::SourceFiles, contentmapper::Error> {
         // Not cached: each full build transforms the file again. Its region lives while a snapshot's kept diagnostics
         // refer to a version of it, as for the other files (`live_files`).
-        let size = self.inner.fs().stat(&parse_options.file_name).map_or(0, |info| usize::try_from(info.size()).unwrap_or(0));
-        self.regions.parse_content_mapped(size, || self.inner.get_content_mapped_source_files(parse_options, mapper))
+        let size = self
+            .inner
+            .fs()
+            .stat(&parse_options.file_name)
+            .map_or(0, |info| usize::try_from(info.size()).unwrap_or(0));
+        self.regions.parse_content_mapped(size, || {
+            self.inner.get_content_mapped_source_files(parse_options, mapper)
+        })
     }
     fn content_mapper_project(&self) -> Option<Arc<dyn contentmapper::Project>> {
         self.inner.content_mapper_project()
     }
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<ParsedCommandLine>> {
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<ParsedCommandLine>> {
         self.inner.get_resolved_project_reference(file_name, path)
     }
 }
@@ -173,8 +186,11 @@ pub(crate) fn run_watcher(
 ) -> Option<Box<Watcher>> {
     let writer: tsc::SyncWriter = Arc::new(move |t: &str| sys.write(t));
     let fs = sys.fs();
-    let wm = WatchManager::new(Arc::clone(&writer), Box::new(move |d: &str| fs.directory_exists(d)));
-    if testing.is_none() && sys.get_environment_variable("TS_WATCH_DEBUG").is_some_and(|v| !v.is_empty()) {
+    let wm =
+        WatchManager::new(Arc::clone(&writer), Box::new(move |d: &str| fs.directory_exists(d)));
+    if testing.is_none()
+        && sys.get_environment_variable("TS_WATCH_DEBUG").is_some_and(|v| !v.is_empty())
+    {
         wm.set_debug_log(Arc::clone(&writer));
     }
     if let Some(backend) = backend {
@@ -187,13 +203,20 @@ pub(crate) fn run_watcher(
         shared_program_data: None,
         free_replaced: None,
         signature_job: None,
-        config_file_name: config.config_file.map(|f| f.source_file.file_name().to_string()).unwrap_or_default(),
+        config_file_name: config
+            .config_file
+            .map(|f| f.source_file.file_name().to_string())
+            .unwrap_or_default(),
         config,
         compiler_options_from_command_line,
         command_line_raw,
         report_diagnostic,
         report_error_summary,
-        report_watch_status: tsc::create_watch_status_reporter(sys, &options, testing.map(|t| t as &dyn CommandLineTesting)),
+        report_watch_status: tsc::create_watch_status_reporter(
+            sys,
+            &options,
+            testing.map(|t| t as &dyn CommandLineTesting),
+        ),
         testing,
         content_mapper_host: None,
         content_mapper_project: None,
@@ -234,20 +257,30 @@ pub(crate) fn run_watcher(
 
 impl Watcher {
     fn start(&mut self) {
-        self.content_mapper_host = tsc::new_content_mapper_host(self.sys, &self.config.compiler_options().unwrap());
+        self.content_mapper_host =
+            tsc::new_content_mapper_host(self.sys, &self.config.compiler_options().unwrap());
         self.replace_content_mapper_project(self.config);
         let wm = Arc::clone(&self.wm);
         let mut state = wm.lock();
         let host = self.new_compiler_host(self.sys.fs());
-        self.program = tsrs_incremental::read_build_info_program(self.config, &*tsrs_incremental::new_build_info_reader(Arc::clone(&host)), &*host);
+        self.program = tsrs_incremental::read_build_info_program(
+            self.config,
+            &*tsrs_incremental::new_build_info_reader(Arc::clone(&host)),
+            &*host,
+        );
 
         if !self.config_file_name.is_empty() {
-            self.config_file_paths = std::iter::once(self.config_file_name.clone()).chain(self.config.extended_source_files()).collect();
+            self.config_file_paths = std::iter::once(self.config_file_name.clone())
+                .chain(self.config.extended_source_files())
+                .collect();
         }
         if self.testing.is_none() {
             wm.ensure_default_backend(&mut state);
         }
-        (self.report_watch_status)(new_compiler_diagnostic(&diagnostics::Starting_compilation_in_watch_mode, &[]));
+        (self.report_watch_status)(new_compiler_diagnostic(
+            &diagnostics::Starting_compilation_in_watch_mode,
+            &[],
+        ));
         self.watch_set_dirty = true;
         if self.do_build(&mut state).is_err() {
             wm.force_overflow();
@@ -265,7 +298,9 @@ impl Watcher {
         let fs = self.sys.fs();
         let mut changed: Vec<String> = Vec::new();
         for path in self.source_file_cache.keys() {
-            let Some(cached) = self.source_file_cache.load(&path) else { continue };
+            let Some(cached) = self.source_file_cache.load(&path) else {
+                continue;
+            };
             let file_name = cached.file.file_name();
             if fs.stat(file_name).map(|s| s.mod_time()) != Some(cached.mod_time) {
                 changed.push(file_name.to_string());
@@ -273,7 +308,13 @@ impl Watcher {
         }
         if !changed.is_empty() {
             changed.sort();
-            self.wm.debug(|| format!("[watch] {} file(s) changed during the build: {}\n", changed.len(), changed.join(", ")));
+            self.wm.debug(|| {
+                format!(
+                    "[watch] {} file(s) changed during the build: {}\n",
+                    changed.len(),
+                    changed.join(", ")
+                )
+            });
             self.wm.queue_changes(changed);
         }
     }
@@ -283,7 +324,8 @@ impl Watcher {
             self.sys.get_current_directory(),
             fs,
             self.sys.default_library_path(),
-            Some(Arc::clone(&self.extended_config_cache) as Arc<dyn tsoptions::ExtendedConfigCache + Send>),
+            Some(Arc::clone(&self.extended_config_cache)
+                as Arc<dyn tsoptions::ExtendedConfigCache + Send>),
             Some(crate::execute::get_trace_from_sys(self.sys, self.testing)),
             self.content_mapper_project.clone(),
         )
@@ -293,7 +335,8 @@ impl Watcher {
         if self.content_mapper_host.is_none() {
             return;
         }
-        let project = crate::execute::get_content_mapper_project(self.content_mapper_host.as_ref(), config);
+        let project =
+            crate::execute::get_content_mapper_project(self.content_mapper_host.as_ref(), config);
         if let Some(old) = self.content_mapper_project.take() {
             let _ = old.close();
         }
@@ -312,7 +355,9 @@ impl Watcher {
             match project.watched_files() {
                 Ok(dynamic) => files.extend(dynamic),
                 Err(err) => {
-                    (self.report_diagnostic)(tsrs_compiler::content_mapper_project_diagnostic(&err));
+                    (self.report_diagnostic)(tsrs_compiler::content_mapper_project_diagnostic(
+                        &err,
+                    ));
                     return files;
                 }
             }
@@ -330,7 +375,11 @@ impl Watcher {
     }
 
     fn to_path(&self, file_name: &str) -> Path {
-        tspath::to_path(file_name, self.sys.get_current_directory(), self.sys.fs().use_case_sensitive_file_names())
+        tspath::to_path(
+            file_name,
+            self.sys.get_current_directory(),
+            self.sys.fs().use_case_sensitive_file_names(),
+        )
     }
 
     fn compiler_program(&self) -> &'static Program {
@@ -361,7 +410,10 @@ impl Watcher {
         // For no-config CLI mode, also watch the CLI-specified files' directories
         if self.config.config_file.is_none() {
             for file_name in self.config.file_names() {
-                let abs = tspath::get_normalized_absolute_path(file_name, self.sys.get_current_directory());
+                let abs = tspath::get_normalized_absolute_path(
+                    file_name,
+                    self.sys.get_current_directory(),
+                );
                 desired_dirs.entry(tspath::get_directory_path(&fs.realpath(&abs))).or_insert(false);
             }
         }
@@ -376,7 +428,8 @@ impl Watcher {
             coverage.set(dir, recursive);
         }
         let program_files = self.compiler_program().files_by_path();
-        let root_files: FxHashSet<Path> = self.config.file_names().iter().map(|f| self.to_path(f)).collect();
+        let root_files: FxHashSet<Path> =
+            self.config.file_names().iter().map(|f| self.to_path(f)).collect();
         // tsrs-only: directories under a recursive watch that are reached through a symlink, checked once each.
         let mut symlink_checked: FxHashSet<String> = FxHashSet::default();
         for file_path in seen_file_paths {
@@ -387,7 +440,10 @@ impl Watcher {
                 // would never be seen to change. Its directory gets a watch of its own, under the name the program
                 // uses; the backend watches the target and reports the events under that name. Go misses these edits
                 // (tsgo too).
-                if !coverage.has(&dir) && symlink_checked.insert(dir.clone()) && fs.realpath(&dir) != dir {
+                if !coverage.has(&dir)
+                    && symlink_checked.insert(dir.clone())
+                    && fs.realpath(&dir) != dir
+                {
                     coverage.set(&dir, false);
                 }
                 continue;
@@ -396,7 +452,10 @@ impl Watcher {
             // file outside the tsconfig directory (say /shared next to /app) is still watched. A root file is not in
             // the program while it is missing, but its directory stays watched so that recreating it rebuilds.
             let p = self.to_path(file_path);
-            if program_files.contains_key(&p) || root_files.contains(&p) || watchmanager::can_watch_directory(&dir) {
+            if program_files.contains_key(&p)
+                || root_files.contains(&p)
+                || watchmanager::can_watch_directory(&dir)
+            {
                 coverage.set(&dir, false);
             }
         }
@@ -404,7 +463,11 @@ impl Watcher {
         self.wm.resolve_desired_dirs(&coverage.dirs())
     }
 
-    fn reconcile_watches(&self, state: &mut WatchState, seen_file_paths: &[String]) -> Result<(), tsrs_fswatch::Error> {
+    fn reconcile_watches(
+        &self,
+        state: &mut WatchState,
+        seen_file_paths: &[String],
+    ) -> Result<(), tsrs_fswatch::Error> {
         let desired_dirs = self.compute_desired_watches(seen_file_paths);
         self.wm.reconcile_watches(state, &desired_dirs)
     }
@@ -428,7 +491,10 @@ impl Watcher {
             // Filter fswatch events against known dependencies
             if !self.is_relevant_change(&state, &changed_paths) {
                 if let Some(log) = wm.debug_log() {
-                    log(&format!("[watch] DoCycle: {} event(s) not relevant to compilation, skipping rebuild\n", changed_paths.len()));
+                    log(&format!(
+                        "[watch] DoCycle: {} event(s) not relevant to compilation, skipping rebuild\n",
+                        changed_paths.len()
+                    ));
                 }
                 if let Some(testing) = self.testing {
                     testing.on_program(self.program.unwrap());
@@ -438,7 +504,8 @@ impl Watcher {
             self.evict_changed_source_files(&changed_paths);
             let fs = self.sys.fs();
             let program_files = self.compiler_program().files_by_path();
-            let content_mapper_watched_files: FxHashSet<Path> = self.content_mapper_watched_files().iter().map(|f| self.to_path(f)).collect();
+            let content_mapper_watched_files: FxHashSet<Path> =
+                self.content_mapper_watched_files().iter().map(|f| self.to_path(f)).collect();
             let mut content_mapper_config_changed = false;
             for event_path in sorted_keys(&changed_paths) {
                 if fs.directory_exists(event_path) {
@@ -454,7 +521,10 @@ impl Watcher {
                     content_mapper_config_changed = true;
                     self.force_full_rebuild = true;
                 }
-                if self.config.config_file.is_some() && self.config.possibly_matches_file_name(event_path) && !self.seen_files.contains(&p) {
+                if self.config.config_file.is_some()
+                    && self.config.possibly_matches_file_name(event_path)
+                    && !self.seen_files.contains(&p)
+                {
                     // A file that matches the project but was not previously seen appeared: a structural change that
                     // requires a full rebuild, not the single-file fast path.
                     self.watch_set_dirty = true;
@@ -464,13 +534,18 @@ impl Watcher {
                 match program_files.get(&p) {
                     // Canonical mapped files must be transformed again, and supplemental paths are failed physical
                     // lookups reserved for virtual files. Neither can use single-file AST reuse.
-                    Some(source_file) if !source_file.content_mapper().is_empty() => self.force_full_rebuild = true,
+                    Some(source_file) if !source_file.content_mapper().is_empty() => {
+                        self.force_full_rebuild = true;
+                    }
                     // tsrs-only: on a case-insensitive file system a rename that changes only the case keeps the
                     // file's path, so the single-file fast path would reuse the program with the old spelling (and
                     // miss TS1149 for imports that spell it the old way). An event spelled unlike the program's
                     // file reloads the file names and rebuilds. Go (at the pinned commit) has the same fast path;
                     // the tsgo nightly of 2026-07-07 rebuilds here.
-                    Some(source_file) if !fs.use_case_sensitive_file_names() && source_file.file_name() != event_path.as_str() => {
+                    Some(source_file)
+                        if !fs.use_case_sensitive_file_names()
+                            && source_file.file_name() != event_path.as_str() =>
+                    {
                         self.watch_set_dirty = true;
                         self.force_full_rebuild = true;
                     }
@@ -485,7 +560,10 @@ impl Watcher {
                 && let Some(project) = &self.content_mapper_project
                 && project.refresh().is_err()
             {
-                (self.report_diagnostic)(new_compiler_diagnostic(&diagnostics::The_content_mapper_process_could_not_be_started_or_initialized, &[]));
+                (self.report_diagnostic)(new_compiler_diagnostic(
+                    &diagnostics::The_content_mapper_process_could_not_be_started_or_initialized,
+                    &[],
+                ));
                 return;
             }
         } else if overflow {
@@ -509,7 +587,12 @@ impl Watcher {
         // above leaves it running. Most such cycles are the events of the last build's own outputs, which come while
         // the job runs, and stopping it there left the placeholders until the next build.
         self.stop_signature_job();
-        self.report_status(|| new_compiler_diagnostic(&diagnostics::File_change_detected_Starting_incremental_compilation, &[]));
+        self.report_status(|| {
+            new_compiler_diagnostic(
+                &diagnostics::File_change_detected_Starting_incremental_compilation,
+                &[],
+            )
+        });
         if self.do_build(&mut state).is_err() {
             // Mid-cycle watch failure; force a full rebuild on the next event
             wm.force_overflow();
@@ -542,13 +625,18 @@ impl Watcher {
             let options = self.compare_paths_options();
             changed_paths.retain(|event_path, _| {
                 let p = self.to_path(event_path);
-                !dropped.iter().any(|output| tspath::contains_path(p.as_str(), output.as_str(), &options))
+                !dropped
+                    .iter()
+                    .any(|output| tspath::contains_path(p.as_str(), output.as_str(), &options))
             });
         }
         if changed_paths.len() != before
             && let Some(log) = self.wm.debug_log()
         {
-            log(&format!("[watch] ignoring {} event(s) for the build's own outputs\n", before - changed_paths.len()));
+            log(&format!(
+                "[watch] ignoring {} event(s) for the build's own outputs\n",
+                before - changed_paths.len()
+            ));
         }
     }
 
@@ -563,14 +651,20 @@ impl Watcher {
             if *kind != EventKind::Update {
                 return true;
             }
-            let Some(cached) = self.source_file_cache.load(&self.to_path(event_path)) else { return true };
+            let Some(cached) = self.source_file_cache.load(&self.to_path(event_path)) else {
+                return true;
+            };
             // The program's spelling: a case-only rename must still be seen.
-            cached.file.file_name() != event_path.as_str() || fs.stat(event_path).is_none_or(|s| s.mod_time() != cached.mod_time)
+            cached.file.file_name() != event_path.as_str()
+                || fs.stat(event_path).is_none_or(|s| s.mod_time() != cached.mod_time)
         });
         if changed_paths.len() != before
             && let Some(log) = self.wm.debug_log()
         {
-            log(&format!("[watch] ignoring {} event(s) for files unchanged since they were read\n", before - changed_paths.len()));
+            log(&format!(
+                "[watch] ignoring {} event(s) for files unchanged since they were read\n",
+                before - changed_paths.len()
+            ));
         }
     }
 
@@ -579,7 +673,8 @@ impl Watcher {
         if options.no_emit.is_true() {
             return FxHashSet::default();
         }
-        let mut outputs: FxHashSet<Path> = self.config.get_output_file_names().iter().map(|f| self.to_path(f)).collect();
+        let mut outputs: FxHashSet<Path> =
+            self.config.get_output_file_names().iter().map(|f| self.to_path(f)).collect();
         let build_info = self.config.get_build_info_file_name();
         if !build_info.is_empty() {
             outputs.insert(self.to_path(&build_info));
@@ -587,21 +682,33 @@ impl Watcher {
         outputs
     }
 
-    fn is_relevant_change(&self, state: &WatchState, changed_paths: &FxHashMap<String, EventKind>) -> bool {
+    fn is_relevant_change(
+        &self,
+        state: &WatchState,
+        changed_paths: &FxHashMap<String, EventKind>,
+    ) -> bool {
         let fs = self.sys.fs();
         let opts = self.compare_paths_options();
-        let content_mapper_watched_files: FxHashSet<Path> = self.content_mapper_watched_files().iter().map(|f| self.to_path(f)).collect();
+        let content_mapper_watched_files: FxHashSet<Path> =
+            self.content_mapper_watched_files().iter().map(|f| self.to_path(f)).collect();
         sorted_keys(changed_paths).into_iter().any(|event_path| {
             let p = self.to_path(event_path);
             // tsrs-only: Go also asks `PossiblyMatchesDirectoryName` of a changed file, which is true of any file under a
             // recursive wildcard directory (an editor's swap file, a log, a .md), so each write to one rebuilt the
             // program. Only a directory (or a deleted path, which may have been one) can bring in files that match.
-            let maybe_directory = || changed_paths[event_path] == EventKind::Delete || fs.directory_exists(event_path);
+            let maybe_directory = || {
+                changed_paths[event_path] == EventKind::Delete || fs.directory_exists(event_path)
+            };
             content_mapper_watched_files.contains(&p)
                 || self.seen_files.contains(&p)
-                || (self.config.config_file.is_some() && self.config.possibly_matches_file_name(event_path))
-                || (self.config.config_file.is_some() && self.config.possibly_matches_directory_name(&p) && maybe_directory())
-                || (fs.directory_exists(event_path) && WatchManager::is_path_under_watch(state, event_path, &opts) && self.directory_change_matters(&p))
+                || (self.config.config_file.is_some()
+                    && self.config.possibly_matches_file_name(event_path))
+                || (self.config.config_file.is_some()
+                    && self.config.possibly_matches_directory_name(&p)
+                    && maybe_directory())
+                || (fs.directory_exists(event_path)
+                    && WatchManager::is_path_under_watch(state, event_path, &opts)
+                    && self.directory_change_matters(&p))
         })
     }
 
@@ -611,7 +718,9 @@ impl Watcher {
     // counts any directory under any watch, so a new directory beside the project (the watch of its parent is for a
     // node_modules lookup) ran a full cycle.
     fn directory_change_matters(&self, p: &Path) -> bool {
-        (self.config.config_file.is_some() && self.config.possibly_matches_directory_name(p)) || self.seen_dirs.contains(p) || watchmanager::is_in_node_modules(p)
+        (self.config.config_file.is_some() && self.config.possibly_matches_directory_name(p))
+            || self.seen_dirs.contains(p)
+            || watchmanager::is_in_node_modules(p)
     }
 
     fn do_build(&mut self, state: &mut WatchState) -> Result<(), tsrs_fswatch::Error> {
@@ -622,8 +731,11 @@ impl Watcher {
 
         let mut reloaded_file_names = false;
         if self.watch_set_dirty {
-            if self.config.config_file.is_some() && self.config.wildcard_directories().is_some_and(|w| !w.is_empty()) {
-                let new_config = P::new(self.config.reload_file_names_of_parsed_command_line(&*self.sys.fs()));
+            if self.config.config_file.is_some()
+                && self.config.wildcard_directories().is_some_and(|w| !w.is_empty())
+            {
+                let new_config =
+                    P::new(self.config.reload_file_names_of_parsed_command_line(&*self.sys.fs()));
                 reloaded_file_names = true;
                 if self.config.file_names() == new_config.file_names() {
                     self.watch_set_dirty = false;
@@ -634,7 +746,12 @@ impl Watcher {
             }
         }
 
-        if self.program.is_some() && self.program_ready && !self.config_modified && !self.watch_set_dirty && !self.force_full_rebuild {
+        if self.program.is_some()
+            && self.program_ready
+            && !self.config_modified
+            && !self.watch_set_dirty
+            && !self.force_full_rebuild
+        {
             let cached = Arc::new(cachedvfs::from(self.sys.fs()));
             let inner_host = self.new_compiler_host(Arc::clone(&cached) as Arc<dyn FS>);
             let host: Arc<dyn CompilerHost> = Arc::new(watchCompilerHost {
@@ -674,8 +791,12 @@ impl Watcher {
                     tfs.add_seen_file(dir);
                 }
             }
-            if !reloaded_file_names && !self.watch_set_dirty && self.config.wildcard_directories().is_some_and(|w| !w.is_empty()) {
-                self.config = P::new(self.config.reload_file_names_of_parsed_command_line(&*self.sys.fs()));
+            if !reloaded_file_names
+                && !self.watch_set_dirty
+                && self.config.wildcard_directories().is_some_and(|w| !w.is_empty())
+            {
+                self.config =
+                    P::new(self.config.reload_file_names_of_parsed_command_line(&*self.sys.fs()));
             }
         }
         for path in &self.config_file_paths {
@@ -738,8 +859,11 @@ impl Watcher {
 
     fn record_config_mtimes(&mut self) {
         let fs = self.sys.fs();
-        self.config_mtimes =
-            self.config_file_paths.iter().filter_map(|cfg_path| fs.stat(cfg_path).map(|s| (cfg_path.clone(), s.mod_time()))).collect();
+        self.config_mtimes = self
+            .config_file_paths
+            .iter()
+            .filter_map(|cfg_path| fs.stat(cfg_path).map(|s| (cfg_path.clone(), s.mod_time())))
+            .collect();
     }
 
     fn report_error_count(&self, error_count: usize) {
@@ -747,7 +871,10 @@ impl Watcher {
             if error_count == 1 {
                 new_compiler_diagnostic(&diagnostics::Found_1_error_Watching_for_file_changes, &[])
             } else {
-                new_compiler_diagnostic(&diagnostics::Found_0_errors_Watching_for_file_changes, &[&error_count])
+                new_compiler_diagnostic(
+                    &diagnostics::Found_0_errors_Watching_for_file_changes,
+                    &[&error_count],
+                )
             }
         });
     }
@@ -779,8 +906,11 @@ impl Watcher {
                 }
             }
         }
-        let Some(changed_path) = changed_path else { return false };
-        let (new_program, _, reused) = old_program.reuse_program(changed_path, Arc::clone(&host), None, None);
+        let Some(changed_path) = changed_path else {
+            return false;
+        };
+        let (new_program, _, reused) =
+            old_program.reuse_program(changed_path, Arc::clone(&host), None, None);
         if reused {
             self.install_program(new_program.unwrap(), host, None);
         }
@@ -793,7 +923,12 @@ impl Watcher {
     // build also frees the data the programs since the previous full build shared (`update_program` hands it on).
     // Then the regions of the files nothing refers to any more (watchmem.rs).
     // `full_build_regions`: the file loader's regions of a full build (`None` for a program updated from the current one).
-    fn install_program(&mut self, program: &'static Program, host: Arc<dyn CompilerHost>, full_build_regions: Option<Arc<tsrs_compiler::ProgramRegions>>) {
+    fn install_program(
+        &mut self,
+        program: &'static Program,
+        host: Arc<dyn CompilerHost>,
+        full_build_regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
+    ) {
         let full_build = full_build_regions.is_some();
         // Bind before any checker exists: single-threaded, the first checker would bind the files in its region, and
         // later programs reuse the cached files.
@@ -803,13 +938,20 @@ impl Watcher {
         let new = {
             // The diagnostics the snapshot recomputes for the new program (`repopulate_diagnostics_of_file`).
             let _route = snapshot_diagnostics.as_ref().map(Region::route_diagnostics);
-            tsrs_incremental::new_program(program, self.program, tsrs_incremental::create_host(host), Some(std::time::Instant::now), self.testing.is_some())
+            tsrs_incremental::new_program(
+                program,
+                self.program,
+                tsrs_incremental::create_host(host),
+                Some(std::time::Instant::now),
+                self.testing.is_some(),
+            )
         };
         if let Some(region) = &snapshot_diagnostics {
             let _scope = region.enter();
             new.copy_diagnostics();
         }
-        let old_snapshot_diagnostics = std::mem::replace(&mut self.snapshot_diagnostics, snapshot_diagnostics);
+        let old_snapshot_diagnostics =
+            std::mem::replace(&mut self.snapshot_diagnostics, snapshot_diagnostics);
         let old_incremental = self.program.replace(new);
         let old = old_incremental.and_then(|old| old.compiler_program());
         if self.testing.is_none()
@@ -822,7 +964,10 @@ impl Watcher {
         }
         let (shared, old_regions) = if full_build {
             self.full_build_files = program.get_source_files().to_vec();
-            (self.shared_program_data.replace(tsrs_compiler::shared_program_data(program)), std::mem::replace(&mut self.full_build_regions, full_build_regions))
+            (
+                self.shared_program_data.replace(tsrs_compiler::shared_program_data(program)),
+                std::mem::replace(&mut self.full_build_regions, full_build_regions),
+            )
         } else {
             (None, None)
         };
@@ -867,7 +1012,10 @@ impl Watcher {
         let Some(program) = self.program else { return };
         if let Some(testing) = self.testing {
             if testing.run_signature_job() {
-                program.compute_placeholder_signatures(&tsrs_compiler::Context::default(), SIGNATURE_JOB_CHUNK);
+                program.compute_placeholder_signatures(
+                    &tsrs_compiler::Context::default(),
+                    SIGNATURE_JOB_CHUNK,
+                );
             }
             return;
         }
@@ -880,7 +1028,10 @@ impl Watcher {
                 let stored = program.compute_placeholder_signatures(&ctx, SIGNATURE_JOB_CHUNK);
                 if let Some(log) = wm.debug_log() {
                     let state = if ctx.err().is_some() { "canceled" } else { "done" };
-                    log(&format!("[watch] stored {stored} declaration signature(s) in {:?} ({state})\n", start.elapsed()));
+                    log(&format!(
+                        "[watch] stored {stored} declaration signature(s) in {:?} ({state})\n",
+                        start.elapsed()
+                    ));
                 }
             })
             .expect("failed to spawn a thread");
@@ -952,12 +1103,18 @@ impl Watcher {
         })
     }
 
-    fn content_mapper_manifest_changed(&self, changed_paths: &FxHashMap<String, EventKind>) -> bool {
+    fn content_mapper_manifest_changed(
+        &self,
+        changed_paths: &FxHashMap<String, EventKind>,
+    ) -> bool {
         self.config
             .content_mappers()
             .iter()
             .filter(|m| !m.package_directory.is_empty() && m.contribution_id.is_empty())
-            .any(|m| changed_paths.contains_key(&tspath::combine_paths(&m.package_directory, &["package.json"])))
+            .any(|m| {
+                changed_paths
+                    .contains_key(&tspath::combine_paths(&m.package_directory, &["package.json"]))
+            })
     }
 
     // Returns true when the config could not be parsed (its errors were reported and the cycle ends).
@@ -979,12 +1136,16 @@ impl Watcher {
             }
         }
 
-        let Some(config_parse_result) = self.parse_config_file() else { return true };
+        let Some(config_parse_result) = self.parse_config_file() else {
+            return true;
+        };
         if self.config_has_errors {
             self.config_modified = true;
         }
         self.config_has_errors = false;
-        self.config_file_paths = std::iter::once(self.config_file_name.clone()).chain(config_parse_result.extended_source_files()).collect();
+        self.config_file_paths = std::iter::once(self.config_file_name.clone())
+            .chain(config_parse_result.extended_source_files())
+            .collect();
         if !parsed_configs_equal(&self.config, &config_parse_result) {
             self.config_modified = true;
         }
@@ -1056,4 +1217,3 @@ fn parsed_configs_equal(a: &ParsedCommandLine, b: &ParsedCommandLine) -> bool {
         && a.project_references_is_nil == b.project_references_is_nil
         && a.content_mappers == b.content_mappers
 }
-

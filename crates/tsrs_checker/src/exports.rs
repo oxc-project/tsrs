@@ -104,7 +104,6 @@ impl Checker {
         }
         None
     }
-
 }
 
 // exports.go:91
@@ -119,7 +118,12 @@ pub fn get_property_name_from_type_exported(t: P<Type>) -> std::borrow::Cow<'sta
 
 impl Checker {
     // exports.go:99
-    pub fn get_global_symbol_exported(&mut self, name: &str, meaning: SymbolFlags, diagnostic: Option<&'static Message>) -> Option<P<Symbol>> {
+    pub fn get_global_symbol_exported(
+        &mut self,
+        name: &str,
+        meaning: SymbolFlags,
+        diagnostic: Option<&'static Message>,
+    ) -> Option<P<Symbol>> {
         self.get_global_symbol(name, meaning, diagnostic)
     }
 
@@ -134,7 +138,10 @@ impl Checker {
     }
 
     // exports.go:111
-    pub fn get_immediate_aliased_symbol_exported(&mut self, symbol: P<Symbol>) -> Option<P<Symbol>> {
+    pub fn get_immediate_aliased_symbol_exported(
+        &mut self,
+        symbol: P<Symbol>,
+    ) -> Option<P<Symbol>> {
         self.get_immediate_aliased_symbol(symbol)
     }
 
@@ -144,17 +151,32 @@ impl Checker {
     }
 
     // exports.go:119
-    pub fn get_type_only_alias_declaration_exported(&mut self, symbol: P<Symbol>) -> Option<P<Node>> {
+    pub fn get_type_only_alias_declaration_exported(
+        &mut self,
+        symbol: P<Symbol>,
+    ) -> Option<P<Node>> {
         self.get_type_only_alias_declaration(symbol)
     }
 
     // exports.go:123
-    pub fn resolve_external_module_name_exported(&mut self, module_specifier: P<Node>, import_attributes_type: Option<P<Type>>) -> Option<P<Symbol>> {
-        self.resolve_external_module_name(module_specifier, module_specifier, true /*ignoreErrors*/, import_attributes_type)
+    pub fn resolve_external_module_name_exported(
+        &mut self,
+        module_specifier: P<Node>,
+        import_attributes_type: Option<P<Type>>,
+    ) -> Option<P<Symbol>> {
+        self.resolve_external_module_name(
+            module_specifier,
+            module_specifier,
+            true, /*ignoreErrors*/
+            import_attributes_type,
+        )
     }
 
     // exports.go:127
-    pub fn resolve_external_module_symbol_exported(&mut self, module_symbol: P<Symbol>) -> P<Symbol> {
+    pub fn resolve_external_module_symbol_exported(
+        &mut self,
+        module_symbol: P<Symbol>,
+    ) -> P<Symbol> {
         self.resolve_external_module_symbol(module_symbol, false /*dontResolveAlias*/)
     }
 
@@ -192,15 +214,25 @@ impl Checker {
     // @param isWrite whether this is a write access, e.g. `++foo.x`.
     // @param containingType type where the property comes from.
     // @param property property symbol.
-    pub fn is_property_accessible_exported(&mut self, node: P<Node>, is_super: bool, is_write: bool, containing_type: P<Type>, property: P<Symbol>) -> bool {
+    pub fn is_property_accessible_exported(
+        &mut self,
+        node: P<Node>,
+        is_super: bool,
+        is_write: bool,
+        containing_type: P<Type>,
+        property: P<Symbol>,
+    ) -> bool {
         self.is_property_accessible(node, is_super, is_write, containing_type, property)
     }
 
     // exports.go:163
-    pub fn get_type_of_property_of_contextual_type_exported(&mut self, t: P<Type>, name: &str) -> Option<P<Type>> {
+    pub fn get_type_of_property_of_contextual_type_exported(
+        &mut self,
+        t: P<Type>,
+        name: &str,
+    ) -> Option<P<Type>> {
         self.get_type_of_property_of_contextual_type(t, name)
     }
-
 }
 
 // exports.go:167
@@ -215,7 +247,11 @@ impl Checker {
     }
 
     // exports.go:175
-    pub fn get_signatures_of_type_exported(&mut self, t: P<Type>, kind: SignatureKind) -> &'static [P<Signature>] {
+    pub fn get_signatures_of_type_exported(
+        &mut self,
+        t: P<Type>,
+        kind: SignatureKind,
+    ) -> &'static [P<Signature>] {
         self.get_signatures_of_type(t, kind)
     }
 
@@ -235,7 +271,10 @@ impl Checker {
     }
 
     // exports.go:191
-    pub fn get_constraint_of_type_parameter_exported(&mut self, type_parameter: P<Type>) -> Option<P<Type>> {
+    pub fn get_constraint_of_type_parameter_exported(
+        &mut self,
+        type_parameter: P<Type>,
+    ) -> Option<P<Type>> {
         self.get_constraint_of_type_parameter(type_parameter)
     }
 
@@ -250,12 +289,19 @@ impl Checker {
     }
 
     // exports.go:203
-    pub fn get_default_from_type_parameter_exported(&mut self, type_parameter: P<Type>) -> Option<P<Type>> {
+    pub fn get_default_from_type_parameter_exported(
+        &mut self,
+        type_parameter: P<Type>,
+    ) -> Option<P<Type>> {
         self.get_default_from_type_parameter(type_parameter)
     }
 
     // exports.go:207
-    pub fn get_effective_declaration_flags_exported(&mut self, n: P<Node>, flags_to_check: ModifierFlags) -> ModifierFlags {
+    pub fn get_effective_declaration_flags_exported(
+        &mut self,
+        n: P<Node>,
+        flags_to_check: ModifierFlags,
+    ) -> ModifierFlags {
         self.get_effective_declaration_flags(n, flags_to_check)
     }
 
@@ -265,10 +311,12 @@ impl Checker {
     }
 
     // exports.go:215
-    pub fn get_type_predicate_of_signature_exported(&mut self, sig: P<Signature>) -> Option<P<TypePredicate>> {
+    pub fn get_type_predicate_of_signature_exported(
+        &mut self,
+        sig: P<Signature>,
+    ) -> Option<P<TypePredicate>> {
         self.get_type_predicate_of_signature(sig)
     }
-
 }
 
 // exports.go:219
@@ -303,12 +351,19 @@ impl Checker {
     }
 
     // exports.go:243
-    pub fn get_local_type_parameters_of_class_or_interface_or_type_alias_exported(&mut self, symbol: P<Symbol>) -> Vec<P<Type>> {
+    pub fn get_local_type_parameters_of_class_or_interface_or_type_alias_exported(
+        &mut self,
+        symbol: P<Symbol>,
+    ) -> Vec<P<Type>> {
         self.get_local_type_parameters_of_class_or_interface_or_type_alias(symbol)
     }
 
     // exports.go:247
-    pub fn get_contextual_type_for_object_literal_element_exported(&mut self, element: P<Node>, context_flags: ContextFlags) -> Option<P<Type>> {
+    pub fn get_contextual_type_for_object_literal_element_exported(
+        &mut self,
+        element: P<Node>,
+        context_flags: ContextFlags,
+    ) -> Option<P<Type>> {
         self.get_contextual_type_for_object_literal_element(element, context_flags)
     }
 
@@ -318,7 +373,11 @@ impl Checker {
     }
 
     // exports.go:255
-    pub fn get_expanded_parameters_exported(&mut self, signature: P<Signature>, skip_union_expanding: bool) -> Vec<Vec<P<Symbol>>> {
+    pub fn get_expanded_parameters_exported(
+        &mut self,
+        signature: P<Signature>,
+        skip_union_expanding: bool,
+    ) -> Vec<Vec<P<Symbol>>> {
         self.get_expanded_parameters(signature, skip_union_expanding)
     }
 
@@ -329,7 +388,11 @@ impl Checker {
 
     // exports.go:264
     // Return the type of the given property in the given type, or nil if no such property exists
-    pub fn get_type_of_property_of_type_exported(&mut self, t: P<Type>, name: &str) -> Option<P<Type>> {
+    pub fn get_type_of_property_of_type_exported(
+        &mut self,
+        t: P<Type>,
+        name: &str,
+    ) -> Option<P<Type>> {
         self.get_type_of_property_of_type(t, name)
     }
 
@@ -373,7 +436,13 @@ impl Checker {
 
     // exports.go:296
     // Go's location is nullable (the Node API resolves names without a location); existing callers pass a node.
-    pub fn resolve_name_exported(&mut self, name: &str, location: impl Into<Option<P<Node>>>, meaning: SymbolFlags, exclude_globals: bool) -> Option<P<Symbol>> {
+    pub fn resolve_name_exported(
+        &mut self,
+        name: &str,
+        location: impl Into<Option<P<Node>>>,
+        meaning: SymbolFlags,
+        exclude_globals: bool,
+    ) -> Option<P<Symbol>> {
         self.resolve_name(location.into(), name, meaning, None, true, exclude_globals)
     }
 
@@ -410,7 +479,12 @@ impl Checker {
     }
 
     // exports.go:326
-    pub fn get_member_override_modifier_status_exported(&mut self, node: P<Node>, member: P<Node>, member_symbol: Option<P<Symbol>>) -> MemberOverrideStatus {
+    pub fn get_member_override_modifier_status_exported(
+        &mut self,
+        node: P<Node>,
+        member: P<Node>,
+        member_symbol: Option<P<Symbol>>,
+    ) -> MemberOverrideStatus {
         self.get_member_override_modifier_status(node, member, member_symbol)
     }
 
@@ -425,12 +499,20 @@ impl Checker {
     }
 
     // exports.go:338
-    pub fn get_index_info_of_type_exported(&mut self, t: P<Type>, key_type: P<Type>) -> Option<P<IndexInfo>> {
+    pub fn get_index_info_of_type_exported(
+        &mut self,
+        t: P<Type>,
+        key_type: P<Type>,
+    ) -> Option<P<IndexInfo>> {
         self.get_index_info_of_type(t, key_type)
     }
 
     // exports.go:342
-    pub fn get_index_type_of_type_exported(&mut self, t: P<Type>, key_type: P<Type>) -> Option<P<Type>> {
+    pub fn get_index_type_of_type_exported(
+        &mut self,
+        t: P<Type>,
+        key_type: P<Type>,
+    ) -> Option<P<Type>> {
         self.get_index_type_of_type(t, key_type)
     }
 
@@ -476,7 +558,11 @@ impl Checker {
     }
 
     // exports.go:370
-    pub fn get_union_type_ex_exported(&mut self, types: &[P<Type>], union_reduction: UnionReduction) -> P<Type> {
+    pub fn get_union_type_ex_exported(
+        &mut self,
+        types: &[P<Type>],
+        union_reduction: UnionReduction,
+    ) -> P<Type> {
         self.get_union_type_ex(types, union_reduction, AliasArg::None, None)
     }
 
@@ -491,7 +577,12 @@ impl Checker {
             return false;
         }
         let r = self.get_emit_resolver();
-        r.requires_adding_implicit_undefined_exported(self, node, symbol, Some(enclosing_declaration))
+        r.requires_adding_implicit_undefined_exported(
+            self,
+            node,
+            symbol,
+            Some(enclosing_declaration),
+        )
     }
 
     // exports.go:386
@@ -519,7 +610,6 @@ impl Checker {
     pub fn has_properties_of_structured_type_exported(&mut self, t: P<Type>) -> bool {
         self.has_properties_of_structured_type(t)
     }
-
 }
 
 // exports.go:398

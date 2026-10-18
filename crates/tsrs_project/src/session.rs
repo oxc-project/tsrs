@@ -4,33 +4,38 @@ use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::Diagnostic;
-use tsrs_core::collections::{diff_ordered_maps, OrderedMap, OrderedMapExt, Set, SyncSet};
-use tsrs_core::context::{has_locale, with_locale, CancelFunc, Context};
+use tsrs_core::collections::{OrderedMap, OrderedMapExt, Set, SyncSet, diff_ordered_maps};
+use tsrs_core::context::{CancelFunc, Context, has_locale, with_locale};
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{diff_maps_func, CompilerOptions, ScriptKind, P};
+use tsrs_core::{CompilerOptions, P, ScriptKind, diff_maps_func};
 use tsrs_ls::autoimport::{ProjectID, RegistryExt};
 use tsrs_ls::lsconv::{self, Converters};
 use tsrs_ls::lsutil::{self, UserPreferences};
-use tsrs_ls::{new_language_service, LanguageService};
+use tsrs_ls::{LanguageService, new_language_service};
 use tsrs_lsproto as lsproto;
 use tsrs_tsoptions::Mapper;
 use tsrs_vfs::FS;
 
 use crate::ata;
-use crate::background::{after_func, new_queue, Queue, Timer};
+use crate::background::{Queue, Timer, after_func, new_queue};
 use crate::checkerpool::CheckerPoolOptions;
 use crate::client::Client;
 use crate::configfileregistry::configFileEntry;
 use crate::dirty::Shared;
 use crate::filechange::{FileChange, FileChangeKind, FileChangeSummary};
-use crate::logging::{new_nop_logger, Logger};
-use crate::overlayfs::{new_overlay_fs, overlayFS, FsRef, OverlayMap, ToPath};
+use crate::logging::{Logger, new_nop_logger};
+use crate::overlayfs::{FsRef, OverlayMap, ToPath, new_overlay_fs, overlayFS};
 use crate::parsecache::{ContentMappedParseCache, ParseCache};
-use crate::project::{hr, Kind, Project, ProgramUpdateKind, ID};
-use crate::snapshot::{ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot, SnapshotChange};
+use crate::project::{ID, Kind, ProgramUpdateKind, Project, hr};
+use crate::snapshot::{
+    ATAStateChange, ProjectTreeRequest, ResourceRequest, Snapshot, SnapshotChange,
+};
 use crate::snapshotfs::{is_node_modules_path, is_relevant_extension};
-use crate::snapshothost::{new_snapshot_host, SnapshotHost};
-use crate::watch::{file_system_watcher_glob_string, new_watch_registry, watchRegistry, WatchedFiles, WatchedFilesExt, WatcherID};
+use crate::snapshothost::{SnapshotHost, new_snapshot_host};
+use crate::watch::{
+    WatchedFiles, WatchedFilesExt, WatcherID, file_system_watcher_glob_string, new_watch_registry,
+    watchRegistry,
+};
 
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
@@ -130,7 +135,10 @@ pub struct Session {
     background_ctx: Context,
     to_path: ToPath,
     client: Option<Arc<dyn Client>>,
-    #[expect(dead_code, reason = "Go's reader sendPerformanceTelemetry (session.go:737) is not ported yet")]
+    #[expect(
+        dead_code,
+        reason = "Go's reader sendPerformanceTelemetry (session.go:737) is not ported yet"
+    )]
     start_time: Instant,
     npm_executor: Option<Arc<dyn ata::NpmExecutor>>,
     fs: Arc<overlayFS>,
@@ -188,7 +196,10 @@ pub struct Session {
     performance_telemetry_cancel: Mutex<Option<CancelFunc>>,
 
     // seenProjects tracks projects that have already had telemetry sent.
-    #[expect(dead_code, reason = "Go's reader sendProjectInfoTelemetry (session.go:875) is not ported yet")]
+    #[expect(
+        dead_code,
+        reason = "Go's reader sendProjectInfoTelemetry (session.go:875) is not ported yet"
+    )]
     seen_projects: SyncSet<ID>,
 
     // watches tracks the current watch globs and how many individual WatchedFiles
@@ -207,7 +218,10 @@ pub struct Session {
 pub fn new_session(init: &SessionInit) -> Arc<Session> {
     let snapshot_host = new_snapshot_host(init);
     let session_logger = init.logger.clone().unwrap_or_else(new_nop_logger);
-    let relative_pattern_support = lsproto::get_client_capabilities(&init.background_ctx).workspace.did_change_watched_files.relative_pattern_support;
+    let relative_pattern_support = lsproto::get_client_capabilities(&init.background_ctx)
+        .workspace
+        .did_change_watched_files
+        .relative_pattern_support;
     let snapshot = snapshot_host.new_root_snapshot_with(0, relative_pattern_support);
     // (ATA is not ported: Go creates a typings installer here when TypingsLocation and NpmExecutor are set.)
     Arc::new_cyclic(|self_ref| Session {
@@ -217,12 +231,20 @@ pub fn new_session(init: &SessionInit) -> Arc<Session> {
         to_path: Arc::clone(&snapshot_host.to_path),
         client: init.client.clone(),
         npm_executor: init.npm_executor.clone(),
-        fs: Arc::new(new_overlay_fs(FsRef::Host(Arc::clone(&snapshot_host.fs)), Arc::default(), init.options.position_encoding, Arc::clone(&snapshot_host.to_path))),
+        fs: Arc::new(new_overlay_fs(
+            FsRef::Host(Arc::clone(&snapshot_host.fs)),
+            Arc::default(),
+            init.options.position_encoding,
+            Arc::clone(&snapshot_host.to_path),
+        )),
         background_queue: new_queue(),
         start_time: Instant::now(),
         snapshot: RwLock::new(snapshot),
         initial_user_preferences: Mutex::new(lsutil::new_default_user_preferences()),
-        user_config: Mutex::new(userConfigState { workspace_user_preferences: lsutil::new_default_user_preferences(), pending_user_config_changes: false }),
+        user_config: Mutex::new(userConfigState {
+            workspace_user_preferences: lsutil::new_default_user_preferences(),
+            pending_user_config_changes: false,
+        }),
         pending_ata_changes: Mutex::new(FxHashMap::default()),
         watches: new_watch_registry(),
         snapshot_host,
@@ -318,13 +340,27 @@ impl Session {
     }
 
     // session.go:319
-    pub fn did_open_file(&self, ctx: &Context, uri: lsproto::DocumentUri, version: i32, content: String, language_kind: lsproto::LanguageKind) {
+    pub fn did_open_file(
+        &self,
+        ctx: &Context,
+        uri: lsproto::DocumentUri,
+        version: i32,
+        content: String,
+        language_kind: lsproto::LanguageKind,
+    ) {
         self.cancel_warm_auto_import_cache();
         self.schedule_idle_cache_clean();
         self.cancel_scheduled_snapshot_update();
         let _update = self.snapshot_update_mu.lock().unwrap();
         let mut pending = self.pending_file_changes.lock().unwrap();
-        pending.push(FileChange { kind: FileChangeKind::Open, uri: uri.clone(), version, content, language_kind, changes: Vec::new() });
+        pending.push(FileChange {
+            kind: FileChangeKind::Open,
+            uri: uri.clone(),
+            version,
+            content,
+            language_kind,
+            changes: Vec::new(),
+        });
         let (changes, overlays) = self.flush_changes_locked(ctx, &mut pending);
         drop(pending);
         self.update_snapshot(
@@ -342,7 +378,12 @@ impl Session {
     // session.go:344
     // SetContentMapperContributions atomically replaces extension-provided inferred-project mappers and
     // discovers configured projects for matching open documents. Configured projects never consume these mappers.
-    pub fn set_content_mapper_contributions(&self, ctx: &Context, contributions: ContentMapperContributions, document_uris: Vec<lsproto::DocumentUri>) {
+    pub fn set_content_mapper_contributions(
+        &self,
+        ctx: &Context,
+        contributions: ContentMapperContributions,
+        document_uris: Vec<lsproto::DocumentUri>,
+    ) {
         if !self.options.run_external_code {
             return;
         }
@@ -358,7 +399,10 @@ impl Session {
                 reason: UpdateReason::DidChangeContentMapperContributions,
                 file_changes: changes,
                 content_mapper_contributions: Some(contributions),
-                resource_request: ResourceRequest { configured_project_documents: document_uris, ..Default::default() },
+                resource_request: ResourceRequest {
+                    configured_project_documents: document_uris,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
         );
@@ -369,16 +413,32 @@ impl Session {
     pub fn did_close_file(&self, _ctx: &Context, uri: lsproto::DocumentUri) {
         self.cancel_warm_auto_import_cache();
         self.schedule_idle_cache_clean();
-        self.pending_file_changes.lock().unwrap().push(FileChange { kind: FileChangeKind::Close, uri, ..Default::default() });
+        self.pending_file_changes.lock().unwrap().push(FileChange {
+            kind: FileChangeKind::Close,
+            uri,
+            ..Default::default()
+        });
         self.schedule_snapshot_update(UpdateReason::DidCloseFile);
     }
 
     // session.go:375
-    pub fn did_change_file(&self, _ctx: &Context, uri: lsproto::DocumentUri, version: i32, changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>) {
+    pub fn did_change_file(
+        &self,
+        _ctx: &Context,
+        uri: lsproto::DocumentUri,
+        version: i32,
+        changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>,
+    ) {
         self.cancel_warm_auto_import_cache();
         self.schedule_idle_cache_clean();
         let is_content_mapper_file = self.is_content_mapper_file(&uri);
-        self.pending_file_changes.lock().unwrap().push(FileChange { kind: FileChangeKind::Change, uri, version, changes, ..Default::default() });
+        self.pending_file_changes.lock().unwrap().push(FileChange {
+            kind: FileChangeKind::Change,
+            uri,
+            version,
+            changes,
+            ..Default::default()
+        });
 
         // Editing a content-mapped file changes the program like any source edit, but the client's
         // pull-diagnostics machinery won't re-request diagnostics for dependent files: the content-mapped file is not
@@ -409,7 +469,11 @@ impl Session {
     // session.go:410
     pub fn did_save_file(&self, _ctx: &Context, uri: lsproto::DocumentUri) {
         self.schedule_idle_cache_clean();
-        self.pending_file_changes.lock().unwrap().push(FileChange { kind: FileChangeKind::Save, uri, ..Default::default() });
+        self.pending_file_changes.lock().unwrap().push(FileChange {
+            kind: FileChangeKind::Save,
+            uri,
+            ..Default::default()
+        });
     }
 
     // session.go:420
@@ -419,7 +483,8 @@ impl Session {
         let mut has_config_change = false;
         let snapshot = self.snapshot();
         let config_file_registry = Arc::clone(&snapshot.config_file_registry);
-        let (content_mapper_extensions, content_mapper_watched_files) = snapshot.content_mapper_watch_state();
+        let (content_mapper_extensions, content_mapper_watched_files) =
+            snapshot.content_mapper_watch_state();
         for change in changes {
             let kind = match change.type_ {
                 lsproto::FileChangeType::Created => FileChangeKind::WatchCreate,
@@ -429,7 +494,9 @@ impl Session {
             };
             file_changes.push(FileChange { kind, uri: change.uri.clone(), ..Default::default() });
 
-            if !has_config_change && config_file_registry.is_tracked(&(self.to_path)(&change.uri.file_name())) {
+            if !has_config_change
+                && config_file_registry.is_tracked(&(self.to_path)(&change.uri.file_name()))
+            {
                 has_config_change = true;
             }
 
@@ -450,13 +517,19 @@ impl Session {
                         has_relevant_change = self.fs.directory_exists(&file_name);
                     } else {
                         let snapshot = self.snapshot.read().unwrap().clone();
-                        if snapshot.fs.cache_directories.contains_key(&path) || snapshot.has_overlay_within(&path) || is_node_modules_path(&path) {
+                        if snapshot.fs.cache_directories.contains_key(&path)
+                            || snapshot.has_overlay_within(&path)
+                            || is_node_modules_path(&path)
+                        {
                             has_relevant_change = true;
                         }
                     }
                 } else if let Some(i) = i {
-                    let extensions: Vec<&str> = content_mapper_extensions.iter().map(std::string::String::as_str).collect();
-                    if is_relevant_extension(&path_str[i..]) || tspath::file_extension_is_one_of(path_str, &extensions) {
+                    let extensions: Vec<&str> =
+                        content_mapper_extensions.iter().map(std::string::String::as_str).collect();
+                    if is_relevant_extension(&path_str[i..])
+                        || tspath::file_extension_is_one_of(path_str, &extensions)
+                    {
                         has_relevant_change = true;
                     }
                 }
@@ -481,7 +554,11 @@ impl Session {
     }
 
     // session.go:499
-    pub fn did_change_compiler_options_for_inferred_projects(&self, ctx: &Context, options: Option<P<CompilerOptions>>) {
+    pub fn did_change_compiler_options_for_inferred_projects(
+        &self,
+        ctx: &Context,
+        options: Option<P<CompilerOptions>>,
+    ) {
         *self.compiler_options_for_inferred_projects.lock().unwrap() = options;
         self.update_snapshot(
             ctx,
@@ -617,7 +694,17 @@ impl Session {
                 return;
             }
 
-            s.update_snapshot(ctx, overlays, SnapshotChange { reason, file_changes, new_config, ata_changes, ..Default::default() });
+            s.update_snapshot(
+                ctx,
+                overlays,
+                SnapshotChange {
+                    reason,
+                    file_changes,
+                    new_config,
+                    ata_changes,
+                    ..Default::default()
+                },
+            );
         });
     }
 
@@ -634,7 +721,10 @@ impl Session {
     }
 
     // session.go:652
-    #[expect(clippy::significant_drop_in_scrutinee, reason = "Go holds warmAutoImportMu while it cancels")]
+    #[expect(
+        clippy::significant_drop_in_scrutinee,
+        reason = "Go holds warmAutoImportMu while it cancels"
+    )]
     fn cancel_warm_auto_import_cache(&self) {
         if let Some(cancel) = self.warm_auto_import_cancel.lock().unwrap().take() {
             cancel();
@@ -664,14 +754,24 @@ impl Session {
             s.update_snapshot(
                 &ctx,
                 overlays,
-                SnapshotChange { reason: UpdateReason::IdleCleanDiskCache, file_changes, ata_changes, new_config, clean_file_cache: true, ..Default::default() },
+                SnapshotChange {
+                    reason: UpdateReason::IdleCleanDiskCache,
+                    file_changes,
+                    ata_changes,
+                    new_config,
+                    clean_file_cache: true,
+                    ..Default::default()
+                },
             );
             // (Go also starts a GC here.)
         }));
     }
 
     // session.go:694
-    #[expect(clippy::significant_drop_in_scrutinee, reason = "Go holds idleCacheCleanMu while it stops the timer")]
+    #[expect(
+        clippy::significant_drop_in_scrutinee,
+        reason = "Go holds idleCacheCleanMu while it stops the timer"
+    )]
     fn cancel_idle_cache_clean(&self) {
         if let Some(timer) = self.idle_cache_clean_timer.lock().unwrap().take() {
             timer.stop();
@@ -683,8 +783,7 @@ impl Session {
     // telemetry. It should be called once after the session is initialized.
     // (Telemetry is not ported: the hook is kept and nothing is sent.)
     pub fn start_performance_telemetry(&self) {
-        if !self.options.telemetry_enabled {
-        }
+        if !self.options.telemetry_enabled {}
     }
 
     // session.go:730
@@ -697,9 +796,12 @@ impl Session {
 
     // session.go:859
     // (Telemetry is not ported: the hook is kept and nothing is sent.)
-    fn send_project_info_telemetry_for_new_projects(&self, _old_snapshot: &Snapshot, _new_snapshot: &Snapshot) {
-        if !self.options.telemetry_enabled {
-        }
+    fn send_project_info_telemetry_for_new_projects(
+        &self,
+        _old_snapshot: &Snapshot,
+        _new_snapshot: &Snapshot,
+    ) {
+        if !self.options.telemetry_enabled {}
     }
 
     // session.go:1018
@@ -712,12 +814,18 @@ impl Session {
     // if needed for the given request. When callerRef is true, the returned
     // snapshot has an extra reference for the caller (taken atomically under
     // snapshotMu), guaranteeing it stays alive until the caller calls Deref.
-    fn get_snapshot(&self, ctx: &Context, request: ResourceRequest, caller_ref: bool) -> Arc<Snapshot> {
+    fn get_snapshot(
+        &self,
+        ctx: &Context,
+        request: ResourceRequest,
+        caller_ref: bool,
+    ) -> Arc<Snapshot> {
         let _update = self.snapshot_update_mu.lock().unwrap();
         self.cancel_scheduled_snapshot_update();
 
         let (file_changes, overlays, ata_changes, new_config) = self.flush_changes(ctx);
-        let update_snapshot = !file_changes.is_empty() || !ata_changes.is_empty() || new_config.is_some();
+        let update_snapshot =
+            !file_changes.is_empty() || !ata_changes.is_empty() || new_config.is_some();
         if update_snapshot {
             // If there are pending file changes, we need to update the snapshot.
             // Sending the requested URI ensures that the project for this URI is loaded.
@@ -751,7 +859,9 @@ impl Session {
             for document in &request.documents {
                 match snapshot.get_default_project(document) {
                     None => update_reason = UpdateReason::RequestedLanguageServiceProjectNotLoaded,
-                    Some(project) if project.dirty => update_reason = UpdateReason::RequestedLanguageServiceProjectDirty,
+                    Some(project) if project.dirty => {
+                        update_reason = UpdateReason::RequestedLanguageServiceProjectDirty;
+                    }
                     Some(_) => {}
                 }
             }
@@ -759,8 +869,13 @@ impl Session {
                 for document in &request.configured_project_documents {
                     if snapshot.is_open_file(&document.file_name()) {
                         match snapshot.get_default_project(document) {
-                            None => update_reason = UpdateReason::RequestedLanguageServiceProjectNotLoaded,
-                            Some(project) if project.dirty => update_reason = UpdateReason::RequestedLanguageServiceProjectDirty,
+                            None => {
+                                update_reason =
+                                    UpdateReason::RequestedLanguageServiceProjectNotLoaded;
+                            }
+                            Some(project) if project.dirty => {
+                                update_reason = UpdateReason::RequestedLanguageServiceProjectDirty;
+                            }
                             Some(_) => {}
                         }
                     } else {
@@ -778,8 +893,17 @@ impl Session {
         }
 
         drop(guard);
-        self.update_snapshot_with(ctx, overlays, SnapshotChange { reason: update_reason, resource_request: request, ..Default::default() }, caller_ref)
-            .unwrap()
+        self.update_snapshot_with(
+            ctx,
+            overlays,
+            SnapshotChange {
+                reason: update_reason,
+                resource_request: request,
+                ..Default::default()
+            },
+            caller_ref,
+        )
+        .unwrap()
     }
 
     // session.go:1099
@@ -789,25 +913,41 @@ impl Session {
         uri: &lsproto::DocumentUri,
         caller_ref: bool,
     ) -> Result<(Arc<Snapshot>, Shared<Project>, Arc<LanguageService>), lsproto::Error> {
-        let snapshot = self.get_snapshot(ctx, ResourceRequest { documents: vec![uri.clone()], ..Default::default() }, caller_ref);
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest { documents: vec![uri.clone()], ..Default::default() },
+            caller_ref,
+        );
         let Some(project) = snapshot.get_default_project(uri) else {
             if caller_ref {
                 snapshot.deref();
             }
             if let Some(file) = snapshot.get_file(&uri.file_name()) {
                 if file.kind() == ScriptKind::Unknown {
-                    return Err(lsproto::Error::new(format!("{ErrNoProjectForUnknownScriptKind}: no project found for URI {uri}")));
+                    return Err(lsproto::Error::new(format!(
+                        "{ErrNoProjectForUnknownScriptKind}: no project found for URI {uri}"
+                    )));
                 }
             }
             return Err(lsproto::Error::new(format!("no project found for URI {uri}")));
         };
-        let language_service = Arc::new(new_language_service(ProjectID(project.id().0), project.get_program().unwrap(), Arc::<Snapshot>::clone(&snapshot), &uri.file_name()));
+        let language_service = Arc::new(new_language_service(
+            ProjectID(project.id().0),
+            project.get_program().unwrap(),
+            Arc::<Snapshot>::clone(&snapshot),
+            &uri.file_name(),
+        ));
         Ok((snapshot, project, language_service))
     }
 
     // session.go:1118
-    pub fn get_language_service(&self, ctx: &Context, uri: &lsproto::DocumentUri) -> Result<Arc<LanguageService>, lsproto::Error> {
-        let (_, _, language_service) = self.get_snapshot_and_default_project(ctx, uri, false /*callerRef*/)?;
+    pub fn get_language_service(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+    ) -> Result<Arc<LanguageService>, lsproto::Error> {
+        let (_, _, language_service) =
+            self.get_snapshot_and_default_project(ctx, uri, false /*callerRef*/)?;
         Ok(language_service)
     }
 
@@ -816,16 +956,31 @@ impl Session {
         &self,
         ctx: &Context,
         uri: &lsproto::DocumentUri,
-    ) -> Result<(Shared<Project>, Arc<LanguageService>, Vec<Arc<dyn tsrs_ls::Project>>), lsproto::Error> {
-        let (snapshot, project, default_ls) = self.get_snapshot_and_default_project(ctx, uri, false /*callerRef*/)?;
+    ) -> Result<
+        (Shared<Project>, Arc<LanguageService>, Vec<Arc<dyn tsrs_ls::Project>>),
+        lsproto::Error,
+    > {
+        let (snapshot, project, default_ls) =
+            self.get_snapshot_and_default_project(ctx, uri, false /*callerRef*/)?;
         // !!! TODO: sheetal:  Get other projects that contain the file with symlink
         let all_projects = snapshot.get_language_service_projects_containing_file(uri);
         Ok((project, default_ls, all_projects))
     }
 
     // session.go:1136
-    pub fn get_projects_for_file(&self, ctx: &Context, uri: &lsproto::DocumentUri) -> Vec<Arc<dyn tsrs_ls::Project>> {
-        let snapshot = self.get_snapshot(ctx, ResourceRequest { configured_project_documents: vec![uri.clone()], ..Default::default() }, false /*callerRef*/);
+    pub fn get_projects_for_file(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+    ) -> Vec<Arc<dyn tsrs_ls::Project>> {
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest {
+                configured_project_documents: vec![uri.clone()],
+                ..Default::default()
+            },
+            false, /*callerRef*/
+        );
 
         // !!! TODO: sheetal:  Get other projects that contain the file with symlink
 
@@ -838,10 +993,18 @@ impl Session {
     // that were never opened but reference the given documents are included. Loading the
     // trees is expensive, so this should only be used by operations that need to touch
     // every project in a solution, like file rename.
-    pub fn get_language_services_for_documents_loading_project_tree(&self, ctx: &Context, uris: &[lsproto::DocumentUri]) -> Vec<Arc<LanguageService>> {
+    pub fn get_language_services_for_documents_loading_project_tree(
+        &self,
+        ctx: &Context,
+        uris: &[lsproto::DocumentUri],
+    ) -> Vec<Arc<LanguageService>> {
         let snapshot = self.get_snapshot(
             ctx,
-            ResourceRequest { documents: uris.to_vec(), project_tree: Some(ProjectTreeRequest::default()), ..Default::default() },
+            ResourceRequest {
+                documents: uris.to_vec(),
+                project_tree: Some(ProjectTreeRequest::default()),
+                ..Default::default()
+            },
             false, /*callerRef*/
         );
 
@@ -855,37 +1018,76 @@ impl Session {
         services.extend(projects.into_iter().filter_map(|project| {
             let program = project.get_program()?;
 
-            Some(Arc::new(new_language_service(ProjectID(project.id().0), program, Arc::<Snapshot>::clone(&snapshot), &active_file)))
+            Some(Arc::new(new_language_service(
+                ProjectID(project.id().0),
+                program,
+                Arc::<Snapshot>::clone(&snapshot),
+                &active_file,
+            )))
         }));
         services
     }
 
     // session.go:1181
-    pub fn get_language_service_for_project_with_file(&self, ctx: &Context, project: &Project, uri: &lsproto::DocumentUri) -> Option<Arc<LanguageService>> {
-        let snapshot = self.get_snapshot(ctx, ResourceRequest { projects: vec![project.id()], ..Default::default() }, false /*callerRef*/);
+    pub fn get_language_service_for_project_with_file(
+        &self,
+        ctx: &Context,
+        project: &Project,
+        uri: &lsproto::DocumentUri,
+    ) -> Option<Arc<LanguageService>> {
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest { projects: vec![project.id()], ..Default::default() },
+            false, /*callerRef*/
+        );
         // Ensure we have updated project
         let project = snapshot.project_collection.get_project(&project.id())?;
         // if program doesnt contain this file any more ignore it
         if !project.has_file(&uri.file_name()) {
             return None;
         }
-        Some(Arc::new(new_language_service(ProjectID(project.id().0), project.get_program().unwrap(), snapshot, &uri.file_name())))
+        Some(Arc::new(new_language_service(
+            ProjectID(project.id().0),
+            project.get_program().unwrap(),
+            snapshot,
+            &uri.file_name(),
+        )))
     }
 
     // session.go:1202
     // WithSnapshotLoadingProjectTree acquires a ref'd snapshot with the
     // requested project trees loaded, then calls fn. The snapshot stays alive
     // for the duration of fn.
-    pub fn with_snapshot_loading_project_tree(&self, ctx: &Context, requested_project_trees: Option<Set<Path>>, f: impl FnOnce(&Arc<Snapshot>)) {
-        let snapshot =
-            self.get_snapshot(ctx, ResourceRequest { project_tree: Some(ProjectTreeRequest::new(requested_project_trees)), ..Default::default() }, true /*callerRef*/);
+    pub fn with_snapshot_loading_project_tree(
+        &self,
+        ctx: &Context,
+        requested_project_trees: Option<Set<Path>>,
+        f: impl FnOnce(&Arc<Snapshot>),
+    ) {
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest {
+                project_tree: Some(ProjectTreeRequest::new(requested_project_trees)),
+                ..Default::default()
+            },
+            true, /*callerRef*/
+        );
         let _deref = derefOnDrop(&snapshot);
         f(&snapshot);
     }
 
     // session.go:1216
-    pub fn with_snapshot_for_document(&self, ctx: &Context, uri: &lsproto::DocumentUri, f: impl FnOnce(&Arc<Snapshot>)) {
-        let snapshot = self.get_snapshot(ctx, ResourceRequest { documents: vec![uri.clone()], ..Default::default() }, true /*callerRef*/);
+    pub fn with_snapshot_for_document(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+        f: impl FnOnce(&Arc<Snapshot>),
+    ) {
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest { documents: vec![uri.clone()], ..Default::default() },
+            true, /*callerRef*/
+        );
         let _deref = derefOnDrop(&snapshot);
         f(&snapshot);
     }
@@ -896,13 +1098,29 @@ impl Session {
     // LanguageService for the default project. Use this only outside of request handling
     // (e.g. cache warming). For request handlers, use GetLanguageServiceWithAutoImports
     // with the request-level snapshot instead.
-    pub fn get_current_language_service_with_auto_imports(&self, ctx: &Context, uri: &lsproto::DocumentUri) -> Result<Arc<LanguageService>, lsproto::Error> {
-        let snapshot =
-            self.get_snapshot(ctx, ResourceRequest { documents: vec![uri.clone()], auto_imports: uri.clone(), ..Default::default() }, false /*callerRef*/);
+    pub fn get_current_language_service_with_auto_imports(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+    ) -> Result<Arc<LanguageService>, lsproto::Error> {
+        let snapshot = self.get_snapshot(
+            ctx,
+            ResourceRequest {
+                documents: vec![uri.clone()],
+                auto_imports: uri.clone(),
+                ..Default::default()
+            },
+            false, /*callerRef*/
+        );
         let Some(project) = snapshot.get_default_project(uri) else {
             return Err(lsproto::Error::new(format!("no project found for URI {uri}")));
         };
-        Ok(Arc::new(new_language_service(ProjectID(project.id().0), project.get_program().unwrap(), snapshot, &uri.file_name())))
+        Ok(Arc::new(new_language_service(
+            ProjectID(project.id().0),
+            project.get_program().unwrap(),
+            snapshot,
+            &uri.file_name(),
+        )))
     }
 
     // session.go:1257
@@ -922,7 +1140,8 @@ impl Session {
         uri: &lsproto::DocumentUri,
         f: impl FnOnce(Arc<LanguageService>, Arc<Snapshot>) -> Result<Option<AsyncWork>, lsproto::Error>,
     ) -> Result<Option<AsyncWork>, lsproto::Error> {
-        let (snapshot, _, language_service) = self.get_snapshot_and_default_project(ctx, uri, true /*callerRef*/)?;
+        let (snapshot, _, language_service) =
+            self.get_snapshot_and_default_project(ctx, uri, true /*callerRef*/)?;
         let async_work = f(language_service, Arc::clone(&snapshot));
         match async_work {
             Err(err) => {
@@ -951,20 +1170,37 @@ impl Session {
         base_snapshot: &Arc<Snapshot>,
         uri: &lsproto::DocumentUri,
     ) -> Result<Arc<LanguageService>, lsproto::Error> {
-        let new_snapshot = self.snapshot_host.clone_snapshot_with_auto_imports(ctx, base_snapshot, uri, Some(&*self.logger));
+        let new_snapshot = self.snapshot_host.clone_snapshot_with_auto_imports(
+            ctx,
+            base_snapshot,
+            uri,
+            Some(&*self.logger),
+        );
         let Some(project) = new_snapshot.get_default_project(uri) else {
             // Clone's initial ref (1) is released since we won't use this snapshot.
             new_snapshot.deref();
             return Err(lsproto::Error::new(format!("no project found for URI {uri}")));
         };
 
-        self.try_adopt_snapshot_change_in_background(Arc::clone(base_snapshot), Arc::clone(&new_snapshot));
+        self.try_adopt_snapshot_change_in_background(
+            Arc::clone(base_snapshot),
+            Arc::clone(&new_snapshot),
+        );
 
-        Ok(Arc::new(new_language_service(ProjectID(project.id().0), project.get_program().unwrap(), new_snapshot, &uri.file_name())))
+        Ok(Arc::new(new_language_service(
+            ProjectID(project.id().0),
+            project.get_program().unwrap(),
+            new_snapshot,
+            &uri.file_name(),
+        )))
     }
 
     // session.go:1295
-    fn try_adopt_snapshot_change_in_background(&self, base_snapshot: Arc<Snapshot>, new_snapshot: Arc<Snapshot>) {
+    fn try_adopt_snapshot_change_in_background(
+        &self,
+        base_snapshot: Arc<Snapshot>,
+        new_snapshot: Arc<Snapshot>,
+    ) {
         // The clone's initial ref (1) is transferred to adoptSnapshotChange,
         // which will either promote it as the session's current snapshot or
         // release it if the session has moved on.
@@ -977,7 +1213,11 @@ impl Session {
     // api.go:59
     // TryAdoptSnapshotInBackground retains a derived snapshot and attempts to adopt it
     // as the session's current snapshot without blocking the caller.
-    pub fn try_adopt_snapshot_in_background(&self, base_snapshot: Arc<Snapshot>, new_snapshot: Arc<Snapshot>) {
+    pub fn try_adopt_snapshot_in_background(
+        &self,
+        base_snapshot: Arc<Snapshot>,
+        new_snapshot: Arc<Snapshot>,
+    ) {
         self.snapshot_host.retain_snapshot(&new_snapshot);
         self.try_adopt_snapshot_change_in_background(base_snapshot, new_snapshot);
     }
@@ -1018,9 +1258,15 @@ impl Session {
                 if !new_snapshot.builder_logs.is_nil() {
                     let logs = new_snapshot.builder_logs.string();
                     if !logs.is_empty() {
-                        self.logger.logf(format_args!("--- Discarded snapshot {} builder logs (NOT adopted) ---", new_snapshot.id));
+                        self.logger.logf(format_args!(
+                            "--- Discarded snapshot {} builder logs (NOT adopted) ---",
+                            new_snapshot.id
+                        ));
                         self.logger.log(&logs);
-                        self.logger.logf(format_args!("--- End discarded snapshot {} builder logs ---", new_snapshot.id));
+                        self.logger.logf(format_args!(
+                            "--- End discarded snapshot {} builder logs ---",
+                            new_snapshot.id
+                        ));
                     }
                 }
             }
@@ -1038,19 +1284,39 @@ impl Session {
     // with an extra reference for the caller. The ref is taken atomically with
     // the snapshot assignment under snapshotMu, so the snapshot is guaranteed
     // to be alive when returned. The caller must call snapshot.Deref() when done.
-    #[expect(dead_code, reason = "Go's caller Session.APIUpdate (project/api.go) is not ported yet")]
-    pub(crate) fn update_snapshot_ref(&self, ctx: &Context, overlays: OverlayMap, change: SnapshotChange) -> Arc<Snapshot> {
+    #[expect(
+        dead_code,
+        reason = "Go's caller Session.APIUpdate (project/api.go) is not ported yet"
+    )]
+    pub(crate) fn update_snapshot_ref(
+        &self,
+        ctx: &Context,
+        overlays: OverlayMap,
+        change: SnapshotChange,
+    ) -> Arc<Snapshot> {
         self.update_snapshot_with(ctx, overlays, change, true).unwrap()
     }
 
     // session.go:1356 (Go `updateSnapshot`; returns nil when an API error rejects the snapshot and no caller ref
     // was requested)
-    fn update_snapshot_with(&self, ctx: &Context, overlays: OverlayMap, change: SnapshotChange, caller_ref: bool) -> Option<Arc<Snapshot>> {
+    fn update_snapshot_with(
+        &self,
+        ctx: &Context,
+        overlays: OverlayMap,
+        change: SnapshotChange,
+        caller_ref: bool,
+    ) -> Option<Arc<Snapshot>> {
         let mut guard = self.snapshot.write().unwrap();
         let old_snapshot = guard.clone();
         let ctx = if !has_locale(ctx) { self.with_current_locale(ctx) } else { ctx.clone() };
         let warm_change = WarmChange::of(&change);
-        let new_snapshot = old_snapshot.clone_snapshot(&ctx, change, overlays, Some(&*self.logger), self.client.clone());
+        let new_snapshot = old_snapshot.clone_snapshot(
+            &ctx,
+            change,
+            overlays,
+            Some(&*self.logger),
+            self.client.clone(),
+        );
         // A failed API request may have mutated only a prefix of its clone. Such a
         // snapshot is returned to the caller for inspection and cleanup, but must
         // never become canonical session state or trigger adoption side effects.
@@ -1120,7 +1386,12 @@ impl Session {
     }
 
     // session.go:1481
-    fn update_watch<T>(&self, ctx: &Context, old_watcher: Option<&Arc<WatchedFiles<T>>>, new_watcher: Option<&Arc<WatchedFiles<T>>>) -> Vec<lsproto::Error> {
+    fn update_watch<T>(
+        &self,
+        ctx: &Context,
+        old_watcher: Option<&Arc<WatchedFiles<T>>>,
+        new_watcher: Option<&Arc<WatchedFiles<T>>>,
+    ) -> Vec<lsproto::Error> {
         let mut errors = Vec::new();
         let Some(client) = &self.client else {
             return errors;
@@ -1130,10 +1401,15 @@ impl Session {
             let mut watchers = w.workspace_watchers.clone();
             watchers.extend(w.outside_workspace_watchers.iter().cloned());
             if !watchers.is_empty() {
-                let mut new_watchers: OrderedMap<WatcherID, lsproto::FileSystemWatcher> = OrderedMap::default();
+                let mut new_watchers: OrderedMap<WatcherID, lsproto::FileSystemWatcher> =
+                    OrderedMap::default();
                 new_watchers.extend(watchers.iter().enumerate().filter_map(|(i, watcher)| {
                     let glob_id = WatcherID(format!("{}.{}", w.watcher_id, i));
-                    if self.watches.acquire(watcher, glob_id.clone()) { Some((glob_id, watcher.clone())) } else { None }
+                    if self.watches.acquire(watcher, glob_id.clone()) {
+                        Some((glob_id, watcher.clone()))
+                    } else {
+                        None
+                    }
                 }));
                 let mut watch_errors = Vec::new();
                 for (id, watcher) in &new_watchers {
@@ -1142,7 +1418,9 @@ impl Session {
                     let (call_ctx, call_cancel) = ctx.with_timeout(watchRequestTimeout);
                     let result = client.watch_files(&call_ctx, id.clone(), vec![watcher.clone()]);
                     call_cancel.call();
-                    if let Err(err) = result { watch_errors.push(err) } else {
+                    if let Err(err) = result {
+                        watch_errors.push(err);
+                    } else {
                         if old_watcher.is_none() {
                             self.logger.log(&format!("Added new watch: {id}"));
                         } else {
@@ -1166,9 +1444,15 @@ impl Session {
                     self.watches.clear_pending(&w.watcher_id);
                 }
                 if !w.ignored_paths.is_empty() {
-                    self.logger.logf(format_args!("{} paths ineligible for watching", w.ignored_paths.len()));
+                    self.logger.logf(format_args!(
+                        "{} paths ineligible for watching",
+                        w.ignored_paths.len()
+                    ));
                     if self.logger.is_verbose() {
-                        #[expect(clippy::iter_over_hash_type, reason = "verbose log lines only; Go ranges the map too")]
+                        #[expect(
+                            clippy::iter_over_hash_type,
+                            reason = "verbose log lines only; Go ranges the map too"
+                        )]
                         for path in &w.ignored_paths {
                             self.logger.log(&format!("\t{path}"));
                         }
@@ -1209,7 +1493,11 @@ impl Session {
     // configs in the new snapshot and, when the set changes, asks the client to synchronize text documents
     // with those extensions. This is how an otherwise unsupported file (e.g. a `.vue`) begins flowing to the server once a
     // config that maps it is discovered.
-    fn update_content_mapper_registrations(&self, ctx: &Context, snapshot: &Snapshot) -> Result<(), lsproto::Error> {
+    fn update_content_mapper_registrations(
+        &self,
+        ctx: &Context,
+        snapshot: &Snapshot,
+    ) -> Result<(), lsproto::Error> {
         let Some(client) = &self.client else {
             return Ok(());
         };
@@ -1245,7 +1533,11 @@ impl Session {
     }
 
     // session.go:1600
-    fn update_watches(&self, old_snapshot: &Snapshot, new_snapshot: &Snapshot) -> Result<(), String> {
+    fn update_watches(
+        &self,
+        old_snapshot: &Snapshot,
+        new_snapshot: &Snapshot,
+    ) -> Result<(), String> {
         let mut errors: Vec<lsproto::Error> = Vec::new();
         let start = Instant::now();
         let ctx = self.background_context();
@@ -1257,16 +1549,34 @@ impl Session {
         diff_maps_func(
             old_configs,
             new_configs,
-            |a: &Shared<configFileEntry>, b: &Shared<configFileEntry>| a.root_files_watch.id() == b.root_files_watch.id(),
+            |a: &Shared<configFileEntry>, b: &Shared<configFileEntry>| {
+                a.root_files_watch.id() == b.root_files_watch.id()
+            },
             Some(|_: &Path, added_entry: &Shared<configFileEntry>| added.push(added_entry.clone())),
-            Some(|_: &Path, removed_entry: &Shared<configFileEntry>| removed.push(removed_entry.clone())),
-            Some(|_: &Path, old_entry: &Shared<configFileEntry>, new_entry: &Shared<configFileEntry>| changed.push((old_entry.clone(), new_entry.clone()))),
+            Some(|_: &Path, removed_entry: &Shared<configFileEntry>| {
+                removed.push(removed_entry.clone());
+            }),
+            Some(
+                |_: &Path,
+                 old_entry: &Shared<configFileEntry>,
+                 new_entry: &Shared<configFileEntry>| {
+                    changed.push((old_entry.clone(), new_entry.clone()));
+                },
+            ),
         );
-        errors.extend(added.iter().flat_map(|added_entry| self.update_watch(&ctx, None, added_entry.root_files_watch.as_ref())));
-        errors.extend(removed.iter().flat_map(|removed_entry| self.update_watch(&ctx, removed_entry.root_files_watch.as_ref(), None)));
-        errors.extend(
-            changed.iter().flat_map(|(old_entry, new_entry)| self.update_watch(&ctx, old_entry.root_files_watch.as_ref(), new_entry.root_files_watch.as_ref())),
-        );
+        errors.extend(added.iter().flat_map(|added_entry| {
+            self.update_watch(&ctx, None, added_entry.root_files_watch.as_ref())
+        }));
+        errors.extend(removed.iter().flat_map(|removed_entry| {
+            self.update_watch(&ctx, removed_entry.root_files_watch.as_ref(), None)
+        }));
+        errors.extend(changed.iter().flat_map(|(old_entry, new_entry)| {
+            self.update_watch(
+                &ctx,
+                old_entry.root_files_watch.as_ref(),
+                new_entry.root_files_watch.as_ref(),
+            )
+        }));
         // Retry config watchers whose IDs didn't change but whose previous registration failed.
         // order-independent: retries each pending config watcher by its own ID; Go ranges the map too, so the registrations go out in map order there as well
         errors.extend(
@@ -1274,7 +1584,9 @@ impl Session {
                 .iter()
                 .filter_map(|(path, new_entry)| {
                     if let Some(old_entry) = old_configs.get(path) {
-                        if old_entry.root_files_watch.id() == new_entry.root_files_watch.id() && self.watches.is_pending(&new_entry.root_files_watch.id()) {
+                        if old_entry.root_files_watch.id() == new_entry.root_files_watch.id()
+                            && self.watches.is_pending(&new_entry.root_files_watch.id())
+                        {
                             Some(self.update_watch(&ctx, None, new_entry.root_files_watch.as_ref()))
                         } else {
                             None
@@ -1297,44 +1609,89 @@ impl Session {
             &new_projects,
             |_, added_project| added_projects.push(added_project.clone()),
             |_, removed_project| removed_projects.push(removed_project.clone()),
-            |_, old_project, new_project| modified_projects.push((old_project.clone(), new_project.clone())),
+            |_, old_project, new_project| {
+                modified_projects.push((old_project.clone(), new_project.clone()));
+            },
         );
         for added_project in &added_projects {
-            errors.extend(self.update_watch(&ctx, None, added_project.program_files_watch.as_ref()));
+            errors.extend(self.update_watch(
+                &ctx,
+                None,
+                added_project.program_files_watch.as_ref(),
+            ));
             errors.extend(self.update_watch(&ctx, None, added_project.typings_watch.as_ref()));
-            errors.extend(self.update_watch(&ctx, None, added_project.content_mapper_watch.as_ref()));
+            errors.extend(self.update_watch(
+                &ctx,
+                None,
+                added_project.content_mapper_watch.as_ref(),
+            ));
         }
         for removed_project in &removed_projects {
-            errors.extend(self.update_watch(&ctx, removed_project.program_files_watch.as_ref(), None));
+            errors.extend(self.update_watch(
+                &ctx,
+                removed_project.program_files_watch.as_ref(),
+                None,
+            ));
             errors.extend(self.update_watch(&ctx, removed_project.typings_watch.as_ref(), None));
-            errors.extend(self.update_watch(&ctx, removed_project.content_mapper_watch.as_ref(), None));
+            errors.extend(self.update_watch(
+                &ctx,
+                removed_project.content_mapper_watch.as_ref(),
+                None,
+            ));
         }
         for (old_project, new_project) in &modified_projects {
             if old_project.program_files_watch.id() != new_project.program_files_watch.id() {
-                errors.extend(self.update_watch(&ctx, old_project.program_files_watch.as_ref(), new_project.program_files_watch.as_ref()));
+                errors.extend(self.update_watch(
+                    &ctx,
+                    old_project.program_files_watch.as_ref(),
+                    new_project.program_files_watch.as_ref(),
+                ));
             } else if self.watches.is_pending(&new_project.program_files_watch.id()) {
-                errors.extend(self.update_watch(&ctx, None, new_project.program_files_watch.as_ref()));
+                errors.extend(self.update_watch(
+                    &ctx,
+                    None,
+                    new_project.program_files_watch.as_ref(),
+                ));
             }
             if old_project.typings_watch.id() != new_project.typings_watch.id() {
-                errors.extend(self.update_watch(&ctx, old_project.typings_watch.as_ref(), new_project.typings_watch.as_ref()));
+                errors.extend(self.update_watch(
+                    &ctx,
+                    old_project.typings_watch.as_ref(),
+                    new_project.typings_watch.as_ref(),
+                ));
             } else if self.watches.is_pending(&new_project.typings_watch.id()) {
                 errors.extend(self.update_watch(&ctx, None, new_project.typings_watch.as_ref()));
             }
             if old_project.content_mapper_watch.id() != new_project.content_mapper_watch.id() {
-                errors.extend(self.update_watch(&ctx, old_project.content_mapper_watch.as_ref(), new_project.content_mapper_watch.as_ref()));
+                errors.extend(self.update_watch(
+                    &ctx,
+                    old_project.content_mapper_watch.as_ref(),
+                    new_project.content_mapper_watch.as_ref(),
+                ));
             } else if self.watches.is_pending(&new_project.content_mapper_watch.id()) {
-                errors.extend(self.update_watch(&ctx, None, new_project.content_mapper_watch.as_ref()));
+                errors.extend(self.update_watch(
+                    &ctx,
+                    None,
+                    new_project.content_mapper_watch.as_ref(),
+                ));
             }
         }
 
         if old_snapshot.auto_imports_watch.id() != new_snapshot.auto_imports_watch.id() {
-            errors.extend(self.update_watch(&ctx, old_snapshot.auto_imports_watch.as_ref(), new_snapshot.auto_imports_watch.as_ref()));
+            errors.extend(self.update_watch(
+                &ctx,
+                old_snapshot.auto_imports_watch.as_ref(),
+                new_snapshot.auto_imports_watch.as_ref(),
+            ));
         } else if self.watches.is_pending(&new_snapshot.auto_imports_watch.id()) {
             errors.extend(self.update_watch(&ctx, None, new_snapshot.auto_imports_watch.as_ref()));
         }
 
         if !errors.is_empty() {
-            return Err(format!("errors updating watches: [{}]", errors.iter().map(|e| e.message.as_str()).collect::<Vec<_>>().join(" ")));
+            return Err(format!(
+                "errors updating watches: [{}]",
+                errors.iter().map(|e| e.message.as_str()).collect::<Vec<_>>().join(" ")
+            ));
         } else if self.options.logging_enabled {
             self.logger.log(&format!("Updated watches in {:?}", start.elapsed()));
         }
@@ -1358,7 +1715,11 @@ impl Session {
     }
 
     // session.go:1698
-    fn flush_changes(&self, ctx: &Context) -> (FileChangeSummary, OverlayMap, FxHashMap<ID, Arc<ATAStateChange>>, Option<UserPreferences>) {
+    fn flush_changes(
+        &self,
+        ctx: &Context,
+    ) -> (FileChangeSummary, OverlayMap, FxHashMap<ID, Arc<ATAStateChange>>, Option<UserPreferences>)
+    {
         let mut pending = self.pending_file_changes.lock().unwrap();
         let mut pending_ata = self.pending_ata_changes.lock().unwrap();
         let pending_ata_changes = std::mem::take(&mut *pending_ata);
@@ -1374,7 +1735,11 @@ impl Session {
 
     // session.go:1718
     // flushChangesLocked should only be called with s.pendingFileChangesMu held.
-    fn flush_changes_locked(&self, _ctx: &Context, pending: &mut MutexGuard<'_, Vec<FileChange>>) -> (FileChangeSummary, OverlayMap) {
+    fn flush_changes_locked(
+        &self,
+        _ctx: &Context,
+        pending: &mut MutexGuard<'_, Vec<FileChange>>,
+    ) -> (FileChangeSummary, OverlayMap) {
         if pending.is_empty() {
             return (FileChangeSummary::default(), tsrs_overlays(&self.fs));
         }
@@ -1382,7 +1747,11 @@ impl Session {
         let start = Instant::now();
         let (changes, overlays) = self.fs.process_changes(&pending[..]);
         if self.options.logging_enabled {
-            self.logger.log(&format!("Processed {} file changes in {:?}", pending.len(), start.elapsed()));
+            self.logger.log(&format!(
+                "Processed {} file changes in {:?}",
+                pending.len(),
+                start.elapsed()
+            ));
         }
         pending.clear();
         (changes, overlays)
@@ -1395,13 +1764,18 @@ impl Session {
         let verbose = self.logger.is_verbose();
         let mut log_project = |project: &Project| {
             let mut builder = String::new();
-            project.print(verbose /*writeFileNames*/, verbose /*writeFileExplanation*/, &mut builder);
+            project.print(
+                verbose, /*writeFileNames*/
+                verbose, /*writeFileExplanation*/
+                &mut builder,
+            );
             self.logger.log(&builder);
             logged_project_changes = true;
         };
         let old_projects = old_snapshot.project_collection.projects_by_id();
         let new_projects = new_snapshot.project_collection.projects_by_id();
-        let events: std::cell::RefCell<Vec<(u8, Shared<Project>)>> = std::cell::RefCell::new(Vec::new());
+        let events: std::cell::RefCell<Vec<(u8, Shared<Project>)>> =
+            std::cell::RefCell::new(Vec::new());
         diff_ordered_maps(
             &old_projects,
             &new_projects,
@@ -1440,22 +1814,44 @@ impl Session {
         self.logger.log("\n======== Cache Statistics ========");
         self.logger.logf(format_args!("Open file count:   {:6}", snapshot.overlays().len()));
         self.logger.logf(format_args!("Cached disk files: {:6}", snapshot.fs.cache_files.len()));
-        self.logger.logf(format_args!("Realpath aliases:  {:6}", snapshot.fs.node_modules_realpath_aliases.len()));
-        self.logger.logf(format_args!("Project count:     {:6}", snapshot.project_collection.projects().len()));
-        self.logger.logf(format_args!("Config count:      {:6}", snapshot.config_file_registry.configs.len()));
+        self.logger.logf(format_args!(
+            "Realpath aliases:  {:6}",
+            snapshot.fs.node_modules_realpath_aliases.len()
+        ));
+        self.logger.logf(format_args!(
+            "Project count:     {:6}",
+            snapshot.project_collection.projects().len()
+        ));
+        self.logger.logf(format_args!(
+            "Config count:      {:6}",
+            snapshot.config_file_registry.configs.len()
+        ));
         if self.logger.is_verbose() {
             self.logger.logf(format_args!("Parse cache size:           {parse_cache_size:6}"));
-            self.logger.logf(format_args!("Program count:              {:6}", self.snapshot_host.program_counter.len()));
+            self.logger.logf(format_args!(
+                "Program count:              {:6}",
+                self.snapshot_host.program_counter.len()
+            ));
             self.logger.logf(format_args!("Extended config cache size: {extended_config_count:6}"));
 
             self.logger.log("Auto Imports:");
             // Go calls GetCacheStats on the (never nil after an update) registry pointer.
-            let auto_import_stats = snapshot.auto_import_registry().expect("nil auto-import registry").get_cache_stats();
-            self.logger.logf(format_args!("\tUnique packages (by realpath): {}", auto_import_stats.unique_package_count));
+            let auto_import_stats = snapshot
+                .auto_import_registry()
+                .expect("nil auto-import registry")
+                .get_cache_stats();
+            self.logger.logf(format_args!(
+                "\tUnique packages (by realpath): {}",
+                auto_import_stats.unique_package_count
+            ));
             if !auto_import_stats.project_buckets.is_empty() {
                 self.logger.log("\tProject buckets:");
                 for bucket in &auto_import_stats.project_buckets {
-                    self.logger.logf(format_args!("\t\t{}{}:", bucket.name, if bucket.state.dirty() { " (dirty)" } else { "" }));
+                    self.logger.logf(format_args!(
+                        "\t\t{}{}:",
+                        bucket.name,
+                        if bucket.state.dirty() { " (dirty)" } else { "" }
+                    ));
                     self.logger.logf(format_args!("\t\t\tFiles: {}", bucket.file_count));
                     self.logger.logf(format_args!("\t\t\tExports: {}", bucket.export_count));
                 }
@@ -1463,24 +1859,43 @@ impl Session {
             if !auto_import_stats.node_modules_buckets.is_empty() {
                 self.logger.log("\tnode_modules buckets:");
                 for bucket in &auto_import_stats.node_modules_buckets {
-                    self.logger.logf(format_args!("\t\t{}{}:", bucket.name, if bucket.state.dirty() { " (dirty)" } else { "" }));
+                    self.logger.logf(format_args!(
+                        "\t\t{}{}:",
+                        bucket.name,
+                        if bucket.state.dirty() { " (dirty)" } else { "" }
+                    ));
                     if let Some(dirty_packages) = bucket.state.dirty_packages() {
-                        #[expect(clippy::iter_over_hash_type, reason = "log lines only; Go ranges the set too")]
+                        #[expect(
+                            clippy::iter_over_hash_type,
+                            reason = "log lines only; Go ranges the set too"
+                        )]
                         for package_name in dirty_packages.keys() {
-                            self.logger.logf(format_args!("\t\t\tNeeds granular update: {package_name}"));
+                            self.logger
+                                .logf(format_args!("\t\t\tNeeds granular update: {package_name}"));
                         }
                     }
                     match &bucket.dependency_names {
-                        Some(dependency_names) => self.logger.logf(format_args!("\t\t\tCollected packages: {}", dependency_names.len())),
-                        None => self.logger.logf(format_args!("\t\t\tCollected packages: all, due to no package.json!")),
+                        Some(dependency_names) => self.logger.logf(format_args!(
+                            "\t\t\tCollected packages: {}",
+                            dependency_names.len()
+                        )),
+                        None => self.logger.logf(format_args!(
+                            "\t\t\tCollected packages: all, due to no package.json!"
+                        )),
                     }
-                    self.logger.logf(format_args!("\t\t\tTotal packages: {}", bucket.package_names.as_ref().map_or(0, tsrs_core::collections::Set::len)));
+                    self.logger.logf(format_args!(
+                        "\t\t\tTotal packages: {}",
+                        bucket.package_names.as_ref().map_or(0, tsrs_core::collections::Set::len)
+                    ));
                     self.logger.logf(format_args!("\t\t\tFiles: {}", bucket.file_count));
                     self.logger.logf(format_args!("\t\t\tExports: {}", bucket.export_count));
                     match bucket.state.recursive_search_packages() {
                         None => self.logger.log("\t\t\tRecursive search: all"),
                         Some(packages) if !packages.is_empty() => {
-                            self.logger.logf(format_args!("\t\t\tRecursive search: {} packages", packages.len()));
+                            self.logger.logf(format_args!(
+                                "\t\t\tRecursive search: {} packages",
+                                packages.len()
+                            ));
                         }
                         Some(_) => self.logger.log("\t\t\tRecursive search: none"),
                     }
@@ -1495,7 +1910,11 @@ impl Session {
     }
 
     // session.go:1831
-    fn refresh_inlay_hints_if_needed(&self, old_prefs: &UserPreferences, new_prefs: &UserPreferences) {
+    fn refresh_inlay_hints_if_needed(
+        &self,
+        old_prefs: &UserPreferences,
+        new_prefs: &UserPreferences,
+    ) {
         if old_prefs.inlay_hints != new_prefs.inlay_hints {
             if let Some(client) = &self.client {
                 if let Err(err) = client.refresh_inlay_hints(&self.background_context()) {
@@ -1508,7 +1927,11 @@ impl Session {
     }
 
     // session.go:1839
-    fn refresh_code_lens_if_needed(&self, old_prefs: &UserPreferences, new_prefs: &UserPreferences) {
+    fn refresh_code_lens_if_needed(
+        &self,
+        old_prefs: &UserPreferences,
+        new_prefs: &UserPreferences,
+    ) {
         if old_prefs.code_lens != new_prefs.code_lens {
             if let Some(client) = &self.client {
                 if let Err(err) = client.refresh_code_lens(&self.background_context()) {
@@ -1521,9 +1944,14 @@ impl Session {
     }
 
     // session.go:1847
-    fn refresh_diagnostics_if_needed(&self, old_prefs: &UserPreferences, new_prefs: &UserPreferences) {
+    fn refresh_diagnostics_if_needed(
+        &self,
+        old_prefs: &UserPreferences,
+        new_prefs: &UserPreferences,
+    ) {
         if old_prefs.custom_config_file_name != new_prefs.custom_config_file_name
-            || old_prefs.report_style_checks_as_warnings != new_prefs.report_style_checks_as_warnings
+            || old_prefs.report_style_checks_as_warnings
+                != new_prefs.report_style_checks_as_warnings
             || old_prefs.enable_validation != new_prefs.enable_validation
         {
             self.schedule_diagnostics_refresh();
@@ -1550,9 +1978,18 @@ impl Session {
             }
             for old_project in old_snapshot.project_collection.projects_by_id().values() {
                 if let Some(configured_id) = old_project.id().configured() {
-                    if old_snapshot.project_collection.get_open_configured_projects().has(&configured_id) {
+                    if old_snapshot
+                        .project_collection
+                        .get_open_configured_projects()
+                        .has(&configured_id)
+                    {
                         let config_file_path = old_project.config_file_path().clone();
-                        self.publish_project_diagnostics(&self.background_context(), &config_file_path, &[], &old_snapshot.converters());
+                        self.publish_project_diagnostics(
+                            &self.background_context(),
+                            &config_file_path,
+                            &[],
+                            &old_snapshot.converters(),
+                        );
                     }
                 }
             }
@@ -1564,7 +2001,8 @@ impl Session {
         let new_projects = new_snapshot.project_collection.projects_by_id();
         let old_open_projects = old_snapshot.project_collection.get_open_configured_projects();
         let new_open_projects = new_snapshot.project_collection.get_open_configured_projects();
-        let events: std::cell::RefCell<Vec<(u8, Shared<Project>)>> = std::cell::RefCell::new(Vec::new());
+        let events: std::cell::RefCell<Vec<(u8, Shared<Project>)>> =
+            std::cell::RefCell::new(Vec::new());
         diff_ordered_maps(
             &old_projects,
             &new_projects,
@@ -1583,14 +2021,24 @@ impl Session {
                         continue;
                     }
                     let config_file_path = project.config_file_path().clone();
-                    self.publish_project_diagnostics(&ctx, &config_file_path, &project.get_project_diagnostics(&ctx), &new_snapshot.converters());
+                    self.publish_project_diagnostics(
+                        &ctx,
+                        &config_file_path,
+                        &project.get_project_diagnostics(&ctx),
+                        &new_snapshot.converters(),
+                    );
                 }
                 _ => {
                     if project.kind != Kind::Configured {
                         continue;
                     }
                     let config_file_path = project.config_file_path().clone();
-                    self.publish_project_diagnostics(&ctx, &config_file_path, &[], &old_snapshot.converters());
+                    self.publish_project_diagnostics(
+                        &ctx,
+                        &config_file_path,
+                        &[],
+                        &old_snapshot.converters(),
+                    );
                 }
             }
         }
@@ -1607,27 +2055,54 @@ impl Session {
             let old_project = old_projects.get(project_id).unwrap();
             let new_has_open_files = new_open_projects.has(&configured_id);
             let old_has_open_files = old_open_projects.has(&configured_id);
-            if new_has_open_files && !old_has_open_files && (new_project == old_project || !should_publish_program_diagnostics(new_project, new_snapshot.id())) {
+            if new_has_open_files
+                && !old_has_open_files
+                && (new_project == old_project
+                    || !should_publish_program_diagnostics(new_project, new_snapshot.id()))
+            {
                 // Project reopened without a program update
-                self.publish_project_diagnostics(&ctx, &config_file_path, &new_project.get_project_diagnostics(&ctx), &new_snapshot.converters());
+                self.publish_project_diagnostics(
+                    &ctx,
+                    &config_file_path,
+                    &new_project.get_project_diagnostics(&ctx),
+                    &new_snapshot.converters(),
+                );
             } else if !new_has_open_files && old_has_open_files {
                 // Project closed
-                self.publish_project_diagnostics(&ctx, &config_file_path, &[], &new_snapshot.converters());
+                self.publish_project_diagnostics(
+                    &ctx,
+                    &config_file_path,
+                    &[],
+                    &new_snapshot.converters(),
+                );
             }
         }
     }
 
     // session.go:1944
-    fn publish_project_diagnostics(&self, ctx: &Context, config_file_path: &str, diagnostics: &[P<Diagnostic>], converters: &Converters) {
-        let diagnostics = if self.config().enable_validation.is_false() { &[] } else { diagnostics };
+    fn publish_project_diagnostics(
+        &self,
+        ctx: &Context,
+        config_file_path: &str,
+        diagnostics: &[P<Diagnostic>],
+        converters: &Converters,
+    ) {
+        let diagnostics =
+            if self.config().enable_validation.is_false() { &[] } else { diagnostics };
         let ctx = self.with_current_locale(ctx);
         let mut lsp_diagnostics = Vec::with_capacity(diagnostics.len());
-        lsp_diagnostics.extend(diagnostics.iter().map(|&diag| lsconv::diagnostic_to_lsp_push(&ctx, converters, diag)));
+        lsp_diagnostics.extend(
+            diagnostics.iter().map(|&diag| lsconv::diagnostic_to_lsp_push(&ctx, converters, diag)),
+        );
 
         if let Some(client) = &self.client {
             if let Err(err) = client.publish_diagnostics(
                 &ctx,
-                lsproto::PublishDiagnosticsParams { uri: lsconv::file_name_to_document_uri(config_file_path), version: None, diagnostics: lsp_diagnostics },
+                lsproto::PublishDiagnosticsParams {
+                    uri: lsconv::file_name_to_document_uri(config_file_path),
+                    version: None,
+                    diagnostics: lsp_diagnostics,
+                },
             ) {
                 if self.options.logging_enabled {
                     self.logger.logf(format_args!("Error publishing diagnostics: {err}"));
@@ -1644,9 +2119,15 @@ impl Session {
         if !self.options.push_diagnostics_enabled || self.config().enable_validation.is_false() {
             return;
         }
-        if self.global_diag_publish_pending.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+        if self
+            .global_diag_publish_pending
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok()
+        {
             let s = self.arc();
-            self.background_queue.enqueue(&self.background_context(), move |ctx| s.publish_global_diagnostics(ctx));
+            self.background_queue.enqueue(&self.background_context(), move |ctx| {
+                s.publish_global_diagnostics(ctx);
+            });
         }
     }
 
@@ -1675,13 +2156,24 @@ impl Session {
                 continue;
             };
             if checker_pool.take_new_global_diagnostics() {
-                self.publish_project_diagnostics(ctx, &project.config_file_path, &project.get_project_diagnostics(ctx), &snapshot.converters());
+                self.publish_project_diagnostics(
+                    ctx,
+                    &project.config_file_path,
+                    &project.get_project_diagnostics(ctx),
+                    &snapshot.converters(),
+                );
             }
         }
     }
 
     // session.go:2046
-    fn warm_auto_import_cache(&self, ctx: &Context, change: &WarmChange, _old_snapshot: &Snapshot, new_snapshot: &Arc<Snapshot>) {
+    fn warm_auto_import_cache(
+        &self,
+        ctx: &Context,
+        change: &WarmChange,
+        _old_snapshot: &Snapshot,
+        new_snapshot: &Arc<Snapshot>,
+    ) {
         if change.changed.len() == 1 {
             let changed_file = change.changed[0].clone();
             if !new_snapshot.is_open_file(&changed_file.file_name()) {
@@ -1694,7 +2186,11 @@ impl Session {
             let Some(project) = new_snapshot.get_default_project(&changed_file) else {
                 return;
             };
-            if new_snapshot.auto_imports.is_prepared_for_importing_file(&changed_file.file_name(), &ProjectID(project.id().0), prefs) {
+            if new_snapshot.auto_imports.is_prepared_for_importing_file(
+                &changed_file.file_name(),
+                &ProjectID(project.id().0),
+                prefs,
+            ) {
                 return;
             }
 
@@ -1708,7 +2204,12 @@ impl Session {
                 }
                 let (warm_ctx, cancel) = ctx.with_cancel();
                 if warm_ctx.err().is_none() {
-                    let (c, l, f, cancel) = (warm_ctx.clone(), Arc::clone(&self.logger), changed_file.file_name(), cancel.clone());
+                    let (c, l, f, cancel) = (
+                        warm_ctx.clone(),
+                        Arc::clone(&self.logger),
+                        changed_file.file_name(),
+                        cancel.clone(),
+                    );
                     *warm = Some(Box::new(move || {
                         if c.err().is_some() {
                             return;
@@ -1735,10 +2236,20 @@ impl Session {
 
             let warm_change = SnapshotChange {
                 reason: UpdateReason::RequestedLanguageServiceWithAutoImports,
-                resource_request: ResourceRequest { documents: vec![changed_file.clone()], auto_imports: changed_file, ..Default::default() },
+                resource_request: ResourceRequest {
+                    documents: vec![changed_file.clone()],
+                    auto_imports: changed_file,
+                    ..Default::default()
+                },
                 ..Default::default()
             };
-            let cloned_snapshot = new_snapshot.clone_snapshot(&warm_ctx, warm_change, new_snapshot.overlays(), Some(&*self.logger), self.client.clone());
+            let cloned_snapshot = new_snapshot.clone_snapshot(
+                &warm_ctx,
+                warm_change,
+                new_snapshot.overlays(),
+                Some(&*self.logger),
+                self.client.clone(),
+            );
 
             // If cancelled during clone, discard the incomplete result.
             if warm_ctx.err().is_some() {

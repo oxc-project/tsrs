@@ -24,8 +24,8 @@ use std::sync::{Arc, Mutex};
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_core::json::Value;
 use tsrs_core::tspath;
-use tsrs_vfs::vfstest::{self, MapFile};
 use tsrs_vfs::FS;
+use tsrs_vfs::vfstest::{self, MapFile};
 
 use crate::tsc::{CommandLineTesting, ExitStatus};
 use sys::{TestClock, TestSys};
@@ -88,7 +88,12 @@ fn ops(v: Option<&Value>) -> Vec<scenarioOp> {
             .iter()
             .map(|o| {
                 let Value::Object(o) = o else { panic!("op") };
-                scenarioOp { op: s(o.get("op")), path: s(o.get("path")), content: s(o.get("content")), target: s(o.get("target")) }
+                scenarioOp {
+                    op: s(o.get("op")),
+                    path: s(o.get("path")),
+                    content: s(o.get("content")),
+                    target: s(o.get("target")),
+                }
             })
             .collect(),
         _ => Vec::new(),
@@ -107,7 +112,11 @@ fn load_scenario(path: &FsPath) -> scenario {
             .iter()
             .map(|f| {
                 let Value::Object(f) = f else { panic!("file") };
-                scenarioFile { path: s(f.get("path")), content: s(f.get("content")), symlink: s(f.get("symlink")) }
+                scenarioFile {
+                    path: s(f.get("path")),
+                    content: s(f.get("content")),
+                    symlink: s(f.get("symlink")),
+                }
             })
             .collect(),
         _ => Vec::new(),
@@ -156,22 +165,51 @@ fn new_test_sys(test: &scenario) -> &'static TestSys {
         if libs.contains(&f.path) {
             return None;
         }
-        if !f.symlink.is_empty() { Some((f.path.clone(), vfstest::symlink(&f.symlink))) } else { Some((f.path.clone(), MapFile::from(f.content.as_str()))) }
+        if !f.symlink.is_empty() {
+            Some((f.path.clone(), vfstest::symlink(&f.symlink)))
+        } else {
+            Some((f.path.clone(), MapFile::from(f.content.as_str())))
+        }
     }));
     let clock_fn = std::sync::Arc::clone(&clock);
-    let fs = Arc::new(vfstest::from_map_with_clock(initial, !test.ignore_case, Arc::new(move || clock_fn.now())));
-    let mut lib_files: Vec<&scenarioFile> = test.files.iter().filter(|f| libs.contains(&f.path)).collect();
+    let fs = Arc::new(vfstest::from_map_with_clock(
+        initial,
+        !test.ignore_case,
+        Arc::new(move || clock_fn.now()),
+    ));
+    let mut lib_files: Vec<&scenarioFile> =
+        test.files.iter().filter(|f| libs.contains(&f.path)).collect();
     lib_files.sort_by(|a, b| a.path.cmp(&b.path));
     for f in lib_files {
-        fs.write_file(&f.path, &f.content).unwrap_or_else(|e| panic!("Failed to write default library file: {e}"));
+        fs.write_file(&f.path, &f.content)
+            .unwrap_or_else(|e| panic!("Failed to write default library file: {e}"));
     }
-    let lib_path = if test.windows_style_root.is_empty() { TSC_LIB_PATH.to_string() } else { format!("{}{}", test.windows_style_root, &TSC_LIB_PATH[1..]) };
-    let cwd = if test.cwd.is_empty() { "/home/src/workspaces/project".to_string() } else { test.cwd.clone() };
-    let mut sys = TestSys::new(fs, if libs.is_empty() { None } else { Some(libs) }, clock, cwd, lib_path, test.env.clone(), test.output_is_tty.unwrap_or(true));
+    let lib_path = if test.windows_style_root.is_empty() {
+        TSC_LIB_PATH.to_string()
+    } else {
+        format!("{}{}", test.windows_style_root, &TSC_LIB_PATH[1..])
+    };
+    let cwd = if test.cwd.is_empty() {
+        "/home/src/workspaces/project".to_string()
+    } else {
+        test.cwd.clone()
+    };
+    let mut sys = TestSys::new(
+        fs,
+        if libs.is_empty() { None } else { Some(libs) },
+        clock,
+        cwd,
+        lib_path,
+        test.env.clone(),
+        test.output_is_tty.unwrap_or(true),
+    );
     sys.signature_job = test.signature_job;
     let sys: &'static TestSys = Box::leak(Box::new(sys));
     let watch_fs = Arc::clone(&sys.fs);
-    let backend = mockwatch::MockWatchBackend::new(Box::new(move |d: &str| watch_fs.directory_exists(d)), !test.ignore_case);
+    let backend = mockwatch::MockWatchBackend::new(
+        Box::new(move |d: &str| watch_fs.directory_exists(d)),
+        !test.ignore_case,
+    );
     let _ = sys.mock_watch_backend.set(Arc::new(backend));
     sys
 }
@@ -188,7 +226,10 @@ fn apply_ops(sys: &TestSys, ops: &[scenarioOp]) {
             "delete" => fs.remove(&op.path).unwrap(),
             "symlink" => {
                 let dir = tspath::get_directory_path(&op.path);
-                let _ = sys.map_fs().mkdir_all(dir.trim_start_matches('/'), tsrs_vfs::FileMode::from_bits_retain(0o777));
+                let _ = sys.map_fs().mkdir_all(
+                    dir.trim_start_matches('/'),
+                    tsrs_vfs::FileMode::from_bits_retain(0o777),
+                );
                 sys.map_fs().add_symlink(&op.path, &op.target);
             }
             "touch" => {
@@ -201,16 +242,26 @@ fn apply_ops(sys: &TestSys, ops: &[scenarioOp]) {
 }
 
 // runner.go executeCommand
-fn execute_command(sys: &'static TestSys, baseline: &mut String, args: &[String]) -> Option<Box<dyn crate::tsc::Watcher>> {
+fn execute_command(
+    sys: &'static TestSys,
+    baseline: &mut String,
+    args: &[String],
+) -> Option<Box<dyn crate::tsc::Watcher>> {
     writeln!(baseline, "tsgo {}", args.join(" ")).unwrap();
     let testing: &'static dyn CommandLineTesting = sys;
     let result = crate::execute::command_line_with_testing(sys, args.to_vec(), Some(testing));
     baseline.push_str(match result.status {
         ExitStatus::Success => "ExitStatus:: Success",
-        ExitStatus::DiagnosticsPresent_OutputsSkipped => "ExitStatus:: DiagnosticsPresent_OutputsSkipped",
-        ExitStatus::DiagnosticsPresent_OutputsGenerated => "ExitStatus:: DiagnosticsPresent_OutputsGenerated",
+        ExitStatus::DiagnosticsPresent_OutputsSkipped => {
+            "ExitStatus:: DiagnosticsPresent_OutputsSkipped"
+        }
+        ExitStatus::DiagnosticsPresent_OutputsGenerated => {
+            "ExitStatus:: DiagnosticsPresent_OutputsGenerated"
+        }
         ExitStatus::InvalidProject_OutputsSkipped => "ExitStatus:: InvalidProject_OutputsSkipped",
-        ExitStatus::ProjectReferenceCycle_OutputsSkipped => "ExitStatus:: ProjectReferenceCycle_OutputsSkipped",
+        ExitStatus::ProjectReferenceCycle_OutputsSkipped => {
+            "ExitStatus:: ProjectReferenceCycle_OutputsSkipped"
+        }
         ExitStatus::NotImplemented => "ExitStatus:: NotImplemented",
     });
     result.watcher
@@ -219,17 +270,28 @@ fn execute_command(sys: &'static TestSys, baseline: &mut String, args: &[String]
 // runner.go getDiffForIncremental
 fn get_diff_for_incremental(incremental: &TestSys, non_incremental: &TestSys) -> String {
     let mut diff = String::new();
-    let mut outputs: Vec<String> = non_incremental.fs.written_files.lock().unwrap().iter().cloned().collect();
+    let mut outputs: Vec<String> =
+        non_incremental.fs.written_files.lock().unwrap().iter().cloned().collect();
     outputs.sort();
     for output in outputs {
-        if tspath::file_extension_is(&output, tspath::EXTENSION_TS_BUILD_INFO) || output.ends_with(".readable.baseline.txt") {
+        if tspath::file_extension_is(&output, tspath::EXTENSION_TS_BUILD_INFO)
+            || output.ends_with(".readable.baseline.txt")
+        {
             // Just check existence
             if !incremental.fs_from_file_map().file_exists(&output) {
-                diff.push_str(&diff_text(&format!("nonIncremental {output}"), &format!("incremental {output}"), "Exists", ""));
+                diff.push_str(&diff_text(
+                    &format!("nonIncremental {output}"),
+                    &format!("incremental {output}"),
+                    "Exists",
+                    "",
+                ));
                 diff.push('\n');
             }
         } else {
-            let non_incremental_text = non_incremental.fs_from_file_map().read_file(&output).unwrap_or_else(|| panic!("Written file not found {output}"));
+            let non_incremental_text = non_incremental
+                .fs_from_file_map()
+                .read_file(&output)
+                .unwrap_or_else(|| panic!("Written file not found {output}"));
             let incremental_text = incremental.fs_from_file_map().read_file(&output);
             if incremental_text.as_deref() != Some(non_incremental_text.as_str()) {
                 diff.push_str(&diff_text(
@@ -245,14 +307,21 @@ fn get_diff_for_incremental(incremental: &TestSys, non_incremental: &TestSys) ->
     let incremental_output = incremental.get_output(true);
     let non_incremental_output = non_incremental.get_output(true);
     if incremental_output != non_incremental_output {
-        diff.push_str(&diff_text("nonIncremental.output.txt", "incremental.output.txt", &non_incremental_output, &incremental_output));
+        diff.push_str(&diff_text(
+            "nonIncremental.output.txt",
+            "incremental.output.txt",
+            &non_incremental_output,
+            &incremental_output,
+        ));
     }
     diff
 }
 
 // baseline.go:31 DiffText (patience diff, 3 lines of context), as in tsrs_testrunner.
 fn diff_text(old_name: &str, new_name: &str, expected: &str, actual: &str) -> String {
-    let diff = similar::TextDiff::configure().algorithm(similar::Algorithm::Patience).diff_lines(expected, actual);
+    let diff = similar::TextDiff::configure()
+        .algorithm(similar::Algorithm::Patience)
+        .diff_lines(expected, actual);
     let text = diff.unified_diff().context_radius(3).header(old_name, new_name).to_string();
     // Go's patience.UnifiedDiffText writes an empty context line without its leading space, and does not end with a
     // newline.
@@ -264,9 +333,13 @@ fn diff_text(old_name: &str, new_name: &str, expected: &str, actual: &str) -> St
 fn run_scenario(test: &scenario) -> String {
     let mut baseline = String::new();
     let sys = new_test_sys(test);
-    write!(baseline, "currentDirectory::{}\nuseCaseSensitiveFileNames::{}\nInput::\n",
+    write!(
+        baseline,
+        "currentDirectory::{}\nuseCaseSensitiveFileNames::{}\nInput::\n",
         sys.cwd,
-        sys.fs.use_case_sensitive_file_names()).unwrap();
+        sys.fs.use_case_sensitive_file_names()
+    )
+    .unwrap();
     sys.baseline_fs_with_diff(&mut baseline);
     let mut watcher = execute_command(sys, &mut baseline, &test.args);
     sys.serialize_state(&mut baseline);
@@ -279,8 +352,14 @@ fn run_scenario(test: &scenario) -> String {
         let args = edit.args.clone().unwrap_or_else(|| test.args.clone());
         write!(baseline, "\n\nEdit [{}]:: {}\n", index, edit.caption).unwrap();
         apply_ops(sys, &edit.ops);
-        let late: FxHashSet<&str> = edit.ops.iter().filter(|op| op.op == LATE_EVENT_WRITE).map(|op| op.path.as_str()).collect();
-        let (deferred, mut changed_paths): (Vec<_>, Vec<_>) = sys.changed_paths().into_iter().partition(|change| late.contains(change.path.as_str()));
+        let late: FxHashSet<&str> = edit
+            .ops
+            .iter()
+            .filter(|op| op.op == LATE_EVENT_WRITE)
+            .map(|op| op.path.as_str())
+            .collect();
+        let (deferred, mut changed_paths): (Vec<_>, Vec<_>) =
+            sys.changed_paths().into_iter().partition(|change| late.contains(change.path.as_str()));
         changed_paths.extend(std::mem::replace(&mut late_changes, deferred));
         sys.baseline_fs_with_diff(&mut baseline);
         match &mut watcher {
@@ -332,7 +411,9 @@ fn repo_root() -> PathBuf {
 }
 
 fn collect(dir: &FsPath, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
     for e in entries {
         let p = e.unwrap().path();
         if p.is_dir() {
@@ -348,7 +429,8 @@ fn tsctests() {
     // The baselines are tsgo's output: keep Go's check history (tsrs_core::compat).
     tsrs_core::compat::use_go_history_for_tsgo_baselines();
     let root = repo_root();
-    let dump = std::env::var("TSCTESTS_DUMP").map_or_else(|_| root.join("target/tsctests-dump"), PathBuf::from);
+    let dump = std::env::var("TSCTESTS_DUMP")
+        .map_or_else(|_| root.join("target/tsctests-dump"), PathBuf::from);
     let filter = std::env::var("TSCTESTS_FILTER").unwrap_or_default();
     let mut files = Vec::new();
     collect(&dump.join("tsc"), &mut files);
@@ -357,14 +439,14 @@ fn tsctests() {
     collect(&dump.join("tsbuildWatch"), &mut files);
     files.sort();
     if files.is_empty() {
-        eprintln!("tsctests: no scenarios under {} (run tools/oracle/tsctests/dump.sh)", dump.display());
+        eprintln!(
+            "tsctests: no scenarios under {} (run tools/oracle/tsctests/dump.sh)",
+            dump.display()
+        );
         return;
     }
-    let scenarios: Vec<scenario> = files
-        .iter()
-        .map(|f| load_scenario(f))
-        .filter(|s| s.baseline.contains(&filter))
-        .collect();
+    let scenarios: Vec<scenario> =
+        files.iter().map(|f| load_scenario(f)).filter(|s| s.baseline.contains(&filter)).collect();
     let results_dir = root.join("target/tsctests-results");
     let _ = std::fs::remove_dir_all(&results_dir);
     std::fs::create_dir_all(&results_dir).unwrap();
@@ -375,42 +457,53 @@ fn tsctests() {
     std::panic::set_hook(Box::new(|_| {}));
     std::thread::scope(|scope| {
         for _ in 0..jobs {
-            scope.spawn(|| loop {
-                let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                let Some(test) = scenarios.get(i) else { break };
-                // SAFETY: scenarios stays immutable and alive until every scoped worker ends; the inner thread is joined below.
-                let test_ref: &'static scenario = unsafe { &*std::ptr::from_ref::<scenario>(test) };
-                let outcome = std::thread::Builder::new()
-                    .stack_size(512 << 20)
-                    .spawn(move || std::panic::catch_unwind(|| run_scenario(test_ref)))
-                    .unwrap()
-                    .join()
-                    .unwrap();
-                let reference = tsrs_core::utf8::read_to_string(root.join("ts-ref/tsc/testdata/baselines/reference").join(&test.baseline)).ok();
-                let class = match outcome {
-                    Ok(actual) => {
-                        if reference.as_deref() == Some(actual.as_str()) {
-                            "pass"
-                        } else {
-                            let local = results_dir.join("local").join(&test.baseline);
-                            std::fs::create_dir_all(local.parent().unwrap()).unwrap();
-                            std::fs::write(local, actual).unwrap();
-                            "fail"
+            scope.spawn(|| {
+                loop {
+                    let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let Some(test) = scenarios.get(i) else { break };
+                    // SAFETY: scenarios stays immutable and alive until every scoped worker ends; the inner thread is joined below.
+                    let test_ref: &'static scenario =
+                        unsafe { &*std::ptr::from_ref::<scenario>(test) };
+                    let outcome = std::thread::Builder::new()
+                        .stack_size(512 << 20)
+                        .spawn(move || std::panic::catch_unwind(|| run_scenario(test_ref)))
+                        .unwrap()
+                        .join()
+                        .unwrap();
+                    let reference = tsrs_core::utf8::read_to_string(
+                        root.join("ts-ref/tsc/testdata/baselines/reference").join(&test.baseline),
+                    )
+                    .ok();
+                    let class = match outcome {
+                        Ok(actual) => {
+                            if reference.as_deref() == Some(actual.as_str()) {
+                                "pass"
+                            } else {
+                                let local = results_dir.join("local").join(&test.baseline);
+                                std::fs::create_dir_all(local.parent().unwrap()).unwrap();
+                                std::fs::write(local, actual).unwrap();
+                                "fail"
+                            }
                         }
-                    }
-                    Err(payload) => {
-                        let msg = payload
-                            .downcast_ref::<String>()
-                            .cloned()
-                            .or_else(|| payload.downcast_ref::<&str>().map(std::string::ToString::to_string))
-                            .unwrap_or_default();
-                        let local = results_dir.join("local").join(format!("{}.crash", test.baseline));
-                        std::fs::create_dir_all(local.parent().unwrap()).unwrap();
-                        std::fs::write(local, msg).unwrap();
-                        "crash"
-                    }
-                };
-                results.lock().unwrap().push((test.baseline.clone(), class));
+                        Err(payload) => {
+                            let msg = payload
+                                .downcast_ref::<String>()
+                                .cloned()
+                                .or_else(|| {
+                                    payload
+                                        .downcast_ref::<&str>()
+                                        .map(std::string::ToString::to_string)
+                                })
+                                .unwrap_or_default();
+                            let local =
+                                results_dir.join("local").join(format!("{}.crash", test.baseline));
+                            std::fs::create_dir_all(local.parent().unwrap()).unwrap();
+                            std::fs::write(local, msg).unwrap();
+                            "crash"
+                        }
+                    };
+                    results.lock().unwrap().push((test.baseline.clone(), class));
+                }
             });
         }
     });
@@ -419,7 +512,8 @@ fn tsctests() {
     results.sort();
     let mut summary = String::new();
     for class in ["pass", "fail", "crash"] {
-        let names: Vec<&str> = results.iter().filter(|r| r.1 == class).map(|r| r.0.as_str()).collect();
+        let names: Vec<&str> =
+            results.iter().filter(|r| r.1 == class).map(|r| r.0.as_str()).collect();
         std::fs::write(results_dir.join(format!("{class}.txt")), names.join("\n") + "\n").unwrap();
         for suite in ["tsc/", "tsbuild/", "tscWatch/", "tsbuildWatch/"] {
             let total = results.iter().filter(|r| r.0.starts_with(suite)).count();

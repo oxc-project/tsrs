@@ -8,15 +8,11 @@ pub struct TextChange {
 
 impl TextChange {
     pub fn pos(&self) -> u32 {
-        self.text_range
-            .pos()
-            .expect_source("text changes require a source position")
+        self.text_range.pos().expect_source("text changes require a source position")
     }
 
     pub fn end(&self) -> u32 {
-        self.text_range
-            .end()
-            .expect_source("text changes require a source position")
+        self.text_range.end().expect_source("text changes require a source position")
     }
 
     pub fn apply_to(&self, text: &str) -> String {

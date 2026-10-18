@@ -49,24 +49,34 @@ pub struct DocumentPositionMapper {
 }
 
 // source_mapper.go:52
-pub(crate) fn create_document_position_mapper(host: &dyn Host, source_map: &RawSourceMap, map_path: &str) -> DocumentPositionMapper {
+pub(crate) fn create_document_position_mapper(
+    host: &dyn Host,
+    source_map: &RawSourceMap,
+    map_path: &str,
+) -> DocumentPositionMapper {
     let map_directory = tspath::get_directory_path(map_path);
     let source_root = if !source_map.source_root.is_empty() {
         tspath::get_normalized_absolute_path(&source_map.source_root, &map_directory)
     } else {
         map_directory.clone()
     };
-    let generated_absolute_file_path = tspath::get_normalized_absolute_path(&source_map.file, &map_directory);
-    let source_file_absolute_paths: Vec<String> =
-        source_map.sources.iter().map(|source| tspath::get_normalized_absolute_path(source, &source_root)).collect();
+    let generated_absolute_file_path =
+        tspath::get_normalized_absolute_path(&source_map.file, &map_directory);
+    let source_file_absolute_paths: Vec<String> = source_map
+        .sources
+        .iter()
+        .map(|source| tspath::get_normalized_absolute_path(source, &source_root))
+        .collect();
     let use_case_sensitive_file_names = host.use_case_sensitive_file_names();
-    let mut source_to_source_index_map = FxHashMap::with_capacity_and_hasher(source_file_absolute_paths.len(), rustc_hash::FxBuildHasher);
-    source_to_source_index_map.extend(
-        source_file_absolute_paths
-            .iter()
-            .enumerate()
-            .map(|(i, source)| (tspath::get_canonical_file_name(source, use_case_sensitive_file_names), i as u32,)),
+    let mut source_to_source_index_map = FxHashMap::with_capacity_and_hasher(
+        source_file_absolute_paths.len(),
+        rustc_hash::FxBuildHasher,
     );
+    source_to_source_index_map.extend(source_file_absolute_paths.iter().enumerate().map(
+        |(i, source)| {
+            (tspath::get_canonical_file_name(source, use_case_sensitive_file_names), i as u32)
+        },
+    ));
 
     let mut decoded_mappings: Vec<MappedPosition> = Vec::new();
     let mut source_mappings: FxHashMap<u32, Vec<SourceMappedPosition>> = FxHashMap::default();
@@ -141,7 +151,9 @@ pub(crate) fn create_document_position_mapper(host: &dyn Host, source_map: &RawS
             a.source_position.cmp(&b.source_position)
         });
         *list = tsrs_core::deduplicate_sorted(list, |a, b| {
-            a.generated_position == b.generated_position && a.source_index == b.source_index && a.source_position == b.source_position
+            a.generated_position == b.generated_position
+                && a.source_index == b.source_index
+                && a.source_position == b.source_position
         });
     }
 
@@ -151,7 +163,9 @@ pub(crate) fn create_document_position_mapper(host: &dyn Host, source_map: &RawS
         a.generated_position.cmp(&b.generated_position)
     });
     let generated_mappings = tsrs_core::deduplicate_sorted(&generated_mappings, |a, b| {
-        a.generated_position == b.generated_position && a.source_index == b.source_index && a.source_position == b.source_position
+        a.generated_position == b.generated_position
+            && a.source_index == b.source_index
+            && a.source_position == b.source_position
     });
 
     DocumentPositionMapper {
@@ -180,7 +194,8 @@ impl DocumentPositionMapper {
             return None;
         }
 
-        let target_index = self.generated_mappings.partition_point(|m| m.generated_position < Some(loc.pos));
+        let target_index =
+            self.generated_mappings.partition_point(|m| m.generated_position < Some(loc.pos));
 
         if target_index >= self.generated_mappings.len() {
             return None;
@@ -200,16 +215,11 @@ impl DocumentPositionMapper {
 
     // source_mapper.go:197
     pub fn get_generated_position(&self, loc: &DocumentPosition) -> Option<DocumentPosition> {
-        let &source_index =
-            self.source_to_source_index_map
-                .get(&tspath::get_canonical_file_name(
-                    &loc.file_name,
-                    self.use_case_sensitive_file_names,
-                ))?;
-        let source_mappings: &[SourceMappedPosition] = self
-            .source_mappings
-            .get(&source_index)
-            .map_or(&[], std::vec::Vec::as_slice);
+        let &source_index = self.source_to_source_index_map.get(
+            &tspath::get_canonical_file_name(&loc.file_name, self.use_case_sensitive_file_names),
+        )?;
+        let source_mappings: &[SourceMappedPosition] =
+            self.source_mappings.get(&source_index).map_or(&[], std::vec::Vec::as_slice);
         let target_index = source_mappings.partition_point(|m| m.source_position < Some(loc.pos));
 
         if target_index >= source_mappings.len() {
@@ -230,7 +240,10 @@ impl DocumentPositionMapper {
 }
 
 // source_mapper.go:229
-pub fn get_document_position_mapper(host: &dyn Host, generated_file_name: &str) -> Option<DocumentPositionMapper> {
+pub fn get_document_position_mapper(
+    host: &dyn Host,
+    generated_file_name: &str,
+) -> Option<DocumentPositionMapper> {
     let mut map_file_name = try_get_source_mapping_url_(host, generated_file_name);
     if !map_file_name.is_empty() {
         let (base64_object, matched) = try_parse_base64_url(&map_file_name);
@@ -240,7 +253,9 @@ pub fn get_document_position_mapper(host: &dyn Host, generated_file_name: &str) 
                     // Go converts the bytes to a string and json.Unmarshal rejects invalid UTF-8, so invalid UTF-8
                     // ends in the same nil result.
                     return match tsrs_core::utf8::into_string(decoded) {
-                        Ok(decoded) => convert_document_to_source_mapper(host, &decoded, generated_file_name),
+                        Ok(decoded) => {
+                            convert_document_to_source_mapper(host, &decoded, generated_file_name)
+                        }
                         Err(_) => None,
                     };
                 }
@@ -256,9 +271,16 @@ pub fn get_document_position_mapper(host: &dyn Host, generated_file_name: &str) 
     }
     possible_map_locations.push(format!("{generated_file_name}.map"));
     if let Some(result) = possible_map_locations.iter().find_map(|location| {
-        let map_file_name = tspath::get_normalized_absolute_path(location, &tspath::get_directory_path(generated_file_name));
+        let map_file_name = tspath::get_normalized_absolute_path(
+            location,
+            &tspath::get_directory_path(generated_file_name),
+        );
         if let Some(map_file_contents) = host.read_file(&map_file_name) {
-            return Some(convert_document_to_source_mapper(host, &map_file_contents, &map_file_name));
+            return Some(convert_document_to_source_mapper(
+                host,
+                &map_file_contents,
+                &map_file_name,
+            ));
         }
 
         None
@@ -269,16 +291,27 @@ pub fn get_document_position_mapper(host: &dyn Host, generated_file_name: &str) 
 }
 
 // source_mapper.go:257
-pub(crate) fn convert_document_to_source_mapper(host: &dyn Host, contents: &str, map_file_name: &str) -> Option<DocumentPositionMapper> {
+pub(crate) fn convert_document_to_source_mapper(
+    host: &dyn Host,
+    contents: &str,
+    map_file_name: &str,
+) -> Option<DocumentPositionMapper> {
     let source_map = try_parse_raw_source_map(contents);
     let source_map = match source_map {
-        Some(source_map) if !source_map.sources.is_empty() && !source_map.file.is_empty() && !source_map.mappings.is_empty() => source_map,
+        Some(source_map)
+            if !source_map.sources.is_empty()
+                && !source_map.file.is_empty()
+                && !source_map.mappings.is_empty() =>
+        {
+            source_map
+        }
         // invalid map
         _ => return None,
     };
 
     // Don't support source maps that contain inlined sources
-    if source_map.sources_content.as_deref().unwrap_or(&[]).iter().any(std::option::Option::is_some) {
+    if source_map.sources_content.as_deref().unwrap_or(&[]).iter().any(std::option::Option::is_some)
+    {
         return None;
     }
 
@@ -320,11 +353,18 @@ pub(crate) fn try_parse_base64_url(url: &str) -> (&str, bool) {
     let Some(url) = url.strip_prefix("base64,") else {
         return ("", true);
     };
-    if let Some(result) = url
-        .chars()
-        .into_iter()
-        .find_map(|r| if !(stringutil::is_ascii_letter(r as u32) || stringutil::is_digit(r as u32) || r == '+' || r == '/' || r == '=') { Some(("", true)) } else { None })
-    {
+    if let Some(result) = url.chars().into_iter().find_map(|r| {
+        if !(stringutil::is_ascii_letter(r as u32)
+            || stringutil::is_digit(r as u32)
+            || r == '+'
+            || r == '/'
+            || r == '=')
+        {
+            Some(("", true))
+        } else {
+            None
+        }
+    }) {
         return result;
     }
     (url, true)
@@ -351,11 +391,7 @@ fn base64_std_decode_string(s: &str) -> Option<Vec<u8>> {
         }
         let mut v: u32 = 0;
         v = chunk.iter().enumerate().try_fold(v, |mut v, (i, &c)| {
-            let d = if i >= 4 - padding {
-                0
-            } else {
-                u32::from(base64_format_decode(c)?)
-            };
+            let d = if i >= 4 - padding { 0 } else { u32::from(base64_format_decode(c)?) };
             v = (v << 6) | d;
             Some(v)
         })?;

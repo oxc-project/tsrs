@@ -15,7 +15,10 @@ use crate::testing::T;
 
 // Go `any` (and its aliases MarkerInput, MarkerOrRangeOrName, CompletionsExpectedItem,
 // ExpectedCompletionEditRange). One variant per dynamic type the tests store in one; `Nil` is the nil interface.
-#[expect(clippy::large_enum_variant, reason = "Go interface payloads stay by value to match the generated harness API.")]
+#[expect(
+    clippy::large_enum_variant,
+    reason = "Go interface payloads stay by value to match the generated harness API."
+)]
 #[derive(Clone, Debug, Default, PartialEq)]
 pub enum Any {
     #[default]
@@ -86,7 +89,9 @@ impl Any {
             Value::Number(n) => Any::Float64(*n),
             Value::String(s) => Any::String(s.clone()),
             Value::Array(a) => Any::Slice(a.iter().map(Any::from_json).collect()),
-            Value::Object(o) => Any::Map(o.iter().map(|(k, v)| (k.clone(), Any::from_json(v))).collect()),
+            Value::Object(o) => {
+                Any::Map(o.iter().map(|(k, v)| (k.clone(), Any::from_json(v))).collect())
+            }
         }
     }
 
@@ -98,7 +103,9 @@ impl Any {
             Any::Bool(b) => Value::Bool(*b),
             Any::Int(i) => Value::Number(*i as f64),
             Any::Float64(f) => Value::Number(*f),
-            Any::StringSlice(v) => Value::Array(v.iter().map(|s| Value::String(s.clone())).collect()),
+            Any::StringSlice(v) => {
+                Value::Array(v.iter().map(|s| Value::String(s.clone())).collect())
+            }
             Any::Slice(v) => Value::Array(v.iter().map(Any::to_json).collect()),
             Any::Map(m) => Value::Object(m.iter().map(|(k, v)| (k.clone(), v.to_json())).collect()),
             Any::Ignored => Value::Object(OrderedMap::default()),
@@ -167,11 +174,7 @@ pub fn map<T, U>(xs: &[T], f: impl FnMut(&T) -> U) -> Vec<U> {
 
 // core.OrElse
 pub fn or_else<T: Default + PartialEq>(value: T, default_value: T) -> T {
-    if value != T::default() {
-        value
-    } else {
-        default_value
-    }
+    if value != T::default() { value } else { default_value }
 }
 
 // append(s, items...)
@@ -229,21 +232,23 @@ pub mod assert {
     use crate::testing::T;
 
     fn with_msg(base: String, msg: &str) -> String {
-        if msg.is_empty() {
-            base
-        } else {
-            format!("{base}: {msg}")
-        }
+        if msg.is_empty() { base } else { format!("{base}: {msg}") }
     }
 
-    #[expect(clippy::needless_pass_by_value, reason = "Go assertions take their interface arguments by value; generated calls retain that API.")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Go assertions take their interface arguments by value; generated calls retain that API."
+    )]
     pub fn equal<A: PartialEq + Debug>(t: &T, x: A, y: A, msg: &str) {
         if x != y {
             t.fatal(&with_msg(format!("assertion failed: {x:?} (x) != {y:?} (y)"), msg));
         }
     }
 
-    #[expect(clippy::needless_pass_by_value, reason = "Go assertions take their interface arguments by value; generated calls retain that API.")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Go assertions take their interface arguments by value; generated calls retain that API."
+    )]
     pub fn deep_equal<A: PartialEq + Debug>(t: &T, x: A, y: A, msg: &str) {
         if x != y {
             t.fatal(&with_msg(format!("assertion failed: \n--- x\n+++ y\n{x:#?}\n{y:#?}"), msg));

@@ -1,7 +1,7 @@
 use rustc_hash::FxHashSet;
 use tsrs_ast::{self as ast, Kind, Node, NodeFlags, SourceFile, Symbol};
 use tsrs_checker::Checker;
-use tsrs_core::{TextRange, P};
+use tsrs_core::{P, TextRange};
 use tsrs_lsproto as lsproto;
 use tsrs_scanner as scanner;
 
@@ -33,7 +33,15 @@ pub fn get_symbol_documentation_comment(c: &mut Checker, symbol: Option<P<Symbol
         if !seen.insert(decl) {
             continue;
         }
-        let doc = get_documentation_from_declaration(&no_mapped_location, c, Some(symbol), Some(decl), Some(decl), lsproto::MarkupKind::PlainText, true /*commentOnly*/);
+        let doc = get_documentation_from_declaration(
+            &no_mapped_location,
+            c,
+            Some(symbol),
+            Some(decl),
+            Some(decl),
+            lsproto::MarkupKind::PlainText,
+            true, /*commentOnly*/
+        );
         if !doc.is_empty() && !parts.contains(&doc) {
             parts.push(doc);
         }
@@ -58,12 +66,19 @@ pub fn get_symbol_jsdoc_tags(symbol: Option<P<Symbol>>) -> Vec<JSDocTagInfo> {
         let tags = declaration_jsdoc_tags(decl);
         // Skip comments containing @typedef/@callback since they're not associated with a
         // particular declaration, unless they also carry @param/@return (treated as local docs).
-        let has_typedef = tags.iter().any(|t| t.kind() == Kind::JSDocTypedefTag || t.kind() == Kind::JSDocCallbackTag);
-        let has_param_or_return = tags.iter().any(|t| t.kind() == Kind::JSDocParameterTag || t.kind() == Kind::JSDocReturnTag);
+        let has_typedef = tags
+            .iter()
+            .any(|t| t.kind() == Kind::JSDocTypedefTag || t.kind() == Kind::JSDocCallbackTag);
+        let has_param_or_return = tags
+            .iter()
+            .any(|t| t.kind() == Kind::JSDocParameterTag || t.kind() == Kind::JSDocReturnTag);
         if has_typedef && !has_param_or_return {
             continue;
         }
-        infos.extend(tags.iter().map(|&tag| JSDocTagInfo { name: tag.tag_name().text().to_string(), text: get_jsdoc_tag_text(tag) }));
+        infos.extend(tags.iter().map(|&tag| JSDocTagInfo {
+            name: tag.tag_name().text().to_string(),
+            text: get_jsdoc_tag_text(tag),
+        }));
     }
     infos
 }
@@ -106,25 +121,32 @@ fn get_jsdoc_tag_text(tag: P<Node>) -> String {
             }
             comment
         }
-        Kind::JSDocImplementsTag => add_comment(scanner::get_text_of_node(tag.as_jsdoc_implements_tag().class_name)),
-        Kind::JSDocAugmentsTag => add_comment(scanner::get_text_of_node(tag.as_jsdoc_augments_tag().class_name)),
+        Kind::JSDocImplementsTag => {
+            add_comment(scanner::get_text_of_node(tag.as_jsdoc_implements_tag().class_name))
+        }
+        Kind::JSDocAugmentsTag => {
+            add_comment(scanner::get_text_of_node(tag.as_jsdoc_augments_tag().class_name))
+        }
         Kind::JSDocTemplateTag => {
             let template_tag = tag.as_jsdoc_template_tag();
             let mut b = String::new();
             if let Some(constraint) = template_tag.constraint {
                 b.push_str(&scanner::get_text_of_node(constraint));
             }
-            b = template_tag.type_parameters.nodes().iter().enumerate().fold(b, |mut b, (i, &tp)| {
-                if i == 0 && !b.is_empty() {
-                    b.push(' ');
-                }
-                if i != 0 {
-                    b.push_str(", ");
-                }
-                b.push_str(&scanner::get_text_of_node(tp));
+            b = template_tag.type_parameters.nodes().iter().enumerate().fold(
+                b,
+                |mut b, (i, &tp)| {
+                    if i == 0 && !b.is_empty() {
+                        b.push(' ');
+                    }
+                    if i != 0 {
+                        b.push_str(", ");
+                    }
+                    b.push_str(&scanner::get_text_of_node(tp));
 
-                b
-            });
+                    b
+                },
+            );
             if !comment.is_empty() {
                 if !b.is_empty() {
                     b.push(' ');
@@ -133,8 +155,12 @@ fn get_jsdoc_tag_text(tag: P<Node>) -> String {
             }
             b
         }
-        Kind::JSDocTypeTag => add_comment(scanner::get_text_of_node(tag.as_jsdoc_type_tag().type_expression)),
-        Kind::JSDocSatisfiesTag => add_comment(scanner::get_text_of_node(tag.as_jsdoc_satisfies_tag().type_expression)),
+        Kind::JSDocTypeTag => {
+            add_comment(scanner::get_text_of_node(tag.as_jsdoc_type_tag().type_expression))
+        }
+        Kind::JSDocSatisfiesTag => {
+            add_comment(scanner::get_text_of_node(tag.as_jsdoc_satisfies_tag().type_expression))
+        }
         Kind::JSDocSeeTag => {
             if let Some(ne) = tag.as_jsdoc_see_tag().name_expression {
                 return add_comment(scanner::get_text_of_node(ne));
@@ -157,7 +183,11 @@ pub(crate) fn get_jsdoc(node: P<Node>) -> Option<P<Node>> {
 }
 
 // jsdoc.go:166
-pub(crate) fn get_jsdoc_or_tag(c: &mut Checker, node: Option<P<Node>>, seen_symbols: &mut FxHashSet<P<Symbol>>) -> Option<P<Node>> {
+pub(crate) fn get_jsdoc_or_tag(
+    c: &mut Checker,
+    node: Option<P<Node>>,
+    seen_symbols: &mut FxHashSet<P<Symbol>>,
+) -> Option<P<Node>> {
     let node = node?;
     if let Some(jsdoc) = get_jsdoc(node) {
         return Some(jsdoc);
@@ -168,20 +198,38 @@ pub(crate) fn get_jsdoc_or_tag(c: &mut Checker, node: Option<P<Node>>, seen_symb
             // For binding patterns, match JSDoc @param tags by position rather than by name
             return get_jsdoc_parameter_tag_by_position(c, node);
         }
-        return get_matching_jsdoc_tag(c, node.parent().unwrap(), name.text(), is_matching_parameter_tag, seen_symbols);
+        return get_matching_jsdoc_tag(
+            c,
+            node.parent().unwrap(),
+            name.text(),
+            is_matching_parameter_tag,
+            seen_symbols,
+        );
     } else if ast::is_type_parameter_declaration(node) {
-        return get_matching_jsdoc_tag(c, node.parent().unwrap(), node.name().unwrap().text(), is_matching_template_tag, seen_symbols);
+        return get_matching_jsdoc_tag(
+            c,
+            node.parent().unwrap(),
+            node.name().unwrap().text(),
+            is_matching_template_tag,
+            seen_symbols,
+        );
     } else if ast::is_variable_declaration(node)
         && ast::is_variable_declaration_list(node.parent().unwrap())
-        && node.parent().unwrap().as_variable_declaration_list().declarations.nodes().first() == Some(&node)
+        && node.parent().unwrap().as_variable_declaration_list().declarations.nodes().first()
+            == Some(&node)
     {
         return get_jsdoc_or_tag(c, node.parent().unwrap().parent(), seen_symbols);
-    } else if (ast::is_function_expression_or_arrow_function(node) || ast::is_class_expression(node))
-        && (ast::is_variable_declaration(node.parent().unwrap()) || ast::is_property_declaration(node.parent().unwrap()) || ast::is_property_assignment(node.parent().unwrap()))
+    } else if (ast::is_function_expression_or_arrow_function(node)
+        || ast::is_class_expression(node))
+        && (ast::is_variable_declaration(node.parent().unwrap())
+            || ast::is_property_declaration(node.parent().unwrap())
+            || ast::is_property_assignment(node.parent().unwrap()))
         && node.parent().unwrap().initializer() == Some(node)
     {
         return get_jsdoc_or_tag(c, node.parent(), seen_symbols);
-    } else if ast::is_binding_element(node) && ast::is_object_binding_pattern(node.parent().unwrap()) {
+    } else if ast::is_binding_element(node)
+        && ast::is_object_binding_pattern(node.parent().unwrap())
+    {
         let name = node.property_name_or_name().unwrap();
         if ast::is_identifier(name) {
             let object_type = c.get_type_at_location(node.parent().unwrap());
@@ -206,10 +254,13 @@ pub(crate) fn get_jsdoc_or_tag(c: &mut Checker, node: Option<P<Node>>, seen_symb
                 || ast::is_constructor_declaration(node)
                 || ast::is_construct_signature_declaration(node)
             {
-                let first_signature = symbol.declarations().iter().copied().find(|&d| ast::is_function_like(Some(d)));
+                let first_signature =
+                    symbol.declarations().iter().copied().find(|&d| ast::is_function_like(Some(d)));
                 if let Some(first_signature) = first_signature {
                     if node != first_signature {
-                        if let Some(js_doc) = get_jsdoc_or_tag(c, Some(first_signature), seen_symbols) {
+                        if let Some(js_doc) =
+                            get_jsdoc_or_tag(c, Some(first_signature), seen_symbols)
+                        {
                             return Some(js_doc);
                         }
                     }
@@ -222,30 +273,41 @@ pub(crate) fn get_jsdoc_or_tag(c: &mut Checker, node: Option<P<Node>>, seen_symb
                     // For static members, use the checker's base constructor type resolution.
                     // This correctly handles intersection constructor types from mixins
                     // (e.g., typeof MixinClass & T) by preserving the full intersection.
-                    let base_constructor_type = c.get_base_constructor_type_of_class_exported(class_type);
+                    let base_constructor_type =
+                        c.get_base_constructor_type_of_class_exported(class_type);
                     let static_base_type = c.get_apparent_type_exported(base_constructor_type);
-                    if let Some(prop) = c.get_property_of_type_exported(static_base_type, symbol.name()) {
+                    if let Some(prop) =
+                        c.get_property_of_type_exported(static_base_type, symbol.name())
+                    {
                         if let Some(value_declaration) = prop.value_declaration() {
                             if seen_symbols.insert(prop) {
-                                if let Some(js_doc) = get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols) {
+                                if let Some(js_doc) =
+                                    get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols)
+                                {
                                     return Some(js_doc);
                                 }
                             }
                         }
                     }
-                } else if let Some(result) = c.get_base_types_exported(class_type).iter().find_map(|&base_type| {
-                    if let Some(prop) = c.get_property_of_type_exported(base_type, symbol.name()) {
-                        if let Some(value_declaration) = prop.value_declaration() {
-                            if seen_symbols.insert(prop) {
-                                if let Some(js_doc) = get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols) {
-                                    return Some(Some(js_doc));
+                } else if let Some(result) =
+                    c.get_base_types_exported(class_type).iter().find_map(|&base_type| {
+                        if let Some(prop) =
+                            c.get_property_of_type_exported(base_type, symbol.name())
+                        {
+                            if let Some(value_declaration) = prop.value_declaration() {
+                                if seen_symbols.insert(prop) {
+                                    if let Some(js_doc) =
+                                        get_jsdoc_or_tag(c, Some(value_declaration), seen_symbols)
+                                    {
+                                        return Some(Some(js_doc));
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    None
-                }) {
+                        None
+                    })
+                {
                     return result;
                 }
             }
@@ -265,7 +327,11 @@ fn get_matching_jsdoc_tag(
     if let Some(jsdoc) = get_jsdoc_or_tag(c, Some(node), seen_symbols) {
         if jsdoc.kind() == Kind::JSDoc {
             if let Some(tags) = jsdoc.as_jsdoc().tags {
-                if let Some(result) = tags.nodes().iter().find_map(|&tag| if match_(tag, name) { Some(Some(tag)) } else { None }) {
+                if let Some(result) = tags
+                    .nodes()
+                    .iter()
+                    .find_map(|&tag| if match_(tag, name) { Some(Some(tag)) } else { None })
+                {
                     return result;
                 }
             }
@@ -293,7 +359,9 @@ fn get_jsdoc_parameter_tag_by_position(c: &mut Checker, param: P<Node>) -> Optio
     // Collect all @param tags in order
     let tags = jsdoc.as_jsdoc().tags?;
 
-    if let Some(&tag) = tags.nodes().iter().filter(|tag| tag.kind() == Kind::JSDocParameterTag).nth(param_index) {
+    if let Some(&tag) =
+        tags.nodes().iter().filter(|tag| tag.kind() == Kind::JSDocParameterTag).nth(param_index)
+    {
         return Some(tag);
     }
     None
@@ -306,7 +374,8 @@ fn is_matching_parameter_tag(tag: P<Node>, name: &str) -> bool {
 
 // jsdoc.go:295
 fn is_matching_template_tag(tag: P<Node>, name: &str) -> bool {
-    tag.kind() == Kind::JSDocTemplateTag && tag.type_parameters().iter().any(|&tp| is_node_with_name(tp, name))
+    tag.kind() == Kind::JSDocTemplateTag
+        && tag.type_parameters().iter().any(|&tp| is_node_with_name(tp, name))
 }
 
 // jsdoc.go:299
@@ -318,6 +387,9 @@ fn is_node_with_name(node: P<Node>, name: &str) -> bool {
 }
 
 // jsdoc.go:304
-pub(crate) fn no_mapped_location(_file: P<SourceFile>, _range: TextRange) -> (lsproto::Location, Fidelity) {
+pub(crate) fn no_mapped_location(
+    _file: P<SourceFile>,
+    _range: TextRange,
+) -> (lsproto::Location, Fidelity) {
     (lsproto::Location::default(), Fidelity::None)
 }

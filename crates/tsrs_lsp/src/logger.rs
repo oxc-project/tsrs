@@ -50,14 +50,22 @@ impl logger {
 
         // Don't send messages that the client will filter out anyway.
         let verbosity = *self.mu.lock().unwrap();
-        if verbosity == LogVerbosity::Off || verbosity.0 > max_verbosity_for_message_type(msg_type).0 {
+        if verbosity == LogVerbosity::Off
+            || verbosity.0 > max_verbosity_for_message_type(msg_type).0
+        {
             return;
         }
 
-        let notification = lsproto::WINDOW_LOG_MESSAGE_INFO.new_notification_message(lsproto::LogMessageParams { type_: msg_type, message: message.to_string() });
+        let notification =
+            lsproto::WINDOW_LOG_MESSAGE_INFO.new_notification_message(lsproto::LogMessageParams {
+                type_: msg_type,
+                message: message.to_string(),
+            });
 
         let background_ctx = server.background_ctx();
-        if server.outgoing_queue.put(&background_ctx, notification.message()).is_err() && background_ctx.err().is_some() {
+        if server.outgoing_queue.put(&background_ctx, notification.message()).is_err()
+            && background_ctx.err().is_some()
+        {
             server.write_stderr_line(message);
         }
     }

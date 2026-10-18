@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use tsrs_core::tspath::Path;
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
 
 use crate::overlayfs::Hash128;
-use crate::ownercache::{new_owner_cache, OwnerCache};
+use crate::ownercache::{OwnerCache, new_owner_cache};
 use crate::snapshotfs::FileSource;
 
 pub struct ExtendedConfigParseArgs {
@@ -24,20 +24,30 @@ pub struct ExtendedConfigCacheEntry {
     pub hash: Hash128,
 }
 
-pub type ExtendedConfigCache = OwnerCache<Path, Arc<ExtendedConfigCacheEntry>, ExtendedConfigParseArgs>;
+pub type ExtendedConfigCache =
+    OwnerCache<Path, Arc<ExtendedConfigCacheEntry>, ExtendedConfigParseArgs>;
 
 // extendedconfigcache.go:25
 pub fn new_extended_config_cache() -> ExtendedConfigCache {
     new_owner_cache(
         |path: &Path, args: &ExtendedConfigParseArgs| {
-            let extended_config_cache_entry =
-                tsoptions::parse_extended_config(&args.file_name, path.clone(), &args.resolution_stack, args.host, Some(args.cache));
+            let extended_config_cache_entry = tsoptions::parse_extended_config(
+                &args.file_name,
+                path.clone(),
+                &args.resolution_stack,
+                args.host,
+                Some(args.cache),
+            );
             let hash = hash(&extended_config_cache_entry, args);
             Arc::new(ExtendedConfigCacheEntry { extended_config_cache_entry, hash })
         },
-        Some(Box::new(|_path: &Path, entry: &Arc<ExtendedConfigCacheEntry>, args: &ExtendedConfigParseArgs| {
-            entry.hash == 0 || entry.hash != hash(&entry.extended_config_cache_entry, args)
-        })),
+        Some(Box::new(
+            |_path: &Path,
+             entry: &Arc<ExtendedConfigCacheEntry>,
+             args: &ExtendedConfigParseArgs| {
+                entry.hash == 0 || entry.hash != hash(&entry.extended_config_cache_entry, args)
+            },
+        )),
     )
 }
 

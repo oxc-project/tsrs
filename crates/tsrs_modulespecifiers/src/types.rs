@@ -6,7 +6,7 @@ use std::sync::{LazyLock, RwLock};
 use rustc_hash::FxHashMap;
 use tsrs_ast::{Node, SourceFile, Symbol};
 use tsrs_core::tspath::Path;
-use tsrs_core::{ResolutionMode, P};
+use tsrs_core::{P, ResolutionMode};
 use tsrs_module::packagejson;
 
 use crate::*;
@@ -59,7 +59,10 @@ pub trait ModuleSpecifierGenerationHost: OutputPathsHost {
     // GetFileIncludeReasons() any // !!! TODO: adapt new resolution cache model
     fn get_global_typings_cache_location(&self) -> String;
 
-    fn get_project_reference_from_source(&self, path: &Path) -> Option<P<SourceOutputAndProjectReference>>;
+    fn get_project_reference_from_source(
+        &self,
+        path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>>;
     fn get_redirect_targets(&self, path: &Path) -> Vec<String>;
     fn get_source_of_project_reference_if_output_included(&self, file: P<SourceFile>) -> String;
 
@@ -68,12 +71,23 @@ pub trait ModuleSpecifierGenerationHost: OutputPathsHost {
     fn get_nearest_ancestor_directory_with_package_json(&self, dirname: &str) -> String;
     fn get_package_json_info(&self, pkg_json_path: &str) -> Option<P<packagejson::InfoCacheEntry>>;
     fn get_default_resolution_mode_for_file(&self, file: P<SourceFile>) -> ResolutionMode;
-    fn get_resolved_module_from_module_specifier(&self, file: P<SourceFile>, module_specifier: P<Node>) -> Option<P<ResolvedModule>>;
-    fn get_mode_for_usage_location(&self, file: P<SourceFile>, module_specifier: P<Node>) -> ResolutionMode;
+    fn get_resolved_module_from_module_specifier(
+        &self,
+        file: P<SourceFile>,
+        module_specifier: P<Node>,
+    ) -> Option<P<ResolvedModule>>;
+    fn get_mode_for_usage_location(
+        &self,
+        file: P<SourceFile>,
+        module_specifier: P<Node>,
+    ) -> ResolutionMode;
 
     // tsrs-only: the host's memo for `try_get_module_name_from_exports` under `options`, if it keeps one (see
     // `ExportsModuleNameCache`).
-    fn exports_module_name_cache(&self, _options: &tsrs_core::CompilerOptions) -> Option<&ExportsModuleNameCache> {
+    fn exports_module_name_cache(
+        &self,
+        _options: &tsrs_core::CompilerOptions,
+    ) -> Option<&ExportsModuleNameCache> {
         None
     }
 }
@@ -211,8 +225,9 @@ pub struct regexPatternCacheKey {
 }
 
 /// Go `regexPatternCache` guarded by `regexPatternCacheMu` (one `RwLock`).
-pub(crate) static regexPatternCache: LazyLock<RwLock<FxHashMap<regexPatternCacheKey, Option<P<regex::Regex>>>>> =
-    LazyLock::new(|| RwLock::new(FxHashMap::default()));
+pub(crate) static regexPatternCache: LazyLock<
+    RwLock<FxHashMap<regexPatternCacheKey, Option<P<regex::Regex>>>>,
+> = LazyLock::new(|| RwLock::new(FxHashMap::default()));
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct NodeModulePathParts {

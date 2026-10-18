@@ -9,7 +9,9 @@ use tsrs_fourslash::runner::{self, RunOptions};
 use tsrs_fourslash::tests::r#gen::REGISTRY;
 
 fn usage() -> ExitCode {
-    eprintln!("usage: tsrs-fourslash run [--filter <substr|regex>] [--include-skipped] [-j N] [-v]");
+    eprintln!(
+        "usage: tsrs-fourslash run [--filter <substr|regex>] [--include-skipped] [-j N] [-v]"
+    );
     eprintln!("       tsrs-fourslash list [--filter <substr|regex>]");
     ExitCode::from(2)
 }
@@ -47,19 +49,18 @@ fn main() -> ExitCode {
     }
     match cmd.as_str() {
         "run" => {
-            let failures = runner::run(REGISTRY, &RunOptions { filter, include_skipped, jobs, verbose });
-            if failures > 0 {
-                ExitCode::FAILURE
-            } else {
-                ExitCode::SUCCESS
-            }
+            let failures =
+                runner::run(REGISTRY, &RunOptions { filter, include_skipped, jobs, verbose });
+            if failures > 0 { ExitCode::FAILURE } else { ExitCode::SUCCESS }
         }
         "worker" => {
             runner::worker(REGISTRY, include_skipped);
             ExitCode::SUCCESS
         }
         "list" => {
-            for e in REGISTRY.iter().filter(|e| filter.as_ref().is_none_or(|re| re.is_match(e.name))) {
+            for e in
+                REGISTRY.iter().filter(|e| filter.as_ref().is_none_or(|re| re.is_match(e.name)))
+            {
                 match e.skip {
                     Some(reason) => println!("{}\t{}:{}\tskip: {}", e.name, e.file, e.line, reason),
                     None => println!("{}\t{}:{}", e.name, e.file, e.line),

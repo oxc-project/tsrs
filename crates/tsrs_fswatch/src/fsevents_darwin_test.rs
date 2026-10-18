@@ -33,7 +33,12 @@ fn stream_counts(backend: &fsEventsBackend) -> (usize, usize, usize) {
 fn each_root_gets_its_own_stream_up_to_the_limit_and_the_rest_share() {
     let (base, dirs) = root_dirs(fseventsMaxRootStreams + 3);
     let db: Arc<debounce> = debounce::new();
-    let watches: Vec<Arc<dirWatch>> = dirs.iter().map(|dir| dirWatch::new(dir.clone(), dir.clone(), &db, pathComparer::default(), None, true)).collect();
+    let watches: Vec<Arc<dirWatch>> = dirs
+        .iter()
+        .map(|dir| {
+            dirWatch::new(dir.clone(), dir.clone(), &db, pathComparer::default(), None, true)
+        })
+        .collect();
     let backend = new_fs_events_backend();
 
     backend.subscribe_many(&watches[..2]).unwrap().unwrap();
@@ -43,7 +48,8 @@ fn each_root_gets_its_own_stream_up_to_the_limit_and_the_rest_share() {
     assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams, 3, 1));
 
     // A second watch on a root that has its own stream (here non-recursive) joins that stream.
-    let same_root = dirWatch::new(dirs[0].clone(), dirs[0].clone(), &db, pathComparer::default(), None, false);
+    let same_root =
+        dirWatch::new(dirs[0].clone(), dirs[0].clone(), &db, pathComparer::default(), None, false);
     backend.subscribe(&same_root).unwrap();
     assert_eq!(stream_counts(&backend), (fseventsMaxRootStreams, 3, 1));
     backend.close_watch(&watches[0]).unwrap();

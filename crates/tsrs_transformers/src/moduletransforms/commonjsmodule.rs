@@ -6,9 +6,9 @@ use super::*;
 // commonjsmodule.go:15
 pub struct CommonJSModuleTransformer {
     pub base: Transformer,
-    pub(crate) top_level_visitor: OnceCell<NodeVisitor>,          // visits statements at top level of a module
-    pub(crate) top_level_nested_visitor: OnceCell<NodeVisitor>,   // visits nested statements at top level of a module
-    pub(crate) discarded_value_visitor: OnceCell<NodeVisitor>,    // visits expressions whose values would be discarded at runtime
+    pub(crate) top_level_visitor: OnceCell<NodeVisitor>, // visits statements at top level of a module
+    pub(crate) top_level_nested_visitor: OnceCell<NodeVisitor>, // visits nested statements at top level of a module
+    pub(crate) discarded_value_visitor: OnceCell<NodeVisitor>, // visits expressions whose values would be discarded at runtime
     pub(crate) assignment_pattern_visitor: OnceCell<NodeVisitor>, // visits assignment patterns in a destructuring assignment
     pub compiler_options: P<CompilerOptions>,
     pub resolver: ReferenceResolverRef,
@@ -22,7 +22,10 @@ pub struct CommonJSModuleTransformer {
 }
 
 // commonjsmodule.go:32
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_common_js_module_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let compiler_options = opts.compiler_options;
     let emit_context = opts.context;
@@ -42,11 +45,23 @@ pub fn new_common_js_module_transformer(opts: &TransformOptions) -> Option<P<Tra
         parent_node: Cell::new(None),
         current_node: Cell::new(None),
     });
-    let _ = tx.top_level_visitor.set(emit_context.new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_top_level(n))));
-    let _ = tx.top_level_nested_visitor.set(emit_context.new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_top_level_nested(n))));
-    let _ = tx.discarded_value_visitor.set(emit_context.new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_discarded_value(n))));
-    let _ = tx.assignment_pattern_visitor.set(emit_context.new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_assignment_pattern(n))));
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(emit_context)))
+    let _ =
+        tx.top_level_visitor.set(emit_context.new_node_visitor(Rc::new(
+            move |_: &mut NodeVisitor, n: P<Node>| tx.visit_top_level(n),
+        )));
+    let _ = tx.top_level_nested_visitor.set(emit_context.new_node_visitor(Rc::new(
+        move |_: &mut NodeVisitor, n: P<Node>| tx.visit_top_level_nested(n),
+    )));
+    let _ = tx.discarded_value_visitor.set(emit_context.new_node_visitor(Rc::new(
+        move |_: &mut NodeVisitor, n: P<Node>| tx.visit_discarded_value(n),
+    )));
+    let _ = tx.assignment_pattern_visitor.set(emit_context.new_node_visitor(Rc::new(
+        move |_: &mut NodeVisitor, n: P<Node>| tx.visit_assignment_pattern(n),
+    )));
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(emit_context),
+    ))
 }
 
 impl CommonJSModuleTransformer {
@@ -131,7 +146,9 @@ impl CommonJSModuleTransformer {
         match node.kind() {
             Kind::VariableStatement => self.visit_top_level_variable_statement(node),
             Kind::ForStatement => self.visit_top_level_nested_for_statement(node),
-            Kind::ForInStatement | Kind::ForOfStatement => Some(self.visit_top_level_nested_for_in_or_of_statement(node)),
+            Kind::ForInStatement | Kind::ForOfStatement => {
+                Some(self.visit_top_level_nested_for_in_or_of_statement(node))
+            }
             Kind::DoStatement => Some(self.visit_top_level_nested_do_statement(node)),
             Kind::WhileStatement => Some(self.visit_top_level_nested_while_statement(node)),
             Kind::LabeledStatement => Some(self.visit_top_level_nested_labeled_statement(node)),
@@ -139,7 +156,9 @@ impl CommonJSModuleTransformer {
             Kind::IfStatement => Some(self.visit_top_level_nested_if_statement(node)),
             Kind::SwitchStatement => Some(self.visit_top_level_nested_switch_statement(node)),
             Kind::CaseBlock => self.visit_top_level_nested_case_block(node),
-            Kind::CaseClause | Kind::DefaultClause => Some(self.visit_top_level_nested_case_or_default_clause(node)),
+            Kind::CaseClause | Kind::DefaultClause => {
+                Some(self.visit_top_level_nested_case_or_default_clause(node))
+            }
             Kind::TryStatement => self.visit_top_level_nested_try_statement(node),
             Kind::CatchClause => Some(self.visit_top_level_nested_catch_clause(node)),
             Kind::Block => self.visit_top_level_nested_block(node),
@@ -158,26 +177,46 @@ impl CommonJSModuleTransformer {
 
     // Visits source elements that are not top-level or top-level nested statements without ancestor tracking.
     // commonjsmodule.go:139
-    pub(crate) fn visit_no_stack(&self, node: P<Node>, result_is_discarded: bool) -> Option<P<Node>> {
+    pub(crate) fn visit_no_stack(
+        &self,
+        node: P<Node>,
+        result_is_discarded: bool,
+    ) -> Option<P<Node>> {
         // This visitor does not need to descend into the tree if there are no dynamic imports or identifiers in the subtree
-        if !ast::is_source_file(node) && !node.subtree_facts().intersects(SubtreeFacts::ContainsDynamicImport | SubtreeFacts::ContainsIdentifier) {
+        if !ast::is_source_file(node)
+            && !node
+                .subtree_facts()
+                .intersects(SubtreeFacts::ContainsDynamicImport | SubtreeFacts::ContainsIdentifier)
+        {
             return Some(node);
         }
 
         match node.kind() {
             Kind::SourceFile => Some(self.visit_source_file(node.as_source_file_p())),
             Kind::ForStatement => Some(self.visit_for_statement(node)),
-            Kind::ForInStatement | Kind::ForOfStatement => Some(self.visit_for_in_or_of_statement(node)),
+            Kind::ForInStatement | Kind::ForOfStatement => {
+                Some(self.visit_for_in_or_of_statement(node))
+            }
             Kind::ExpressionStatement => self.visit_expression_statement(node),
             Kind::VoidExpression => self.visit_void_expression(node),
-            Kind::ParenthesizedExpression => Some(self.visit_parenthesized_expression(node, result_is_discarded)),
-            Kind::PartiallyEmittedExpression => Some(self.visit_partially_emitted_expression(node, result_is_discarded)),
+            Kind::ParenthesizedExpression => {
+                Some(self.visit_parenthesized_expression(node, result_is_discarded))
+            }
+            Kind::PartiallyEmittedExpression => {
+                Some(self.visit_partially_emitted_expression(node, result_is_discarded))
+            }
             Kind::CallExpression => Some(self.visit_call_expression(node)),
             Kind::TaggedTemplateExpression => Some(self.visit_tagged_template_expression(node)),
             Kind::BinaryExpression => Some(self.visit_binary_expression(node, result_is_discarded)),
-            Kind::PrefixUnaryExpression => Some(self.visit_prefix_unary_expression(node, result_is_discarded)),
-            Kind::PostfixUnaryExpression => Some(self.visit_postfix_unary_expression(node, result_is_discarded)),
-            Kind::ShorthandPropertyAssignment => Some(self.visit_shorthand_property_assignment(node)),
+            Kind::PrefixUnaryExpression => {
+                Some(self.visit_prefix_unary_expression(node, result_is_discarded))
+            }
+            Kind::PostfixUnaryExpression => {
+                Some(self.visit_postfix_unary_expression(node, result_is_discarded))
+            }
+            Kind::ShorthandPropertyAssignment => {
+                Some(self.visit_shorthand_property_assignment(node))
+            }
             Kind::Identifier => Some(self.visit_identifier(node)),
             _ => self.visitor().visit_each_child(Some(node)),
         }
@@ -204,11 +243,15 @@ impl CommonJSModuleTransformer {
     pub(crate) fn visit_assignment_pattern_no_stack(&self, node: P<Node>) -> Option<P<Node>> {
         match node.kind() {
             // AssignmentPattern
-            Kind::ObjectLiteralExpression | Kind::ArrayLiteralExpression => self.assignment_pattern_visitor().visit_each_child(Some(node)),
+            Kind::ObjectLiteralExpression | Kind::ArrayLiteralExpression => {
+                self.assignment_pattern_visitor().visit_each_child(Some(node))
+            }
 
             // AssignmentProperty
             Kind::PropertyAssignment => Some(self.visit_assignment_property(node)),
-            Kind::ShorthandPropertyAssignment => Some(self.visit_shorthand_assignment_property(node)),
+            Kind::ShorthandPropertyAssignment => {
+                Some(self.visit_shorthand_assignment_property(node))
+            }
 
             // AssignmentRestProperty
             Kind::SpreadAssignment => Some(self.visit_assignment_rest_property(node)),
@@ -229,12 +272,20 @@ impl CommonJSModuleTransformer {
 
     // commonjsmodule.go:231
     fn visit_source_file(&self, node: P<SourceFile>) -> P<Node> {
-        if node.is_declaration_file.get() || !(ast::is_effective_external_module(node, &self.compiler_options) || node.as_node().subtree_facts().intersects(SubtreeFacts::ContainsDynamicImport)) {
+        if node.is_declaration_file.get()
+            || !(ast::is_effective_external_module(node, &self.compiler_options)
+                || node.as_node().subtree_facts().intersects(SubtreeFacts::ContainsDynamicImport))
+        {
             return node.as_node();
         }
 
         self.current_source_file.set(Some(node));
-        *self.current_module_info.borrow_mut() = Some(Rc::new(collect_external_module_info(node, self.compiler_options, self.emit_context(), self.resolver)));
+        *self.current_module_info.borrow_mut() = Some(Rc::new(collect_external_module_info(
+            node,
+            self.compiler_options,
+            self.emit_context(),
+            self.resolver,
+        )));
         let updated = self.transform_common_js_module(node);
         self.current_source_file.set(None);
         *self.current_module_info.borrow_mut() = None;
@@ -244,13 +295,20 @@ impl CommonJSModuleTransformer {
     // commonjsmodule.go:245
     fn should_emit_underscore_underscore_es_module(&self) -> bool {
         let current_source_file = self.current_source_file.get().unwrap();
-        if tspath::file_extension_is_one_of(current_source_file.file_name(), tspath::SUPPORTED_JS_EXTENSIONS_FLAT)
-            && current_source_file.common_js_module_indicator.get().is_some()
-            && current_source_file.external_module_indicator.get().is_none_or(|i| i.kind() == Kind::SourceFile)
+        if tspath::file_extension_is_one_of(
+            current_source_file.file_name(),
+            tspath::SUPPORTED_JS_EXTENSIONS_FLAT,
+        ) && current_source_file.common_js_module_indicator.get().is_some()
+            && current_source_file
+                .external_module_indicator
+                .get()
+                .is_none_or(|i| i.kind() == Kind::SourceFile)
         {
             return false;
         }
-        if self.module_info().export_equals.is_none() && ast::is_external_module(current_source_file) {
+        if self.module_info().export_equals.is_none()
+            && ast::is_external_module(current_source_file)
+        {
             return true;
         }
         false
@@ -260,14 +318,25 @@ impl CommonJSModuleTransformer {
     fn create_underscore_underscore_es_module(&self) -> P<Node> {
         let f = self.factory();
         let statement = f.new_expression_statement(f.new_call_expression(
-            f.new_property_access_expression(f.new_identifier("Object"), None /*questionDotToken*/, f.new_identifier("defineProperty"), NodeFlags::None),
+            f.new_property_access_expression(
+                f.new_identifier("Object"),
+                None, /*questionDotToken*/
+                f.new_identifier("defineProperty"),
+                NodeFlags::None,
+            ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(vec![
                 f.new_identifier("exports"),
                 f.new_string_literal("__esModule", TokenFlags::None),
                 f.new_object_literal_expression(
-                    f.new_node_list(vec![f.new_property_assignment(None /*modifiers*/, f.new_identifier("value"), None /*postfixToken*/, None /*typeNode*/, f.new_true_expression())]),
+                    f.new_node_list(vec![f.new_property_assignment(
+                        None, /*modifiers*/
+                        f.new_identifier("value"),
+                        None, /*postfixToken*/
+                        None, /*typeNode*/
+                        f.new_true_expression(),
+                    )]),
                     false, /*multiLine*/
                 ),
             ]),
@@ -306,11 +375,22 @@ impl CommonJSModuleTransformer {
                 let mut right = f.new_void_zero_expression();
                 for &next_id in chunk {
                     let left = if next_id.kind() == Kind::StringLiteral {
-                        f.new_element_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, f.new_string_literal_from_node(next_id), NodeFlags::None)
+                        f.new_element_access_expression(
+                            f.new_identifier("exports"),
+                            None, /*questionDotToken*/
+                            f.new_string_literal_from_node(next_id),
+                            NodeFlags::None,
+                        )
                     } else {
                         let name = next_id.clone_node(f);
-                        emit_context.set_emit_flags(name, EmitFlags::NoSourceMap | EmitFlags::NoComments);
-                        f.new_property_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, name, NodeFlags::None)
+                        emit_context
+                            .set_emit_flags(name, EmitFlags::NoSourceMap | EmitFlags::NoComments);
+                        f.new_property_access_expression(
+                            f.new_identifier("exports"),
+                            None, /*questionDotToken*/
+                            name,
+                            NodeFlags::None,
+                        )
                     };
                     right = f.new_assignment_expression(left, right);
                 }
@@ -345,28 +425,35 @@ impl CommonJSModuleTransformer {
 
         let statement_list = f.new_node_list(statements);
         statement_list.loc.set(node.statements.loc.get());
-        let mut result = f.update_source_file(node.as_node(), statement_list, node.end_of_file_token).as_source_file_p();
+        let mut result = f
+            .update_source_file(node.as_node(), statement_list, node.end_of_file_token)
+            .as_source_file_p();
         emit_context.add_emit_helper(result.as_node(), &emit_context.read_emit_helpers());
 
-        let external_helpers_import_declaration = create_external_helpers_import_declaration_if_needed(
-            emit_context,
-            result,
-            &self.compiler_options,
-            (self.get_emit_module_format_of_file)(node),
-            false, /*hasExportStarsToExportValues*/
-            false, /*hasImportStar*/
-            false, /*hasImportDefault*/
-        );
+        let external_helpers_import_declaration =
+            create_external_helpers_import_declaration_if_needed(
+                emit_context,
+                result,
+                &self.compiler_options,
+                (self.get_emit_module_format_of_file)(node),
+                false, /*hasExportStarsToExportValues*/
+                false, /*hasImportStar*/
+                false, /*hasImportDefault*/
+            );
         if let Some(external_helpers_import_declaration) = external_helpers_import_declaration {
             let (prologue, rest) = f.split_standard_prologue(result.statements.nodes());
             let (custom, rest) = f.split_custom_prologue(rest);
             let mut statements: Vec<P<Node>> = prologue.to_vec();
             statements.extend_from_slice(custom);
-            statements.extend(self.top_level_visitor().visit_node(Some(external_helpers_import_declaration)));
+            statements.extend(
+                self.top_level_visitor().visit_node(Some(external_helpers_import_declaration)),
+            );
             statements.extend_from_slice(rest);
             let statement_list = f.new_node_list(statements);
             statement_list.loc.set(result.statements.loc.get());
-            result = f.update_source_file(result.as_node(), statement_list, node.end_of_file_token).as_source_file_p();
+            result = f
+                .update_source_file(result.as_node(), statement_list, node.end_of_file_token)
+                .as_source_file_p();
         }
 
         result.as_node()
@@ -382,7 +469,12 @@ impl CommonJSModuleTransformer {
             if let Some(expression_result) = expression_result {
                 let f = self.factory();
                 let statement = f.new_expression_statement(f.new_assignment_expression(
-                    f.new_property_access_expression(f.new_identifier("module"), None /*questionDotToken*/, f.new_identifier("exports"), NodeFlags::None),
+                    f.new_property_access_expression(
+                        f.new_identifier("module"),
+                        None, /*questionDotToken*/
+                        f.new_identifier("exports"),
+                        NodeFlags::None,
+                    ),
                     expression_result,
                 ));
 
@@ -403,7 +495,11 @@ impl CommonJSModuleTransformer {
 
     // Appends the exports of an ImportDeclaration to a statement list, returning the statement list.
     // commonjsmodule.go:420
-    pub(crate) fn append_exports_of_import_declaration(&self, statements: &mut Vec<P<Node>>, decl: P<Node>) {
+    pub(crate) fn append_exports_of_import_declaration(
+        &self,
+        statements: &mut Vec<P<Node>>,
+        decl: P<Node>,
+    ) {
         if self.module_info().export_equals.is_some() {
             return;
         }
@@ -414,17 +510,32 @@ impl CommonJSModuleTransformer {
 
         let mut seen: Set<&'static str> = Set::default();
         if import_clause.name().is_some() {
-            self.append_exports_of_declaration(statements, import_clause, Some(&mut seen), false /*liveBinding*/);
+            self.append_exports_of_declaration(
+                statements,
+                import_clause,
+                Some(&mut seen),
+                false, /*liveBinding*/
+            );
         }
 
         if let Some(named_bindings) = import_clause.as_import_clause().named_bindings {
             match named_bindings.kind() {
                 Kind::NamespaceImport => {
-                    self.append_exports_of_declaration(statements, named_bindings, Some(&mut seen), false /*liveBinding*/);
+                    self.append_exports_of_declaration(
+                        statements,
+                        named_bindings,
+                        Some(&mut seen),
+                        false, /*liveBinding*/
+                    );
                 }
                 Kind::NamedImports => {
                     for &import_binding in named_bindings.elements() {
-                        self.append_exports_of_declaration(statements, import_binding, Some(&mut seen), true /*liveBinding*/);
+                        self.append_exports_of_declaration(
+                            statements,
+                            import_binding,
+                            Some(&mut seen),
+                            true, /*liveBinding*/
+                        );
                     }
                 }
                 _ => {}
@@ -434,13 +545,26 @@ impl CommonJSModuleTransformer {
 
     // Appends the exports of a VariableStatement to a statement list, returning the statement list.
     // commonjsmodule.go:455
-    pub(crate) fn append_exports_of_variable_statement(&self, statements: &mut Vec<P<Node>>, node: P<Node>) {
-        self.append_exports_of_variable_declaration_list(statements, node.as_variable_statement().declaration_list, false /*isForInOrOfInitializer*/);
+    pub(crate) fn append_exports_of_variable_statement(
+        &self,
+        statements: &mut Vec<P<Node>>,
+        node: P<Node>,
+    ) {
+        self.append_exports_of_variable_declaration_list(
+            statements,
+            node.as_variable_statement().declaration_list,
+            false, /*isForInOrOfInitializer*/
+        );
     }
 
     // Appends the exports of a VariableDeclarationList to a statement list, returning the statement list.
     // commonjsmodule.go:463
-    pub(crate) fn append_exports_of_variable_declaration_list(&self, statements: &mut Vec<P<Node>>, node: P<Node>, is_for_in_or_of_initializer: bool) {
+    pub(crate) fn append_exports_of_variable_declaration_list(
+        &self,
+        statements: &mut Vec<P<Node>>,
+        node: P<Node>,
+        is_for_in_or_of_initializer: bool,
+    ) {
         if self.module_info().export_equals.is_some() {
             return;
         }
@@ -452,7 +576,12 @@ impl CommonJSModuleTransformer {
 
     // Appends the exports of a VariableDeclaration or BindingElement to a statement list, returning the statement list.
     // commonjsmodule.go:479
-    fn append_exports_of_binding_element(&self, statements: &mut Vec<P<Node>>, decl: P<Node> /*VariableDeclaration | BindingElement*/, is_for_in_or_of_initializer: bool) {
+    fn append_exports_of_binding_element(
+        &self,
+        statements: &mut Vec<P<Node>>,
+        decl: P<Node>, /*VariableDeclaration | BindingElement*/
+        is_for_in_or_of_initializer: bool,
+    ) {
         let Some(name) = decl.name() else {
             return;
         };
@@ -463,17 +592,32 @@ impl CommonJSModuleTransformer {
         if ast::is_binding_pattern(name) {
             for &element in name.elements() {
                 if !ast::is_omitted_expression(element) {
-                    self.append_exports_of_binding_element(statements, element, is_for_in_or_of_initializer);
+                    self.append_exports_of_binding_element(
+                        statements,
+                        element,
+                        is_for_in_or_of_initializer,
+                    );
                 }
             }
-        } else if !is_generated_identifier(self.emit_context(), name) && (!ast::is_variable_declaration(decl) || decl.initializer().is_some() || is_for_in_or_of_initializer) {
-            self.append_exports_of_declaration(statements, decl, None /*seen*/, false /*liveBinding*/);
+        } else if !is_generated_identifier(self.emit_context(), name)
+            && (!ast::is_variable_declaration(decl)
+                || decl.initializer().is_some()
+                || is_for_in_or_of_initializer)
+        {
+            self.append_exports_of_declaration(
+                statements, decl, None,  /*seen*/
+                false, /*liveBinding*/
+            );
         }
     }
 
     // Appends the exports of a ClassDeclaration or FunctionDeclaration to a statement list, returning the statement list.
     // commonjsmodule.go:502
-    pub(crate) fn append_exports_of_class_or_function_declaration(&self, statements: &mut Vec<P<Node>>, decl: P<Node>) {
+    pub(crate) fn append_exports_of_class_or_function_declaration(
+        &self,
+        statements: &mut Vec<P<Node>>,
+        decl: P<Node>,
+    ) {
         if self.module_info().export_equals.is_some() {
             return;
         }
@@ -481,20 +625,43 @@ impl CommonJSModuleTransformer {
         let f = self.factory();
         let mut seen: Set<&'static str> = Set::default();
         if ast::has_syntactic_modifier(decl, ModifierFlags::Export) {
-            let export_name = if ast::has_syntactic_modifier(decl, ModifierFlags::Default) { f.new_identifier("default") } else { f.get_declaration_name(decl) };
+            let export_name = if ast::has_syntactic_modifier(decl, ModifierFlags::Default) {
+                f.new_identifier("default")
+            } else {
+                f.get_declaration_name(decl)
+            };
 
             let export_value = f.get_local_name(decl);
-            self.append_export_statement(statements, &mut seen, export_name, export_value, Some(decl.loc()), false /*allowComments*/, false /*liveBinding*/);
+            self.append_export_statement(
+                statements,
+                &mut seen,
+                export_name,
+                export_value,
+                Some(decl.loc()),
+                false, /*allowComments*/
+                false, /*liveBinding*/
+            );
         }
 
         if decl.name().is_some() {
-            self.append_exports_of_declaration(statements, decl, Some(&mut seen), false /*liveBinding*/);
+            self.append_exports_of_declaration(
+                statements,
+                decl,
+                Some(&mut seen),
+                false, /*liveBinding*/
+            );
         }
     }
 
     // Appends the exports of a declaration to a statement list, returning the statement list.
     // commonjsmodule.go:531
-    pub(crate) fn append_exports_of_declaration(&self, statements: &mut Vec<P<Node>>, decl: P<Node>, seen: Option<&mut Set<&'static str>>, live_binding: bool) {
+    pub(crate) fn append_exports_of_declaration(
+        &self,
+        statements: &mut Vec<P<Node>>,
+        decl: P<Node>,
+        seen: Option<&mut Set<&'static str>>,
+        live_binding: bool,
+    ) {
         let info = self.module_info();
         if info.export_equals.is_some() {
             return;
@@ -514,7 +681,15 @@ impl CommonJSModuleTransformer {
                     let export_value = self.visit_expression_identifier(name);
                     for &export_specifier in export_specifiers {
                         let export_name = export_specifier.name().unwrap();
-                        self.append_export_statement(statements, seen, export_name, export_value, Some(export_name.loc()) /*location*/, false /*allowComments*/, live_binding);
+                        self.append_export_statement(
+                            statements,
+                            seen,
+                            export_name,
+                            export_value,
+                            Some(export_name.loc()), /*location*/
+                            false,                   /*allowComments*/
+                            live_binding,
+                        );
                     }
                 }
             }

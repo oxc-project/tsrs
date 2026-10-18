@@ -1,9 +1,11 @@
 use std::borrow::Cow;
 
+use tsrs_core::Tristate;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::{self, Value};
-use tsrs_core::Tristate;
-use tsrs_modulespecifiers::{ImportModuleSpecifierEndingPreference, ImportModuleSpecifierPreference};
+use tsrs_modulespecifiers::{
+    ImportModuleSpecifierEndingPreference, ImportModuleSpecifierPreference,
+};
 
 use super::*;
 
@@ -46,8 +48,12 @@ fn fill_non_zero_value(field: FieldMut<'_>) {
         FieldMut::JsxAttributeCompletionStyle(f) => *f = JsxAttributeCompletionStyle::Braces,
         FieldMut::IncludeInlayParameterNameHints(f) => *f = IncludeInlayParameterNameHints::All,
         FieldMut::SemicolonPreference(f) => *f = SemicolonPreference::Insert,
-        FieldMut::ImportModuleSpecifierPreference(f) => *f = ImportModuleSpecifierPreference::Relative,
-        FieldMut::ImportModuleSpecifierEndingPreference(f) => *f = ImportModuleSpecifierEndingPreference::Js,
+        FieldMut::ImportModuleSpecifierPreference(f) => {
+            *f = ImportModuleSpecifierPreference::Relative;
+        }
+        FieldMut::ImportModuleSpecifierEndingPreference(f) => {
+            *f = ImportModuleSpecifierEndingPreference::Js;
+        }
         FieldMut::WorkspaceSymbolsScope(f) => *f = WorkspaceSymbolsScope(Cow::Borrowed("test")),
         FieldMut::String(f) => *f = "test".to_string(),
         FieldMut::Slice(f) => *f = Some(vec!["test".to_string()]),
@@ -67,13 +73,19 @@ fn is_zero(field: FieldRef<'_>) -> bool {
         FieldRef::SemicolonPreference(f) => *f == SemicolonPreference::default(),
         FieldRef::QuotePreference(f) => *f == QuotePreference::default(),
         FieldRef::JsxAttributeCompletionStyle(f) => *f == JsxAttributeCompletionStyle::default(),
-        FieldRef::IncludeInlayParameterNameHints(f) => *f == IncludeInlayParameterNameHints::default(),
+        FieldRef::IncludeInlayParameterNameHints(f) => {
+            *f == IncludeInlayParameterNameHints::default()
+        }
         FieldRef::OrganizeImportsSort(f) => *f == OrganizeImportsSort::default(),
         FieldRef::OrganizeImportsCollation(f) => *f == OrganizeImportsCollation::default(),
         FieldRef::OrganizeImportsCaseFirst(f) => *f == OrganizeImportsCaseFirst::default(),
         FieldRef::OrganizeImportsTypeOrder(f) => *f == OrganizeImportsTypeOrder::default(),
-        FieldRef::ImportModuleSpecifierPreference(f) => *f == ImportModuleSpecifierPreference::default(),
-        FieldRef::ImportModuleSpecifierEndingPreference(f) => *f == ImportModuleSpecifierEndingPreference::default(),
+        FieldRef::ImportModuleSpecifierPreference(f) => {
+            *f == ImportModuleSpecifierPreference::default()
+        }
+        FieldRef::ImportModuleSpecifierEndingPreference(f) => {
+            *f == ImportModuleSpecifierEndingPreference::default()
+        }
         FieldRef::WorkspaceSymbolsScope(f) => *f == WorkspaceSymbolsScope::default(),
         FieldRef::Bool(f) => !*f,
         FieldRef::Int(f) => *f == 0,
@@ -232,7 +244,8 @@ fn test_user_preferences_roundtrip() {
 fn test_user_preferences_serialize() {
     // config path field serializes to nested path
     {
-        let prefs = UserPreferences { quote_preference: QuotePreference::Single, ..Default::default() };
+        let prefs =
+            UserPreferences { quote_preference: QuotePreference::Single, ..Default::default() };
         let actual = config(&marshal_prefs(&prefs));
         let preferences = object(&actual, "preferences");
         assert_eq!(preferences.get("quoteStyle"), Some(&s("single")));
@@ -260,7 +273,10 @@ fn test_user_preferences_serialize() {
         let inlay_hints = object(&actual, "inlayHints");
         let parameter_names = object(inlay_hints, "parameterNames");
         assert_eq!(parameter_names.get("enabled"), Some(&s("all")));
-        assert_eq!(parameter_names.get("suppressWhenArgumentMatchesName"), Some(&Value::Bool(false))); // inverted
+        assert_eq!(
+            parameter_names.get("suppressWhenArgumentMatchesName"),
+            Some(&Value::Bool(false))
+        ); // inverted
     }
 
     // mixed config and unstable fields
@@ -288,7 +304,11 @@ fn test_user_preferences_serialize_deterministic() {
         disable_suggestions: Tristate::True,
         locale: "de".to_string(),
         format_code_settings: FormatCodeSettings {
-            editor_settings: EditorSettings { tab_size: 2, base_indent_size: 4, ..Default::default() },
+            editor_settings: EditorSettings {
+                tab_size: 2,
+                base_indent_size: 4,
+                ..Default::default()
+            },
             ..Default::default()
         },
         ..Default::default()
@@ -331,7 +351,11 @@ fn test_user_preferences_parse_unstable() {
                     "useAliasesForRenames": true
                 }
             }"#,
-            UserPreferences { quote_preference: QuotePreference::Single, use_aliases_for_rename: Tristate::True, ..Default::default() },
+            UserPreferences {
+                quote_preference: QuotePreference::Single,
+                use_aliases_for_rename: Tristate::True,
+                ..Default::default()
+            },
         ),
         (
             "suggest section",
@@ -410,7 +434,10 @@ fn test_user_preferences_parse_unstable() {
                     "includeAutomaticOptionalChainCompletions": false
                 }
             }"#,
-            UserPreferences { include_automatic_optional_chain_completions: Tristate::False, ..Default::default() },
+            UserPreferences {
+                include_automatic_optional_chain_completions: Tristate::False,
+                ..Default::default()
+            },
         ),
         (
             "any field can be passed via unstable by its raw name",
@@ -486,7 +513,10 @@ fn test_user_preferences_parse_unstable() {
             r#"{
                 "organizeImportsSort": "natural"
             }"#,
-            UserPreferences { organize_imports_sort: OrganizeImportsSort::Natural, ..Default::default() },
+            UserPreferences {
+                organize_imports_sort: OrganizeImportsSort::Natural,
+                ..Default::default()
+            },
         ),
         (
             "old raw organize imports ignore case loads as raw state",
@@ -577,7 +607,8 @@ fn test_user_preferences_locale() {
 fn test_user_preferences_report_style_checks_as_warnings() {
     // reportStyleChecksAsWarnings via config path
     {
-        let prefs = parse_user_preferences(&config(r#"{"js/ts": {"reportStyleChecksAsWarnings": false}}"#));
+        let prefs =
+            parse_user_preferences(&config(r#"{"js/ts": {"reportStyleChecksAsWarnings": false}}"#));
         assert_eq!(prefs.report_style_checks_as_warnings, Tristate::False);
     }
 
@@ -589,7 +620,9 @@ fn test_user_preferences_report_style_checks_as_warnings() {
 
     // reportStyleChecksAsWarnings via unstable section
     {
-        let prefs = parse_user_preferences(&config(r#"{"js/ts": {"unstable": {"reportStyleChecksAsWarnings": false}}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"js/ts": {"unstable": {"reportStyleChecksAsWarnings": false}}}"#,
+        ));
         assert_eq!(prefs.report_style_checks_as_warnings, Tristate::False);
     }
 }
@@ -654,7 +687,8 @@ fn test_user_preferences_parse_server_feature_preferences() {
 // userpreferences_test.go:531
 #[test]
 fn test_parse_user_preferences_editor_formatting() {
-    let prefs = parse_user_preferences(&config(r#"{"editor": {"tabSize": 2, "insertSpaces": false}}"#));
+    let prefs =
+        parse_user_preferences(&config(r#"{"editor": {"tabSize": 2, "insertSpaces": false}}"#));
 
     assert_eq!(prefs.format_code_settings.tab_size, 2);
     assert_eq!(prefs.format_code_settings.indent_size, 2);
@@ -666,13 +700,17 @@ fn test_parse_user_preferences_editor_formatting() {
 fn test_user_preferences_parse_jsdoc_completion_preferences() {
     // unified jsdoc enabled setting
     {
-        let prefs = parse_user_preferences(&config(r#"{"js/ts": {"suggest": {"jsdoc": {"enabled": false}}}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"js/ts": {"suggest": {"jsdoc": {"enabled": false}}}}"#,
+        ));
         assert_eq!(prefs.enable_jsdoc_completions, Tristate::False);
     }
 
     // language fallback completeJSDocs setting
     {
-        let prefs = parse_user_preferences(&config(r#"{"typescript": {"suggest": {"completeJSDocs": false}}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"typescript": {"suggest": {"completeJSDocs": false}}}"#,
+        ));
         assert_eq!(prefs.enable_jsdoc_completions, Tristate::False);
     }
 
@@ -689,13 +727,17 @@ fn test_user_preferences_parse_jsdoc_completion_preferences() {
 
     // unified jsdoc generateReturns setting
     {
-        let prefs = parse_user_preferences(&config(r#"{"js/ts": {"suggest": {"jsdoc": {"generateReturns": false}}}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"js/ts": {"suggest": {"jsdoc": {"generateReturns": false}}}}"#,
+        ));
         assert_eq!(prefs.generate_return_in_doc_template, Tristate::False);
     }
 
     // language jsdoc generateReturns setting
     {
-        let prefs = parse_user_preferences(&config(r#"{"typescript": {"suggest": {"jsdoc": {"generateReturns": false}}}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"typescript": {"suggest": {"jsdoc": {"generateReturns": false}}}}"#,
+        ));
         assert_eq!(prefs.generate_return_in_doc_template, Tristate::False);
     }
 }
@@ -705,14 +747,18 @@ fn test_user_preferences_parse_jsdoc_completion_preferences() {
 fn test_user_preferences_parse_ata() {
     // ParseUserPreferences with unified ATA setting in js/ts section
     {
-        let prefs = parse_user_preferences(&config(r#"{"js/ts": {"tsserver": {"automaticTypeAcquisition": {"enabled": false}}}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"js/ts": {"tsserver": {"automaticTypeAcquisition": {"enabled": false}}}}"#,
+        ));
         assert!(prefs.is_ata_disabled());
         assert_eq!(prefs.automatic_type_acquisition_enabled, Tristate::False);
     }
 
     // ParseUserPreferences with deprecated disableAutomaticTypeAcquisition in typescript section
     {
-        let prefs = parse_user_preferences(&config(r#"{"typescript": {"disableAutomaticTypeAcquisition": true}}"#));
+        let prefs = parse_user_preferences(&config(
+            r#"{"typescript": {"disableAutomaticTypeAcquisition": true}}"#,
+        ));
         assert!(prefs.is_ata_disabled());
         assert_eq!(prefs.disable_automatic_type_acquisition, Tristate::True);
     }

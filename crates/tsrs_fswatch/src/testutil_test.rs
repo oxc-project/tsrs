@@ -8,7 +8,9 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::event::{Event, EventKind};
-use crate::watcher::{all_watchers, fsevents, kqueue, Error, Watch, WatchCallback, WatchOption, Watcher};
+use crate::watcher::{
+    Error, Watch, WatchCallback, WatchOption, Watcher, all_watchers, fsevents, kqueue,
+};
 
 pub(crate) type TestResult = Result<(), String>;
 
@@ -85,8 +87,12 @@ pub(crate) fn run_with_retry(name: &str, body: &dyn Fn(&mut TestT) -> TestResult
 
 // watcher_test.go:97
 // runForEachWatcher runs fn for every available watcher (in parallel, like Go's parallel subtests).
-pub(crate) fn run_for_each_watcher(name: &str, f: impl Fn(&mut TestT, &'static dyn Watcher) -> TestResult + Sync) {
-    let watchers: Vec<&'static dyn Watcher> = all_watchers().into_iter().filter(|w| w.available()).collect();
+pub(crate) fn run_for_each_watcher(
+    name: &str,
+    f: impl Fn(&mut TestT, &'static dyn Watcher) -> TestResult + Sync,
+) {
+    let watchers: Vec<&'static dyn Watcher> =
+        all_watchers().into_iter().filter(|w| w.available()).collect();
     std::thread::scope(|s| {
         for w in watchers {
             let f = &f;
@@ -118,40 +124,42 @@ static nameCounter: AtomicU64 = AtomicU64::new(0);
 // watcher_test.go:136
 pub(crate) fn sub_path(dir: &str) -> String {
     let n = nameCounter.fetch_add(1, Ordering::Relaxed);
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_nanos();
+    let nanos =
+        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_nanos();
     format!("{dir}/test{n}{nanos}")
 }
 
 // watcher_test.go:167
 pub(crate) fn settle_sleep(w: &dyn Watcher) -> Duration {
-    if is_slow(w) {
-        Duration::from_millis(300)
-    } else {
-        Duration::from_millis(60)
-    }
+    if is_slow(w) { Duration::from_millis(300) } else { Duration::from_millis(60) }
 }
 
 // watcher_test.go:177
 fn pre_subscribe_sleep(w: &dyn Watcher) -> Duration {
-    if is_slow(w) {
-        Duration::from_millis(50)
-    } else {
-        Duration::ZERO
-    }
+    if is_slow(w) { Duration::from_millis(50) } else { Duration::ZERO }
 }
 
 pub(crate) type subscription = (Arc<recordingWatcher>, Arc<dyn Watch>);
 
 // watcher_test.go:159
-pub(crate) fn subscribe_for(t: &mut TestT, dir: &str, w: &'static dyn Watcher) -> Result<subscription, String> {
+pub(crate) fn subscribe_for(
+    t: &mut TestT,
+    dir: &str,
+    w: &'static dyn Watcher,
+) -> Result<subscription, String> {
     subscribe_for_opts(t, dir, w, vec![WatchOption::Recursive])
 }
 
 // watcher_test.go:185
-pub(crate) fn subscribe_file_for(t: &mut TestT, path: &str, w: &'static dyn Watcher) -> Result<subscription, String> {
+pub(crate) fn subscribe_file_for(
+    t: &mut TestT,
+    path: &str,
+    w: &'static dyn Watcher,
+) -> Result<subscription, String> {
     std::thread::sleep(pre_subscribe_sleep(w));
     let r = new_recorder(t, Some(w));
-    let sub: Arc<dyn Watch> = Arc::from(w.watch_file(path, r.callback()).map_err(|e| format!("subscribeFile: {e}"))?);
+    let sub: Arc<dyn Watch> =
+        Arc::from(w.watch_file(path, r.callback()).map_err(|e| format!("subscribeFile: {e}"))?);
     let s = std::sync::Arc::clone(&sub);
     t.cleanup(move || {
         let _ = s.close();
@@ -161,10 +169,17 @@ pub(crate) fn subscribe_file_for(t: &mut TestT, path: &str, w: &'static dyn Watc
 }
 
 // watcher_test.go:202
-pub(crate) fn subscribe_for_opts(t: &mut TestT, dir: &str, w: &'static dyn Watcher, opts: Vec<WatchOption>) -> Result<subscription, String> {
+pub(crate) fn subscribe_for_opts(
+    t: &mut TestT,
+    dir: &str,
+    w: &'static dyn Watcher,
+    opts: Vec<WatchOption>,
+) -> Result<subscription, String> {
     std::thread::sleep(pre_subscribe_sleep(w));
     let r = new_recorder(t, Some(w));
-    let sub: Arc<dyn Watch> = Arc::from(w.watch_directory(dir, r.callback(), opts).map_err(|e| format!("subscribe: {e}"))?);
+    let sub: Arc<dyn Watch> = Arc::from(
+        w.watch_directory(dir, r.callback(), opts).map_err(|e| format!("subscribe: {e}"))?,
+    );
     let s = std::sync::Arc::clone(&sub);
     t.cleanup(move || {
         let _ = s.close();
@@ -193,7 +208,11 @@ pub(crate) fn new_recorder(t: &TestT, w: Option<&'static dyn Watcher>) -> Arc<re
         Some(w) => watcher_event_timeout(t, w),
         None => Duration::from_secs(1) * retry_timeout_scale(t.attempt),
     };
-    Arc::new(recordingWatcher { deadline, mu: Mutex::new(recordingState::default()), cond: Condvar::new() })
+    Arc::new(recordingWatcher {
+        deadline,
+        mu: Mutex::new(recordingState::default()),
+        cond: Condvar::new(),
+    })
 }
 
 impl recordingWatcher {
@@ -296,21 +315,31 @@ pub(crate) fn to_want_events(events: &[Event]) -> Vec<wantEvent> {
 }
 
 // watcher_test.go:443
-pub(crate) fn expect_event_set(r: &recordingWatcher, want: Vec<wantEvent>) -> Result<Vec<Event>, String> {
+pub(crate) fn expect_event_set(
+    r: &recordingWatcher,
+    want: Vec<wantEvent>,
+) -> Result<Vec<Event>, String> {
     let got = r.wait_for_all(r.deadline(), &want);
     assert_event_set(&got, want)?;
     Ok(got)
 }
 
 // watcher_test.go:454
-pub(crate) fn expect_event_sequence(r: &recordingWatcher, want: &[wantEvent]) -> Result<Vec<Event>, String> {
+pub(crate) fn expect_event_sequence(
+    r: &recordingWatcher,
+    want: &[wantEvent],
+) -> Result<Vec<Event>, String> {
     let got = r.wait_for_all(r.deadline(), want);
     assert_event_sequence(&got, want)?;
     Ok(got)
 }
 
 // watcher_test.go:465
-pub(crate) fn expect_contains(r: &recordingWatcher, kind: EventKind, path: &str) -> Result<Vec<Event>, String> {
+pub(crate) fn expect_contains(
+    r: &recordingWatcher,
+    kind: EventKind,
+    path: &str,
+) -> Result<Vec<Event>, String> {
     let d = r.deadline();
     let got = r.wait_for_event(d, |e| e.kind == kind && e.path == path);
     if !contains_event(&got, kind, path) {

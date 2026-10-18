@@ -16,7 +16,9 @@ use tsrs_core::{
 };
 use tsrs_lsproto as lsproto;
 use tsrs_module::packagejson::{ExportsOrImports, InfoCacheEntryExt, JSONValueType};
-use tsrs_modulespecifiers::{self as modulespecifiers, ImportModuleSpecifierEndingPreference, ModuleSpecifierEnding};
+use tsrs_modulespecifiers::{
+    self as modulespecifiers, ImportModuleSpecifierEndingPreference, ModuleSpecifierEnding,
+};
 use tsrs_printer::{self as printer, QuoteChar};
 use tsrs_scanner as scanner;
 use tsrs_tsoptions as tsoptions;
@@ -25,7 +27,10 @@ use crate::astnav;
 use crate::completions::*;
 use crate::languageservice::LanguageService;
 use crate::lsutil::{ScriptElementKind, ScriptElementKindModifier};
-use crate::utilities::{get_contextual_type_from_parent, is_in_comment, is_in_string, new_case_clause_tracker, skip_constraint, TrackerValue};
+use crate::utilities::{
+    TrackerValue, get_contextual_type_from_parent, is_in_comment, is_in_string,
+    new_case_clause_tracker, skip_constraint,
+};
 
 // string_completions.go:30
 pub(crate) struct completionsFromTypes {
@@ -81,7 +86,12 @@ impl LanguageService {
         include_symbols: bool,
     ) -> Option<CompletionList> {
         if is_in_reference_comment(file, position) {
-            let completion = self.get_triple_slash_reference_completions(file, position, self.get_program(), checker);
+            let completion = self.get_triple_slash_reference_completions(
+                file,
+                position,
+                self.get_program(),
+                checker,
+            );
             return self.convert_path_completions(ctx, completion, file, position);
         }
         if is_in_string(file, position, context_token) {
@@ -89,8 +99,23 @@ impl LanguageService {
             if !ast::is_string_literal_like(context_token) {
                 return None;
             }
-            let entries = self.get_string_literal_completion_entries(ctx, file, context_token, position, checker);
-            return self.convert_string_literal_completions(ctx, entries, context_token, file, position, checker, compiler_options, include_symbols);
+            let entries = self.get_string_literal_completion_entries(
+                ctx,
+                file,
+                context_token,
+                position,
+                checker,
+            );
+            return self.convert_string_literal_completions(
+                ctx,
+                entries,
+                context_token,
+                file,
+                position,
+                checker,
+                compiler_options,
+                include_symbols,
+            );
         }
         None
     }
@@ -109,7 +134,8 @@ impl LanguageService {
     ) -> Option<CompletionList> {
         let completion = completion?;
 
-        let optional_replacement_range = self.create_range_from_string_literal_like_content(file, context_token, position);
+        let optional_replacement_range =
+            self.create_range_from_string_literal_like_content(file, context_token, position);
         if completion.from_paths.is_some() {
             return self.convert_path_completions(ctx, completion.from_paths, file, position);
         } else if let Some(completion) = completion.from_properties {
@@ -131,9 +157,22 @@ impl LanguageService {
                 Ok(result) => result,
                 Err(err) => panic!("{}", err.message),
             };
-            let default_commit_characters = get_default_commit_characters(completion.has_index_signature);
-            let item_defaults = self.set_item_defaults(ctx, position, file, &mut items, Some(&default_commit_characters), optional_replacement_range);
-            return Some(CompletionList { is_incomplete: false, item_defaults, items, ..Default::default() });
+            let default_commit_characters =
+                get_default_commit_characters(completion.has_index_signature);
+            let item_defaults = self.set_item_defaults(
+                ctx,
+                position,
+                file,
+                &mut items,
+                Some(&default_commit_characters),
+                optional_replacement_range,
+            );
+            return Some(CompletionList {
+                is_incomplete: false,
+                item_defaults,
+                items,
+                ..Default::default()
+            });
         } else if let Some(completion) = completion.from_types {
             let quote_char = if context_token.kind() == Kind::NoSubstitutionTemplateLiteral {
                 QuoteChar::Backtick
@@ -155,9 +194,13 @@ impl LanguageService {
                         SORT_TEXT_LOCATION_PRIORITY,
                         ScriptElementKind::String,
                         ScriptElementKindModifier::None,
-                        self.get_replacement_range_for_context_token(file, Some(context_token), position),
-                        None,  /*commitCharacters*/
-                        None,  /*labelDetails*/
+                        self.get_replacement_range_for_context_token(
+                            file,
+                            Some(context_token),
+                            position,
+                        ),
+                        None, /*commitCharacters*/
+                        None, /*labelDetails*/
                         file,
                         position,
                         false, /*isMemberCompletion*/
@@ -172,9 +215,22 @@ impl LanguageService {
                     CompletionItem::new(lsp_item)
                 })
                 .collect();
-            let default_commit_characters = get_default_commit_characters(completion.is_new_identifier);
-            let item_defaults = self.set_item_defaults(ctx, position, file, &mut items, Some(&default_commit_characters), None /*optionalReplacementSpan*/);
-            return Some(CompletionList { is_incomplete: false, item_defaults, items, ..Default::default() });
+            let default_commit_characters =
+                get_default_commit_characters(completion.is_new_identifier);
+            let item_defaults = self.set_item_defaults(
+                ctx,
+                position,
+                file,
+                &mut items,
+                Some(&default_commit_characters),
+                None, /*optionalReplacementSpan*/
+            );
+            return Some(CompletionList {
+                is_incomplete: false,
+                item_defaults,
+                items,
+                ..Default::default()
+            });
         }
         None
     }
@@ -207,8 +263,8 @@ impl LanguageService {
                     path_completion.kind,
                     kind_modifiers_from_extension(&path_completion.extension),
                     completion.replacement_span,
-                    None,  /*commitCharacters*/
-                    None,  /*labelDetails*/
+                    None, /*commitCharacters*/
+                    None, /*labelDetails*/
                     file,
                     position,
                     false, /*isMemberCompletion*/
@@ -223,7 +279,14 @@ impl LanguageService {
                 CompletionItem::new(lsp_item)
             })
             .collect();
-        let item_defaults = self.set_item_defaults(ctx, position, file, &mut items, Some(&default_commit_characters), None /*optionalReplacementSpan*/);
+        let item_defaults = self.set_item_defaults(
+            ctx,
+            position,
+            file,
+            &mut items,
+            Some(&default_commit_characters),
+            None, /*optionalReplacementSpan*/
+        );
         Some(CompletionList { is_incomplete: false, item_defaults, items, ..Default::default() })
     }
 
@@ -241,18 +304,34 @@ impl LanguageService {
         // Go's `fallthrough` from the call case into the module-name case.
         if matches!(kind, Kind::CallExpression | Kind::NewExpression | Kind::JsxAttribute) {
             if !is_require_call_argument(node) && !ast::is_import_call(parent) {
-                let argument_node = if parent.kind() == Kind::JsxAttribute { parent.parent().unwrap() } else { node };
-                let argument_info = get_argument_info_for_completions(argument_node, position, file, type_checker);
+                let argument_node = if parent.kind() == Kind::JsxAttribute {
+                    parent.parent().unwrap()
+                } else {
+                    node
+                };
+                let argument_info =
+                    get_argument_info_for_completions(argument_node, position, file, type_checker);
                 // Get string literal completions from specialized signatures of the target
                 // i.e. declare function f(a: 'A');
                 // f("/*completion position*/")
                 let argument_info = argument_info?;
 
-                let result = get_string_literal_completions_from_signature(argument_info.invocation, node, &argument_info, type_checker);
+                let result = get_string_literal_completions_from_signature(
+                    argument_info.invocation,
+                    node,
+                    &argument_info,
+                    type_checker,
+                );
                 if result.is_some() {
-                    return Some(stringLiteralCompletions { from_types: result, ..Default::default() });
+                    return Some(stringLiteralCompletions {
+                        from_types: result,
+                        ..Default::default()
+                    });
                 }
-                return Some(stringLiteralCompletions { from_types: from_contextual_type(ContextFlags::None, node, type_checker), ..Default::default() });
+                return Some(stringLiteralCompletions {
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
+                    ..Default::default()
+                });
             }
             kind = Kind::ImportDeclaration; // is `require("")` or `require(""` or `import("")`
         }
@@ -260,12 +339,19 @@ impl LanguageService {
             Kind::LiteralType => {
                 let grandparent = walk_up_parentheses(parent.parent().unwrap());
                 if grandparent.kind() == Kind::ImportType {
-                    return self.get_string_literal_completions_from_module_names(file, node, self.get_program(), type_checker);
+                    return self.get_string_literal_completions_from_module_names(
+                        file,
+                        node,
+                        self.get_program(),
+                        type_checker,
+                    );
                 }
                 from_unionable_literal_type(grandparent, parent, position, type_checker)
             }
             Kind::PropertyAssignment => {
-                if ast::is_object_literal_expression(parent.parent().unwrap()) && parent.name() == Some(node) {
+                if ast::is_object_literal_expression(parent.parent().unwrap())
+                    && parent.name() == Some(node)
+                {
                     // Get quoted name of properties of the object literal expression
                     // i.e. interface ConfigFiles {
                     //          'jspm:dev': string
@@ -279,19 +365,32 @@ impl LanguageService {
                     //          '/*completion position*/'
                     //      });
                     return Some(stringLiteralCompletions {
-                        from_properties: string_literal_completions_for_object_literal(type_checker, parent.parent().unwrap()),
+                        from_properties: string_literal_completions_for_object_literal(
+                            type_checker,
+                            parent.parent().unwrap(),
+                        ),
                         ..Default::default()
                     });
                 }
                 if ast::find_ancestor(parent.parent(), ast::is_call_like_expression).is_some() {
                     let mut uniques: FxHashSet<String> = FxHashSet::default();
-                    let contextual = type_checker.get_contextual_type_exported(node, ContextFlags::None);
-                    let mut string_literal_types = get_string_literal_types(contextual, Some(&mut uniques), type_checker);
-                    let contextual_ignoring = type_checker.get_contextual_type_exported(node, ContextFlags::IgnoreNodeInferences);
-                    string_literal_types.extend(get_string_literal_types(contextual_ignoring, Some(&mut uniques), type_checker));
+                    let contextual =
+                        type_checker.get_contextual_type_exported(node, ContextFlags::None);
+                    let mut string_literal_types =
+                        get_string_literal_types(contextual, Some(&mut uniques), type_checker);
+                    let contextual_ignoring = type_checker
+                        .get_contextual_type_exported(node, ContextFlags::IgnoreNodeInferences);
+                    string_literal_types.extend(get_string_literal_types(
+                        contextual_ignoring,
+                        Some(&mut uniques),
+                        type_checker,
+                    ));
                     return to_string_literal_completions_from_types(string_literal_types);
                 }
-                Some(stringLiteralCompletions { from_types: from_contextual_type(ContextFlags::None, node, type_checker), ..Default::default() })
+                Some(stringLiteralCompletions {
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
+                    ..Default::default()
+                })
             }
             Kind::ElementAccessExpression => {
                 let expression = parent.expression().unwrap();
@@ -304,24 +403,55 @@ impl LanguageService {
                     // let a: A;
                     // a['/*completion position*/']
                     let t = type_checker.get_type_at_location(expression);
-                    return Some(stringLiteralCompletions { from_properties: Some(string_literal_completions_from_properties(t, type_checker)), ..Default::default() });
+                    return Some(stringLiteralCompletions {
+                        from_properties: Some(string_literal_completions_from_properties(
+                            t,
+                            type_checker,
+                        )),
+                        ..Default::default()
+                    });
                 }
                 None
             }
-            Kind::ImportDeclaration | Kind::ExportDeclaration | Kind::ExternalModuleReference | Kind::JSDocImportTag => {
+            Kind::ImportDeclaration
+            | Kind::ExportDeclaration
+            | Kind::ExternalModuleReference
+            | Kind::JSDocImportTag => {
                 // Get all known external module names or complete a path to a module
                 // i.e. import * as ns from "/*completion position*/";
                 //      var y = import("/*completion position*/");
                 //      import x = require("/*completion position*/");
                 //      var y = require("/*completion position*/");
                 //      export * from "/*completion position*/";
-                self.get_string_literal_completions_from_module_names(file, node, self.get_program(), type_checker)
+                self.get_string_literal_completions_from_module_names(
+                    file,
+                    node,
+                    self.get_program(),
+                    type_checker,
+                )
             }
             Kind::CaseClause => {
-                let tracker = new_case_clause_tracker(type_checker, parent.parent().unwrap().as_case_block().clauses.nodes());
-                let contextual_types = from_contextual_type(ContextFlags::IgnoreNodeInferences, node, type_checker)?;
-                let literals: Vec<P<Type>> = contextual_types.types.into_iter().filter(|&t| !tracker.has_value(&TrackerValue::String(string_literal_value(t).to_string()))).collect();
-                Some(stringLiteralCompletions { from_types: Some(completionsFromTypes { types: literals, is_new_identifier: false }), ..Default::default() })
+                let tracker = new_case_clause_tracker(
+                    type_checker,
+                    parent.parent().unwrap().as_case_block().clauses.nodes(),
+                );
+                let contextual_types =
+                    from_contextual_type(ContextFlags::IgnoreNodeInferences, node, type_checker)?;
+                let literals: Vec<P<Type>> = contextual_types
+                    .types
+                    .into_iter()
+                    .filter(|&t| {
+                        !tracker
+                            .has_value(&TrackerValue::String(string_literal_value(t).to_string()))
+                    })
+                    .collect();
+                Some(stringLiteralCompletions {
+                    from_types: Some(completionsFromTypes {
+                        types: literals,
+                        is_new_identifier: false,
+                    }),
+                    ..Default::default()
+                })
             }
             Kind::ImportSpecifier | Kind::ExportSpecifier => {
                 // Complete string aliases in `import { "|" } from` and `export { "|" } from`
@@ -338,39 +468,79 @@ impl LanguageService {
                     named_imports_or_exports.parent()
                 };
                 let module_specifier = module_specifier?;
-                let module_specifier_symbol = type_checker.get_symbol_at_location_exported(module_specifier)?;
-                let exports = type_checker.get_exports_and_properties_of_module(module_specifier_symbol);
-                let existing: FxHashSet<&'static str> = named_imports_or_exports.elements().iter().map(|n| n.property_name_or_name().unwrap().text()).collect();
-                let uniques: Vec<P<Symbol>> = exports.into_iter().filter(|e| e.name() != ast::InternalSymbolNameDefault && !existing.contains(e.name())).collect();
-                Some(stringLiteralCompletions { from_properties: Some(completionsFromProperties { symbols: uniques, has_index_signature: false }), ..Default::default() })
+                let module_specifier_symbol =
+                    type_checker.get_symbol_at_location_exported(module_specifier)?;
+                let exports =
+                    type_checker.get_exports_and_properties_of_module(module_specifier_symbol);
+                let existing: FxHashSet<&'static str> = named_imports_or_exports
+                    .elements()
+                    .iter()
+                    .map(|n| n.property_name_or_name().unwrap().text())
+                    .collect();
+                let uniques: Vec<P<Symbol>> = exports
+                    .into_iter()
+                    .filter(|e| {
+                        e.name() != ast::InternalSymbolNameDefault && !existing.contains(e.name())
+                    })
+                    .collect();
+                Some(stringLiteralCompletions {
+                    from_properties: Some(completionsFromProperties {
+                        symbols: uniques,
+                        has_index_signature: false,
+                    }),
+                    ..Default::default()
+                })
             }
             Kind::BinaryExpression => {
                 if parent.as_binary_expression().operator_token.kind() == Kind::InKeyword {
-                    let t = type_checker.get_type_at_location(parent.as_binary_expression().right());
+                    let t =
+                        type_checker.get_type_at_location(parent.as_binary_expression().right());
                     let properties = get_properties_for_completion(t, type_checker);
                     return Some(stringLiteralCompletions {
                         from_properties: Some(completionsFromProperties {
-                            symbols: properties.into_iter().filter(|s| s.value_declaration().is_none() || !ast::is_private_identifier_class_element_declaration(s.value_declaration().unwrap())).collect(),
+                            symbols: properties
+                                .into_iter()
+                                .filter(|s| {
+                                    s.value_declaration().is_none()
+                                        || !ast::is_private_identifier_class_element_declaration(
+                                            s.value_declaration().unwrap(),
+                                        )
+                                })
+                                .collect(),
                             has_index_signature: false,
                         }),
                         ..Default::default()
                     });
                 }
-                Some(stringLiteralCompletions { from_types: from_contextual_type(ContextFlags::None, node, type_checker), ..Default::default() })
+                Some(stringLiteralCompletions {
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
+                    ..Default::default()
+                })
             }
             _ => {
-                let result = from_contextual_type(ContextFlags::IgnoreNodeInferences, node, type_checker);
+                let result =
+                    from_contextual_type(ContextFlags::IgnoreNodeInferences, node, type_checker);
                 if result.is_some() {
-                    return Some(stringLiteralCompletions { from_types: result, ..Default::default() });
+                    return Some(stringLiteralCompletions {
+                        from_types: result,
+                        ..Default::default()
+                    });
                 }
-                Some(stringLiteralCompletions { from_types: from_contextual_type(ContextFlags::None, node, type_checker), ..Default::default() })
+                Some(stringLiteralCompletions {
+                    from_types: from_contextual_type(ContextFlags::None, node, type_checker),
+                    ..Default::default()
+                })
             }
         }
     }
 }
 
 // string_completions.go:440
-fn from_contextual_type(context_flags: ContextFlags, node: P<Node>, type_checker: &mut Checker) -> Option<completionsFromTypes> {
+fn from_contextual_type(
+    context_flags: ContextFlags,
+    node: P<Node>,
+    type_checker: &mut Checker,
+) -> Option<completionsFromTypes> {
     // Get completion for string literal from string literal type
     // i.e. var x: "hi" | "hello" = "/*completion position*/"
     let contextual = get_contextual_type_from_parent(node, type_checker, context_flags);
@@ -386,7 +556,9 @@ fn to_completions_from_types(types: Vec<P<Type>>) -> Option<completionsFromTypes
 }
 
 // string_completions.go:456
-fn to_string_literal_completions_from_types(types: Vec<P<Type>>) -> Option<stringLiteralCompletions> {
+fn to_string_literal_completions_from_types(
+    types: Vec<P<Type>>,
+) -> Option<stringLiteralCompletions> {
     let result = to_completions_from_types(types)?;
     Some(stringLiteralCompletions { from_types: Some(result), ..Default::default() })
 }
@@ -410,7 +582,10 @@ fn from_unionable_literal_type(
             if let Some(type_argument) = type_argument {
                 let t = type_checker.get_type_argument_constraint_exported(type_argument);
                 return Some(stringLiteralCompletions {
-                    from_types: Some(completionsFromTypes { types: get_string_literal_types(t, None, type_checker), is_new_identifier: false }),
+                    from_types: Some(completionsFromTypes {
+                        types: get_string_literal_types(t, None, type_checker),
+                        is_new_identifier: false,
+                    }),
                     ..Default::default()
                 });
             }
@@ -429,15 +604,28 @@ fn from_unionable_literal_type(
                 return None;
             }
             let t = type_checker.get_type_from_type_node_exported(object_type);
-            Some(stringLiteralCompletions { from_properties: Some(string_literal_completions_from_properties(t, type_checker)), ..Default::default() })
+            Some(stringLiteralCompletions {
+                from_properties: Some(string_literal_completions_from_properties(t, type_checker)),
+                ..Default::default()
+            })
         }
         Kind::UnionType => {
-            let result = from_unionable_literal_type(walk_up_parentheses(grandparent.parent().unwrap()), parent, position, type_checker)?;
-            let already_used_types = get_already_used_types_in_string_literal_union(grandparent, parent);
+            let result = from_unionable_literal_type(
+                walk_up_parentheses(grandparent.parent().unwrap()),
+                parent,
+                position,
+                type_checker,
+            )?;
+            let already_used_types =
+                get_already_used_types_in_string_literal_union(grandparent, parent);
             if let Some(result) = result.from_properties {
                 return Some(stringLiteralCompletions {
                     from_properties: Some(completionsFromProperties {
-                        symbols: result.symbols.into_iter().filter(|s| !already_used_types.iter().any(|u| u == s.name())).collect(),
+                        symbols: result
+                            .symbols
+                            .into_iter()
+                            .filter(|s| !already_used_types.iter().any(|u| u == s.name()))
+                            .collect(),
                         has_index_signature: result.has_index_signature,
                     }),
                     ..Default::default()
@@ -445,7 +633,13 @@ fn from_unionable_literal_type(
             } else if let Some(result) = result.from_types {
                 return Some(stringLiteralCompletions {
                     from_types: Some(completionsFromTypes {
-                        types: result.types.into_iter().filter(|&t| !already_used_types.iter().any(|u| u == string_literal_value(t))).collect(),
+                        types: result
+                            .types
+                            .into_iter()
+                            .filter(|&t| {
+                                !already_used_types.iter().any(|u| u == string_literal_value(t))
+                            })
+                            .collect(),
                         is_new_identifier: false,
                     }),
                     ..Default::default()
@@ -454,9 +648,13 @@ fn from_unionable_literal_type(
             None
         }
         Kind::PropertySignature => {
-            let constraint = get_constraint_of_type_argument_property(Some(grandparent), type_checker);
+            let constraint =
+                get_constraint_of_type_argument_property(Some(grandparent), type_checker);
             Some(stringLiteralCompletions {
-                from_types: Some(completionsFromTypes { types: get_string_literal_types(constraint, None, type_checker), is_new_identifier: false }),
+                from_types: Some(completionsFromTypes {
+                    types: get_string_literal_types(constraint, None, type_checker),
+                    is_new_identifier: false,
+                }),
                 ..Default::default()
             })
         }
@@ -465,22 +663,45 @@ fn from_unionable_literal_type(
 }
 
 // string_completions.go:555
-fn string_literal_completions_for_object_literal(type_checker: &mut Checker, object_literal_expression: P<Node>) -> Option<completionsFromProperties> {
-    let contextual_type = type_checker.get_contextual_type_exported(object_literal_expression, ContextFlags::None)?;
+fn string_literal_completions_for_object_literal(
+    type_checker: &mut Checker,
+    object_literal_expression: P<Node>,
+) -> Option<completionsFromProperties> {
+    let contextual_type =
+        type_checker.get_contextual_type_exported(object_literal_expression, ContextFlags::None)?;
 
-    let completions_type = type_checker.get_contextual_type_exported(object_literal_expression, ContextFlags::IgnoreNodeInferences);
-    let symbols = get_properties_for_object_expression(contextual_type, completions_type, object_literal_expression, type_checker);
+    let completions_type = type_checker.get_contextual_type_exported(
+        object_literal_expression,
+        ContextFlags::IgnoreNodeInferences,
+    );
+    let symbols = get_properties_for_object_expression(
+        contextual_type,
+        completions_type,
+        object_literal_expression,
+        type_checker,
+    );
 
-    Some(completionsFromProperties { symbols, has_index_signature: has_index_signature(contextual_type, type_checker) })
+    Some(completionsFromProperties {
+        symbols,
+        has_index_signature: has_index_signature(contextual_type, type_checker),
+    })
 }
 
 // string_completions.go:578
-fn string_literal_completions_from_properties(t: P<Type>, type_checker: &mut Checker) -> completionsFromProperties {
+fn string_literal_completions_from_properties(
+    t: P<Type>,
+    type_checker: &mut Checker,
+) -> completionsFromProperties {
     completionsFromProperties {
         symbols: type_checker
             .get_apparent_properties(t)
             .into_iter()
-            .filter(|s| !(s.value_declaration().is_some() && ast::is_private_identifier_class_element_declaration(s.value_declaration().unwrap())))
+            .filter(|s| {
+                !(s.value_declaration().is_some()
+                    && ast::is_private_identifier_class_element_declaration(
+                        s.value_declaration().unwrap(),
+                    ))
+            })
             .collect(),
         has_index_signature: has_index_signature(t, type_checker),
     }
@@ -488,33 +709,59 @@ fn string_literal_completions_from_properties(t: P<Type>, type_checker: &mut Che
 
 impl LanguageService {
     // string_completions.go:587
-    fn get_string_literal_completions_from_module_names(&self, file: P<SourceFile>, node: P<Node>, program: &'static Program, checker: &mut Checker) -> Option<stringLiteralCompletions> {
+    fn get_string_literal_completions_from_module_names(
+        &self,
+        file: P<SourceFile>,
+        node: P<Node>,
+        program: &'static Program,
+        checker: &mut Checker,
+    ) -> Option<stringLiteralCompletions> {
         let text_start = astnav::get_start_of_node(node, file, false /*includeJSDoc*/) + 1;
-        let replacement_span = self.path_completion_replacement_span(file, get_directory_fragment_range(node.text(), text_start))?;
-        let name_and_kinds = self.get_string_literal_completions_from_module_names_worker(file, node, program, checker);
-        Some(stringLiteralCompletions { from_paths: Some(pathCompletions { entries: to_path_completions(name_and_kinds), replacement_span }), ..Default::default() })
+        let replacement_span = self.path_completion_replacement_span(
+            file,
+            get_directory_fragment_range(node.text(), text_start),
+        )?;
+        let name_and_kinds = self
+            .get_string_literal_completions_from_module_names_worker(file, node, program, checker);
+        Some(stringLiteralCompletions {
+            from_paths: Some(pathCompletions {
+                entries: to_path_completions(name_and_kinds),
+                replacement_span,
+            }),
+            ..Default::default()
+        })
     }
 }
 
 // string_completions.go:612
 fn to_path_completions(names: Vec<moduleCompletionNameAndKind>) -> Vec<pathCompletion> {
-    names.into_iter().map(|name_and_kind| pathCompletion { name: name_and_kind.name, kind: modulet_to_script_element_kind(name_and_kind.kind), extension: name_and_kind.extension }).collect()
+    names
+        .into_iter()
+        .map(|name_and_kind| pathCompletion {
+            name: name_and_kind.name,
+            kind: modulet_to_script_element_kind(name_and_kind.kind),
+            extension: name_and_kind.extension,
+        })
+        .collect()
 }
 
 impl LanguageService {
     // string_completions.go:622 (Go `(*lsproto.Range, bool)`: None = not ok, Some(None) = no span)
-    #[expect(clippy::option_option, reason = "The outer option records whether a result is available; the inner option records an absent value.")]
-    fn path_completion_replacement_span(&self, file: P<SourceFile>, text_range: Option<TextRange>) -> Option<Option<lsproto::Range>> {
+    #[expect(
+        clippy::option_option,
+        reason = "The outer option records whether a result is available; the inner option records an absent value."
+    )]
+    fn path_completion_replacement_span(
+        &self,
+        file: P<SourceFile>,
+        text_range: Option<TextRange>,
+    ) -> Option<Option<lsproto::Range>> {
         let Some(text_range) = text_range else {
             return Some(None);
         };
         let (lsp_range, fidelity) = self.create_lsp_range_from_bounds(
-            text_range
-                .pos()
-                .expect_source("completion ranges have source positions"),
-            text_range
-                .end()
-                .expect_source("completion ranges have source positions"),
+            text_range.pos().expect_source("completion ranges have source positions"),
+            text_range.end().expect_source("completion ranges have source positions"),
             file,
         );
         if !fidelity.is_exact() {
@@ -552,15 +799,18 @@ fn get_directory_fragment_range(text: &str, text_start: u32) -> Option<TextRange
     }
     let offset = u32::try_from(offset).expect("path fragment offset exceeds u32");
     let length = u32::try_from(length).expect("path fragment length exceeds u32");
-    Some(TextRange::new(
-        text_start + offset,
-        text_start + offset + length,
-    ))
+    Some(TextRange::new(text_start + offset, text_start + offset + length))
 }
 
 impl LanguageService {
     // string_completions.go:663
-    fn get_string_literal_completions_from_module_names_worker(&self, file: P<SourceFile>, node: P<Node>, program: &'static Program, checker: &mut Checker) -> Vec<moduleCompletionNameAndKind> {
+    fn get_string_literal_completions_from_module_names_worker(
+        &self,
+        file: P<SourceFile>,
+        node: P<Node>,
+        program: &'static Program,
+        checker: &mut Checker,
+    ) -> Vec<moduleCompletionNameAndKind> {
         let literal_value = tspath::normalize_slashes(node.text());
         let mut mode = RESOLUTION_MODE_NONE;
         if ast::is_string_literal_like(node) {
@@ -570,13 +820,35 @@ impl LanguageService {
         let script_path = file.path().clone();
         let script_directory = script_path.get_directory_path();
         let options = program.options();
-        let extension_options = self.get_extension_options(&options, referenceKind::ModuleSpecifier, file, mode, Some(checker));
+        let extension_options = self.get_extension_options(
+            &options,
+            referenceKind::ModuleSpecifier,
+            file,
+            mode,
+            Some(checker),
+        );
 
         let paths_size = options.paths.as_ref().map_or(0, indexmap::IndexMap::len);
-        if is_path_relative_to_script(&literal_value) || (paths_size == 0 && (tspath::is_rooted_disk_path(&literal_value) || tspath::is_url(&literal_value))) {
-            self.get_completion_entries_for_relative_modules(&literal_value, &script_directory, program, &script_path, &extension_options)
+        if is_path_relative_to_script(&literal_value)
+            || (paths_size == 0
+                && (tspath::is_rooted_disk_path(&literal_value) || tspath::is_url(&literal_value)))
+        {
+            self.get_completion_entries_for_relative_modules(
+                &literal_value,
+                &script_directory,
+                program,
+                &script_path,
+                &extension_options,
+            )
         } else {
-            self.get_completion_entries_for_non_relative_modules(&literal_value, &script_directory, mode, program, checker, &extension_options)
+            self.get_completion_entries_for_non_relative_modules(
+                &literal_value,
+                &script_directory,
+                mode,
+                program,
+                checker,
+                &extension_options,
+            )
         }
     }
 
@@ -604,17 +876,37 @@ impl LanguageService {
 
         if let Some(paths) = paths {
             if !paths.is_empty() {
-                let absolute = compiler_options.get_paths_base_path(program.get_current_directory());
-                self.add_completion_entries_from_paths(&mut result.borrow_mut(), program, fragment, &absolute, extension_options, paths);
+                let absolute =
+                    compiler_options.get_paths_base_path(program.get_current_directory());
+                self.add_completion_entries_from_paths(
+                    &mut result.borrow_mut(),
+                    program,
+                    fragment,
+                    &absolute,
+                    extension_options,
+                    paths,
+                );
             }
         }
 
         let fragment_directory = get_fragment_directory(fragment);
-        for ambient_name in get_ambient_module_completions(fragment, &fragment_directory, type_checker) {
-            result.borrow_mut().add(moduleCompletionNameAndKind { name: ambient_name, kind: moduleCompletionKind::ExternalModuleName, extension: String::new() });
+        for ambient_name in
+            get_ambient_module_completions(fragment, &fragment_directory, type_checker)
+        {
+            result.borrow_mut().add(moduleCompletionNameAndKind {
+                name: ambient_name,
+                kind: moduleCompletionKind::ExternalModuleName,
+                extension: String::new(),
+            });
         }
 
-        self.get_completion_entries_from_typings(program, script_path, &fragment_directory, extension_options, &mut result.borrow_mut());
+        self.get_completion_entries_from_typings(
+            program,
+            script_path,
+            &fragment_directory,
+            extension_options,
+            &mut result.borrow_mut(),
+        );
 
         if module_resolution_uses_node_modules(module_resolution) {
             // If looking for a global package name, don't just include everything in `node_modules` because that includes dependencies' own dependencies.
@@ -622,7 +914,11 @@ impl LanguageService {
             let mut found_global = false;
             if fragment_directory.is_empty() {
                 for module_name in self.enumerate_node_modules_visible_to_script(script_path) {
-                    let module_result = moduleCompletionNameAndKind { name: module_name, kind: moduleCompletionKind::ExternalModuleName, extension: String::new() };
+                    let module_result = moduleCompletionNameAndKind {
+                        name: module_name,
+                        kind: moduleCompletionKind::ExternalModuleName,
+                        extension: String::new(),
+                    };
                     if !result.borrow().names.contains_key(&module_result.name) {
                         found_global = true;
                         result.borrow_mut().add(module_result);
@@ -630,15 +926,25 @@ impl LanguageService {
                 }
             }
             if !found_global {
-                let resolve_package_json_exports = compiler_options.get_resolve_package_json_exports();
-                let resolve_package_json_imports = compiler_options.get_resolve_package_json_imports();
+                let resolve_package_json_exports =
+                    compiler_options.get_resolve_package_json_exports();
+                let resolve_package_json_imports =
+                    compiler_options.get_resolve_package_json_imports();
                 let seen_package_scope = std::cell::Cell::new(false);
                 let conditions = tsrs_module::get_conditions(&compiler_options, mode);
 
                 // Returns true if the search should stop.
-                let exports_or_imports_lookup = |lookup_table: Option<&ExportsOrImports>, fragment: &str, base_directory: &str, is_exports: bool, is_imports: bool| -> bool {
-                    let Some(lookup_table) = lookup_table.filter(|t| t.type_() == JSONValueType::Object) else {
-                        return lookup_table.is_some_and(|t| t.type_() != JSONValueType::NotPresent);
+                let exports_or_imports_lookup = |lookup_table: Option<&ExportsOrImports>,
+                                                 fragment: &str,
+                                                 base_directory: &str,
+                                                 is_exports: bool,
+                                                 is_imports: bool|
+                 -> bool {
+                    let Some(lookup_table) =
+                        lookup_table.filter(|t| t.type_() == JSONValueType::Object)
+                    else {
+                        return lookup_table
+                            .is_some_and(|t| t.type_() != JSONValueType::NotPresent);
                     };
                     let keys: Vec<String> = lookup_table.as_object().keys().cloned().collect();
                     self.add_completion_entries_from_paths_or_exports_or_imports(
@@ -654,7 +960,8 @@ impl LanguageService {
                             let Some(key_value) = lookup_table.as_object().get(key) else {
                                 return Vec::new();
                             };
-                            let pattern = get_pattern_from_first_matching_condition(key_value, &conditions);
+                            let pattern =
+                                get_pattern_from_first_matching_condition(key_value, &conditions);
                             if pattern.is_empty() {
                                 return Vec::new();
                             }
@@ -674,7 +981,13 @@ impl LanguageService {
                         let package_json_info = program.get_package_json_info(&package_file);
                         if package_json_info.exists() {
                             seen_package_scope.set(true);
-                            exports_or_imports_lookup(Some(&package_json_info.unwrap().contents.unwrap().imports), fragment, directory, false /*isExports*/, true /*isImports*/);
+                            exports_or_imports_lookup(
+                                Some(&package_json_info.unwrap().contents.unwrap().imports),
+                                fragment,
+                                directory,
+                                false, /*isExports*/
+                                true,  /*isImports*/
+                            );
                         }
                     }
                 };
@@ -721,12 +1034,15 @@ impl LanguageService {
                         imports_lookup(ancestor);
                         return None;
                     }
-                    let package_directory = tspath::combine_paths(ancestor, &["node_modules", &package_path]);
+                    let package_directory =
+                        tspath::combine_paths(ancestor, &["node_modules", &package_path]);
                     let package_file = tspath::combine_paths(&package_directory, &["package.json"]);
                     let package_json_info = program.get_package_json_info(&package_file);
                     if package_json_info.exists() {
                         let mut fragment_subpath = components.join("/");
-                        if !components.is_empty() && tspath::has_trailing_directory_separator(fragment) {
+                        if !components.is_empty()
+                            && tspath::has_trailing_directory_separator(fragment)
+                        {
                             fragment_subpath += "/";
                         }
                         if exports_or_imports_lookup(
@@ -744,7 +1060,11 @@ impl LanguageService {
                 };
 
                 let global_cache_location = program.get_global_typings_cache_location();
-                tspath::for_each_ancestor_directory_stopping_at_global_cache(global_cache_location, script_path, ancestor_lookup);
+                tspath::for_each_ancestor_directory_stopping_at_global_cache(
+                    global_cache_location,
+                    script_path,
+                    ancestor_lookup,
+                );
             }
         }
 
@@ -764,7 +1084,10 @@ fn get_fragment_directory(fragment: &str) -> String {
 }
 
 // string_completions.go:885
-fn get_pattern_from_first_matching_condition(target: &ExportsOrImports, conditions: &[String]) -> String {
+fn get_pattern_from_first_matching_condition(
+    target: &ExportsOrImports,
+    conditions: &[String],
+) -> String {
     if target.type_() == JSONValueType::String {
         return target.as_string().to_string();
     }
@@ -773,7 +1096,8 @@ fn get_pattern_from_first_matching_condition(target: &ExportsOrImports, conditio
         if let Some(result) = obj.keys().into_iter().find_map(|condition| {
             if condition == "default"
                 || conditions.iter().any(|c| c == condition)
-                || (conditions.iter().any(|c| c == "types") && tsrs_module::is_applicable_versioned_types_key(condition))
+                || (conditions.iter().any(|c| c == "types")
+                    && tsrs_module::is_applicable_versioned_types_key(condition))
             {
                 if let Some(pattern) = obj.get(condition) {
                     return Some(get_pattern_from_first_matching_condition(pattern, conditions));
@@ -789,16 +1113,25 @@ fn get_pattern_from_first_matching_condition(target: &ExportsOrImports, conditio
 }
 
 // string_completions.go:904
-fn get_ambient_module_completions(fragment: &str, fragment_directory: &str, type_checker: &mut Checker) -> Vec<String> {
+fn get_ambient_module_completions(
+    fragment: &str,
+    fragment_directory: &str,
+    type_checker: &mut Checker,
+) -> Vec<String> {
     let ambient_modules = type_checker.get_ambient_modules();
     let mut non_relative_module_names: Vec<String> = Vec::new();
     non_relative_module_names.extend(ambient_modules.into_iter().filter_map(|sym| {
         let module_name = get_ambient_module_name(sym);
-        if module_name.starts_with(fragment) && !module_name.contains('*') { Some(module_name) } else { None }
+        if module_name.starts_with(fragment) && !module_name.contains('*') {
+            Some(module_name)
+        } else {
+            None
+        }
     }));
 
     if !fragment_directory.is_empty() {
-        let module_name_with_separator = tspath::ensure_trailing_directory_separator(fragment_directory);
+        let module_name_with_separator =
+            tspath::ensure_trailing_directory_separator(fragment_directory);
         for module_name in &mut non_relative_module_names {
             if let Some(stripped) = module_name.strip_prefix(module_name_with_separator.as_str()) {
                 *module_name = stripped.to_string();
@@ -835,15 +1168,35 @@ impl LanguageService {
         let (type_roots, _) = options.get_effective_type_roots(program.get_current_directory());
 
         for root in &type_roots {
-            self.get_completion_entries_from_typings_directories(root, &options, fragment_directory, extension_options, program, &mut seen, result);
+            self.get_completion_entries_from_typings_directories(
+                root,
+                &options,
+                fragment_directory,
+                extension_options,
+                program,
+                &mut seen,
+                result,
+            );
         }
 
         let global_cache_location = program.get_global_typings_cache_location();
-        tspath::for_each_ancestor_directory_stopping_at_global_cache(global_cache_location, script_path, |directory| -> Option<()> {
-            let types_dir = tspath::combine_paths(directory, &["node_modules/@types"]);
-            self.get_completion_entries_from_typings_directories(&types_dir, &options, fragment_directory, extension_options, program, &mut seen, result);
-            None
-        });
+        tspath::for_each_ancestor_directory_stopping_at_global_cache(
+            global_cache_location,
+            script_path,
+            |directory| -> Option<()> {
+                let types_dir = tspath::combine_paths(directory, &["node_modules/@types"]);
+                self.get_completion_entries_from_typings_directories(
+                    &types_dir,
+                    &options,
+                    fragment_directory,
+                    extension_options,
+                    program,
+                    &mut seen,
+                    result,
+                );
+                None
+            },
+        );
     }
 
     // string_completions.go:955
@@ -882,9 +1235,21 @@ impl LanguageService {
                 entry.insert_entry(true);
             } else {
                 let base_directory = tspath::combine_paths(directory, &[&type_directory_name]);
-                let remaining_fragment = try_remove_directory_prefix(fragment_directory, &package_name, program.use_case_sensitive_file_names());
+                let remaining_fragment = try_remove_directory_prefix(
+                    fragment_directory,
+                    &package_name,
+                    program.use_case_sensitive_file_names(),
+                );
                 if let Some(remaining_fragment) = remaining_fragment {
-                    self.get_completion_entries_for_directory_fragment(&remaining_fragment, &base_directory, extension_options, program, false, "", result);
+                    self.get_completion_entries_for_directory_fragment(
+                        &remaining_fragment,
+                        &base_directory,
+                        extension_options,
+                        program,
+                        false,
+                        "",
+                        result,
+                    );
                 }
             }
         }
@@ -892,8 +1257,13 @@ impl LanguageService {
 }
 
 // string_completions.go:1000
-pub(crate) fn try_remove_directory_prefix(path: &str, prefix: &str, use_case_sensitive_file_names: bool) -> Option<String> {
-    let without_prefix = tspath::trim_file_path_prefix(path, prefix, use_case_sensitive_file_names)?;
+pub(crate) fn try_remove_directory_prefix(
+    path: &str,
+    prefix: &str,
+    use_case_sensitive_file_names: bool,
+) -> Option<String> {
+    let without_prefix =
+        tspath::trim_file_path_prefix(path, prefix, use_case_sensitive_file_names)?;
     let mut without_prefix = without_prefix;
     if without_prefix.starts_with('/') || without_prefix.starts_with('\\') {
         without_prefix = &without_prefix[1..];
@@ -907,21 +1277,26 @@ impl LanguageService {
         let mut result: Vec<String> = Vec::new();
         let global_cache_location = self.get_program().get_global_typings_cache_location();
 
-        tspath::for_each_ancestor_directory_stopping_at_global_cache(global_cache_location, script_path, |directory| -> Option<()> {
-            let package_json_path = tspath::combine_paths(directory, &["package.json"]);
-            let package_json_info = self.get_program().get_package_json_info(&package_json_path);
-            if package_json_info.exists() {
-                if let Some(contents) = package_json_info.unwrap().contents {
-                    contents.range_dependencies(|name, _version, _dependency_field| {
-                        if !name.starts_with("@types/") {
-                            result.push(name.to_string());
-                        }
-                        true
-                    });
+        tspath::for_each_ancestor_directory_stopping_at_global_cache(
+            global_cache_location,
+            script_path,
+            |directory| -> Option<()> {
+                let package_json_path = tspath::combine_paths(directory, &["package.json"]);
+                let package_json_info =
+                    self.get_program().get_package_json_info(&package_json_path);
+                if package_json_info.exists() {
+                    if let Some(contents) = package_json_info.unwrap().contents {
+                        contents.range_dependencies(|name, _version, _dependency_field| {
+                            if !name.starts_with("@types/") {
+                                result.push(name.to_string());
+                            }
+                            true
+                        });
+                    }
                 }
-            }
-            None
-        });
+                None
+            },
+        );
 
         result
     }
@@ -935,7 +1310,11 @@ impl LanguageService {
         mode: ResolutionMode,
         checker: Option<&mut Checker>,
     ) -> extensionOptions {
-        let extensions_to_search = get_supported_extensions_for_module_resolution(options, &self.get_program().command_line().content_mapper_extensions(), checker);
+        let extensions_to_search = get_supported_extensions_for_module_resolution(
+            options,
+            &self.get_program().command_line().content_mapper_extensions(),
+            checker,
+        );
 
         extensionOptions {
             extensions_to_search,
@@ -948,7 +1327,11 @@ impl LanguageService {
 }
 
 // string_completions.go:1050
-fn get_supported_extensions_for_module_resolution(options: &CompilerOptions, extra_extensions: &[String], checker: Option<&mut Checker>) -> Vec<String> {
+fn get_supported_extensions_for_module_resolution(
+    options: &CompilerOptions,
+    extra_extensions: &[String],
+    checker: Option<&mut Checker>,
+) -> Vec<String> {
     // file extensions from ambient modules declarations e.g. *.css
     let mut extensions: Vec<String> = Vec::new();
     if let Some(checker) = checker {
@@ -965,14 +1348,22 @@ fn get_supported_extensions_for_module_resolution(options: &CompilerOptions, ext
     extensions.extend(supported_extensions.into_iter().flatten());
     let module_resolution = options.get_module_resolution_kind();
     if module_resolution_uses_node_modules(module_resolution) {
-        return tsoptions::get_supported_extensions_with_json_if_resolve_json_module(Some(options), &[extensions]).into_iter().flatten().collect();
+        return tsoptions::get_supported_extensions_with_json_if_resolve_json_module(
+            Some(options),
+            &[extensions],
+        )
+        .into_iter()
+        .flatten()
+        .collect();
     }
     extensions
 }
 
 // string_completions.go:1074
 fn module_resolution_uses_node_modules(module_resolution: ModuleResolutionKind) -> bool {
-    module_resolution >= ModuleResolutionKind::Node16 && module_resolution <= ModuleResolutionKind::NodeNext || module_resolution == ModuleResolutionKind::Bundler
+    module_resolution >= ModuleResolutionKind::Node16
+        && module_resolution <= ModuleResolutionKind::NodeNext
+        || module_resolution == ModuleResolutionKind::Bundler
 }
 
 // Returns true if the path is explicitly relative (i.e. relative to . or ..)
@@ -993,10 +1384,25 @@ impl LanguageService {
     ) -> Vec<moduleCompletionNameAndKind> {
         let options = program.options();
         if let Some(root_dirs) = options.root_dirs.as_ref().filter(|r| !r.is_empty()) {
-            self.get_completion_entries_for_directory_fragment_with_root_dirs(root_dirs, literal_value, script_directory, program, script_path, extension_options)
+            self.get_completion_entries_for_directory_fragment_with_root_dirs(
+                root_dirs,
+                literal_value,
+                script_directory,
+                program,
+                script_path,
+                extension_options,
+            )
         } else {
             let mut result = moduleCompletionNameAndKindSet::default();
-            self.get_completion_entries_for_directory_fragment(literal_value, script_directory, extension_options, program, true /*moduleSpecifierIsRelative*/, script_path, &mut result);
+            self.get_completion_entries_for_directory_fragment(
+                literal_value,
+                script_directory,
+                extension_options,
+                program,
+                true, /*moduleSpecifierIsRelative*/
+                script_path,
+                &mut result,
+            );
             result.names.into_values().collect()
         }
     }
@@ -1012,9 +1418,18 @@ impl LanguageService {
         extension_options: &extensionOptions,
     ) -> Vec<moduleCompletionNameAndKind> {
         let options = program.options();
-        let base_path = if !options.project.is_empty() { options.project.clone() } else { program.get_current_directory().to_string() };
+        let base_path = if !options.project.is_empty() {
+            options.project.clone()
+        } else {
+            program.get_current_directory().to_string()
+        };
         let ignore_case = !program.use_case_sensitive_file_names();
-        let base_directories = get_base_directories_from_root_dirs(root_dirs, &base_path, script_directory, ignore_case);
+        let base_directories = get_base_directories_from_root_dirs(
+            root_dirs,
+            &base_path,
+            script_directory,
+            ignore_case,
+        );
 
         let mut all_completions: Vec<moduleCompletionNameAndKind> = Vec::new();
         for base_directory in base_directories {
@@ -1039,22 +1454,32 @@ impl LanguageService {
 // getBaseDirectoriesFromRootDirs takes a script path and returns paths for all potential folders
 // that could be merged with its containing folder via the "rootDirs" compiler option.
 // string_completions.go:1155
-fn get_base_directories_from_root_dirs(root_dirs: &[String], base_path: &str, script_directory: &str, ignore_case: bool) -> Vec<String> {
+fn get_base_directories_from_root_dirs(
+    root_dirs: &[String],
+    base_path: &str,
+    script_directory: &str,
+    ignore_case: bool,
+) -> Vec<String> {
     // Make all paths absolute/normalized if they are not already
     let mut normalized_root_dirs: Vec<String> = Vec::with_capacity(root_dirs.len());
     normalized_root_dirs.extend(root_dirs.iter().map(|root_directory| {
-        let normalized_path =
-            if tspath::is_rooted_disk_path(root_directory) { root_directory.clone() } else { tspath::combine_paths(base_path, &[root_directory]) };
+        let normalized_path = if tspath::is_rooted_disk_path(root_directory) {
+            root_directory.clone()
+        } else {
+            tspath::combine_paths(base_path, &[root_directory])
+        };
         tspath::ensure_trailing_directory_separator(&tspath::normalize_path(&normalized_path))
     }));
 
     // Determine the path to the directory containing the script relative to the root directory it is contained within
     let mut relative_directory = String::new();
-    let compare_paths_options = ComparePathsOptions { use_case_sensitive_file_names: !ignore_case, current_directory: base_path.to_string() };
-    if let Some(root_directory) = normalized_root_dirs
-        .iter()
-        .find(|root_directory| tspath::contains_path(root_directory, script_directory, &compare_paths_options))
-    {
+    let compare_paths_options = ComparePathsOptions {
+        use_case_sensitive_file_names: !ignore_case,
+        current_directory: base_path.to_string(),
+    };
+    if let Some(root_directory) = normalized_root_dirs.iter().find(|root_directory| {
+        tspath::contains_path(root_directory, script_directory, &compare_paths_options)
+    }) {
         if root_directory.len() > script_directory.len() {
             relative_directory = String::new();
         } else {
@@ -1064,11 +1489,13 @@ fn get_base_directories_from_root_dirs(root_dirs: &[String], base_path: &str, sc
 
     // Now find a path for each potential directory that is to be merged with the one containing the script
     let mut directories: Vec<String> = Vec::new();
-    directories.extend(
-        normalized_root_dirs
-            .iter()
-            .map(|root_directory| tspath::remove_trailing_directory_separator(&tspath::combine_paths(root_directory, &[&relative_directory])).to_string()),
-    );
+    directories.extend(normalized_root_dirs.iter().map(|root_directory| {
+        tspath::remove_trailing_directory_separator(&tspath::combine_paths(
+            root_directory,
+            &[&relative_directory],
+        ))
+        .to_string()
+    }));
     directories.push(tspath::remove_trailing_directory_separator(script_directory).to_string());
 
     deduplicate_strings(directories)
@@ -1081,12 +1508,16 @@ fn deduplicate_strings(slice: Vec<String>) -> Vec<String> {
     }
     let mut seen: FxHashSet<String> = FxHashSet::default();
     let mut result: Vec<String> = Vec::new();
-    result.extend(slice.into_iter().filter_map(|s| if seen.insert(s.clone()) { Some(s) } else { None }));
+    result.extend(
+        slice.into_iter().filter_map(|s| if seen.insert(s.clone()) { Some(s) } else { None }),
+    );
     result
 }
 
 // string_completions.go:1210
-fn deduplicate_module_completions(completions: Vec<moduleCompletionNameAndKind>) -> Vec<moduleCompletionNameAndKind> {
+fn deduplicate_module_completions(
+    completions: Vec<moduleCompletionNameAndKind>,
+) -> Vec<moduleCompletionNameAndKind> {
     if completions.len() <= 1 {
         return completions;
     }
@@ -1177,17 +1608,31 @@ impl LanguageService {
         let base_directory = tspath::resolve_path(script_directory, &[&fragment]);
         if !module_specifier_is_relative {
             // Check for a version redirect.
-            let package_json_directory = program.get_nearest_ancestor_directory_with_package_json(&base_directory);
+            let package_json_directory =
+                program.get_nearest_ancestor_directory_with_package_json(&base_directory);
             if !package_json_directory.is_empty() {
-                let package_json_path = tspath::combine_paths(&package_json_directory, &["package.json"]);
+                let package_json_path =
+                    tspath::combine_paths(&package_json_directory, &["package.json"]);
                 let package_json_info = program.get_package_json_info(&package_json_path);
                 if let Some(contents) = package_json_info.and_then(|i| i.contents) {
                     if contents.types_versions.type_() == JSONValueType::Object {
                         let version_paths = contents.get_version_paths(None);
                         let paths = version_paths.get_paths();
                         if let Some(paths) = paths.filter(|p| !p.is_empty()) {
-                            let path_in_package = base_directory[tspath::ensure_trailing_directory_separator(&package_json_directory).len()..].to_string();
-                            if self.add_completion_entries_from_paths(result, program, &path_in_package, &package_json_directory, extension_options, paths) {
+                            let path_in_package = base_directory
+                                [tspath::ensure_trailing_directory_separator(
+                                    &package_json_directory,
+                                )
+                                .len()..]
+                                .to_string();
+                            if self.add_completion_entries_from_paths(
+                                result,
+                                program,
+                                &path_in_package,
+                                &package_json_directory,
+                                extension_options,
+                                paths,
+                            ) {
                                 // One of the `versionPaths` was matched, which will block relative resolution
                                 // to files and folders from here.
                                 // All reachable paths given the pattern match are already added.
@@ -1204,7 +1649,11 @@ impl LanguageService {
         }
 
         // Enumerate all available files.
-        let files = self.read_directory(&base_directory, &extension_options.extensions_to_search, &["./*".to_string()] /*include*/);
+        let files = self.read_directory(
+            &base_directory,
+            &extension_options.extensions_to_search,
+            &["./*".to_string()], /*include*/
+        );
 
         for file_path in files {
             if tspath::compare_paths(
@@ -1219,8 +1668,17 @@ impl LanguageService {
                 continue; // Avoid self-imports
             }
 
-            let (name, extension) = get_filename_with_extension_option(&tspath::get_base_file_name(&file_path), program, extension_options, false /*isExportsOrImportsWildcard*/);
-            result.add(moduleCompletionNameAndKind { name, kind: moduleCompletionKind::File, extension });
+            let (name, extension) = get_filename_with_extension_option(
+                &tspath::get_base_file_name(&file_path),
+                program,
+                extension_options,
+                false, /*isExportsOrImportsWildcard*/
+            );
+            result.add(moduleCompletionNameAndKind {
+                name,
+                kind: moduleCompletionKind::File,
+                extension,
+            });
         }
 
         // Get folder completion as well.
@@ -1229,7 +1687,11 @@ impl LanguageService {
         for directory in directories {
             let directory_name = tspath::get_base_file_name(&directory);
             if directory_name != "@types" {
-                result.add(moduleCompletionNameAndKind { name: directory_name.clone(), kind: moduleCompletionKind::Directory, extension: String::new() });
+                result.add(moduleCompletionNameAndKind {
+                    name: directory_name.clone(),
+                    kind: moduleCompletionKind::Directory,
+                    extension: String::new(),
+                });
             }
         }
     }
@@ -1246,7 +1708,9 @@ impl LanguageService {
         extension_options: &extensionOptions,
         paths: &OrderedMap<String, impl PathSubstitutions>,
     ) -> bool {
-        let get_patterns_for_keys = |key: &str| -> Vec<String> { paths.get(key).map(|v| v.substitutions().to_vec()).unwrap_or_default() };
+        let get_patterns_for_keys = |key: &str| -> Vec<String> {
+            paths.get(key).map(|v| v.substitutions().to_vec()).unwrap_or_default()
+        };
         let compare_paths = |a: &str, b: &str| -> Comparison {
             let length_a = a.find('*').unwrap_or(a.len());
             let length_b = b.find('*').unwrap_or(b.len());
@@ -1308,7 +1772,8 @@ impl LanguageService {
                 let mut is_longest_match = false;
                 if is_match {
                     if let Some(matched) = &matched_path {
-                        is_longest_match = compare_paths(&normalized_key, matched) == stringutil::COMPARISON_LESS_THAN;
+                        is_longest_match = compare_paths(&normalized_key, matched)
+                            == stringutil::COMPARISON_LESS_THAN;
                     } else {
                         is_longest_match = true;
                     }
@@ -1335,7 +1800,16 @@ impl LanguageService {
                 {
                     path_results.push(pathResult {
                         matched: is_match,
-                        results: self.get_completions_for_path_mapping(&normalized_key, &patterns, fragment, base_directory, is_exports, is_imports, extension_options, program),
+                        results: self.get_completions_for_path_mapping(
+                            &normalized_key,
+                            &patterns,
+                            fragment,
+                            base_directory,
+                            is_exports,
+                            is_imports,
+                            extension_options,
+                            program,
+                        ),
                     });
                 }
             }
@@ -1366,11 +1840,17 @@ impl LanguageService {
         if !fragment_directory.is_empty() {
             fragment_directory = tspath::ensure_trailing_directory_separator(&fragment_directory);
         }
-        let just_path_mapping_name = |name: &str, kind: moduleCompletionKind, extension: String| -> Vec<moduleCompletionNameAndKind> {
+        let just_path_mapping_name = |name: &str,
+                                      kind: moduleCompletionKind,
+                                      extension: String|
+         -> Vec<moduleCompletionNameAndKind> {
             if name.starts_with(fragment) {
                 let mut name = tspath::remove_trailing_directory_separator(name).to_string();
                 if !fragment_directory.is_empty() {
-                    name = name.strip_prefix(fragment_directory.as_str()).map(std::string::ToString::to_string).unwrap_or(name);
+                    name = name
+                        .strip_prefix(fragment_directory.as_str())
+                        .map(std::string::ToString::to_string)
+                        .unwrap_or(name);
                 }
                 return vec![moduleCompletionNameAndKind { name, kind, extension }];
             }
@@ -1402,16 +1882,32 @@ impl LanguageService {
             }
             let star_is_full_path_component = path.ends_with("/*");
             if star_is_full_path_component {
-                return just_path_mapping_name(path_prefix, moduleCompletionKind::Directory, String::new() /*extension*/);
+                return just_path_mapping_name(
+                    path_prefix,
+                    moduleCompletionKind::Directory,
+                    String::new(), /*extension*/
+                );
             }
             // If path is e.g. `foo/bar/*`, and fragment is `foo/b`, then remaining directory prefix is `bar/`,
             let remaining_directory_prefix = &path_prefix[fragment_directory.len()..];
             let mut completions: Vec<moduleCompletionNameAndKind> = Vec::new();
             completions.extend(patterns.iter().flat_map(|pattern| {
-                let mut modules =
-                    self.get_modules_for_paths_pattern("" /*fragment*/, package_directory, pattern, is_exports, is_imports, extension_options, program);
+                let mut modules = self.get_modules_for_paths_pattern(
+                    "", /*fragment*/
+                    package_directory,
+                    pattern,
+                    is_exports,
+                    is_imports,
+                    extension_options,
+                    program,
+                );
                 for module in &mut modules {
-                    module.name = format!("{}{}{}", remaining_directory_prefix, module.name, if module.kind == moduleCompletionKind::File { path_suffix } else { "" });
+                    module.name = format!(
+                        "{}{}{}",
+                        remaining_directory_prefix,
+                        module.name,
+                        if module.kind == moduleCompletionKind::File { path_suffix } else { "" }
+                    );
                 }
                 modules
             }));
@@ -1424,11 +1920,22 @@ impl LanguageService {
         }
         let mut result = Vec::new();
         result.extend(patterns.iter().flat_map(|pattern| {
-            let mut modules =
-                self.get_modules_for_paths_pattern(remaining_fragment, package_directory, pattern, is_exports, is_imports, extension_options, program);
+            let mut modules = self.get_modules_for_paths_pattern(
+                remaining_fragment,
+                package_directory,
+                pattern,
+                is_exports,
+                is_imports,
+                extension_options,
+                program,
+            );
             for module in &mut modules {
-                module.name =
-                    format!("{}{}{}", remaining_directory_fragment, module.name, if module.kind == moduleCompletionKind::File { path_suffix } else { "" });
+                module.name = format!(
+                    "{}{}{}",
+                    remaining_directory_fragment,
+                    module.name,
+                    if module.kind == moduleCompletionKind::File { path_suffix } else { "" }
+                );
             }
             modules
         }));
@@ -1440,7 +1947,11 @@ impl LanguageService {
 fn get_file_extension(file_name: &str) -> String {
     let mut extension = tspath::try_get_extension_from_path(file_name).to_string();
     if extension.is_empty() {
-        extension = tspath::get_any_extension_from_path(file_name, &[] /*extensions*/, false /*ignoreCase*/);
+        extension = tspath::get_any_extension_from_path(
+            file_name,
+            &[],   /*extensions*/
+            false, /*ignoreCase*/
+        );
     }
     extension
 }
@@ -1473,11 +1984,15 @@ impl LanguageService {
         // The prefix has two effective parts: the directory path and the base component after the filepath that is not a
         // full directory component. For example: directory/path/of/prefix/base*
         let normalized_prefix = tspath::resolve_path(prefix, &[]);
-        let (normalized_prefix_directory, normalized_prefix_base) = if tspath::has_trailing_directory_separator(prefix) {
-            (normalized_prefix, String::new())
-        } else {
-            (tspath::get_directory_path(&normalized_prefix), tspath::get_base_file_name(&normalized_prefix))
-        };
+        let (normalized_prefix_directory, normalized_prefix_base) =
+            if tspath::has_trailing_directory_separator(prefix) {
+                (normalized_prefix, String::new())
+            } else {
+                (
+                    tspath::get_directory_path(&normalized_prefix),
+                    tspath::get_base_file_name(&normalized_prefix),
+                )
+            };
 
         let fragment_has_path = contains_slash(fragment);
         let mut fragment_directory = String::new();
@@ -1496,22 +2011,39 @@ impl LanguageService {
 
         // Try and expand the prefix to include any path from the fragment so that we can limit the readDirectory call
         let expanded_prefix_directory = if fragment_has_path {
-            tspath::combine_paths(&normalized_prefix_directory, &[&(normalized_prefix_base.clone() + &fragment_directory)])
+            tspath::combine_paths(
+                &normalized_prefix_directory,
+                &[&(normalized_prefix_base.clone() + &fragment_directory)],
+            )
         } else {
             normalized_prefix_directory
         };
         // Need to normalize after combining: If we combinePaths("a", "../b"), we want "b" and not "a/../b".
-        let base_directory = tspath::normalize_path(&tspath::combine_paths(package_directory, &[&expanded_prefix_directory]));
+        let base_directory = tspath::normalize_path(&tspath::combine_paths(
+            package_directory,
+            &[&expanded_prefix_directory],
+        ));
 
         let mut possible_input_base_directory_for_out_dir = String::new();
         let mut possible_input_base_directory_for_declaration_dir = String::new();
         if is_imports {
             if !out_dir.is_empty() {
-                possible_input_base_directory_for_out_dir = get_possible_original_input_path_without_changing_ext(&base_directory, ignore_case, out_dir, &|| program.common_source_directory().to_string());
+                possible_input_base_directory_for_out_dir =
+                    get_possible_original_input_path_without_changing_ext(
+                        &base_directory,
+                        ignore_case,
+                        out_dir,
+                        &|| program.common_source_directory().to_string(),
+                    );
             }
             if !declaration_dir.is_empty() {
                 possible_input_base_directory_for_declaration_dir =
-                    get_possible_original_input_path_without_changing_ext(&base_directory, ignore_case, declaration_dir, &|| program.common_source_directory().to_string());
+                    get_possible_original_input_path_without_changing_ext(
+                        &base_directory,
+                        ignore_case,
+                        declaration_dir,
+                        &|| program.common_source_directory().to_string(),
+                    );
             }
         }
 
@@ -1520,15 +2052,21 @@ impl LanguageService {
         let mut declaration_extension = String::new();
         let mut input_extensions: Vec<String> = Vec::new();
         if !normalized_suffix.is_empty() {
-            declaration_extension = tspath::get_declaration_emit_extension_for_path(&format!("_{normalized_suffix}"));
-            input_extensions = tspath::get_possible_original_input_extension_for_extension(&format!("_{normalized_suffix}"));
+            declaration_extension =
+                tspath::get_declaration_emit_extension_for_path(&format!("_{normalized_suffix}"));
+            input_extensions = tspath::get_possible_original_input_extension_for_extension(
+                &format!("_{normalized_suffix}"),
+            );
         }
 
         let mut matching_suffixes: Vec<String> = Vec::new();
         if !declaration_extension.is_empty() {
-            matching_suffixes.push(tspath::change_extension(&normalized_suffix, &declaration_extension));
+            matching_suffixes
+                .push(tspath::change_extension(&normalized_suffix, &declaration_extension));
         }
-        matching_suffixes.extend(input_extensions.iter().map(|ext| tspath::change_extension(&normalized_suffix, ext)));
+        matching_suffixes.extend(
+            input_extensions.iter().map(|ext| tspath::change_extension(&normalized_suffix, ext)),
+        );
         matching_suffixes.push(normalized_suffix.clone());
 
         // If we have a suffix, then we read the directory all the way down to avoid returning completions for
@@ -1539,14 +2077,18 @@ impl LanguageService {
         // interpreted as "any character" can only return *too many* results as compared to the literal
         // interpretation, so we can filter those superfluous results out via `trimPrefixAndSuffix` as we've always
         // done.
-        let include_globs: Vec<String> =
-            if !normalized_suffix.is_empty() { matching_suffixes.iter().map(|suffix| format!("**/*{suffix}")).collect() } else { vec!["./*".to_string()] };
+        let include_globs: Vec<String> = if !normalized_suffix.is_empty() {
+            matching_suffixes.iter().map(|suffix| format!("**/*{suffix}")).collect()
+        } else {
+            vec!["./*".to_string()]
+        };
 
         let is_exports_or_imports_wildcard = (is_exports || is_imports) && pattern.ends_with("/*");
 
         let trim_prefix_and_suffix = |path: &str, prefix_str: &str| -> String {
             if let Some(result) = matching_suffixes.iter().find_map(|suffix| {
-                let inner = without_start_and_end(&tspath::normalize_path(path), prefix_str, suffix)?;
+                let inner =
+                    without_start_and_end(&tspath::normalize_path(path), prefix_str, suffix)?;
                 Some(remove_leading_directory_separator(&inner).to_string())
             }) {
                 return result;
@@ -1555,16 +2097,27 @@ impl LanguageService {
         };
 
         let get_matches_with_prefix = |directory: &str| -> Vec<moduleCompletionNameAndKind> {
-            let complete_prefix = if fragment_has_path { directory.to_string() } else { tspath::ensure_trailing_directory_separator(directory) + &normalized_prefix_base };
+            let complete_prefix = if fragment_has_path {
+                directory.to_string()
+            } else {
+                tspath::ensure_trailing_directory_separator(directory) + &normalized_prefix_base
+            };
 
-            let matches = self.read_directory(directory, &extension_options.extensions_to_search, &include_globs);
+            let matches = self.read_directory(
+                directory,
+                &extension_options.extensions_to_search,
+                &include_globs,
+            );
 
             let mut result: Vec<moduleCompletionNameAndKind> = Vec::new();
             result.extend(matches.into_iter().filter_map(|m| {
                 let trimmed_with_pattern = trim_prefix_and_suffix(&m, &complete_prefix);
                 if !trimmed_with_pattern.is_empty() {
                     if contains_slash(&trimmed_with_pattern) {
-                        let path_components = tspath::get_path_components(remove_leading_directory_separator(&trimmed_with_pattern), "");
+                        let path_components = tspath::get_path_components(
+                            remove_leading_directory_separator(&trimmed_with_pattern),
+                            "",
+                        );
                         if path_components.len() > 1 {
                             Some(moduleCompletionNameAndKind {
                                 name: path_components[1].clone(),
@@ -1575,12 +2128,20 @@ impl LanguageService {
                             None
                         }
                     } else {
-                        let (name, mut extension) =
-                            get_filename_with_extension_option(&trimmed_with_pattern, program, extension_options, is_exports_or_imports_wildcard);
+                        let (name, mut extension) = get_filename_with_extension_option(
+                            &trimmed_with_pattern,
+                            program,
+                            extension_options,
+                            is_exports_or_imports_wildcard,
+                        );
                         if extension.is_empty() {
                             extension = get_file_extension(&m);
                         }
-                        Some(moduleCompletionNameAndKind { name, kind: moduleCompletionKind::File, extension })
+                        Some(moduleCompletionNameAndKind {
+                            name,
+                            kind: moduleCompletionKind::File,
+                            extension,
+                        })
                     }
                 } else {
                     None
@@ -1594,7 +2155,11 @@ impl LanguageService {
             let mut result: Vec<moduleCompletionNameAndKind> = Vec::new();
             result.extend(directories.into_iter().filter_map(|dir| {
                 if dir != "node_modules" {
-                    Some(moduleCompletionNameAndKind { name: dir, kind: moduleCompletionKind::Directory, extension: String::new() })
+                    Some(moduleCompletionNameAndKind {
+                        name: dir,
+                        kind: moduleCompletionKind::Directory,
+                        extension: String::new(),
+                    })
                 } else {
                     None
                 }
@@ -1609,7 +2174,9 @@ impl LanguageService {
             matches.extend(get_matches_with_prefix(&possible_input_base_directory_for_out_dir));
         }
         if !possible_input_base_directory_for_declaration_dir.is_empty() {
-            matches.extend(get_matches_with_prefix(&possible_input_base_directory_for_declaration_dir));
+            matches.extend(get_matches_with_prefix(
+                &possible_input_base_directory_for_declaration_dir,
+            ));
         }
 
         // If we had a suffix, we already recursively searched for all possible files that could match
@@ -1621,7 +2188,9 @@ impl LanguageService {
                 matches.extend(get_directory_matches(&possible_input_base_directory_for_out_dir));
             }
             if !possible_input_base_directory_for_declaration_dir.is_empty() {
-                matches.extend(get_directory_matches(&possible_input_base_directory_for_declaration_dir));
+                matches.extend(get_directory_matches(
+                    &possible_input_base_directory_for_declaration_dir,
+                ));
             }
         }
 
@@ -1645,19 +2214,37 @@ fn remove_leading_directory_separator(path: &str) -> &str {
 }
 
 // string_completions.go:1838
-fn get_possible_original_input_path_without_changing_ext(file_path: &str, ignore_case: bool, output_dir: &str, get_common_source_directory: &dyn Fn() -> String) -> String {
+fn get_possible_original_input_path_without_changing_ext(
+    file_path: &str,
+    ignore_case: bool,
+    output_dir: &str,
+    get_common_source_directory: &dyn Fn() -> String,
+) -> String {
     if !output_dir.is_empty() {
         return tspath::resolve_path(
             &get_common_source_directory(),
-            &[&tspath::get_relative_path_from_directory(output_dir, file_path, &ComparePathsOptions { use_case_sensitive_file_names: !ignore_case, ..Default::default() })],
+            &[&tspath::get_relative_path_from_directory(
+                output_dir,
+                file_path,
+                &ComparePathsOptions {
+                    use_case_sensitive_file_names: !ignore_case,
+                    ..Default::default()
+                },
+            )],
         );
     }
     file_path.to_string()
 }
 
 // string_completions.go:1855
-fn get_filename_with_extension_option(name: &str, program: &'static Program, extension_options: &extensionOptions, is_exports_or_imports_wildcard: bool) -> (String, String) {
-    let non_js_result = modulespecifiers::try_get_real_file_name_for_non_js_declaration_file_name(name);
+fn get_filename_with_extension_option(
+    name: &str,
+    program: &'static Program,
+    extension_options: &extensionOptions,
+    is_exports_or_imports_wildcard: bool,
+) -> (String, String) {
+    let non_js_result =
+        modulespecifiers::try_get_real_file_name_for_non_js_declaration_file_name(name);
     if !non_js_result.is_empty() {
         let ext = tspath::try_get_extension_from_path(&non_js_result).to_string();
         return (non_js_result, ext);
@@ -1667,7 +2254,10 @@ fn get_filename_with_extension_option(name: &str, program: &'static Program, ext
     }
 
     let mut allowed_endings = modulespecifiers::get_allowed_endings_in_preferred_order(
-        &modulespecifiers::UserPreferences { import_module_specifier_ending: extension_options.ending_preference, ..Default::default() },
+        &modulespecifiers::UserPreferences {
+            import_module_specifier_ending: extension_options.ending_preference,
+            ..Default::default()
+        },
         program,
         &program.options(),
         extension_options.importing_source_file,
@@ -1678,7 +2268,8 @@ fn get_filename_with_extension_option(name: &str, program: &'static Program, ext
     if is_exports_or_imports_wildcard {
         // If we're completing `import {} from "foo/|"` and subpaths are available via `"exports": { "./*": "./src/*" }`,
         // the completion must be a (potentially extension-swapped) file name. Dropping extensions and index files is not allowed.
-        allowed_endings.retain(|&e| e != ModuleSpecifierEnding::Minimal && e != ModuleSpecifierEnding::Index);
+        allowed_endings
+            .retain(|&e| e != ModuleSpecifierEnding::Minimal && e != ModuleSpecifierEnding::Index);
     }
 
     if !allowed_endings.is_empty() && allowed_endings[0] == ModuleSpecifierEnding::TsExtension {
@@ -1687,17 +2278,33 @@ fn get_filename_with_extension_option(name: &str, program: &'static Program, ext
         }
         let output_extension = tsrs_module::try_get_js_extension_for_file(name, &program.options());
         if !output_extension.is_empty() {
-            return (tspath::change_extension(name, output_extension), output_extension.to_string());
+            return (
+                tspath::change_extension(name, output_extension),
+                output_extension.to_string(),
+            );
         }
         return (name.to_string(), tspath::try_get_extension_from_path(name).to_string());
     }
 
     if !is_exports_or_imports_wildcard
         && !allowed_endings.is_empty()
-        && (allowed_endings[0] == ModuleSpecifierEnding::Minimal || allowed_endings[0] == ModuleSpecifierEnding::Index)
-        && tspath::file_extension_is_one_of(name, &[tspath::EXTENSION_JS, tspath::EXTENSION_JSX, tspath::EXTENSION_TS, tspath::EXTENSION_TSX, tspath::EXTENSION_DTS])
+        && (allowed_endings[0] == ModuleSpecifierEnding::Minimal
+            || allowed_endings[0] == ModuleSpecifierEnding::Index)
+        && tspath::file_extension_is_one_of(
+            name,
+            &[
+                tspath::EXTENSION_JS,
+                tspath::EXTENSION_JSX,
+                tspath::EXTENSION_TS,
+                tspath::EXTENSION_TSX,
+                tspath::EXTENSION_DTS,
+            ],
+        )
     {
-        return (tspath::remove_file_extension(name).to_string(), tspath::try_get_extension_from_path(name).to_string());
+        return (
+            tspath::remove_file_extension(name).to_string(),
+            tspath::try_get_extension_from_path(name).to_string(),
+        );
     }
 
     let output_extension = tsrs_module::try_get_js_extension_for_file(name, &program.options());
@@ -1717,7 +2324,11 @@ fn walk_up_parentheses(node: P<Node>) -> P<Node> {
 }
 
 // string_completions.go:1922
-fn get_string_literal_types(t: Option<P<Type>>, uniques: Option<&mut FxHashSet<String>>, type_checker: &mut Checker) -> Vec<P<Type>> {
+fn get_string_literal_types(
+    t: Option<P<Type>>,
+    uniques: Option<&mut FxHashSet<String>>,
+    type_checker: &mut Checker,
+) -> Vec<P<Type>> {
     let Some(t) = t else {
         return Vec::new();
     };
@@ -1729,10 +2340,15 @@ fn get_string_literal_types(t: Option<P<Type>>, uniques: Option<&mut FxHashSet<S
     let t = skip_constraint(t, type_checker);
     if t.is_union() {
         let mut types: Vec<P<Type>> = Vec::new();
-        types.extend(t.types().iter().flat_map(|&element_type| get_string_literal_types(Some(element_type), Some(uniques), type_checker)));
+        types.extend(t.types().iter().flat_map(|&element_type| {
+            get_string_literal_types(Some(element_type), Some(uniques), type_checker)
+        }));
         return types;
     }
-    if t.is_string_literal() && !t.is_enum_literal() && uniques.insert(string_literal_value(t).to_string()) {
+    if t.is_string_literal()
+        && !t.is_enum_literal()
+        && uniques.insert(string_literal_value(t).to_string())
+    {
         return vec![t];
     }
     Vec::new()
@@ -1744,7 +2360,10 @@ fn get_already_used_types_in_string_literal_union(union: P<Node>, current: P<Nod
     let types_list = union.as_union_type_node().types();
     let mut values: Vec<String> = Vec::new();
     values.extend(types_list.nodes().iter().filter_map(|&type_node| {
-        if type_node != current && ast::is_literal_type_node(type_node) && ast::is_string_literal(type_node.as_literal_type_node().literal) {
+        if type_node != current
+            && ast::is_literal_type_node(type_node)
+            && ast::is_string_literal(type_node.as_literal_type_node().literal)
+        {
             Some(type_node.as_literal_type_node().literal.text().to_string())
         } else {
             None
@@ -1755,7 +2374,8 @@ fn get_already_used_types_in_string_literal_union(union: P<Node>, current: P<Nod
 
 // string_completions.go:1958
 fn has_index_signature(t: P<Type>, type_checker: &mut Checker) -> bool {
-    type_checker.get_string_index_type(t).is_some() || type_checker.get_number_index_type(t).is_some()
+    type_checker.get_string_index_type(t).is_some()
+        || type_checker.get_number_index_type(t).is_some()
 }
 
 // Matches
@@ -1787,13 +2407,20 @@ fn kind_modifiers_from_extension(extension: &str) -> ScriptElementKindModifier {
         tspath::EXTENSION_DCTS => ScriptElementKindModifier::Dcts,
         tspath::EXTENSION_CJS => ScriptElementKindModifier::Cjs,
         tspath::EXTENSION_CTS => ScriptElementKindModifier::Cts,
-        tspath::EXTENSION_TS_BUILD_INFO => panic!("Extension {} is unsupported.", tspath::EXTENSION_TS_BUILD_INFO),
+        tspath::EXTENSION_TS_BUILD_INFO => {
+            panic!("Extension {} is unsupported.", tspath::EXTENSION_TS_BUILD_INFO)
+        }
         _ => ScriptElementKindModifier::None,
     }
 }
 
 // string_completions.go:2004
-fn get_string_literal_completions_from_signature(call: P<Node>, arg: P<Node>, argument_info: &argumentInfoForCompletions, type_checker: &mut Checker) -> Option<completionsFromTypes> {
+fn get_string_literal_completions_from_signature(
+    call: P<Node>,
+    arg: P<Node>,
+    argument_info: &argumentInfoForCompletions,
+    type_checker: &mut Checker,
+) -> Option<completionsFromTypes> {
     let mut is_new_identifier = false;
     let mut uniques: FxHashSet<String> = FxHashSet::default();
     let editing_argument = if ast::is_jsx_opening_like_element(call) {
@@ -1804,7 +2431,8 @@ fn get_string_literal_completions_from_signature(call: P<Node>, arg: P<Node>, ar
     } else {
         arg
     };
-    let candidates = type_checker.get_candidate_signatures_for_string_literal_completions(call, editing_argument);
+    let candidates = type_checker
+        .get_candidate_signatures_for_string_literal_completions(call, editing_argument);
     let mut types: Vec<P<Type>> = Vec::new();
     for candidate in candidates {
         if !candidate.has_rest_parameter()
@@ -1812,9 +2440,13 @@ fn get_string_literal_completions_from_signature(call: P<Node>, arg: P<Node>, ar
         {
             continue;
         }
-        let mut t = type_checker.get_type_parameter_at_position(candidate, argument_info.argument_index);
+        let mut t =
+            type_checker.get_type_parameter_at_position(candidate, argument_info.argument_index);
         if ast::is_jsx_opening_like_element(call) {
-            let prop_type = type_checker.get_type_of_property_of_type_exported(t, editing_argument.as_jsx_attribute().name().text());
+            let prop_type = type_checker.get_type_of_property_of_type_exported(
+                t,
+                editing_argument.as_jsx_attribute().name().text(),
+            );
             if let Some(prop_type) = prop_type {
                 t = prop_type;
             }
@@ -1841,13 +2473,25 @@ impl LanguageService {
         context_token: Option<P<Node>>,
         doc_format: lsproto::MarkupKind,
     ) -> lsproto::CompletionItem {
-        let Some(context_token) = context_token.filter(|&ct| ast::is_string_literal_like(ct)) else {
+        let Some(context_token) = context_token.filter(|&ct| ast::is_string_literal_like(ct))
+        else {
             return item;
         };
-        let Some(completions) = self.get_string_literal_completion_entries(ctx, file, context_token, position, checker) else {
+        let Some(completions) =
+            self.get_string_literal_completion_entries(ctx, file, context_token, position, checker)
+        else {
             return item;
         };
-        self.string_literal_completion_details(item, name, context_token, position, &completions, file, checker, doc_format)
+        self.string_literal_completion_details(
+            item,
+            name,
+            context_token,
+            position,
+            &completions,
+            file,
+            checker,
+            doc_format,
+        )
     }
 
     // string_completions.go:2072
@@ -1868,11 +2512,16 @@ impl LanguageService {
             return item;
         } else if let Some(properties) = &completion.from_properties {
             if let Some(&symbol) = properties.symbols.iter().find(|symbol| symbol.name() == name) {
-                return self.create_completion_details_for_symbol(item, symbol, checker, location, position, doc_format);
+                return self.create_completion_details_for_symbol(
+                    item, symbol, checker, location, position, doc_format,
+                );
             }
         } else if let Some(types) = &completion.from_types {
             if types.types.iter().any(|&t| string_literal_value(t) == name) {
-                return create_completion_details(item, name, "" /*documentation*/, doc_format);
+                return create_completion_details(
+                    item, name, "", /*documentation*/
+                    doc_format,
+                );
             }
         }
         item
@@ -1881,11 +2530,9 @@ impl LanguageService {
 
 // string_completions.go:2105
 fn is_in_reference_comment(file: P<SourceFile>, position: u32) -> bool {
-    let Some(comment_range) = is_in_comment(
-        file,
-        position,
-        astnav::get_token_at_position(file, position),
-    ) else {
+    let Some(comment_range) =
+        is_in_comment(file, position, astnav::get_token_at_position(file, position))
+    else {
         return false;
     };
     let comment_text = &file.text()[comment_range.pos() as usize..comment_range.end() as usize];
@@ -1983,15 +2630,13 @@ impl LanguageService {
         let token = astnav::get_token_at_position(file, position);
         let comment_ranges: Vec<ast::CommentRange> = scanner::get_leading_comment_ranges(
             file.text(),
-            token
-                .pos()
-                .expect_source("parsed tokens have source positions"),
+            token.pos().expect_source("parsed tokens have source positions"),
         )
         .collect();
 
-        let found_range = comment_ranges
-            .iter()
-            .find(|comment_range| position >= comment_range.pos() && position <= comment_range.end())?;
+        let found_range = comment_ranges.iter().find(|comment_range| {
+            position >= comment_range.pos() && position <= comment_range.end()
+        })?;
 
         let text = &file.text()[found_range.pos() as usize..position as usize];
         let (prefix, kind, to_complete) = parse_triple_slash_directive_fragment(text)?;
@@ -2009,15 +2654,41 @@ impl LanguageService {
         let mut names: Vec<moduleCompletionNameAndKind> = Vec::new();
         match kind.as_str() {
             "path" => {
-                let extension_options = self.get_extension_options(&compiler_options, referenceKind::FileName, file, RESOLUTION_MODE_NONE, None /*checker*/);
+                let extension_options = self.get_extension_options(
+                    &compiler_options,
+                    referenceKind::FileName,
+                    file,
+                    RESOLUTION_MODE_NONE,
+                    None, /*checker*/
+                );
                 let mut result = moduleCompletionNameAndKindSet::default();
-                self.get_completion_entries_for_directory_fragment(&to_complete, &script_path, &extension_options, program, true /*moduleSpecifierIsRelative*/, file.path(), &mut result);
+                self.get_completion_entries_for_directory_fragment(
+                    &to_complete,
+                    &script_path,
+                    &extension_options,
+                    program,
+                    true, /*moduleSpecifierIsRelative*/
+                    file.path(),
+                    &mut result,
+                );
                 names = result.names.into_values().collect();
             }
             "types" => {
-                let extension_options = self.get_extension_options(&compiler_options, referenceKind::ModuleSpecifier, file, RESOLUTION_MODE_NONE, None /*checker*/);
+                let extension_options = self.get_extension_options(
+                    &compiler_options,
+                    referenceKind::ModuleSpecifier,
+                    file,
+                    RESOLUTION_MODE_NONE,
+                    None, /*checker*/
+                );
                 let mut result = moduleCompletionNameAndKindSet::default();
-                self.get_completion_entries_from_typings(program, &script_path, &get_fragment_directory(&to_complete), &extension_options, &mut result);
+                self.get_completion_entries_from_typings(
+                    program,
+                    &script_path,
+                    &get_fragment_directory(&to_complete),
+                    &extension_options,
+                    &mut result,
+                );
                 names = result.names.into_values().collect();
             }
             _ => {}

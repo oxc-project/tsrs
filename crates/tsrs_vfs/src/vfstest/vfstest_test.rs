@@ -1,9 +1,9 @@
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
 use super::*;
+use crate::FS;
 use crate::internal::IoFS;
 use crate::iovfs::RealpathFS;
-use crate::FS;
 
 fn assert_panics(f: impl FnOnce(), expected: &str) {
     let err = catch_unwind(AssertUnwindSafe(f)).expect_err("expected panic");
@@ -29,7 +29,10 @@ fn dir_entries_to_names(entries: &[IoDirEntry]) -> Vec<String> {
 fn test_insensitive() {
     let contents = b"bar".to_vec();
 
-    let vfs = convert_map_fs(map_fs(&[("foo/bar/baz", "bar"), ("foo/bar2/baz2", "bar"), ("foo/bar3/baz3", "bar")]), false);
+    let vfs = convert_map_fs(
+        map_fs(&[("foo/bar/baz", "bar"), ("foo/bar2/baz2", "bar"), ("foo/bar3/baz3", "bar")]),
+        false,
+    );
 
     let sensitive = vfs.read_file("foo/bar/baz").unwrap();
     assert_eq!(sensitive, contents);
@@ -62,7 +65,10 @@ fn test_insensitive() {
 fn test_insensitive_upper() {
     let contents = b"bar".to_vec();
 
-    let vfs = convert_map_fs(map_fs(&[("Foo/Bar/Baz", "bar"), ("Foo/Bar2/Baz2", "bar"), ("Foo/Bar3/Baz3", "bar")]), false);
+    let vfs = convert_map_fs(
+        map_fs(&[("Foo/Bar/Baz", "bar"), ("Foo/Bar2/Baz2", "bar"), ("Foo/Bar3/Baz3", "bar")]),
+        false,
+    );
 
     let sensitive = vfs.read_file("foo/bar/baz").unwrap();
     assert_eq!(sensitive, contents);
@@ -81,7 +87,10 @@ fn test_insensitive_upper() {
 fn test_sensitive() {
     let contents = b"bar".to_vec();
 
-    let vfs = convert_map_fs(map_fs(&[("foo/bar/baz", "bar"), ("foo/bar2/baz2", "bar"), ("foo/bar3/baz3", "bar")]), true);
+    let vfs = convert_map_fs(
+        map_fs(&[("foo/bar/baz", "bar"), ("foo/bar2/baz2", "bar"), ("foo/bar3/baz3", "bar")]),
+        true,
+    );
 
     let sensitive = vfs.read_file("foo/bar/baz").unwrap();
     assert_eq!(sensitive, contents);
@@ -209,13 +218,7 @@ fn test_from_map_posix() {
         vec![
             ("/string", MapFile::from("hello, world")),
             ("/bytes", MapFile::from(b"hello, world".to_vec())),
-            (
-                "/mapfile",
-                MapFile {
-                    data: b"hello, world".to_vec(),
-                    ..Default::default()
-                },
-            ),
+            ("/mapfile", MapFile { data: b"hello, world".to_vec(), ..Default::default() }),
         ],
         false,
     );
@@ -231,13 +234,7 @@ fn test_from_map_windows() {
         vec![
             ("c:/string", MapFile::from("hello, world")),
             ("d:/bytes", MapFile::from(b"hello, world".to_vec())),
-            (
-                "e:/mapfile",
-                MapFile {
-                    data: b"hello, world".to_vec(),
-                    ..Default::default()
-                },
-            ),
+            ("e:/mapfile", MapFile { data: b"hello, world".to_vec(), ..Default::default() }),
         ],
         false,
     );
@@ -340,7 +337,11 @@ fn test_bom() {
 
     for (name, big_endian) in [("BigEndian", true), ("LittleEndian", false)] {
         let mut buf: Vec<u8> = if big_endian { vec![0xFE, 0xFF] } else { vec![0xFF, 0xFE] };
-        buf.extend(EXPECTED.encode_utf16().flat_map(|r| if big_endian { r.to_be_bytes() } else { r.to_le_bytes() }));
+        buf.extend(
+            EXPECTED
+                .encode_utf16()
+                .flat_map(|r| if big_endian { r.to_be_bytes() } else { r.to_le_bytes() }),
+        );
 
         let fs = from_map([("/foo.ts", buf)], true);
 
@@ -468,7 +469,12 @@ fn test_writable_fs_symlink_chain() {
 #[test]
 fn test_writable_fs_symlink_chain_not_dir() {
     let fs = from_map(
-        vec![("/a", symlink("/b")), ("/b", symlink("/c")), ("/c", symlink("/d")), ("/d", MapFile::from("hello, world"))],
+        vec![
+            ("/a", symlink("/b")),
+            ("/b", symlink("/c")),
+            ("/c", symlink("/d")),
+            ("/d", MapFile::from("hello, world")),
+        ],
         false,
     );
 

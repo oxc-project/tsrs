@@ -11,8 +11,8 @@
 //! (notes/linux-x86-round.md). Region slabs are released piecemeal and keep 4 KiB pages.
 
 use std::collections::BTreeMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Handles count units of `1 << UNIT_SHIFT` bytes, so every `P` target is 8-aligned.
 pub const UNIT_SHIFT: u32 = 3;
@@ -64,7 +64,8 @@ struct Chunks {
     peak: usize,
 }
 
-static CHUNKS: Mutex<Chunks> = Mutex::new(Chunks { next: GRANULE, free: BTreeMap::new(), live: 0, peak: GRANULE });
+static CHUNKS: Mutex<Chunks> =
+    Mutex::new(Chunks { next: GRANULE, free: BTreeMap::new(), live: 0, peak: GRANULE });
 
 #[cold]
 fn fail(what: &str) -> ! {
@@ -97,7 +98,10 @@ fn reserve() {
     if p.addr() != BASE_ADDR {
         // SAFETY: the mapping just made, unused.
         unsafe { libc::munmap(p, RESERVE) };
-        fail(&format!("the arena address range at {BASE_ADDR:#x} is taken (the system placed it at {:#x})", p.addr()));
+        fail(&format!(
+            "the arena address range at {BASE_ADDR:#x} is taken (the system placed it at {:#x})",
+            p.addr()
+        ));
     }
     // `base()` derives every arena pointer from the address.
     let _ = p.expose_provenance();
@@ -126,7 +130,14 @@ fn decommit(p: *mut u8, len: usize) {
     // A fixed no-access mapping over the range drops its pages (macOS and Linux) and keeps the range reserved.
     // SAFETY: `p .. p + len` lies inside the reservation and nothing uses it any more.
     let q = unsafe {
-        libc::mmap(p.cast(), len, libc::PROT_NONE, libc::MAP_PRIVATE | libc::MAP_ANON | libc::MAP_NORESERVE | libc::MAP_FIXED, -1, 0)
+        libc::mmap(
+            p.cast(),
+            len,
+            libc::PROT_NONE,
+            libc::MAP_PRIVATE | libc::MAP_ANON | libc::MAP_NORESERVE | libc::MAP_FIXED,
+            -1,
+            0,
+        )
     };
     if q == libc::MAP_FAILED {
         fail("could not release arena memory");
@@ -227,8 +238,13 @@ pub(crate) unsafe fn release_chunk(p: *mut u8, size: usize) {
 #[cfg(unix)]
 pub(crate) fn page_size() -> usize {
     static PAGE_SIZE: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
-    // SAFETY: sysconf reads a system constant.
-    *PAGE_SIZE.get_or_init(|| usize::try_from(unsafe { libc::sysconf(libc::_SC_PAGESIZE) }).ok().filter(|p| p.is_power_of_two()).unwrap_or(4096))
+    *PAGE_SIZE.get_or_init(|| {
+        // SAFETY: sysconf reads a system constant.
+        usize::try_from(unsafe { libc::sysconf(libc::_SC_PAGESIZE) })
+            .ok()
+            .filter(|p| p.is_power_of_two())
+            .unwrap_or(4096)
+    })
 }
 
 /// Gives the memory of the whole pages inside `p .. p + len` (part of a chunk from `alloc_chunk`) back to the
@@ -307,7 +323,10 @@ mod tests {
         let big = c.take(A, A).unwrap();
         assert_eq!((small, big), (GRANULE, A));
         // The gap between them serves unaligned takes first, then aligned ones fit only past `big`.
-        assert_eq!(c.free.iter().map(|(&o, &l)| (o, l)).collect::<Vec<_>>(), [(2 * GRANULE, A - 2 * GRANULE)]);
+        assert_eq!(
+            c.free.iter().map(|(&o, &l)| (o, l)).collect::<Vec<_>>(),
+            [(2 * GRANULE, A - 2 * GRANULE)]
+        );
         assert_eq!(c.take(3 * GRANULE, GRANULE), Some(2 * GRANULE));
         assert_eq!(c.take(GRANULE, A), Some(2 * A));
         assert_eq!(c.live, 5 * GRANULE + A);
@@ -322,7 +341,10 @@ mod tests {
         let y = c.take(GRANULE, GRANULE).unwrap();
         c.put(x, A);
         assert_eq!(c.take(A / 2, A / 2), Some(A / 2));
-        assert_eq!(c.free.iter().map(|(&o, &l)| (o, l)).collect::<Vec<_>>(), [(GRANULE, A / 2 - GRANULE), (A, GRANULE)]);
+        assert_eq!(
+            c.free.iter().map(|(&o, &l)| (o, l)).collect::<Vec<_>>(),
+            [(GRANULE, A / 2 - GRANULE), (A, GRANULE)]
+        );
         assert!(y > x);
     }
 

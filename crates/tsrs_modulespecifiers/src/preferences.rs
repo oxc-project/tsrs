@@ -1,7 +1,7 @@
 use crate::*;
 use tsrs_ast::*;
-use tsrs_core::*;
 use tsrs_core::tspath;
+use tsrs_core::*;
 
 // Non-function declarations in preferences.go (hand-ported in types.rs):
 //   type ModuleSpecifierPreferences (preferences.go:141)
@@ -9,16 +9,27 @@ use tsrs_core::tspath;
 // Program errors validate that `noEmit` or `emitDeclarationOnly` is also set,
 // so this function doesn't check them to avoid propagating errors.
 // preferences.go:14
-pub(crate) fn should_allow_importing_ts_extension(compiler_options: &CompilerOptions, from_file_name: &str) -> bool {
-    compiler_options.get_allow_importing_ts_extensions() || !from_file_name.is_empty() && tspath::is_declaration_file_name(from_file_name)
+pub(crate) fn should_allow_importing_ts_extension(
+    compiler_options: &CompilerOptions,
+    from_file_name: &str,
+) -> bool {
+    compiler_options.get_allow_importing_ts_extensions()
+        || !from_file_name.is_empty() && tspath::is_declaration_file_name(from_file_name)
 }
 
 // preferences.go:18
 pub(crate) fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
     if let Some(result) = file.imports().iter().find_map(|ref_| {
         let text = ref_.text();
-        if tspath::path_is_relative(text) && !tspath::file_extension_is_one_of(text, tspath::EXTENSIONS_NOT_SUPPORTING_EXTENSIONLESS_RESOLUTION) {
-            return Some(tspath::has_ts_file_extension(text) || tspath::has_js_file_extension(text));
+        if tspath::path_is_relative(text)
+            && !tspath::file_extension_is_one_of(
+                text,
+                tspath::EXTENSIONS_NOT_SUPPORTING_EXTENSIONLESS_RESOLUTION,
+            )
+        {
+            return Some(
+                tspath::has_ts_file_extension(text) || tspath::has_js_file_extension(text),
+            );
         }
 
         None
@@ -29,7 +40,11 @@ pub(crate) fn uses_extensions_on_imports(file: P<SourceFile>) -> bool {
 }
 
 // preferences.go:28
-pub(crate) fn infer_preference(resolution_mode: ModuleKind, source_file: Option<P<SourceFile>>, module_resolution_is_node_next: bool) -> ModuleSpecifierEnding {
+pub(crate) fn infer_preference(
+    resolution_mode: ModuleKind,
+    source_file: Option<P<SourceFile>>,
+    module_resolution_is_node_next: bool,
+) -> ModuleSpecifierEnding {
     let mut uses_js_extensions = false;
     let mut specifiers: &[P<Node>] = &[];
     if let Some(source_file) = source_file.filter(|f| !f.imports().is_empty()) {
@@ -49,7 +64,10 @@ pub(crate) fn infer_preference(resolution_mode: ModuleKind, source_file: Option<
                 // We're trying to decide a preference for a CommonJS module specifier, but looking at an ESM import.
                 continue;
             }
-            if tspath::file_extension_is_one_of(path, tspath::EXTENSIONS_NOT_SUPPORTING_EXTENSIONLESS_RESOLUTION) {
+            if tspath::file_extension_is_one_of(
+                path,
+                tspath::EXTENSIONS_NOT_SUPPORTING_EXTENSIONLESS_RESOLUTION,
+            ) {
                 // These extensions are not optional, so do not indicate a preference.
                 continue;
             }
@@ -70,7 +88,8 @@ pub(crate) fn infer_preference(resolution_mode: ModuleKind, source_file: Option<
 
 fn module_resolution_is_node_next(compiler_options: &CompilerOptions) -> bool {
     let module_resolution = compiler_options.get_module_resolution_kind();
-    ModuleResolutionKind::Node16 <= module_resolution && module_resolution <= ModuleResolutionKind::NodeNext
+    ModuleResolutionKind::Node16 <= module_resolution
+        && module_resolution <= ModuleResolutionKind::NodeNext
 }
 
 // preferences.go:69
@@ -82,14 +101,18 @@ pub(crate) fn get_module_specifier_ending_preference(
 ) -> ModuleSpecifierEnding {
     let module_resolution_is_node_next = module_resolution_is_node_next(compiler_options);
 
-    if pref == ImportModuleSpecifierEndingPreference::Js || resolution_mode == RESOLUTION_MODE_ESM && module_resolution_is_node_next {
+    if pref == ImportModuleSpecifierEndingPreference::Js
+        || resolution_mode == RESOLUTION_MODE_ESM && module_resolution_is_node_next
+    {
         // Extensions are explicitly requested or required. Now choose between .js and .ts.
         if !should_allow_importing_ts_extension(compiler_options, "") {
             return ModuleSpecifierEnding::JsExtension;
         }
         // `allowImportingTsExtensions` is a strong signal, so use .ts unless the file
         // already uses .js extensions and no .ts extensions.
-        if infer_preference(resolution_mode, source_file, module_resolution_is_node_next) != ModuleSpecifierEnding::JsExtension {
+        if infer_preference(resolution_mode, source_file, module_resolution_is_node_next)
+            != ModuleSpecifierEnding::JsExtension
+        {
             return ModuleSpecifierEnding::TsExtension;
         }
         return ModuleSpecifierEnding::JsExtension;
@@ -139,7 +162,12 @@ pub(crate) fn get_preferred_ending(
     if resolution_mode == RESOLUTION_MODE_NONE {
         resolution_mode = host.get_default_resolution_mode_for_file(importing_source_file);
     }
-    get_module_specifier_ending_preference(prefs.import_module_specifier_ending, resolution_mode, compiler_options, Some(importing_source_file))
+    get_module_specifier_ending_preference(
+        prefs.import_module_specifier_ending,
+        resolution_mode,
+        compiler_options,
+        Some(importing_source_file),
+    )
 }
 
 // preferences.go:147
@@ -151,15 +179,28 @@ pub fn get_allowed_endings_in_preferred_order(
     old_import_specifier: &str,
     syntax_implied_node_format: ModuleKind,
 ) -> Vec<ModuleSpecifierEnding> {
-    let mut preferred_ending =
-        get_preferred_ending(prefs, host, compiler_options, importing_source_file, old_import_specifier, RESOLUTION_MODE_NONE);
+    let mut preferred_ending = get_preferred_ending(
+        prefs,
+        host,
+        compiler_options,
+        importing_source_file,
+        old_import_specifier,
+        RESOLUTION_MODE_NONE,
+    );
     let resolution_mode = host.get_default_resolution_mode_for_file(importing_source_file);
     if resolution_mode != syntax_implied_node_format {
-        preferred_ending =
-            get_preferred_ending(prefs, host, compiler_options, importing_source_file, old_import_specifier, syntax_implied_node_format);
+        preferred_ending = get_preferred_ending(
+            prefs,
+            host,
+            compiler_options,
+            importing_source_file,
+            old_import_specifier,
+            syntax_implied_node_format,
+        );
     }
     let module_resolution_is_node_next = module_resolution_is_node_next(compiler_options);
-    let allow_importing_ts_extension = should_allow_importing_ts_extension(compiler_options, importing_source_file.file_name());
+    let allow_importing_ts_extension =
+        should_allow_importing_ts_extension(compiler_options, importing_source_file.file_name());
     // TypeScript uses `(syntaxImpliedNodeFormat ?? impliedNodeFormat)` here - fall back to the
     // file's default resolution mode when no syntax-implied mode is given.
     let mut effective_syntax_mode = syntax_implied_node_format;
@@ -182,7 +223,11 @@ pub fn get_allowed_endings_in_preferred_order(
                     ModuleSpecifierEnding::Index,
                 ];
             }
-            vec![ModuleSpecifierEnding::JsExtension, ModuleSpecifierEnding::Minimal, ModuleSpecifierEnding::Index]
+            vec![
+                ModuleSpecifierEnding::JsExtension,
+                ModuleSpecifierEnding::Minimal,
+                ModuleSpecifierEnding::Index,
+            ]
         }
         ModuleSpecifierEnding::TsExtension => vec![
             ModuleSpecifierEnding::TsExtension,
@@ -199,7 +244,11 @@ pub fn get_allowed_endings_in_preferred_order(
                     ModuleSpecifierEnding::JsExtension,
                 ];
             }
-            vec![ModuleSpecifierEnding::Index, ModuleSpecifierEnding::Minimal, ModuleSpecifierEnding::JsExtension]
+            vec![
+                ModuleSpecifierEnding::Index,
+                ModuleSpecifierEnding::Minimal,
+                ModuleSpecifierEnding::JsExtension,
+            ]
         }
         ModuleSpecifierEnding::Minimal => {
             if allow_importing_ts_extension {
@@ -210,7 +259,11 @@ pub fn get_allowed_endings_in_preferred_order(
                     ModuleSpecifierEnding::JsExtension,
                 ];
             }
-            vec![ModuleSpecifierEnding::Minimal, ModuleSpecifierEnding::Index, ModuleSpecifierEnding::JsExtension]
+            vec![
+                ModuleSpecifierEnding::Minimal,
+                ModuleSpecifierEnding::Index,
+                ModuleSpecifierEnding::JsExtension,
+            ]
         }
     }
 }
@@ -233,9 +286,15 @@ pub(crate) fn get_module_specifier_preferences(
         }
     } else {
         match prefs.import_module_specifier_preference {
-            ImportModuleSpecifierPreference::Relative => relative_preference = RelativePreferenceKind::Relative,
-            ImportModuleSpecifierPreference::NonRelative => relative_preference = RelativePreferenceKind::NonRelative,
-            ImportModuleSpecifierPreference::ProjectRelative => relative_preference = RelativePreferenceKind::ExternalNonRelative,
+            ImportModuleSpecifierPreference::Relative => {
+                relative_preference = RelativePreferenceKind::Relative;
+            }
+            ImportModuleSpecifierPreference::NonRelative => {
+                relative_preference = RelativePreferenceKind::NonRelative;
+            }
+            ImportModuleSpecifierPreference::ProjectRelative => {
+                relative_preference = RelativePreferenceKind::ExternalNonRelative;
+            }
             // all others are shortest
             _ => {}
         }

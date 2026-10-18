@@ -15,14 +15,23 @@ fn run(case: &Path, mode: &str) -> String {
         .env("TSRS_FLOW_MEMO", mode)
         .output()
         .unwrap();
-    assert!(out.status.code().is_some_and(|c| c <= 2), "{} ({mode}): {}", case.display(), String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.code().is_some_and(|c| c <= 2),
+        "{} ({mode}): {}",
+        case.display(),
+        String::from_utf8_lossy(&out.stderr)
+    );
     String::from_utf8(out.stdout).unwrap()
 }
 
 #[test]
 fn flow_memo_cases_match_tsgo() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/flow-memo");
-    let mut cases: Vec<_> = std::fs::read_dir(&root).unwrap().map(|e| e.unwrap().path()).filter(|p| p.is_dir()).collect();
+    let mut cases: Vec<_> = std::fs::read_dir(&root)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.is_dir())
+        .collect();
     cases.sort();
     assert!(cases.len() >= 9, "testdata/flow-memo has {} cases", cases.len());
     for case in &cases {

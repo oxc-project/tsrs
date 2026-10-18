@@ -1,10 +1,11 @@
 use tsrs_ast::{ContentMapperSourceFileInfo, SourceFile, SourceFileParseOptions};
-use tsrs_core::{alloc_slice, alloc_str, get_script_kind_from_file_name, tspath, P};
+use tsrs_core::{P, alloc_slice, alloc_str, get_script_kind_from_file_name, tspath};
 use tsrs_parser::parse_source_file_owned;
-use tsrs_tsoptions::{is_supported_virtual_extension, Mapper};
+use tsrs_tsoptions::{Mapper, is_supported_virtual_extension};
 
 use crate::host::{
-    new_transform_error, Error, Project, Request, SupplementalFileCollisionError, TransformErrorKind, TransformResultFiles,
+    Error, Project, Request, SupplementalFileCollisionError, TransformErrorKind,
+    TransformResultFiles, new_transform_error,
 };
 
 // SourceFiles is the canonical output and its unnamed supplemental compiler inputs.
@@ -33,7 +34,8 @@ pub fn transform_and_parse(
         Ok(transform_identity) => transform_identity,
         Err(err) => return Err(new_transform_error(TransformErrorKind::Project, Some(err)).into()),
     };
-    let result = project.transform(mapper, Request { file_name: &parse_options.file_name, content })?;
+    let result =
+        project.transform(mapper, Request { file_name: &parse_options.file_name, content })?;
     parse_result(parse_options, content, mapper, &transform_identity, result)
 }
 
@@ -63,7 +65,11 @@ pub fn parse_result(
         parse_options.external_module_indicator_options.force = true;
     }
     let canonical_path = parse_options.path.clone();
-    let source_file = parse_source_file_owned(parse_options, result.text, get_script_kind_from_file_name(&virtual_file_name));
+    let source_file = parse_source_file_owned(
+        parse_options,
+        result.text,
+        get_script_kind_from_file_name(&virtual_file_name),
+    );
     if !result.diagnostics.is_empty() {
         // The runner produces diagnostics without a source file (it doesn't have one yet); associate
         // them with the file now so they are reported against it.
@@ -74,7 +80,10 @@ pub fn parse_result(
         diagnostics.extend_from_slice(&result.diagnostics);
         source_file.set_diagnostics(&diagnostics);
     }
-    let mut files = SourceFiles { canonical: Some(source_file), supplemental: Vec::with_capacity(result.supplemental.len()) };
+    let mut files = SourceFiles {
+        canonical: Some(source_file),
+        supplemental: Vec::with_capacity(result.supplemental.len()),
+    };
     // Go reads result.Supplemental[i] again below; the texts went to the parser, so the rest is kept here.
     let mut supplemental_mappings = Vec::with_capacity(result.supplemental.len());
     for (i, supplemental) in result.supplemental.into_iter().enumerate() {
@@ -115,7 +124,9 @@ pub fn parse_result(
         supplemental_source_files: alloc_slice(&files.supplemental),
         canonical_source_file: None,
     });
-    for (&file, (span_map, diagnostic_directives)) in files.supplemental.iter().zip(supplemental_mappings) {
+    for (&file, (span_map, diagnostic_directives)) in
+        files.supplemental.iter().zip(supplemental_mappings)
+    {
         file.set_content_mapper_info(ContentMapperSourceFileInfo {
             content_mapper: mapper_identity,
             transform_identity,
@@ -133,14 +144,24 @@ pub fn parse_result(
 
 // transform.go:123
 pub(crate) fn is_module_virtual_extension(extension: &str) -> bool {
-    [tspath::EXTENSION_MTS, tspath::EXTENSION_CTS, tspath::EXTENSION_MJS, tspath::EXTENSION_CJS].contains(&extension)
+    [tspath::EXTENSION_MTS, tspath::EXTENSION_CTS, tspath::EXTENSION_MJS, tspath::EXTENSION_CJS]
+        .contains(&extension)
 }
 
 // CheckSupplementalFileNameCollisions rejects compiler-assigned virtual filenames that name physical files.
 // transform.go:128
-pub fn check_supplemental_file_name_collisions(files: &SourceFiles, mut file_exists: impl FnMut(&str) -> bool) -> Result<(), Error> {
+pub fn check_supplemental_file_name_collisions(
+    files: &SourceFiles,
+    mut file_exists: impl FnMut(&str) -> bool,
+) -> Result<(), Error> {
     if let Some(result) = files.supplemental.iter().find_map(|file| {
-        if file_exists(file.file_name()) { Some(Err(SupplementalFileCollisionError { file_name: file.file_name().to_string() }.into())) } else { None }
+        if file_exists(file.file_name()) {
+            Some(Err(
+                SupplementalFileCollisionError { file_name: file.file_name().to_string() }.into()
+            ))
+        } else {
+            None
+        }
     }) {
         return result;
     }

@@ -54,13 +54,17 @@ fn new_thread_arena() -> &'static Arena {
 /// The current thread's own arena (never freed): on first use, an arena that a thread done allocating gave back
 /// (`release_own_arena`), else a new one.
 pub(crate) fn own_arena() -> &'static Arena {
-    ARENA.with(|c| if let Some(a) = c.get() { a } else {
-        let a = arena::take_spare_arena().unwrap_or_else(new_thread_arena);
-        c.set(Some(a));
-        // Fails only while the thread exits (a destructor that allocates after the arena was handed on): that
-        // arena stays with the thread.
-        let _ = RELEASE_AT_EXIT.try_with(|_| ());
-        a
+    ARENA.with(|c| {
+        if let Some(a) = c.get() {
+            a
+        } else {
+            let a = arena::take_spare_arena().unwrap_or_else(new_thread_arena);
+            c.set(Some(a));
+            // Fails only while the thread exits (a destructor that allocates after the arena was handed on): that
+            // arena stays with the thread.
+            let _ = RELEASE_AT_EXIT.try_with(|_| ());
+            a
+        }
     })
 }
 
@@ -148,7 +152,11 @@ pub(crate) const fn p_layout<T>() -> std::alloc::Layout {
 pub unsafe fn arena_neighbor<T: ?Sized, U>(r: &T, offset: isize) -> &'static U {
     // SAFETY: the address is in an arena chunk, whose provenance was exposed, and holds a live `U` (this function's
     // contract).
-    unsafe { &*std::ptr::with_exposed_provenance::<U>(std::ptr::from_ref(r).addr().wrapping_add_signed(offset)) }
+    unsafe {
+        &*std::ptr::with_exposed_provenance::<U>(
+            std::ptr::from_ref(r).addr().wrapping_add_signed(offset),
+        )
+    }
 }
 
 /// Pointer to an arena value. Never null; use `Option<P<T>>` for Go's nil-able pointers
@@ -194,11 +202,7 @@ impl<T> P<T> {
     /// `P::new` or `P::new_scratch`.
     #[inline]
     pub fn new_in(scratch: bool, value: T) -> P<T> {
-        if scratch {
-            P::new_scratch(value)
-        } else {
-            P::new(value)
-        }
+        if scratch { P::new_scratch(value) } else { P::new(value) }
     }
 
     /// `P::new` that first takes a block of the right size from the current thread's free list (see `free`).
@@ -224,15 +228,29 @@ impl<T> P<T> {
     /// `r` must be an 8-aligned object in the arena: a block allocated with `p_layout` (`P::new`, `alloc`), or a view
     /// of one that starts 8-aligned inside it.
     #[inline]
-    #[cfg_attr(compressed_ptrs, expect(clippy::verbose_bit_mask, reason = "the mask directly documents the arena's 8-byte alignment invariant"))]
+    #[cfg_attr(
+        compressed_ptrs,
+        expect(
+            clippy::verbose_bit_mask,
+            reason = "the mask directly documents the arena's 8-byte alignment invariant"
+        )
+    )]
     pub unsafe fn from_arena(r: &'static T) -> P<T> {
         #[cfg(compressed_ptrs)]
         {
             let off = std::ptr::from_ref::<T>(r).addr().wrapping_sub(crate::reserve::base().addr());
-            debug_assert!(off < crate::reserve::RESERVE && off & 7 == 0 && off != 0, "P::from_arena outside the arena");
+            debug_assert!(
+                off < crate::reserve::RESERVE && off & 7 == 0 && off != 0,
+                "P::from_arena outside the arena"
+            );
             // SAFETY: `r` is an arena object (this function's contract), and the reservation's first granule is never
             // handed out, so its handle is not 0.
-            P(unsafe { std::num::NonZeroU32::new_unchecked((off >> crate::reserve::UNIT_SHIFT) as u32) }, std::marker::PhantomData)
+            P(
+                unsafe {
+                    std::num::NonZeroU32::new_unchecked((off >> crate::reserve::UNIT_SHIFT) as u32)
+                },
+                std::marker::PhantomData,
+            )
         }
         #[cfg(not(compressed_ptrs))]
         P(std::ptr::NonNull::from_ref(r), std::marker::PhantomData)
@@ -243,17 +261,33 @@ impl<T> P<T> {
     /// # Safety
     /// `bits` must come from `to_bits` of a live `P<T>` (same `T`, or a type whose value starts there).
     #[inline]
-    #[cfg_attr(compressed_ptrs, expect(clippy::verbose_bit_mask, reason = "the mask directly documents the encoded pointer's 8-byte alignment invariant"))]
+    #[cfg_attr(
+        compressed_ptrs,
+        expect(
+            clippy::verbose_bit_mask,
+            reason = "the mask directly documents the encoded pointer's 8-byte alignment invariant"
+        )
+    )]
     pub unsafe fn from_bits(bits: usize) -> P<T> {
         #[cfg(compressed_ptrs)]
         {
             debug_assert!(bits != 0 && bits & 7 == 0);
             // SAFETY: `bits` came from `to_bits` of a live `P<T>` (this function's contract), whose handle is not 0.
-            P(unsafe { std::num::NonZeroU32::new_unchecked((bits >> crate::reserve::UNIT_SHIFT) as u32) }, std::marker::PhantomData)
+            P(
+                unsafe {
+                    std::num::NonZeroU32::new_unchecked((bits >> crate::reserve::UNIT_SHIFT) as u32)
+                },
+                std::marker::PhantomData,
+            )
         }
         #[cfg(not(compressed_ptrs))]
         // SAFETY: `bits` is the exposed address of a live arena object (this function's contract).
-        P(unsafe { std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(bits)) }, std::marker::PhantomData)
+        P(
+            unsafe {
+                std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(bits))
+            },
+            std::marker::PhantomData,
+        )
     }
 
     /// The object packed in the low bits of `w` by `pack` (higher bits may hold anything).
@@ -264,13 +298,30 @@ impl<T> P<T> {
     pub unsafe fn unpack(w: u64) -> P<T> {
         #[cfg(compressed_ptrs)]
         // SAFETY: the low bits came from `pack` of a live `P<T>` (this function's contract): its handle, not 0.
-        return P(unsafe { std::num::NonZeroU32::new_unchecked(w as u32) }, std::marker::PhantomData);
+        return P(
+            unsafe { std::num::NonZeroU32::new_unchecked(w as u32) },
+            std::marker::PhantomData,
+        );
         #[cfg(all(not(compressed_ptrs), target_pointer_width = "64"))]
         // SAFETY: the low bits are the address of a live arena object, shifted by `pack` (this function's contract).
-        return P(unsafe { std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(((w & PACK_MASK) << 3) as usize)) }, std::marker::PhantomData);
+        return P(
+            unsafe {
+                std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(
+                    ((w & PACK_MASK) << 3) as usize,
+                ))
+            },
+            std::marker::PhantomData,
+        );
         #[cfg(target_pointer_width = "32")]
         // SAFETY: the low bits are the address of a live arena object, unshifted on 32-bit targets (`pack`).
-        return P(unsafe { std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>((w & PACK_MASK) as usize)) }, std::marker::PhantomData);
+        return P(
+            unsafe {
+                std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(
+                    (w & PACK_MASK) as usize,
+                ))
+            },
+            std::marker::PhantomData,
+        );
     }
 
     /// `unpack` for an optional pointer (low bits 0 = `None`).
@@ -298,7 +349,12 @@ impl<T> P<T> {
         return P(unsafe { std::num::NonZeroU32::new_unchecked(key) }, std::marker::PhantomData);
         #[cfg(not(compressed_ptrs))]
         // SAFETY: `key` is the exposed address of a live arena object (this function's contract).
-        return P(unsafe { std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(key)) }, std::marker::PhantomData);
+        return P(
+            unsafe {
+                std::ptr::NonNull::new_unchecked(std::ptr::with_exposed_provenance_mut::<T>(key))
+            },
+            std::marker::PhantomData,
+        );
     }
 
     /// `from_key` for an optional pointer: 0 is `None`.
@@ -331,8 +387,14 @@ impl<T> P<T> {
     pub unsafe fn array_add(self, n: usize) -> P<T> {
         #[cfg(compressed_ptrs)]
         {
-            const { assert!(std::mem::size_of::<T>().is_multiple_of(8), "P::array_add needs 8-byte multiples") };
-            let h = self.0.get() + (n * (std::mem::size_of::<T>() >> crate::reserve::UNIT_SHIFT)) as u32;
+            const {
+                assert!(
+                    std::mem::size_of::<T>().is_multiple_of(8),
+                    "P::array_add needs 8-byte multiples"
+                );
+            };
+            let h = self.0.get()
+                + (n * (std::mem::size_of::<T>() >> crate::reserve::UNIT_SHIFT)) as u32;
             // SAFETY: `h` is past a nonzero handle, inside the same array (this function's contract).
             P(unsafe { std::num::NonZeroU32::new_unchecked(h) }, std::marker::PhantomData)
         }
@@ -364,7 +426,10 @@ impl<T> P<T> {
         if off >= crate::reserve::RESERVE || off & 7 != 0 || off == 0 {
             from_static_failed(std::any::type_name::<T>(), std::ptr::from_ref::<T>(r).addr());
         }
-        P(std::num::NonZeroU32::new((off >> crate::reserve::UNIT_SHIFT) as u32).unwrap(), std::marker::PhantomData)
+        P(
+            std::num::NonZeroU32::new((off >> crate::reserve::UNIT_SHIFT) as u32).unwrap(),
+            std::marker::PhantomData,
+        )
     }
 
     /// The handle (compressed mode only): the object's offset from `reserve::base()` in 8-byte units.
@@ -380,7 +445,9 @@ impl<T> P<T> {
 #[inline(never)]
 #[track_caller]
 fn from_static_failed(ty: &str, addr: usize) -> ! {
-    panic!("P::<{ty}>::from_static({addr:#x}): not an 8-aligned object in the arena range (compressed pointers)")
+    panic!(
+        "P::<{ty}>::from_static({addr:#x}): not an 8-aligned object in the arena range (compressed pointers)"
+    )
 }
 
 #[cfg(not(compressed_ptrs))]
@@ -421,7 +488,11 @@ impl<T: ?Sized> P<T> {
         T: Sized,
     {
         // SAFETY: a handle is the offset of a live arena object from the base of the reservation it lives in.
-        unsafe { &*crate::reserve::base().add((self.0.get() as usize) << crate::reserve::UNIT_SHIFT).cast::<T>() }
+        unsafe {
+            &*crate::reserve::base()
+                .add((self.0.get() as usize) << crate::reserve::UNIT_SHIFT)
+                .cast::<T>()
+        }
     }
 
     /// The object's address.
@@ -486,9 +557,15 @@ impl<T: ?Sized> P<T> {
         #[cfg(all(not(compressed_ptrs), target_pointer_width = "64"))]
         {
             let a = self.0.as_ptr().cast::<()>().expose_provenance() as u64;
-            #[expect(clippy::verbose_bit_mask, reason = "The mask documents the three alignment bits reserved by the packed pointer.")]
+            #[expect(
+                clippy::verbose_bit_mask,
+                reason = "The mask documents the three alignment bits reserved by the packed pointer."
+            )]
             {
-                assert!(a & 7 == 0 && a >> (PACK_BITS + 3) == 0, "address {a:#x} does not pack in 45 bits");
+                assert!(
+                    a & 7 == 0 && a >> (PACK_BITS + 3) == 0,
+                    "address {a:#x} does not pack in 45 bits"
+                );
             }
             a >> 3
         }
@@ -840,7 +917,11 @@ impl PackedStr {
         let p = self.0.as_ptr().map_addr(|a| a & ((1 << PACKED_STR_LEN_SHIFT) - 1));
         // SAFETY: built by `new` from a `&'static str` of this length, or by `new_long` (length prefix + bytes).
         unsafe {
-            let (p, len) = if len == PACKED_STR_LONG { (p.add(4).cast_const(), p.cast::<u32>().read_unaligned() as usize) } else { (p.cast_const(), len) };
+            let (p, len) = if len == PACKED_STR_LONG {
+                (p.add(4).cast_const(), p.cast::<u32>().read_unaligned() as usize)
+            } else {
+                (p.cast_const(), len)
+            };
             std::str::from_utf8_unchecked(std::slice::from_raw_parts(p, len))
         }
     }
@@ -874,11 +955,16 @@ pub struct ThinSlice<T: 'static>(std::ptr::NonNull<()>, std::marker::PhantomData
 /// Every slice fits, so the only long form is `from_ref`'s: the address of the `&'static [T]`
 /// it reads, tagged with bit 0 (`T` is at least 2-aligned, so a data pointer never has it).
 #[cfg(target_pointer_width = "32")]
-pub struct ThinSlice<T: 'static>(std::ptr::NonNull<()>, usize, std::marker::PhantomData<&'static [T]>);
+pub struct ThinSlice<T: 'static>(
+    std::ptr::NonNull<()>,
+    usize,
+    std::marker::PhantomData<&'static [T]>,
+);
 
 #[cfg(target_pointer_width = "32")]
 impl<T> ThinSlice<T> {
-    const ALIGNED: () = assert!(std::mem::align_of::<T>() >= 2, "ThinSlice needs bit 0 of the data pointer");
+    const ALIGNED: () =
+        assert!(std::mem::align_of::<T>() >= 2, "ThinSlice needs bit 0 of the data pointer");
 
     #[inline]
     pub fn new(s: &'static [T]) -> Self {
@@ -889,7 +975,11 @@ impl<T> ThinSlice<T> {
     /// A long-form slice that reads `*r` (as on 64-bit targets).
     pub fn from_ref(r: &'static &'static [T]) -> Self {
         let () = Self::ALIGNED;
-        ThinSlice(std::ptr::NonNull::from(r).cast::<()>().map_addr(|a| a | THIN_LONG_TAG), 0, std::marker::PhantomData)
+        ThinSlice(
+            std::ptr::NonNull::from(r).cast::<()>().map_addr(|a| a | THIN_LONG_TAG),
+            0,
+            std::marker::PhantomData,
+        )
     }
 
     /// Whether this is the long form (`from_ref`).
@@ -902,7 +992,9 @@ impl<T> ThinSlice<T> {
     #[inline]
     pub fn long_ref(self) -> Option<&'static &'static [T]> {
         // SAFETY: a long form was built by `from_ref` from a `&'static &'static [T]`.
-        self.is_long().then(|| unsafe { &*(self.0.as_ptr().map_addr(|a| a & !THIN_LONG_TAG) as *const &'static [T]) })
+        self.is_long().then(|| unsafe {
+            &*(self.0.as_ptr().map_addr(|a| a & !THIN_LONG_TAG) as *const &'static [T])
+        })
     }
 
     #[inline]
@@ -947,14 +1039,18 @@ impl<T> Default for ThinSlice<T> {
 
 #[cfg(target_pointer_width = "64")]
 impl<T> ThinSlice<T> {
-    const ALIGNED: () = assert!(std::mem::align_of::<T>() >= 2, "ThinSlice needs bit 0 of the data pointer");
+    const ALIGNED: () =
+        assert!(std::mem::align_of::<T>() >= 2, "ThinSlice needs bit 0 of the data pointer");
 
     #[inline]
     pub fn new(s: &'static [T]) -> Self {
         let () = Self::ALIGNED;
         let p = std::ptr::NonNull::from(s).cast::<()>();
         if (p.addr().get() >> THIN_LEN_SHIFT) | (s.len() >> (usize::BITS - THIN_LEN_SHIFT)) == 0 {
-            return ThinSlice(p.map_addr(|a| a | (s.len() << THIN_LEN_SHIFT)), std::marker::PhantomData);
+            return ThinSlice(
+                p.map_addr(|a| a | (s.len() << THIN_LEN_SHIFT)),
+                std::marker::PhantomData,
+            );
         }
         Self::new_long(s)
     }
@@ -985,7 +1081,9 @@ impl<T> ThinSlice<T> {
     #[inline]
     pub fn long_ref(self) -> Option<&'static &'static [T]> {
         // SAFETY: a long form was built by `new_long` or `from_ref` from a `&'static &'static [T]`.
-        self.is_long().then(|| unsafe { &*(self.0.as_ptr().map_addr(|a| a & !THIN_LONG_TAG) as *const &'static [T]) })
+        self.is_long().then(|| unsafe {
+            &*(self.0.as_ptr().map_addr(|a| a & !THIN_LONG_TAG) as *const &'static [T])
+        })
     }
 
     #[inline]
@@ -1066,7 +1164,10 @@ impl<T> Default for OptionThinSliceCell<T> {
     }
 }
 
-const _: () = assert!(std::mem::size_of::<ThinSliceCell<u16>>() == 8 && std::mem::size_of::<OptionThinSliceCell<u16>>() == 8);
+const _: () = assert!(
+    std::mem::size_of::<ThinSliceCell<u16>>() == 8
+        && std::mem::size_of::<OptionThinSliceCell<u16>>() == 8
+);
 
 #[repr(C, packed(4))]
 struct PackedSlice<T: 'static> {
@@ -1095,7 +1196,10 @@ impl<T> SliceCell<T> {
     }
     #[inline]
     fn pack(s: &'static [T]) -> PackedSlice<T> {
-        PackedSlice { ptr: std::ptr::NonNull::from(s).cast(), len: u32::try_from(s.len()).expect("slice longer than u32::MAX") }
+        PackedSlice {
+            ptr: std::ptr::NonNull::from(s).cast(),
+            len: u32::try_from(s.len()).expect("slice longer than u32::MAX"),
+        }
     }
     #[inline]
     pub fn get(&self) -> &'static [T] {
@@ -1141,7 +1245,10 @@ impl<T> OptionSliceCell<T> {
     #[inline]
     fn pack(s: Option<&'static [T]>) -> PackedOptionSlice<T> {
         match s {
-            Some(s) => PackedOptionSlice { ptr: s.as_ptr(), len: u32::try_from(s.len()).expect("slice longer than u32::MAX") },
+            Some(s) => PackedOptionSlice {
+                ptr: s.as_ptr(),
+                len: u32::try_from(s.len()).expect("slice longer than u32::MAX"),
+            },
             None => PackedOptionSlice { ptr: std::ptr::null(), len: 0 },
         }
     }
@@ -1162,7 +1269,6 @@ impl<T> Default for OptionSliceCell<T> {
         OptionSliceCell::new(None)
     }
 }
-
 
 /// Chooses the slice-cell layout that fits the current pointer representation.
 ///
@@ -1235,7 +1341,8 @@ pub fn alloc_vec_scratch<T>(items: Vec<T>) -> &'static [T] {
 /// `alloc_slice` of bytes, 4-aligned (for a length prefix read as `u32`).
 #[inline]
 pub fn alloc_slice_aligned4(items: &[u8]) -> &'static [u8] {
-    let layout = std::alloc::Layout::from_size_align(items.len().max(1), 4).expect("arena slice layout");
+    let layout =
+        std::alloc::Layout::from_size_align(items.len().max(1), 4).expect("arena slice layout");
     let p = with_arena(|a| a.alloc_layout(layout));
     // SAFETY: fresh memory for `items.len()` bytes.
     unsafe {
@@ -1316,7 +1423,14 @@ pub unsafe fn free_raw(addr: usize, size: usize, align: usize, needs_drop: bool)
 pub unsafe fn free_slice_ptr<T>(s: *const [T]) {
     if s.len() != 0 {
         // SAFETY: the caller's contract (`free_raw`).
-        unsafe { free_raw(s.cast::<T>() as usize, s.len() * std::mem::size_of::<T>(), std::mem::align_of::<T>(), std::mem::needs_drop::<T>()) };
+        unsafe {
+            free_raw(
+                s.cast::<T>() as usize,
+                s.len() * std::mem::size_of::<T>(),
+                std::mem::align_of::<T>(),
+                std::mem::needs_drop::<T>(),
+            );
+        };
     }
 }
 
@@ -1454,7 +1568,13 @@ impl ArenaStringBuilder {
         self.reserve(value.len());
         if !value.is_empty() {
             // SAFETY: reserve left at least `value.len()` bytes after `len`; the source is a valid separate `str`.
-            unsafe { std::ptr::copy_nonoverlapping(value.as_ptr(), self.ptr.as_ptr().add(self.len), value.len()) };
+            unsafe {
+                std::ptr::copy_nonoverlapping(
+                    value.as_ptr(),
+                    self.ptr.as_ptr().add(self.len),
+                    value.len(),
+                );
+            };
             self.len += value.len();
         }
     }
@@ -1471,10 +1591,15 @@ impl ArenaStringBuilder {
         if self.len == 0 {
             return "";
         }
+        #[expect(
+            clippy::disallowed_methods,
+            reason = "the builder preserves UTF-8 validity by construction"
+        )]
         // SAFETY: the first `len` bytes were written only by `push_str` and `push`, so they are valid UTF-8. The
         // allocation is in the arena and follows this module's arena-lifetime contract.
-        #[expect(clippy::disallowed_methods, reason = "the builder preserves UTF-8 validity by construction")]
-        unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(self.ptr.as_ptr(), self.len)) }
+        unsafe {
+            std::str::from_utf8_unchecked(std::slice::from_raw_parts(self.ptr.as_ptr(), self.len))
+        }
     }
 }
 
@@ -1498,7 +1623,8 @@ impl fmt::Write for ArenaStringBuilder {
 
 #[inline]
 fn arena_string_capacity(capacity: usize) -> std::ptr::NonNull<u8> {
-    let layout = std::alloc::Layout::from_size_align(capacity, 1).expect("arena string capacity overflow");
+    let layout =
+        std::alloc::Layout::from_size_align(capacity, 1).expect("arena string capacity overflow");
     with_arena(|a| a.alloc_layout(layout))
 }
 
@@ -1540,7 +1666,13 @@ pub fn arena_used_bytes() -> usize {
 
 /// Compressed pointers: (bytes of the reserved range handed out as chunks now, how far into it chunks were ever
 /// carved). `None` with plain pointers.
-#[cfg_attr(compressed_ptrs, expect(clippy::unnecessary_wraps, reason = "Plain-pointer builds have no compressed reservation and return None through the same API."))]
+#[cfg_attr(
+    compressed_ptrs,
+    expect(
+        clippy::unnecessary_wraps,
+        reason = "Plain-pointer builds have no compressed reservation and return None through the same API."
+    )
+)]
 pub fn reserve_stats() -> Option<(usize, usize)> {
     #[cfg(compressed_ptrs)]
     return Some((crate::reserve::reserved_in_use(), crate::reserve::reserved_high_water()));
@@ -1592,7 +1724,14 @@ pub mod shared_check {
         }
         let mut ranges = Vec::new();
         // The owning threads are idle; the chunk list is only read.
-        ranges.extend(ARENAS.lock().unwrap().iter().flat_map(|arena| arena.0.used_ranges()).map(|(ptr, len)| (ptr, ptr + len)));
+        ranges.extend(
+            ARENAS
+                .lock()
+                .unwrap()
+                .iter()
+                .flat_map(|arena| arena.0.used_ranges())
+                .map(|(ptr, len)| (ptr, ptr + len)),
+        );
         ranges.sort_unstable();
         *FROZEN.write().unwrap() = ranges;
     }
@@ -1605,7 +1744,10 @@ pub mod shared_check {
         let addr = std::ptr::from_ref::<T>(object).cast::<()>() as usize;
         let frozen = FROZEN.read().unwrap();
         let i = frozen.partition_point(|&(start, _)| start <= addr);
-        assert!(!(i > 0 && addr < frozen[i - 1].1), "write to shared {what} at {addr:#x} after binding (threading contract, docs/PORTING.md)");
+        assert!(
+            !(i > 0 && addr < frozen[i - 1].1),
+            "write to shared {what} at {addr:#x} after binding (threading contract, docs/PORTING.md)"
+        );
     }
 }
 
@@ -1629,7 +1771,10 @@ mod tests {
         b.next.set(Some(a));
         a.next.get().unwrap().n.set(5);
         assert_eq!(b.n.get(), 5);
-        assert_eq!(std::mem::size_of::<Option<P<Thing>>>(), if crate::COMPRESSED_PTRS { 4 } else { std::mem::size_of::<usize>() });
+        assert_eq!(
+            std::mem::size_of::<Option<P<Thing>>>(),
+            if crate::COMPRESSED_PTRS { 4 } else { std::mem::size_of::<usize>() }
+        );
     }
 
     #[test]
@@ -1658,8 +1803,11 @@ mod tests {
 
     #[test]
     fn thin_slices_keep_identity() {
-        for len in [0usize, 1, 3, u16::MAX as usize - 1, u16::MAX as usize, u16::MAX as usize + 1, 200_000] {
-            let s: &'static [u32] = Box::leak((0..len as u32).collect::<Vec<_>>().into_boxed_slice());
+        for len in
+            [0usize, 1, 3, u16::MAX as usize - 1, u16::MAX as usize, u16::MAX as usize + 1, 200_000]
+        {
+            let s: &'static [u32] =
+                Box::leak((0..len as u32).collect::<Vec<_>>().into_boxed_slice());
             let c = SliceCell::new(s);
             assert!(std::ptr::eq(c.get(), s), "len {len}");
             let o: OptionSliceCell<u32> = OptionSliceCell::default();

@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use rustc_hash::FxHashMap;
 use tsrs_core::tspath;
-use tsrs_fswatch::{Error, ErrOverflow, Event, EventKind, IgnoreFunc, Watch, WatchCallback};
+use tsrs_fswatch::{ErrOverflow, Error, Event, EventKind, IgnoreFunc, Watch, WatchCallback};
 
 use crate::watchmanager::{WatchBackend, WatchDirectoryRequest};
 
@@ -41,8 +41,15 @@ pub(crate) struct MockWatchBackend {
 }
 
 impl MockWatchBackend {
-    pub(crate) fn new(directory_exists: Box<dyn Fn(&str) -> bool + Send + Sync>, use_case_sensitive_file_names: bool) -> MockWatchBackend {
-        MockWatchBackend { dirs: Mutex::new(FxHashMap::default()), directory_exists, use_case_sensitive_file_names }
+    pub(crate) fn new(
+        directory_exists: Box<dyn Fn(&str) -> bool + Send + Sync>,
+        use_case_sensitive_file_names: bool,
+    ) -> MockWatchBackend {
+        MockWatchBackend {
+            dirs: Mutex::new(FxHashMap::default()),
+            directory_exists,
+            use_case_sensitive_file_names,
+        }
     }
 
     pub(crate) fn has_watches(&self) -> bool {
@@ -66,12 +73,23 @@ impl MockWatchBackend {
                     if w.ignore.as_ref().is_some_and(|ignore| ignore(&e.path)) {
                         continue;
                     }
-                    if !path_is_under(&e.path, &w.path, w.recursive, self.use_case_sensitive_file_names) {
+                    if !path_is_under(
+                        &e.path,
+                        &w.path,
+                        w.recursive,
+                        self.use_case_sensitive_file_names,
+                    ) {
                         continue;
                     }
                     match targets.iter_mut().find(|t| t.0 == w.path) {
                         Some(t) => t.2.push(e.clone()),
-                        None => targets.push((w.path.clone(), Arc::clone(&w.callback), vec![e.clone()])),
+                        None => {
+                            targets.push((
+                                w.path.clone(),
+                                Arc::clone(&w.callback),
+                                vec![e.clone()],
+                            ));
+                        }
                     }
                 }
             }
@@ -84,8 +102,14 @@ impl MockWatchBackend {
     /// Go `SendOverflow`.
     #[expect(dead_code, reason = "Go's mock API; the replayed scenarios do not overflow")]
     pub(crate) fn send_overflow(&self) {
-        let callbacks: Vec<WatchCallback> =
-            self.dirs.lock().unwrap().values().filter(|w| !*w.closed.lock().unwrap()).map(|w| Arc::clone(&w.callback)).collect();
+        let callbacks: Vec<WatchCallback> = self
+            .dirs
+            .lock()
+            .unwrap()
+            .values()
+            .filter(|w| !*w.closed.lock().unwrap())
+            .map(|w| Arc::clone(&w.callback))
+            .collect();
         for callback in callbacks {
             callback(Vec::new(), Some(Error::wrap("overflow", &Error::new(ErrOverflow.0))));
         }
@@ -118,7 +142,8 @@ impl MockWatchBackend {
     /// Go `WatchState`.
     pub(crate) fn watch_state(&self) -> String {
         let dirs = self.dirs.lock().unwrap();
-        let mut open: Vec<&mockWatch> = dirs.values().filter(|w| !*w.closed.lock().unwrap()).collect();
+        let mut open: Vec<&mockWatch> =
+            dirs.values().filter(|w| !*w.closed.lock().unwrap()).collect();
         open.sort_by(|a, b| a.path.cmp(&b.path));
         let mut b = String::from("Watch Registrations::\nDirectory watches::\n");
         if open.is_empty() {
@@ -136,7 +161,10 @@ impl MockWatchBackend {
 }
 
 impl WatchBackend for MockWatchBackend {
-    fn watch_directories(&self, requests: Vec<WatchDirectoryRequest>) -> Result<Vec<Box<dyn Watch>>, Error> {
+    fn watch_directories(
+        &self,
+        requests: Vec<WatchDirectoryRequest>,
+    ) -> Result<Vec<Box<dyn Watch>>, Error> {
         let mut dirs = self.dirs.lock().unwrap();
         if let Some(missing) = requests.iter().find(|r| !(self.directory_exists)(&r.dir)) {
             return Err(Error::new(format!("directory does not exist: {}", missing.dir)));
@@ -145,7 +173,16 @@ impl WatchBackend for MockWatchBackend {
         for r in requests {
             let closed = Arc::new(Mutex::new(false));
             closers.push(Box::new(mockCloser(Arc::clone(&closed))));
-            dirs.insert(r.dir.clone(), mockWatch { path: r.dir, callback: r.callback, recursive: r.recursive, ignore: r.ignore, closed });
+            dirs.insert(
+                r.dir.clone(),
+                mockWatch {
+                    path: r.dir,
+                    callback: r.callback,
+                    recursive: r.recursive,
+                    ignore: r.ignore,
+                    closed,
+                },
+            );
         }
         Ok(closers)
     }
@@ -161,13 +198,23 @@ fn path_dir(p: &str) -> String {
 }
 
 // Go `pathIsUnder`: whether `event_path` is inside `dir` (a direct child only, unless recursive).
-fn path_is_under(event_path: &str, dir: &str, recursive: bool, use_case_sensitive_file_names: bool) -> bool {
+fn path_is_under(
+    event_path: &str,
+    dir: &str,
+    recursive: bool,
+    use_case_sensitive_file_names: bool,
+) -> bool {
     let (event_path, dir) = if use_case_sensitive_file_names {
         (event_path.to_string(), dir.to_string())
     } else {
-        (tspath::get_canonical_file_name(event_path, false), tspath::get_canonical_file_name(dir, false))
+        (
+            tspath::get_canonical_file_name(event_path, false),
+            tspath::get_canonical_file_name(dir, false),
+        )
     };
-    let Some(rest) = event_path.strip_prefix(dir.as_str()) else { return false };
+    let Some(rest) = event_path.strip_prefix(dir.as_str()) else {
+        return false;
+    };
     if rest.is_empty() || !rest.starts_with('/') {
         return false; // the dir itself, or a sibling like /foobar for /foo
     }

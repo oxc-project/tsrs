@@ -52,7 +52,10 @@ fn new_vs_image_id(id: i32) -> lsproto::VSImageId {
 // legacy (TSServer-backed) hover path uses; Corsa has no TSServer to source that mapping from, so
 // the LSP hover response must carry the equivalent icon directly.
 // hovericon.go:56
-pub(crate) fn get_vs_hover_image_id(kind: ScriptElementKind, modifiers: ScriptElementKindModifier) -> lsproto::VSImageId {
+pub(crate) fn get_vs_hover_image_id(
+    kind: ScriptElementKind,
+    modifiers: ScriptElementKindModifier,
+) -> lsproto::VSImageId {
     let is_private = modifiers.intersects(ScriptElementKindModifier::Private);
     let is_protected = modifiers.intersects(ScriptElementKindModifier::Protected);
 
@@ -72,14 +75,25 @@ pub(crate) fn get_vs_hover_image_id(kind: ScriptElementKind, modifiers: ScriptEl
     match kind {
         K::Warning => new_vs_image_id(IMAGE_ID_WARNING),
         K::Keyword => new_vs_image_id(IMAGE_ID_KEYWORD),
-        K::ScriptElement => pick(IMAGE_ID_MODULE_PRIVATE, IMAGE_ID_MODULE_PROTECTED, IMAGE_ID_MODULE_PUBLIC),
+        K::ScriptElement => {
+            pick(IMAGE_ID_MODULE_PRIVATE, IMAGE_ID_MODULE_PROTECTED, IMAGE_ID_MODULE_PUBLIC)
+        }
         K::PrimitiveType => new_vs_image_id(IMAGE_ID_TYPE),
         K::ModuleElement => new_vs_image_id(IMAGE_ID_NAMESPACE),
-        K::ConstructorImplementationElement | K::ClassElement | K::LocalClassElement | K::TypeElement => {
+        K::ConstructorImplementationElement
+        | K::ClassElement
+        | K::LocalClassElement
+        | K::TypeElement => {
             pick(IMAGE_ID_CLASS_PRIVATE, IMAGE_ID_CLASS_PROTECTED, IMAGE_ID_CLASS_PUBLIC)
         }
-        K::InterfaceElement => pick(IMAGE_ID_INTERFACE_PRIVATE, IMAGE_ID_INTERFACE_PROTECTED, IMAGE_ID_INTERFACE_PUBLIC),
-        K::EnumElement => pick(IMAGE_ID_ENUM_PRIVATE, IMAGE_ID_ENUM_PROTECTED, IMAGE_ID_ENUM_PUBLIC),
+        K::InterfaceElement => pick(
+            IMAGE_ID_INTERFACE_PRIVATE,
+            IMAGE_ID_INTERFACE_PROTECTED,
+            IMAGE_ID_INTERFACE_PUBLIC,
+        ),
+        K::EnumElement => {
+            pick(IMAGE_ID_ENUM_PRIVATE, IMAGE_ID_ENUM_PROTECTED, IMAGE_ID_ENUM_PUBLIC)
+        }
         K::EnumMemberElement => new_vs_image_id(IMAGE_ID_ENUM_MEMBER),
         K::ParameterElement
         | K::VariableElement
@@ -88,8 +102,13 @@ pub(crate) fn get_vs_hover_image_id(kind: ScriptElementKind, modifiers: ScriptEl
         | K::VariableAwaitUsingElement
         | K::LetElement
         | K::String => new_vs_image_id(IMAGE_ID_LOCAL_VARIABLE),
-        K::ConstElement => pick(IMAGE_ID_CONSTANT_PRIVATE, IMAGE_ID_CONSTANT_PROTECTED, IMAGE_ID_CONSTANT_PUBLIC),
-        K::MemberGetAccessorElement | K::MemberSetAccessorElement | K::MemberVariableElement | K::MemberAccessorVariableElement => {
+        K::ConstElement => {
+            pick(IMAGE_ID_CONSTANT_PRIVATE, IMAGE_ID_CONSTANT_PROTECTED, IMAGE_ID_CONSTANT_PUBLIC)
+        }
+        K::MemberGetAccessorElement
+        | K::MemberSetAccessorElement
+        | K::MemberVariableElement
+        | K::MemberAccessorVariableElement => {
             pick(IMAGE_ID_PROPERTY_PRIVATE, IMAGE_ID_PROPERTY_PROTECTED, IMAGE_ID_PROPERTY_PUBLIC)
         }
         K::FunctionElement
@@ -97,7 +116,9 @@ pub(crate) fn get_vs_hover_image_id(kind: ScriptElementKind, modifiers: ScriptEl
         | K::MemberFunctionElement
         | K::CallSignatureElement
         | K::IndexSignatureElement
-        | K::ConstructSignatureElement => pick(IMAGE_ID_METHOD_PRIVATE, IMAGE_ID_METHOD_PROTECTED, IMAGE_ID_METHOD_PUBLIC),
+        | K::ConstructSignatureElement => {
+            pick(IMAGE_ID_METHOD_PRIVATE, IMAGE_ID_METHOD_PROTECTED, IMAGE_ID_METHOD_PUBLIC)
+        }
         K::TypeParameterElement => new_vs_image_id(IMAGE_ID_TYPE),
         K::Label => new_vs_image_id(IMAGE_ID_LABEL),
         K::Alias => new_vs_image_id(IMAGE_ID_MODULE_PUBLIC),
@@ -127,7 +148,10 @@ pub(crate) fn build_vs_hover_raw_content(
                 ..Default::default()
             },
             lsproto::VSImageElementOrClassifiedTextElementOrContainerElement {
-                classified_text_element: Some(lsproto::VSClassifiedTextElement { runs: quick_info_runs, ..Default::default() }),
+                classified_text_element: Some(lsproto::VSClassifiedTextElement {
+                    runs: quick_info_runs,
+                    ..Default::default()
+                }),
                 ..Default::default()
             },
         ],
@@ -141,9 +165,15 @@ pub(crate) fn build_vs_hover_raw_content(
     Some(lsproto::VSContainerElement {
         style: lsproto::VSContainerElementStyle::Stacked,
         elements: vec![
-            lsproto::VSImageElementOrClassifiedTextElementOrContainerElement { container_element: Some(display_line), ..Default::default() },
             lsproto::VSImageElementOrClassifiedTextElementOrContainerElement {
-                classified_text_element: Some(lsproto::VSClassifiedTextElement { runs: documentation_runs, ..Default::default() }),
+                container_element: Some(display_line),
+                ..Default::default()
+            },
+            lsproto::VSImageElementOrClassifiedTextElementOrContainerElement {
+                classified_text_element: Some(lsproto::VSClassifiedTextElement {
+                    runs: documentation_runs,
+                    ..Default::default()
+                }),
                 ..Default::default()
             },
         ],

@@ -20,12 +20,25 @@ impl CommonJSModuleTransformer {
         let mut v = self.visitor();
         let declaration_list = node.as_variable_statement().declaration_list;
         // export var a = b;
-        let mut st = pendingTopLevelVariables { statements: Vec::new(), variables: Vec::new(), expressions: Vec::new(), modifiers: None };
+        let mut st = pendingTopLevelVariables {
+            statements: Vec::new(),
+            variables: Vec::new(),
+            expressions: Vec::new(),
+            modifiers: None,
+        };
 
         let commit_pending_variables = |st: &mut pendingTopLevelVariables| {
             if !st.variables.is_empty() {
                 let variable_list = f.new_node_list(std::mem::take(&mut st.variables));
-                let statement = f.update_variable_statement(node, st.modifiers, f.update_variable_declaration_list(declaration_list, variable_list, declaration_list.flags()));
+                let statement = f.update_variable_statement(
+                    node,
+                    st.modifiers,
+                    f.update_variable_declaration_list(
+                        declaration_list,
+                        variable_list,
+                        declaration_list.flags(),
+                    ),
+                );
                 if !st.statements.is_empty() {
                     emit_context.add_emit_flags(statement, EmitFlags::NoComments);
                 }
@@ -35,7 +48,8 @@ impl CommonJSModuleTransformer {
 
         let commit_pending_expressions = |st: &mut pendingTopLevelVariables| {
             if !st.expressions.is_empty() {
-                let statement = f.new_expression_statement(f.inline_expressions(&st.expressions).unwrap());
+                let statement =
+                    f.new_expression_statement(f.inline_expressions(&st.expressions).unwrap());
                 st.expressions.clear();
                 emit_context.assign_comment_and_source_map_ranges(statement, node);
                 if !st.statements.is_empty() {
@@ -70,7 +84,11 @@ impl CommonJSModuleTransformer {
                 // an `export { x }` declaration will follow.
 
                 if st.modifiers.is_none() {
-                    st.modifiers = extract_modifiers(emit_context, node.modifiers(), !ModifierFlags::ExportDefault);
+                    st.modifiers = extract_modifiers(
+                        emit_context,
+                        node.modifiers(),
+                        !ModifierFlags::ExportDefault,
+                    );
                 }
 
                 let mut variable = variable;
@@ -80,20 +98,46 @@ impl CommonJSModuleTransformer {
                         name,
                         None, /*exclamationToken*/
                         None, /*type*/
-                        Some(self.create_export_expression(name, v.visit_node(Some(initializer)).unwrap(), None, false /*liveBinding*/)),
+                        Some(self.create_export_expression(
+                            name,
+                            v.visit_node(Some(initializer)).unwrap(),
+                            None,
+                            false, /*liveBinding*/
+                        )),
                     );
                 }
 
                 push_variable(&mut st, variable);
-            } else if initializer.is_some_and(|i| ast::is_arrow_function(i) || ast::is_function_expression(i) || ast::is_class_expression(i)) && !ast::is_binding_pattern(name) {
+            } else if initializer.is_some_and(|i| {
+                ast::is_arrow_function(i)
+                    || ast::is_function_expression(i)
+                    || ast::is_class_expression(i)
+            }) && !ast::is_binding_pattern(name)
+            {
                 // preserve variable declarations for functions and classes to assign names
 
-                push_variable(&mut st, f.new_variable_declaration(name, var.exclamation_token(), var.type_(), v.visit_node(initializer)));
+                push_variable(
+                    &mut st,
+                    f.new_variable_declaration(
+                        name,
+                        var.exclamation_token(),
+                        var.type_(),
+                        v.visit_node(initializer),
+                    ),
+                );
 
-                let property_access = f.new_property_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, name, NodeFlags::None);
+                let property_access = f.new_property_access_expression(
+                    f.new_identifier("exports"),
+                    None, /*questionDotToken*/
+                    name,
+                    NodeFlags::None,
+                );
                 emit_context.assign_comment_and_source_map_ranges(property_access, name);
 
-                push_expression(&mut st, f.new_assignment_expression(property_access, name.clone_node(f)));
+                push_expression(
+                    &mut st,
+                    f.new_assignment_expression(property_access, name.clone_node(f)),
+                );
             } else if ast::is_identifier(name) {
                 if let Some(expression) = self.transform_initialized_variable(variable) {
                     push_expression(&mut st, v.visit_node(Some(expression)).unwrap());
@@ -107,7 +151,9 @@ impl CommonJSModuleTransformer {
             } else {
                 // For binding patterns, we can't do exports.{pattern} = value
                 // Just emit the assignment and let appendExportsOfVariableStatement handle the exports
-                if let Some(expression) = convert_variable_declaration_to_assignment_expression(emit_context, variable) {
+                if let Some(expression) =
+                    convert_variable_declaration_to_assignment_expression(emit_context, variable)
+                {
                     push_expression(&mut st, v.visit_node(Some(expression)).unwrap());
                 }
             }
@@ -132,14 +178,22 @@ impl CommonJSModuleTransformer {
             // substituted to an export reference. Only when the destructuring would assign to
             // re-aliased or multi-exported names (where native destructuring cannot update all
             // targets) does `visitDestructuringAssignment` fall back to flattening.
-            let assignment = convert_variable_declaration_to_assignment_expression(self.emit_context(), node).unwrap();
+            let assignment =
+                convert_variable_declaration_to_assignment_expression(self.emit_context(), node)
+                    .unwrap();
             let grandparent_node = self.push_node(assignment);
-            let result = self.visit_destructuring_assignment(assignment, true /*valueIsDiscarded*/);
+            let result =
+                self.visit_destructuring_assignment(assignment, true /*valueIsDiscarded*/);
             self.pop_node(grandparent_node);
             return Some(result);
         }
         let f = self.factory();
-        let property_access = f.new_property_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, name, NodeFlags::None);
+        let property_access = f.new_property_access_expression(
+            f.new_identifier("exports"),
+            None, /*questionDotToken*/
+            name,
+            NodeFlags::None,
+        );
         self.emit_context().assign_comment_and_source_map_ranges(property_access, name);
         Some(f.new_assignment_expression(property_access, initializer))
     }
@@ -162,9 +216,15 @@ impl CommonJSModuleTransformer {
         let emit_context = self.emit_context();
         let n = node.as_for_statement();
         if let Some(initializer) = n.initializer {
-            if ast::is_variable_declaration_list(initializer) && !initializer.flags().intersects(NodeFlags::BlockScoped) {
+            if ast::is_variable_declaration_list(initializer)
+                && !initializer.flags().intersects(NodeFlags::BlockScoped)
+            {
                 let mut export_statements: Vec<P<Node>> = Vec::new();
-                self.append_exports_of_variable_declaration_list(&mut export_statements, initializer, false /*isForInOrOfInitializer*/);
+                self.append_exports_of_variable_declaration_list(
+                    &mut export_statements,
+                    initializer,
+                    false, /*isForInOrOfInitializer*/
+                );
                 if !export_statements.is_empty() {
                     // given:
                     //   export { x }
@@ -175,26 +235,43 @@ impl CommonJSModuleTransformer {
                     //   for (; ;) { }
 
                     let mut statements: Vec<P<Node>> = Vec::new();
-                    let var_decl_list = self.discarded_value_visitor().visit_node(Some(initializer)).unwrap();
-                    let var_statement = f.new_variable_statement(None /*modifiers*/, var_decl_list);
+                    let var_decl_list =
+                        self.discarded_value_visitor().visit_node(Some(initializer)).unwrap();
+                    let var_statement =
+                        f.new_variable_statement(None /*modifiers*/, var_decl_list);
                     statements.push(var_statement);
                     statements.extend(export_statements);
 
                     let condition = self.visitor().visit_node(n.condition);
                     let incrementor = self.discarded_value_visitor().visit_node(n.incrementor);
-                    let body = emit_context.visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap();
-                    statements.push(f.update_for_statement(node, None /*initializer*/, condition, incrementor, body));
+                    let body = emit_context
+                        .visit_iteration_body(
+                            Some(n.statement()),
+                            &mut self.top_level_nested_visitor(),
+                        )
+                        .unwrap();
+                    statements.push(f.update_for_statement(
+                        node,
+                        None, /*initializer*/
+                        condition,
+                        incrementor,
+                        body,
+                    ));
                     return single_or_many(Some(statements), f);
                 }
             }
         }
-        Some(f.update_for_statement(
-            node,
-            self.discarded_value_visitor().visit_node(n.initializer),
-            self.visitor().visit_node(n.condition),
-            self.discarded_value_visitor().visit_node(n.incrementor),
-            emit_context.visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap(),
-        ))
+        Some(
+            f.update_for_statement(
+                node,
+                self.discarded_value_visitor().visit_node(n.initializer),
+                self.visitor().visit_node(n.condition),
+                self.discarded_value_visitor().visit_node(n.incrementor),
+                emit_context
+                    .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                    .unwrap(),
+            ),
+        )
     }
 
     // Visits a top-level nested `for..in` or `for..of` statement as it may contain `var` declarations that are hoisted and
@@ -204,9 +281,15 @@ impl CommonJSModuleTransformer {
         let f = self.factory();
         let emit_context = self.emit_context();
         let n = node.as_for_in_or_of_statement();
-        if ast::is_variable_declaration_list(n.initializer) && !n.initializer.flags().intersects(NodeFlags::BlockScoped) {
+        if ast::is_variable_declaration_list(n.initializer)
+            && !n.initializer.flags().intersects(NodeFlags::BlockScoped)
+        {
             let mut export_statements: Vec<P<Node>> = Vec::new();
-            self.append_exports_of_variable_declaration_list(&mut export_statements, n.initializer, true /*isForInOrOfInitializer*/);
+            self.append_exports_of_variable_declaration_list(
+                &mut export_statements,
+                n.initializer,
+                true, /*isForInOrOfInitializer*/
+            );
             if !export_statements.is_empty() {
                 // given:
                 //   export { x }
@@ -219,9 +302,12 @@ impl CommonJSModuleTransformer {
                 //     ...
                 //   }
 
-                let initializer = self.discarded_value_visitor().visit_node(Some(n.initializer)).unwrap();
+                let initializer =
+                    self.discarded_value_visitor().visit_node(Some(n.initializer)).unwrap();
                 let expression = self.visitor().visit_node(Some(n.expression)).unwrap();
-                let mut body = emit_context.visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap();
+                let mut body = emit_context
+                    .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                    .unwrap();
                 if ast::is_block(body) {
                     let block = body.as_block();
                     let mut body_statements = export_statements;
@@ -234,7 +320,13 @@ impl CommonJSModuleTransformer {
                     body_statements.push(body);
                     body = f.new_block(f.new_node_list(body_statements), true /*multiLine*/);
                 }
-                return f.update_for_in_or_of_statement(node, n.await_modifier, initializer, expression, body);
+                return f.update_for_in_or_of_statement(
+                    node,
+                    n.await_modifier,
+                    initializer,
+                    expression,
+                    body,
+                );
             }
         }
         f.update_for_in_or_of_statement(
@@ -242,28 +334,46 @@ impl CommonJSModuleTransformer {
             n.await_modifier,
             self.discarded_value_visitor().visit_node(Some(n.initializer)).unwrap(),
             self.visitor().visit_node(Some(n.expression)).unwrap(),
-            emit_context.visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap(),
+            emit_context
+                .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                .unwrap(),
         )
     }
 
     // commonjsmodule.go:1240
     pub(crate) fn visit_top_level_nested_do_statement(&self, node: P<Node>) -> P<Node> {
         let n = node.as_do_statement();
-        let statement = self.emit_context().visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap();
-        self.factory().update_do_statement(node, statement, self.visitor().visit_node(Some(n.expression)).unwrap())
+        let statement = self
+            .emit_context()
+            .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+            .unwrap();
+        self.factory().update_do_statement(
+            node,
+            statement,
+            self.visitor().visit_node(Some(n.expression)).unwrap(),
+        )
     }
 
     // commonjsmodule.go:1250
     pub(crate) fn visit_top_level_nested_while_statement(&self, node: P<Node>) -> P<Node> {
         let n = node.as_while_statement();
         let expression = self.visitor().visit_node(Some(n.expression)).unwrap();
-        self.factory().update_while_statement(node, expression, self.emit_context().visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap())
+        self.factory().update_while_statement(
+            node,
+            expression,
+            self.emit_context()
+                .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                .unwrap(),
+        )
     }
 
     // commonjsmodule.go:1260
     pub(crate) fn visit_top_level_nested_labeled_statement(&self, node: P<Node>) -> P<Node> {
         let n = node.as_labeled_statement();
-        let statement = self.top_level_nested_visitor().visit_embedded_statement(Some(n.statement())).unwrap_or_else(|| self.factory().new_empty_statement());
+        let statement = self
+            .top_level_nested_visitor()
+            .visit_embedded_statement(Some(n.statement()))
+            .unwrap_or_else(|| self.factory().new_empty_statement());
         self.factory().update_labeled_statement(node, n.label, statement)
     }
 
@@ -271,7 +381,11 @@ impl CommonJSModuleTransformer {
     pub(crate) fn visit_top_level_nested_with_statement(&self, node: P<Node>) -> P<Node> {
         let n = node.as_with_statement();
         let expression = self.visitor().visit_node(Some(n.expression)).unwrap();
-        self.factory().update_with_statement(node, expression, self.top_level_nested_visitor().visit_embedded_statement(Some(n.statement())).unwrap())
+        self.factory().update_with_statement(
+            node,
+            expression,
+            self.top_level_nested_visitor().visit_embedded_statement(Some(n.statement())).unwrap(),
+        )
     }
 
     // commonjsmodule.go:1280
@@ -279,8 +393,12 @@ impl CommonJSModuleTransformer {
         let f = self.factory();
         let n = node.as_if_statement();
         let expression = self.visitor().visit_node(Some(n.expression)).unwrap();
-        let then_statement = self.top_level_nested_visitor().visit_embedded_statement(Some(n.then_statement)).unwrap_or_else(|| f.new_block(f.new_node_list(Vec::new()), false /*multiLine*/));
-        let else_statement = self.top_level_nested_visitor().visit_embedded_statement(n.else_statement);
+        let then_statement = self
+            .top_level_nested_visitor()
+            .visit_embedded_statement(Some(n.then_statement))
+            .unwrap_or_else(|| f.new_block(f.new_node_list(Vec::new()), false /*multiLine*/));
+        let else_statement =
+            self.top_level_nested_visitor().visit_embedded_statement(n.else_statement);
         f.update_if_statement(node, expression, then_statement, else_statement)
     }
 
@@ -288,7 +406,11 @@ impl CommonJSModuleTransformer {
     pub(crate) fn visit_top_level_nested_switch_statement(&self, node: P<Node>) -> P<Node> {
         let n = node.as_switch_statement();
         let expression = self.visitor().visit_node(Some(n.expression)).unwrap();
-        self.factory().update_switch_statement(node, expression, self.top_level_nested_visitor().visit_node(Some(n.case_block)).unwrap())
+        self.factory().update_switch_statement(
+            node,
+            expression,
+            self.top_level_nested_visitor().visit_node(Some(n.case_block)).unwrap(),
+        )
     }
 
     // commonjsmodule.go:1302
@@ -300,7 +422,11 @@ impl CommonJSModuleTransformer {
     pub(crate) fn visit_top_level_nested_case_or_default_clause(&self, node: P<Node>) -> P<Node> {
         let n = node.as_case_or_default_clause();
         let expression = self.visitor().visit_node(n.expression);
-        self.factory().update_case_or_default_clause(node, expression, self.top_level_nested_visitor().visit_nodes(Some(n.statements)).unwrap())
+        self.factory().update_case_or_default_clause(
+            node,
+            expression,
+            self.top_level_nested_visitor().visit_nodes(Some(n.statements)).unwrap(),
+        )
     }
 
     // commonjsmodule.go:1318
@@ -311,7 +437,11 @@ impl CommonJSModuleTransformer {
     // commonjsmodule.go:1324
     pub(crate) fn visit_top_level_nested_catch_clause(&self, node: P<Node>) -> P<Node> {
         let n = node.as_catch_clause();
-        self.factory().update_catch_clause(node, n.variable_declaration, self.top_level_nested_visitor().visit_node(Some(n.block)).unwrap())
+        self.factory().update_catch_clause(
+            node,
+            n.variable_declaration,
+            self.top_level_nested_visitor().visit_node(Some(n.block)).unwrap(),
+        )
     }
 
     // commonjsmodule.go:1334

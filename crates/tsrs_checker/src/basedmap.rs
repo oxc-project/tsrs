@@ -54,10 +54,12 @@ impl<K: PackedKey, V: Copy> Based<PackedMap<K, V>> {
     pub fn values(&self) -> impl Iterator<Item = V> + '_ {
         self.base.into_iter().flat_map(super::packedmap::PackedMap::values).chain(self.own.values())
     }
-
 }
 
-#[expect(clippy::implicit_hasher, reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy.")]
+#[expect(
+    clippy::implicit_hasher,
+    reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy."
+)]
 impl<K: Hash + Eq + Clone, V> Based<FxHashMap<K, V>, K> {
     #[inline]
     pub fn get(&self, key: &K) -> Option<&V> {
@@ -91,7 +93,11 @@ impl<K: Hash + Eq + Clone, V> Based<FxHashMap<K, V>, K> {
     }
 
     pub fn remove(&mut self, key: &K) -> Option<V> {
-        if self.base.filter(|_| tsrs_core::sharedgraph::COMPILED_IN).is_some_and(|b| b.contains_key(key)) {
+        if self
+            .base
+            .filter(|_| tsrs_core::sharedgraph::COMPILED_IN)
+            .is_some_and(|b| b.contains_key(key))
+        {
             self.removed.insert(key.clone());
         }
         self.own.remove(key)

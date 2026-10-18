@@ -6,10 +6,13 @@
 use std::io::{BufRead, Write as _};
 
 use tsrs_ast::{ExternalModuleIndicatorOptions, SourceFileParseOptions};
-use tsrs_core::tspath::Path;
 use tsrs_ast::{Node, SourceFile};
 use tsrs_core::P;
-use tsrs_printer::{get_single_line_string_writer, new_emit_context, new_printer, new_text_writer, EmitContext, EmitFlags, EmitTextWriter, PrintHandlers, PrinterOptions};
+use tsrs_core::tspath::Path;
+use tsrs_printer::{
+    EmitContext, EmitFlags, EmitTextWriter, PrintHandlers, PrinterOptions,
+    get_single_line_string_writer, new_emit_context, new_printer, new_text_writer,
+};
 
 fn parse_flags(flags: &str) -> ExternalModuleIndicatorOptions {
     ExternalModuleIndicatorOptions { jsx: flags.contains('j'), force: flags.contains('f') }
@@ -24,7 +27,12 @@ fn options(mode: &str) -> PrinterOptions {
     match mode {
         "default" => PrinterOptions::default(),
         "nocomments" => PrinterOptions { remove_comments: true, ..Default::default() },
-        "omitsemi" => PrinterOptions { remove_comments: true, omit_trailing_semicolon: true, never_ascii_escape: true, ..Default::default() },
+        "omitsemi" => PrinterOptions {
+            remove_comments: true,
+            omit_trailing_semicolon: true,
+            never_ascii_escape: true,
+            ..Default::default()
+        },
         "preserve" => PrinterOptions {
             new_line: tsrs_core::NewLineKind::CRLF,
             never_ascii_escape: true,
@@ -42,8 +50,16 @@ fn print_file(mode: &str, path: &str, flags: &str) -> Result<String, &'static st
     let Some(text) = read(path) else {
         return Err("UNREADABLE");
     };
-    let opts = SourceFileParseOptions { file_name: path.to_string(), path: Path::new(path.to_string()), external_module_indicator_options: parse_flags(flags) };
-    let file = tsrs_parser::parse_source_file(opts, &text, tsrs_core::ensure_script_kind_from_file_name(path));
+    let opts = SourceFileParseOptions {
+        file_name: path.to_string(),
+        path: Path::new(path.to_string()),
+        external_module_indicator_options: parse_flags(flags),
+    };
+    let file = tsrs_parser::parse_source_file(
+        opts,
+        &text,
+        tsrs_core::ensure_script_kind_from_file_name(path),
+    );
     if !file.diagnostics().is_empty() {
         return Err("SKIP");
     }
@@ -68,7 +84,11 @@ fn set_flags_recursive(ec: P<EmitContext>, node: P<Node>, flags: EmitFlags) {
 
 fn print_synthesized(mode: &str, file: P<SourceFile>) -> String {
     let ec = new_emit_context();
-    let mut p = new_printer(PrinterOptions { remove_comments: true, ..Default::default() }, PrintHandlers::default(), Some(ec));
+    let mut p = new_printer(
+        PrinterOptions { remove_comments: true, ..Default::default() },
+        PrintHandlers::default(),
+        Some(ec),
+    );
     let mut sb = String::new();
     for &stmt in file.statements.nodes() {
         let clone = ec.factory.deep_clone_node(Some(stmt)).unwrap();
@@ -79,7 +99,11 @@ fn print_synthesized(mode: &str, file: P<SourceFile>) -> String {
                 get_single_line_string_writer().0
             }
             "synthmulti" => {
-                set_flags_recursive(ec, clone, EmitFlags::MultiLine | EmitFlags::StartOnNewLine | EmitFlags::Indented);
+                set_flags_recursive(
+                    ec,
+                    clone,
+                    EmitFlags::MultiLine | EmitFlags::StartOnNewLine | EmitFlags::Indented,
+                );
                 new_text_writer("\n", 0)
             }
             other => panic!("unknown mode {other}"),

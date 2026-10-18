@@ -4,15 +4,17 @@
 use tsrs_ast::{Node, SourceFile, Symbol, SymbolFlags};
 use tsrs_checker::{Checker, IndexInfo, ObjectFlags, Signature, Type, TypeFlags};
 use tsrs_compiler::{CheckerHandle, Program};
-use tsrs_core::context::{with_checker_lifetime, CheckerLifetime};
+use tsrs_core::P;
+use tsrs_core::context::{CheckerLifetime, with_checker_lifetime};
 use tsrs_core::json::Value;
 use tsrs_core::tspath::Path;
-use tsrs_core::P;
 use tsrs_project::ID;
 
 use super::host::{CheckerError, CheckerHost, CheckerResult, SnapshotScope};
 use super::json::Obj;
-use super::params::{DocumentIdentifier, SymbolReference, SYMBOL_OWNER_KIND_FILE, SYMBOL_OWNER_KIND_SNAPSHOT};
+use super::params::{
+    DocumentIdentifier, SYMBOL_OWNER_KIND_FILE, SYMBOL_OWNER_KIND_SNAPSHOT, SymbolReference,
+};
 use super::symbol_index::source_file_symbol;
 
 /// A snapshot + project without a checker (Go `getSnapshotData` + `params.Project`), used by the property
@@ -24,13 +26,21 @@ pub(crate) struct SnapshotCtx<'h> {
 }
 
 impl<'h> SnapshotCtx<'h> {
-    pub(crate) fn new(host: &'h dyn CheckerHost, snapshot: u64, project: &str) -> CheckerResult<SnapshotCtx<'h>> {
+    pub(crate) fn new(
+        host: &'h dyn CheckerHost,
+        snapshot: u64,
+        project: &str,
+    ) -> CheckerResult<SnapshotCtx<'h>> {
         let scope = host.snapshot(snapshot)?;
         Ok(SnapshotCtx { host, scope, project: project.to_string() })
     }
 
     /// Go `snapshotData.newSymbolResponse(symbol, canonicalProject)`.
-    pub(crate) fn symbol_response(&self, symbol: P<Symbol>, canonical_project: &str) -> CheckerResult<Value> {
+    pub(crate) fn symbol_response(
+        &self,
+        symbol: P<Symbol>,
+        canonical_project: &str,
+    ) -> CheckerResult<Value> {
         if symbol_owner_file(symbol).is_some() {
             return file_symbol_response(self.host, symbol);
         }
@@ -44,7 +54,11 @@ impl<'h> SnapshotCtx<'h> {
     }
 
     /// Go `snapshotData.newSignatureResponse(projectID, sig)` for a signature produced by `checker_id`.
-    pub(crate) fn signature_response(&self, checker_id: u32, sig: P<Signature>) -> CheckerResult<Value> {
+    pub(crate) fn signature_response(
+        &self,
+        checker_id: u32,
+        sig: P<Signature>,
+    ) -> CheckerResult<Value> {
         let id = self.scope.registry.register_signature(&self.project, checker_id, sig)?;
         let mut o = Obj::new();
         o.num("id", id as f64);
@@ -54,7 +68,15 @@ impl<'h> SnapshotCtx<'h> {
         }
         o.ids("typeParameters", sig.type_parameters().iter().map(|t| t.id().0 as f64));
         if !sig.parameters().is_empty() {
-            o.set("parameters", Value::Array(sig.parameters().iter().map(|p| compact_symbol_reference(self.host, *p)).collect::<CheckerResult<_>>()?));
+            o.set(
+                "parameters",
+                Value::Array(
+                    sig.parameters()
+                        .iter()
+                        .map(|p| compact_symbol_reference(self.host, *p))
+                        .collect::<CheckerResult<_>>()?,
+                ),
+            );
         }
         if let Some(this) = sig.this_parameter() {
             o.set("thisParameter", compact_symbol_reference(self.host, this)?);
@@ -69,7 +91,11 @@ impl<'h> SnapshotCtx<'h> {
         self.scope.registry.resolve_type(&self.project, id, checker_id)
     }
 
-    pub(crate) fn resolve_signature(&self, id: u64, checker_id: Option<u32>) -> CheckerResult<P<Signature>> {
+    pub(crate) fn resolve_signature(
+        &self,
+        id: u64,
+        checker_id: Option<u32>,
+    ) -> CheckerResult<P<Signature>> {
         self.scope.registry.resolve_signature(&self.project, id, checker_id)
     }
 
@@ -103,7 +129,11 @@ impl<'h> Setup<'h> {
     /// Go `setupChecker`: resolves snapshot and program and acquires the program's persistent API checker
     /// (`core.CheckerLifetimeAPI`). The checker is exclusive and not reentrant: a handler must acquire it
     /// once and never call back into anything that acquires the API checker again.
-    pub(crate) fn new(host: &'h dyn CheckerHost, snapshot: u64, project: &str) -> CheckerResult<Setup<'h>> {
+    pub(crate) fn new(
+        host: &'h dyn CheckerHost,
+        snapshot: u64,
+        project: &str,
+    ) -> CheckerResult<Setup<'h>> {
         let sd = SnapshotCtx::new(host, snapshot, project)?;
         let program = sd.program()?;
         let lease = super::lease::acquire(program)?;
@@ -126,7 +156,9 @@ impl<'h> Setup<'h> {
     }
 
     pub(crate) fn symbols_response(&self, symbols: &[P<Symbol>]) -> CheckerResult<Value> {
-        Ok(Value::Array(symbols.iter().map(|s| self.symbol_response(*s)).collect::<CheckerResult<_>>()?))
+        Ok(Value::Array(
+            symbols.iter().map(|s| self.symbol_response(*s)).collect::<CheckerResult<_>>()?,
+        ))
     }
 
     pub(crate) fn signature_response(&self, sig: P<Signature>) -> CheckerResult<Value> {
@@ -175,7 +207,14 @@ impl<'h> Setup<'h> {
         if tsrs_checker::is_tuple_type_target(t) {
             let infos = t.as_tuple_type().element_infos();
             if infos.iter().any(|info| info.labeled_declaration().is_some()) {
-                let decls = infos.iter().map(|info| info.labeled_declaration().map_or(Ok(String::new()), |d| self.sd.host.node_handle(d)).map(Value::String)).collect::<CheckerResult<_>>()?;
+                let decls = infos
+                    .iter()
+                    .map(|info| {
+                        info.labeled_declaration()
+                            .map_or(Ok(String::new()), |d| self.sd.host.node_handle(d))
+                            .map(Value::String)
+                    })
+                    .collect::<CheckerResult<_>>()?;
                 o.set("labeledElementDeclarations", Value::Array(decls));
             }
         }
@@ -222,7 +261,9 @@ impl<'h> Setup<'h> {
     }
 
     pub(crate) fn source_file(&self, file: &DocumentIdentifier) -> CheckerResult<P<SourceFile>> {
-        self.program.get_source_file(&file.to_file_name()).ok_or_else(|| CheckerError::client(format!("source file not found: {}", file.display())))
+        self.program.get_source_file(&file.to_file_name()).ok_or_else(|| {
+            CheckerError::client(format!("source file not found: {}", file.display()))
+        })
     }
 
     pub(crate) fn resolve_node(&self, handle: &str) -> CheckerResult<P<Node>> {
@@ -230,7 +271,12 @@ impl<'h> Setup<'h> {
     }
 
     /// Go `checkerSetup.resolveLocation`: a node handle, or file + UTF-16 position, or nothing.
-    pub(crate) fn resolve_location(&self, handle: &str, file: Option<&DocumentIdentifier>, position: Option<u32>) -> CheckerResult<Option<P<Node>>> {
+    pub(crate) fn resolve_location(
+        &self,
+        handle: &str,
+        file: Option<&DocumentIdentifier>,
+        position: Option<u32>,
+    ) -> CheckerResult<Option<P<Node>>> {
         if !handle.is_empty() {
             return self.resolve_node(handle).map(Some);
         }
@@ -264,7 +310,10 @@ pub(crate) fn symbol_owner_file(symbol: P<Symbol>) -> Option<P<SourceFile>> {
 }
 
 /// Go `newFileSymbolResponse`.
-pub(crate) fn file_symbol_response(host: &dyn CheckerHost, symbol: P<Symbol>) -> CheckerResult<Value> {
+pub(crate) fn file_symbol_response(
+    host: &dyn CheckerHost,
+    symbol: P<Symbol>,
+) -> CheckerResult<Value> {
     let file = symbol_owner_file(symbol).expect("Expected a file-owned symbol");
     let mut reference = Obj::new();
     reference.num("kind", SYMBOL_OWNER_KIND_FILE as f64);
@@ -274,7 +323,11 @@ pub(crate) fn file_symbol_response(host: &dyn CheckerHost, symbol: P<Symbol>) ->
 }
 
 /// Go `buildSymbolResponse`.
-fn build_symbol_response(host: &dyn CheckerHost, symbol: P<Symbol>, reference: Value) -> CheckerResult<Value> {
+fn build_symbol_response(
+    host: &dyn CheckerHost,
+    symbol: P<Symbol>,
+    reference: Value,
+) -> CheckerResult<Value> {
     let mut o = Obj::new();
     o.set("reference", reference);
     o.set("name", Value::String(tsrs_ast::escape_symbol_name(symbol.name())));
@@ -282,7 +335,15 @@ fn build_symbol_response(host: &dyn CheckerHost, symbol: P<Symbol>, reference: V
     o.num("checkFlags", symbol.check_flags().bits() as f64);
     let decls = symbol.declarations();
     if !decls.is_empty() {
-        o.set("declarations", Value::Array(decls.iter().map(|d| host.node_handle(*d).map(Value::String)).collect::<CheckerResult<_>>()?));
+        o.set(
+            "declarations",
+            Value::Array(
+                decls
+                    .iter()
+                    .map(|d| host.node_handle(*d).map(Value::String))
+                    .collect::<CheckerResult<_>>()?,
+            ),
+        );
     }
     if let Some(vd) = symbol.value_declaration() {
         o.str_nonempty("valueDeclaration", &host.node_handle(vd)?);
@@ -297,7 +358,10 @@ fn build_symbol_response(host: &dyn CheckerHost, symbol: P<Symbol>, reference: V
 }
 
 /// Go `newSymbolReference` (`CompactSymbolReference`).
-pub(crate) fn compact_symbol_reference(host: &dyn CheckerHost, symbol: P<Symbol>) -> CheckerResult<Value> {
+pub(crate) fn compact_symbol_reference(
+    host: &dyn CheckerHost,
+    symbol: P<Symbol>,
+) -> CheckerResult<Value> {
     let mut o = Obj::new();
     o.num("id", tsrs_ast::get_symbol_id(symbol).0 as f64);
     if let Some(file) = symbol_owner_file(symbol) {
@@ -334,7 +398,12 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
                 // `elementFlags` is `omitempty`: an empty tuple target omits it (fixedLength/readonly are pointers).
                 let element_flags = tuple.element_flags();
                 if !element_flags.is_empty() {
-                    late.set("elementFlags", Value::Array(element_flags.iter().map(|f| Value::Number(f.bits() as f64)).collect()));
+                    late.set(
+                        "elementFlags",
+                        Value::Array(
+                            element_flags.iter().map(|f| Value::Number(f.bits() as f64)).collect(),
+                        ),
+                    );
                 }
                 late.num("fixedLength", tuple.fixed_length() as f64);
                 late.set("readonly", Value::Bool(tuple.is_readonly()));
@@ -344,8 +413,14 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
         if of.intersects(ObjectFlags::ClassOrInterface) {
             let iface = t.as_interface_type();
             late.ids("typeParameters", iface.type_parameters().iter().map(|x| x.id().0 as f64));
-            late.ids("outerTypeParameters", iface.outer_type_parameters().iter().map(|x| x.id().0 as f64));
-            late.ids("localTypeParameters", iface.local_type_parameters().iter().map(|x| x.id().0 as f64));
+            late.ids(
+                "outerTypeParameters",
+                iface.outer_type_parameters().iter().map(|x| x.id().0 as f64),
+            );
+            late.ids(
+                "localTypeParameters",
+                iface.local_type_parameters().iter().map(|x| x.id().0 as f64),
+            );
             late.nonzero("thisType", iface.this_type().map_or(0.0, |x| x.id().0 as f64));
         }
     } else if flags.intersects(TypeFlags::UnionOrIntersection) {
@@ -367,7 +442,10 @@ fn type_response_base(t: P<Type>, id: u32) -> Obj {
     } else if flags.intersects(TypeFlags::TemplateLiteral) {
         let texts = t.as_template_literal_type().texts();
         if !texts.is_empty() {
-            late.set("texts", Value::Array(texts.iter().map(|s| Value::String(s.to_string())).collect()));
+            late.set(
+                "texts",
+                Value::Array(texts.iter().map(|s| Value::String(s.to_string())).collect()),
+            );
         }
     } else if flags.intersects(TypeFlags::StringMapping) {
         target = t.as_string_mapping_type().target().map_or(0, |x| x.id().0);
@@ -430,11 +508,17 @@ const TYPE_RESPONSE_FIELD_ORDER: &[&str] = &[
 
 /// Go `checkerSetup{sd, snapshot, program, projectID}.resolveSymbolHandle(ref)`: snapshot-owned references
 /// must name this snapshot; file-owned references must name a file of `program` with an identical descriptor.
-pub(crate) fn resolve_symbol_for_program(sd: &SnapshotCtx, program: &'static Program, r: &SymbolReference) -> CheckerResult<P<Symbol>> {
+pub(crate) fn resolve_symbol_for_program(
+    sd: &SnapshotCtx,
+    program: &'static Program,
+    r: &SymbolReference,
+) -> CheckerResult<P<Symbol>> {
     match r.kind {
         SYMBOL_OWNER_KIND_SNAPSHOT => {
             if r.snapshot != sd.scope.handle || r.file.is_some() {
-                return Err(CheckerError::client("snapshot symbol reference does not match the requested checker"));
+                return Err(CheckerError::client(
+                    "snapshot symbol reference does not match the requested checker",
+                ));
             }
             sd.scope.registry.resolve_symbol(r.id)
         }
@@ -449,9 +533,13 @@ pub(crate) fn resolve_symbol_for_program(sd: &SnapshotCtx, program: &'static Pro
                 None => false,
             };
             if !matches {
-                return Err(CheckerError::client("source file is not part of the requested program"));
+                return Err(CheckerError::client(
+                    "source file is not part of the requested program",
+                ));
             }
-            source_file_symbol(source_file.unwrap(), r.id).ok_or_else(|| CheckerError::client(format!("symbol handle {} not found in source file", r.id)))
+            source_file_symbol(source_file.unwrap(), r.id).ok_or_else(|| {
+                CheckerError::client(format!("symbol handle {} not found in source file", r.id))
+            })
         }
         kind => Err(CheckerError::client(format!("invalid symbol reference kind {kind}"))),
     }

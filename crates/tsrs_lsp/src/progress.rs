@@ -41,7 +41,9 @@ struct serverProgressReporter {
 impl progressReporter for serverProgressReporter {
     // progress.go:38
     fn done(&self) -> Context {
-        if let Some(server) = self.server.upgrade() { server.background_ctx() } else {
+        if let Some(server) = self.server.upgrade() {
+            server.background_ctx()
+        } else {
             let (ctx, cancel) = Context::background().with_cancel();
             cancel.call();
             ctx
@@ -59,7 +61,12 @@ impl progressReporter for serverProgressReporter {
         if let Some(server) = self.server.upgrade() {
             let _ = server.send_client_request_fire_and_forget(
                 lsproto::WINDOW_WORK_DONE_PROGRESS_CREATE_INFO,
-                lsproto::WorkDoneProgressCreateParams { token: lsproto::IntegerOrString { string: Some(token.to_string()), ..Default::default() } },
+                lsproto::WorkDoneProgressCreateParams {
+                    token: lsproto::IntegerOrString {
+                        string: Some(token.to_string()),
+                        ..Default::default()
+                    },
+                },
             );
         }
     }
@@ -69,7 +76,13 @@ impl progressReporter for serverProgressReporter {
         if let Some(server) = self.server.upgrade() {
             let _ = server.send_notification(
                 lsproto::PROGRESS_INFO,
-                lsproto::ProgressParams { token: lsproto::IntegerOrString { string: Some(token.to_string()), ..Default::default() }, value },
+                lsproto::ProgressParams {
+                    token: lsproto::IntegerOrString {
+                        string: Some(token.to_string()),
+                        ..Default::default()
+                    },
+                    value,
+                },
             );
         }
     }
@@ -112,23 +125,36 @@ pub(crate) struct projectLoadingProgress {
 }
 
 // progress.go:76
-pub(crate) fn new_project_loading_progress(server: Weak<Server>, delay: Duration) -> Arc<projectLoadingProgress> {
+pub(crate) fn new_project_loading_progress(
+    server: Weak<Server>,
+    delay: Duration,
+) -> Arc<projectLoadingProgress> {
     new_project_loading_progress_from_reporter(Arc::new(serverProgressReporter { server }), delay)
 }
 
 // progress.go:80
-pub(crate) fn new_project_loading_progress_from_reporter(reporter: Arc<dyn progressReporter>, delay: Duration) -> Arc<projectLoadingProgress> {
+pub(crate) fn new_project_loading_progress_from_reporter(
+    reporter: Arc<dyn progressReporter>,
+    delay: Duration,
+) -> Arc<projectLoadingProgress> {
     let p = Arc::new(projectLoadingProgress {
         reporter,
         ch: Arc::new(progressChannel {
-            state: Mutex::new(progressChannelState { events: VecDeque::with_capacity(PROGRESS_CHANNEL_CAPACITY), idle: false, exited: false }),
+            state: Mutex::new(progressChannelState {
+                events: VecDeque::with_capacity(PROGRESS_CHANNEL_CAPACITY),
+                idle: false,
+                exited: false,
+            }),
             not_empty: Condvar::new(),
             not_full: Condvar::new(),
         }),
         delay,
     });
     let runner = Arc::clone(&p);
-    std::thread::Builder::new().name("lsp-progress".to_string()).spawn(move || runner.run()).expect("failed to spawn the progress thread");
+    std::thread::Builder::new()
+        .name("lsp-progress".to_string())
+        .spawn(move || runner.run())
+        .expect("failed to spawn the progress thread");
     p
 }
 
@@ -141,7 +167,13 @@ impl projectLoadingProgress {
             drop(ch.state.lock().unwrap());
             ch.not_full.notify_all();
         };
-        if let Ok(mut state) = wait_until(&done, &self.ch.not_full, guard, |s| s.events.len() < PROGRESS_CHANNEL_CAPACITY, wake) {
+        if let Ok(mut state) = wait_until(
+            &done,
+            &self.ch.not_full,
+            guard,
+            |s| s.events.len() < PROGRESS_CHANNEL_CAPACITY,
+            wake,
+        ) {
             // Sent successfully.
             state.events.push_back(ev);
             drop(state);
@@ -250,7 +282,10 @@ impl projectLoadingProgress {
                             if begun {
                                 self.reporter.send_progress(
                                     &token,
-                                    lsproto::WorkDoneProgressBeginOrReportOrEnd { end: Some(lsproto::WorkDoneProgressEnd::default()), ..Default::default() },
+                                    lsproto::WorkDoneProgressBeginOrReportOrEnd {
+                                        end: Some(lsproto::WorkDoneProgressEnd::default()),
+                                        ..Default::default()
+                                    },
                                 );
                             }
                             delay = None;
@@ -260,7 +295,10 @@ impl projectLoadingProgress {
                             self.reporter.send_progress(
                                 &token,
                                 lsproto::WorkDoneProgressBeginOrReportOrEnd {
-                                    report: Some(lsproto::WorkDoneProgressReport { message: Some(first), ..Default::default() }),
+                                    report: Some(lsproto::WorkDoneProgressReport {
+                                        message: Some(first),
+                                        ..Default::default()
+                                    }),
                                     ..Default::default()
                                 },
                             );
@@ -296,7 +334,11 @@ impl projectLoadingProgress {
             self.reporter.send_progress(
                 token,
                 lsproto::WorkDoneProgressBeginOrReportOrEnd {
-                    begin: Some(lsproto::WorkDoneProgressBegin { title, message: Some(text.to_string()), ..Default::default() }),
+                    begin: Some(lsproto::WorkDoneProgressBegin {
+                        title,
+                        message: Some(text.to_string()),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             );
@@ -304,7 +346,10 @@ impl projectLoadingProgress {
             self.reporter.send_progress(
                 token,
                 lsproto::WorkDoneProgressBeginOrReportOrEnd {
-                    report: Some(lsproto::WorkDoneProgressReport { message: Some(text.to_string()), ..Default::default() }),
+                    report: Some(lsproto::WorkDoneProgressReport {
+                        message: Some(text.to_string()),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             );

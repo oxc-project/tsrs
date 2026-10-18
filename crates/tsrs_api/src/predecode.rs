@@ -13,7 +13,7 @@ use rustc_hash::FxHashMap;
 use tsrs_core::json::Value;
 
 use crate::handler::{ApiError, ApiResult};
-use crate::paramfields::{params_fields, struct_fields, Elem, FieldKind, FieldSpec};
+use crate::paramfields::{Elem, FieldKind, FieldSpec, params_fields, struct_fields};
 
 fn json_kind(v: &Value) -> &'static str {
     match v {
@@ -28,7 +28,10 @@ fn json_kind(v: &Value) -> &'static str {
 
 fn go_type_name(t: &str) -> String {
     let base = t.trim_start_matches('*');
-    if base.contains('.') || base.starts_with("[]") || !base.starts_with(|c: char| c.is_ascii_uppercase()) {
+    if base.contains('.')
+        || base.starts_with("[]")
+        || !base.starts_with(|c: char| c.is_ascii_uppercase())
+    {
         base.to_string()
     } else {
         format!("api.{base}")
@@ -42,11 +45,11 @@ fn check_document(v: &Value, pointer: &str) -> Result<(), String> {
         Value::String(_) => return Ok(()),
         Value::Object(o) => {
             return match o.get("uri") {
-                Some(Value::Object(_) | Value::Array(_)) => {
-                    Err(format!("cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: unsupported uri value"))
-                }
+                Some(Value::Object(_) | Value::Array(_)) => Err(format!(
+                    "cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: unsupported uri value"
+                )),
                 _ => Ok(()),
-            }
+            };
         }
         Value::Null => "null",
         Value::Number(_) | Value::Integer(_) => "number",
@@ -54,7 +57,9 @@ fn check_document(v: &Value, pointer: &str) -> Result<(), String> {
         Value::Bool(false) => "false",
         Value::Array(_) => "[",
     };
-    Err(format!("cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: expected string or object, got {got}"))
+    Err(format!(
+        "cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: expected string or object, got {got}"
+    ))
 }
 
 #[derive(Clone, Copy)]
@@ -122,11 +127,18 @@ fn check_synthetic_id(v: &Value, pointer: &str) -> Result<(), String> {
     let text = match v {
         Value::String(s) => s.as_str(),
         Value::Null => "",
-        _ => return Err(format!("cannot unmarshal JSON {} into Go string within \"{pointer}\"", json_kind(v))),
+        _ => {
+            return Err(format!(
+                "cannot unmarshal JSON {} into Go string within \"{pointer}\"",
+                json_kind(v)
+            ));
+        }
     };
     match tsrs_project::parse_synthetic_project_id(text) {
         Some(_) => Ok(()),
-        None => Err(format!("cannot unmarshal into Go project.SyntheticProjectID within \"{pointer}\": invalid synthetic project ID: {text}")),
+        None => Err(format!(
+            "cannot unmarshal into Go project.SyntheticProjectID within \"{pointer}\": invalid synthetic project ID: {text}"
+        )),
     }
 }
 
@@ -135,7 +147,12 @@ fn base_type(go_type: &str) -> &str {
 }
 
 /// The fields of an api-package struct value at `pointer`, recursively (Go decodes the whole params struct).
-fn check_struct(go_type: &str, o: &tsrs_core::collections::OrderedMap<String, Value>, pointer: &str, lexemes: &FxHashMap<String, String>) -> Result<(), String> {
+fn check_struct(
+    go_type: &str,
+    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    pointer: &str,
+    lexemes: &FxHashMap<String, String>,
+) -> Result<(), String> {
     for spec in struct_fields(base_type(go_type)) {
         if let Some(v) = o.get(spec.name) {
             check_field(spec, v, &format!("{pointer}/{}", token(spec.name)), lexemes)?;
@@ -147,7 +164,12 @@ fn check_struct(go_type: &str, o: &tsrs_core::collections::OrderedMap<String, Va
 /// Integer fields of structs from other Go packages, decoded by `gojson` from the parsed value: Go's decoder
 /// needs plain integer syntax within the Go type's range there too (`"target":1e1`, `"builders":1e1`, a `*int`
 /// above int64). Wrong JSON kinds and int32 ranges are reported by `gojson`.
-fn check_external_integers(go_type: &str, o: &tsrs_core::collections::OrderedMap<String, Value>, pointer: &str, lexemes: &FxHashMap<String, String>) -> Result<(), String> {
+fn check_external_integers(
+    go_type: &str,
+    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    pointer: &str,
+    lexemes: &FxHashMap<String, String>,
+) -> Result<(), String> {
     let fields: Vec<(&str, u32)> = match base_type(go_type) {
         "core.CompilerOptions" => tsrs_tsoptions::gojson::compiler_options_integer_fields(),
         "core.BuildOptions" => tsrs_tsoptions::gojson::BUILD_OPTIONS_INTEGER_FIELDS.to_vec(),
@@ -195,22 +217,35 @@ pub(crate) fn exact_build_options_ints(value: &Value, options: &mut tsrs_core::B
 /// requestfilesystem.RequestFileSystem (decoded by `requestfs.rs` from the parsed value): Go decodes the whole
 /// struct first, so a wrong JSON kind anywhere in it is an invalid request. `null` is the zero value (a null
 /// file content is "", a null path element is ""), as in Go.
-fn check_request_file_system(go_type: &str, o: &tsrs_core::collections::OrderedMap<String, Value>, pointer: &str) -> Result<(), String> {
+fn check_request_file_system(
+    go_type: &str,
+    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    pointer: &str,
+) -> Result<(), String> {
     if base_type(go_type) != "requestfilesystem.RequestFileSystem" {
         return Ok(());
     }
-    let err = |v: &Value, p: &str, t: &str| Err(format!("cannot unmarshal JSON {} into Go {t} within \"{p}\"", json_kind(v)));
+    let err = |v: &Value, p: &str, t: &str| {
+        Err(format!("cannot unmarshal JSON {} into Go {t} within \"{p}\"", json_kind(v)))
+    };
     let strings = |v: &Value, p: &str| -> Result<(), String> {
         match v {
             Value::Null => Ok(()),
             Value::Array(items) => items.iter().enumerate().try_for_each(|(i, item)| {
-                if matches!(item, Value::Null | Value::String(_)) { Ok(()) } else { err(item, &format!("{p}/{i}"), "string") }
+                if matches!(item, Value::Null | Value::String(_)) {
+                    Ok(())
+                } else {
+                    err(item, &format!("{p}/{i}"), "string")
+                }
             }),
             _ => err(v, p, "[]string"),
         }
     };
     // Each member's map, checked as `map[string]<elem>` with `check` per non-null value.
-    let map = |name: &str, go: &str, check: &dyn Fn(&Value, &str) -> Result<(), String>| -> Result<(), String> {
+    let map = |name: &str,
+               go: &str,
+               check: &dyn Fn(&Value, &str) -> Result<(), String>|
+     -> Result<(), String> {
         let p = format!("{pointer}/{name}");
         match o.get(name) {
             None | Some(Value::Null) => Ok(()),
@@ -228,7 +263,9 @@ fn check_request_file_system(go_type: &str, o: &tsrs_core::collections::OrderedM
     if let Some(v) = o.get("kind").filter(|v| !matches!(v, Value::Null | Value::String(_))) {
         return err(v, &format!("{pointer}/kind"), "requestfilesystem.Kind");
     }
-    map("files", "map[string]string", &|v, p| if matches!(v, Value::String(_)) { Ok(()) } else { err(v, p, "string") })?;
+    map("files", "map[string]string", &|v, p| {
+        if matches!(v, Value::String(_)) { Ok(()) } else { err(v, p, "string") }
+    })?;
     map("directories", "map[string]requestfilesystem.RequestDirectoryEntries", &|v, p| match v {
         Value::Object(d) => {
             for name in ["files", "directories"] {
@@ -242,7 +279,9 @@ fn check_request_file_system(go_type: &str, o: &tsrs_core::collections::OrderedM
     })?;
     map("symlinks", "map[string]requestfilesystem.RequestSymlink", &|v, p| match v {
         Value::Object(s) => {
-            if let Some(x) = s.get("target").filter(|x| !matches!(x, Value::Null | Value::String(_))) {
+            if let Some(x) =
+                s.get("target").filter(|x| !matches!(x, Value::Null | Value::String(_)))
+            {
                 return err(x, &format!("{p}/target"), "string");
             }
             if let Some(x) = s.get("host").filter(|x| !matches!(x, Value::Null | Value::Bool(_))) {
@@ -258,9 +297,20 @@ fn check_request_file_system(go_type: &str, o: &tsrs_core::collections::OrderedM
     Ok(())
 }
 
-fn check_field(spec: &FieldSpec, v: &Value, pointer: &str, lexemes: &FxHashMap<String, String>) -> Result<(), String> {
+fn check_field(
+    spec: &FieldSpec,
+    v: &Value,
+    pointer: &str,
+    lexemes: &FxHashMap<String, String>,
+) -> Result<(), String> {
     let pointer = pointer.to_string();
-    let mismatch = |v: &Value, pointer: &str, go_type: &str| format!("cannot unmarshal JSON {} into Go {} within \"{pointer}\"", json_kind(v), go_type_name(go_type));
+    let mismatch = |v: &Value, pointer: &str, go_type: &str| {
+        format!(
+            "cannot unmarshal JSON {} into Go {} within \"{pointer}\"",
+            json_kind(v),
+            go_type_name(go_type)
+        )
+    };
     // project.SyntheticProjectID has its own decoder, called for null too (unlike a plain string).
     if base_type(spec.go_type) == "project.SyntheticProjectID" {
         return match v {
@@ -280,7 +330,8 @@ fn check_field(spec: &FieldSpec, v: &Value, pointer: &str, lexemes: &FxHashMap<S
         return Ok(());
     }
     if let Some(elem) = field_elem(spec.kind) {
-        check_scalar(elem, v, lexemes.get(&pointer).map(String::as_str)).ok_or_else(|| mismatch(v, &pointer, spec.go_type))?;
+        check_scalar(elem, v, lexemes.get(&pointer).map(String::as_str))
+            .ok_or_else(|| mismatch(v, &pointer, spec.go_type))?;
         if let Value::Object(o) = v {
             check_struct(spec.go_type, o, &pointer, lexemes)?;
             check_external_integers(spec.go_type, o, &pointer, lexemes)?;
@@ -312,7 +363,9 @@ fn check_field(spec: &FieldSpec, v: &Value, pointer: &str, lexemes: &FxHashMap<S
                 for (i, item) in items.iter().enumerate() {
                     let p = format!("{pointer}/{i}");
                     // A null element is the element type's zero value (or nil), as for fields.
-                    if !matches!(item, Value::Null) && !check_scalar(elem, item, lexemes.get(&p).map(String::as_str)) {
+                    if !matches!(item, Value::Null)
+                        && !check_scalar(elem, item, lexemes.get(&p).map(String::as_str))
+                    {
                         return Err(mismatch(item, &p, elem_type));
                     }
                     if let Value::Object(o) = item {
@@ -335,7 +388,9 @@ struct Scanner<'a> {
 
 impl Scanner<'_> {
     fn ws(&mut self) {
-        self.i += (self.i..self.b.len()).take_while(|&index| matches!(self.b[index], b' ' | b'\t' | b'\n' | b'\r')).count();
+        self.i += (self.i..self.b.len())
+            .take_while(|&index| matches!(self.b[index], b' ' | b'\t' | b'\n' | b'\r'))
+            .count();
     }
     // A string token, decoded like the parsed value's object keys (escapes such as `\u0073`).
     fn string(&mut self) -> String {
@@ -348,7 +403,8 @@ impl Scanner<'_> {
             self.i += 1;
         }
         self.i += 1;
-        let raw = tsrs_core::utf8::from_utf8_lossy(&self.b[start..self.i.min(self.b.len())]).into_owned();
+        let raw =
+            tsrs_core::utf8::from_utf8_lossy(&self.b[start..self.i.min(self.b.len())]).into_owned();
         match tsrs_core::json::unmarshal(&raw) {
             Ok(Value::String(s)) => s,
             _ => raw.trim_matches('"').to_string(),
@@ -418,7 +474,11 @@ impl Scanner<'_> {
             }
             _ => {
                 let start = self.i;
-                self.i += (self.i..self.b.len()).take_while(|&index| !matches!(self.b[index], b',' | b'}' | b']' | b' ' | b'\t' | b'\n' | b'\r')).count();
+                self.i += (self.i..self.b.len())
+                    .take_while(|&index| {
+                        !matches!(self.b[index], b',' | b'}' | b']' | b' ' | b'\t' | b'\n' | b'\r')
+                    })
+                    .count();
                 if let Some(numbers) = numbers {
                     let lexeme = &self.b[start..self.i];
                     if lexeme.first().is_some_and(|c| *c == b'-' || c.is_ascii_digit()) {
@@ -498,13 +558,21 @@ pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]>
 
 /// Checks `params` (an object, or `{}` for `null`) against the method's pinned params struct, nested api structs
 /// included. `raw` is the request payload the value was parsed from. Returns the number literals by pointer.
-pub(crate) fn predecode(method: &str, go_type: &str, params: &Value, raw: &[u8]) -> ApiResult<FxHashMap<String, String>> {
-    let Value::Object(o) = params else { return Ok(FxHashMap::default()) };
+pub(crate) fn predecode(
+    method: &str,
+    go_type: &str,
+    params: &Value,
+    raw: &[u8],
+) -> ApiResult<FxHashMap<String, String>> {
+    let Value::Object(o) = params else {
+        return Ok(FxHashMap::default());
+    };
     let lexemes = number_lexemes(raw);
     for spec in params_fields(method) {
         if let Some(v) = o.get(spec.name) {
-            check_field(spec, v, &format!("/{}", token(spec.name)), &lexemes)
-                .map_err(|e| ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: json: {e}")))?;
+            check_field(spec, v, &format!("/{}", token(spec.name)), &lexemes).map_err(|e| {
+                ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: json: {e}"))
+            })?;
         }
     }
     Ok(lexemes)
@@ -550,12 +618,18 @@ fn index_objects(v: &Value, pointer: &mut String, out: &mut FxHashMap<usize, Str
 
 /// Makes `root` (the parsed params, alive and unmodified until the guard drops), its raw payload and number
 /// literals the current request.
-pub(crate) fn enter_request(raw: &[u8], lexemes: FxHashMap<String, String>, root: &Value) -> RequestGuard {
+pub(crate) fn enter_request(
+    raw: &[u8],
+    lexemes: FxHashMap<String, String>,
+    root: &Value,
+) -> RequestGuard {
     let mut objects = FxHashMap::default();
     if !lexemes.is_empty() {
         index_objects(root, &mut String::new(), &mut objects);
     }
-    FRAMES.with(|f| f.borrow_mut().push(Frame { raw: raw.to_vec(), lexemes, objects }));
+    FRAMES.with(|f| {
+        f.borrow_mut().push(Frame { raw: raw.to_vec(), lexemes, objects });
+    });
     RequestGuard(())
 }
 
@@ -597,7 +671,9 @@ pub(crate) fn current_batch_params() -> Vec<Option<Vec<u8>>> {
 }
 
 fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {
-    let Some(requests) = raw_value_at(raw, "/requests") else { return Vec::new() };
+    let Some(requests) = raw_value_at(raw, "/requests") else {
+        return Vec::new();
+    };
     let mut out = Vec::new();
     let mut s = Scanner { b: requests, i: 0 };
     s.ws();
@@ -672,7 +748,10 @@ mod tests {
         let _g = super::enter_request(raw, super::number_lexemes(raw), &root);
         assert_eq!(super::exact_u64(&root, "snapshot"), Some(9_007_199_254_740_993));
         let Value::Object(o) = &root else { unreachable!() };
-        assert_eq!(super::exact_u64(o.get("inner").unwrap(), "snapshot"), Some(9_007_199_254_740_992));
+        assert_eq!(
+            super::exact_u64(o.get("inner").unwrap(), "snapshot"),
+            Some(9_007_199_254_740_992)
+        );
         let Value::Array(list) = o.get("list").unwrap() else { unreachable!() };
         assert_eq!(super::exact_u64(&list[0], "snapshot"), Some(9_007_199_254_740_995));
         // A copy outside the tree has no recorded literal.
@@ -684,13 +763,19 @@ mod tests {
     fn raw_values_by_pointer() {
         let raw = br#"{"requests":[{"method":"a","params":{"x":1e3}},{"par\u0061ms": {"snapshot":9007199254740993} ,"method":"b"}]}"#;
         assert_eq!(super::raw_value_at(raw, "/requests/0/params"), Some(&br#"{"x":1e3}"#[..]));
-        assert_eq!(super::raw_value_at(raw, "/requests/1/params"), Some(&br#"{"snapshot":9007199254740993}"#[..]));
+        assert_eq!(
+            super::raw_value_at(raw, "/requests/1/params"),
+            Some(&br#"{"snapshot":9007199254740993}"#[..])
+        );
         assert_eq!(super::raw_value_at(raw, "/requests/2/params"), None);
         assert_eq!(super::raw_value_at(raw, "/requests/0/nope"), None);
         let params = super::batch_params(raw);
         assert_eq!(params.len(), 2);
         assert_eq!(params[0].as_deref(), Some(&br#"{"x":1e3}"#[..]));
         assert_eq!(params[1].as_deref(), Some(&br#"{"snapshot":9007199254740993}"#[..]));
-        assert_eq!(super::batch_params(br#"{"requests":[1,{"method":"ping"},null]}"#), vec![None, None, None]);
+        assert_eq!(
+            super::batch_params(br#"{"requests":[1,{"method":"ping"},null]}"#),
+            vec![None, None, None]
+        );
     }
 }

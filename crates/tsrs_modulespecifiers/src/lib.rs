@@ -18,7 +18,7 @@ pub use types::*;
 pub use util::*;
 
 pub(crate) use tsrs_core::collections::OrderedMap;
-pub(crate) use tsrs_module::symlinks::KnownSymlinks;
 pub(crate) use tsrs_module::ResolvedModule;
-pub(crate) use tsrs_tsoptions::outputpaths::OutputPathsHost;
+pub(crate) use tsrs_module::symlinks::KnownSymlinks;
 pub(crate) use tsrs_tsoptions::SourceOutputAndProjectReference;
+pub(crate) use tsrs_tsoptions::outputpaths::OutputPathsHost;

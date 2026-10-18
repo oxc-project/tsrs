@@ -9,7 +9,10 @@ use tsrs_core::context::{CancelFunc, Context};
 use tsrs_diagnostics::Message;
 use tsrs_lsproto as lsproto;
 
-use crate::progress::{new_project_loading_progress_from_reporter, progressEvent, progressReporter, projectLoadingProgress};
+use crate::progress::{
+    new_project_loading_progress_from_reporter, progressEvent, progressReporter,
+    projectLoadingProgress,
+};
 
 // progress_test.go:15
 #[derive(Clone, Debug, Default)]
@@ -39,18 +42,36 @@ impl progressReporter for fakeProgressReporter {
 
     // progress_test.go:36
     fn create_work_done_progress(&self, token: &str) {
-        self.calls.lock().unwrap().push(progressCall { method: "create", token: token.to_string(), ..Default::default() });
+        self.calls.lock().unwrap().push(progressCall {
+            method: "create",
+            token: token.to_string(),
+            ..Default::default()
+        });
     }
 
     // progress_test.go:42
     fn send_progress(&self, token: &str, value: lsproto::WorkDoneProgressBeginOrReportOrEnd) {
         let mut calls = self.calls.lock().unwrap();
         if let Some(begin) = value.begin {
-            calls.push(progressCall { method: "begin", token: token.to_string(), title: begin.title, msg: begin.message.unwrap_or_default() });
+            calls.push(progressCall {
+                method: "begin",
+                token: token.to_string(),
+                title: begin.title,
+                msg: begin.message.unwrap_or_default(),
+            });
         } else if let Some(report) = value.report {
-            calls.push(progressCall { method: "report", token: token.to_string(), msg: report.message.unwrap_or_default(), ..Default::default() });
+            calls.push(progressCall {
+                method: "report",
+                token: token.to_string(),
+                msg: report.message.unwrap_or_default(),
+                ..Default::default()
+            });
         } else if value.end.is_some() {
-            calls.push(progressCall { method: "end", token: token.to_string(), ..Default::default() });
+            calls.push(progressCall {
+                method: "end",
+                token: token.to_string(),
+                ..Default::default()
+            });
         }
     }
 }
@@ -65,7 +86,10 @@ impl fakeProgressReporter {
 fn setup(delay_ms: u64) -> (Arc<fakeProgressReporter>, Arc<projectLoadingProgress>, CancelFunc) {
     let (ctx, cancel) = Context::background().with_cancel();
     let reporter = Arc::new(fakeProgressReporter { calls: Mutex::new(Vec::new()), ctx });
-    let p = new_project_loading_progress_from_reporter(Arc::<fakeProgressReporter>::clone(&reporter), Duration::from_millis(delay_ms));
+    let p = new_project_loading_progress_from_reporter(
+        Arc::<fakeProgressReporter>::clone(&reporter),
+        Duration::from_millis(delay_ms),
+    );
     (reporter, p, cancel)
 }
 
@@ -119,7 +143,13 @@ fn test_progress_shows_after_delay() {
     assert_eq!(calls.len(), 2, "expected 2 calls (create + begin), got {calls:?}");
     assert_eq!(calls[0].method, "create", "expected create, got {:?}", calls[0]);
     assert_eq!(calls[1].method, "begin", "expected begin, got {:?}", calls[1]);
-    assert_eq!(calls[1].title, tsrs_diagnostics::Loading.text(), "expected title {:?}, got {:?}", tsrs_diagnostics::Loading.text(), calls[1].title);
+    assert_eq!(
+        calls[1].title,
+        tsrs_diagnostics::Loading.text(),
+        "expected title {:?}, got {:?}",
+        tsrs_diagnostics::Loading.text(),
+        calls[1].title
+    );
 
     // Finish the operation.
     p.finish(project_0(), project("myProject"));
@@ -157,7 +187,10 @@ fn test_progress_reports_multiple_operations() {
     p.wait_idle();
 
     let calls = reporter.get_calls();
-    assert!(calls.iter().any(|c| c.method == "report"), "expected a report after partial finish, got {calls:?}");
+    assert!(
+        calls.iter().any(|c| c.method == "report"),
+        "expected a report after partial finish, got {calls:?}"
+    );
 
     // Finish the second — should send end.
     p.finish(project_0(), project("projB"));
@@ -188,7 +221,10 @@ fn test_progress_ref_counting() {
     p.wait_idle();
 
     let calls = reporter.get_calls();
-    assert!(!calls.iter().any(|c| c.method == "end"), "unexpected end with ref count > 0: {calls:?}");
+    assert!(
+        !calls.iter().any(|c| c.method == "end"),
+        "unexpected end with ref count > 0: {calls:?}"
+    );
 
     // Finish again (ref count = 0) — should end.
     p.finish(project_0(), project("proj"));
@@ -225,8 +261,15 @@ fn test_progress_new_token_after_end() {
     p.wait_idle();
 
     let calls = reporter.get_calls();
-    let second_token = calls.iter().find(|c| c.method == "create" && c.token != first_token).map(|c| c.token.clone()).unwrap_or_default();
-    assert!(!second_token.is_empty(), "expected a new token for second cycle, got calls: {calls:?}");
+    let second_token = calls
+        .iter()
+        .find(|c| c.method == "create" && c.token != first_token)
+        .map(|c| c.token.clone())
+        .unwrap_or_default();
+    assert!(
+        !second_token.is_empty(),
+        "expected a new token for second cycle, got calls: {calls:?}"
+    );
     assert_ne!(first_token, second_token, "expected different tokens, both were {first_token:?}");
 
     p.finish(project_0(), project("proj2"));
@@ -293,7 +336,11 @@ fn test_progress_shutdown_during_start_and_finish() {
 
     // Fill the channel buffer so start/finish block on send.
     for _ in 0..projectLoadingProgress::capacity() {
-        assert!(p.fill(progressEvent { message: project_0(), args: project("fill"), finish: false }));
+        assert!(p.fill(progressEvent {
+            message: project_0(),
+            args: project("fill"),
+            finish: false
+        }));
     }
 
     // These should return immediately via the done() path
@@ -329,7 +376,11 @@ fn test_progress_zero_delay() {
     assert_eq!(calls.len(), 2, "expected 2 calls (create + begin), got {calls:?}");
     assert_eq!(calls[0].method, "create", "expected create, got {:?}", calls[0]);
     assert_eq!(calls[1].method, "begin", "expected begin, got {:?}", calls[1]);
-    assert_eq!(calls[1].msg, "Project 'proj'", "expected message {:?}, got {:?}", "Project 'proj'", calls[1].msg);
+    assert_eq!(
+        calls[1].msg, "Project 'proj'",
+        "expected message {:?}, got {:?}",
+        "Project 'proj'", calls[1].msg
+    );
 
     // Start+finish should still produce begin and end.
     p.finish(project_0(), project("proj"));

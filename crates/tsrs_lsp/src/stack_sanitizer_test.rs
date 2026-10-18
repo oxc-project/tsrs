@@ -3,12 +3,16 @@ use crate::stack_sanitizer::sanitize_stack_trace;
 // The Go tests' inputs are the "Unsanitized input" sections of their reference baselines
 // (testdata/baselines/reference/lsp/stackSanitizer/); the whole baseline is compared like baseline.Run does.
 fn reference_baseline(name: &str) -> String {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ts-ref/tsc/testdata/baselines/reference/lsp/stackSanitizer").join(name);
-    std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("reading {}: {}", path.display(), err))
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../ts-ref/tsc/testdata/baselines/reference/lsp/stackSanitizer")
+        .join(name);
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("reading {}: {}", path.display(), err))
 }
 
 fn baseline_input(baseline: &str) -> String {
-    let start = baseline.find("# Unsanitized input:\n\n````\n").unwrap() + "# Unsanitized input:\n\n````\n".len();
+    let start = baseline.find("# Unsanitized input:\n\n````\n").unwrap()
+        + "# Unsanitized input:\n\n````\n".len();
     let end = baseline.find("\n````\n\n# Sanitized output:").unwrap();
     baseline[start..end].to_string()
 }
@@ -44,17 +48,33 @@ fn test_sanitized_debug_stack_trace_completions_request() {
 // stack_sanitizer_test.go:52
 #[test]
 fn test_sanitized_release_stack_trace_completions_request() {
-    run_baseline("TestSanitizedReleaseStackTraceCompletionsRequest", "completionsReleaseStackTrace.md");
+    run_baseline(
+        "TestSanitizedReleaseStackTraceCompletionsRequest",
+        "completionsReleaseStackTrace.md",
+    );
 }
 
 // stack_sanitizer_test.go:124: `(?i)(key|token|sig|secret|signature|password|passwd|pwd|android:value)[^a-zA-Z0-9]`.
 fn vscode_generic_secret_regex_find(s: &str) -> Option<(usize, usize)> {
-    const KEYWORDS: [&str; 9] = ["key", "token", "sig", "secret", "signature", "password", "passwd", "pwd", "android:value"];
+    const KEYWORDS: [&str; 9] = [
+        "key",
+        "token",
+        "sig",
+        "secret",
+        "signature",
+        "password",
+        "passwd",
+        "pwd",
+        "android:value",
+    ];
     let b = s.as_bytes();
     if let Some(result) = (0..b.len()).find_map(|i| {
         KEYWORDS.iter().find_map(|keyword| {
             let end = i + keyword.len();
-            (end < b.len() && b[i..end].eq_ignore_ascii_case(keyword.as_bytes()) && !b[end].is_ascii_alphanumeric()).then_some((i, end + 1))
+            (end < b.len()
+                && b[i..end].eq_ignore_ascii_case(keyword.as_bytes())
+                && !b[end].is_ascii_alphanumeric())
+            .then_some((i, end + 1))
         })
     }) {
         return Some(result);
@@ -65,7 +85,10 @@ fn vscode_generic_secret_regex_find(s: &str) -> Option<(usize, usize)> {
 // stack_sanitizer_test.go:126
 #[test]
 fn test_sanitized_stack_trace_defeats_vs_code_generic_secret_regex() {
-    let output = run_baseline("TestSanitizedStackTraceDefeatsVSCodeGenericSecretRegex", "genericSecretWorkaround.md");
+    let output = run_baseline(
+        "TestSanitizedStackTraceDefeatsVSCodeGenericSecretRegex",
+        "genericSecretWorkaround.md",
+    );
     if let Some((start, end)) = vscode_generic_secret_regex_find(&output) {
         panic!(
             "sanitized stack trace would be redacted by VS Code's Generic Secret regex at [{} {}]: {:?}\nfull output:\n{}",

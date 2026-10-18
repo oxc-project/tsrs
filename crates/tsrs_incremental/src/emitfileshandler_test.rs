@@ -3,10 +3,10 @@
 
 use std::sync::{Arc, Mutex};
 
-use tsrs_compiler::{new_compiler_host, new_program, CompilerHost, Context, ProgramOptions};
+use tsrs_compiler::{CompilerHost, Context, ProgramOptions, new_compiler_host, new_program};
 use tsrs_core::P;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use crate::emit::{EmitOptions, ProgramLike, WriteFileData};
 
@@ -42,14 +42,24 @@ fn compiler_host() -> Arc<dyn CompilerHost> {
 fn config() -> P<tsoptions::ParsedCommandLine> {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(FILES.iter().map(|&(k, v)| (k, v)), true));
     let host: &'static configHost = Box::leak(Box::new(configHost { fs }));
-    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file("/src/tsconfig.json", None, None, host, None);
+    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
+        "/src/tsconfig.json",
+        None,
+        None,
+        host,
+        None,
+    );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
     P::new(config.unwrap())
 }
 
 // Emits with `emit` and returns the written files (without the build info), sorted by name, and the codes and files
 // of the emit diagnostics.
-fn written_files(emit: impl FnOnce(&(dyn Fn(&str, &str, &mut WriteFileData) -> Result<(), String> + Sync)) -> Vec<(i32, String)>) -> (Vec<(String, String)>, Vec<(i32, String)>) {
+fn written_files(
+    emit: impl FnOnce(
+        &(dyn Fn(&str, &str, &mut WriteFileData) -> Result<(), String> + Sync),
+    ) -> Vec<(i32, String)>,
+) -> (Vec<(String, String)>, Vec<(i32, String)>) {
     let written = Mutex::new(Vec::new());
     let write_file = |name: &str, text: &str, _: &mut WriteFileData| -> Result<(), String> {
         written.lock().unwrap().push((name.to_string(), text.to_string()));
@@ -64,7 +74,10 @@ fn written_files(emit: impl FnOnce(&(dyn Fn(&str, &str, &mut WriteFileData) -> R
 }
 
 fn codes_and_files(diagnostics: &[P<tsrs_ast::Diagnostic>]) -> Vec<(i32, String)> {
-    diagnostics.iter().map(|d| (d.code(), d.file().map(|f| f.file_name().to_string()).unwrap_or_default())).collect()
+    diagnostics
+        .iter()
+        .map(|d| (d.code(), d.file().map(|f| f.file_name().to_string()).unwrap_or_default()))
+        .collect()
 }
 
 #[test]
@@ -72,23 +85,37 @@ fn incremental_emit_matches_a_plain_emit_file_by_file() {
     let ctx = Context::default();
     let plain = new_program(ProgramOptions::new(config(), compiler_host()));
     let (plain_files, plain_diagnostics) = written_files(|write_file| {
-        let result = plain.emit(&ctx, &EmitOptions { write_file: Some(write_file), ..Default::default() });
+        let result =
+            plain.emit(&ctx, &EmitOptions { write_file: Some(write_file), ..Default::default() });
         codes_and_files(&result.diagnostics)
     });
 
     let host = compiler_host();
-    let program = crate::new_program(new_program(ProgramOptions::new(config(), Arc::clone(&host))), None, crate::create_host(host), None, false);
+    let program = crate::new_program(
+        new_program(ProgramOptions::new(config(), Arc::clone(&host))),
+        None,
+        crate::create_host(host),
+        None,
+        false,
+    );
     let incremental: &'static crate::Program = &*Box::leak(Box::new(program));
     let (files, diagnostics) = written_files(|write_file| {
-        let result = incremental.emit(&ctx, EmitOptions { write_file: Some(write_file), ..Default::default() }).unwrap();
+        let result = incremental
+            .emit(&ctx, EmitOptions { write_file: Some(write_file), ..Default::default() })
+            .unwrap();
         codes_and_files(&result.diagnostics)
     });
 
-    assert_eq!(files.iter().map(|(name, _)| name.as_str()).collect::<Vec<_>>(), // c.d.ts has an error, so it is not written.
-        ["/out/a.d.ts", "/out/a.js", "/out/b.d.ts", "/out/b.js", "/out/c.js"]);
+    assert_eq!(
+        files.iter().map(|(name, _)| name.as_str()).collect::<Vec<_>>(), // c.d.ts has an error, so it is not written.
+        ["/out/a.d.ts", "/out/a.js", "/out/b.d.ts", "/out/b.js", "/out/c.js"]
+    );
     assert_eq!(files, plain_files);
     assert_eq!(diagnostics, plain_diagnostics);
-    assert_eq!(diagnostics.iter().map(|(code, file)| (*code, file.as_str())).collect::<Vec<_>>(), [(4094, "/src/c.ts")]);
+    assert_eq!(
+        diagnostics.iter().map(|(code, file)| (*code, file.as_str())).collect::<Vec<_>>(),
+        [(4094, "/src/c.ts")]
+    );
     // The emit diagnostics are kept for the file that reported them only.
     let mut kept = incremental.snapshot.emit_diagnostics_per_file.keys();
     kept.sort();

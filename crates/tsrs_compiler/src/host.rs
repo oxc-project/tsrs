@@ -4,7 +4,7 @@ use std::sync::Arc;
 use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_contentmapper::{self as contentmapper, Mapper, Project};
 use tsrs_core::tspath::Path;
-use tsrs_core::{ensure_script_kind_from_file_name, P};
+use tsrs_core::{P, ensure_script_kind_from_file_name};
 use tsrs_diagnostics::Message;
 use tsrs_tsoptions::{ExtendedConfigCache, ParseConfigHost, ParsedCommandLine};
 use tsrs_vfs::FS;
@@ -32,7 +32,11 @@ pub trait CompilerHost: Send + Sync {
     // ContentMapperProject returns the project-scoped content mapper used by this host, or nil when the
     // command line has no content mappers. The project owns transform identity and lifecycle state.
     fn content_mapper_project(&self) -> Option<Arc<dyn Project>>;
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<ParsedCommandLine>>;
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<ParsedCommandLine>>;
 }
 
 // host.go:35
@@ -98,8 +102,15 @@ pub fn get_content_mapped_source_files_with(
     let Some(content) = fs.read_file(&parse_options.file_name) else {
         return Ok(contentmapper::SourceFiles::default());
     };
-    let files = contentmapper::transform_and_parse(parse_options, &content, mapper, content_mapper_project)?;
-    contentmapper::check_supplemental_file_name_collisions(&files, |file_name| fs.file_exists(file_name))?;
+    let files = contentmapper::transform_and_parse(
+        parse_options,
+        &content,
+        mapper,
+        content_mapper_project,
+    )?;
+    contentmapper::check_supplemental_file_name_collisions(&files, |file_name| {
+        fs.file_exists(file_name)
+    })?;
     Ok(files)
 }
 
@@ -130,13 +141,19 @@ impl CompilerHost for compilerHost {
                 tsrs_parser::parse_source_file_embedded(opts, text, script_kind)
             }));
         }
-        let text = tsrs_core::festats::timed(tsrs_core::festats::Cat::Read, || self.fs().read_file(&opts.file_name))?;
+        let text = tsrs_core::festats::timed(tsrs_core::festats::Cat::Read, || {
+            self.fs().read_file(&opts.file_name)
+        })?;
         // tsrs-only: the CLI's `--noEmit` check parses each file that may be a leaf into a region of its own, freed
         // once the file is checked if it is one (fileregions.rs).
         if crate::fileregions::wants_region(&opts.file_name, script_kind) {
-            return Some(tsrs_core::festats::timed(tsrs_core::festats::Cat::Parse, || crate::fileregions::parse(opts, text, script_kind)));
+            return Some(tsrs_core::festats::timed(tsrs_core::festats::Cat::Parse, || {
+                crate::fileregions::parse(opts, text, script_kind)
+            }));
         }
-        Some(tsrs_core::festats::timed(tsrs_core::festats::Cat::Parse, || tsrs_parser::parse_source_file_owned(opts, text, script_kind)))
+        Some(tsrs_core::festats::timed(tsrs_core::festats::Cat::Parse, || {
+            tsrs_parser::parse_source_file_owned(opts, text, script_kind)
+        }))
     }
 
     // host.go:101
@@ -145,7 +162,12 @@ impl CompilerHost for compilerHost {
         parse_options: SourceFileParseOptions,
         mapper: &Mapper,
     ) -> Result<contentmapper::SourceFiles, contentmapper::Error> {
-        get_content_mapped_source_files_with(self.fs(), self.content_mapper_project.as_deref(), parse_options, mapper)
+        get_content_mapped_source_files_with(
+            self.fs(),
+            self.content_mapper_project.as_deref(),
+            parse_options,
+            mapper,
+        )
     }
 
     // host.go:115
@@ -154,11 +176,17 @@ impl CompilerHost for compilerHost {
     }
 
     // host.go:119
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<ParsedCommandLine>> {
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<ParsedCommandLine>> {
         // Go passes the host itself as the `ParseConfigHost`; tsoptions keeps it for the parsed command line's
         // lifetime, so it gets a leaked handle on the same file system and directory.
-        let sys: &'static dyn ParseConfigHost =
-            Box::leak(Box::new(parseConfigHost { fs: Arc::clone(&self.fs), current_directory: self.current_directory.clone() }));
+        let sys: &'static dyn ParseConfigHost = Box::leak(Box::new(parseConfigHost {
+            fs: Arc::clone(&self.fs),
+            current_directory: self.current_directory.clone(),
+        }));
         let (command_line, _) = tsrs_tsoptions::get_parsed_command_line_of_config_file_path(
             file_name,
             path,

@@ -1,6 +1,6 @@
 use super::*;
-use crate::osvfs;
 use crate::FS;
+use crate::osvfs;
 
 #[test]
 fn test_testing_lib_path() {

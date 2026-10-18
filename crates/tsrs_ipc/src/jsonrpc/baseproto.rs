@@ -1,7 +1,7 @@
 use std::io::{BufRead, BufReader, Read, Write};
 
-use crate::error::eof;
 use crate::Error;
+use crate::error::eof;
 
 // Base protocol for JSON-RPC with Content-Length headers (as used by LSP).
 // https://microsoft.github.io/language-server-protocol/specifications/base/0.9/specification/
@@ -58,10 +58,16 @@ impl<R: Read> Reader<R> {
             if key == b"Content-Length" {
                 content_length = match parse_int(trim_space(value)) {
                     Ok(n) => n,
-                    Err(err) => return Err(Error::new(format!("{ERR_INVALID_CONTENT_LENGTH}: parse error: {err}"))),
+                    Err(err) => {
+                        return Err(Error::new(format!(
+                            "{ERR_INVALID_CONTENT_LENGTH}: parse error: {err}"
+                        )));
+                    }
                 };
                 if content_length < 0 {
-                    return Err(Error::new(format!("{ERR_INVALID_CONTENT_LENGTH}: negative value {content_length}")));
+                    return Err(Error::new(format!(
+                        "{ERR_INVALID_CONTENT_LENGTH}: negative value {content_length}"
+                    )));
                 }
             }
         }
@@ -72,7 +78,8 @@ impl<R: Read> Reader<R> {
 
         // io.ReadFull: io.EOF when no byte arrives, io.ErrUnexpectedEOF when some do.
         let content_length = content_length as u64;
-        let mut data = Vec::with_capacity(content_length.min(MAX_INITIAL_CONTENT_CAPACITY) as usize);
+        let mut data =
+            Vec::with_capacity(content_length.min(MAX_INITIAL_CONTENT_CAPACITY) as usize);
         match (&mut self.r).take(content_length).read_to_end(&mut data) {
             Ok(n) if n as u64 == content_length => Ok(data),
             Ok(0) => Err(Error::wrap("jsonrpc: read content: ", eof())),
@@ -128,17 +135,15 @@ impl<W: Write> Writer<W> {
 // bytes.TrimSpace: Unicode white space at both ends.
 fn trim_space(b: &[u8]) -> &[u8] {
     if let Ok(s) = tsrs_core::utf8::basic::from_utf8(b) {
+        s.trim().as_bytes()
+    } else {
+        // Invalid UTF-8 fails strconv.ParseInt below anyway; trim the ASCII white space Go would.
 
-s.trim().as_bytes()
-} else {
-// Invalid UTF-8 fails strconv.ParseInt below anyway; trim the ASCII white space Go would.
-
-            let is_space = |c: &u8| matches!(c, b' ' | b'\t' | b'\n' | b'\x0b' | b'\x0c' | b'\r');
-            let start = b.iter().position(|c| !is_space(c)).unwrap_or(b.len());
-            let end = b.iter().rposition(|c| !is_space(c)).map_or(start, |i| i + 1);
-            &b[start..end]
-
-}
+        let is_space = |c: &u8| matches!(c, b' ' | b'\t' | b'\n' | b'\x0b' | b'\x0c' | b'\r');
+        let start = b.iter().position(|c| !is_space(c)).unwrap_or(b.len());
+        let end = b.iter().rposition(|c| !is_space(c)).map_or(start, |i| i + 1);
+        &b[start..end]
+    }
 }
 
 // strconv.ParseInt(string(s), 10, 64), with its error text.

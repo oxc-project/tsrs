@@ -4,10 +4,10 @@ use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_compiler::Program;
 use tsrs_core::context::Context;
 use tsrs_core::tspath::Path;
-use tsrs_core::{ScriptKind, P};
+use tsrs_core::{P, ScriptKind};
 use tsrs_module::packagejson::InfoCacheEntry;
 use tsrs_module::{ResolutionHost, ResolverOptions};
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use super::aliasresolver::new_alias_resolver;
 use super::registry::{ProjectID, RegistryCloneHost};
@@ -52,20 +52,35 @@ impl RegistryCloneHost for fakeCloneHost {
 #[test]
 fn test_alias_resolver_get_diagnostics_does_not_panic() {
     let file_name = "/pkg/index.ts";
-    let text = "declare function f(arg: { a: string }): () => void;\nexport const x = f({ a: 1 });\n";
+    let text =
+        "declare function f(arg: { a: string }): () => void;\nexport const x = f({ a: 1 });\n";
 
     let fs = vfstest::from_map([(file_name, text)], true /*useCaseSensitiveFileNames*/);
     let host: &'static fakeCloneHost = Box::leak(Box::new(fakeCloneHost { fs: Box::new(fs) }));
 
     let source_file = tsrs_parser::parse_source_file(
-        SourceFileParseOptions { file_name: file_name.to_string(), path: Path::new(file_name.to_string()), ..Default::default() },
+        SourceFileParseOptions {
+            file_name: file_name.to_string(),
+            path: Path::new(file_name.to_string()),
+            ..Default::default()
+        },
         text,
         ScriptKind::TS,
     );
     tsrs_binder::bind_source_file(source_file);
 
-    let resolver = Box::leak(Box::new(tsrs_module::new_resolver(ResolverOptions::new(host, tsrs_core::empty_compiler_options()))));
-    let r = new_alias_resolver(vec![source_file], rustc_hash::FxHashMap::default(), host, resolver, Arc::new(|f: &str| Path::from(f)), Box::new(|_, _| {}));
+    let resolver = Box::leak(Box::new(tsrs_module::new_resolver(ResolverOptions::new(
+        host,
+        tsrs_core::empty_compiler_options(),
+    ))));
+    let r = new_alias_resolver(
+        vec![source_file],
+        rustc_hash::FxHashMap::default(),
+        host,
+        resolver,
+        Arc::new(|f: &str| Path::from(f)),
+        Box::new(|_, _| {}),
+    );
     let r = Box::leak(Box::new(r));
 
     let mut ch = tsrs_checker::new_checker(r);

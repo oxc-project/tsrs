@@ -65,18 +65,28 @@ struct cancelInner {
 }
 
 fn spawn_after_func(f: afterFunc) {
-    std::thread::Builder::new().name("context-afterfunc".to_string()).spawn(f).expect("failed to spawn context.AfterFunc thread");
+    std::thread::Builder::new()
+        .name("context-afterfunc".to_string())
+        .spawn(f)
+        .expect("failed to spawn context.AfterFunc thread");
 }
 
 impl cancelState {
     fn new(deadline: Option<Instant>) -> Arc<cancelState> {
-        Arc::new(cancelState { deadline, canceled: AtomicBool::new(false), inner: Mutex::new(cancelInner::default()), done: Condvar::new() })
+        Arc::new(cancelState {
+            deadline,
+            canceled: AtomicBool::new(false),
+            inner: Mutex::new(cancelInner::default()),
+            done: Condvar::new(),
+        })
     }
 
     fn err(&self) -> Option<ContextError> {
         if !self.canceled.load(Ordering::Acquire) {
             match self.deadline {
-                Some(deadline) if Instant::now() >= deadline => self.cancel(ContextError::DeadlineExceeded, None),
+                Some(deadline) if Instant::now() >= deadline => {
+                    self.cancel(ContextError::DeadlineExceeded, None);
+                }
                 _ => return None,
             }
         }
@@ -110,7 +120,9 @@ impl cancelState {
 fn nearest_cancel(ctx: &Context) -> Option<&Arc<cancelState>> {
     let cur = ctx.node.as_ref();
     if let Some(state) =
-        std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| if let ctxKind::Cancel(state) = &node.kind { Some(state) } else { None })
+        std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| {
+            if let ctxKind::Cancel(state) = &node.kind { Some(state) } else { None }
+        })
     {
         return Some(state);
     }
@@ -176,14 +188,16 @@ impl Context {
     // Go `ctx.Value(key).(T)`.
     pub fn value<T: Any + Send + Sync>(&self) -> Option<&T> {
         let cur = self.node.as_ref();
-        if let Some(value) = std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| {
-            if let ctxKind::Value(id, value) = &node.kind {
-                if *id == TypeId::of::<T>() {
-                    return Some(value.downcast_ref::<T>());
+        if let Some(value) =
+            std::iter::successors(cur, |node| node.parent.node.as_ref()).find_map(|node| {
+                if let ctxKind::Value(id, value) = &node.kind {
+                    if *id == TypeId::of::<T>() {
+                        return Some(value.downcast_ref::<T>());
+                    }
                 }
-            }
-            None
-        }) {
+                None
+            })
+        {
             return value;
         }
         None
@@ -197,7 +211,9 @@ impl Context {
         };
         let state = cancelState::new(deadline);
         if let Some(parent) = parent {
-            if let Some(err) = parent.err() { state.cancel(err, None) } else {
+            if let Some(err) = parent.err() {
+                state.cancel(err, None);
+            } else {
                 let mut inner = parent.inner.lock().unwrap();
                 if let Some(err) = inner.err {
                     drop(inner);
@@ -352,7 +368,10 @@ pub enum CheckerLifetime {
     #[default]
     Temporary = 0,
     Diagnostics = 1,
-    #[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+    #[expect(
+        clippy::upper_case_acronyms,
+        reason = "The name matches the upstream Go or protocol vocabulary."
+    )]
     API = 2,
 }
 

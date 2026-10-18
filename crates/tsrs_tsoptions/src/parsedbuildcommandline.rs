@@ -2,7 +2,9 @@ use std::sync::OnceLock;
 
 use tsrs_ast::Diagnostic;
 use tsrs_core::tspath::{self, ComparePathsOptions};
-use tsrs_core::{resolve_config_file_name_of_project_reference, BuildOptions, CompilerOptions, WatchOptions, P};
+use tsrs_core::{
+    BuildOptions, CompilerOptions, P, WatchOptions, resolve_config_file_name_of_project_reference,
+};
 
 use crate::commandlineoption::CompilerOptionsValue;
 

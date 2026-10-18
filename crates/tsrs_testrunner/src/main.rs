@@ -3,9 +3,9 @@ static GLOBAL: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
 mod baseline;
 mod compile;
-mod emit_harness;
 mod compiler_runner;
 mod diagnosticwriter;
+mod emit_harness;
 mod harnessutil;
 mod materialize;
 mod options;
@@ -13,8 +13,8 @@ mod options;
 mod oracle_tests;
 mod pool;
 mod report;
-mod sourcemap_recorder;
 mod sourcemap_baseline;
+mod sourcemap_recorder;
 mod test_case_parser;
 mod tsbaseline;
 mod type_symbol_baseline;
@@ -29,7 +29,7 @@ use rustc_hash::FxHashSet;
 use tsrs_core::tspath;
 
 use crate::baseline::Class;
-use crate::compiler_runner::{TestItem, SUITES};
+use crate::compiler_runner::{SUITES, TestItem};
 use crate::harnessutil::OptionTable;
 
 const USAGE: &str = "usage:
@@ -94,9 +94,19 @@ fn parse_baselines(v: &str) -> u8 {
 fn worker_args() -> Vec<String> {
     let mut kinds = Vec::new();
     kinds.extend(
-        ([("types", EXTRA_TYPES), ("symbols", EXTRA_SYMBOLS), ("js", EXTRA_JS), ("jsmap", EXTRA_JSMAP), ("sourcemap", EXTRA_SOURCEMAP)])
-            .into_iter()
-            .filter_map(|(name, flag)| if extra_baselines() & flag != 0 { Some(name) } else { None }),
+        ([
+            ("types", EXTRA_TYPES),
+            ("symbols", EXTRA_SYMBOLS),
+            ("js", EXTRA_JS),
+            ("jsmap", EXTRA_JSMAP),
+            ("sourcemap", EXTRA_SOURCEMAP),
+        ])
+        .into_iter()
+        .filter_map(
+            |(name, flag)| {
+                if extra_baselines() & flag != 0 { Some(name) } else { None }
+            },
+        ),
     );
     if kinds.is_empty() { Vec::new() } else { vec!["--baselines".to_string(), kinds.join(",")] }
 }
@@ -187,12 +197,16 @@ impl Selection {
                 items.extend(expanded.into_iter().filter_map(|item| {
                     let id = item.id();
                     if let Some(f) = &self.filter {
-                        if !id.contains(f.as_str()) && !re.as_ref().is_some_and(|r| r.is_match(&id)) {
+                        if !id.contains(f.as_str()) && !re.as_ref().is_some_and(|r| r.is_match(&id))
+                        {
                             return None;
                         }
                     }
                     if let Some(list) = &self.list {
-                        if !list.contains(&id) && !list.contains(&item.name) && !list.contains(&basename) {
+                        if !list.contains(&id)
+                            && !list.contains(&item.name)
+                            && !list.contains(&basename)
+                        {
                             return None;
                         }
                     }
@@ -206,8 +220,12 @@ impl Selection {
 
 fn cmd_run(mut args: Args) {
     let sel = Selection::from_args(&mut args);
-    let jobs = args.num("--jobs").unwrap_or_else(|| std::thread::available_parallelism().map_or(4, std::num::NonZero::get));
-    let timeout = Duration::from_secs_f64(args.value("--timeout").map_or(20.0, |v| v.parse().unwrap_or(20.0)));
+    let jobs = args
+        .num("--jobs")
+        .unwrap_or_else(|| std::thread::available_parallelism().map_or(4, std::num::NonZero::get));
+    let timeout = Duration::from_secs_f64(
+        args.value("--timeout").map_or(20.0, |v| v.parse().unwrap_or(20.0)),
+    );
     let recycle = args.num("--recycle").unwrap_or(200);
     let mem_limit_mb = args.num("--mem-limit").unwrap_or(6144) as u64;
     let json_path = args.value("--json").map(PathBuf::from);
@@ -225,7 +243,14 @@ fn cmd_run(mut args: Args) {
     if !quiet {
         eprintln!("running {} test variants with {jobs} workers", items.len());
     }
-    let opts = pool::PoolOptions { jobs: jobs.min(items.len()), timeout, recycle, worker_args: worker_args(), progress: !quiet, mem_limit_mb };
+    let opts = pool::PoolOptions {
+        jobs: jobs.min(items.len()),
+        timeout,
+        recycle,
+        worker_args: worker_args(),
+        progress: !quiet,
+        mem_limit_mb,
+    };
     let results = pool::run_pool(&items, &opts);
 
     let dir = worker::results_dir();
@@ -234,7 +259,11 @@ fn cmd_run(mut args: Args) {
     let mut summary = if sel.is_partial() { previous.clone() } else { report::Summary::new() };
     let mut this_run = report::Summary::new();
     for (item, r) in items.iter().zip(&results) {
-        let mut r = r.clone().unwrap_or(pool::TestResult::harness(Class::Crash, 0, "no result from worker".to_string()));
+        let mut r = r.clone().unwrap_or(pool::TestResult::harness(
+            Class::Crash,
+            0,
+            "no result from worker".to_string(),
+        ));
         // A worker that died or timed out produced no `.types`/`.symbols` result: they share the item's fate.
         if matches!(r.class, Class::Crash | Class::Timeout) {
             if extra_baselines() & EXTRA_TYPES != 0 && r.types.is_none() {
@@ -321,7 +350,10 @@ fn cmd_materialize(mut args: Args) {
             }
         }
     }
-    println!("materialized {written} cases ({with_dropped} with a dropped option), {skipped} skipped, {errors} errors, in {}", out.display());
+    println!(
+        "materialized {written} cases ({with_dropped} with a dropped option), {skipped} skipped, {errors} errors, in {}",
+        out.display()
+    );
 }
 
 fn cmd_show(mut args: Args) {
@@ -336,9 +368,18 @@ fn cmd_show(mut args: Args) {
     let all = sel.select(&table);
     let exact: Vec<&TestItem> = all
         .iter()
-        .filter(|i| i.id() == name || i.name == name || tspath::get_base_file_name(&i.path) == name || compiler_runner::baseline_stem(&name) == i.name)
+        .filter(|i| {
+            i.id() == name
+                || i.name == name
+                || tspath::get_base_file_name(&i.path) == name
+                || compiler_runner::baseline_stem(&name) == i.name
+        })
         .collect();
-    let matches: Vec<&TestItem> = if exact.is_empty() { all.iter().filter(|i| i.id().contains(&name)).collect() } else { exact };
+    let matches: Vec<&TestItem> = if exact.is_empty() {
+        all.iter().filter(|i| i.id().contains(&name)).collect()
+    } else {
+        exact
+    };
     if matches.is_empty() {
         println!("no test matches '{name}'");
         return;
@@ -369,11 +410,17 @@ fn cmd_show(mut args: Args) {
                     println!("{}", r.diff);
                 }
                 for (ext, _) in worker::EXTRA_KINDS {
-                    let Some(e) = worker::extra_result(&r, ext) else { continue };
+                    let Some(e) = worker::extra_result(&r, ext) else {
+                        continue;
+                    };
                     println!("-- .{ext}: {}", e.class.as_str());
                     if let Some(actual) = &e.actual {
                         if e.class != Class::Pass {
-                            let diff = baseline::unified_diff(e.expected.as_deref(), actual, &format!("{}.{ext}", item.name));
+                            let diff = baseline::unified_diff(
+                                e.expected.as_deref(),
+                                actual,
+                                &format!("{}.{ext}", item.name),
+                            );
                             print!("{}", if full { diff } else { baseline::first_hunk(&diff) });
                         }
                     } else if !e.diff.is_empty() {
@@ -385,10 +432,23 @@ fn cmd_show(mut args: Args) {
                 }
                 if let Some(actual) = &r.actual {
                     if full {
-                        println!("-- expected:\n{}", r.expected.as_deref().unwrap_or(baseline::NO_CONTENT).replace("\r\n", "\n"));
+                        println!(
+                            "-- expected:\n{}",
+                            r.expected
+                                .as_deref()
+                                .unwrap_or(baseline::NO_CONTENT)
+                                .replace("\r\n", "\n")
+                        );
                         println!("-- actual:\n{}", actual.replace("\r\n", "\n"));
                     } else if r.class != Class::Pass {
-                        print!("{}", baseline::unified_diff(r.expected.as_deref(), actual, &format!("{}.errors.txt", item.name)));
+                        print!(
+                            "{}",
+                            baseline::unified_diff(
+                                r.expected.as_deref(),
+                                actual,
+                                &format!("{}.errors.txt", item.name)
+                            )
+                        );
                     }
                 }
             }
@@ -401,7 +461,9 @@ fn cmd_show(mut args: Args) {
 fn cmd_crashes(mut args: Args) {
     let top = args.num("--top").unwrap_or(30);
     let examples = args.num("--examples").unwrap_or(2);
-    let json_path = args.value("--json").map_or_else(|| worker::results_dir().join("summary.json"), PathBuf::from);
+    let json_path = args
+        .value("--json")
+        .map_or_else(|| worker::results_dir().join("summary.json"), PathBuf::from);
     check_no_extra(&args);
     let summary = report::load_summary(&json_path);
     if summary.is_empty() {
@@ -412,7 +474,8 @@ fn cmd_crashes(mut args: Args) {
 }
 
 fn cmd_types_dump(mut args: Args) {
-    let project = args.value("-p").or_else(|| args.value("--project")).unwrap_or_else(|| ".".to_string());
+    let project =
+        args.value("-p").or_else(|| args.value("--project")).unwrap_or_else(|| ".".to_string());
     let out = PathBuf::from(args.value("--out").unwrap_or_else(|| {
         eprintln!("types-dump: --out <dir> is required");
         std::process::exit(2)
@@ -447,7 +510,9 @@ fn main() {
     let mut args = Args { rest: argv };
     for arg in &args.rest {
         if matches!(arg.split('=').next(), Some("--oracle" | "--options" | "--syntax-only")) {
-            eprintln!("{arg}: removed porting option; tsrs-test always uses the Rust compiler and option tables");
+            eprintln!(
+                "{arg}: removed porting option; tsrs-test always uses the Rust compiler and option tables"
+            );
             std::process::exit(2);
         }
     }
@@ -484,7 +549,8 @@ fn main() {
             worker::worker_main();
             if let Some(path) = std::env::var_os("TSRS_LAZY_DTS_STATS_FILE") {
                 use std::io::Write as _;
-                if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+                if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path)
+                {
                     let _ = f.write_all(tsrs_ast::lazylist::stats_line().as_bytes());
                 }
             }

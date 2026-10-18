@@ -38,7 +38,9 @@ pub fn pipe() -> std::io::Result<(ReadWriteCloser, ReadWriteCloser)> {
 }
 
 #[cfg(unix)]
-fn socket_read_write_closer(stream: std::os::unix::net::UnixStream) -> std::io::Result<ReadWriteCloser> {
+fn socket_read_write_closer(
+    stream: std::os::unix::net::UnixStream,
+) -> std::io::Result<ReadWriteCloser> {
     Ok(ReadWriteCloser {
         reader: Box::new(stream.try_clone()?),
         writer: Box::new(stream.try_clone()?),

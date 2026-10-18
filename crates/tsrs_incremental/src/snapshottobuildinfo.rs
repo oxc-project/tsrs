@@ -3,15 +3,20 @@
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Diagnostic, RepopulateDiagnosticInfo, SourceFile};
 use tsrs_compiler::Program as CompilerProgram;
+use tsrs_core::P;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::Value;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::P;
-use tsrs_tsoptions::{self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue};
+use tsrs_tsoptions::{
+    self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue,
+};
 
 use crate::buildinfo::*;
 use crate::referencemap::RefSet;
-use crate::snapshot::{buildInfoDiagnosticWithFileName, get_file_emit_kind, DiagnosticsOrBuildInfoDiagnosticsWithFileName, Snapshot};
+use crate::snapshot::{
+    DiagnosticsOrBuildInfoDiagnosticsWithFileName, Snapshot, buildInfoDiagnosticWithFileName,
+    get_file_emit_kind,
+};
 
 // snapshottobuildinfo.go:18
 pub(crate) fn snapshot_to_build_info(
@@ -19,8 +24,13 @@ pub(crate) fn snapshot_to_build_info(
     program: &'static CompilerProgram,
     build_info_file_name: &str,
 ) -> Result<BuildInfo, tsrs_contentmapper::Error> {
-    let content_mapper_identities = content_mapper_identities(program.content_mapper_project().as_deref())?;
-    let mut build_info = BuildInfo { version: tsrs_core::version().to_string(), content_mapper_identities, ..Default::default() };
+    let content_mapper_identities =
+        content_mapper_identities(program.content_mapper_project().as_deref())?;
+    let mut build_info = BuildInfo {
+        version: tsrs_core::version().to_string(),
+        content_mapper_identities,
+        ..Default::default()
+    };
     let mut to = toBuildInfo {
         snapshot,
         program,
@@ -37,7 +47,8 @@ pub(crate) fn snapshot_to_build_info(
 
     if snapshot.options().is_incremental() {
         if program.uses_canonical_diagnostics() {
-            to.build_info.tsrs_canonical_check_signature = snapshot.canonical_check_signature.get().cloned().unwrap_or_default();
+            to.build_info.tsrs_canonical_check_signature =
+                snapshot.canonical_check_signature.get().cloned().unwrap_or_default();
         }
         to.collect_root_files();
         to.set_file_info_and_emit_signatures();
@@ -50,7 +61,8 @@ pub(crate) fn snapshot_to_build_info(
         to.set_affected_files_pending_emit();
         let latest_changed_dts_file = snapshot.latest_changed_dts_file.borrow().clone();
         if !latest_changed_dts_file.is_empty() {
-            to.build_info.latest_changed_dts_file = to.relative_to_build_info(&latest_changed_dts_file);
+            to.build_info.latest_changed_dts_file =
+                to.relative_to_build_info(&latest_changed_dts_file);
         }
     } else {
         to.set_root_of_non_incremental_program();
@@ -62,8 +74,16 @@ pub(crate) fn snapshot_to_build_info(
     Ok(build_info)
 }
 
-fn relative_to_build_info(build_info_directory: &str, compare_paths_options: &ComparePathsOptions, path: &str) -> String {
-    tspath::ensure_path_is_non_module_name(&tspath::get_relative_path_from_directory(build_info_directory, path, compare_paths_options))
+fn relative_to_build_info(
+    build_info_directory: &str,
+    compare_paths_options: &ComparePathsOptions,
+    path: &str,
+) -> String {
+    tspath::ensure_path_is_non_module_name(&tspath::get_relative_path_from_directory(
+        build_info_directory,
+        path,
+        compare_paths_options,
+    ))
 }
 
 struct toBuildInfo<'a> {
@@ -84,12 +104,17 @@ impl toBuildInfo<'_> {
     }
 
     // snapshottobuildinfo.go:77
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
     fn to_file_id(&mut self, path: &Path) -> BuildInfoFileId {
         let mut file_id = self.file_name_to_file_id.get(path.as_str()).copied().unwrap_or(0);
         if file_id == 0 {
             match self.program.get_default_lib_file(path) {
-                Some(lib_file) if !lib_file.replaced => self.build_info.file_names.push(lib_file.name.clone()),
+                Some(lib_file) if !lib_file.replaced => {
+                    self.build_info.file_names.push(lib_file.name.clone());
+                }
                 _ => {
                     let name = self.relative_to_build_info(path);
                     self.build_info.file_names.push(name);
@@ -102,7 +127,10 @@ impl toBuildInfo<'_> {
     }
 
     // snapshottobuildinfo.go:91
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
     fn to_file_id_list_id(&mut self, set: &RefSet) -> BuildInfoFileIdListId {
         // Go maps the set's keys in random order, so a path seen here for the first time gets an id that depends on
         // that order; the port gives new ids in sorted path order. Only paths without an id need sorting.
@@ -120,12 +148,22 @@ impl toBuildInfo<'_> {
         self.to_file_id_list_id_of_sorted_ids(file_ids)
     }
 
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
-    fn to_file_id_list_id_of_sorted_ids(&mut self, file_ids: Vec<BuildInfoFileId>) -> BuildInfoFileIdListId {
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
+    fn to_file_id_list_id_of_sorted_ids(
+        &mut self,
+        file_ids: Vec<BuildInfoFileId>,
+    ) -> BuildInfoFileIdListId {
         // Go keys the map by the ids joined with ","; the id list itself is the same key.
-        let mut file_id_list_id = self.file_names_to_file_id_list_id.get(file_ids.as_slice()).copied().unwrap_or(0);
+        let mut file_id_list_id =
+            self.file_names_to_file_id_list_id.get(file_ids.as_slice()).copied().unwrap_or(0);
         if file_id_list_id == 0 {
-            self.file_names_to_file_id_list_id.insert(file_ids.clone(), self.build_info.file_ids_list.len() as BuildInfoFileIdListId + 1);
+            self.file_names_to_file_id_list_id.insert(
+                file_ids.clone(),
+                self.build_info.file_ids_list.len() as BuildInfoFileIdListId + 1,
+            );
             self.build_info.file_ids_list.push(file_ids);
             file_id_list_id = self.build_info.file_ids_list.len() as BuildInfoFileIdListId;
         }
@@ -133,11 +171,17 @@ impl toBuildInfo<'_> {
     }
 
     // snapshottobuildinfo.go:108
-    fn to_relative_to_build_info_compiler_option_value(&self, option: &CommandLineOption, v: CompilerOptionsValue) -> CompilerOptionsValue {
+    fn to_relative_to_build_info_compiler_option_value(
+        &self,
+        option: &CommandLineOption,
+        v: CompilerOptionsValue,
+    ) -> CompilerOptionsValue {
         if option.kind == CommandLineOptionKind::List {
             if option.elements().unwrap().is_file_path {
                 if let CompilerOptionsValue::StringArray(arr) = &v {
-                    return CompilerOptionsValue::StringArray(arr.iter().map(|s| self.relative_to_build_info(s)).collect());
+                    return CompilerOptionsValue::StringArray(
+                        arr.iter().map(|s| self.relative_to_build_info(s)).collect(),
+                    );
                 }
             }
         } else if option.is_file_path {
@@ -151,8 +195,14 @@ impl toBuildInfo<'_> {
     }
 
     // snapshottobuildinfo.go:123
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
-    fn to_build_info_diagnostics_from_file_name_diagnostics(&mut self, diagnostics: &[buildInfoDiagnosticWithFileName]) -> Vec<BuildInfoDiagnostic> {
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
+    fn to_build_info_diagnostics_from_file_name_diagnostics(
+        &mut self,
+        diagnostics: &[buildInfoDiagnosticWithFileName],
+    ) -> Vec<BuildInfoDiagnostic> {
         diagnostics
             .iter()
             .map(|d| {
@@ -168,8 +218,11 @@ impl toBuildInfo<'_> {
                     message_text: d.message_text.clone(),
                     message_key: d.message_key.clone(),
                     message_args: d.message_args.clone(),
-                    message_chain: self.to_build_info_diagnostics_from_file_name_diagnostics(&d.message_chain),
-                    related_information: self.to_build_info_diagnostics_from_file_name_diagnostics(&d.related_information),
+                    message_chain: self
+                        .to_build_info_diagnostics_from_file_name_diagnostics(&d.message_chain),
+                    related_information: self.to_build_info_diagnostics_from_file_name_diagnostics(
+                        &d.related_information,
+                    ),
                     reports_unnecessary: d.reports_unnecessary,
                     reports_deprecated: d.reports_deprecated,
                     skipped_on_no_emit: d.skipped_on_no_emit,
@@ -180,8 +233,15 @@ impl toBuildInfo<'_> {
     }
 
     // snapshottobuildinfo.go:150
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
-    fn to_build_info_diagnostics_from_diagnostics(&mut self, file_path: &Path, diagnostics: &[P<Diagnostic>]) -> Vec<BuildInfoDiagnostic> {
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
+    fn to_build_info_diagnostics_from_diagnostics(
+        &mut self,
+        file_path: &Path,
+        diagnostics: &[P<Diagnostic>],
+    ) -> Vec<BuildInfoDiagnostic> {
         diagnostics
             .iter()
             .map(|d| {
@@ -203,8 +263,12 @@ impl toBuildInfo<'_> {
                     message_text: d.message_text().to_string(),
                     message_key: d.message_key().0.to_string(),
                     message_args: d.message_args().to_vec(),
-                    message_chain: self.to_build_info_diagnostics_from_diagnostics(file_path, d.message_chain()),
-                    related_information: self.to_build_info_diagnostics_from_diagnostics(file_path, d.related_information()),
+                    message_chain: self
+                        .to_build_info_diagnostics_from_diagnostics(file_path, d.message_chain()),
+                    related_information: self.to_build_info_diagnostics_from_diagnostics(
+                        file_path,
+                        d.related_information(),
+                    ),
                     reports_unnecessary: d.reports_unnecessary(),
                     reports_deprecated: d.reports_deprecated(),
                     skipped_on_no_emit: d.skipped_on_no_emit(),
@@ -215,19 +279,29 @@ impl toBuildInfo<'_> {
     }
 
     // snapshottobuildinfo.go:195
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
-    fn to_build_info_diagnostics_of_file(&mut self, file_path: &Path, diags: &DiagnosticsOrBuildInfoDiagnosticsWithFileName) -> Option<BuildInfoDiagnosticsOfFile> {
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
+    fn to_build_info_diagnostics_of_file(
+        &mut self,
+        file_path: &Path,
+        diags: &DiagnosticsOrBuildInfoDiagnosticsWithFileName,
+    ) -> Option<BuildInfoDiagnosticsOfFile> {
         let diagnostics = diags.diagnostics().unwrap_or_default();
         if !diagnostics.is_empty() {
             return Some(BuildInfoDiagnosticsOfFile {
                 file_id: self.to_file_id(file_path),
-                diagnostics: self.to_build_info_diagnostics_from_diagnostics(file_path, &diagnostics),
+                diagnostics: self
+                    .to_build_info_diagnostics_from_diagnostics(file_path, &diagnostics),
             });
         }
         if !diags.build_info_diagnostics.is_empty() {
             return Some(BuildInfoDiagnosticsOfFile {
                 file_id: self.to_file_id(file_path),
-                diagnostics: self.to_build_info_diagnostics_from_file_name_diagnostics(&diags.build_info_diagnostics),
+                diagnostics: self.to_build_info_diagnostics_from_file_name_diagnostics(
+                    &diags.build_info_diagnostics,
+                ),
             });
         }
         None
@@ -238,9 +312,20 @@ impl toBuildInfo<'_> {
         let program = self.program;
         self.roots.extend(program.command_line().file_names().iter().filter_map(|file_name| {
             let redirect = program.get_parse_file_redirect(file_name);
-            let file = if !redirect.is_empty() { program.get_source_file(&redirect) } else { program.get_source_file(file_name) };
+            let file = if !redirect.is_empty() {
+                program.get_source_file(&redirect)
+            } else {
+                program.get_source_file(file_name)
+            };
             file.map(|file| {
-                (file, tspath::to_path(file_name, &self.compare_paths_options.current_directory, self.compare_paths_options.use_case_sensitive_file_names))
+                (
+                    file,
+                    tspath::to_path(
+                        file_name,
+                        &self.compare_paths_options.current_directory,
+                        self.compare_paths_options.use_case_sensitive_file_names,
+                    ),
+                )
             })
         }));
     }
@@ -253,23 +338,30 @@ impl toBuildInfo<'_> {
         // The names relative to the tsbuildinfo of the files that are not default lib files, computed up front on the
         // worker pool (a pure function of the path); to_file_id would compute the same name when it gives the file
         // its id below.
-        let (build_info_directory, compare_paths_options) = (&self.build_info_directory, &self.compare_paths_options);
+        let (build_info_directory, compare_paths_options) =
+            (&self.build_info_directory, &self.compare_paths_options);
         let relative_name = |file: &P<SourceFile>| match program.get_default_lib_file(file.path()) {
             Some(_) => None,
-            None => Some(relative_to_build_info(build_info_directory, compare_paths_options, file.path())),
+            None => Some(relative_to_build_info(
+                build_info_directory,
+                compare_paths_options,
+                file.path(),
+            )),
         };
         let mut relative_names: Vec<Option<String>> = if program.single_threaded() {
             program.get_source_files().iter().map(relative_name).collect()
         } else {
             use rayon::prelude::*;
-            tsrs_compiler::worker_pool().install(|| program.get_source_files().par_iter().map(relative_name).collect())
+            tsrs_compiler::worker_pool()
+                .install(|| program.get_source_files().par_iter().map(relative_name).collect())
         };
         for (i, &file) in program.get_source_files().iter().enumerate() {
             let path = file.path().clone();
             let info = snapshot.file_infos.load(&path).unwrap();
             // A file that gets its id here and is not a lib file is named relative_to_build_info(path), so the check
             // below holds without computing the relative path again.
-            let named_relative = !self.file_name_to_file_id.contains_key(path.as_str()) && relative_names[i].is_some();
+            let named_relative = !self.file_name_to_file_id.contains_key(path.as_str())
+                && relative_names[i].is_some();
             let file_id = match relative_names[i].take() {
                 Some(name) if named_relative => {
                     self.build_info.file_names.push(name);
@@ -280,9 +372,15 @@ impl toBuildInfo<'_> {
                 _ => self.to_file_id(&path),
             };
             //  tryAddRoot(key, fileId);
-            if !named_relative && self.build_info.file_names[file_id as usize - 1] != self.relative_to_build_info(&path) {
+            if !named_relative
+                && self.build_info.file_names[file_id as usize - 1]
+                    != self.relative_to_build_info(&path)
+            {
                 match program.get_default_lib_file(&path) {
-                    Some(lib_file) if !lib_file.replaced && self.build_info.file_names[file_id as usize - 1] == lib_file.name => {}
+                    Some(lib_file)
+                        if !lib_file.replaced
+                            && self.build_info.file_names[file_id as usize - 1]
+                                == lib_file.name => {}
                     _ => panic!(
                         "File name at index {} does not match expected relative path or libName: {} != {}",
                         file_id - 1,
@@ -291,17 +389,32 @@ impl toBuildInfo<'_> {
                     ),
                 }
             }
-            if snapshot.options().composite.is_true() && !ast::is_json_source_file(file) && program.source_file_may_be_emitted(file, false) {
+            if snapshot.options().composite.is_true()
+                && !ast::is_json_source_file(file)
+                && program.source_file_may_be_emitted(file, false)
+            {
                 match snapshot.emit_signatures.load(&path) {
-                    None => self.build_info.emit_signatures.push(BuildInfoEmitSignature { file_id, ..Default::default() }),
+                    None => self
+                        .build_info
+                        .emit_signatures
+                        .push(BuildInfoEmitSignature { file_id, ..Default::default() }),
                     Some(emit_signature) if emit_signature.signature != info.signature => {
-                        let mut incremental_emit_signature = BuildInfoEmitSignature { file_id, ..Default::default() };
+                        let mut incremental_emit_signature =
+                            BuildInfoEmitSignature { file_id, ..Default::default() };
                         if !emit_signature.signature.is_empty() {
-                            incremental_emit_signature.signature.clone_from(&emit_signature.signature);
-                        } else if emit_signature.signature_with_different_options.as_ref().unwrap()[0] == info.signature {
+                            incremental_emit_signature
+                                .signature
+                                .clone_from(&emit_signature.signature);
+                        } else if emit_signature.signature_with_different_options.as_ref().unwrap()
+                            [0]
+                            == info.signature
+                        {
                             incremental_emit_signature.differs_only_in_dts_map = true;
                         } else {
-                            incremental_emit_signature.signature.clone_from(&emit_signature.signature_with_different_options.as_ref().unwrap()[0]);
+                            incremental_emit_signature.signature.clone_from(
+                                &emit_signature.signature_with_different_options.as_ref().unwrap()
+                                    [0],
+                            );
                             incremental_emit_signature.differs_in_options = true;
                         }
                         self.build_info.emit_signatures.push(incremental_emit_signature);
@@ -340,7 +453,9 @@ impl toBuildInfo<'_> {
                     // If its [..., last = start = fileId - 1 ], update last to [start, fileId]
                     last.end = resolved;
                 } else {
-                    self.build_info.root.push(BuildInfoRoot { start: resolved, ..Default::default() });
+                    self.build_info
+                        .root
+                        .push(BuildInfoRoot { start: resolved, ..Default::default() });
                 }
             }
             if root != resolved {
@@ -368,7 +483,10 @@ impl toBuildInfo<'_> {
             let option = tsoptions::COMMAND_LINE_COMPILER_OPTIONS_MAP.get(name).unwrap();
             // Make it relative to buildInfo directory if file path
             let value = self.to_relative_to_build_info_compiler_option_value(option, value);
-            self.build_info.options.get_or_insert_with(OrderedMap::default).insert(name.to_string(), option_value_to_json(&value));
+            self.build_info
+                .options
+                .get_or_insert_with(OrderedMap::default)
+                .insert(name.to_string(), option_value_to_json(&value));
         }
     }
 
@@ -376,7 +494,10 @@ impl toBuildInfo<'_> {
     fn set_referenced_map(&mut self) {
         let mut keys = self.snapshot.referenced_map.get_paths_with_references();
         keys.sort();
-        let references: Vec<std::sync::Arc<RefSet>> = keys.iter().map(|file_path| self.snapshot.referenced_map.get_references(file_path).unwrap()).collect();
+        let references: Vec<std::sync::Arc<RefSet>> = keys
+            .iter()
+            .map(|file_path| self.snapshot.referenced_map.get_references(file_path).unwrap())
+            .collect();
         // Most reference sets name only files that already have ids (every program file got one above). Their sorted
         // id lists are computed up front, on the worker pool, reading the id map only; a set with a path that has no
         // id yet goes through to_file_id_list_id in order below, so new ids are given exactly as before.
@@ -394,17 +515,20 @@ impl toBuildInfo<'_> {
             references.iter().map(ids_if_known).collect()
         } else {
             use rayon::prelude::*;
-            tsrs_compiler::worker_pool().install(|| references.par_iter().map(ids_if_known).collect())
+            tsrs_compiler::worker_pool()
+                .install(|| references.par_iter().map(ids_if_known).collect())
         };
         let mut referenced_map = Vec::with_capacity(keys.len());
-        referenced_map.extend(keys.iter().zip(&references).zip(known).map(|((file_path, references), known)| {
-            let file_id = self.to_file_id(file_path);
-            let file_id_list_id = match known {
-                Some(file_ids) => self.to_file_id_list_id_of_sorted_ids(file_ids),
-                None => self.to_file_id_list_id(references),
-            };
-            BuildInfoReferenceMapEntry { file_id, file_id_list_id }
-        }));
+        referenced_map.extend(keys.iter().zip(&references).zip(known).map(
+            |((file_path, references), known)| {
+                let file_id = self.to_file_id(file_path);
+                let file_id_list_id = match known {
+                    Some(file_ids) => self.to_file_id_list_id_of_sorted_ids(file_ids),
+                    None => self.to_file_id_list_id(references),
+                };
+                BuildInfoReferenceMapEntry { file_id, file_id_list_id }
+            },
+        ));
         self.build_info.referenced_map = referenced_map;
     }
 
@@ -423,12 +547,20 @@ impl toBuildInfo<'_> {
                 None => {
                     if !self.snapshot.changed_files_set.has(&path) {
                         let file_id = self.to_file_id(&path);
-                        self.build_info.semantic_diagnostics_per_file.push(BuildInfoSemanticDiagnostic { file_id, diagnostics: None });
+                        self.build_info
+                            .semantic_diagnostics_per_file
+                            .push(BuildInfoSemanticDiagnostic { file_id, diagnostics: None });
                     }
                 }
                 Some(value) => {
-                    if let Some(diagnostics) = self.to_build_info_diagnostics_of_file(&path, &value) {
-                        self.build_info.semantic_diagnostics_per_file.push(BuildInfoSemanticDiagnostic { file_id: 0, diagnostics: Some(diagnostics) });
+                    if let Some(diagnostics) = self.to_build_info_diagnostics_of_file(&path, &value)
+                    {
+                        self.build_info.semantic_diagnostics_per_file.push(
+                            BuildInfoSemanticDiagnostic {
+                                file_id: 0,
+                                diagnostics: Some(diagnostics),
+                            },
+                        );
                     }
                 }
             }
@@ -454,15 +586,22 @@ impl toBuildInfo<'_> {
         files.sort();
         let full_emit_kind = get_file_emit_kind(&self.snapshot.options());
         for file_path in files {
-            let Some(file) = self.program.get_source_file_by_path(&file_path) else { continue };
+            let Some(file) = self.program.get_source_file_by_path(&file_path) else {
+                continue;
+            };
             if !self.program.source_file_may_be_emitted(file, false) {
                 continue;
             }
-            let pending_emit = self.snapshot.affected_files_pending_emit.load(&file_path).unwrap_or_default();
+            let pending_emit =
+                self.snapshot.affected_files_pending_emit.load(&file_path).unwrap_or_default();
             let file_id = self.to_file_id(&file_path);
             self.build_info.affected_files_pending_emit.push(BuildInfoFilePendingEmit {
                 file_id,
-                emit_kind: if pending_emit == full_emit_kind { crate::snapshot::FileEmitKind::None } else { pending_emit },
+                emit_kind: if pending_emit == full_emit_kind {
+                    crate::snapshot::FileEmitKind::None
+                } else {
+                    pending_emit
+                },
             });
         }
     }
@@ -489,17 +628,23 @@ impl toBuildInfo<'_> {
     fn set_package_jsons(&mut self) {
         let package_jsons = self.snapshot.package_jsons.borrow().clone().unwrap_or_default();
         if !package_jsons.is_empty() {
-            self.build_info.package_jsons = Some(package_jsons.iter().map(|p| self.relative_to_build_info(p)).collect());
+            self.build_info.package_jsons =
+                Some(package_jsons.iter().map(|p| self.relative_to_build_info(p)).collect());
         }
-        let missing_package_jsons = self.snapshot.missing_package_jsons.borrow().clone().unwrap_or_default();
+        let missing_package_jsons =
+            self.snapshot.missing_package_jsons.borrow().clone().unwrap_or_default();
         if !missing_package_jsons.is_empty() {
-            self.build_info.missing_package_jsons = Some(missing_package_jsons.iter().map(|p| self.relative_to_build_info(p)).collect());
+            self.build_info.missing_package_jsons = Some(
+                missing_package_jsons.iter().map(|p| self.relative_to_build_info(p)).collect(),
+            );
         }
     }
 }
 
 // snapshottobuildinfo.go:177
-fn to_build_info_repopulate_info(info: Option<&RepopulateDiagnosticInfo>) -> Option<BuildInfoRepopulateInfo> {
+fn to_build_info_repopulate_info(
+    info: Option<&RepopulateDiagnosticInfo>,
+) -> Option<BuildInfoRepopulateInfo> {
     let info = info?;
     Some(BuildInfoRepopulateInfo {
         kind: info.kind,
@@ -519,8 +664,12 @@ fn option_value_to_json(v: &CompilerOptionsValue) -> Value {
         V::Int(i) => Value::Number(*i as f64),
         V::String(s) => Value::String(s.clone()),
         V::Array(items) => Value::Array(items.iter().map(option_value_to_json).collect()),
-        V::StringArray(items) => Value::Array(items.iter().map(|s| Value::String(s.clone())).collect()),
-        V::Object(m) => Value::Object(m.iter().map(|(k, v)| (k.clone(), option_value_to_json(v))).collect()),
+        V::StringArray(items) => {
+            Value::Array(items.iter().map(|s| Value::String(s.clone())).collect())
+        }
+        V::Object(m) => {
+            Value::Object(m.iter().map(|(k, v)| (k.clone(), option_value_to_json(v))).collect())
+        }
         V::Tristate(t) => match t {
             tsrs_core::Tristate::True => Value::Bool(true),
             tsrs_core::Tristate::False => Value::Bool(false),

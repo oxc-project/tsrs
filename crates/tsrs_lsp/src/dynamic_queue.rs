@@ -33,7 +33,12 @@ pub(crate) struct dynamicQueueState<T> {
 
 // dynamic_queue.go:26
 pub(crate) fn new_dynamic_queue<T: Send + 'static>() -> dynamicQueue<T> {
-    dynamicQueue { inner: Arc::new(dynamicQueueInner { state: Mutex::new(dynamicQueueState { items: VecDeque::new() }), ready: Condvar::new() }) }
+    dynamicQueue {
+        inner: Arc::new(dynamicQueueInner {
+            state: Mutex::new(dynamicQueueState { items: VecDeque::new() }),
+            ready: Condvar::new(),
+        }),
+    }
 }
 
 impl<T: Send + 'static> dynamicQueue<T> {
@@ -78,13 +83,22 @@ impl<T: Send + 'static> dynamicQueue<T> {
     }
 
     // dynamic_queue.go:87
-    fn get_ready(&self, ctx: &Context) -> Result<MutexGuard<'_, dynamicQueueState<T>>, ContextError> {
+    fn get_ready(
+        &self,
+        ctx: &Context,
+    ) -> Result<MutexGuard<'_, dynamicQueueState<T>>, ContextError> {
         let inner = &self.inner;
         let notifier = Arc::clone(&self.inner);
-        wait_until(ctx, &inner.ready, inner.state.lock().unwrap(), |s| !s.items.is_empty(), move || {
-            drop(notifier.state.lock().unwrap());
-            notifier.ready.notify_all();
-        })
+        wait_until(
+            ctx,
+            &inner.ready,
+            inner.state.lock().unwrap(),
+            |s| !s.items.is_empty(),
+            move || {
+                drop(notifier.state.lock().unwrap());
+                notifier.ready.notify_all();
+            },
+        )
     }
 
     #[cfg(test)]
@@ -121,7 +135,8 @@ pub(crate) fn wait_until<'a, S>(
         guard = match ctx.deadline() {
             Some(deadline) => {
                 let now = std::time::Instant::now();
-                let timeout = deadline.saturating_duration_since(now) + std::time::Duration::from_millis(1);
+                let timeout =
+                    deadline.saturating_duration_since(now) + std::time::Duration::from_millis(1);
                 cond.wait_timeout(guard, timeout).unwrap().0
             }
             None => cond.wait(guard).unwrap(),

@@ -9,7 +9,8 @@ use std::time::{Duration, Instant};
 use tsrs_fswatch::{kqueue, set_write_settling};
 
 fn temp_dir(name: &str, files: usize) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("tsrs-fswatch-kqueue-{}-{}", std::process::id(), name));
+    let dir =
+        std::env::temp_dir().join(format!("tsrs-fswatch-kqueue-{}-{}", std::process::id(), name));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     for i in 0..files {
@@ -20,14 +21,22 @@ fn temp_dir(name: &str, files: usize) -> std::path::PathBuf {
 
 fn set_limit(soft: u64, hard: u64) {
     let lim = libc::rlimit { rlim_cur: soft, rlim_max: hard };
-    // SAFETY: `lim` is a valid rlimit.
-    assert_eq!(unsafe { libc::setrlimit(libc::RLIMIT_NOFILE, &raw const lim) }, 0, "{}", std::io::Error::last_os_error());
+    assert_eq!(
+        // SAFETY: `lim` is a valid rlimit.
+        unsafe { libc::setrlimit(libc::RLIMIT_NOFILE, &raw const lim) },
+        0,
+        "{}",
+        std::io::Error::last_os_error()
+    );
 }
 
 type Seen = Arc<Mutex<Vec<(Instant, Vec<String>, String)>>>;
 
 // Records each batch: when it came, its paths, and the content of `read` at that moment.
-fn watch(dir: &std::path::Path, read: std::path::PathBuf) -> (Seen, Result<Box<dyn tsrs_fswatch::Watch>, tsrs_fswatch::Error>) {
+fn watch(
+    dir: &std::path::Path,
+    read: std::path::PathBuf,
+) -> (Seen, Result<Box<dyn tsrs_fswatch::Watch>, tsrs_fswatch::Error>) {
     let seen: Seen = Arc::default();
     let s = Arc::clone(&seen);
     let w = kqueue().watch_directory(
@@ -35,7 +44,11 @@ fn watch(dir: &std::path::Path, read: std::path::PathBuf) -> (Seen, Result<Box<d
         Arc::new(move |events, _err| {
             if !events.is_empty() {
                 let content = std::fs::read_to_string(&read).unwrap_or_default();
-                s.lock().unwrap().push((Instant::now(), events.into_iter().map(|e| e.path).collect(), content));
+                s.lock().unwrap().push((
+                    Instant::now(),
+                    events.into_iter().map(|e| e.path).collect(),
+                    content,
+                ));
             }
         }),
         Vec::new(),
@@ -71,7 +84,11 @@ fn every_file_is_watched_past_the_soft_limit() {
     std::fs::write(&last, "export const x = 1;\n").unwrap();
     wait_for(&seen, 1, Duration::from_secs(3));
     let seen = seen.lock().unwrap();
-    assert!(seen.iter().any(|(_, paths, _)| paths.iter().any(|p| p.ends_with("f199.ts"))), "no event for the last file: {:?}", *seen);
+    assert!(
+        seen.iter().any(|(_, paths, _)| paths.iter().any(|p| p.ends_with("f199.ts"))),
+        "no event for the last file: {:?}",
+        *seen
+    );
     drop(seen);
     let _ = w.close();
     let _ = std::fs::remove_dir_all(&dir);

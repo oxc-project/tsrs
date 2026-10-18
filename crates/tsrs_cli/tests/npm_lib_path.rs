@@ -5,10 +5,15 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 fn scratch(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("tsrs-npm-lib-path-{}-{}", name, std::process::id()));
+    let dir =
+        std::env::temp_dir().join(format!("tsrs-npm-lib-path-{}-{}", name, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("project")).unwrap();
-    std::fs::write(dir.join("project/tsconfig.json"), r#"{ "compilerOptions": { "target": "es2020", "lib": ["es2020"] }, "files": ["a.ts"] }"#).unwrap();
+    std::fs::write(
+        dir.join("project/tsconfig.json"),
+        r#"{ "compilerOptions": { "target": "es2020", "lib": ["es2020"] }, "files": ["a.ts"] }"#,
+    )
+    .unwrap();
     std::fs::write(dir.join("project/a.ts"), "export const a = 1;\n").unwrap();
     std::fs::canonicalize(dir).unwrap()
 }
@@ -25,12 +30,22 @@ fn install_binary(dir: &Path) -> PathBuf {
 }
 
 fn run(exe: &Path, dir: &Path) -> Output {
-    Command::new(exe).args(["-p", "tsconfig.json", "--listFilesOnly"]).current_dir(dir.join("project")).env_remove("TSRS_LIB_PATH").output().unwrap()
+    Command::new(exe)
+        .args(["-p", "tsconfig.json", "--listFilesOnly"])
+        .current_dir(dir.join("project"))
+        .env_remove("TSRS_LIB_PATH")
+        .output()
+        .unwrap()
 }
 
 fn list_files(exe: &Path, dir: &Path) -> Vec<String> {
     let out = run(exe, dir);
-    assert!(out.status.success(), "stdout: {}\nstderr: {}", String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
     String::from_utf8(out.stdout).unwrap().lines().map(str::to_string).collect()
 }
 
@@ -38,7 +53,9 @@ fn list_files(exe: &Path, dir: &Path) -> Vec<String> {
 fn libraries_next_to_the_binary_follow_the_build_mode() {
     let dir = scratch("beside");
     let exe = install_binary(&dir);
-    for entry in std::fs::read_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/../tsrs_vfs/libs")).unwrap() {
+    for entry in
+        std::fs::read_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/../tsrs_vfs/libs")).unwrap()
+    {
         let path = entry.unwrap().path();
         std::fs::copy(&path, dir.join("bin").join(path.file_name().unwrap())).unwrap();
     }

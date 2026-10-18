@@ -3,13 +3,16 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
-use tsrs_core::tspath::Path;
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use crate::checkerpool::checkerPool;
-use crate::{new_compiler_host, new_program, CheckerHandle, PooledChecker, CheckerPool, CompilerHost, Context, CreateCheckerPool, Program, ProgramOptions};
+use crate::{
+    CheckerHandle, CheckerPool, CompilerHost, Context, CreateCheckerPool, PooledChecker, Program,
+    ProgramOptions, new_compiler_host, new_program,
+};
 
 struct parseConfigHost {
     fs: Arc<dyn FS>,
@@ -32,7 +35,13 @@ fn host_for(files: &[(&str, &str)]) -> Arc<dyn CompilerHost> {
 fn config_for(files: &[(&str, &str)]) -> P<tsoptions::ParsedCommandLine> {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), true));
     let host: &'static parseConfigHost = Box::leak(Box::new(parseConfigHost { fs }));
-    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file("/src/tsconfig.json", None, None, host, None);
+    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
+        "/src/tsconfig.json",
+        None,
+        None,
+        host,
+        None,
+    );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
     P::new(config.unwrap())
 }
@@ -48,7 +57,12 @@ struct testPool {
 impl CheckerPool for testPool {
     fn get_checker(&self, _ctx: &Context, _file: Option<P<tsrs_ast::SourceFile>>) -> CheckerHandle {
         self.acquired.fetch_add(1, Ordering::Relaxed);
-        let mut checker = self.idle.lock().unwrap().pop().unwrap_or_else(|| PooledChecker::new(tsrs_checker::new_checker(self.program)));
+        let mut checker = self
+            .idle
+            .lock()
+            .unwrap()
+            .pop()
+            .unwrap_or_else(|| PooledChecker::new(tsrs_checker::new_checker(self.program)));
         let ptr = checker.as_non_null();
         let idle = std::sync::Arc::clone(&self.idle);
         // SAFETY: the checker is out of the idle list (held) until the release function puts it back.
@@ -61,7 +75,10 @@ impl CheckerPool for testPool {
 fn program_hosts_and_factories() {
     let index = "/// <reference types=\"dep\" />\nimport { value } from \"./dep.js\"; export const result = value;";
     let files = [
-        ("/src/tsconfig.json", r#"{"compilerOptions":{"noLib":true,"module":"nodenext"},"files":["index.ts"]}"#),
+        (
+            "/src/tsconfig.json",
+            r#"{"compilerOptions":{"noLib":true,"module":"nodenext"},"files":["index.ts"]}"#,
+        ),
         ("/src/index.ts", index),
         ("/src/dep.ts", "export const value = 1;"),
         ("/src/node_modules/@types/dep/index.d.ts", "export {};"),
@@ -76,23 +93,35 @@ fn program_hosts_and_factories() {
         Box::new(checkerPool::new(p, None))
     }));
     let resolvers_c = std::sync::Arc::clone(&resolvers);
-    opts.create_module_resolver = Some(Arc::new(move |options: tsrs_module::ResolverOptions| -> Box<dyn tsrs_module::Resolver> {
-        resolvers_c.fetch_add(1, Ordering::Relaxed);
-        Box::new(tsrs_module::new_resolver(options))
-    }));
+    opts.create_module_resolver = Some(Arc::new(
+        move |options: tsrs_module::ResolverOptions| -> Box<dyn tsrs_module::Resolver> {
+            resolvers_c.fetch_add(1, Ordering::Relaxed);
+            Box::new(tsrs_module::new_resolver(options))
+        },
+    ));
     let p = new_program(opts);
     assert_eq!(pools.load(Ordering::Relaxed), 1);
     assert_eq!(resolvers.load(Ordering::Relaxed), 1);
     let old_file = p.get_source_file("/src/index.ts").unwrap();
-    let resolved = p.get_resolved_module_from_module_specifier(old_file, old_file.imports()[0]).unwrap();
+    let resolved =
+        p.get_resolved_module_from_module_specifier(old_file, old_file.imports()[0]).unwrap();
     assert!(resolved.is_resolved());
     let resolved_type_ref = p
-        .get_resolved_type_reference_directive_from_type_reference_directive(old_file.type_reference_directives.get()[0], old_file)
+        .get_resolved_type_reference_directive_from_type_reference_directive(
+            old_file.type_reference_directives.get()[0],
+            old_file,
+        )
         .unwrap();
     assert!(resolved_type_ref.is_resolved());
 
     let new_index = format!("\n{index}");
-    let new_files = [files[0], ("/src/index.ts", new_index.as_str()), files[2], files[3], ("/probe/package.json", r#"{"name":"new-host"}"#)];
+    let new_files = [
+        files[0],
+        ("/src/index.ts", new_index.as_str()),
+        files[2],
+        files[3],
+        ("/probe/package.json", r#"{"name":"new-host"}"#),
+    ];
     let new_host = host_for(&new_files);
     let pools_c = std::sync::Arc::clone(&pools);
     let new_host_c = std::sync::Arc::clone(&new_host);
@@ -106,32 +135,59 @@ fn program_hosts_and_factories() {
         &Path::from("/src/index.ts"),
         std::sync::Arc::clone(&new_host),
         Some(create),
-        Some(Arc::new(|_| panic!("cloning must reuse resolution data without invoking construction callbacks"))),
+        Some(Arc::new(|_| {
+            panic!("cloning must reuse resolution data without invoking construction callbacks")
+        })),
     );
     assert!(reused);
     let cloned = cloned.unwrap();
     let changed = changed.unwrap();
     assert_eq!(Some(changed), cloned.get_source_file("/src/index.ts"));
     assert_eq!(Some(old_file), p.get_source_file("/src/index.ts"));
-    assert_eq!(cloned.get_resolved_module_from_module_specifier(changed, changed.imports()[0]), Some(resolved));
     assert_eq!(
-        cloned.get_resolved_type_reference_directive_from_type_reference_directive(changed.type_reference_directives.get()[0], changed),
+        cloned.get_resolved_module_from_module_specifier(changed, changed.imports()[0]),
+        Some(resolved)
+    );
+    assert_eq!(
+        cloned.get_resolved_type_reference_directive_from_type_reference_directive(
+            changed.type_reference_directives.get()[0],
+            changed
+        ),
         Some(resolved_type_ref)
     );
     assert_ne!(cloned.resolution_data, p.resolution_data);
     assert!(cloned.get_package_json_info("/probe/package.json").is_some());
-    assert!(p.get_package_json_info("/probe/package.json").is_none(), "new lazy lookups must not populate the old generation's cache");
+    assert!(
+        p.get_package_json_info("/probe/package.json").is_none(),
+        "new lazy lookups must not populate the old generation's cache"
+    );
     assert_eq!(pools.load(Ordering::Relaxed), 2);
     assert_eq!(resolvers.load(Ordering::Relaxed), 1);
 
-    let (defaults, _, reused) = cloned.reuse_program(&Path::from("/src/index.ts"), std::sync::Arc::clone(&new_host), None, None);
+    let (defaults, _, reused) = cloned.reuse_program(
+        &Path::from("/src/index.ts"),
+        std::sync::Arc::clone(&new_host),
+        None,
+        None,
+    );
     assert!(reused);
     assert!(defaults.unwrap().compiler_checker_pool().is_some());
     assert_eq!(pools.load(Ordering::Relaxed), 2);
 
-    let rebuild_files = [files[0], ("/src/index.ts", "import \"./other.js\";"), files[2], files[3], ("/src/other.ts", "export {};")];
+    let rebuild_files = [
+        files[0],
+        ("/src/index.ts", "import \"./other.js\";"),
+        files[2],
+        files[3],
+        ("/src/other.ts", "export {};"),
+    ];
     let rebuild_host = host_for(&rebuild_files);
-    let (rebuilt, _, reused) = p.update_program(&Path::from("/src/index.ts"), std::sync::Arc::clone(&rebuild_host), None, None);
+    let (rebuilt, _, reused) = p.update_program(
+        &Path::from("/src/index.ts"),
+        std::sync::Arc::clone(&rebuild_host),
+        None,
+        None,
+    );
     assert!(!reused);
     assert!(rebuilt.compiler_checker_pool().is_some());
     assert!(Arc::ptr_eq(rebuilt.host(), &rebuild_host));
@@ -145,9 +201,15 @@ fn program_hosts_and_factories() {
 #[test]
 fn external_checker_pool_diagnostics() {
     let files = [
-        ("/src/tsconfig.json", r#"{"compilerOptions":{"noLib":true,"strict":true},"files":["a.ts","b.ts"]}"#),
+        (
+            "/src/tsconfig.json",
+            r#"{"compilerOptions":{"noLib":true,"strict":true},"files":["a.ts","b.ts"]}"#,
+        ),
         ("/src/a.ts", "export const a: number = \"x\";\nexport function f(x) { return x; }"),
-        ("/src/b.ts", "import { a } from \"./a\";\nconst b: string = a;\n// @ts-expect-error\nconst ok = 1;"),
+        (
+            "/src/b.ts",
+            "import { a } from \"./a\";\nconst b: string = a;\n// @ts-expect-error\nconst ok = 1;",
+        ),
     ];
     let config = config_for(&files);
     let builtin = new_program(ProgramOptions::new(config, host_for(&files)));
@@ -155,9 +217,14 @@ fn external_checker_pool_diagnostics() {
     let acquired = Arc::new(AtomicUsize::new(0));
     let mut opts = ProgramOptions::new(config, host_for(&files));
     let (idle_c, acquired_c) = (std::sync::Arc::clone(&idle), std::sync::Arc::clone(&acquired));
-    opts.create_checker_pool = Some(Arc::new(move |program: &'static Program| -> Box<dyn CheckerPool> {
-        Box::new(testPool { program, idle: std::sync::Arc::clone(&idle_c), acquired: std::sync::Arc::clone(&acquired_c) })
-    }));
+    opts.create_checker_pool =
+        Some(Arc::new(move |program: &'static Program| -> Box<dyn CheckerPool> {
+            Box::new(testPool {
+                program,
+                idle: std::sync::Arc::clone(&idle_c),
+                acquired: std::sync::Arc::clone(&acquired_c),
+            })
+        }));
     let external = new_program(opts);
     assert!(external.compiler_checker_pool().is_none());
 
@@ -168,9 +235,7 @@ fn external_checker_pool_diagnostics() {
             .iter()
             .chain(program.get_suggestion_diagnostics(&ctx, None).iter())
             .map(|d| {
-                let pos = d
-                    .pos()
-                    .map_or_else(|| "-".to_string(), |pos| pos.to_string());
+                let pos = d.pos().map_or_else(|| "-".to_string(), |pos| pos.to_string());
                 format!("{}:{pos}:{}", d.file().unwrap().file_name(), d.code())
             })
             .collect()
@@ -179,9 +244,13 @@ fn external_checker_pool_diagnostics() {
     assert!(expected.len() >= 4, "{expected:?}");
     assert_eq!(messages(external), expected);
     let file = external.get_source_file("/src/b.ts").unwrap();
-    let single: Vec<i32> = external.get_semantic_diagnostics(&ctx, Some(file)).iter().map(|d| d.code()).collect();
+    let single: Vec<i32> =
+        external.get_semantic_diagnostics(&ctx, Some(file)).iter().map(|d| d.code()).collect();
     assert_eq!(single, vec![2322, 2578]);
-    assert_eq!(external.get_global_diagnostics(&ctx), [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
+    assert_eq!(
+        external.get_global_diagnostics(&ctx),
+        [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]
+    );
     {
         let c = external.get_type_checker_for_file(&ctx, file);
         assert!(!c.was_canceled());
@@ -197,10 +266,16 @@ fn external_checker_pool_diagnostics() {
 fn single_file_diagnostics_of_a_freed_leaf_panic() {
     // The file is predicted (`.test.`) and loaded as a root file, so it gets a region; nothing imports it.
     let files = [
-        ("/src/tsconfig.json", r#"{"compilerOptions":{"noLib":true,"noEmit":true},"files":["a.test.ts"]}"#),
+        (
+            "/src/tsconfig.json",
+            r#"{"compilerOptions":{"noLib":true,"noEmit":true},"files":["a.test.ts"]}"#,
+        ),
         ("/src/a.test.ts", "export const a: number = 1;"),
     ];
-    crate::fileregions::enable(crate::LeafSettings { mode: crate::LeafMode::Free, stats: false, every_file: false }, "/");
+    crate::fileregions::enable(
+        crate::LeafSettings { mode: crate::LeafMode::Free, stats: false, every_file: false },
+        "/",
+    );
     let mut opts = ProgramOptions::new(config_for(&files), host_for(&files));
     opts.leaf_files = crate::LeafMode::Free;
     let program = new_program(opts);
@@ -222,13 +297,17 @@ fn a_reused_program_keeps_the_checker_assignment() {
         ("/src/c.ts", "export const c = 1;"),
         ("/src/d.ts", "import { c } from './c'; export const d = c;"),
     ];
-    let edited = [files[0], ("/src/a.ts", "// edited\nexport const a = 1;"), files[2], files[3], files[4]];
+    let edited =
+        [files[0], ("/src/a.ts", "// edited\nexport const a = 1;"), files[2], files[3], files[4]];
     let a = Path::from("/src/a.ts");
 
     let p = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
     let (unassigned, _, reused) = p.reuse_program(&a, host_for(&edited), None, None);
     assert!(reused);
-    assert!(unassigned.unwrap().pool().inherited_associations.is_none(), "the old pool had not assigned its files yet");
+    assert!(
+        unassigned.unwrap().pool().inherited_associations.is_none(),
+        "the old pool had not assigned its files yet"
+    );
 
     let associations = p.pool().state().associations.clone();
     assert_eq!(associations.len(), 4);
@@ -254,19 +333,27 @@ fn a_reused_program_computes_the_tsgo_slots_of_a_fresh_one() {
     ];
     let comment = format!("// {}\n", "x".repeat(20_000));
     let edited_a = format!("{comment}export const a = 1;");
-    let edited = [files[0], ("/src/a.ts", edited_a.as_str()), files[2], files[3], files[4], files[5]];
+    let edited =
+        [files[0], ("/src/a.ts", edited_a.as_str()), files[2], files[3], files[4], files[5]];
     let by_path = |program: &'static Program| -> Vec<(String, (u32, u32))> {
-        let mut slots: Vec<_> = crate::checkerpool::tsgo_default_check_slots(program).into_iter().map(|(file, slot)| (file.file_name().to_string(), slot)).collect();
+        let mut slots: Vec<_> = crate::checkerpool::tsgo_default_check_slots(program)
+            .into_iter()
+            .map(|(file, slot)| (file.file_name().to_string(), slot))
+            .collect();
         slots.sort();
         slots
     };
 
     let p = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
     let before = by_path(p);
-    let (reused_program, _, reused) = p.reuse_program(&Path::from("/src/a.ts"), host_for(&edited), None, None);
+    let (reused_program, _, reused) =
+        p.reuse_program(&Path::from("/src/a.ts"), host_for(&edited), None, None);
     assert!(reused);
     let reused_program = reused_program.unwrap();
-    assert!(Arc::ptr_eq(reused_program.tsgo_import_adjacency.get().unwrap(), p.tsgo_import_adjacency.get().unwrap()));
+    assert!(Arc::ptr_eq(
+        reused_program.tsgo_import_adjacency.get().unwrap(),
+        p.tsgo_import_adjacency.get().unwrap()
+    ));
     let fresh = by_path(new_program(ProgramOptions::new(config_for(&edited), host_for(&edited))));
     assert_ne!(before, fresh, "the edit must move a slot");
     assert_eq!(by_path(reused_program), fresh);
@@ -278,7 +365,10 @@ fn a_reused_program_computes_the_tsgo_slots_of_a_fresh_one() {
 #[test]
 fn emit_of_a_synthesized_return_expression() {
     let files = [
-        ("/src/tsconfig.json", r#"{ "compilerOptions": { "target": "es2015", "strict": true, "types": [] } }"#),
+        (
+            "/src/tsconfig.json",
+            r#"{ "compilerOptions": { "target": "es2015", "strict": true, "types": [] } }"#,
+        ),
         ("/src/a.ts", "export function f(p: object) {\n    return { a: 1, ...p } as object;\n}\n"),
     ];
     let program = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
@@ -287,7 +377,16 @@ fn emit_of_a_synthesized_return_expression() {
         written.lock().unwrap().push((name.to_string(), text.to_string()));
         Ok(())
     };
-    program.emit(&Context::default(), &crate::EmitOptions { write_file: Some(&write_file), ..Default::default() });
+    program.emit(
+        &Context::default(),
+        &crate::EmitOptions { write_file: Some(&write_file), ..Default::default() },
+    );
     // tsgo's output.
-    assert_eq!(*written.lock().unwrap(), [("/src/a.js".to_string(), "export function f(p) {\n    return Object.assign({ a: 1 }, p);\n}\n".to_string())]);
+    assert_eq!(
+        *written.lock().unwrap(),
+        [(
+            "/src/a.js".to_string(),
+            "export function f(p) {\n    return Object.assign({ a: 1 }, p);\n}\n".to_string()
+        )]
+    );
 }

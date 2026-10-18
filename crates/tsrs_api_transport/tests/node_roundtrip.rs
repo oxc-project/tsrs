@@ -10,7 +10,8 @@ use std::process::Command;
 #[test]
 fn pinned_node_clients_round_trip() {
     let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let ts_ref = std::env::var_os("TSRS_TS_REF").map_or_else(|| manifest.join("../../ts-ref"), PathBuf::from);
+    let ts_ref = std::env::var_os("TSRS_TS_REF")
+        .map_or_else(|| manifest.join("../../ts-ref"), PathBuf::from);
     let client = ts_ref.join("packages/typescript/src/api/sync/client.ts");
     let node_ok = Command::new("node").arg("--version").output().is_ok_and(|o| o.status.success());
     let commit = "b85298b6a81f772d080b0455de0ca9d744cd6fd6";
@@ -30,20 +31,39 @@ fn pinned_node_clients_round_trip() {
     );
     // cargo test builds examples next to the test's deps directory.
     let exe = std::env::current_exe().unwrap();
-    let server = exe.parent().unwrap().parent().unwrap().join("examples").join(format!("transport_test_server{}", std::env::consts::EXE_SUFFIX));
+    let server = exe
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("examples")
+        .join(format!("transport_test_server{}", std::env::consts::EXE_SUFFIX));
     assert!(server.exists(), "example server not built at {}", server.display());
     let output = Command::new("node")
-        .args(["--conditions=@typescript/source", "--test", "--test-timeout=60000", "--test-reporter=tap"])
+        .args([
+            "--conditions=@typescript/source",
+            "--test",
+            "--test-timeout=60000",
+            "--test-reporter=tap",
+        ])
         .arg(manifest.join("tests/node/roundtrip.test.mjs"))
         .env("TS_REF", &ts_ref)
         .env("SERVER", &server)
         .output()
         .expect("run node");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let count = |key: &str| stdout.lines().find_map(|l| l.strip_prefix(&format!("# {key} "))).and_then(|v| v.trim().parse::<u32>().ok());
+    let count = |key: &str| {
+        stdout
+            .lines()
+            .find_map(|l| l.strip_prefix(&format!("# {key} ")))
+            .and_then(|v| v.trim().parse::<u32>().ok())
+    };
     let (pass, fail, tests) = (count("pass"), count("fail"), count("tests"));
     assert!(
-        output.status.success() && fail == Some(0) && pass.is_some_and(|p| p >= 15) && pass == tests,
+        output.status.success()
+            && fail == Some(0)
+            && pass.is_some_and(|p| p >= 15)
+            && pass == tests,
         "node round trip failed: tests={tests:?} pass={pass:?} fail={fail:?}\n{stdout}\n{}",
         String::from_utf8_lossy(&output.stderr)
     );

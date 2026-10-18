@@ -1,11 +1,14 @@
-use std::sync::Arc;
 use std::cell::RefCell;
+use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
-use tsrs_ast::{self as ast, Kind, ModifierFlags, ModifierList, Node, NodeFactory, NodeFlags, SourceFile, Symbol, TokenFlags};
+use tsrs_ast::{
+    self as ast, Kind, ModifierFlags, ModifierList, Node, NodeFactory, NodeFlags, SourceFile,
+    Symbol, TokenFlags,
+};
 use tsrs_checker::{Checker, Flags, InternalFlags, ObjectFlags, Type, TypeFlags, UnionReduction};
 use tsrs_core::context::Context;
-use tsrs_core::{alloc_str, LanguageVariant, NewLineKind, TextRange, P};
+use tsrs_core::{LanguageVariant, NewLineKind, P, TextRange, alloc_str};
 use tsrs_diagnostics as diagnostics;
 use tsrs_lsproto as lsproto;
 use tsrs_printer::{self as printer, AutoGenerateOptions, EmitFlags, GeneratedIdentifierFlags};
@@ -14,7 +17,9 @@ use tsrs_scanner as scanner;
 use crate::astnav;
 use crate::autoimport::{self, IdToSymbol};
 use crate::change::{self, LeadingTriviaOption, NodeOptions};
-use crate::codeactions::{is_fixable_diagnostic, CodeAction, CodeFixContext, CodeFixProvider, CombinedCodeActions};
+use crate::codeactions::{
+    CodeAction, CodeFixContext, CodeFixProvider, CombinedCodeActions, is_fixable_diagnostic,
+};
 use crate::diagnostics::get_all_diagnostics;
 
 // codeactions_fixmissingtypeannotation.go:21
@@ -52,12 +57,13 @@ const FIX_MISSING_TYPE_ANNOTATION_ON_EXPORTS_FIX_ID: &str = "fixMissingTypeAnnot
 
 // codeactions_fixmissingtypeannotation.go:48
 // IsolatedDeclarationsFixProvider is the CodeFixProvider for isolatedDeclarations-related type annotation fixes.
-pub(crate) static ISOLATED_DECLARATIONS_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> = std::sync::LazyLock::new(|| CodeFixProvider {
-    error_codes: isolated_declarations_fix_error_codes(),
-    get_code_actions: get_isolated_declarations_code_actions,
-    fix_ids: &[FIX_MISSING_TYPE_ANNOTATION_ON_EXPORTS_FIX_ID],
-    get_all_code_actions: Some(get_all_isolated_declarations_code_actions),
-});
+pub(crate) static ISOLATED_DECLARATIONS_FIX_PROVIDER: std::sync::LazyLock<CodeFixProvider> =
+    std::sync::LazyLock::new(|| CodeFixProvider {
+        error_codes: isolated_declarations_fix_error_codes(),
+        get_code_actions: get_isolated_declarations_code_actions,
+        fix_ids: &[FIX_MISSING_TYPE_ANNOTATION_ON_EXPORTS_FIX_ID],
+        get_all_code_actions: Some(get_all_isolated_declarations_code_actions),
+    });
 
 // codeactions_fixmissingtypeannotation.go:56
 // canHaveTypeAnnotationKinds are the node kinds that can have type annotations added.
@@ -101,8 +107,14 @@ enum typePrintMode {
 }
 
 // codeactions_fixmissingtypeannotation.go:88
-#[expect(clippy::unnecessary_wraps, reason = "CodeFixRegistration callbacks share a fallible result so the dispatcher propagates errors from other fixes.")]
-fn get_isolated_declarations_code_actions(ctx: &Context, fix_context: &CodeFixContext) -> Result<Vec<CodeAction>, lsproto::Error> {
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "CodeFixRegistration callbacks share a fallible result so the dispatcher propagates errors from other fixes."
+)]
+fn get_isolated_declarations_code_actions(
+    ctx: &Context,
+    fix_context: &CodeFixContext,
+) -> Result<Vec<CodeAction>, lsproto::Error> {
     let mut ch = fix_context.program.get_type_checker_for_file(ctx, fix_context.source_file);
 
     let mut fixes: Vec<CodeAction> = Vec::new();
@@ -141,13 +153,24 @@ fn get_isolated_declarations_code_actions(ctx: &Context, fix_context: &CodeFixCo
 }
 
 // codeactions_fixmissingtypeannotation.go:128
-#[expect(clippy::unnecessary_wraps, reason = "CodeFixRegistration callbacks share a fallible result so the dispatcher propagates errors from other fixes.")]
-fn get_all_isolated_declarations_code_actions(ctx: &Context, fix_context: &CodeFixContext) -> Result<Option<CombinedCodeActions>, lsproto::Error> {
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "CodeFixRegistration callbacks share a fallible result so the dispatcher propagates errors from other fixes."
+)]
+fn get_all_isolated_declarations_code_actions(
+    ctx: &Context,
+    fix_context: &CodeFixContext,
+) -> Result<Option<CombinedCodeActions>, lsproto::Error> {
     let all_diags = get_all_diagnostics(ctx, fix_context.program, fix_context.source_file);
 
     let mut ch = fix_context.program.get_type_checker_for_file(ctx, fix_context.source_file);
 
-    let mut change_tracker = change::new_tracker(ctx, &fix_context.program.options(), fix_context.ls.format_options(), Arc::clone(&fix_context.ls.converters));
+    let mut change_tracker = change::new_tracker(
+        ctx,
+        &fix_context.program.options(),
+        fix_context.ls.format_options(),
+        Arc::clone(&fix_context.ls.converters),
+    );
 
     let mut fixer = isolatedDeclarationsFixer {
         source_file: fix_context.source_file,
@@ -173,12 +196,17 @@ fn get_all_isolated_declarations_code_actions(ctx: &Context, fix_context: &CodeF
     }
 
     let (mut changes, _) = change_tracker.get_changes();
-    let file_changes = changes.shift_remove(crate::lsconv::Script::original_file_name(&fix_context.source_file)).unwrap_or_default();
+    let file_changes = changes
+        .shift_remove(crate::lsconv::Script::original_file_name(&fix_context.source_file))
+        .unwrap_or_default();
     if file_changes.is_empty() {
         return Ok(None);
     }
 
-    Ok(Some(CombinedCodeActions { description: diagnostics::Add_all_missing_type_annotations.localize(&[]), changes: file_changes }))
+    Ok(Some(CombinedCodeActions {
+        description: diagnostics::Add_all_missing_type_annotations.localize(&[]),
+        changes: file_changes,
+    }))
 }
 
 // codeactions_fixmissingtypeannotation.go:170
@@ -188,7 +216,12 @@ fn try_code_action(
     ch: &mut Checker,
     f: &mut dyn FnMut(&mut isolatedDeclarationsFixer) -> String,
 ) -> Option<CodeAction> {
-    let mut change_tracker = change::new_tracker(ctx, &fix_context.program.options(), fix_context.ls.format_options(), Arc::clone(&fix_context.ls.converters));
+    let mut change_tracker = change::new_tracker(
+        ctx,
+        &fix_context.program.options(),
+        fix_context.ls.format_options(),
+        Arc::clone(&fix_context.ls.converters),
+    );
 
     // importAdder may be nil if the auto-import registry is not available;
     // type node transformation still works without it, just without adding imports.
@@ -216,7 +249,9 @@ fn try_code_action(
     }
 
     let (mut changes, _) = change_tracker.get_changes();
-    let file_changes = changes.shift_remove(crate::lsconv::Script::original_file_name(&fix_context.source_file)).unwrap_or_default();
+    let file_changes = changes
+        .shift_remove(crate::lsconv::Script::original_file_name(&fix_context.source_file))
+        .unwrap_or_default();
 
     if file_changes.is_empty() {
         return None;
@@ -252,8 +287,7 @@ impl isolatedDeclarationsFixer<'_> {
     fn add_type_annotation(&mut self, span: TextRange) -> String {
         let node_with_diag = astnav::get_token_at_position(
             self.source_file,
-            span.pos()
-                .expect_source("code-fix spans have source positions"),
+            span.pos().expect_source("code-fix spans have source positions"),
         );
 
         if let Some(expando_function) = find_expando_function(self.checker, node_with_diag) {
@@ -294,12 +328,27 @@ impl isolatedDeclarationsFixer<'_> {
             }
 
             let sym_type = self.checker.get_type_of_symbol_exported(symbol);
-            let type_node = self.type_to_minimized_reference_type(sym_type, expando_func, declaration_emit_node_builder_flags())?;
+            let type_node = self.type_to_minimized_reference_type(
+                sym_type,
+                expando_func,
+                declaration_emit_node_builder_flags(),
+            )?;
 
-            let var_decl = factory.new_variable_declaration(factory.new_identifier(symbol.name()), None, Some(type_node), None);
+            let var_decl = factory.new_variable_declaration(
+                factory.new_identifier(symbol.name()),
+                None,
+                Some(type_node),
+                None,
+            );
             let export_token = factory.new_token(Kind::ExportKeyword);
-            let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::None);
-            let var_stmt = factory.new_variable_statement(Some(factory.new_modifier_list(vec![export_token])), var_decl_list);
+            let var_decl_list = factory.new_variable_declaration_list(
+                factory.new_node_list(vec![var_decl]),
+                NodeFlags::None,
+            );
+            let var_stmt = factory.new_variable_statement(
+                Some(factory.new_modifier_list(vec![export_token])),
+                var_decl_list,
+            );
             Some(var_stmt)
         }));
 
@@ -321,7 +370,8 @@ impl isolatedDeclarationsFixer<'_> {
             Some(factory.new_module_block(factory.new_node_list(new_properties))),
         );
         // Set the flags for namespace
-        namespace.set_flags(NodeFlags::Ambient | NodeFlags::ExportContext | NodeFlags::ContextFlags);
+        namespace
+            .set_flags(NodeFlags::Ambient | NodeFlags::ExportContext | NodeFlags::ContextFlags);
 
         self.change_tracker.insert_node_after(self.source_file, expando_func, namespace);
         diagnostics::Annotate_types_of_properties_expando_function_in_a_namespace.localize(&[])
@@ -331,8 +381,7 @@ impl isolatedDeclarationsFixer<'_> {
     fn add_inline_assertion(&mut self, span: TextRange) -> String {
         let node_with_diag = astnav::get_token_at_position(
             self.source_file,
-            span.pos()
-                .expect_source("code-fix spans have source positions"),
+            span.pos().expect_source("code-fix spans have source positions"),
         );
 
         // No inline assertions for expando members
@@ -343,12 +392,15 @@ impl isolatedDeclarationsFixer<'_> {
         let Some(target_node) = find_best_fitting_node(Some(node_with_diag), span) else {
             return String::new();
         };
-        if is_value_signature_declaration(Some(target_node)) || is_value_signature_declaration(target_node.parent()) {
+        if is_value_signature_declaration(Some(target_node))
+            || is_value_signature_declaration(target_node.parent())
+        {
             return String::new();
         }
 
         let is_expression_target = ast::is_expression(target_node);
-        let is_shorthand_property_assignment_target = ast::is_shorthand_property_assignment(target_node);
+        let is_shorthand_property_assignment_target =
+            ast::is_shorthand_property_assignment(target_node);
 
         // Go's IsDeclaration is broader than TS's isDeclaration (e.g. CallExpression has DeclarationData
         // in Go but is not a declaration kind in TS). Use isNamedDeclarationKind to match TS behavior.
@@ -364,7 +416,9 @@ impl isolatedDeclarationsFixer<'_> {
             return String::new();
         }
         // No support for typeof in extends clauses
-        if is_expression_target && (ast::find_ancestor_kind(target_node, Kind::HeritageClause).is_some() || ast::find_ancestor(target_node, ast::is_type_node).is_some())
+        if is_expression_target
+            && (ast::find_ancestor_kind(target_node, Kind::HeritageClause).is_some()
+                || ast::find_ancestor(target_node, ast::is_type_node).is_some())
         {
             return String::new();
         }
@@ -397,14 +451,9 @@ impl isolatedDeclarationsFixer<'_> {
             let as_expr = create_as_expression(&factory, cloned_name, type_node);
             self.change_tracker.insert_node_at(
                 self.source_file,
-                target_node
-                    .end()
-                    .expect_source("parsed target nodes have source positions"),
+                target_node.end().expect_source("parsed target nodes have source positions"),
                 as_expr,
-                NodeOptions {
-                    prefix: ": ".to_string(),
-                    ..Default::default()
-                },
+                NodeOptions { prefix: ": ".to_string(), ..Default::default() },
             );
         } else if is_expression_target {
             // Replace expression with `(expression) satisfies Type as Type` or `expression satisfies Type as Type`
@@ -413,26 +462,36 @@ impl isolatedDeclarationsFixer<'_> {
                 cloned_target = factory.new_parenthesized_expression(cloned_target);
             }
             let cloned_type = factory.deep_clone_node(Some(type_node)).unwrap();
-            let satisfies_as_expr = factory.new_as_expression(factory.new_satisfies_expression(cloned_target, cloned_type), type_node);
-            self.change_tracker.replace_node(self.source_file, target_node, satisfies_as_expr, None);
+            let satisfies_as_expr = factory.new_as_expression(
+                factory.new_satisfies_expression(cloned_target, cloned_type),
+                type_node,
+            );
+            self.change_tracker.replace_node(
+                self.source_file,
+                target_node,
+                satisfies_as_expr,
+                None,
+            );
         } else {
             return String::new();
         }
 
-        diagnostics::Add_satisfies_and_an_inline_type_assertion_with_0.localize(&[&type_to_string_for_diag(type_node, self.source_file, self.change_tracker)])
+        diagnostics::Add_satisfies_and_an_inline_type_assertion_with_0
+            .localize(&[&type_to_string_for_diag(type_node, self.source_file, self.change_tracker)])
     }
 
     // codeactions_fixmissingtypeannotation.go:404
     fn extract_as_variable(&mut self, span: TextRange) -> String {
         let node_with_diag = astnav::get_token_at_position(
             self.source_file,
-            span.pos()
-                .expect_source("code-fix spans have source positions"),
+            span.pos().expect_source("code-fix spans have source positions"),
         );
         let Some(target_node) = find_best_fitting_node(Some(node_with_diag), span) else {
             return String::new();
         };
-        if is_value_signature_declaration(Some(target_node)) || is_value_signature_declaration(target_node.parent()) {
+        if is_value_signature_declaration(Some(target_node))
+            || is_value_signature_declaration(target_node.parent())
+        {
             return String::new();
         }
 
@@ -451,30 +510,42 @@ impl isolatedDeclarationsFixer<'_> {
             return diagnostics::Mark_array_literal_as_const.localize(&[]);
         }
 
-        if let Some(parent_property_assignment) = ast::find_ancestor_kind(target_node, Kind::PropertyAssignment) {
+        if let Some(parent_property_assignment) =
+            ast::find_ancestor_kind(target_node, Kind::PropertyAssignment)
+        {
             // Identifiers or entity names can already be typeof-ed
-            if Some(parent_property_assignment) == target_node.parent() && ast::is_entity_name_expression(target_node) {
+            if Some(parent_property_assignment) == target_node.parent()
+                && ast::is_entity_name_expression(target_node)
+            {
                 return String::new();
             }
 
-            let temp_name = self
-                .change_tracker
-                .emit_context
-                .factory
-                .new_unique_name_ex(&get_identifier_name_for_node(target_node), AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic, ..Default::default() });
+            let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
+                &get_identifier_name_for_node(target_node),
+                AutoGenerateOptions {
+                    flags: GeneratedIdentifierFlags::Optimistic,
+                    ..Default::default()
+                },
+            );
 
             let mut replacement_target = target_node;
             let mut initialization_node = target_node;
 
             // Handle spread elements: walk up to the spread's parent and handle const assertions
             if ast::is_spread_element(replacement_target) {
-                replacement_target = ast::walk_up_parenthesized_expressions(replacement_target.parent()).unwrap();
+                replacement_target =
+                    ast::walk_up_parenthesized_expressions(replacement_target.parent()).unwrap();
                 if is_const_assertion(replacement_target.parent()) {
                     replacement_target = replacement_target.parent().unwrap();
                     initialization_node = replacement_target;
                 } else {
-                    let const_ref = factory.new_type_reference_node(factory.new_identifier("const"), None);
-                    initialization_node = create_as_expression(&factory, factory.deep_clone_node(Some(replacement_target)).unwrap(), const_ref);
+                    let const_ref =
+                        factory.new_type_reference_node(factory.new_identifier("const"), None);
+                    initialization_node = create_as_expression(
+                        &factory,
+                        factory.deep_clone_node(Some(replacement_target)).unwrap(),
+                        const_ref,
+                    );
                 }
             }
 
@@ -483,21 +554,32 @@ impl isolatedDeclarationsFixer<'_> {
             }
 
             let cloned_init = factory.deep_clone_node(Some(initialization_node)).unwrap();
-            let var_decl = factory.new_variable_declaration(temp_name, None, None, Some(cloned_init));
-            let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
+            let var_decl =
+                factory.new_variable_declaration(temp_name, None, None, Some(cloned_init));
+            let var_decl_list = factory.new_variable_declaration_list(
+                factory.new_node_list(vec![var_decl]),
+                NodeFlags::Const,
+            );
             let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
             let Some(statement) = ast::find_ancestor(target_node, ast::is_statement) else {
                 return String::new();
             };
-            self.change_tracker.insert_node_before(self.source_file, statement, var_stmt, false, LeadingTriviaOption::None);
+            self.change_tracker.insert_node_before(
+                self.source_file,
+                statement,
+                var_stmt,
+                false,
+                LeadingTriviaOption::None,
+            );
 
             let type_query = factory.new_type_query_node(temp_name, None);
             let as_expr = factory.new_as_expression(temp_name, type_query);
             self.change_tracker.replace_node(self.source_file, replacement_target, as_expr, None);
 
             let id_text = type_to_string_for_diag(temp_name, self.source_file, self.change_tracker);
-            return diagnostics::Extract_to_variable_and_replace_with_0_as_typeof_0.localize(&[&id_text]);
+            return diagnostics::Extract_to_variable_and_replace_with_0_as_typeof_0
+                .localize(&[&id_text]);
         }
 
         String::new()
@@ -513,13 +595,19 @@ impl isolatedDeclarationsFixer<'_> {
         *fixed = true;
 
         match node.kind() {
-            Kind::Parameter | Kind::PropertyDeclaration | Kind::VariableDeclaration => self.add_type_to_variable_like(node),
-            Kind::ArrowFunction | Kind::FunctionExpression | Kind::FunctionDeclaration | Kind::MethodDeclaration | Kind::GetAccessor => {
-                self.add_type_to_signature_declaration(node)
+            Kind::Parameter | Kind::PropertyDeclaration | Kind::VariableDeclaration => {
+                self.add_type_to_variable_like(node)
             }
+            Kind::ArrowFunction
+            | Kind::FunctionExpression
+            | Kind::FunctionDeclaration
+            | Kind::MethodDeclaration
+            | Kind::GetAccessor => self.add_type_to_signature_declaration(node),
             Kind::ExportAssignment => self.transform_export_assignment(node),
             Kind::ClassDeclaration => self.transform_extends_clause_with_expression(node),
-            Kind::ObjectBindingPattern | Kind::ArrayBindingPattern => self.transform_destructuring_patterns(node),
+            Kind::ObjectBindingPattern | Kind::ArrayBindingPattern => {
+                self.transform_destructuring_patterns(node)
+            }
             _ => String::new(),
         }
     }
@@ -533,7 +621,11 @@ impl isolatedDeclarationsFixer<'_> {
             return String::new();
         };
         self.change_tracker.try_insert_type_annotation(self.source_file, func_node, type_node);
-        diagnostics::Add_return_type_0.localize(&[&type_to_string_for_diag(type_node, self.source_file, self.change_tracker)])
+        diagnostics::Add_return_type_0.localize(&[&type_to_string_for_diag(
+            type_node,
+            self.source_file,
+            self.change_tracker,
+        )])
     }
 
     // codeactions_fixmissingtypeannotation.go:604
@@ -550,18 +642,36 @@ impl isolatedDeclarationsFixer<'_> {
 
         let factory = self.factory();
 
-        let default_identifier = self.change_tracker.emit_context.factory.new_unique_name("_default");
+        let default_identifier =
+            self.change_tracker.emit_context.factory.new_unique_name("_default");
 
         // Deep clone the expression so synthesized nodes don't reference original source positions
         let cloned_expression = factory.deep_clone_node(Some(expression)).unwrap();
 
-        let var_decl = factory.new_variable_declaration(default_identifier, None, Some(type_node), Some(cloned_expression));
-        let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
+        let var_decl = factory.new_variable_declaration(
+            default_identifier,
+            None,
+            Some(type_node),
+            Some(cloned_expression),
+        );
+        let var_decl_list = factory
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
-        let new_export = factory.update_export_assignment(default_export, default_export.modifiers(), false, None, default_identifier);
+        let new_export = factory.update_export_assignment(
+            default_export,
+            default_export.modifiers(),
+            false,
+            None,
+            default_identifier,
+        );
 
-        self.change_tracker.replace_node_with_nodes(self.source_file, default_export, vec![var_stmt, new_export], None);
+        self.change_tracker.replace_node_with_nodes(
+            self.source_file,
+            default_export,
+            vec![var_stmt, new_export],
+            None,
+        );
         diagnostics::Extract_default_export_to_variable.localize(&[])
     }
 
@@ -573,7 +683,13 @@ impl isolatedDeclarationsFixer<'_> {
             .heritage_clauses()
             .map_or(&[][..], |h| h.nodes())
             .iter()
-            .find_map(|&clause| if clause.as_heritage_clause().token == Kind::ExtendsKeyword { Some(clause) } else { None })
+            .find_map(|&clause| {
+                if clause.as_heritage_clause().token == Kind::ExtendsKeyword {
+                    Some(clause)
+                } else {
+                    None
+                }
+            })
         {
             extends_clause = Some(clause);
         }
@@ -598,16 +714,33 @@ impl isolatedDeclarationsFixer<'_> {
         if let Some(name) = class_decl.name() {
             base_name = format!("{}Base", name.text());
         }
-        let base_class_name =
-            self.change_tracker.emit_context.factory.new_unique_name_ex(&base_name, AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic, ..Default::default() });
+        let base_class_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
+            &base_name,
+            AutoGenerateOptions {
+                flags: GeneratedIdentifierFlags::Optimistic,
+                ..Default::default()
+            },
+        );
 
         // Create: const <BaseName>: <type> = <expression>;
         let cloned_expression = factory.deep_clone_node(Some(expression)).unwrap();
-        let var_decl = factory.new_variable_declaration(base_class_name, None, Some(heritage_type_node), Some(cloned_expression));
-        let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
+        let var_decl = factory.new_variable_declaration(
+            base_class_name,
+            None,
+            Some(heritage_type_node),
+            Some(cloned_expression),
+        );
+        let var_decl_list = factory
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
-        self.change_tracker.insert_node_before(self.source_file, class_decl, var_stmt, false, LeadingTriviaOption::None);
+        self.change_tracker.insert_node_before(
+            self.source_file,
+            class_decl,
+            var_stmt,
+            false,
+            LeadingTriviaOption::None,
+        );
 
         // Replace the heritage expression with the base class name
         let replacement = factory.new_expression_with_type_arguments(base_class_name, None);
@@ -636,11 +769,20 @@ impl isolatedDeclarationsFixer<'_> {
 
         let base_expr_node = if !ast::is_identifier(initializer) {
             // Create a temporary variable for complex expressions
-            let temp_name =
-                self.change_tracker.emit_context.factory.new_unique_name_ex("dest", AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic, ..Default::default() });
+            let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
+                "dest",
+                AutoGenerateOptions {
+                    flags: GeneratedIdentifierFlags::Optimistic,
+                    ..Default::default()
+                },
+            );
             let cloned_initializer = factory.deep_clone_node(Some(initializer)).unwrap();
-            let var_decl = factory.new_variable_declaration(temp_name, None, None, Some(cloned_initializer));
-            let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
+            let var_decl =
+                factory.new_variable_declaration(temp_name, None, None, Some(cloned_initializer));
+            let var_decl_list = factory.new_variable_declaration_list(
+                factory.new_node_list(vec![var_decl]),
+                NodeFlags::Const,
+            );
             let var_stmt = factory.new_variable_statement(None, var_decl_list);
             new_nodes.push(var_stmt);
             temp_name
@@ -650,7 +792,12 @@ impl isolatedDeclarationsFixer<'_> {
         };
 
         // Extract each binding element as a separate variable with type annotation
-        self.extract_binding_elements(binding_pattern, base_expr_node, &mut new_nodes, enclosing_var_stmt);
+        self.extract_binding_elements(
+            binding_pattern,
+            base_expr_node,
+            &mut new_nodes,
+            enclosing_var_stmt,
+        );
 
         if new_nodes.is_empty() {
             return String::new();
@@ -660,22 +807,43 @@ impl isolatedDeclarationsFixer<'_> {
         let decl_list_node = enclosing_var_stmt.as_variable_statement().declaration_list;
         let decl_list = decl_list_node.as_variable_declaration_list();
         if decl_list.declarations.nodes().len() > 1 {
-            let remaining_decls: Vec<P<Node>> = decl_list.declarations.nodes().iter().copied().filter(|&d| d != enclosing_variable_declaration).collect();
+            let remaining_decls: Vec<P<Node>> = decl_list
+                .declarations
+                .nodes()
+                .iter()
+                .copied()
+                .filter(|&d| d != enclosing_variable_declaration)
+                .collect();
             if !remaining_decls.is_empty() {
                 new_nodes.push(factory.update_variable_statement(
                     enclosing_var_stmt,
                     enclosing_var_stmt.modifiers(),
-                    factory.update_variable_declaration_list(decl_list_node, factory.new_node_list(remaining_decls), decl_list_node.flags()),
+                    factory.update_variable_declaration_list(
+                        decl_list_node,
+                        factory.new_node_list(remaining_decls),
+                        decl_list_node.flags(),
+                    ),
                 ));
             }
         }
 
-        self.change_tracker.replace_node_with_nodes(self.source_file, enclosing_var_stmt, new_nodes, None);
+        self.change_tracker.replace_node_with_nodes(
+            self.source_file,
+            enclosing_var_stmt,
+            new_nodes,
+            None,
+        );
         diagnostics::Extract_binding_expressions_to_variable.localize(&[])
     }
 
     // codeactions_fixmissingtypeannotation.go:729
-    fn extract_binding_elements(&mut self, binding_pattern: P<Node>, base_expr: P<Node>, new_nodes: &mut Vec<P<Node>>, enclosing_var_stmt: P<Node>) {
+    fn extract_binding_elements(
+        &mut self,
+        binding_pattern: P<Node>,
+        base_expr: P<Node>,
+        new_nodes: &mut Vec<P<Node>>,
+        enclosing_var_stmt: P<Node>,
+    ) {
         let factory = self.factory();
 
         if ast::is_object_binding_pattern(binding_pattern) {
@@ -690,21 +858,50 @@ impl isolatedDeclarationsFixer<'_> {
 
                 // Build property access expression
                 let access_expr: P<Node>;
-                if let Some(property_name) = be.property_name().filter(|p| ast::is_computed_property_name(*p)) {
+                if let Some(property_name) =
+                    be.property_name().filter(|p| ast::is_computed_property_name(*p))
+                {
                     // Handle computed property names: create a temp variable for the computed expression
                     let computed_expression = property_name.as_computed_property_name().expression;
-                    let identifier_for_computed_property = self.change_tracker.emit_context.factory.new_generated_name_for_node(computed_expression);
-                    let comp_var_decl = factory.new_variable_declaration(identifier_for_computed_property, None, None, Some(computed_expression));
-                    let comp_var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![comp_var_decl]), NodeFlags::Const);
+                    let identifier_for_computed_property = self
+                        .change_tracker
+                        .emit_context
+                        .factory
+                        .new_generated_name_for_node(computed_expression);
+                    let comp_var_decl = factory.new_variable_declaration(
+                        identifier_for_computed_property,
+                        None,
+                        None,
+                        Some(computed_expression),
+                    );
+                    let comp_var_decl_list = factory.new_variable_declaration_list(
+                        factory.new_node_list(vec![comp_var_decl]),
+                        NodeFlags::Const,
+                    );
                     let comp_var_stmt = factory.new_variable_statement(None, comp_var_decl_list);
                     new_nodes.push(comp_var_stmt);
-                    access_expr = factory.new_element_access_expression(base_expr, None, identifier_for_computed_property, NodeFlags::None);
+                    access_expr = factory.new_element_access_expression(
+                        base_expr,
+                        None,
+                        identifier_for_computed_property,
+                        NodeFlags::None,
+                    );
                 } else if let Some(property_name) = be.property_name() {
                     // Use property name text (handles identifiers, string literals, numeric literals)
                     let prop_text = property_name.text();
-                    access_expr = factory.new_property_access_expression(base_expr, None, factory.new_identifier(prop_text), NodeFlags::None);
+                    access_expr = factory.new_property_access_expression(
+                        base_expr,
+                        None,
+                        factory.new_identifier(prop_text),
+                        NodeFlags::None,
+                    );
                 } else if ast::is_identifier(name) {
-                    access_expr = factory.new_property_access_expression(base_expr, None, factory.new_identifier(name.text()), NodeFlags::None);
+                    access_expr = factory.new_property_access_expression(
+                        base_expr,
+                        None,
+                        factory.new_identifier(name.text()),
+                        NodeFlags::None,
+                    );
                 } else {
                     continue;
                 }
@@ -712,11 +909,20 @@ impl isolatedDeclarationsFixer<'_> {
                 if ast::is_binding_pattern(name) {
                     self.extract_binding_elements(name, access_expr, new_nodes, enclosing_var_stmt);
                 } else {
-                    self.emit_binding_element_variable(&factory, name, element, access_expr, new_nodes, enclosing_var_stmt);
+                    self.emit_binding_element_variable(
+                        &factory,
+                        name,
+                        element,
+                        access_expr,
+                        new_nodes,
+                        enclosing_var_stmt,
+                    );
                 }
             }
         } else if ast::is_array_binding_pattern(binding_pattern) {
-            for (i, &element) in binding_pattern.as_binding_pattern().elements.nodes().iter().enumerate() {
+            for (i, &element) in
+                binding_pattern.as_binding_pattern().elements.nodes().iter().enumerate()
+            {
                 if ast::is_omitted_expression(element) {
                     continue;
                 }
@@ -725,12 +931,24 @@ impl isolatedDeclarationsFixer<'_> {
                     continue;
                 };
 
-                let access_expr = factory.new_element_access_expression(base_expr, None, factory.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None), NodeFlags::None);
+                let access_expr = factory.new_element_access_expression(
+                    base_expr,
+                    None,
+                    factory.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None),
+                    NodeFlags::None,
+                );
 
                 if ast::is_binding_pattern(name) {
                     self.extract_binding_elements(name, access_expr, new_nodes, enclosing_var_stmt);
                 } else {
-                    self.emit_binding_element_variable(&factory, name, element, access_expr, new_nodes, enclosing_var_stmt);
+                    self.emit_binding_element_variable(
+                        &factory,
+                        name,
+                        element,
+                        access_expr,
+                        new_nodes,
+                        enclosing_var_stmt,
+                    );
                 }
             }
         }
@@ -760,15 +978,30 @@ impl isolatedDeclarationsFixer<'_> {
             if let Some(prop_name) = prop_name.filter(|p| ast::is_identifier(*p)) {
                 temp_base_name = prop_name.text().to_string();
             }
-            let temp_name =
-                self.change_tracker.emit_context.factory.new_unique_name_ex(&temp_base_name, AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic, ..Default::default() });
-            let temp_var_decl = factory.new_variable_declaration(temp_name, None, None, Some(variable_initializer));
-            let temp_var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![temp_var_decl]), NodeFlags::Const);
+            let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
+                &temp_base_name,
+                AutoGenerateOptions {
+                    flags: GeneratedIdentifierFlags::Optimistic,
+                    ..Default::default()
+                },
+            );
+            let temp_var_decl =
+                factory.new_variable_declaration(temp_name, None, None, Some(variable_initializer));
+            let temp_var_decl_list = factory.new_variable_declaration_list(
+                factory.new_node_list(vec![temp_var_decl]),
+                NodeFlags::Const,
+            );
             let temp_var_stmt = factory.new_variable_statement(None, temp_var_decl_list);
             new_nodes.push(temp_var_stmt);
 
             variable_initializer = factory.new_conditional_expression(
-                factory.new_binary_expression(None, temp_name, None, factory.new_token(Kind::EqualsEqualsEqualsToken), factory.new_identifier("undefined")),
+                factory.new_binary_expression(
+                    None,
+                    temp_name,
+                    None,
+                    factory.new_token(Kind::EqualsEqualsEqualsToken),
+                    factory.new_identifier("undefined"),
+                ),
                 factory.new_token(Kind::QuestionToken),
                 be_initializer,
                 factory.new_token(Kind::ColonToken),
@@ -777,8 +1010,14 @@ impl isolatedDeclarationsFixer<'_> {
         }
 
         let export_modifier = self.get_export_modifier(enclosing_var_stmt);
-        let var_decl = factory.new_variable_declaration(factory.new_identifier(name.text()), None, type_node, Some(variable_initializer));
-        let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
+        let var_decl = factory.new_variable_declaration(
+            factory.new_identifier(name.text()),
+            None,
+            type_node,
+            Some(variable_initializer),
+        );
+        let var_decl_list = factory
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(export_modifier, var_decl_list);
         new_nodes.push(var_stmt);
     }
@@ -801,18 +1040,24 @@ impl isolatedDeclarationsFixer<'_> {
             return self.relative_type(node);
         }
 
-
-
         let t: Option<P<Type>> = if is_value_signature_declaration(Some(node)) {
             let signature = self.checker.get_signature_from_declaration_exported(node);
-            if let Some(type_predicate) = self.checker.get_type_predicate_of_signature_exported(signature) {
+            if let Some(type_predicate) =
+                self.checker.get_type_predicate_of_signature_exported(signature)
+            {
                 let predicate_type = type_predicate.type_()?;
-                let enclosing_decl = ast::find_ancestor(node, ast::is_declaration).unwrap_or(self.source_file.as_node());
+                let enclosing_decl = ast::find_ancestor(node, ast::is_declaration)
+                    .unwrap_or(self.source_file.as_node());
                 let mut flags = declaration_emit_node_builder_flags();
                 if predicate_type.flags().intersects(TypeFlags::UniqueESSymbol) {
                     flags |= Flags::AllowUniqueESSymbolType;
                 }
-                return self.checker.type_predicate_to_type_predicate_node(type_predicate, Some(enclosing_decl), flags, None);
+                return self.checker.type_predicate_to_type_predicate_node(
+                    type_predicate,
+                    Some(enclosing_decl),
+                    flags,
+                    None,
+                );
             }
             Some(self.checker.get_return_type_of_signature_exported(signature))
         } else {
@@ -833,12 +1078,15 @@ impl isolatedDeclarationsFixer<'_> {
             t = widened_type;
         }
 
-        let enclosing_decl = ast::find_ancestor(node, ast::is_declaration).unwrap_or(self.source_file.as_node());
+        let enclosing_decl =
+            ast::find_ancestor(node, ast::is_declaration).unwrap_or(self.source_file.as_node());
 
         let flags = declaration_emit_node_builder_flags() | Self::get_extra_flags(node, t);
 
         // For parameters that require adding implicit undefined, add it to the type
-        if ast::is_parameter_declaration(node) && self.checker.requires_adding_implicit_undefined(node) {
+        if ast::is_parameter_declaration(node)
+            && self.checker.requires_adding_implicit_undefined(node)
+        {
             let undefined_type = self.checker.get_undefined_type();
             t = self.checker.get_union_type_ex_exported(&[undefined_type, t], UnionReduction::None);
         }
@@ -848,7 +1096,12 @@ impl isolatedDeclarationsFixer<'_> {
 
     // codeactions_fixmissingtypeannotation.go:922
     fn get_extra_flags(node: P<Node>, t: P<Type>) -> Flags {
-        if (ast::is_variable_declaration(node) || (ast::is_property_declaration(node) && ast::has_syntactic_modifier(node, ModifierFlags::Static | ModifierFlags::Readonly)))
+        if (ast::is_variable_declaration(node)
+            || (ast::is_property_declaration(node)
+                && ast::has_syntactic_modifier(
+                    node,
+                    ModifierFlags::Static | ModifierFlags::Readonly,
+                )))
             && t.flags().intersects(TypeFlags::UniqueESSymbol)
         {
             return Flags::AllowUniqueESSymbolType;
@@ -867,7 +1120,8 @@ impl isolatedDeclarationsFixer<'_> {
     // typeFromArraySpreadElements decomposes an array literal with spread elements into
     // separate variables, returning a tuple type of typeof references.
     fn type_from_array_spread_elements(&mut self, node: P<Node>, name: &str) -> Option<P<Node>> {
-        let is_in_const_context = ast::find_ancestor(node, |n| is_const_assertion(Some(n))).is_some();
+        let is_in_const_context =
+            ast::find_ancestor(node, |n| is_const_assertion(Some(n))).is_some();
         if !is_in_const_context {
             return None;
         }
@@ -885,7 +1139,8 @@ impl isolatedDeclarationsFixer<'_> {
             &move |expr| f1.new_spread_element(expr),
             &move |elements| f2.new_array_literal_expression(f2.new_node_list(elements), true),
             &move |types| {
-                let rest_types: Vec<P<Node>> = types.into_iter().map(|t| f3.new_rest_type_node(t)).collect();
+                let rest_types: Vec<P<Node>> =
+                    types.into_iter().map(|t| f3.new_rest_type_node(t)).collect();
                 f3.new_tuple_type_node(f3.new_node_list(rest_types))
             },
         )
@@ -895,7 +1150,8 @@ impl isolatedDeclarationsFixer<'_> {
     // typeFromObjectSpreadAssignment decomposes an object literal with spread assignments into
     // separate variables, returning an intersection type of typeof references.
     fn type_from_object_spread_assignment(&mut self, node: P<Node>, name: &str) -> Option<P<Node>> {
-        let is_in_const_context = ast::find_ancestor(node, |n| is_const_assertion(Some(n))).is_some();
+        let is_in_const_context =
+            ast::find_ancestor(node, |n| is_const_assertion(Some(n))).is_some();
         let name = if name.is_empty() { "temp" } else { name };
         let factory = self.factory();
         let f1 = factory.clone();
@@ -950,10 +1206,20 @@ impl isolatedDeclarationsFixer<'_> {
                 );
                 let expression = prop.expression().unwrap();
                 if ast::is_entity_name_expression(expression) {
-                    intersection_types.push(self.create_type_of_from_entity_name_expression(expression));
+                    intersection_types
+                        .push(self.create_type_of_from_entity_name_expression(expression));
                     new_spreads.push(prop);
                 } else {
-                    self.make_spread_variable(&factory, name, is_in_const_context, statement, create_spread, expression, &mut intersection_types, &mut new_spreads);
+                    self.make_spread_variable(
+                        &factory,
+                        name,
+                        is_in_const_context,
+                        statement,
+                        create_spread,
+                        expression,
+                        &mut intersection_types,
+                        &mut new_spreads,
+                    );
                 }
             } else {
                 current_variable_properties.push(prop);
@@ -998,7 +1264,10 @@ impl isolatedDeclarationsFixer<'_> {
     ) {
         let temp_name = self.change_tracker.emit_context.factory.new_unique_name_ex(
             &format!("{}_Part{}", name, new_spreads.len() + 1),
-            AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic, ..Default::default() },
+            AutoGenerateOptions {
+                flags: GeneratedIdentifierFlags::Optimistic,
+                ..Default::default()
+            },
         );
 
         let initializer = if !is_in_const_context {
@@ -1009,11 +1278,18 @@ impl isolatedDeclarationsFixer<'_> {
         };
 
         let var_decl = factory.new_variable_declaration(temp_name, None, None, Some(initializer));
-        let var_decl_list = factory.new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
+        let var_decl_list = factory
+            .new_variable_declaration_list(factory.new_node_list(vec![var_decl]), NodeFlags::Const);
         let var_stmt = factory.new_variable_statement(None, var_decl_list);
 
         if let Some(statement) = statement {
-            self.change_tracker.insert_node_before(self.source_file, statement, var_stmt, false, LeadingTriviaOption::None);
+            self.change_tracker.insert_node_before(
+                self.source_file,
+                statement,
+                var_stmt,
+                false,
+                LeadingTriviaOption::None,
+            );
         }
 
         intersection_types.push(self.create_type_of_from_entity_name_expression(temp_name));
@@ -1036,7 +1312,16 @@ impl isolatedDeclarationsFixer<'_> {
     ) {
         if !current_variable_properties.is_empty() {
             let node = make_node_of_kind(std::mem::take(current_variable_properties));
-            self.make_spread_variable(factory, name, is_in_const_context, statement, create_spread, node, intersection_types, new_spreads);
+            self.make_spread_variable(
+                factory,
+                name,
+                is_in_const_context,
+                statement,
+                create_spread,
+                node,
+                intersection_types,
+                new_spreads,
+            );
         }
     }
 
@@ -1089,7 +1374,9 @@ impl isolatedDeclarationsFixer<'_> {
             let false_type = self.relative_type(cond.when_false)?;
             self.mutated_target = true_mutated || self.mutated_target;
             let factory = self.factory();
-            return Some(factory.new_union_type_node(factory.new_node_list(vec![true_type, false_type])));
+            return Some(
+                factory.new_union_type_node(factory.new_node_list(vec![true_type, false_type])),
+            );
         }
         None
     }
@@ -1098,19 +1385,35 @@ impl isolatedDeclarationsFixer<'_> {
     // typeToMinimizedReferenceType converts a type to a type node, then trims trailing
     // type arguments that match their defaults. Ported from TS's
     // services/codefixes/helpers.ts typeToMinimizedReferenceType.
-    fn type_to_minimized_reference_type(&mut self, t: P<Type>, enclosing_decl: P<Node>, flags: Flags) -> Option<P<Node>> {
+    fn type_to_minimized_reference_type(
+        &mut self,
+        t: P<Type>,
+        enclosing_decl: P<Node>,
+        flags: Flags,
+    ) -> Option<P<Node>> {
         let id_to_symbol: IdToSymbol = P::new(RefCell::new(FxHashMap::default()));
         // !!! When truncation tracking is supported, check if the type was truncated
         // and return factory.NewKeywordTypeNode(ast.KindAnyKeyword) instead of the truncated node.
-        let mut type_node = self.checker.type_to_type_node_ex(t, Some(enclosing_decl), flags, InternalFlags::WriteComputedProps, Some(id_to_symbol))?;
-        if ast::is_type_reference_node(type_node) && t.object_flags().intersects(ObjectFlags::Reference) {
+        let mut type_node = self.checker.type_to_type_node_ex(
+            t,
+            Some(enclosing_decl),
+            flags,
+            InternalFlags::WriteComputedProps,
+            Some(id_to_symbol),
+        )?;
+        if ast::is_type_reference_node(type_node)
+            && t.object_flags().intersects(ObjectFlags::Reference)
+        {
             let type_args = self.checker.get_type_arguments_exported(t);
             let node_type_args = type_node.type_arguments();
             if !type_args.is_empty() && !node_type_args.is_empty() {
                 let cutoff = end_of_required_type_parameters(self.checker, t);
                 if cutoff < node_type_args.len() {
                     // Trim trailing default type arguments
-                    let trimmed_args = self.change_tracker.node_factory.new_node_list(node_type_args[..cutoff].to_vec());
+                    let trimmed_args = self
+                        .change_tracker
+                        .node_factory
+                        .new_node_list(node_type_args[..cutoff].to_vec());
                     type_node = self.change_tracker.node_factory.update_type_reference_node(
                         type_node,
                         type_node.as_type_reference_node().type_name,
@@ -1121,7 +1424,11 @@ impl isolatedDeclarationsFixer<'_> {
         }
         // Convert import type references (e.g. import("./path").Name) to simple type references
         // and collect symbols that need to be imported
-        let (reference_type_node, importable_symbols) = autoimport::try_get_auto_importable_reference_from_type_node(Some(type_node), id_to_symbol);
+        let (reference_type_node, importable_symbols) =
+            autoimport::try_get_auto_importable_reference_from_type_node(
+                Some(type_node),
+                id_to_symbol,
+            );
         if let Some(reference_type_node) = reference_type_node {
             type_node = reference_type_node;
             self.symbols_to_import.extend(importable_symbols);
@@ -1147,7 +1454,11 @@ impl isolatedDeclarationsFixer<'_> {
                 }
             }
         }
-        diagnostics::Add_annotation_of_type_0.localize(&[&type_to_string_for_diag(type_node, self.source_file, self.change_tracker)])
+        diagnostics::Add_annotation_of_type_0.localize(&[&type_to_string_for_diag(
+            type_node,
+            self.source_file,
+            self.change_tracker,
+        )])
     }
 
     // codeactions_fixmissingtypeannotation.go:1370
@@ -1175,7 +1486,9 @@ impl isolatedDeclarationsFixer<'_> {
             };
 
             // Check if this import is from the same module
-            let Some(import_module_symbol) = self.checker.get_symbol_at_location_exported(import_decl.module_specifier) else {
+            let Some(import_module_symbol) =
+                self.checker.get_symbol_at_location_exported(import_decl.module_specifier)
+            else {
                 continue;
             };
             let a = self.checker.get_merged_symbol(import_module_symbol);
@@ -1186,17 +1499,31 @@ impl isolatedDeclarationsFixer<'_> {
 
             // Found the matching import - add the symbol to named imports
             let import_clause = import_clause_node.as_import_clause();
-            if let Some(named_bindings) = import_clause.named_bindings.filter(|n| ast::is_named_imports(*n)) {
+            if let Some(named_bindings) =
+                import_clause.named_bindings.filter(|n| ast::is_named_imports(*n))
+            {
                 // Add to existing named imports
                 let existing_elements = named_bindings.as_named_imports().elements.nodes();
                 let factory = self.factory();
-                let new_specifier = factory.new_import_specifier(false, None, factory.new_identifier(symbol_name));
+                let new_specifier =
+                    factory.new_import_specifier(false, None, factory.new_identifier(symbol_name));
                 let mut new_elements = existing_elements.to_vec();
                 new_elements.push(new_specifier);
-                let new_named_imports = factory.new_named_imports(factory.new_node_list(new_elements));
-                let new_import_clause = factory.update_import_clause(import_clause_node, import_clause.phase_modifier(), import_clause.name(), Some(new_named_imports));
-                let new_import_decl =
-                    factory.update_import_declaration(stmt, stmt.modifiers(), Some(new_import_clause), import_decl.module_specifier, import_decl.attributes());
+                let new_named_imports =
+                    factory.new_named_imports(factory.new_node_list(new_elements));
+                let new_import_clause = factory.update_import_clause(
+                    import_clause_node,
+                    import_clause.phase_modifier(),
+                    import_clause.name(),
+                    Some(new_named_imports),
+                );
+                let new_import_decl = factory.update_import_declaration(
+                    stmt,
+                    stmt.modifiers(),
+                    Some(new_import_clause),
+                    import_decl.module_specifier,
+                    import_decl.attributes(),
+                );
                 self.change_tracker.replace_node(self.source_file, stmt, new_import_decl, None);
             }
             return;
@@ -1207,7 +1534,10 @@ impl isolatedDeclarationsFixer<'_> {
 // codeactions_fixmissingtypeannotation.go:307
 // needsParenthesizedExpressionForAssertion checks if an expression needs parentheses for an assertion.
 fn needs_parenthesized_expression_for_assertion(node: P<Node>) -> bool {
-    !ast::is_entity_name_expression(node) && !ast::is_call_expression(node) && !ast::is_object_literal_expression(node) && !ast::is_array_literal_expression(node)
+    !ast::is_entity_name_expression(node)
+        && !ast::is_call_expression(node)
+        && !ast::is_object_literal_expression(node)
+        && !ast::is_array_literal_expression(node)
 }
 
 // codeactions_fixmissingtypeannotation.go:312
@@ -1226,7 +1556,11 @@ fn create_as_expression(factory: &NodeFactory, node: P<Node>, type_node: P<Node>
 // PropertyAccessExpression, ElementAccessExpression, and BinaryExpression. The shared
 // ast.IsExpandoPropertyDeclaration was narrowed to BinaryExpression only for checker purposes.
 fn is_expando_property_declaration_for_fix(node: Option<P<Node>>) -> bool {
-    node.is_some_and(|n| ast::is_property_access_expression(n) || ast::is_element_access_expression(n) || ast::is_binary_expression(n))
+    node.is_some_and(|n| {
+        ast::is_property_access_expression(n)
+            || ast::is_element_access_expression(n)
+            || ast::is_binary_expression(n)
+    })
 }
 
 // codeactions_fixmissingtypeannotation.go:490
@@ -1241,7 +1575,8 @@ fn find_expando_function(ch: &mut Checker, node: P<Node>) -> Option<P<Node>> {
         ast::FindAncestorResult::False
     });
 
-    let expando_declaration = expando_declaration.filter(|&d| is_expando_property_declaration_for_fix(Some(d)))?;
+    let expando_declaration =
+        expando_declaration.filter(|&d| is_expando_property_declaration_for_fix(Some(d)))?;
 
     let mut assignment_target = expando_declaration;
     // Some late bound expando members use the whole expression as the declaration.
@@ -1263,7 +1598,10 @@ fn find_expando_function(ch: &mut Checker, node: P<Node>) -> Option<P<Node>> {
     let target_type = ch.get_type_at_location(expression);
 
     let properties = ch.get_properties_of_type(target_type);
-    let found = properties.iter().any(|&p| p.value_declaration() == Some(expando_declaration) || p.value_declaration() == expando_declaration.parent());
+    let found = properties.iter().any(|&p| {
+        p.value_declaration() == Some(expando_declaration)
+            || p.value_declaration() == expando_declaration.parent()
+    });
     if !found {
         return None;
     }
@@ -1271,7 +1609,9 @@ fn find_expando_function(ch: &mut Checker, node: P<Node>) -> Option<P<Node>> {
     let symbol = target_type.symbol()?;
     let func = symbol.value_declaration()?;
 
-    if (ast::is_function_expression(func) || ast::is_arrow_function(func)) && ast::is_variable_declaration(func.parent().unwrap()) {
+    if (ast::is_function_expression(func) || ast::is_arrow_function(func))
+        && ast::is_variable_declaration(func.parent().unwrap())
+    {
         return func.parent();
     }
     if ast::is_function_declaration(func) {
@@ -1314,9 +1654,8 @@ fn end_of_required_type_parameters(ch: &mut Checker, t: P<Type>) -> usize {
         // This matches TS's check for constraint === undefined on localTypeParameters,
         // which in practice skips type parameters without defaults (e.g. Set<T>
         // where T has no default should not have <unknown> elided).
-        let Some(local_idx) = cutoff
-            .checked_sub(outer_count)
-            .filter(|&index| index < local_type_params.len())
+        let Some(local_idx) =
+            cutoff.checked_sub(outer_count).filter(|&index| index < local_type_params.len())
         else {
             continue;
         };
@@ -1329,10 +1668,7 @@ fn end_of_required_type_parameters(ch: &mut Checker, t: P<Type>) -> usize {
             cutoff,
             false,
         );
-        let all_match = !(filled_in
-            .iter()
-            .enumerate()
-            .any(|(i, &fill)| fill != type_args[i]));
+        let all_match = !(filled_in.iter().enumerate().any(|(i, &fill)| fill != type_args[i]));
         if all_match {
             return cutoff;
         }
@@ -1346,7 +1682,10 @@ fn type_param_has_default(tp: P<Type>) -> bool {
     let Some(sym) = tp.symbol() else {
         return false;
     };
-    sym.declarations().iter().any(|&decl| ast::is_type_parameter_declaration(decl) && decl.as_type_parameter_declaration().default_type.is_some())
+    sym.declarations().iter().any(|&decl| {
+        ast::is_type_parameter_declaration(decl)
+            && decl.as_type_parameter_declaration().default_type.is_some()
+    })
 }
 
 // codeactions_fixmissingtypeannotation.go:1283
@@ -1354,10 +1693,18 @@ fn type_param_has_default(tp: P<Type>) -> bool {
 // It reuses the change tracker's EmitContext so that generated identifier names are resolved
 // consistently with the actual code edits, and passes the source file so that the printer's
 // name generator can check for conflicts with existing file-level identifiers.
-fn type_to_string_for_diag(type_node: P<Node>, source_file: P<SourceFile>, ct: &change::Tracker) -> String {
+fn type_to_string_for_diag(
+    type_node: P<Node>,
+    source_file: P<SourceFile>,
+    ct: &change::Tracker,
+) -> String {
     let saved_flags = ct.emit_context.emit_flags(type_node);
     ct.emit_context.set_emit_flags(type_node, saved_flags | EmitFlags::SingleLine);
-    let mut p = printer::new_printer(printer::PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, printer::PrintHandlers::default(), Some(ct.emit_context));
+    let mut p = printer::new_printer(
+        printer::PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+        printer::PrintHandlers::default(),
+        Some(ct.emit_context),
+    );
     let (mut writer, release) = printer::get_single_line_string_writer();
     p.write(type_node, Some(source_file), &mut writer, None);
     ct.emit_context.set_emit_flags(type_node, saved_flags);
@@ -1374,7 +1721,9 @@ fn type_to_string_for_diag(type_node: P<Node>, source_file: P<SourceFile>, ct: &
 
 fn go_lossy_utf8(bytes: &[u8]) -> String {
     let mut out = String::new();
-    out.extend(bytes.utf8_chunks().flat_map(|chunk| chunk.valid().chars().chain(std::iter::repeat_n('\u{FFFD}', chunk.invalid().len()))));
+    out.extend(bytes.utf8_chunks().flat_map(|chunk| {
+        chunk.valid().chars().chain(std::iter::repeat_n('\u{FFFD}', chunk.invalid().len()))
+    }));
     out
 }
 
@@ -1408,7 +1757,10 @@ fn find_best_fitting_node(node: Option<P<Node>>, span: TextRange) -> Option<P<No
             break;
         }
     }
-    if ast::is_identifier(node) && ast::has_initializer(node.parent().unwrap()) && node.parent().unwrap().initializer().is_some() {
+    if ast::is_identifier(node)
+        && ast::has_initializer(node.parent().unwrap())
+        && node.parent().unwrap().initializer().is_some()
+    {
         return node.parent().unwrap().initializer();
     }
     if ast::is_identifier(node) && ast::is_shorthand_property_assignment(node.parent().unwrap()) {
@@ -1484,7 +1836,10 @@ fn is_value_signature_declaration(node: Option<P<Node>>) -> bool {
 fn get_identifier_name_for_node(node: P<Node>) -> String {
     if ast::is_property_access_expression(node) {
         let name = node.as_property_access_expression().name();
-        if ast::is_identifier(name) && !ast::is_private_identifier(name) && scanner::identifier_to_keyword_kind(name) == Kind::Unknown {
+        if ast::is_identifier(name)
+            && !ast::is_private_identifier(name)
+            && scanner::identifier_to_keyword_kind(name) == Kind::Unknown
+        {
             return name.text().to_string();
         }
     }

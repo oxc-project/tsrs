@@ -4,7 +4,7 @@ use crate::component::componentHandler;
 use crate::diagnostic_code_collision::diagnosticCodeCollisionHandler;
 use crate::duplicate::duplicateHandler;
 use crate::duplicate_projection::duplicateProjectionHandler;
-use crate::dynamic_verbatim::{dynamicVerbatimHandler, ProjectLifecycle};
+use crate::dynamic_verbatim::{ProjectLifecycle, dynamicVerbatimHandler};
 use crate::editing::{prefixedSupplementalHandler, unmappedFoldingHandler};
 use crate::failing::failingHandler;
 use crate::hoisting::hoistingHandler;
@@ -64,11 +64,15 @@ static MAPPER_HANDLERS: [(&str, handlerConstructor); 18] = [
 ];
 
 // registry.go:54
-pub(crate) fn handler_for_mapper(command: &[String], lifecycle: Option<Arc<ProjectLifecycle>>) -> Result<Arc<dyn testHandler>, String> {
+pub(crate) fn handler_for_mapper(
+    command: &[String],
+    lifecycle: Option<Arc<ProjectLifecycle>>,
+) -> Result<Arc<dyn testHandler>, String> {
     if command.is_empty() {
         return Err("contentmappertest: empty mapper command".to_string());
     }
-    let Some((_, constructor)) = MAPPER_HANDLERS.iter().find(|(name, _)| *name == command[0]) else {
+    let Some((_, constructor)) = MAPPER_HANDLERS.iter().find(|(name, _)| *name == command[0])
+    else {
         // fmt's %v of a []string.
         return Err(format!("contentmappertest: unknown mapper command [{}]", command.join(" ")));
     };

@@ -8,14 +8,14 @@
 // (`FileRegions::take_unreachable`); the programs it replaced refer to old versions too, so the regions are freed on
 // the `Freer` thread after them.
 
-use std::sync::mpsc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::SourceFile;
 use tsrs_contentmapper::{self as contentmapper, SourceFiles};
-use tsrs_core::arena::Region;
 use tsrs_core::P;
+use tsrs_core::arena::Region;
 
 /// The regions of the files a watch session parsed, by the address of the file.
 #[derive(Default)]
@@ -24,7 +24,11 @@ pub(crate) struct FileRegions(Mutex<FxHashMap<usize, Region>>);
 impl FileRegions {
     /// Runs `parse` (a compiler host's `get_source_file`) with a fresh region as the allocation target. `size` is the
     /// file's size on disk, for the region's first chunk.
-    pub(crate) fn parse(&self, size: usize, parse: impl FnOnce() -> Option<P<SourceFile>>) -> Option<P<SourceFile>> {
+    pub(crate) fn parse(
+        &self,
+        size: usize,
+        parse: impl FnOnce() -> Option<P<SourceFile>>,
+    ) -> Option<P<SourceFile>> {
         let region = Region::new(first_chunk(size));
         let file = {
             let _scope = region.enter();
@@ -63,7 +67,12 @@ impl FileRegions {
     /// Removes the regions of the files that are not in `live` and returns them, to be dropped once nothing that may
     /// still read those files runs (`Freer`).
     pub(crate) fn take_unreachable(&self, live: &FxHashSet<usize>) -> Vec<Region> {
-        self.0.lock().unwrap().extract_if(|addr, _| !live.contains(addr)).map(|(_, region)| region).collect()
+        self.0
+            .lock()
+            .unwrap()
+            .extract_if(|addr, _| !live.contains(addr))
+            .map(|(_, region)| region)
+            .collect()
     }
 }
 

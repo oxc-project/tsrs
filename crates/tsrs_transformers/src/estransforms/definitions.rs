@@ -1,4 +1,3 @@
-
 use super::*;
 
 // definitions.go:8 (Go package-level `var`s built with `transformers.Chain`)
@@ -20,7 +19,11 @@ pub fn new_es2021_transformer(opts: &TransformOptions) -> Option<P<Transformer>>
 }
 
 pub fn new_es2020_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
-    chain(&[new_es2021_transformer, new_nullish_coalescing_transformer, new_optional_chain_transformer])(opts)
+    chain(&[
+        new_es2021_transformer,
+        new_nullish_coalescing_transformer,
+        new_optional_chain_transformer,
+    ])(opts)
 }
 
 pub fn new_es2019_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
@@ -28,7 +31,12 @@ pub fn new_es2019_transformer(opts: &TransformOptions) -> Option<P<Transformer>>
 }
 
 pub fn new_es2018_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
-    chain(&[new_es2019_transformer, new_object_rest_spread_transformer, newforawait_transformer, new_tagged_template_lift_restriction_transformer])(opts)
+    chain(&[
+        new_es2019_transformer,
+        new_object_rest_spread_transformer,
+        newforawait_transformer,
+        new_tagged_template_lift_restriction_transformer,
+    ])(opts)
 }
 
 pub fn new_es2017_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
@@ -44,9 +52,12 @@ pub fn get_es_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let options = opts.compiler_options;
     match options.get_emit_script_target() {
         ScriptTarget::ESNext => es_decorator_and_class_fields(opts),
-        ScriptTarget::ES2026 | ScriptTarget::ES2025 | ScriptTarget::ES2024 | ScriptTarget::ES2023 | ScriptTarget::ES2022 | ScriptTarget::ES2021 => {
-            new_esnext_transformer(opts)
-        }
+        ScriptTarget::ES2026
+        | ScriptTarget::ES2025
+        | ScriptTarget::ES2024
+        | ScriptTarget::ES2023
+        | ScriptTarget::ES2022
+        | ScriptTarget::ES2021 => new_esnext_transformer(opts),
         ScriptTarget::ES2020 => new_es2021_transformer(opts),
         ScriptTarget::ES2019 => new_es2020_transformer(opts),
         ScriptTarget::ES2018 => new_es2019_transformer(opts),

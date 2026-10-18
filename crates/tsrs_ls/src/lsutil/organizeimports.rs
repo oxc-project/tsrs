@@ -4,10 +4,12 @@ use std::rc::Rc;
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Kind, Node, SourceFile};
 use tsrs_core::stringutil::{
-    compare_strings_case_insensitive_eslint_compatible, compare_strings_case_sensitive, decode_rune, go_strings_to_lower,
-    norm_nfd_string, unicode_is_mn, unicode_is_upper,
+    compare_strings_case_insensitive_eslint_compatible, compare_strings_case_sensitive,
+    decode_rune, go_strings_to_lower, norm_nfd_string, unicode_is_mn, unicode_is_upper,
 };
-use tsrs_core::{binary_search_unique_func, bool_to_tristate, compare_booleans, tspath, Tristate, P};
+use tsrs_core::{
+    P, Tristate, binary_search_unique_func, bool_to_tristate, compare_booleans, tspath,
+};
 
 use super::*;
 
@@ -27,20 +29,34 @@ pub fn filter_import_declarations(statements: &[P<Node>]) -> Vec<P<Node>> {
 
 // organizeimports.go:25
 // GetDetectionLists returns the lists of comparers and type orders to test for organize imports detection.
-pub fn get_detection_lists(preferences: &UserPreferences) -> (Vec<StringComparer>, Vec<OrganizeImportsTypeOrder>) {
-    let comparers_to_test: Vec<StringComparer> = if preferences.organize_imports_sort != OrganizeImportsSort::Auto {
-        vec![get_organize_imports_preset_string_comparer(preferences.organize_imports_sort)]
-    } else if !preferences.organize_imports_ignore_case.is_unknown() {
-        vec![get_organize_imports_string_comparer(preferences, preferences.organize_imports_ignore_case.is_true())]
-    } else {
-        vec![get_organize_imports_string_comparer(preferences, true), get_organize_imports_string_comparer(preferences, false)]
-    };
+pub fn get_detection_lists(
+    preferences: &UserPreferences,
+) -> (Vec<StringComparer>, Vec<OrganizeImportsTypeOrder>) {
+    let comparers_to_test: Vec<StringComparer> =
+        if preferences.organize_imports_sort != OrganizeImportsSort::Auto {
+            vec![get_organize_imports_preset_string_comparer(preferences.organize_imports_sort)]
+        } else if !preferences.organize_imports_ignore_case.is_unknown() {
+            vec![get_organize_imports_string_comparer(
+                preferences,
+                preferences.organize_imports_ignore_case.is_true(),
+            )]
+        } else {
+            vec![
+                get_organize_imports_string_comparer(preferences, true),
+                get_organize_imports_string_comparer(preferences, false),
+            ]
+        };
 
-    let type_orders_to_test = if preferences.organize_imports_type_order != OrganizeImportsTypeOrder::Auto {
-        vec![preferences.organize_imports_type_order]
-    } else {
-        vec![OrganizeImportsTypeOrder::Last, OrganizeImportsTypeOrder::Inline, OrganizeImportsTypeOrder::First]
-    };
+    let type_orders_to_test =
+        if preferences.organize_imports_type_order != OrganizeImportsTypeOrder::Auto {
+            vec![preferences.organize_imports_type_order]
+        } else {
+            vec![
+                OrganizeImportsTypeOrder::Last,
+                OrganizeImportsTypeOrder::Inline,
+                OrganizeImportsTypeOrder::First,
+            ]
+        };
 
     (comparers_to_test, type_orders_to_test)
 }
@@ -80,12 +96,17 @@ fn get_organize_imports_natural_string_comparer(case_sensitive: bool) -> StringC
 }
 
 // organizeimports.go:89
-fn get_organize_imports_unicode_string_comparer(ignore_case: bool, preferences: &UserPreferences) -> StringComparer {
+fn get_organize_imports_unicode_string_comparer(
+    ignore_case: bool,
+    preferences: &UserPreferences,
+) -> StringComparer {
     let case_first = preferences.organize_imports_case_first;
     let numeric = preferences.organize_imports_numeric_collation.is_true();
     let accents = !preferences.organize_imports_accent_collation.is_false();
 
-    Rc::new(move |a: &str, b: &str| compare_organize_imports_unicode_strings(a, b, ignore_case, case_first, numeric, accents))
+    Rc::new(move |a: &str, b: &str| {
+        compare_organize_imports_unicode_strings(a, b, ignore_case, case_first, numeric, accents)
+    })
 }
 
 // organizeimports.go:99
@@ -273,17 +294,26 @@ fn compare_organize_imports_case(
 }
 
 // organizeimports.go:248
-pub(crate) fn get_organize_imports_preset_string_comparer(sort: OrganizeImportsSort) -> StringComparer {
+pub(crate) fn get_organize_imports_preset_string_comparer(
+    sort: OrganizeImportsSort,
+) -> StringComparer {
     match sort {
-        OrganizeImportsSort::OrdinalIgnoreCase => get_organize_imports_ordinal_string_comparer(true),
+        OrganizeImportsSort::OrdinalIgnoreCase => {
+            get_organize_imports_ordinal_string_comparer(true)
+        }
         OrganizeImportsSort::Natural => get_organize_imports_natural_string_comparer(true),
-        OrganizeImportsSort::NaturalIgnoreCase => get_organize_imports_natural_string_comparer(false),
+        OrganizeImportsSort::NaturalIgnoreCase => {
+            get_organize_imports_natural_string_comparer(false)
+        }
         _ => get_organize_imports_ordinal_string_comparer(false),
     }
 }
 
 // organizeimports.go:261
-fn get_organize_imports_string_comparer(preferences: &UserPreferences, ignore_case: bool) -> StringComparer {
+fn get_organize_imports_string_comparer(
+    preferences: &UserPreferences,
+    ignore_case: bool,
+) -> StringComparer {
     if preferences.organize_imports_sort != OrganizeImportsSort::Auto {
         return get_organize_imports_preset_string_comparer(preferences.organize_imports_sort);
     }
@@ -305,7 +335,12 @@ fn get_module_specifier_expression(declaration: P<Node>) -> Option<P<Node>> {
         }
         Kind::ImportDeclaration => declaration.module_specifier(),
         Kind::VariableStatement => {
-            let declarations = declaration.as_variable_statement().declaration_list.as_variable_declaration_list().declarations.nodes();
+            let declarations = declaration
+                .as_variable_statement()
+                .declaration_list
+                .as_variable_declaration_list()
+                .declarations
+                .nodes();
             if !declarations.is_empty() {
                 let initializer = declarations[0].initializer();
                 if let Some(initializer) = initializer {
@@ -458,8 +493,13 @@ fn compare_import_or_export_specifiers(
 
 // organizeimports.go:400
 // GetNamedImportSpecifierComparer returns a comparer function for sorting import specifiers.
-pub fn get_named_import_specifier_comparer(preferences: &UserPreferences, comparer: Option<StringComparer>) -> NodeComparer {
-    let comparer = if let Some(comparer) = comparer { comparer } else {
+pub fn get_named_import_specifier_comparer(
+    preferences: &UserPreferences,
+    comparer: Option<StringComparer>,
+) -> NodeComparer {
+    let comparer = if let Some(comparer) = comparer {
+        comparer
+    } else {
         let mut ignore_case = false;
         if !preferences.organize_imports_ignore_case.is_unknown() {
             ignore_case = preferences.organize_imports_ignore_case.is_true();
@@ -467,7 +507,9 @@ pub fn get_named_import_specifier_comparer(preferences: &UserPreferences, compar
         get_organize_imports_string_comparer(preferences, ignore_case)
     };
     let preferences = preferences.clone();
-    Rc::new(move |s1: P<Node>, s2: P<Node>| compare_import_or_export_specifiers(s1, s2, &*comparer, &preferences))
+    Rc::new(move |s1: P<Node>, s2: P<Node>| {
+        compare_import_or_export_specifiers(s1, s2, &*comparer, &preferences)
+    })
 }
 
 // organizeimports.go:414
@@ -496,20 +538,28 @@ pub fn get_organize_imports_string_comparer_with_detection(
     original_import_decls: &[P<Node>],
     preferences: &UserPreferences,
 ) -> (Option<StringComparer>, bool) {
-    let (result, sorted) = detect_module_specifier_case_by_sort(&[original_import_decls.to_vec()], &get_comparers(preferences));
+    let (result, sorted) = detect_module_specifier_case_by_sort(
+        &[original_import_decls.to_vec()],
+        &get_comparers(preferences),
+    );
     (result, sorted)
 }
 
 // organizeimports.go:433
 fn get_comparers(preferences: &UserPreferences) -> Vec<StringComparer> {
-    if preferences.organize_imports_sort != OrganizeImportsSort::Auto || !preferences.organize_imports_ignore_case.is_unknown() {
+    if preferences.organize_imports_sort != OrganizeImportsSort::Auto
+        || !preferences.organize_imports_ignore_case.is_unknown()
+    {
         let mut ignore_case = false;
         if !preferences.organize_imports_ignore_case.is_unknown() {
             ignore_case = preferences.organize_imports_ignore_case.is_true();
         }
         return vec![get_organize_imports_string_comparer(preferences, ignore_case)];
     }
-    vec![get_organize_imports_string_comparer(preferences, true), get_organize_imports_string_comparer(preferences, false)]
+    vec![
+        get_organize_imports_string_comparer(preferences, true),
+        get_organize_imports_string_comparer(preferences, false),
+    ]
 }
 
 // organizeimports.go:447
@@ -526,7 +576,11 @@ pub fn detect_named_import_organization_by_sort(
     comparers_to_test: &[StringComparer],
     types_to_test: &[OrganizeImportsTypeOrder],
 ) -> (Option<StringComparer>, OrganizeImportsTypeOrder, bool) {
-    let result = detect_named_import_organization_by_sort_worker(original_groups, comparers_to_test, types_to_test);
+    let result = detect_named_import_organization_by_sort_worker(
+        original_groups,
+        comparers_to_test,
+        types_to_test,
+    );
     match result {
         None => (None, OrganizeImportsTypeOrder::Last, false),
         Some(result) => (result.named_import_comparer, result.type_order, true),
@@ -547,7 +601,9 @@ fn detect_named_import_organization_by_sort_worker(
             continue;
         };
         let clause = import_clause.as_import_clause();
-        let Some(named_bindings) = clause.named_bindings.filter(|nb| nb.kind() == Kind::NamedImports) else {
+        let Some(named_bindings) =
+            clause.named_bindings.filter(|nb| nb.kind() == Kind::NamedImports)
+        else {
             continue;
         };
         let named_imports = named_bindings.as_named_imports();
@@ -577,7 +633,8 @@ fn detect_named_import_organization_by_sort_worker(
         return None;
     }
 
-    let mut named_imports_by_decl: Vec<&'static [P<Node>]> = Vec::with_capacity(import_decls_with_named.len());
+    let mut named_imports_by_decl: Vec<&'static [P<Node>]> =
+        Vec::with_capacity(import_decls_with_named.len());
     named_imports_by_decl.extend(import_decls_with_named.iter().map(|&imp| {
         let clause = imp.as_import_declaration().import_clause.unwrap().as_import_clause();
         let named_imports = clause.named_bindings.unwrap().as_named_imports();
@@ -587,27 +644,36 @@ fn detect_named_import_organization_by_sort_worker(
     if !both_named_imports || types_to_test.is_empty() {
         let names_list: Vec<Vec<String>> = named_imports_by_decl
             .iter()
-            .map(|imports| imports.iter().map(|imp| imp.name().unwrap().text().to_string()).collect())
+            .map(|imports| {
+                imports.iter().map(|imp| imp.name().unwrap().text().to_string()).collect()
+            })
             .collect();
         let sort_state = detect_case_sensitivity_by_sort(&names_list, comparers_to_test);
         let mut type_order = OrganizeImportsTypeOrder::Last;
         if types_to_test.len() == 1 {
             type_order = types_to_test[0];
         }
-        return Some(NamedImportSortResult { named_import_comparer: sort_state.comparer, type_order, is_sorted: sort_state.is_sorted });
+        return Some(NamedImportSortResult {
+            named_import_comparer: sort_state.comparer,
+            type_order,
+            is_sorted: sort_state.is_sorted,
+        });
     }
 
     let mut best_diff: FxHashMap<OrganizeImportsTypeOrder, i64> = FxHashMap::default();
     best_diff.insert(OrganizeImportsTypeOrder::First, i64::MAX);
     best_diff.insert(OrganizeImportsTypeOrder::Last, i64::MAX);
     best_diff.insert(OrganizeImportsTypeOrder::Inline, i64::MAX);
-    let mut best_comparer: FxHashMap<OrganizeImportsTypeOrder, StringComparer> = FxHashMap::default();
+    let mut best_comparer: FxHashMap<OrganizeImportsTypeOrder, StringComparer> =
+        FxHashMap::default();
     best_comparer.insert(OrganizeImportsTypeOrder::First, Rc::clone(&comparers_to_test[0]));
     best_comparer.insert(OrganizeImportsTypeOrder::Last, Rc::clone(&comparers_to_test[0]));
     best_comparer.insert(OrganizeImportsTypeOrder::Inline, Rc::clone(&comparers_to_test[0]));
 
     // Go map reads of a missing key yield the zero value.
-    let diff_of = |m: &FxHashMap<OrganizeImportsTypeOrder, i64>, t: OrganizeImportsTypeOrder| m.get(&t).copied().unwrap_or(0);
+    let diff_of = |m: &FxHashMap<OrganizeImportsTypeOrder, i64>, t: OrganizeImportsTypeOrder| {
+        m.get(&t).copied().unwrap_or(0)
+    };
 
     for cur_comparer in comparers_to_test {
         let mut curr_diff: FxHashMap<OrganizeImportsTypeOrder, i64> = FxHashMap::default();
@@ -617,8 +683,13 @@ fn detect_named_import_organization_by_sort_worker(
 
         for import_decl in &named_imports_by_decl {
             for &type_order in types_to_test {
-                let prefs = UserPreferences { organize_imports_type_order: type_order, ..Default::default() };
-                let diff = measure_sortedness(import_decl, |&n1, &n2| compare_import_or_export_specifiers(n1, n2, &**cur_comparer, &prefs));
+                let prefs = UserPreferences {
+                    organize_imports_type_order: type_order,
+                    ..Default::default()
+                };
+                let diff = measure_sortedness(import_decl, |&n1, &n2| {
+                    compare_import_or_export_specifiers(n1, n2, &**cur_comparer, &prefs)
+                });
                 let updated = diff_of(&curr_diff, type_order) + diff as i64;
                 curr_diff.insert(type_order, updated);
             }
@@ -633,7 +704,9 @@ fn detect_named_import_organization_by_sort_worker(
     }
 
     for &best_type_order in types_to_test {
-        let is_best = !(types_to_test.iter().any(|&test_type_order| diff_of(&best_diff, test_type_order) < diff_of(&best_diff, best_type_order)));
+        let is_best = !(types_to_test.iter().any(|&test_type_order| {
+            diff_of(&best_diff, test_type_order) < diff_of(&best_diff, best_type_order)
+        }));
         if is_best {
             return Some(NamedImportSortResult {
                 named_import_comparer: best_comparer.get(&best_type_order).cloned(),
@@ -662,11 +735,16 @@ pub fn detect_module_specifier_case_by_sort(
     import_decls_by_group: &[Vec<P<Node>>],
     comparers_to_test: &[StringComparer],
 ) -> (Option<StringComparer>, bool) {
-    let mut module_specifiers_by_group: Vec<Vec<String>> = Vec::with_capacity(import_decls_by_group.len());
+    let mut module_specifiers_by_group: Vec<Vec<String>> =
+        Vec::with_capacity(import_decls_by_group.len());
     module_specifiers_by_group.extend(import_decls_by_group.iter().map(|import_group| {
         let mut module_names: Vec<String> = Vec::with_capacity(import_group.len());
         module_names.extend(import_group.iter().map(|&decl| {
-            if let Some(expr) = get_module_specifier_expression(decl) { get_external_module_name(Some(expr)).to_string() } else { String::new() }
+            if let Some(expr) = get_module_specifier_expression(decl) {
+                get_external_module_name(Some(expr)).to_string()
+            } else {
+                String::new()
+            }
         }));
         module_names
     }));
@@ -675,7 +753,10 @@ pub fn detect_module_specifier_case_by_sort(
 }
 
 // organizeimports.go:620
-fn detect_case_sensitivity_by_sort(original_groups: &[Vec<String>], comparers_to_test: &[StringComparer]) -> CaseSensitivityDetectionResult {
+fn detect_case_sensitivity_by_sort(
+    original_groups: &[Vec<String>],
+    comparers_to_test: &[StringComparer],
+) -> CaseSensitivityDetectionResult {
     let mut best_comparer: Option<StringComparer> = None;
     let mut best_diff = i64::MAX;
 
@@ -706,10 +787,7 @@ fn detect_case_sensitivity_by_sort(original_groups: &[Vec<String>], comparers_to
 // organizeimports.go:651
 fn measure_sortedness<T>(arr: &[T], comparer: impl Fn(&T, &T) -> Ordering) -> usize {
     let mut i = 0;
-    i += arr
-        .windows(2)
-        .filter(|pair| comparer(&pair[0], &pair[1]).is_gt())
-        .count();
+    i += arr.windows(2).filter(|pair| comparer(&pair[0], &pair[1]).is_gt()).count();
     i
 }
 
@@ -727,27 +805,42 @@ pub fn get_named_import_specifier_comparer_with_detection(
         import_stmt = Some(import_decl);
     }
 
-    let mut specifier_comparer = get_named_import_specifier_comparer(preferences, Some(Rc::clone(&comparers_to_test[0])));
+    let mut specifier_comparer =
+        get_named_import_specifier_comparer(preferences, Some(Rc::clone(&comparers_to_test[0])));
     let mut is_sorted = Tristate::Unknown;
 
     if resolve_organize_imports_sort(preferences) == OrganizeImportsSort::Auto
         || preferences.organize_imports_type_order == OrganizeImportsTypeOrder::Auto
     {
         if let Some(import_stmt) = import_stmt {
-            let detect_from_decl = detect_named_import_organization_by_sort_worker(&[import_stmt], &comparers_to_test, &type_orders_to_test);
+            let detect_from_decl = detect_named_import_organization_by_sort_worker(
+                &[import_stmt],
+                &comparers_to_test,
+                &type_orders_to_test,
+            );
             if let Some(detect_from_decl) = detect_from_decl {
                 is_sorted = bool_to_tristate(detect_from_decl.is_sorted);
                 specifier_comparer = get_named_import_specifier_comparer(
-                    &UserPreferences { organize_imports_type_order: detect_from_decl.type_order, ..Default::default() },
+                    &UserPreferences {
+                        organize_imports_type_order: detect_from_decl.type_order,
+                        ..Default::default()
+                    },
                     detect_from_decl.named_import_comparer,
                 );
             } else if let Some(source_file) = source_file {
                 let all_imports = filter_import_declarations(source_file.statements.nodes());
-                let detect_from_file = detect_named_import_organization_by_sort_worker(&all_imports, &comparers_to_test, &type_orders_to_test);
+                let detect_from_file = detect_named_import_organization_by_sort_worker(
+                    &all_imports,
+                    &comparers_to_test,
+                    &type_orders_to_test,
+                );
                 if let Some(detect_from_file) = detect_from_file {
                     is_sorted = bool_to_tristate(detect_from_file.is_sorted);
                     specifier_comparer = get_named_import_specifier_comparer(
-                        &UserPreferences { organize_imports_type_order: detect_from_file.type_order, ..Default::default() },
+                        &UserPreferences {
+                            organize_imports_type_order: detect_from_file.type_order,
+                            ..Default::default()
+                        },
                         detect_from_file.named_import_comparer,
                     );
                 }

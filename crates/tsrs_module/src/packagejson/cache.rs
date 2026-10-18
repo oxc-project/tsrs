@@ -1,17 +1,18 @@
 use std::ops::Deref;
 use std::sync::{LazyLock, OnceLock};
 
-use tsrs_core::collections::{new_ordered_map_with_size_hint, OrderedMap, SyncMap};
+use tsrs_core::P;
+use tsrs_core::collections::{OrderedMap, SyncMap, new_ordered_map_with_size_hint};
 use tsrs_core::semver;
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::P;
 use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
 
 use super::jsonvalue::JSONValueType;
 use super::packagejson::Fields;
 
-static TYPE_SCRIPT_VERSION: LazyLock<semver::Version> = LazyLock::new(|| semver::must_parse(tsrs_core::version()));
+static TYPE_SCRIPT_VERSION: LazyLock<semver::Version> =
+    LazyLock::new(|| semver::must_parse(tsrs_core::version()));
 
 #[derive(Debug)]
 pub struct PackageJson {
@@ -39,8 +40,12 @@ impl PackageJson {
     }
 
     // `trace` is Go's `func(m *diagnostics.Message, args ...any)`; arguments arrive pre-formatted.
-    pub fn get_version_paths(&self, trace: Option<&mut dyn FnMut(&'static Message, &[String])>) -> &VersionPaths {
-        let (version_paths, version_traces) = self.version_paths.get_or_init(|| self.compute_version_paths());
+    pub fn get_version_paths(
+        &self,
+        trace: Option<&mut dyn FnMut(&'static Message, &[String])>,
+    ) -> &VersionPaths {
+        let (version_paths, version_traces) =
+            self.version_paths.get_or_init(|| self.compute_version_paths());
         if let Some(trace) = trace {
             for msg in version_traces {
                 trace(msg.message, &msg.args);
@@ -51,16 +56,25 @@ impl PackageJson {
 
     fn compute_version_paths(&self) -> (VersionPaths, Vec<DiagnosticAndArgs>) {
         let mut version_traces = Vec::new();
-        let mut trace = |message: &'static Message, args: Vec<String>| version_traces.push(DiagnosticAndArgs { message, args });
+        let mut trace = |message: &'static Message, args: Vec<String>| {
+            version_traces.push(DiagnosticAndArgs { message, args });
+        };
         let types_versions = &self.fields.types_versions;
         if types_versions.type_() == JSONValueType::NotPresent {
-            trace(&diagnostics::X_package_json_does_not_have_a_0_field, vec!["typesVersions".to_string()]);
+            trace(
+                &diagnostics::X_package_json_does_not_have_a_0_field,
+                vec!["typesVersions".to_string()],
+            );
             return (VersionPaths::default(), version_traces);
         }
         if types_versions.type_() != JSONValueType::Object {
             trace(
                 &diagnostics::Expected_type_of_0_field_in_package_json_to_be_1_got_2,
-                vec!["typesVersions".to_string(), "object".to_string(), types_versions.type_().to_string()],
+                vec![
+                    "typesVersions".to_string(),
+                    "object".to_string(),
+                    types_versions.type_().to_string(),
+                ],
             );
             return (VersionPaths::default(), version_traces);
         }
@@ -79,7 +93,11 @@ impl PackageJson {
                 if value.type_() != JSONValueType::Object {
                     trace(
                         &diagnostics::Expected_type_of_0_field_in_package_json_to_be_1_got_2,
-                        vec![format!("typesVersions['{}']", key), "object".to_string(), value.type_().to_string()],
+                        vec![
+                            format!("typesVersions['{}']", key),
+                            "object".to_string(),
+                            value.type_().to_string(),
+                        ],
                     );
                     return (VersionPaths::default(), version_traces);
                 }
@@ -209,7 +227,12 @@ pub struct InfoCache {
 }
 
 pub fn new_info_cache(current_directory: &str, use_case_sensitive_file_names: bool) -> InfoCache {
-    InfoCache { cache: SyncMap::default(), current_directory: current_directory.to_string(), use_case_sensitive_file_names, origin: 0 }
+    InfoCache {
+        cache: SyncMap::default(),
+        current_directory: current_directory.to_string(),
+        use_case_sensitive_file_names,
+        origin: 0,
+    }
 }
 
 impl InfoCache {
@@ -237,12 +260,20 @@ impl InfoCache {
     }
 
     pub fn get(&self, package_json_path: &str) -> Option<P<InfoCacheEntry>> {
-        let key = tspath::to_path(package_json_path, &self.current_directory, self.use_case_sensitive_file_names);
+        let key = tspath::to_path(
+            package_json_path,
+            &self.current_directory,
+            self.use_case_sensitive_file_names,
+        );
         self.cache.load(&key)
     }
 
     pub fn set(&self, package_json_path: &str, info: P<InfoCacheEntry>) -> P<InfoCacheEntry> {
-        let key = tspath::to_path(package_json_path, &self.current_directory, self.use_case_sensitive_file_names);
+        let key = tspath::to_path(
+            package_json_path,
+            &self.current_directory,
+            self.use_case_sensitive_file_names,
+        );
         let (actual, _) = self.cache.load_or_store(key, info);
         actual
     }

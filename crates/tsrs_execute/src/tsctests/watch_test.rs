@@ -8,7 +8,7 @@
 
 use rustc_hash::FxHashMap;
 
-use super::{run_scenario, scenario, scenarioEdit, scenarioFile, scenarioOp, LATE_EVENT_WRITE};
+use super::{LATE_EVENT_WRITE, run_scenario, scenario, scenarioEdit, scenarioFile, scenarioOp};
 
 const LIB_FILE: &str = "/home/src/tslibs/TS/Lib/lib.esnext.full.d.ts";
 const LIB: &str = "/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number {}\ninterface Object {}\ninterface RegExp {}\ninterface String {}\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\n";
@@ -38,18 +38,36 @@ fn one_file_edits_build_what_a_fresh_build_does() {
             ("fix", vec![write("app/other.ts", &other("export const y: string = x;\n"))]),
             ("syntax error", vec![write("app/main.ts", &main("export const x = ;\n"))]),
             ("syntax fixed", vec![write("app/main.ts", &main("export const x = f();\n"))]),
-            ("upstream shape change", vec![write("core/a.ts", "export function f() { return 's'; }\n")]),
-            ("edit after the upstream build", vec![write("app/main.ts", &main("export const x: number = f();\n"))]),
+            (
+                "upstream shape change",
+                vec![write("core/a.ts", "export function f() { return 's'; }\n")],
+            ),
+            (
+                "edit after the upstream build",
+                vec![write("app/main.ts", &main("export const x: number = f();\n"))],
+            ),
             // The upstream file is not a file of the app program, which has its declaration output instead.
             (
                 "upstream and app edit",
-                vec![write("core/a.ts", "export function f() { return 1; }\n"), write("app/main.ts", &main("export const x: number = f();\n// again\n"))],
+                vec![
+                    write("core/a.ts", "export function f() { return 1; }\n"),
+                    write("app/main.ts", &main("export const x: number = f();\n// again\n")),
+                ],
             ),
             (
                 "two files",
-                vec![write("app/main.ts", &main("export const x = 's';\n")), write("app/other.ts", &other("export const y: number = x;\n// other\n"))],
+                vec![
+                    write("app/main.ts", &main("export const x = 's';\n")),
+                    write("app/other.ts", &other("export const y: number = x;\n// other\n")),
+                ],
             ),
-            ("new file", vec![write("app/added.ts", "import { y } from \"./other\";\nexport const z: boolean = y;\n")]),
+            (
+                "new file",
+                vec![write(
+                    "app/added.ts",
+                    "import { y } from \"./other\";\nexport const z: boolean = y;\n",
+                )],
+            ),
             ("delete", vec![delete("app/added.ts")]),
         ],
     );
@@ -76,12 +94,27 @@ fn a_path_module_resolution_could_find_builds_the_program_again() {
         ],
         vec![
             ("comment", vec![write("app/other.ts", "export const y = 1;\n// comment\n")]),
-            ("new module and edit", vec![write("app/gen.ts", "export const g = 's';\n"), write("app/other.ts", "export const y = 2;\n")]),
-            ("import a package", vec![write("app/other.ts", "import { p } from \"pkg\";\nexport const y: number = p;\n")]),
+            (
+                "new module and edit",
+                vec![
+                    write("app/gen.ts", "export const g = 's';\n"),
+                    write("app/other.ts", "export const y = 2;\n"),
+                ],
+            ),
+            (
+                "import a package",
+                vec![write(
+                    "app/other.ts",
+                    "import { p } from \"pkg\";\nexport const y: number = p;\n",
+                )],
+            ),
             (
                 "package.json and edit",
                 vec![
-                    write("app/node_modules/pkg/package.json", r#"{ "name": "pkg", "types": "other.d.ts" }"#),
+                    write(
+                        "app/node_modules/pkg/package.json",
+                        r#"{ "name": "pkg", "types": "other.d.ts" }"#,
+                    ),
                     write("app/main.ts", &main("export const x: number = g;\n// comment\n")),
                 ],
             ),
@@ -103,19 +136,31 @@ fn an_upstream_build_builds_the_program_again() {
         BUILD_APP,
         &[
             ("core/tsconfig.json", core_config),
-            ("core/node_modules/mapper/package.json", r#"{ "name": "mapper", "version": "1.0.0", "typescript": { "contentMapper": { "exec": ["verbatim-mapper"] } } }"#),
+            (
+                "core/node_modules/mapper/package.json",
+                r#"{ "name": "mapper", "version": "1.0.0", "typescript": { "contentMapper": { "exec": ["verbatim-mapper"] } } }"#,
+            ),
             ("core/v.vue", "export const v = 1;\n"),
             ("core/a.ts", "import { v } from \"./v.vue\";\nexport function f() { return v; }\n"),
             ("app/tsconfig.json", APP_CONFIG),
             ("app/main.ts", "import { f } from \"../core/a\";\nexport const x: number = f();\n"),
         ],
         vec![
-            ("comment", vec![write("app/main.ts", "import { f } from \"../core/a\";\nexport const x: number = f();\n// comment\n")]),
+            (
+                "comment",
+                vec![write(
+                    "app/main.ts",
+                    "import { f } from \"../core/a\";\nexport const x: number = f();\n// comment\n",
+                )],
+            ),
             (
                 "upstream shape change and edit",
                 vec![
                     write("core/v.vue", "export const v = 's';\n"),
-                    write("app/main.ts", "import { f } from \"../core/a\";\nexport const x: number = f();\n// again\n"),
+                    write(
+                        "app/main.ts",
+                        "import { f } from \"../core/a\";\nexport const x: number = f();\n// again\n",
+                    ),
                 ],
             ),
             // The task's config is parsed again with the new file; the mapper keeps transforming.
@@ -131,8 +176,10 @@ fn an_upstream_build_builds_the_program_again() {
 // build, and the file's event comes with the next edit. That event still changes `b`.
 #[test]
 fn a_file_another_project_read_again_still_changes_this_one() {
-    let config = r#"{ "compilerOptions": { "incremental": true, "target": "esnext", "noEmit": true } }"#;
-    let a_main = |rest: &str| format!("import {{ v }} from \"../shared/f\";\nexport const y = v;\n{rest}");
+    let config =
+        r#"{ "compilerOptions": { "incremental": true, "target": "esnext", "noEmit": true } }"#;
+    let a_main =
+        |rest: &str| format!("import {{ v }} from \"../shared/f\";\nexport const y = v;\n{rest}");
     let baseline = run(
         "shared-file",
         &["--b", "a", "b", "-w"],
@@ -144,7 +191,13 @@ fn a_file_another_project_read_again_still_changes_this_one() {
             ("b/main.ts", "import { v } from \"../shared/f\";\nexport const x: number = v;\n"),
         ],
         vec![
-            ("new file in a, f saved late", vec![write("a/added.ts", "export const z = 1;\n"), write_late_event("shared/f.ts", "export const v: string = 's';\n")]),
+            (
+                "new file in a, f saved late",
+                vec![
+                    write("a/added.ts", "export const z = 1;\n"),
+                    write_late_event("shared/f.ts", "export const v: string = 's';\n"),
+                ],
+            ),
             ("edit in a", vec![write("a/main.ts", &a_main("// comment\n"))]),
         ],
     );
@@ -163,7 +216,10 @@ fn kept_diagnostics_of_a_content_mapped_file_outlive_a_full_build() {
         &["-w", "-p", "app", "--runExternalCode"],
         &[
             ("app/tsconfig.json", config),
-            ("app/node_modules/mapper/package.json", r#"{ "name": "mapper", "version": "1.0.0", "typescript": { "contentMapper": { "exec": ["verbatim-mapper"] } } }"#),
+            (
+                "app/node_modules/mapper/package.json",
+                r#"{ "name": "mapper", "version": "1.0.0", "typescript": { "contentMapper": { "exec": ["verbatim-mapper"] } } }"#,
+            ),
             ("app/v.vue", "export const v: number = 's';\n"),
             ("app/main.ts", &main("export const x = v;\n")),
         ],
@@ -186,17 +242,35 @@ fn the_watch_ignores_its_own_outputs() {
     let baseline = run(
         "own-outputs",
         &["-w", "-p", "app"],
-        &[("app/tsconfig.json", config), ("app/v.ts", "export const v = 1;\n"), ("app/main.ts", &main("export const x: number = v;\n"))],
+        &[
+            ("app/tsconfig.json", config),
+            ("app/v.ts", "export const v = 1;\n"),
+            ("app/main.ts", &main("export const x: number = v;\n")),
+        ],
         vec![
             ("edit", vec![write("app/v.ts", "export const v = 's';\n")]),
-            ("the edit's outputs", vec![touch("app/v.js"), touch("app/v.d.ts"), touch("app/main.js"), touch("app/tsconfig.tsbuildinfo")]),
+            (
+                "the edit's outputs",
+                vec![
+                    touch("app/v.js"),
+                    touch("app/v.d.ts"),
+                    touch("app/main.js"),
+                    touch("app/tsconfig.tsbuildinfo"),
+                ],
+            ),
             ("fix", vec![write("app/v.ts", "export const v = 2;\n")]),
         ],
     );
     let cycles: Vec<&str> = baseline.split("\nEdit [").skip(1).collect();
-    assert!(cycles[0].contains("File change detected") && cycles[0].contains("TS2322"), "{baseline}");
+    assert!(
+        cycles[0].contains("File change detected") && cycles[0].contains("TS2322"),
+        "{baseline}"
+    );
     assert!(!cycles[1].contains("File change detected"), "the outputs start no cycle\n{baseline}");
-    assert!(cycles[2].contains("File change detected") && cycles[2].contains("Found 0 errors"), "{baseline}");
+    assert!(
+        cycles[2].contains("File change detected") && cycles[2].contains("Found 0 errors"),
+        "{baseline}"
+    );
 }
 
 // A file with JSX (`react-jsx`) or under `importHelpers` has synthetic imports, of the JSX runtime and the helpers
@@ -216,7 +290,10 @@ fn edits_of_files_with_synthetic_imports_build_what_a_fresh_build_does() {
                 ("app/tsconfig.json", config),
                 ("app/view.tsx", &view("")),
                 ("app/dec.ts", &decorated("export class A {}\n")),
-                ("app/node_modules/react/package.json", r#"{ "name": "react", "types": "index.d.ts" }"#),
+                (
+                    "app/node_modules/react/package.json",
+                    r#"{ "name": "react", "types": "index.d.ts" }"#,
+                ),
                 ("app/node_modules/react/index.d.ts", "export {};\n"),
                 ("app/node_modules/react/jsx-runtime.d.ts", runtime),
             ],
@@ -224,20 +301,41 @@ fn edits_of_files_with_synthetic_imports_build_what_a_fresh_build_does() {
                 ("comment", vec![write("app/view.tsx", &view("// comment\n"))]),
                 ("type error", vec![write("app/view.tsx", "export const e = <div id=\"s\" />;\n")]),
                 ("fix", vec![write("app/view.tsx", &view("// fixed\n"))]),
-                ("missing runtime", vec![write("app/view.tsx", &format!("/** @jsxImportSource preact */\n{}", view("")))]),
+                (
+                    "missing runtime",
+                    vec![write(
+                        "app/view.tsx",
+                        &format!("/** @jsxImportSource preact */\n{}", view("")),
+                    )],
+                ),
                 ("runtime back", vec![write("app/view.tsx", &view("// back\n"))]),
-                ("helper without tslib", vec![write("app/dec.ts", &decorated("@d\nexport class A {}\n"))]),
-                ("helper again", vec![write("app/dec.ts", &decorated("@d\nexport class A {}\n// again\n"))]),
+                (
+                    "helper without tslib",
+                    vec![write("app/dec.ts", &decorated("@d\nexport class A {}\n"))],
+                ),
+                (
+                    "helper again",
+                    vec![write("app/dec.ts", &decorated("@d\nexport class A {}\n// again\n"))],
+                ),
                 // `-b --watch` does not see a new module of no task's inputs alone (nor without this change).
                 (
                     "tslib and edit",
                     vec![
-                        write("app/node_modules/tslib/package.json", r#"{ "name": "tslib", "types": "tslib.d.ts" }"#),
-                        write("app/node_modules/tslib/tslib.d.ts", "export declare function __decorate(decorators: any, target: any, key?: any, desc?: any): any;\n"),
+                        write(
+                            "app/node_modules/tslib/package.json",
+                            r#"{ "name": "tslib", "types": "tslib.d.ts" }"#,
+                        ),
+                        write(
+                            "app/node_modules/tslib/tslib.d.ts",
+                            "export declare function __decorate(decorators: any, target: any, key?: any, desc?: any): any;\n",
+                        ),
                         write("app/dec.ts", &decorated("@d\nexport class A {}\n// tslib\n")),
                     ],
                 ),
-                ("helper with tslib", vec![write("app/dec.ts", &decorated("@d\nexport class A {}\n// again\n"))]),
+                (
+                    "helper with tslib",
+                    vec![write("app/dec.ts", &decorated("@d\nexport class A {}\n// again\n"))],
+                ),
             ],
         );
         for code in ["TS2322", "TS2875", "TS2354"] {
@@ -261,22 +359,42 @@ fn a_first_edit_after_the_signature_job_rechecks_only_the_edited_file() {
         ("app/d.ts", "import { h } from \"./c\";\nexport const k = h;\n"),
         ("app/e.ts", "import { k } from \"./d\";\nexport const m: number = k;\n"),
     ];
-    for (mode, args) in [("watch", &["-w", "-p", "app"][..]), ("build", &["--b", "app", "-w"][..])] {
+    for (mode, args) in [("watch", &["-w", "-p", "app"][..]), ("build", &["--b", "app", "-w"][..])]
+    {
         for signature_job in [true, false] {
             let name = format!("signature-job-{mode}-{signature_job}");
             let edits = vec![
-                ("comment", vec![write("app/a.ts", "export function f() { return 1; }\n// comment\n")]),
+                (
+                    "comment",
+                    vec![write("app/a.ts", "export function f() { return 1; }\n// comment\n")],
+                ),
                 // The cycle stores stand-in signatures for the files two imports or more away (d.ts and e.ts).
                 ("shape change", vec![write("app/a.ts", "export function f() { return 's'; }\n")]),
-                ("comment after a cycle", vec![write("app/d.ts", "import { h } from \"./c\";\nexport const k = h;\n// comment\n")]),
+                (
+                    "comment after a cycle",
+                    vec![write(
+                        "app/d.ts",
+                        "import { h } from \"./c\";\nexport const k = h;\n// comment\n",
+                    )],
+                ),
             ];
             let baseline = run_with(&name, args, &files, edits, signature_job);
-            for (index, caption, edited, importer) in [(0, "comment", "a.ts", "b.ts"), (2, "comment after a cycle", "d.ts", "e.ts")] {
+            for (index, caption, edited, importer) in
+                [(0, "comment", "a.ts", "b.ts"), (2, "comment after a cycle", "d.ts", "e.ts")]
+            {
                 let start = baseline.find(&format!("\nEdit [{index}]:: {caption}\n")).unwrap();
-                let edit = &baseline[start..baseline[start + 1..].find("\nEdit [").map_or(baseline.len(), |end| start + 1 + end)];
-                let checked = |file: &str| edit.contains(&format!("*refresh*    {ROOT}/app/{file}\n"));
+                let edit = &baseline[start
+                    ..baseline[start + 1..]
+                        .find("\nEdit [")
+                        .map_or(baseline.len(), |end| start + 1 + end)];
+                let checked =
+                    |file: &str| edit.contains(&format!("*refresh*    {ROOT}/app/{file}\n"));
                 assert!(checked(edited), "{name}: the edited file is checked\n{edit}");
-                assert_eq!(checked(importer), !signature_job, "{name}: the importer is checked only without the job\n{edit}");
+                assert_eq!(
+                    checked(importer),
+                    !signature_job,
+                    "{name}: the importer is checked only without the job\n{edit}"
+                );
             }
         }
     }
@@ -284,13 +402,25 @@ fn a_first_edit_after_the_signature_job_rechecks_only_the_edited_file() {
 
 // Runs `tsgo <args>` on `files` (paths under ROOT), asserts that no edit differs from a fresh build, and returns the
 // baseline. An edit that only touches files starts no cycle: its output is empty, unlike a fresh build's.
-fn run(name: &str, args: &[&str], files: &[(&str, &str)], edits: Vec<(&str, Vec<scenarioOp>)>) -> String {
+fn run(
+    name: &str,
+    args: &[&str],
+    files: &[(&str, &str)],
+    edits: Vec<(&str, Vec<scenarioOp>)>,
+) -> String {
     run_with(name, args, files, edits, false)
 }
 
 // `run`, with the watch's signature job after each cycle when `signature_job` is set.
-fn run_with(name: &str, args: &[&str], files: &[(&str, &str)], edits: Vec<(&str, Vec<scenarioOp>)>, signature_job: bool) -> String {
-    let mut files: Vec<scenarioFile> = files.iter().map(|(path, content)| file(&format!("{ROOT}/{path}"), content)).collect();
+fn run_with(
+    name: &str,
+    args: &[&str],
+    files: &[(&str, &str)],
+    edits: Vec<(&str, Vec<scenarioOp>)>,
+    signature_job: bool,
+) -> String {
+    let mut files: Vec<scenarioFile> =
+        files.iter().map(|(path, content)| file(&format!("{ROOT}/{path}"), content)).collect();
     files.push(file(LIB_FILE, LIB));
     let mut all_ops: Vec<scenarioOp> = Vec::new();
     let edits = edits
@@ -305,7 +435,13 @@ fn run_with(name: &str, args: &[&str], files: &[(&str, &str)], edits: Vec<(&str,
             } else {
                 ""
             };
-            scenarioEdit { caption: caption.to_string(), args: None, expected_diff: expected_diff.to_string(), ops, fresh_ops: all_ops.iter().map(clone_op).collect() }
+            scenarioEdit {
+                caption: caption.to_string(),
+                args: None,
+                expected_diff: expected_diff.to_string(),
+                ops,
+                fresh_ops: all_ops.iter().map(clone_op).collect(),
+            }
         })
         .collect();
     let test = scenario {
@@ -323,7 +459,8 @@ fn run_with(name: &str, args: &[&str], files: &[(&str, &str)], edits: Vec<(&str,
     };
     let baseline = run_scenario(&test);
     let diffs = baseline.matches("\nDiff:: ").count();
-    let expected = baseline.matches(&format!("\nDiff:: {NO_CYCLE}\n")).count() + baseline.matches(&format!("\nDiff:: {LATE_EVENT}\n")).count();
+    let expected = baseline.matches(&format!("\nDiff:: {NO_CYCLE}\n")).count()
+        + baseline.matches(&format!("\nDiff:: {LATE_EVENT}\n")).count();
     assert_eq!(diffs, expected, "{name}: an edit differs from a fresh build\n{baseline}");
     baseline
 }
@@ -336,21 +473,46 @@ fn file(path: &str, content: &str) -> scenarioFile {
 }
 
 fn write_late_event(path: &str, content: &str) -> scenarioOp {
-    scenarioOp { op: LATE_EVENT_WRITE.to_string(), path: format!("{ROOT}/{path}"), content: content.to_string(), target: String::new() }
+    scenarioOp {
+        op: LATE_EVENT_WRITE.to_string(),
+        path: format!("{ROOT}/{path}"),
+        content: content.to_string(),
+        target: String::new(),
+    }
 }
 
 fn write(path: &str, content: &str) -> scenarioOp {
-    scenarioOp { op: "write".to_string(), path: format!("{ROOT}/{path}"), content: content.to_string(), target: String::new() }
+    scenarioOp {
+        op: "write".to_string(),
+        path: format!("{ROOT}/{path}"),
+        content: content.to_string(),
+        target: String::new(),
+    }
 }
 
 fn delete(path: &str) -> scenarioOp {
-    scenarioOp { op: "delete".to_string(), path: format!("{ROOT}/{path}"), content: String::new(), target: String::new() }
+    scenarioOp {
+        op: "delete".to_string(),
+        path: format!("{ROOT}/{path}"),
+        content: String::new(),
+        target: String::new(),
+    }
 }
 
 fn touch(path: &str) -> scenarioOp {
-    scenarioOp { op: "touch".to_string(), path: format!("{ROOT}/{path}"), content: String::new(), target: String::new() }
+    scenarioOp {
+        op: "touch".to_string(),
+        path: format!("{ROOT}/{path}"),
+        content: String::new(),
+        target: String::new(),
+    }
 }
 
 fn clone_op(op: &scenarioOp) -> scenarioOp {
-    scenarioOp { op: op.op.clone(), path: op.path.clone(), content: op.content.clone(), target: op.target.clone() }
+    scenarioOp {
+        op: op.op.clone(),
+        path: op.path.clone(),
+        content: op.content.clone(),
+        target: op.target.clone(),
+    }
 }

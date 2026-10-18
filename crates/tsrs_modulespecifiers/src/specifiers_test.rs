@@ -2,12 +2,12 @@
 
 use tsrs_ast::{Node, SourceFile};
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{CompilerOptions, ResolutionMode, P, RESOLUTION_MODE_NONE};
-use tsrs_module::packagejson;
-use tsrs_module::symlinks::{new_known_symlink, KnownDirectoryLink, KnownSymlinks};
+use tsrs_core::{CompilerOptions, P, RESOLUTION_MODE_NONE, ResolutionMode};
 use tsrs_module::ResolvedModule;
-use tsrs_tsoptions::outputpaths::OutputPathsHost;
+use tsrs_module::packagejson;
+use tsrs_module::symlinks::{KnownDirectoryLink, KnownSymlinks, new_known_symlink};
 use tsrs_tsoptions::SourceOutputAndProjectReference;
+use tsrs_tsoptions::outputpaths::OutputPathsHost;
 
 use super::*;
 
@@ -42,7 +42,10 @@ impl ModuleSpecifierGenerationHost for mockModuleSpecifierGenerationHost {
     fn get_global_typings_cache_location(&self) -> String {
         String::new()
     }
-    fn get_project_reference_from_source(&self, _path: &Path) -> Option<P<SourceOutputAndProjectReference>> {
+    fn get_project_reference_from_source(
+        &self,
+        _path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>> {
         None
     }
     fn get_redirect_targets(&self, _path: &Path) -> Vec<String> {
@@ -57,16 +60,27 @@ impl ModuleSpecifierGenerationHost for mockModuleSpecifierGenerationHost {
     fn get_nearest_ancestor_directory_with_package_json(&self, _dirname: &str) -> String {
         String::new()
     }
-    fn get_package_json_info(&self, _pkg_json_path: &str) -> Option<P<packagejson::InfoCacheEntry>> {
+    fn get_package_json_info(
+        &self,
+        _pkg_json_path: &str,
+    ) -> Option<P<packagejson::InfoCacheEntry>> {
         None
     }
     fn get_default_resolution_mode_for_file(&self, _file: P<SourceFile>) -> ResolutionMode {
         RESOLUTION_MODE_NONE
     }
-    fn get_resolved_module_from_module_specifier(&self, _file: P<SourceFile>, _module_specifier: P<Node>) -> Option<P<ResolvedModule>> {
+    fn get_resolved_module_from_module_specifier(
+        &self,
+        _file: P<SourceFile>,
+        _module_specifier: P<Node>,
+    ) -> Option<P<ResolvedModule>> {
         None
     }
-    fn get_mode_for_usage_location(&self, _file: P<SourceFile>, _module_specifier: P<Node>) -> ResolutionMode {
+    fn get_mode_for_usage_location(
+        &self,
+        _file: P<SourceFile>,
+        _module_specifier: P<Node>,
+    ) -> ResolutionMode {
         RESOLUTION_MODE_NONE
     }
 }
@@ -127,7 +141,12 @@ fn test_get_each_file_name_of_module() {
 
     for tt in &tests {
         let host = project_host();
-        let result = get_each_file_name_of_module(tt.importing_file, tt.imported_file, &host, tt.prefer_symlinks);
+        let result = get_each_file_name_of_module(
+            tt.importing_file,
+            tt.imported_file,
+            &host,
+            tt.prefer_symlinks,
+        );
         assert_eq!(result.len(), tt.expected_count, "{}", tt.name);
         if let Some(expected_paths) = tt.expected_paths {
             for (i, expected_path) in expected_paths.iter().enumerate() {
@@ -144,19 +163,32 @@ fn test_get_each_file_name_of_module() {
 fn test_get_each_file_name_of_module_with_symlinks() {
     let host = project_host();
 
-    let symlink_path = tspath::to_path("/project/symlink", "/project", true).ensure_trailing_directory_separator();
+    let symlink_path =
+        tspath::to_path("/project/symlink", "/project", true).ensure_trailing_directory_separator();
     let real_directory = KnownDirectoryLink {
         real: "/real/path/".to_string(),
-        real_path: tspath::to_path("/real/path", "/project", true).ensure_trailing_directory_separator(),
+        real_path: tspath::to_path("/real/path", "/project", true)
+            .ensure_trailing_directory_separator(),
     };
-    host.symlink_cache.unwrap().set_directory("/project/symlink", symlink_path, Some(P::new(real_directory)));
+    host.symlink_cache.unwrap().set_directory(
+        "/project/symlink",
+        symlink_path,
+        Some(P::new(real_directory)),
+    );
 
-    let result = get_each_file_name_of_module("/project/src/main.ts", "/real/path/file.ts", &host, true);
+    let result =
+        get_each_file_name_of_module("/project/src/main.ts", "/real/path/file.ts", &host, true);
 
     // Should find the symlink path
-    assert!(result.iter().any(|p| p.file_name == "/project/symlink/file.ts"), "Expected to find symlink path /project/symlink/file.ts");
+    assert!(
+        result.iter().any(|p| p.file_name == "/project/symlink/file.ts"),
+        "Expected to find symlink path /project/symlink/file.ts"
+    );
     // Symlinks come first when preferSymlinks is set.
-    assert_eq!(result.iter().map(|p| p.file_name.as_str()).collect::<Vec<_>>(), vec!["/project/symlink/file.ts", "/real/path/file.ts"]);
+    assert_eq!(
+        result.iter().map(|p| p.file_name.as_str()).collect::<Vec<_>>(),
+        vec!["/project/symlink/file.ts", "/real/path/file.ts"]
+    );
 }
 
 #[test]
@@ -174,7 +206,10 @@ fn test_contains_node_modules() {
 
 #[test]
 fn test_contains_ignored_path() {
-    let tests = [("ignored path", "/project/node_modules/.pnpm/file.ts", true), ("not ignored path", "/project/src/file.ts", false)];
+    let tests = [
+        ("ignored path", "/project/node_modules/.pnpm/file.ts", true),
+        ("not ignored path", "/project/src/file.ts", false),
+    ];
     for (name, path, expected) in tests {
         assert_eq!(contains_ignored_path(path), expected, "{name}");
     }
@@ -184,11 +219,19 @@ fn test_contains_ignored_path() {
 fn test_try_get_real_file_name_for_non_js_declaration_file_name() {
     let tests = [
         ("json declaration file", "/project/foo.d.json.ts", "/project/foo.json"),
-        ("multi-dot source extension declaration file", "/project/foo.module.d.css.ts", "/project/foo.module.css"),
+        (
+            "multi-dot source extension declaration file",
+            "/project/foo.module.d.css.ts",
+            "/project/foo.module.css",
+        ),
         ("plain dts file ignored", "/project/foo.d.ts", ""),
     ];
     for (name, file_name, expected) in tests {
-        assert_eq!(try_get_real_file_name_for_non_js_declaration_file_name(file_name), expected, "{name}");
+        assert_eq!(
+            try_get_real_file_name_for_non_js_declaration_file_name(file_name),
+            expected,
+            "{name}"
+        );
     }
 }
 
@@ -222,7 +265,8 @@ fn test_try_get_module_name_from_exports_or_imports() {
 
 #[test]
 fn test_get_node_module_path_parts() {
-    let parts = get_node_module_path_parts("/base/path/node_modules/@scope/pkg/sub/file.js").unwrap();
+    let parts =
+        get_node_module_path_parts("/base/path/node_modules/@scope/pkg/sub/file.js").unwrap();
     assert_eq!(parts.top_level_node_modules_index, 10);
     assert_eq!(parts.top_level_package_name_index, 23);
     assert_eq!(parts.package_root_index, Some(34));

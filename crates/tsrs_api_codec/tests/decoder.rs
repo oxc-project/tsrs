@@ -19,14 +19,19 @@ fn roundtrip(name: &str, bytes: &[u8], what: &str) -> Result<(), String> {
             Err(format!("{name} ({what}): go failed with {go_err:?}, rust {rust:?}"))
         };
     }
-    let decoded = decode_source_file(bytes).map_err(|e| format!("{name} ({what}): decode failed: {e}"))?;
+    let decoded =
+        decode_source_file(bytes).map_err(|e| format!("{name} ({what}): decode failed: {e}"))?;
     let root = decoded.root();
     let sf = root.as_source_file();
     assert_eq!(sf.file_name(), format!("/fixtures/{name}"), "{name}");
     assert_eq!(&*sf.path().0, format!("/fixtures/{name}").as_str(), "{name}");
     let original = std::fs::read(crate_dir().join("tests/fixtures").join(name)).unwrap();
     // The JS client's RemoteSourceFile.text drops a leading BOM, so its re-encoding does too.
-    let original = if what == "js client" { original.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&original).to_vec() } else { original };
+    let original = if what == "js client" {
+        original.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&original).to_vec()
+    } else {
+        original
+    };
     assert_eq!(sf.text().as_bytes(), &original[..], "{name}: text");
     let expected_kind = tsrs_core::ensure_script_kind_from_file_name(name);
     assert_eq!(sf.script_kind(), expected_kind, "{name}: scriptKind");
@@ -41,7 +46,9 @@ fn roundtrip(name: &str, bytes: &[u8], what: &str) -> Result<(), String> {
 fn decode_go_server_encodings() {
     let mut errors = Vec::new();
     let fixtures = fixtures();
-    errors.extend(fixtures.iter().filter_map(|(name, _)| roundtrip(name, &golden(name), "go server").err()));
+    errors.extend(
+        fixtures.iter().filter_map(|(name, _)| roundtrip(name, &golden(name), "go server").err()),
+    );
     eprintln!("decoded {} go-server encodings, {} failures", fixtures.len(), errors.len());
     assert!(errors.is_empty(), "{}", errors.join("\n"));
 }
@@ -50,7 +57,11 @@ fn decode_go_server_encodings() {
 fn decode_js_client_encodings() {
     let mut errors = Vec::new();
     let fixtures = fixtures();
-    errors.extend(fixtures.iter().filter_map(|(name, _)| roundtrip(name, &client_golden(name), "js client").err()));
+    errors.extend(
+        fixtures
+            .iter()
+            .filter_map(|(name, _)| roundtrip(name, &client_golden(name), "js client").err()),
+    );
     eprintln!("decoded {} js-client encodings, {} failures", fixtures.len(), errors.len());
     assert!(errors.is_empty(), "{}", errors.join("\n"));
 }
@@ -60,7 +71,10 @@ fn decoded_tree_shape() {
     let decoded = decode_source_file(&golden("basic.ts")).unwrap();
     let sf = decoded.root().as_source_file();
     let stmts = sf.statements.nodes();
-    assert_eq!(stmts.iter().map(|s| s.kind()).collect::<Vec<_>>(), [Kind::ImportDeclaration, Kind::FunctionDeclaration, Kind::ExpressionStatement]);
+    assert_eq!(
+        stmts.iter().map(|s| s.kind()).collect::<Vec<_>>(),
+        [Kind::ImportDeclaration, Kind::FunctionDeclaration, Kind::ExpressionStatement]
+    );
     let f = stmts[1].as_function_declaration();
     assert_eq!(f.name().unwrap().text(), "foo");
     assert!(stmts[1].modifier_flags().intersects(ModifierFlags::Export));
@@ -71,10 +85,7 @@ fn decoded_tree_shape() {
     assert_eq!(sf.end_of_file_token.kind(), Kind::EndOfFile);
     // Positions are the wire (UTF-16) positions, as in Go's decoder.
     assert_eq!(
-        (
-            stmts[1].pos().source_offset(),
-            stmts[1].end().source_offset()
-        ),
+        (stmts[1].pos().source_offset(), stmts[1].end().source_offset()),
         (Some(26), Some(82))
     );
 }
@@ -82,7 +93,8 @@ fn decoded_tree_shape() {
 #[test]
 fn decode_non_source_file_node() {
     // A subtree encoding (Go EncodeNode / client encodeNode): the root keeps its own kind.
-    let (_region, file) = parse_like_server("x.ts", "type T = { a: string; b?: number[] } | `x${1}`;");
+    let (_region, file) =
+        parse_like_server("x.ts", "type T = { a: string; b?: number[] } | `x${1}`;");
     let alias = file.statements.nodes()[0];
     let ty = alias.as_type_alias_declaration().type_().unwrap();
     let (bytes, table) = encode_node(ty, Some(file.get())).unwrap();
@@ -117,23 +129,30 @@ fn decode_rejects_malformed_input_without_panicking() {
     };
     let mut cases = 0;
     let mut errors = 0;
-    for name in ["basic.ts", "complex.ts", "jsx_component.tsx", "jsdoc_checked.js", "unicode_text.ts"] {
+    for name in
+        ["basic.ts", "complex.ts", "jsx_component.tsx", "jsdoc_checked.js", "unicode_text.ts"]
+    {
         let good = golden(name);
-        let mut inputs: Vec<Vec<u8>> = (0..good.len()).step_by(7).map(|n| good[..n].to_vec()).collect();
-        inputs.extend(std::iter::repeat_with(|| {
-            let mut b = good.clone();
-            let at = (next() as usize) % b.len();
-            if next() % 2 == 0 {
-                b[at] ^= 1 << (next() % 8);
-            } else {
-                let at = at & !3;
-                if at + 4 <= b.len() {
-                    let v = [0u32, 1, 2, u32::MAX, 0x7fff_ffff, (next() % 4096) as u32][(next() % 6) as usize];
-                    b[at..at + 4].copy_from_slice(&v.to_le_bytes());
+        let mut inputs: Vec<Vec<u8>> =
+            (0..good.len()).step_by(7).map(|n| good[..n].to_vec()).collect();
+        inputs.extend(
+            std::iter::repeat_with(|| {
+                let mut b = good.clone();
+                let at = (next() as usize) % b.len();
+                if next() % 2 == 0 {
+                    b[at] ^= 1 << (next() % 8);
+                } else {
+                    let at = at & !3;
+                    if at + 4 <= b.len() {
+                        let v = [0u32, 1, 2, u32::MAX, 0x7fff_ffff, (next() % 4096) as u32]
+                            [(next() % 6) as usize];
+                        b[at..at + 4].copy_from_slice(&v.to_le_bytes());
+                    }
                 }
-            }
-            b
-        }).take(1500));
+                b
+            })
+            .take(1500),
+        );
         for input in inputs {
             cases += 1;
             let r = std::panic::catch_unwind(|| decode_nodes(&input).map(|d| d.root().kind()));
@@ -157,7 +176,10 @@ fn decode_rejects_malformed_input_without_panicking() {
 fn decode_reencode_matches_pinned_go() {
     let dir = crate_dir().join("tests/golden/reencode");
     let (mut identical, mut both_failed, mut failures) = (0, 0, Vec::new());
-    let mut names: Vec<String> = std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().file_name().into_string().unwrap()).collect();
+    let mut names: Vec<String> = std::fs::read_dir(&dir)
+        .unwrap()
+        .map(|e| e.unwrap().file_name().into_string().unwrap())
+        .collect();
     names.sort();
     for f in &names {
         let (base, go) = if let Some(b) = f.strip_suffix(".goreencoded.bin") {
@@ -167,15 +189,22 @@ fn decode_reencode_matches_pinned_go() {
         } else {
             continue;
         };
-        let input_path = [crate_dir().join(format!("tests/golden/{base}.bin")), crate_dir().join(format!("tests/golden/print/{base}.bin"))]
-            .into_iter()
-            .find(|p| p.exists())
-            .unwrap();
+        let input_path = [
+            crate_dir().join(format!("tests/golden/{base}.bin")),
+            crate_dir().join(format!("tests/golden/print/{base}.bin")),
+        ]
+        .into_iter()
+        .find(|p| p.exists())
+        .unwrap();
         let input = std::fs::read(input_path).unwrap();
         let rust = decode_nodes(&input).map_err(|e| e.to_string()).and_then(|d| {
             let _scope = d.region().enter();
             let root = d.root();
-            let r = if root.kind() == Kind::SourceFile { encode_source_file(root.as_source_file()) } else { encode_node(root, None) };
+            let r = if root.kind() == Kind::SourceFile {
+                encode_source_file(root.as_source_file())
+            } else {
+                encode_node(root, None)
+            };
             r.map(|(b, _)| b).map_err(|e| e.to_string())
         });
         match (go, rust) {
@@ -183,11 +212,21 @@ fn decode_reencode_matches_pinned_go() {
                 None => identical += 1,
                 Some(d) => failures.push(format!("== {base}\n{d}")),
             },
-            (Err(go), Err(rust)) if go.trim().trim_start_matches("panic: ") == rust => both_failed += 1,
-            (go, rust) => failures.push(format!("== {base}: go {:?} rust {:?}", go.map(|b| b.len()), rust.map(|b| b.len()))),
+            (Err(go), Err(rust)) if go.trim().trim_start_matches("panic: ") == rust => {
+                both_failed += 1;
+            }
+            (go, rust) => failures.push(format!(
+                "== {base}: go {:?} rust {:?}",
+                go.map(|b| b.len()),
+                rust.map(|b| b.len())
+            )),
         }
     }
-    eprintln!("decode+re-encode vs pinned Go: {} cases, {identical} byte-identical, {both_failed} identical failures, {} mismatches", identical + both_failed + failures.len(), failures.len());
+    eprintln!(
+        "decode+re-encode vs pinned Go: {} cases, {identical} byte-identical, {both_failed} identical failures, {} mismatches",
+        identical + both_failed + failures.len(),
+        failures.len()
+    );
     assert!(identical + both_failed >= 30);
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }

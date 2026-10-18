@@ -7,9 +7,9 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
+use tsrs_vfs::FileMode;
 use tsrs_vfs::iovfs::IoVFS;
 use tsrs_vfs::vfstest::MapFS;
-use tsrs_vfs::FileMode;
 
 #[derive(Clone, Default)]
 pub struct DiffEntry {
@@ -35,7 +35,12 @@ pub struct FSDiffer {
 
 impl FSDiffer {
     pub fn new(fs: Arc<IoVFS<MapFS>>) -> FSDiffer {
-        FSDiffer { fs, default_libs: None, written_files: Mutex::new(FxHashSet::default()), serialized_diff: None }
+        FSDiffer {
+            fs,
+            default_libs: None,
+            written_files: Mutex::new(FxHashSet::default()),
+            serialized_diff: None,
+        }
     }
 
     // differ.go:38
@@ -69,14 +74,25 @@ impl FSDiffer {
                 self.add_fs_entry_diff(&mut diffs, Some(&new_entry), &path);
                 snap.insert(path, new_entry);
             } else if file.mode.is_regular() {
-                let content = sanitize_internal_symbol_name(&tsrs_core::utf8::from_utf8_lossy(&file.data));
-                let new_entry = DiffEntry { content, m_time: file.mod_time, is_written: written.contains(&path), ..Default::default() };
+                let content =
+                    sanitize_internal_symbol_name(&tsrs_core::utf8::from_utf8_lossy(&file.data));
+                let new_entry = DiffEntry {
+                    content,
+                    m_time: file.mod_time,
+                    is_written: written.contains(&path),
+                    ..Default::default()
+                };
                 self.add_fs_entry_diff(&mut diffs, Some(&new_entry), &path);
                 snap.insert(path, new_entry);
             }
         }
         if let Some(serialized) = &self.serialized_diff {
-            let deleted: Vec<String> = serialized.snap.keys().filter(|p| self.map_fs().get_file_info(p).is_none()).cloned().collect();
+            let deleted: Vec<String> = serialized
+                .snap
+                .keys()
+                .filter(|p| self.map_fs().get_file_info(p).is_none())
+                .cloned()
+                .collect();
             for path in deleted {
                 // report deleted
                 self.add_fs_entry_diff(&mut diffs, None, &path);
@@ -90,7 +106,12 @@ impl FSDiffer {
     }
 
     // differ.go:117
-    fn add_fs_entry_diff(&self, diffs: &mut BTreeMap<String, String>, new_dir_content: Option<&DiffEntry>, path: &str) {
+    fn add_fs_entry_diff(
+        &self,
+        diffs: &mut BTreeMap<String, String>,
+        new_dir_content: Option<&DiffEntry>,
+        path: &str,
+    ) {
         let (old_dir_content, default_libs) = match &self.serialized_diff {
             Some(s) => (s.snap.get(path), Some(&s.default_libs)),
             None => (None, None),
@@ -117,7 +138,9 @@ impl FSDiffer {
                     diffs.insert(path.to_string(), "*rewrite with same content*".to_string());
                 } else if new.m_time != old.m_time {
                     diffs.insert(path.to_string(), "*mTime changed*".to_string());
-                } else if default_libs.is_some_and(|l| l.contains(path)) && current_libs.as_ref().is_some_and(|libs| !libs.contains(path)) {
+                } else if default_libs.is_some_and(|l| l.contains(path))
+                    && current_libs.as_ref().is_some_and(|libs| !libs.contains(path))
+                {
                     // Lib file that was read
                     diffs.insert(path.to_string(), format!("*Lib*\n{}", new.content));
                 }
@@ -142,7 +165,8 @@ pub fn sanitize_internal_symbol_name(s: &str) -> String {
         out.push_str(&rest[..i]);
         let after = &rest[i + MARK.len()..];
         let name_len = after.find('@').filter(|&n| n > 0);
-        let digits = name_len.map_or(0, |n| after[n + 1..].bytes().take_while(u8::is_ascii_digit).count());
+        let digits =
+            name_len.map_or(0, |n| after[n + 1..].bytes().take_while(u8::is_ascii_digit).count());
         match name_len {
             Some(n) if digits > 0 => {
                 out.push_str(MARK);

@@ -2,9 +2,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Condvar, Mutex, mpsc};
 use std::time::{Duration, SystemTime};
 
-use tsrs_core::collections::{new_ordered_map_with_size_hint, OrderedMapExt};
-use tsrs_core::{CompilerOptions, ModuleKind, ModuleResolutionKind, ScriptTarget, P};
-use tsrs_vfs::{vfstest, Entries, FileInfo, FS};
+use tsrs_core::collections::{OrderedMapExt, new_ordered_map_with_size_hint};
+use tsrs_core::{CompilerOptions, ModuleKind, ModuleResolutionKind, P, ScriptTarget};
+use tsrs_vfs::{Entries, FS, FileInfo, vfstest};
 
 use crate::packagejson::InfoCacheEntryExt;
 use crate::*;
@@ -44,7 +44,10 @@ fn bundler_options() -> P<CompilerOptions> {
 fn test_resolve_module_name_trailing_slash() {
     let fs = vfstest::from_map(
         [
-            ("/repo/node_modules/pkg/package.json", r#"{"name":"pkg","main":"main.js","types":"main.d.ts"}"#),
+            (
+                "/repo/node_modules/pkg/package.json",
+                r#"{"name":"pkg","main":"main.js","types":"main.d.ts"}"#,
+            ),
             ("/repo/node_modules/pkg/main.d.ts", "export const x: number;"),
             ("/repo/node_modules/pkg/main.js", "exports.x = 1;"),
             ("/repo/src/file.ts", ""),
@@ -54,7 +57,9 @@ fn test_resolve_module_name_trailing_slash() {
     let resolver = new_resolver(ResolverOptions::new(host(fs, "/repo"), bundler_options()));
 
     for name in ["pkg", "pkg/"] {
-        let (r, _) = resolver.resolve_module_name(name, "/repo/src/file.ts", ModuleKind::ESNext, None).unwrap();
+        let (r, _) = resolver
+            .resolve_module_name(name, "/repo/src/file.ts", ModuleKind::ESNext, None)
+            .unwrap();
         assert!(r.is_resolved(), "{name:?} failed to resolve");
     }
 }
@@ -63,7 +68,10 @@ fn test_resolve_module_name_trailing_slash() {
 fn test_resolution_data_caches() {
     let old_host = host(
         vfstest::from_map(
-            [("/src/node_modules/pkg/package.json", r#"{"name":"pkg","types":"index.d.ts"}"#), ("/src/node_modules/pkg/index.d.ts", "export const value: number;")],
+            [
+                ("/src/node_modules/pkg/package.json", r#"{"name":"pkg","types":"index.d.ts"}"#),
+                ("/src/node_modules/pkg/index.d.ts", "export const value: number;"),
+            ],
             true,
         ),
         "/",
@@ -80,16 +88,29 @@ fn test_resolution_data_caches() {
         ),
         "/",
     );
-    let resolver = new_resolver(ResolverOptions::new(old_host, P::new(CompilerOptions { module: ModuleKind::NodeNext, ..Default::default() })));
-    let (resolved, _) = resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::CommonJS, None).unwrap();
+    let resolver = new_resolver(ResolverOptions::new(
+        old_host,
+        P::new(CompilerOptions { module: ModuleKind::NodeNext, ..Default::default() }),
+    ));
+    let (resolved, _) =
+        resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::CommonJS, None).unwrap();
     assert!(resolved.is_resolved());
-    let (cached, _) = resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::CommonJS, None).unwrap();
+    let (cached, _) =
+        resolver.resolve_module_name("pkg", "/src/index.ts", ModuleKind::CommonJS, None).unwrap();
     assert_eq!(cached, resolved);
 
-    resolver.resolve_type_reference_directive("missing", "/src/index.ts", ModuleKind::CommonJS, None);
+    resolver.resolve_type_reference_directive(
+        "missing",
+        "/src/index.ts",
+        ModuleKind::CommonJS,
+        None,
+    );
     let mut paths = new_ordered_map_with_size_hint(1);
     paths.set("alias/*".to_string(), Some(vec!["./*".to_string()]));
-    resolver.get_parsed_patterns_for_paths(&CompilerOptions { paths: Some(paths), ..Default::default() });
+    resolver.get_parsed_patterns_for_paths(&CompilerOptions {
+        paths: Some(paths),
+        ..Default::default()
+    });
     assert_eq!(resolver.module_resolution_cache.size(), 1);
     assert_eq!(resolver.type_ref_directive_resolution_cache.size(), 1);
     assert_eq!(resolver.parsed_patterns_for_paths.size(), 1);
@@ -104,7 +125,10 @@ fn test_resolution_data_caches() {
     assert_eq!(clone.module_resolution_cache.size(), 0);
     assert_eq!(clone.type_ref_directive_resolution_cache.size(), 0);
     assert_eq!(clone.parsed_patterns_for_paths.size(), 0);
-    assert_eq!(clone.get_package_scope_for_path("/src/node_modules/pkg"), resolver.get_package_scope_for_path("/src/node_modules/pkg"));
+    assert_eq!(
+        clone.get_package_scope_for_path("/src/node_modules/pkg"),
+        resolver.get_package_scope_for_path("/src/node_modules/pkg")
+    );
     assert!(clone.get_package_scope_for_path("/new").exists());
     assert!(!resolver.get_package_scope_for_path("/new").exists());
     assert!(!resolver.get_package_scope_for_path("/missing-first").exists());
@@ -126,7 +150,8 @@ impl Gate {
 
     fn wait(&self, description: &str) {
         let guard = self.open.lock().unwrap();
-        let (guard, timeout) = self.cv.wait_timeout_while(guard, Duration::from_secs(10), |open| !*open).unwrap();
+        let (guard, timeout) =
+            self.cv.wait_timeout_while(guard, Duration::from_secs(10), |open| !*open).unwrap();
         assert!(!timeout.timed_out() || *guard, "timed out waiting for {description}");
     }
 }
@@ -146,7 +171,12 @@ macro_rules! delegate_fs {
         fn remove(&self, path: &str) -> Result<(), String> {
             self.fs.remove(path)
         }
-        fn chtimes(&self, path: &str, a_time: SystemTime, m_time: SystemTime) -> Result<(), String> {
+        fn chtimes(
+            &self,
+            path: &str,
+            a_time: SystemTime,
+            m_time: SystemTime,
+        ) -> Result<(), String> {
             self.fs.chtimes(path, a_time, m_time)
         }
         fn directory_exists(&self, path: &str) -> bool {
@@ -276,9 +306,19 @@ fn test_resolve_module_name_trailing_slash_race() {
         let handles: Vec<_> = ["pkg", "pkg/"]
             .into_iter()
             .map(|name| {
-                let containing_file = if name.ends_with('/') { "/repo/src/b/file.ts" } else { "/repo/src/a/file.ts" };
+                let containing_file =
+                    if name.ends_with('/') { "/repo/src/b/file.ts" } else { "/repo/src/a/file.ts" };
                 let resolver = &resolver;
-                s.spawn(move || (name, resolver.resolve_module_name(name, containing_file, ModuleKind::ESNext, None).unwrap().0.is_resolved()))
+                s.spawn(move || {
+                    (
+                        name,
+                        resolver
+                            .resolve_module_name(name, containing_file, ModuleKind::ESNext, None)
+                            .unwrap()
+                            .0
+                            .is_resolved(),
+                    )
+                })
             })
             .collect();
 
@@ -322,7 +362,21 @@ fn test_resolve_subpath_nil_contents_race() {
             .into_iter()
             .map(|containing_file| {
                 let resolver = &resolver;
-                s.spawn(move || (containing_file, resolver.resolve_module_name("pkg/sub", containing_file, ModuleKind::ESNext, None).unwrap().0.is_resolved()))
+                s.spawn(move || {
+                    (
+                        containing_file,
+                        resolver
+                            .resolve_module_name(
+                                "pkg/sub",
+                                containing_file,
+                                ModuleKind::ESNext,
+                                None,
+                            )
+                            .unwrap()
+                            .0
+                            .is_resolved(),
+                    )
+                })
             })
             .collect();
 
@@ -334,7 +388,8 @@ fn test_resolve_subpath_nil_contents_race() {
         fs.read_gate.open();
 
         for handle in handles {
-            let (containing_file, resolved) = handle.join().expect("resolver panicked due to nil Contents dereference");
+            let (containing_file, resolved) =
+                handle.join().expect("resolver panicked due to nil Contents dereference");
             assert!(resolved, "{containing_file:?} failed to resolve pkg/sub");
         }
     });
@@ -344,11 +399,26 @@ fn test_resolve_subpath_nil_contents_race() {
 fn test_parse_node_module_from_path() {
     let tests = [
         ("file in package", "/a/node_modules/b/lib/index.d.ts", false, "/a/node_modules/b"),
-        ("file in scoped package", "/a/node_modules/@scope/b/lib/index.d.ts", false, "/a/node_modules/@scope/b"),
+        (
+            "file in scoped package",
+            "/a/node_modules/@scope/b/lib/index.d.ts",
+            false,
+            "/a/node_modules/@scope/b",
+        ),
         ("folder subpath", "/a/node_modules/b/lib/File", true, "/a/node_modules/b"),
-        ("folder subpath scoped", "/a/node_modules/@scope/b/lib/File", true, "/a/node_modules/@scope/b"),
+        (
+            "folder subpath scoped",
+            "/a/node_modules/@scope/b/lib/File",
+            true,
+            "/a/node_modules/@scope/b",
+        ),
         ("package root folder", "/a/node_modules/b", true, "/a/node_modules/b"),
-        ("scoped package root folder", "/a/node_modules/@scope/b", true, "/a/node_modules/@scope/b"),
+        (
+            "scoped package root folder",
+            "/a/node_modules/@scope/b",
+            true,
+            "/a/node_modules/@scope/b",
+        ),
         // A bare scope directory has no package name; must not panic (https://github.com/microsoft/TypeScript/tsc/issues/4373).
         ("scope-only folder", "/a/node_modules/@scope", true, "/a/node_modules/@scope"),
         ("types scope-only folder", "/a/node_modules/@types", true, "/a/node_modules/@types"),
@@ -368,7 +438,10 @@ fn test_resolve_peer_dependency_nil_contents_race() {
     let fs: &'static FlipFileExistsFS<_> = Box::leak(Box::new(FlipFileExistsFS::new(
         vfstest::from_map(
             [
-                ("/repo/node_modules/pkg/package.json", r#"{"name":"pkg","version":"1.0.0","types":"index.d.ts","peerDependencies":{"peer":"*"}}"#),
+                (
+                    "/repo/node_modules/pkg/package.json",
+                    r#"{"name":"pkg","version":"1.0.0","types":"index.d.ts","peerDependencies":{"peer":"*"}}"#,
+                ),
                 ("/repo/node_modules/pkg/index.d.ts", "export declare const x: number;"),
                 (PEER_PKG_JSON, r#"{"name":"peer","version":"2.0.0"}"#),
                 ("/repo/src/a/file.ts", ""),
@@ -386,7 +459,11 @@ fn test_resolve_peer_dependency_nil_contents_race() {
             let resolver = &resolver;
             let results_tx = results_tx.clone();
             s.spawn(move || {
-                let resolved = resolver.resolve_module_name("pkg", containing_file, ModuleKind::ESNext, None).unwrap().0.is_resolved();
+                let resolved = resolver
+                    .resolve_module_name("pkg", containing_file, ModuleKind::ESNext, None)
+                    .unwrap()
+                    .0
+                    .is_resolved();
                 results_tx.send((containing_file, resolved)).unwrap();
             });
         }
@@ -394,13 +471,17 @@ fn test_resolve_peer_dependency_nil_contents_race() {
         fs.first_arrived.wait("first peer package.json FileExists arrival");
         fs.second_arrived.wait("second peer package.json FileExists arrival");
         fs.first_gate.open();
-        let first_result = results_rx.recv_timeout(Duration::from_secs(10)).expect("timed out waiting for first peer package.json lookup to finish");
+        let first_result = results_rx
+            .recv_timeout(Duration::from_secs(10))
+            .expect("timed out waiting for first peer package.json lookup to finish");
         fs.second_gate.open();
         fs.read_arrived.wait("peer package.json ReadFile arrival");
         fs.read_gate.open();
 
         assert!(first_result.1, "{:?} failed to resolve pkg", first_result.0);
-        let second_result = results_rx.recv_timeout(Duration::from_secs(10)).expect("resolver panicked due to nil Contents dereference");
+        let second_result = results_rx
+            .recv_timeout(Duration::from_secs(10))
+            .expect("resolver panicked due to nil Contents dereference");
         assert!(second_result.1, "{:?} failed to resolve pkg", second_result.0);
     });
 }

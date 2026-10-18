@@ -10,13 +10,15 @@ fn dir_watch_root(w: &watcher, dir: &str) -> String {
 
 #[test]
 fn consolidates_siblings_but_not_their_unrelated_ancestors() {
-    let base = std::env::temp_dir().join(format!("tsrs-fswatch-consolidate-{}", std::process::id()));
+    let base =
+        std::env::temp_dir().join(format!("tsrs-fswatch-consolidate-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&base);
     std::fs::create_dir_all(&base).unwrap();
     let base = std::fs::canonicalize(&base).unwrap().to_str().unwrap().to_string();
     // A package store's layout: <store>/links/<name>/<version>/<hash>/node_modules, beside a project.
     let links = format!("{base}/store/links");
-    let packages: Vec<String> = (0..12).map(|i| format!("{links}/p{i}/1.0.0/h{i}/node_modules")).collect();
+    let packages: Vec<String> =
+        (0..12).map(|i| format!("{links}/p{i}/1.0.0/h{i}/node_modules")).collect();
     let project = format!("{base}/project");
     for dir in packages.iter().chain([&project]) {
         std::fs::create_dir_all(dir).unwrap();

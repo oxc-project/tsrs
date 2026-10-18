@@ -11,7 +11,11 @@ fn type_annotation(s: &mut crate::lsutil::FormatCodeSettings) {
 // comment_test.go:15
 #[test]
 fn test_comment_formatting_issue_reproduction() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 4, Tristate::True, type_annotation), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 4, Tristate::True, type_annotation),
+        "\n",
+    );
 
     // Original code that causes the bug
     let original_text = "class C {\n    /**\n     *\n    */\n    async x() {}\n}";
@@ -40,11 +44,14 @@ fn test_comment_formatting_issue_reproduction() {
 
 #[test]
 fn test_comment_formatting_jsdoc_with_tab_indentation() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::False, type_annotation), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::False, type_annotation),
+        "\n",
+    );
 
     // Original code with tab indentation (tabs represented as \t)
-    let original_text =
-        "class Foo {\n\t/**\n\t * @param {string} argument - This is a param description.\n\t */\n\texample(argument) {\nconsole.log(argument);\n\t}\n}";
+    let original_text = "class Foo {\n\t/**\n\t * @param {string} argument - This is a param description.\n\t */\n\texample(argument) {\nconsole.log(argument);\n\t}\n}";
 
     let source_file = parse_for_test("/test.ts", original_text, ScriptKind::TS);
 
@@ -64,7 +71,11 @@ fn test_comment_formatting_jsdoc_with_tab_indentation() {
 
 #[test]
 fn test_comment_formatting_inside_multi_line_argument_list() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::False, type_annotation), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::False, type_annotation),
+        "\n",
+    );
 
     // Original code with proper indentation
     let original_text = "console.log(\n\t\"a\",\n\t// the second arg\n\t\"b\"\n);";
@@ -83,7 +94,11 @@ fn test_comment_formatting_inside_multi_line_argument_list() {
 
 #[test]
 fn test_comment_formatting_in_chained_method_calls() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::False, type_annotation), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::False, type_annotation),
+        "\n",
+    );
 
     // Original code with proper indentation
     let original_text = "foo\n\t.bar()\n\t// A second call\n\t.baz();";
@@ -95,7 +110,10 @@ fn test_comment_formatting_in_chained_method_calls() {
     let formatted = apply_bulk_edits(original_text, &edits);
 
     // The comment should remain indented
-    assert!(formatted.contains("\t// A second call") || formatted.contains("   // A second call"), "comment should be indented");
+    assert!(
+        formatted.contains("\t// A second call") || formatted.contains("   // A second call"),
+        "comment should be indented"
+    );
     // The comment should not lose its indentation
     assert!(!formatted.contains("\n// A second call"), "comment should not lose indentation");
 }
@@ -103,7 +121,11 @@ fn test_comment_formatting_in_chained_method_calls() {
 // Regression test for issue #1928 - panic when formatting chained method call with comment
 #[test]
 fn test_comment_formatting_chained_method_call_with_comment_issue_1928() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::False, type_annotation), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::False, type_annotation),
+        "\n",
+    );
 
     // This code previously caused a panic with "strings: negative Repeat count"
     // because tokenIndentation was -1 and was being used directly for indentation
@@ -116,13 +138,20 @@ fn test_comment_formatting_chained_method_call_with_comment_issue_1928() {
     let formatted = apply_bulk_edits(original_text, &edits);
 
     // Verify the comment maintains proper indentation and doesn't lose it
-    assert!(formatted.contains("\t// A second call") || formatted.contains("   // A second call"), "comment should be indented");
+    assert!(
+        formatted.contains("\t// A second call") || formatted.contains("   // A second call"),
+        "comment should be indented"
+    );
     assert!(!formatted.contains("\n// A second call"), "comment should not be at column 0");
 }
 
 #[test]
 fn test_comment_formatting_multiline_comment_inside_block_issue_2649() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::False, |_| {}), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::False, |_| {}),
+        "\n",
+    );
 
     let original_text = "document.addEventListener('DOMContentLoaded', () => {\n    /** @type {NodeListOf<HTMLSpanElement>} */\n    const elements = document.querySelectorAll('.test')\n});";
 
@@ -135,7 +164,11 @@ fn test_comment_formatting_multiline_comment_inside_block_issue_2649() {
 
 #[test]
 fn test_comment_formatting_single_line_comment_inside_block_issue_2649() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::False, |_| {}), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::False, |_| {}),
+        "\n",
+    );
 
     let original_text = "document.addEventListener('DOMContentLoaded', () => {\n    // a comment\n    const x = 1\n});";
 
@@ -149,7 +182,11 @@ fn test_comment_formatting_single_line_comment_inside_block_issue_2649() {
 // comment_test.go:251
 #[test]
 fn test_format_selection_preserves_comments_selection_ends_inside_comment() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::True, |_| {}), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::True, |_| {}),
+        "\n",
+    );
 
     // Reproduce: const test/* comment */=5;
     // When selecting a range that ends inside the comment (before */), format selection should not delete the comment.
@@ -168,12 +205,19 @@ fn test_format_selection_preserves_comments_selection_ends_inside_comment() {
     let formatted = apply_bulk_edits(original_text, &edits);
 
     // The entire statement should be preserved unchanged
-    assert_eq!(formatted, original_text, "format selection should not delete the block comment or alter the statement");
+    assert_eq!(
+        formatted, original_text,
+        "format selection should not delete the block comment or alter the statement"
+    );
 }
 
 #[test]
 fn test_format_selection_preserves_comments_selection_starts_inside_comment() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 0, Tristate::True, |_| {}), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 0, Tristate::True, |_| {}),
+        "\n",
+    );
 
     let original_text = "const test/* comment */=5;";
 
@@ -191,14 +235,19 @@ fn test_format_selection_preserves_comments_selection_starts_inside_comment() {
     let formatted = apply_bulk_edits(original_text, &edits);
 
     // The entire statement should be preserved unchanged
-    assert_eq!(formatted, original_text, "format selection should not delete the block comment or alter the statement");
+    assert_eq!(
+        formatted, original_text,
+        "format selection should not delete the block comment or alter the statement"
+    );
 }
 
 #[test]
 fn test_format_selection_preserves_comments_full_document() {
     let ctx = with_format_code_settings(
         &FormatContext::default(),
-        settings(4, 4, 0, Tristate::True, |s| s.insert_space_before_and_after_binary_operators = Tristate::True),
+        settings(4, 4, 0, Tristate::True, |s| {
+            s.insert_space_before_and_after_binary_operators = Tristate::True;
+        }),
         "\n",
     );
 
@@ -210,13 +259,20 @@ fn test_format_selection_preserves_comments_full_document() {
     let formatted = apply_bulk_edits(original_text, &edits);
 
     // Full document format should preserve the comment and add spaces around `=`
-    assert_eq!("const test/* comment */ = 5;", formatted, "full format should preserve the block comment and add spaces");
+    assert_eq!(
+        "const test/* comment */ = 5;", formatted,
+        "full format should preserve the block comment and add spaces"
+    );
 }
 
 // comment_test.go:345
 #[test]
 fn test_slice_bounds_panic() {
-    let ctx = with_format_code_settings(&FormatContext::default(), settings(4, 4, 4, Tristate::True, type_annotation), "\n");
+    let ctx = with_format_code_settings(
+        &FormatContext::default(),
+        settings(4, 4, 4, Tristate::True, type_annotation),
+        "\n",
+    );
 
     // Code from the issue that causes slice bounds panic
     let original_text = "const _enableDisposeWithListenerWarning = false\n\t// || Boolean(\"TRUE\") // causes a linter warning so that it cannot be pushed\n\t;\n";
@@ -229,5 +285,8 @@ fn test_slice_bounds_panic() {
 
     // Basic sanity checks
     assert!(!formatted.is_empty(), "formatted text should not be empty");
-    assert!(formatted.contains("_enableDisposeWithListenerWarning"), "should preserve variable name");
+    assert!(
+        formatted.contains("_enableDisposeWithListenerWarning"),
+        "should preserve variable name"
+    );
 }

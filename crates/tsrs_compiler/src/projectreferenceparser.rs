@@ -1,8 +1,8 @@
 use std::collections::hash_map::Entry;
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_core::tspath::{self, Path};
 use tsrs_core::P;
+use tsrs_core::tspath::{self, Path};
 use tsrs_tsoptions::ParsedCommandLine;
 
 use crate::host::CompilerHost;
@@ -31,7 +31,11 @@ impl<'a> projectReferenceParser<'a> {
     }
 
     fn to_path(&self, file_name: &str) -> Path {
-        tspath::to_path(file_name, self.host.get_current_directory(), self.host.fs().use_case_sensitive_file_names())
+        tspath::to_path(
+            file_name,
+            self.host.get_current_directory(),
+            self.host.fs().use_case_sensitive_file_names(),
+        )
     }
 
     // projectreferenceparser.go:19
@@ -51,11 +55,18 @@ impl<'a> projectReferenceParser<'a> {
     }
 
     // projectreferenceparser.go:34
-    pub(crate) fn create_project_reference_parse_tasks(&mut self, project_references: &[String]) -> Vec<taskId> {
+    pub(crate) fn create_project_reference_parse_tasks(
+        &mut self,
+        project_references: &[String],
+    ) -> Vec<taskId> {
         project_references
             .iter()
             .map(|config_name| {
-                self.tasks.push(projectReferenceParseTask { config_name: config_name.clone(), resolved: None, sub_tasks: Vec::new() });
+                self.tasks.push(projectReferenceParseTask {
+                    config_name: config_name.clone(),
+                    resolved: None,
+                    sub_tasks: Vec::new(),
+                });
                 self.tasks.len() - 1
             })
             .collect()
@@ -93,8 +104,10 @@ impl<'a> projectReferenceParser<'a> {
     // projectreferenceparser.go:68
     fn init_mapper(&self, tasks: &[taskId], mapper: &mut projectReferenceFileMapper) {
         let total_references = self.tasks_by_file_name.len() + 1;
-        mapper.config_to_project_reference = FxHashMap::with_capacity_and_hasher(total_references, rustc_hash::FxBuildHasher);
-        mapper.references_in_config_file = FxHashMap::with_capacity_and_hasher(total_references, rustc_hash::FxBuildHasher);
+        mapper.config_to_project_reference =
+            FxHashMap::with_capacity_and_hasher(total_references, rustc_hash::FxBuildHasher);
+        mapper.references_in_config_file =
+            FxHashMap::with_capacity_and_hasher(total_references, rustc_hash::FxBuildHasher);
         mapper.source_to_project_reference = FxHashMap::default();
         mapper.output_dts_to_project_reference = FxHashMap::default();
         let root = self.init_mapper_worker(tasks, &mut FxHashSet::default(), mapper);
@@ -102,7 +115,12 @@ impl<'a> projectReferenceParser<'a> {
     }
 
     // projectreferenceparser.go:78
-    fn init_mapper_worker(&self, tasks: &[taskId], seen: &mut FxHashSet<taskId>, mapper: &mut projectReferenceFileMapper) -> Vec<Path> {
+    fn init_mapper_worker(
+        &self,
+        tasks: &[taskId],
+        seen: &mut FxHashSet<taskId>,
+        mapper: &mut projectReferenceFileMapper,
+    ) -> Vec<Path> {
         if tasks.is_empty() {
             return Vec::new();
         }
@@ -122,10 +140,14 @@ impl<'a> projectReferenceParser<'a> {
                     // This matches TypeScript's behavior where child project references
                     // overwrite parent entries when a file belongs to multiple projects.
                     if let Some(m) = resolved.source_to_project_reference() {
-                        mapper.source_to_project_reference.extend(m.iter().map(|(k, v)| (k.clone(), *v)));
+                        mapper
+                            .source_to_project_reference
+                            .extend(m.iter().map(|(k, v)| (k.clone(), *v)));
                     }
                     if let Some(m) = resolved.output_dts_to_project_reference() {
-                        mapper.output_dts_to_project_reference.extend(m.iter().map(|(k, v)| (k.clone(), *v)));
+                        mapper
+                            .output_dts_to_project_reference
+                            .extend(m.iter().map(|(k, v)| (k.clone(), *v)));
                     }
                     if mapper.use_source_of_project_reference {
                         let options = resolved.compiler_options().unwrap();

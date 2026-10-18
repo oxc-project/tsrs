@@ -116,7 +116,12 @@ impl Arena {
         Arena::with_first_chunk(FIRST_CHUNK, None, false, false)
     }
 
-    fn with_first_chunk(first_chunk: usize, region: Option<Weak<RegionInner>>, registered: bool, large_slabs: bool) -> Arena {
+    fn with_first_chunk(
+        first_chunk: usize,
+        region: Option<Weak<RegionInner>>,
+        registered: bool,
+        large_slabs: bool,
+    ) -> Arena {
         let a = Arena {
             ptr: Cell::new(std::ptr::null_mut()),
             up: region.is_some(),
@@ -183,7 +188,8 @@ impl Arena {
     #[inline(never)]
     fn alloc_layout_slow(&self, layout: Layout) -> NonNull<u8> {
         let prev = self.end.get().addr() - self.start.get().addr();
-        let need = layout.size().checked_add(layout.align()).expect("arena allocation size overflow");
+        let need =
+            layout.size().checked_add(layout.align()).expect("arena allocation size overflow");
         // A region grows by a quarter of what it has (at least 4 KiB): many regions are small (one per parsed file),
         // and the unused tail of a doubled chunk would dominate their footprint.
         // Compressed pointers: thread-arena chunks stop doubling at `MAX_CHUNK`, since every chunk takes its size out
@@ -231,7 +237,11 @@ impl Arena {
         // Blocks given back by address (`free_block`) are written through this provenance.
         let _ = base.expose_provenance();
         if !self.start.get().is_null() {
-            self.retired.borrow_mut().push((self.start.get().addr(), self.end.get().addr(), self.ptr.get().addr()));
+            self.retired.borrow_mut().push((
+                self.start.get().addr(),
+                self.end.get().addr(),
+                self.ptr.get().addr(),
+            ));
         }
         self.start.set(base);
         // SAFETY: one past the end of the allocation.
@@ -239,7 +249,10 @@ impl Arena {
         self.ptr.set(if self.up { base } else { self.end.get() });
         self.capacity.set(self.capacity.get() + size);
         if let (Some(region), true) = (&self.region, self.registered) {
-            REGISTRY.write().unwrap().insert(reg_key(base.addr()), (reg_key(base.addr() + size), Weak::clone(region)));
+            REGISTRY
+                .write()
+                .unwrap()
+                .insert(reg_key(base.addr()), (reg_key(base.addr() + size), Weak::clone(region)));
         }
     }
 
@@ -257,13 +270,17 @@ impl Arena {
         self.end.set(end.with_addr(new_end));
         self.capacity.set(self.capacity.get() - (end.addr() - new_end));
         if let (Some(region), true) = (&self.region, self.registered) {
-            REGISTRY.write().unwrap().insert(reg_key(start.addr()), (reg_key(new_end), Weak::clone(region)));
+            REGISTRY
+                .write()
+                .unwrap()
+                .insert(reg_key(start.addr()), (reg_key(new_end), Weak::clone(region)));
         }
     }
 
     /// Every chunk, (start, size).
     fn chunks(&self) -> Vec<(usize, usize)> {
-        let mut out = vec![(self.start.get().addr(), self.end.get().addr() - self.start.get().addr())];
+        let mut out =
+            vec![(self.start.get().addr(), self.end.get().addr() - self.start.get().addr())];
         out.extend(self.retired.borrow().iter().map(|&(start, end, _)| (start, end - start)));
         out
     }
@@ -276,9 +293,15 @@ impl Arena {
 
     /// `value` in a block of `layout` (at least `T`'s size and alignment).
     #[inline]
-    #[expect(clippy::mut_from_ref, reason = "a bump allocator: each call returns a fresh block nothing else points to (bumpalo's alloc has this signature)")]
+    #[expect(
+        clippy::mut_from_ref,
+        reason = "a bump allocator: each call returns a fresh block nothing else points to (bumpalo's alloc has this signature)"
+    )]
     pub(crate) fn alloc_with<T>(&self, layout: Layout, value: T) -> &mut T {
-        debug_assert!(layout.size() >= std::mem::size_of::<T>() && layout.align() >= std::mem::align_of::<T>());
+        debug_assert!(
+            layout.size() >= std::mem::size_of::<T>()
+                && layout.align() >= std::mem::align_of::<T>()
+        );
         let p = self.alloc_layout(layout).cast::<T>();
         // SAFETY: fresh, aligned, exclusively owned memory for one `T`.
         unsafe {
@@ -330,13 +353,18 @@ impl Arena {
     /// current chunk and of each retired chunk (start, len), and whether the current chunk is a huge-page chunk.
     pub(crate) fn residency(&self) -> Residency {
         debug_assert!(!self.up);
-        let (start, end, ptr) = (self.start.get().addr(), self.end.get().addr(), self.ptr.get().addr());
+        let (start, end, ptr) =
+            (self.start.get().addr(), self.end.get().addr(), self.ptr.get().addr());
         let retired = self.retired.borrow();
         Residency {
             capacity: self.capacity.get(),
             used: (end - ptr) + retired.iter().map(|&(_, e, f)| e - f).sum::<usize>(),
             current_unused: (ptr > start).then_some((start, ptr - start)),
-            retired_unused: retired.iter().filter(|&&(s, _, f)| f > s).map(|&(s, _, f)| (s, f - s)).collect(),
+            retired_unused: retired
+                .iter()
+                .filter(|&&(s, _, f)| f > s)
+                .map(|&(s, _, f)| (s, f - s))
+                .collect(),
             current_huge: HUGE_THREAD_CHUNK.is_some_and(|h| end - start >= h),
         }
     }
@@ -344,8 +372,11 @@ impl Arena {
     /// The used part of every chunk, (start, len).
     pub(crate) fn used_ranges(&self) -> Vec<(usize, usize)> {
         if self.up {
-            let mut out = vec![(self.start.get().addr(), self.ptr.get().addr() - self.start.get().addr())];
-            out.extend(self.retired.borrow().iter().map(|&(start, _, finger)| (start, finger - start)));
+            let mut out =
+                vec![(self.start.get().addr(), self.ptr.get().addr() - self.start.get().addr())];
+            out.extend(
+                self.retired.borrow().iter().map(|&(start, _, finger)| (start, finger - start)),
+            );
             return out;
         }
         let mut out = vec![(self.ptr.get().addr(), self.end.get().addr() - self.ptr.get().addr())];
@@ -361,13 +392,19 @@ impl Arena {
         }
         // SAFETY: free blocks hold the next pointer in their first word.
         unsafe {
-            #[expect(clippy::cast_ptr_alignment, reason = "free blocks are 8-aligned (push_free's contract)")]
+            #[expect(
+                clippy::cast_ptr_alignment,
+                reason = "free blocks are 8-aligned (push_free's contract)"
+            )]
             self.free[class].set(*head.cast_const().cast::<*mut u8>());
             #[cfg(debug_assertions)]
             {
                 let size = class * 8;
                 let rest = std::slice::from_raw_parts(head.add(8), size - 8);
-                assert!(rest.iter().all(|&b| b == POISON), "arena: free block at {head:p} was written after it was freed: {rest:x?}");
+                assert!(
+                    rest.iter().all(|&b| b == POISON),
+                    "arena: free block at {head:p} was written after it was freed: {rest:x?}"
+                );
             }
             Some(NonNull::new_unchecked(head))
         }
@@ -379,8 +416,13 @@ impl Arena {
     pub(crate) unsafe fn push_free(&self, class: usize, p: *mut u8) {
         #[cfg(debug_assertions)]
         // SAFETY: `p` is a dead block of `class * 8` bytes (this function's contract); its first word is kept.
-        unsafe { std::ptr::write_bytes(p.add(8), POISON, class * 8 - 8) };
-        #[expect(clippy::cast_ptr_alignment, reason = "`p` is 8-aligned (this function's contract)")]
+        unsafe {
+            std::ptr::write_bytes(p.add(8), POISON, class * 8 - 8);
+        };
+        #[expect(
+            clippy::cast_ptr_alignment,
+            reason = "`p` is 8-aligned (this function's contract)"
+        )]
         let next = p.cast::<*mut u8>();
         // SAFETY: the block is dead and at least 8 bytes, so its first word holds the free-list link.
         unsafe { *next = self.free[class].get() };
@@ -512,15 +554,27 @@ fn new_slab(size: usize, live: usize) -> *const Slab {
         let cached = SLAB_CACHE.lock().unwrap().pop();
         if let Some(addr) = cached {
             let base = std::ptr::with_exposed_provenance_mut::<u8>(addr);
-            return Box::into_raw(Box::new(Slab { base, size, live: AtomicUsize::new(live), retired: AtomicBool::new(false) }));
+            return Box::into_raw(Box::new(Slab {
+                base,
+                size,
+                live: AtomicUsize::new(live),
+                retired: AtomicBool::new(false),
+            }));
         }
     }
-    let base = os_chunk(Layout::from_size_align(size, CHUNK_ALIGN).expect("arena slab layout"), false);
-    Box::into_raw(Box::new(Slab { base, size, live: AtomicUsize::new(live), retired: AtomicBool::new(false) }))
+    let base =
+        os_chunk(Layout::from_size_align(size, CHUNK_ALIGN).expect("arena slab layout"), false);
+    Box::into_raw(Box::new(Slab {
+        base,
+        size,
+        live: AtomicUsize::new(live),
+        retired: AtomicBool::new(false),
+    }))
 }
 
 fn slab_carve(size: usize, large: bool) -> (*mut u8, *const Slab) {
-    let (current, slab_size) = if large { (&LARGE_SLAB, LARGE_SLAB_SIZE) } else { (&SLAB, SLAB_SIZE) };
+    let (current, slab_size) =
+        if large { (&LARGE_SLAB, LARGE_SLAB_SIZE) } else { (&SLAB, SLAB_SIZE) };
     if size > slab_size / 4 {
         return own_slab(size);
     }
@@ -596,7 +650,10 @@ fn slab_release_ex(slab: *const Slab, retire: bool) {
     #[cfg(not(compressed_ptrs))]
     // SAFETY: allocated by `new_slab` with this layout; every chunk carved from it was released.
     unsafe {
-        std::alloc::dealloc(s.base, Layout::from_size_align(s.size, CHUNK_ALIGN).expect("arena slab layout"));
+        std::alloc::dealloc(
+            s.base,
+            Layout::from_size_align(s.size, CHUNK_ALIGN).expect("arena slab layout"),
+        );
     };
     #[cfg(compressed_ptrs)]
     {
@@ -644,7 +701,13 @@ pub const fn free_class(size: usize, align: usize) -> usize {
 /// # Safety
 /// Nothing may use the block afterwards: no live object or local may point into it.
 #[inline]
-pub(crate) unsafe fn free_block(arena: &Arena, addr: usize, size: usize, align: usize, needs_drop: bool) {
+pub(crate) unsafe fn free_block(
+    arena: &Arena,
+    addr: usize,
+    size: usize,
+    align: usize,
+    needs_drop: bool,
+) {
     let class = free_class(size, align);
     if class == 0 || !addr.is_multiple_of(8) {
         return;
@@ -656,7 +719,10 @@ pub(crate) unsafe fn free_block(arena: &Arena, addr: usize, size: usize, align: 
     // Free lists belong to the arena that allocated the block: a recycling site frees only what it made, while the
     // same allocation target (thread arena or region) is current.
     #[cfg(debug_assertions)]
-    assert!(arena.owns(addr), "arena: block {addr:#x} freed into an arena (or region) that did not allocate it");
+    assert!(
+        arena.owns(addr),
+        "arena: block {addr:#x} freed into an arena (or region) that did not allocate it"
+    );
     // Write access through the chunk's (exposed) provenance, not through the references the program held.
     let p = std::ptr::with_exposed_provenance_mut::<u8>(addr);
     arena.bump_epoch();
@@ -692,7 +758,6 @@ pub(crate) fn rewind(arena: &Arena, cp: Checkpoint) {
     };
     arena.ptr.set(cp.ptr);
 }
-
 
 // ---------------------------------------------------------------------------------------------------------------
 // Regions and the allocation target
@@ -821,7 +886,12 @@ impl Region {
 
     fn new_in(first_chunk: usize, registered: bool, large_slabs: bool) -> Region {
         Region(Arc::new_cyclic(|weak| RegionInner {
-            arena: Box::new(Arena::with_first_chunk(first_chunk.max(PAGE), Some(Weak::clone(weak)), registered, large_slabs)),
+            arena: Box::new(Arena::with_first_chunk(
+                first_chunk.max(PAGE),
+                Some(Weak::clone(weak)),
+                registered,
+                large_slabs,
+            )),
             lock: OwnerLock { state: Mutex::new((None, 0, 0)), released: Condvar::new() },
             owners: Mutex::new(Vec::new()),
             on_free: Mutex::new(Vec::new()),
@@ -886,7 +956,10 @@ impl Region {
     /// by this region, so `enter_owner(addr)` routes to it while the region lives.
     pub fn adopt_owner(&self, addr: usize) {
         self.0.owners.lock().unwrap().push(addr);
-        REGISTRY.write().unwrap().insert(reg_key(addr), (reg_key(addr + 1), Arc::downgrade(&self.0)));
+        REGISTRY
+            .write()
+            .unwrap()
+            .insert(reg_key(addr), (reg_key(addr + 1), Arc::downgrade(&self.0)));
     }
 
     /// Total size of the region's chunks.
@@ -999,7 +1072,8 @@ pub(crate) fn no_scope_open() -> bool {
 
 /// `no_scope_open` while the thread exits: the scope stack may be gone already, and with it every scope.
 pub(crate) fn no_scope_open_at_exit() -> bool {
-    SCOPES.try_with(|s| s.borrow().is_empty()).unwrap_or(true) && SCRATCH.with(|s| s.get().0.is_null())
+    SCOPES.try_with(|s| s.borrow().is_empty()).unwrap_or(true)
+        && SCRATCH.with(|s| s.get().0.is_null())
 }
 
 pub(crate) fn give_spare_arena(arena: &'static Arena) {
@@ -1132,7 +1206,11 @@ impl Region {
     /// innermost one is the scratch region.
     pub fn enter_scratch(&self) -> ScratchScope {
         let outer = CURRENT.with(std::cell::Cell::get);
-        let outer = if outer.is_null() { std::ptr::from_ref::<Arena>(crate::ptr::own_arena()) } else { outer };
+        let outer = if outer.is_null() {
+            std::ptr::from_ref::<Arena>(crate::ptr::own_arena())
+        } else {
+            outer
+        };
         let scope = self.enter();
         let saved = SCRATCH.with(|s| {
             let (enclosing, _, enclosing_root) = s.get();
@@ -1206,7 +1284,8 @@ impl Region {
     /// The route allocates in the region without entering it: while the route is set, no other thread may allocate
     /// in it.
     pub fn route_diagnostics(&self) -> DiagnosticRoute {
-        let saved = DIAGNOSTIC_ROUTE.with(|r| r.replace((current_target(), &raw const *self.0.arena)));
+        let saved =
+            DIAGNOSTIC_ROUTE.with(|r| r.replace((current_target(), &raw const *self.0.arena)));
         DiagnosticRoute { saved, _region: self.clone(), _not_send: std::marker::PhantomData }
     }
 }
@@ -1257,7 +1336,8 @@ pub fn scratch_contains(addr: usize) -> bool {
     }
     // SAFETY: the scratch region is kept alive by its entered scope on this thread, which alone uses its arena.
     let a = unsafe { &*s };
-    (a.start.get().addr() <= addr && addr < a.end.get().addr()) || a.retired.borrow().iter().any(|&(start, end, _)| start <= addr && addr < end)
+    (a.start.get().addr() <= addr && addr < a.end.get().addr())
+        || a.retired.borrow().iter().any(|&(start, end, _)| start <= addr && addr < end)
 }
 
 /// The thread's scratch region's arena, if one is entered.
@@ -1292,7 +1372,13 @@ impl Drop for RegionInner {
             // Kept mapped and filled, so any later use through a stale pointer crashes.
             for (start, len) in arena.used_ranges() {
                 // SAFETY: the used part of a chunk of this region; nothing may use it any more.
-                unsafe { std::ptr::write_bytes(std::ptr::with_exposed_provenance_mut::<u8>(start), POISON, len) };
+                unsafe {
+                    std::ptr::write_bytes(
+                        std::ptr::with_exposed_provenance_mut::<u8>(start),
+                        POISON,
+                        len,
+                    );
+                };
             }
             return;
         }
@@ -1324,8 +1410,8 @@ impl Drop for RegionInner {
 #[cfg(all(compressed_ptrs, unix))]
 mod retired {
     use std::collections::BTreeMap;
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Mutex;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     /// Bytes retired before a batch is given back.
     const BATCH: usize = 16 << 20;
@@ -1338,7 +1424,8 @@ mod retired {
         pending_bytes: usize,
     }
 
-    static STATE: Mutex<State> = Mutex::new(State { spans: BTreeMap::new(), pending: Vec::new(), pending_bytes: 0 });
+    static STATE: Mutex<State> =
+        Mutex::new(State { spans: BTreeMap::new(), pending: Vec::new(), pending_bytes: 0 });
     /// `stats`: calls that gave pages back, and their bytes.
     static CALLS: AtomicUsize = AtomicUsize::new(0);
     static BYTES: AtomicUsize = AtomicUsize::new(0);
@@ -1378,7 +1465,9 @@ mod retired {
         let page = crate::reserve::page_size();
         let mut out: Vec<(usize, usize)> = Vec::with_capacity(pages.len());
         for &(first, _) in pages {
-            let Some((&lo, &hi)) = s.spans.range(..=first).next_back() else { continue };
+            let Some((&lo, &hi)) = s.spans.range(..=first).next_back() else {
+                continue;
+            };
             let whole = (lo.next_multiple_of(page), hi & !(page - 1));
             if out.last() != Some(&whole) {
                 out.push(whole);
@@ -1454,16 +1543,25 @@ mod retired {
         for &(first, last) in calls {
             // SAFETY: whole pages inside retired spans: chunks and slabs nothing uses any more, never handed out
             // again; `first` is page aligned (and so is `last - first`).
-            unsafe { crate::reserve::discard(std::ptr::with_exposed_provenance_mut::<u8>(first), last - first) };
+            unsafe {
+                crate::reserve::discard(
+                    std::ptr::with_exposed_provenance_mut::<u8>(first),
+                    last - first,
+                );
+            };
         }
         // Relaxed: counters (see `stats`).
         CALLS.fetch_add(calls.len(), Ordering::Relaxed);
-        BYTES.fetch_add(pages.iter().map(|&(first, last)| last - first).sum(), Ordering::Relaxed);
+        BYTES.fetch_add(
+            pages.iter().map(|&(first, last)| last - first).sum(),
+            // Relaxed: counters (see `stats`).
+            Ordering::Relaxed,
+        );
     }
 
     #[cfg(test)]
     mod tests {
-        use super::{spans_of, take_pages, State};
+        use super::{State, spans_of, take_pages};
         use std::collections::BTreeMap;
 
         fn batch(s: &mut State, ranges: &[(usize, usize)]) -> Vec<(usize, usize)> {
@@ -1521,7 +1619,9 @@ pub fn retired_stats() -> (usize, usize) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{alloc_slice_recycled, arena_checkpoint, arena_pin, arena_rewind, free, free_slice, P};
+    use crate::{
+        P, alloc_slice_recycled, arena_checkpoint, arena_pin, arena_rewind, free, free_slice,
+    };
 
     #[test]
     fn free_list_reuses_blocks_of_the_same_size() {
@@ -1598,7 +1698,7 @@ mod tests {
 
     #[test]
     fn region_scopes_route_allocations_and_free_drops_values() {
-        use super::{enter_owner, enter_thread_arena, Region};
+        use super::{Region, enter_owner, enter_thread_arena};
         use std::rc::Rc;
         let outside = P::new(1u64);
         let counter = Rc::new(());
@@ -1670,7 +1770,7 @@ mod tests {
 
     #[test]
     fn nested_scratch_regions_escape_past_all_of_them() {
-        use super::{escape_scratch, escape_scratch_one_level, Region};
+        use super::{Region, escape_scratch, escape_scratch_one_level};
         // A checker in a scratch region of its own emits a file in a nested scratch region: the checker's data
         // escapes the file's region into the checker's, diagnostics escape both.
         let outer = Region::new(4096);
@@ -1698,7 +1798,7 @@ mod tests {
 
     #[test]
     fn scratch_regions_route_escapes_to_the_outer_target() {
-        use super::{enter_thread_arena, escape_scratch, scratch_active, Region};
+        use super::{Region, enter_thread_arena, escape_scratch, scratch_active};
         let outer = Region::new(4096);
         let scratch = Region::new(4096);
         let _o = outer.enter();
@@ -1714,7 +1814,11 @@ mod tests {
                 assert!(Region::containing(P::new(2u64).addr()).unwrap().ptr_eq(&outer));
                 // Scratch allocations while escaped.
                 assert!(Region::containing(P::new_scratch(3u64).addr()).unwrap().ptr_eq(&scratch));
-                assert!(Region::containing(crate::alloc_str_scratch("abc").as_ptr() as usize).unwrap().ptr_eq(&scratch));
+                assert!(
+                    Region::containing(crate::alloc_str_scratch("abc").as_ptr() as usize)
+                        .unwrap()
+                        .ptr_eq(&scratch)
+                );
                 // A scope pushed and popped inside the escape restores the escape's target, not the scratch region.
                 drop(enter_thread_arena());
                 assert!(Region::containing(P::new(4u64).addr()).unwrap().ptr_eq(&outer));
@@ -1756,7 +1860,10 @@ mod tests {
             later.push(r);
         }
         let big = crate::alloc_slice(&vec![0u8; 4 * SIZE]);
-        assert!(!range.contains(&(big.as_ptr() as usize)) && !range.contains(&(big.as_ptr() as usize + big.len() - 1)));
+        assert!(
+            !range.contains(&(big.as_ptr() as usize))
+                && !range.contains(&(big.as_ptr() as usize + big.len() - 1))
+        );
         drop(later);
     }
 

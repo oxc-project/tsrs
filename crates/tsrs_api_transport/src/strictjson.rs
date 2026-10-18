@@ -9,8 +9,8 @@
 // The scan is iterative (no recursion), allocates at most one key set per open object, and rejects
 // nesting deeper than jsontext's limit (10000).
 
-use std::fmt::Write as _;
 use rustc_hash::FxHashSet;
+use std::fmt::Write as _;
 
 pub const MAX_DEPTH: usize = 10000;
 
@@ -124,7 +124,11 @@ impl Scanner<'_> {
     }
 
     fn invalid_char(&self, at: usize, context: &str, pointer: &str) -> String {
-        Self::err(&format!("invalid character {} {context}", quote_char(self.char_at(at))), pointer, at)
+        Self::err(
+            &format!("invalid character {} {context}", quote_char(self.char_at(at))),
+            pointer,
+            at,
+        )
     }
 
     fn eof(pointer: &str, offset: usize) -> String {
@@ -132,7 +136,9 @@ impl Scanner<'_> {
     }
 
     fn skip_ws(&mut self) {
-        self.i += (self.i..self.b.len()).take_while(|&index| matches!(self.b[index], b' ' | b'\t' | b'\n' | b'\r')).count();
+        self.i += (self.i..self.b.len())
+            .take_while(|&index| matches!(self.b[index], b' ' | b'\t' | b'\n' | b'\r'))
+            .count();
     }
 
     fn hex4(&self, at: usize) -> Option<u32> {
@@ -158,7 +164,10 @@ impl Scanner<'_> {
                 }
                 b'\\' => {
                     let start = self.i;
-                    let window = |s: &Self, n: usize| String::from_utf8_lossy(&s.b[start..(start + n).min(s.b.len())]).into_owned();
+                    let window = |s: &Self, n: usize| {
+                        String::from_utf8_lossy(&s.b[start..(start + n).min(s.b.len())])
+                            .into_owned()
+                    };
                     let Some(&e) = self.b.get(self.i + 1) else {
                         return Err(Self::eof(pointer, start));
                     };
@@ -179,27 +188,46 @@ impl Scanner<'_> {
                         continue;
                     }
                     if e != b'u' {
-                        return Err(Self::err(&format!("invalid escape sequence `{}` in string", window(self, 2)), pointer, start));
+                        return Err(Self::err(
+                            &format!("invalid escape sequence `{}` in string", window(self, 2)),
+                            pointer,
+                            start,
+                        ));
                     }
-                    if self.b.len() < start + 6 && self.b[start + 2..].iter().all(u8::is_ascii_hexdigit) {
+                    if self.b.len() < start + 6
+                        && self.b[start + 2..].iter().all(u8::is_ascii_hexdigit)
+                    {
                         return Err(Self::eof(pointer, start));
                     }
                     let Some(u) = self.hex4(start + 2) else {
-                        return Err(Self::err(&format!("invalid escape sequence `{}` in string", window(self, 6)), pointer, start));
+                        return Err(Self::err(
+                            &format!("invalid escape sequence `{}` in string", window(self, 6)),
+                            pointer,
+                            start,
+                        ));
                     };
                     let surrogate = |s: &Self| {
-                        Scanner::<'_>::err(&format!("invalid surrogate pair `{}` in string", window(s, 12)), pointer, start)
+                        Scanner::<'_>::err(
+                            &format!("invalid surrogate pair `{}` in string", window(s, 12)),
+                            pointer,
+                            start,
+                        )
                     };
                     if (0xDC00..0xE000).contains(&u) {
                         return Err(surrogate(self));
                     }
                     if (0xD800..0xDC00).contains(&u) {
-                        let lo = (self.b.get(start + 6) == Some(&b'\\') && self.b.get(start + 7) == Some(&b'u'))
-                            .then(|| self.hex4(start + 8))
-                            .flatten()
-                            .filter(|lo| (0xDC00..0xE000).contains(lo));
-                        let Some(lo) = lo else { return Err(surrogate(self)) };
-                        out.push(char::from_u32(0x10000 + ((u - 0xD800) << 10) + (lo - 0xDC00)).unwrap());
+                        let lo = (self.b.get(start + 6) == Some(&b'\\')
+                            && self.b.get(start + 7) == Some(&b'u'))
+                        .then(|| self.hex4(start + 8))
+                        .flatten()
+                        .filter(|lo| (0xDC00..0xE000).contains(lo));
+                        let Some(lo) = lo else {
+                            return Err(surrogate(self));
+                        };
+                        out.push(
+                            char::from_u32(0x10000 + ((u - 0xD800) << 10) + (lo - 0xDC00)).unwrap(),
+                        );
                         self.i += 12;
                         continue;
                     }
@@ -207,7 +235,11 @@ impl Scanner<'_> {
                     self.i += 6;
                 }
                 c if c < 0x20 => {
-                    return Err(self.invalid_char(self.i, "in string (expecting non-control character)", pointer));
+                    return Err(self.invalid_char(
+                        self.i,
+                        "in string (expecting non-control character)",
+                        pointer,
+                    ));
                 }
                 c if c < 0x80 => {
                     out.push(c as char);
@@ -220,7 +252,12 @@ impl Scanner<'_> {
                         0xF0..=0xF4 => 4,
                         _ => 0,
                     };
-                    match self.b.get(self.i..self.i + len).filter(|_| len > 0).and_then(|s| std::str::from_utf8(s).ok()) {
+                    match self
+                        .b
+                        .get(self.i..self.i + len)
+                        .filter(|_| len > 0)
+                        .and_then(|s| std::str::from_utf8(s).ok())
+                    {
                         Some(s) => {
                             out.push_str(s);
                             self.i += len;
@@ -238,7 +275,11 @@ impl Scanner<'_> {
             match self.b.get(self.i + k) {
                 None => return Some(Err(Self::eof(&ptr, self.b.len()))),
                 Some(&got) if got != want => {
-                    return Some(Err(self.invalid_char(self.i + k, &format!("in literal {name} (expecting {})", quote_char(want as char)), &ptr)));
+                    return Some(Err(self.invalid_char(
+                        self.i + k,
+                        &format!("in literal {name} (expecting {})", quote_char(want as char)),
+                        &ptr,
+                    )));
                 }
                 _ => {}
             }
@@ -351,7 +392,11 @@ impl Scanner<'_> {
                     let c = self.b[self.i];
                     if let (Some(comma), b']' | b'}') = (self.comma, c) {
                         // Trailing comma: jsontext blames the comma, located in the container.
-                        return Err(self.invalid_char(comma, "at start of value", &self.container_ptr()));
+                        return Err(self.invalid_char(
+                            comma,
+                            "at start of value",
+                            &self.container_ptr(),
+                        ));
                     }
                     self.comma = None;
                     expect = self.value()?;
@@ -362,7 +407,11 @@ impl Scanner<'_> {
                     }
                     let c = self.b[self.i];
                     if let (Some(comma), b'}' | b']') = (self.comma, c) {
-                        return Err(self.invalid_char(comma, "at start of value", &self.container_ptr()));
+                        return Err(self.invalid_char(
+                            comma,
+                            "at start of value",
+                            &self.container_ptr(),
+                        ));
                     }
                     if c == b'}' {
                         self.i += 1;
@@ -374,15 +423,28 @@ impl Scanner<'_> {
                     if c != b'"' {
                         let ptr = self.container_ptr();
                         if is_value_start(c) {
-                            return Err(Self::err("object member name must be a string", &ptr, self.i));
+                            return Err(Self::err(
+                                "object member name must be a string",
+                                &ptr,
+                                self.i,
+                            ));
                         }
                         return Err(self.invalid_char(self.i, "at start of value", &ptr));
                     }
                     let ptr = self.container_ptr();
                     let name = self.string(&ptr)?;
-                    let Some(Frame::Object { keys, current }) = self.stack.last_mut() else { unreachable!() };
+                    let Some(Frame::Object { keys, current }) = self.stack.last_mut() else {
+                        unreachable!()
+                    };
                     if !keys.insert(name.clone()) {
-                        return Err(Self::err(&format!("duplicate object member name {}", serde_json::to_string(&name).unwrap()), &ptr, 0));
+                        return Err(Self::err(
+                            &format!(
+                                "duplicate object member name {}",
+                                serde_json::to_string(&name).unwrap()
+                            ),
+                            &ptr,
+                            0,
+                        ));
                     }
                     *current = Some(name);
                     expect = Expect::Colon;
@@ -393,7 +455,11 @@ impl Scanner<'_> {
                         return Err(Self::eof(&ptr, self.i));
                     }
                     if self.b[self.i] != b':' {
-                        return Err(self.invalid_char(self.i, "after object name (expecting ':')", &ptr));
+                        return Err(self.invalid_char(
+                            self.i,
+                            "after object name (expecting ':')",
+                            &ptr,
+                        ));
                     }
                     self.i += 1;
                     expect = Expect::Value;
@@ -426,13 +492,25 @@ impl Scanner<'_> {
                             self.stack.pop();
                         }
                         (Frame::Object { .. }, b']') => {
-                            return Err(self.invalid_char(self.i, "after object value (expecting ',' or '}')", &self.parent_ptr()));
+                            return Err(self.invalid_char(
+                                self.i,
+                                "after object value (expecting ',' or '}')",
+                                &self.parent_ptr(),
+                            ));
                         }
                         (Frame::Object { .. }, _) => {
-                            return Err(self.invalid_char(self.i, "after object value (expecting ',' or '}')", &self.container_ptr()));
+                            return Err(self.invalid_char(
+                                self.i,
+                                "after object value (expecting ',' or '}')",
+                                &self.container_ptr(),
+                            ));
                         }
                         (Frame::Array { .. }, _) => {
-                            return Err(self.invalid_char(self.i, "after array element (expecting ',' or ']')", &self.container_ptr()));
+                            return Err(self.invalid_char(
+                                self.i,
+                                "after array element (expecting ',' or ']')",
+                                &self.container_ptr(),
+                            ));
                         }
                     }
                 }

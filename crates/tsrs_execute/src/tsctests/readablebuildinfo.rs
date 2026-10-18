@@ -2,7 +2,10 @@
 
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::Value;
-use tsrs_incremental::{get_file_emit_kind, BuildInfo, BuildInfoDiagnostic, BuildInfoDiagnosticsOfFile, BuildInfoFileId, FileEmitKind};
+use tsrs_incremental::{
+    BuildInfo, BuildInfoDiagnostic, BuildInfoDiagnosticsOfFile, BuildInfoFileId, FileEmitKind,
+    get_file_emit_kind,
+};
 
 #[derive(Default)]
 struct obj(OrderedMap<String, Value>);
@@ -42,11 +45,7 @@ fn strings(v: &[String]) -> Value {
 
 // Go core.Map over a slice: nil stays nil (omitted by omitzero), empty non-nil stays [].
 fn map_nonempty<T>(v: &[T], f: impl Fn(&T) -> Value) -> Option<Vec<Value>> {
-    if v.is_empty() {
-        None
-    } else {
-        Some(v.iter().map(f).collect())
-    }
+    if v.is_empty() { None } else { Some(v.iter().map(f).collect()) }
 }
 
 struct readable<'a> {
@@ -76,8 +75,16 @@ impl readable<'_> {
                 if !d.message_args.is_empty() {
                     o.set("messageArgs", strings(&d.message_args));
                 }
-                o.list("messageChain", map_nonempty(&d.message_chain, |_| Value::Null).map(|_| self.diagnostics(&d.message_chain)));
-                o.list("relatedInformation", map_nonempty(&d.related_information, |_| Value::Null).map(|_| self.diagnostics(&d.related_information)));
+                o.list(
+                    "messageChain",
+                    map_nonempty(&d.message_chain, |_| Value::Null)
+                        .map(|_| self.diagnostics(&d.message_chain)),
+                );
+                o.list(
+                    "relatedInformation",
+                    map_nonempty(&d.related_information, |_| Value::Null)
+                        .map(|_| self.diagnostics(&d.related_information)),
+                );
                 o.bool("reportsUnnecessary", d.reports_unnecessary);
                 o.bool("reportsDeprecated", d.reports_deprecated);
                 o.bool("skippedOnNoEmit", d.skipped_on_no_emit);
@@ -95,7 +102,10 @@ impl readable<'_> {
     }
 
     fn diagnostics_of_file(&self, d: &BuildInfoDiagnosticsOfFile) -> Value {
-        Value::Array(vec![Value::String(self.to_file_path(d.file_id)), Value::Array(self.diagnostics(&d.diagnostics))])
+        Value::Array(vec![
+            Value::String(self.to_file_path(d.file_id)),
+            Value::Array(self.diagnostics(&d.diagnostics)),
+        ])
     }
 }
 
@@ -140,8 +150,11 @@ pub(crate) fn to_readable_file_emit_kind(file_emit_kind: FileEmitKind) -> String
 
 // readablebuildinfo.go:240
 pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &str) -> String {
-    let file_ids_list: Vec<Vec<String>> =
-        build_info.file_ids_list.iter().map(|ids| ids.iter().map(|&id| build_info.file_names[id as usize - 1].clone()).collect()).collect();
+    let file_ids_list: Vec<Vec<String>> = build_info
+        .file_ids_list
+        .iter()
+        .map(|ids| ids.iter().map(|&id| build_info.file_names[id as usize - 1].clone()).collect())
+        .collect();
     let r = readable { build_info, file_ids_list };
     let mut o = obj::default();
     o.str("version", &build_info.version);
@@ -204,7 +217,12 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
     }
     if !build_info.referenced_map.is_empty() {
         let mut m = OrderedMap::default();
-        m.extend(build_info.referenced_map.iter().map(|entry| (r.to_file_path(entry.file_id), strings(&r.file_ids_list[entry.file_id_list_id as usize - 1]))));
+        m.extend(build_info.referenced_map.iter().map(|entry| {
+            (
+                r.to_file_path(entry.file_id),
+                strings(&r.file_ids_list[entry.file_id_list_id as usize - 1]),
+            )
+        }));
         o.set("referencedMap", Value::Object(m));
     }
     o.list(
@@ -217,8 +235,14 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
             }
         }),
     );
-    o.list("emitDiagnosticsPerFile", map_nonempty(&build_info.emit_diagnostics_per_file, |d| r.diagnostics_of_file(d)));
-    o.list("changeFileSet", map_nonempty(&build_info.change_file_set, |&id| Value::String(r.to_file_path(id))));
+    o.list(
+        "emitDiagnosticsPerFile",
+        map_nonempty(&build_info.emit_diagnostics_per_file, |d| r.diagnostics_of_file(d)),
+    );
+    o.list(
+        "changeFileSet",
+        map_nonempty(&build_info.change_file_set, |&id| Value::String(r.to_file_path(id))),
+    );
     if !build_info.affected_files_pending_emit.is_empty() {
         let full_emit_kind = get_file_emit_kind(&build_info.get_compiler_options(""));
         o.set(
@@ -228,7 +252,11 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
                     .affected_files_pending_emit
                     .iter()
                     .map(|pending_emit| {
-                        let emit_kind = if pending_emit.emit_kind.is_empty() { full_emit_kind } else { pending_emit.emit_kind };
+                        let emit_kind = if pending_emit.emit_kind.is_empty() {
+                            full_emit_kind
+                        } else {
+                            pending_emit.emit_kind
+                        };
                         Value::Array(vec![
                             Value::String(r.to_file_path(pending_emit.file_id)),
                             Value::String(to_readable_file_emit_kind(emit_kind)),
@@ -255,7 +283,10 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
     o.list(
         "resolvedRoot",
         map_nonempty(&build_info.resolved_root, |original| {
-            Value::Array(vec![Value::String(r.to_file_path(original.resolved)), Value::String(r.to_file_path(original.root))])
+            Value::Array(vec![
+                Value::String(r.to_file_path(original.resolved)),
+                Value::String(r.to_file_path(original.root)),
+            ])
         }),
     );
     o.int("size", build_info_text.len() as i64);

@@ -39,8 +39,12 @@ pub(crate) fn new_node_factory_for_context(scratch: bool) -> NodeFactory {
         node_factory: ast::new_node_factory_ex(
             NodeFactoryHooks {
                 on_create: Some(Rc::new(move |node| s1.get().unwrap().on_create(node))),
-                on_update: Some(Rc::new(move |updated, original| s2.get().unwrap().on_update(updated, original))),
-                on_clone: Some(Rc::new(move |updated, original| s3.get().unwrap().on_clone(updated, original))),
+                on_update: Some(Rc::new(move |updated, original| {
+                    s2.get().unwrap().on_update(updated, original);
+                })),
+                on_clone: Some(Rc::new(move |updated, original| {
+                    s3.get().unwrap().on_clone(updated, original);
+                })),
             },
             scratch,
         ),
@@ -61,7 +65,13 @@ impl NodeFactory {
         self.emit_context.get().unwrap()
     }
 
-    fn new_generated_identifier(&self, kind: GeneratedIdentifierFlags, text: &str, node: Option<P<Node>>, options: AutoGenerateOptions) -> P<Node> {
+    fn new_generated_identifier(
+        &self,
+        kind: GeneratedIdentifierFlags,
+        text: &str,
+        node: Option<P<Node>>,
+        options: AutoGenerateOptions,
+    ) -> P<Node> {
         let id = next_auto_generate_id();
 
         let mut text = text.to_string();
@@ -69,9 +79,17 @@ impl NodeFactory {
             text = match node {
                 None => format!("(auto@{})", id.0),
                 Some(node) if is_member_name(node) => node.text().to_string(),
-                Some(node) => format!("(generated@{})", get_node_id(self.emit_context().get_node_for_generated_name_worker(node, id)).0),
+                Some(node) => format!(
+                    "(generated@{})",
+                    get_node_id(self.emit_context().get_node_for_generated_name_worker(node, id)).0
+                ),
             };
-            text = format_generated_name(false /*privateName*/, options.prefix, &text, options.suffix);
+            text = format_generated_name(
+                false, /*privateName*/
+                options.prefix,
+                &text,
+                options.suffix,
+            );
         }
 
         let name = self.new_identifier(alloc_str(&text));
@@ -97,7 +115,12 @@ impl NodeFactory {
     // `AddVariableDeclaration` or `AddLexicalDeclaration` to ensure it is properly tracked, if you are not otherwise handling
     // it yourself.
     pub fn new_temp_variable_ex(&self, options: AutoGenerateOptions) -> P<Node> {
-        self.new_generated_identifier(GeneratedIdentifierFlags::Auto, "", None /*node*/, options)
+        self.new_generated_identifier(
+            GeneratedIdentifierFlags::Auto,
+            "",
+            None, /*node*/
+            options,
+        )
     }
 
     // Allocates a new loop variable name.
@@ -107,7 +130,12 @@ impl NodeFactory {
 
     // Allocates a new loop variable name.
     pub fn new_loop_variable_ex(&self, options: AutoGenerateOptions) -> P<Node> {
-        self.new_generated_identifier(GeneratedIdentifierFlags::Loop, "", None /*node*/, options)
+        self.new_generated_identifier(
+            GeneratedIdentifierFlags::Loop,
+            "",
+            None, /*node*/
+            options,
+        )
     }
 
     // Allocates a new unique name based on the provided text.
@@ -117,7 +145,12 @@ impl NodeFactory {
 
     // Allocates a new unique name based on the provided text.
     pub fn new_unique_name_ex(&self, text: &str, options: AutoGenerateOptions) -> P<Node> {
-        self.new_generated_identifier(GeneratedIdentifierFlags::Unique, text, None /*node*/, options)
+        self.new_generated_identifier(
+            GeneratedIdentifierFlags::Unique,
+            text,
+            None, /*node*/
+            options,
+        )
     }
 
     // Allocates a new unique name based on the provided node.
@@ -126,7 +159,11 @@ impl NodeFactory {
     }
 
     // Allocates a new unique name based on the provided node.
-    pub fn new_generated_name_for_node_ex(&self, node: P<Node>, options: AutoGenerateOptions) -> P<Node> {
+    pub fn new_generated_name_for_node_ex(
+        &self,
+        node: P<Node>,
+        options: AutoGenerateOptions,
+    ) -> P<Node> {
         let mut options = options;
         if !options.prefix.is_empty() || !options.suffix.is_empty() {
             options.flags |= GeneratedIdentifierFlags::Optimistic;
@@ -135,7 +172,13 @@ impl NodeFactory {
         self.new_generated_identifier(GeneratedIdentifierFlags::Node, "", Some(node), options)
     }
 
-    fn new_generated_private_identifier(&self, kind: GeneratedIdentifierFlags, text: &str, node: Option<P<Node>>, options: AutoGenerateOptions) -> P<Node> {
+    fn new_generated_private_identifier(
+        &self,
+        kind: GeneratedIdentifierFlags,
+        text: &str,
+        node: Option<P<Node>>,
+        options: AutoGenerateOptions,
+    ) -> P<Node> {
         let id = next_auto_generate_id();
 
         let mut text = text.to_string();
@@ -143,9 +186,17 @@ impl NodeFactory {
             text = match node {
                 None => format!("(auto@{})", id.0),
                 Some(node) if is_member_name(node) => node.text().to_string(),
-                Some(node) => format!("(generated@{})", get_node_id(self.emit_context().get_node_for_generated_name_worker(node, id)).0),
+                Some(node) => format!(
+                    "(generated@{})",
+                    get_node_id(self.emit_context().get_node_for_generated_name_worker(node, id)).0
+                ),
             };
-            text = format_generated_name(true /*privateName*/, options.prefix, &text, options.suffix);
+            text = format_generated_name(
+                true, /*privateName*/
+                options.prefix,
+                &text,
+                options.suffix,
+            );
         } else if !text.starts_with('#') {
             panic!("First character of private identifier must be #: {text}");
         }
@@ -169,7 +220,12 @@ impl NodeFactory {
 
     // Allocates a new unique private name based on the provided text.
     pub fn new_unique_private_name_ex(&self, text: &str, options: AutoGenerateOptions) -> P<Node> {
-        self.new_generated_private_identifier(GeneratedIdentifierFlags::Unique, text, None /*node*/, options)
+        self.new_generated_private_identifier(
+            GeneratedIdentifierFlags::Unique,
+            text,
+            None, /*node*/
+            options,
+        )
     }
 
     // Allocates a new unique private name based on the provided node.
@@ -178,13 +234,22 @@ impl NodeFactory {
     }
 
     // Allocates a new unique private name based on the provided node.
-    pub fn new_generated_private_name_for_node_ex(&self, node: P<Node>, options: AutoGenerateOptions) -> P<Node> {
+    pub fn new_generated_private_name_for_node_ex(
+        &self,
+        node: P<Node>,
+        options: AutoGenerateOptions,
+    ) -> P<Node> {
         let mut options = options;
         if !options.prefix.is_empty() || !options.suffix.is_empty() {
             options.flags |= GeneratedIdentifierFlags::Optimistic;
         }
 
-        self.new_generated_private_identifier(GeneratedIdentifierFlags::Node, "", Some(node), options)
+        self.new_generated_private_identifier(
+            GeneratedIdentifierFlags::Node,
+            "",
+            Some(node),
+            options,
+        )
     }
 
     // Allocates a new StringLiteral whose source text is derived from the provided node. This is often used to create a
@@ -215,12 +280,24 @@ impl NodeFactory {
 
     // factory.go:213
     pub fn new_assignment_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_binary_expression(None /*modifiers*/, left, None /*typeNode*/, self.new_token(Kind::EqualsToken), right)
+        self.new_binary_expression(
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            self.new_token(Kind::EqualsToken),
+            right,
+        )
     }
 
     // factory.go:229
     pub fn new_strict_equality_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_binary_expression(None /*modifiers*/, left, None /*typeNode*/, self.new_token(Kind::EqualsEqualsEqualsToken), right)
+        self.new_binary_expression(
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            self.new_token(Kind::EqualsEqualsEqualsToken),
+            right,
+        )
     }
 
     //
@@ -235,11 +312,17 @@ impl NodeFactory {
     // factory.go:345
     pub fn new_type_check(&self, value: P<Node>, tag: &str) -> P<Node> {
         if tag == "null" {
-            self.new_strict_equality_expression(value, self.new_keyword_expression(Kind::NullKeyword))
+            self.new_strict_equality_expression(
+                value,
+                self.new_keyword_expression(Kind::NullKeyword),
+            )
         } else if tag == "undefined" {
             self.new_strict_equality_expression(value, self.new_void_zero_expression())
         } else {
-            self.new_strict_equality_expression(self.new_type_of_expression(value), self.new_string_literal(alloc_str(tag), TokenFlags::None))
+            self.new_strict_equality_expression(
+                self.new_type_of_expression(value),
+                self.new_string_literal(alloc_str(tag), TokenFlags::None),
+            )
         }
     }
 }

@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use rustc_hash::{FxHashMap, FxHashSet};
+use tsrs_core::P;
 use tsrs_core::collections::Set;
 use tsrs_core::tspath::Path;
-use tsrs_core::P;
 use tsrs_tsoptions::ParsedCommandLine;
 
 use crate::dirty::{Cloneable, SharedMap};
-use crate::project::{PendingReload, ID};
-use crate::watch::{allWatchKinds, new_watched_files, PatternsAndIgnored, WatchedFiles};
+use crate::project::{ID, PendingReload};
+use crate::watch::{PatternsAndIgnored, WatchedFiles, allWatchKinds, new_watched_files};
 
 #[derive(Clone, Default)]
 pub struct ConfigFileRegistry {
@@ -30,7 +30,9 @@ pub(crate) struct configuredContentMappers {
 }
 
 // configfileregistry.go:32
-pub(crate) fn collect_configured_content_mappers(command_lines: &[P<ParsedCommandLine>]) -> Arc<configuredContentMappers> {
+pub(crate) fn collect_configured_content_mappers(
+    command_lines: &[P<ParsedCommandLine>],
+) -> Arc<configuredContentMappers> {
     let mut seen_extensions: Set<String> = Set::default();
     let mut extensions: Vec<String> = Vec::new();
     extensions.extend(
@@ -51,7 +53,8 @@ impl ConfigFileRegistry {
         if let Some(mappers) = &self.all_configured_content_mappers {
             return Arc::clone(mappers);
         }
-        let command_lines: Vec<P<ParsedCommandLine>> = self.configs.values().filter_map(|entry| entry.command_line).collect();
+        let command_lines: Vec<P<ParsedCommandLine>> =
+            self.configs.values().filter_map(|entry| entry.command_line).collect();
         collect_configured_content_mappers(&command_lines)
     }
 }
@@ -85,7 +88,10 @@ pub(crate) struct configFileEntry {
 }
 
 // configfileregistry.go:88
-pub(crate) fn new_config_file_entry(has_relative_pattern_capability: bool, file_name: &str) -> configFileEntry {
+pub(crate) fn new_config_file_entry(
+    has_relative_pattern_capability: bool,
+    file_name: &str,
+) -> configFileEntry {
     configFileEntry {
         file_name: file_name.to_string(),
         pending_reload: PendingReload::Full,
@@ -103,7 +109,10 @@ pub(crate) fn new_config_file_entry(has_relative_pattern_capability: bool, file_
 }
 
 // configfileregistry.go:101
-pub(crate) fn new_extended_config_file_entry(file_name: &str, extending_config_path: Path) -> configFileEntry {
+pub(crate) fn new_extended_config_file_entry(
+    file_name: &str,
+    extending_config_path: Path,
+) -> configFileEntry {
     let mut retaining_configs = FxHashSet::default();
     retaining_configs.insert(extending_config_path);
     configFileEntry {
@@ -156,7 +165,11 @@ impl ConfigFileRegistry {
     // configfileregistry.go:142
     pub fn get_ancestor_config_file_name(&self, path: &Path, higher_than_config: &str) -> String {
         match self.config_file_names.get(path) {
-            Some(entry) => entry.ancestors.as_ref().and_then(|a| a.get(higher_than_config).cloned()).unwrap_or_default(),
+            Some(entry) => entry
+                .ancestors
+                .as_ref()
+                .and_then(|a| a.get(higher_than_config).cloned())
+                .unwrap_or_default(),
             None => String::new(),
         }
     }
@@ -194,7 +207,10 @@ impl ConfigFileRegistry {
     // configfileregistry.go:168
     // For testing
     pub fn for_each_test_config_entry(&self, mut cb: impl FnMut(&Path, &TestConfigEntry)) {
-        #[expect(clippy::iter_over_hash_type, reason = "test-only; the caller adds rows to a table it sorts; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "test-only; the caller adds rows to a table it sorts; Go ranges the map too"
+        )]
         for (path, entry) in self.configs.iter() {
             cb(path, &test_config_entry(entry));
         }
@@ -208,19 +224,35 @@ impl ConfigFileRegistry {
 
     // configfileregistry.go:202
     // For testing
-    pub fn for_each_test_config_file_names_entry(&self, mut cb: impl FnMut(&Path, &TestConfigFileNamesEntry)) {
-        #[expect(clippy::iter_over_hash_type, reason = "test-only; the caller adds rows to a table it sorts; Go ranges the map too")]
+    pub fn for_each_test_config_file_names_entry(
+        &self,
+        mut cb: impl FnMut(&Path, &TestConfigFileNamesEntry),
+    ) {
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "test-only; the caller adds rows to a table it sorts; Go ranges the map too"
+        )]
         for (path, entry) in self.config_file_names.iter() {
-            cb(path, &TestConfigFileNamesEntry { nearest_config_file_name: entry.nearest_config_file_name.clone(), ancestors: entry.ancestors.clone() });
+            cb(
+                path,
+                &TestConfigFileNamesEntry {
+                    nearest_config_file_name: entry.nearest_config_file_name.clone(),
+                    ancestors: entry.ancestors.clone(),
+                },
+            );
         }
     }
 
     // configfileregistry.go:214
     // For testing
-    pub fn get_test_config_file_names_entry(&self, path: &Path) -> Option<TestConfigFileNamesEntry> {
-        self.config_file_names
-            .get(path)
-            .map(|entry| TestConfigFileNamesEntry { nearest_config_file_name: entry.nearest_config_file_name.clone(), ancestors: entry.ancestors.clone() })
+    pub fn get_test_config_file_names_entry(
+        &self,
+        path: &Path,
+    ) -> Option<TestConfigFileNamesEntry> {
+        self.config_file_names.get(path).map(|entry| TestConfigFileNamesEntry {
+            nearest_config_file_name: entry.nearest_config_file_name.clone(),
+            ancestors: entry.ancestors.clone(),
+        })
     }
 }
 
@@ -246,6 +278,9 @@ pub(crate) struct configFileNames {
 impl Cloneable for configFileNames {
     // configfileregistry.go:239
     fn clone_value(&self) -> configFileNames {
-        configFileNames { nearest_config_file_name: self.nearest_config_file_name.clone(), ancestors: self.ancestors.clone() }
+        configFileNames {
+            nearest_config_file_name: self.nearest_config_file_name.clone(),
+            ancestors: self.ancestors.clone(),
+        }
     }
 }

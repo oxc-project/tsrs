@@ -3,31 +3,34 @@
 
 mod affectedfileshandler;
 mod buildinfo;
+#[cfg(test)]
+mod buildinfo_contentmapper_test;
 mod buildinfotosnapshot;
 pub mod emit;
 mod emitfileshandler;
+#[cfg(test)]
+mod emitfileshandler_test;
 mod host;
 mod incremental;
 mod program;
 mod programtosnapshot;
-mod referencemap;
-mod snapshot;
-mod snapshottobuildinfo;
-#[cfg(test)]
-mod buildinfo_contentmapper_test;
-#[cfg(test)]
-mod emitfileshandler_test;
 #[cfg(test)]
 mod programtosnapshot_test;
+mod referencemap;
 #[cfg(test)]
 mod signatures_test;
+mod snapshot;
 #[cfg(test)]
 mod snapshot_test;
+mod snapshottobuildinfo;
 
 pub use buildinfo::*;
-pub use host::{create_host, get_m_time, Host};
+pub use host::{Host, create_host, get_m_time};
 pub use incremental::{
-    new_build_info_reader, new_build_info_reader_with_canonical_diagnostics, read_build_info_program, register_build_info_read_phases, BuildInfoReader,
+    BuildInfoReader, new_build_info_reader, new_build_info_reader_with_canonical_diagnostics,
+    read_build_info_program, register_build_info_read_phases,
 };
-pub use program::{new_program, Program, SemanticDiagnosticsState, SignatureUpdateKind, TestingData};
-pub use snapshot::{compute_hash, get_file_emit_kind, FileEmitKind, FileInfo};
+pub use program::{
+    Program, SemanticDiagnosticsState, SignatureUpdateKind, TestingData, new_program,
+};
+pub use snapshot::{FileEmitKind, FileInfo, compute_hash, get_file_emit_kind};

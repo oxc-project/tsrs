@@ -11,15 +11,15 @@ use crate::*;
 // factory.go:485
 #[derive(Clone, Copy, Default)]
 pub struct NameOptions {
-    pub allow_comments: bool,    // indicates whether comments may be emitted for the name.
+    pub allow_comments: bool, // indicates whether comments may be emitted for the name.
     pub allow_source_maps: bool, // indicates whether source maps may be emitted for the name.
 }
 
 // factory.go:490
 #[derive(Clone, Copy, Default)]
 pub struct AssignedNameOptions {
-    pub allow_comments: bool,       // indicates whether comments may be emitted for the name.
-    pub allow_source_maps: bool,    // indicates whether source maps may be emitted for the name.
+    pub allow_comments: bool, // indicates whether comments may be emitted for the name.
+    pub allow_source_maps: bool, // indicates whether source maps may be emitted for the name.
     pub ignore_assigned_name: bool, // indicates whether the assigned name of a declaration shouldn't be considered.
 }
 
@@ -49,7 +49,10 @@ fn helper(h: &'static EmitHelper) -> SP<EmitHelper> {
 
 // factory.go:245
 fn flatten_comma_element(node: P<Node>, mut expressions: Vec<P<Node>>) -> Vec<P<Node>> {
-    if ast::is_binary_expression(node) && ast::node_is_synthesized(node) && node.as_binary_expression().operator_token.kind() == Kind::CommaToken {
+    if ast::is_binary_expression(node)
+        && ast::node_is_synthesized(node)
+        && node.as_binary_expression().operator_token.kind() == Kind::CommaToken
+    {
         expressions = flatten_comma_element(node.as_binary_expression().left, expressions);
         expressions = flatten_comma_element(node.as_binary_expression().right(), expressions);
     } else {
@@ -95,22 +98,46 @@ impl crate::NodeFactory {
 
     // factory.go:209
     pub fn new_comma_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_binary_expression(None /*modifiers*/, left, None /*typeNode*/, self.new_token(Kind::CommaToken), right)
+        self.new_binary_expression(
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            self.new_token(Kind::CommaToken),
+            right,
+        )
     }
 
     // factory.go:217
     pub fn new_logical_or_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_binary_expression(None /*modifiers*/, left, None /*typeNode*/, self.new_token(Kind::BarBarToken), right)
+        self.new_binary_expression(
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            self.new_token(Kind::BarBarToken),
+            right,
+        )
     }
 
     // factory.go:221
     pub fn new_logical_and_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_binary_expression(None /*modifiers*/, left, None /*typeNode*/, self.new_token(Kind::AmpersandAmpersandToken), right)
+        self.new_binary_expression(
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            self.new_token(Kind::AmpersandAmpersandToken),
+            right,
+        )
     }
 
     // factory.go:233
     pub fn new_strict_inequality_expression(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_binary_expression(None /*modifiers*/, left, None /*typeNode*/, self.new_token(Kind::ExclamationEqualsEqualsToken), right)
+        self.new_binary_expression(
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            self.new_token(Kind::ExclamationEqualsEqualsToken),
+            right,
+        )
     }
 
     //
@@ -149,7 +176,8 @@ impl crate::NodeFactory {
             right.set_loc(qn_right.loc());
             // TODO(rbuckton): Does this need to be parented?
             right.set_parent(qn_right.parent());
-            let prop_access = self.new_property_access_expression(left, None, right, NodeFlags::None);
+            let prop_access =
+                self.new_property_access_expression(left, None, right, NodeFlags::None);
             prop_access.set_loc(node.loc());
             return prop_access;
         }
@@ -161,7 +189,11 @@ impl crate::NodeFactory {
     }
 
     // factory.go:301
-    pub fn restore_enclosing_label(&self, node: P<Node>, outermost_labeled_statement: Option<P<Node>>) -> P<Node> {
+    pub fn restore_enclosing_label(
+        &self,
+        node: P<Node>,
+        outermost_labeled_statement: Option<P<Node>>,
+    ) -> P<Node> {
         let Some(outermost_labeled_statement) = outermost_labeled_statement else {
             return node;
         };
@@ -187,7 +219,11 @@ impl crate::NodeFactory {
             );
             let statement = self.new_variable_statement(
                 None,
-                self.update_variable_declaration_list(node, self.new_node_list(vec![updated_declaration]), node.flags()),
+                self.update_variable_declaration_list(
+                    node,
+                    self.new_node_list(vec![updated_declaration]),
+                    node.flags(),
+                ),
             );
             statement.set_loc(node.loc());
             return statement;
@@ -200,7 +236,12 @@ impl crate::NodeFactory {
     }
 
     // factory.go:355
-    pub fn new_method_call(&self, object: P<Node>, method_name: P<Node>, arguments_list: Vec<P<Node>>) -> P<Node> {
+    pub fn new_method_call(
+        &self,
+        object: P<Node>,
+        method_name: P<Node>,
+        arguments_list: Vec<P<Node>>,
+    ) -> P<Node> {
         // Preserve the optionality of `object`.
         if ast::is_call_expression(object) && object.flags().intersects(NodeFlags::OptionalChain) {
             return self.new_call_expression(
@@ -221,12 +262,26 @@ impl crate::NodeFactory {
     }
 
     // factory.go:375
-    pub fn new_global_method_call(&self, global_object_name: &str, method_name: &str, arguments_list: Vec<P<Node>>) -> P<Node> {
-        self.new_method_call(self.new_identifier(alloc_str(global_object_name)), self.new_identifier(alloc_str(method_name)), arguments_list)
+    pub fn new_global_method_call(
+        &self,
+        global_object_name: &str,
+        method_name: &str,
+        arguments_list: Vec<P<Node>>,
+    ) -> P<Node> {
+        self.new_method_call(
+            self.new_identifier(alloc_str(global_object_name)),
+            self.new_identifier(alloc_str(method_name)),
+            arguments_list,
+        )
     }
 
     // factory.go:379
-    pub fn new_function_call_call(&self, target: P<Node>, this_arg: Option<P<Node>>, arguments_list: &[P<Node>]) -> P<Node> {
+    pub fn new_function_call_call(
+        &self,
+        target: P<Node>,
+        this_arg: Option<P<Node>>,
+        arguments_list: &[P<Node>],
+    ) -> P<Node> {
         let Some(this_arg) = this_arg else {
             panic!("Attempted to construct function call call without this argument expression");
         };
@@ -268,26 +323,65 @@ impl crate::NodeFactory {
     }
 
     // factory.go:416
-    fn update_outer_expression(&self, outer_expression: P<Node> /*OuterExpression*/, expression: P<Node>) -> P<Node> {
+    fn update_outer_expression(
+        &self,
+        outer_expression: P<Node>, /*OuterExpression*/
+        expression: P<Node>,
+    ) -> P<Node> {
         match outer_expression.kind() {
-            Kind::ParenthesizedExpression => self.update_parenthesized_expression(outer_expression, expression),
-            Kind::TypeAssertionExpression => self.update_type_assertion(outer_expression, outer_expression.type_node().unwrap(), expression),
-            Kind::AsExpression => self.update_as_expression(outer_expression, expression, outer_expression.type_node().unwrap()),
-            Kind::SatisfiesExpression => self.update_satisfies_expression(outer_expression, expression, outer_expression.type_node().unwrap()),
-            Kind::NonNullExpression => self.update_non_null_expression(outer_expression, expression, outer_expression.flags()),
-            Kind::ExpressionWithTypeArguments => self.update_expression_with_type_arguments(outer_expression, expression, outer_expression.type_argument_list()),
-            Kind::PartiallyEmittedExpression => self.update_partially_emitted_expression(outer_expression, expression),
+            Kind::ParenthesizedExpression => {
+                self.update_parenthesized_expression(outer_expression, expression)
+            }
+            Kind::TypeAssertionExpression => self.update_type_assertion(
+                outer_expression,
+                outer_expression.type_node().unwrap(),
+                expression,
+            ),
+            Kind::AsExpression => self.update_as_expression(
+                outer_expression,
+                expression,
+                outer_expression.type_node().unwrap(),
+            ),
+            Kind::SatisfiesExpression => self.update_satisfies_expression(
+                outer_expression,
+                expression,
+                outer_expression.type_node().unwrap(),
+            ),
+            Kind::NonNullExpression => self.update_non_null_expression(
+                outer_expression,
+                expression,
+                outer_expression.flags(),
+            ),
+            Kind::ExpressionWithTypeArguments => self.update_expression_with_type_arguments(
+                outer_expression,
+                expression,
+                outer_expression.type_argument_list(),
+            ),
+            Kind::PartiallyEmittedExpression => {
+                self.update_partially_emitted_expression(outer_expression, expression)
+            }
             k => panic!("Unexpected outer expression kind: {k:?}"),
         }
     }
 
     // factory.go:437
-    pub fn restore_outer_expressions(&self, outer_expression: Option<P<Node>>, inner_expression: P<Node>, kinds: OuterExpressionKinds) -> P<Node> {
+    pub fn restore_outer_expressions(
+        &self,
+        outer_expression: Option<P<Node>>,
+        inner_expression: P<Node>,
+        kinds: OuterExpressionKinds,
+    ) -> P<Node> {
         if let Some(outer_expression) = outer_expression {
-            if ast::is_outer_expression(outer_expression, kinds) && !self.is_ignorable_paren(outer_expression) {
+            if ast::is_outer_expression(outer_expression, kinds)
+                && !self.is_ignorable_paren(outer_expression)
+            {
                 return self.update_outer_expression(
                     outer_expression,
-                    self.restore_outer_expressions(outer_expression.expression(), inner_expression, OuterExpressionKinds::All),
+                    self.restore_outer_expressions(
+                        outer_expression.expression(),
+                        inner_expression,
+                        OuterExpressionKinds::All,
+                    ),
                 );
             }
         }
@@ -298,11 +392,14 @@ impl crate::NodeFactory {
     // factory.go:448
     pub fn ensure_use_strict(&self, statements: &[P<Node>]) -> Vec<P<Node>> {
         if let Some(&statement) = statements.first() {
-            if ast::is_prologue_directive(statement) && statement.expression().unwrap().text() == "use strict" {
+            if ast::is_prologue_directive(statement)
+                && statement.expression().unwrap().text() == "use strict"
+            {
                 return statements.to_vec();
             }
         }
-        let use_strict_prologue = self.new_expression_statement(self.new_string_literal("use strict", TokenFlags::None));
+        let use_strict_prologue =
+            self.new_expression_statement(self.new_string_literal("use strict", TokenFlags::None));
         let mut result = Vec::with_capacity(statements.len() + 1);
         result.push(use_strict_prologue);
         result.extend_from_slice(statements);
@@ -311,13 +408,21 @@ impl crate::NodeFactory {
 
     // Splits a slice of statements into two parts: standard prologue statements and the rest of the statements
     // factory.go:462
-    #[expect(clippy::unused_self, reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations.")]
-    pub fn split_standard_prologue<'a>(&self, source: &'a [P<Node>]) -> (&'a [P<Node>], &'a [P<Node>]) {
-        if let Some(result) = source
-            .iter()
-            .enumerate()
-            .find_map(|(i, &statement)| if !ast::is_prologue_directive(statement) { Some((&source[..i], &source[i..])) } else { None })
-        {
+    #[expect(
+        clippy::unused_self,
+        reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations."
+    )]
+    pub fn split_standard_prologue<'a>(
+        &self,
+        source: &'a [P<Node>],
+    ) -> (&'a [P<Node>], &'a [P<Node>]) {
+        if let Some(result) = source.iter().enumerate().find_map(|(i, &statement)| {
+            if !ast::is_prologue_directive(statement) {
+                Some((&source[..i], &source[i..]))
+            } else {
+                None
+            }
+        }) {
             return result;
         }
         (source, &[])
@@ -325,9 +430,14 @@ impl crate::NodeFactory {
 
     // Splits a slice of statements into two parts: custom prologue statements (e.g., with `EFCustomPrologue` set) and the rest of the statements
     // factory.go:472
-    pub fn split_custom_prologue<'a>(&self, source: &'a [P<Node>]) -> (&'a [P<Node>], &'a [P<Node>]) {
+    pub fn split_custom_prologue<'a>(
+        &self,
+        source: &'a [P<Node>],
+    ) -> (&'a [P<Node>], &'a [P<Node>]) {
         if let Some(result) = source.iter().enumerate().find_map(|(i, &statement)| {
-            if ast::is_prologue_directive(statement) || !self.emit_context().emit_flags(statement).intersects(EmitFlags::CustomPrologue) {
+            if ast::is_prologue_directive(statement)
+                || !self.emit_context().emit_flags(statement).intersects(EmitFlags::CustomPrologue)
+            {
                 Some((&source[..i], &source[i..]))
             } else {
                 None
@@ -343,7 +453,12 @@ impl crate::NodeFactory {
     //
 
     // factory.go:496
-    fn get_name(&self, node: Option<P<Node>>, mut emit_flags: EmitFlags, opts: AssignedNameOptions) -> P<Node> {
+    fn get_name(
+        &self,
+        node: Option<P<Node>>,
+        mut emit_flags: EmitFlags,
+        opts: AssignedNameOptions,
+    ) -> P<Node> {
         let mut node_name = None;
         if let Some(node) = node {
             if opts.ignore_assigned_name {
@@ -407,17 +522,31 @@ impl crate::NodeFactory {
         self.get_name(
             Some(node),
             EmitFlags::None,
-            AssignedNameOptions { allow_comments: opts.allow_comments, allow_source_maps: opts.allow_source_maps, ..Default::default() },
+            AssignedNameOptions {
+                allow_comments: opts.allow_comments,
+                allow_source_maps: opts.allow_source_maps,
+                ..Default::default()
+            },
         )
     }
 
     // factory.go:561
-    pub fn get_namespace_member_name(&self, ns: P<Node>, mut name: P<Node>, opts: NameOptions) -> P<Node> {
+    pub fn get_namespace_member_name(
+        &self,
+        ns: P<Node>,
+        mut name: P<Node>,
+        opts: NameOptions,
+    ) -> P<Node> {
         let ec = self.emit_context();
         if !ec.has_auto_generate_info(Some(name)) {
             name = name.clone_node(self.as_node_factory());
         }
-        let qualified_name = self.new_property_access_expression(ns, None /*questionDotToken*/, name, NodeFlags::None);
+        let qualified_name = self.new_property_access_expression(
+            ns,
+            None, /*questionDotToken*/
+            name,
+            NodeFlags::None,
+        );
         ec.assign_comment_and_source_map_ranges(qualified_name, name);
         if !opts.allow_comments {
             ec.add_emit_flags(qualified_name, EmitFlags::NoComments);
@@ -433,14 +562,27 @@ impl crate::NodeFactory {
     // An export name will *always* be prefixed with a module or namespace export modifier like
     // `"exports."` when emitted as an expression if the name points to an exported symbol.
     // factory.go:580
-    pub fn get_external_module_or_namespace_export_name(&self, ns: Option<P<Node>>, node: P<Node>, allow_comments: bool, allow_source_maps: bool) -> P<Node> {
+    pub fn get_external_module_or_namespace_export_name(
+        &self,
+        ns: Option<P<Node>>,
+        node: P<Node>,
+        allow_comments: bool,
+        allow_source_maps: bool,
+    ) -> P<Node> {
         if let Some(ns) = ns {
             if ast::has_syntactic_modifier(node, ModifierFlags::Export) {
                 let name_opts = NameOptions { allow_comments, allow_source_maps };
-                return self.get_namespace_member_name(ns, self.get_declaration_name_ex(node, name_opts), name_opts);
+                return self.get_namespace_member_name(
+                    ns,
+                    self.get_declaration_name_ex(node, name_opts),
+                    name_opts,
+                );
             }
         }
-        self.get_export_name_ex(node, AssignedNameOptions { allow_comments, allow_source_maps, ..Default::default() })
+        self.get_export_name_ex(
+            node,
+            AssignedNameOptions { allow_comments, allow_source_maps, ..Default::default() },
+        )
     }
 
     //
@@ -468,11 +610,19 @@ impl crate::NodeFactory {
     // TypeScript Helpers
 
     // factory.go:601
-    pub fn new_decorate_helper(&self, decorator_expressions: Vec<P<Node>>, target: P<Node>, member_name: Option<P<Node>>, descriptor: Option<P<Node>>) -> P<Node> {
+    pub fn new_decorate_helper(
+        &self,
+        decorator_expressions: Vec<P<Node>>,
+        target: P<Node>,
+        member_name: Option<P<Node>>,
+        descriptor: Option<P<Node>>,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&DECORATE_HELPER));
 
         let mut arguments_array = Vec::new();
-        arguments_array.push(self.new_array_literal_expression(self.new_node_list(decorator_expressions), true));
+        arguments_array.push(
+            self.new_array_literal_expression(self.new_node_list(decorator_expressions), true),
+        );
         arguments_array.push(target);
         if let Some(member_name) = member_name {
             arguments_array.push(member_name);
@@ -488,13 +638,33 @@ impl crate::NodeFactory {
     pub fn new_metadata_helper(&self, metadata_key: &str, metadata_value: P<Node>) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&METADATA_HELPER));
 
-        self.new_helper_call("__metadata", vec![self.new_string_literal(alloc_str(metadata_key), TokenFlags::None), metadata_value])
+        self.new_helper_call(
+            "__metadata",
+            vec![
+                self.new_string_literal(alloc_str(metadata_key), TokenFlags::None),
+                metadata_value,
+            ],
+        )
     }
 
     // factory.go:638
-    pub fn new_param_helper(&self, expression: P<Node>, parameter_offset: usize, location: TextRange) -> P<Node> {
+    pub fn new_param_helper(
+        &self,
+        expression: P<Node>,
+        parameter_offset: usize,
+        location: TextRange,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&PARAM_HELPER));
-        let helper = self.new_helper_call("__param", vec![self.new_numeric_literal(alloc_str(&parameter_offset.to_string()), TokenFlags::None), expression]);
+        let helper = self.new_helper_call(
+            "__param",
+            vec![
+                self.new_numeric_literal(
+                    alloc_str(&parameter_offset.to_string()),
+                    TokenFlags::None,
+                ),
+                expression,
+            ],
+        );
         helper.set_loc(location);
         helper
     }
@@ -502,11 +672,24 @@ impl crate::NodeFactory {
     // ESNext Helpers
 
     // factory.go:653
-    pub fn new_add_disposable_resource_helper(&self, env_binding: P<Node>, value: P<Node>, async_: bool) -> P<Node> {
+    pub fn new_add_disposable_resource_helper(
+        &self,
+        env_binding: P<Node>,
+        value: P<Node>,
+        async_: bool,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&ADD_DISPOSABLE_RESOURCE_HELPER));
         self.new_helper_call(
             "__addDisposableResource",
-            vec![env_binding, value, self.new_keyword_expression(if async_ { Kind::TrueKeyword } else { Kind::FalseKeyword })],
+            vec![
+                env_binding,
+                value,
+                self.new_keyword_expression(if async_ {
+                    Kind::TrueKeyword
+                } else {
+                    Kind::FalseKeyword
+                }),
+            ],
         )
     }
 
@@ -519,21 +702,47 @@ impl crate::NodeFactory {
     // Class Fields Helpers
 
     // factory.go:686
-    pub fn new_class_private_field_get_helper(&self, receiver: P<Node>, state: P<Node>, kind: PrivateIdentifierKind, fn_: Option<P<Node>>) -> P<Node> {
+    pub fn new_class_private_field_get_helper(
+        &self,
+        receiver: P<Node>,
+        state: P<Node>,
+        kind: PrivateIdentifierKind,
+        fn_: Option<P<Node>>,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&CLASS_PRIVATE_FIELD_GET_HELPER));
         let args = match fn_ {
             None => vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::None)],
-            Some(fn_) => vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::None), fn_],
+            Some(fn_) => {
+                vec![receiver, state, self.new_string_literal(kind.as_str(), TokenFlags::None), fn_]
+            }
         };
         self.new_helper_call("__classPrivateFieldGet", args)
     }
 
     // factory.go:703
-    pub fn new_class_private_field_set_helper(&self, receiver: P<Node>, state: P<Node>, value: P<Node>, kind: PrivateIdentifierKind, fn_: Option<P<Node>>) -> P<Node> {
+    pub fn new_class_private_field_set_helper(
+        &self,
+        receiver: P<Node>,
+        state: P<Node>,
+        value: P<Node>,
+        kind: PrivateIdentifierKind,
+        fn_: Option<P<Node>>,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&CLASS_PRIVATE_FIELD_SET_HELPER));
         let args = match fn_ {
-            None => vec![receiver, state, value, self.new_string_literal(kind.as_str(), TokenFlags::None)],
-            Some(fn_) => vec![receiver, state, value, self.new_string_literal(kind.as_str(), TokenFlags::None), fn_],
+            None => vec![
+                receiver,
+                state,
+                value,
+                self.new_string_literal(kind.as_str(), TokenFlags::None),
+            ],
+            Some(fn_) => vec![
+                receiver,
+                state,
+                value,
+                self.new_string_literal(kind.as_str(), TokenFlags::None),
+                fn_,
+            ],
         };
         self.new_helper_call("__classPrivateFieldSet", args)
     }
@@ -544,9 +753,19 @@ impl crate::NodeFactory {
         self.new_helper_call("__classPrivateFieldIn", vec![state, receiver])
     }
 
-    fn new_global_property_call(&self, object: &'static str, method: &'static str, arguments: Vec<P<Node>>) -> P<Node> {
+    fn new_global_property_call(
+        &self,
+        object: &'static str,
+        method: &'static str,
+        arguments: Vec<P<Node>>,
+    ) -> P<Node> {
         self.new_call_expression(
-            self.new_property_access_expression(self.new_identifier(object), None, self.new_identifier(method), NodeFlags::None),
+            self.new_property_access_expression(
+                self.new_identifier(object),
+                None,
+                self.new_identifier(method),
+                NodeFlags::None,
+            ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             self.new_node_list(arguments),
@@ -556,25 +775,46 @@ impl crate::NodeFactory {
 
     // Creates `Object.defineProperty(target, name, descriptor)`.
     // factory.go:732
-    pub fn new_object_define_property_call(&self, target: P<Node>, name: P<Node>, descriptor: P<Node>) -> P<Node> {
+    pub fn new_object_define_property_call(
+        &self,
+        target: P<Node>,
+        name: P<Node>,
+        descriptor: P<Node>,
+    ) -> P<Node> {
         self.new_global_property_call("Object", "defineProperty", vec![target, name, descriptor])
     }
 
     // Creates `Reflect.get(target, propertyKey, receiver)`.
     // factory.go:748
-    pub fn new_reflect_get_call(&self, target: P<Node>, property_key: P<Node>, receiver: P<Node>) -> P<Node> {
+    pub fn new_reflect_get_call(
+        &self,
+        target: P<Node>,
+        property_key: P<Node>,
+        receiver: P<Node>,
+    ) -> P<Node> {
         self.new_global_property_call("Reflect", "get", vec![target, property_key, receiver])
     }
 
     // Creates `Reflect.set(target, propertyKey, value, receiver)`.
     // factory.go:764
-    pub fn new_reflect_set_call(&self, target: P<Node>, property_key: P<Node>, value: P<Node>, receiver: P<Node>) -> P<Node> {
+    pub fn new_reflect_set_call(
+        &self,
+        target: P<Node>,
+        property_key: P<Node>,
+        value: P<Node>,
+        receiver: P<Node>,
+    ) -> P<Node> {
         self.new_global_property_call("Reflect", "set", vec![target, property_key, value, receiver])
     }
 
     // Creates `target.bind(thisArg, ...args)`.
     // factory.go:780
-    pub fn new_function_bind_call(&self, target: P<Node>, this_arg: P<Node>, arguments_list: &[P<Node>]) -> P<Node> {
+    pub fn new_function_bind_call(
+        &self,
+        target: P<Node>,
+        this_arg: P<Node>,
+        arguments_list: &[P<Node>],
+    ) -> P<Node> {
         let mut args = Vec::with_capacity(1 + arguments_list.len());
         args.push(this_arg);
         args.extend_from_slice(arguments_list);
@@ -585,11 +825,11 @@ impl crate::NodeFactory {
     // factory.go:788
     pub fn new_immediately_invoked_arrow_function(&self, statements: Vec<P<Node>>) -> P<Node> {
         let arrow = self.new_arrow_function(
-            None,                              /*modifiers*/
-            None,                              /*typeParameters*/
-            Some(self.new_node_list(vec![])), /*parameters*/
-            None,                              /*returnType*/
-            None,                              /*fullSignature*/
+            None,                                               /*modifiers*/
+            None,                                               /*typeParameters*/
+            Some(self.new_node_list(vec![])),                   /*parameters*/
+            None,                                               /*returnType*/
+            None,                                               /*fullSignature*/
             Some(self.new_token(Kind::EqualsGreaterThanToken)), /*equalsGreaterThanToken*/
             Some(self.new_block(self.new_node_list(statements), true)),
         );
@@ -619,9 +859,18 @@ impl crate::NodeFactory {
     // ES2018 Helpers
     // Chains a sequence of expressions using the __assign helper or Object.assign if available in the target
     // factory.go:821
-    pub fn new_assign_helper(&self, attributes_segments: Vec<P<Node>>, _script_target: ScriptTarget) -> P<Node> {
+    pub fn new_assign_helper(
+        &self,
+        attributes_segments: Vec<P<Node>>,
+        _script_target: ScriptTarget,
+    ) -> P<Node> {
         self.new_call_expression(
-            self.new_property_access_expression(self.new_identifier("Object"), None, self.new_identifier("assign"), NodeFlags::None),
+            self.new_property_access_expression(
+                self.new_identifier("Object"),
+                None,
+                self.new_identifier("assign"),
+                NodeFlags::None,
+            ),
             None,
             None,
             self.new_node_list(attributes_segments),
@@ -632,7 +881,13 @@ impl crate::NodeFactory {
     // ES2018 Destructuring Helpers
 
     // factory.go:827
-    pub fn new_rest_helper(&self, value: P<Node>, elements: &[P<Node>], computed_temp_variables: Option<&[P<Node>]>, location: TextRange) -> P<Node> {
+    pub fn new_rest_helper(
+        &self,
+        value: P<Node>,
+        elements: &[P<Node>],
+        computed_temp_variables: Option<&[P<Node>]>,
+        location: TextRange,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&REST_HELPER));
         let mut property_names = Vec::new();
         let mut computed_temp_variable_offset = 0;
@@ -640,10 +895,14 @@ impl crate::NodeFactory {
             if i == elements.len() - 1 {
                 break;
             }
-            let property_name = ast::try_get_property_name_of_binding_or_assignment_element(element);
+            let property_name =
+                ast::try_get_property_name_of_binding_or_assignment_element(element);
             if let Some(property_name) = property_name {
                 if ast::is_computed_property_name(property_name) {
-                    assert!(computed_temp_variables.is_some(), "Encountered computed property name but 'computedTempVariables' argument was not provided.");
+                    assert!(
+                        computed_temp_variables.is_some(),
+                        "Encountered computed property name but 'computedTempVariables' argument was not provided."
+                    );
                     let temp = computed_temp_variables.unwrap()[computed_temp_variable_offset];
                     computed_temp_variable_offset += 1;
                     // typeof _tmp === "symbol" ? _tmp : _tmp + ""
@@ -652,16 +911,29 @@ impl crate::NodeFactory {
                         self.new_token(Kind::QuestionToken),
                         temp,
                         self.new_token(Kind::ColonToken),
-                        self.new_binary_expression(None, temp, None, self.new_token(Kind::PlusToken), self.new_string_literal("", TokenFlags::None)),
+                        self.new_binary_expression(
+                            None,
+                            temp,
+                            None,
+                            self.new_token(Kind::PlusToken),
+                            self.new_string_literal("", TokenFlags::None),
+                        ),
                     ));
                 } else {
                     property_names.push(self.new_string_literal_from_node(property_name));
                 }
             }
         }
-        let prop_names = self.new_array_literal_expression(self.new_node_list(property_names), false);
+        let prop_names =
+            self.new_array_literal_expression(self.new_node_list(property_names), false);
         prop_names.set_loc(location);
-        self.new_call_expression(self.new_unscoped_helper_name("__rest"), None, None, self.new_node_list(vec![value, prop_names]), NodeFlags::None)
+        self.new_call_expression(
+            self.new_unscoped_helper_name("__rest"),
+            None,
+            None,
+            self.new_node_list(vec![value, prop_names]),
+            NodeFlags::None,
+        )
     }
 
     // ES2018 Helpers
@@ -675,17 +947,31 @@ impl crate::NodeFactory {
 
     // Allocates a new Call expression to the `__asyncGenerator` helper.
     // factory.go:883
-    pub fn new_async_generator_helper(&self, generator_func: P<Node>, has_lexical_this: bool) -> P<Node> {
+    pub fn new_async_generator_helper(
+        &self,
+        generator_func: P<Node>,
+        has_lexical_this: bool,
+    ) -> P<Node> {
         let ec = self.emit_context();
         ec.request_emit_helper(helper(&AWAIT_HELPER));
         ec.request_emit_helper(helper(&ASYNC_GENERATOR_HELPER));
 
         // Mark this node as originally an async function body
-        ec.add_emit_flags(generator_func, EmitFlags::AsyncFunctionBody | EmitFlags::ReuseTempVariableScope);
+        ec.add_emit_flags(
+            generator_func,
+            EmitFlags::AsyncFunctionBody | EmitFlags::ReuseTempVariableScope,
+        );
 
-        let this_arg = if has_lexical_this { self.new_keyword_expression(Kind::ThisKeyword) } else { self.new_void_zero_expression() };
+        let this_arg = if has_lexical_this {
+            self.new_keyword_expression(Kind::ThisKeyword)
+        } else {
+            self.new_void_zero_expression()
+        };
 
-        self.new_helper_call("__asyncGenerator", vec![this_arg, self.new_identifier("arguments"), generator_func])
+        self.new_helper_call(
+            "__asyncGenerator",
+            vec![this_arg, self.new_identifier("arguments"), generator_func],
+        )
     }
 
     // Allocates a new Call expression to the `__asyncDelegator` helper.
@@ -707,7 +993,13 @@ impl crate::NodeFactory {
 
     // Allocates a new Call expression to the `__awaiter` helper.
     // factory.go:941
-    pub fn new_awaiter_helper(&self, has_lexical_this: bool, arguments_expression: Option<P<Node>>, parameters: Option<P<NodeList>>, body: P<Node>) -> P<Node> {
+    pub fn new_awaiter_helper(
+        &self,
+        has_lexical_this: bool,
+        arguments_expression: Option<P<Node>>,
+        parameters: Option<P<NodeList>>,
+        body: P<Node>,
+    ) -> P<Node> {
         let ec = self.emit_context();
         ec.request_emit_helper(helper(&AWAITER_HELPER));
 
@@ -728,39 +1020,86 @@ impl crate::NodeFactory {
         );
 
         // Mark this node as originally an async function body
-        ec.add_emit_flags(generator_func, EmitFlags::AsyncFunctionBody | EmitFlags::ReuseTempVariableScope);
+        ec.add_emit_flags(
+            generator_func,
+            EmitFlags::AsyncFunctionBody | EmitFlags::ReuseTempVariableScope,
+        );
 
-        let this_arg = if has_lexical_this { self.new_keyword_expression(Kind::ThisKeyword) } else { self.new_void_zero_expression() };
+        let this_arg = if has_lexical_this {
+            self.new_keyword_expression(Kind::ThisKeyword)
+        } else {
+            self.new_void_zero_expression()
+        };
 
         let args_arg = match arguments_expression {
             Some(arguments_expression) => arguments_expression,
             None => self.new_void_zero_expression(),
         };
 
-        self.new_helper_call("__awaiter", vec![this_arg, args_arg, self.new_void_zero_expression(), generator_func])
+        self.new_helper_call(
+            "__awaiter",
+            vec![this_arg, args_arg, self.new_void_zero_expression(), generator_func],
+        )
     }
 
     // ES Decorator Helpers
 
     // factory.go:1000
-    pub fn new_es_decorate_class_context_object(&self, name_expr: P<Node>, metadata: P<Node>) -> P<Node> {
+    pub fn new_es_decorate_class_context_object(
+        &self,
+        name_expr: P<Node>,
+        metadata: P<Node>,
+    ) -> P<Node> {
         let props = vec![
-            self.new_property_assignment(None, self.new_identifier("kind"), None, None, self.new_string_literal("class", TokenFlags::None)),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("kind"),
+                None,
+                None,
+                self.new_string_literal("class", TokenFlags::None),
+            ),
             self.new_property_assignment(None, self.new_identifier("name"), None, None, name_expr),
-            self.new_property_assignment(None, self.new_identifier("metadata"), None, None, metadata),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("metadata"),
+                None,
+                None,
+                metadata,
+            ),
         ];
         self.new_object_literal_expression(self.new_node_list(props), false)
     }
 
     // factory.go:1009
-    pub fn new_es_decorate_class_element_access_get_method(&self, name_computed: bool, name_expr: P<Node>) -> P<Node> {
+    pub fn new_es_decorate_class_element_access_get_method(
+        &self,
+        name_computed: bool,
+        name_expr: P<Node>,
+    ) -> P<Node> {
         let accessor = if name_computed {
-            self.new_element_access_expression(self.new_identifier("obj"), None, name_expr, NodeFlags::None)
+            self.new_element_access_expression(
+                self.new_identifier("obj"),
+                None,
+                name_expr,
+                NodeFlags::None,
+            )
         } else {
-            self.new_property_access_expression(self.new_identifier("obj"), None, name_expr, NodeFlags::None)
+            self.new_property_access_expression(
+                self.new_identifier("obj"),
+                None,
+                name_expr,
+                NodeFlags::None,
+            )
         };
 
-        let obj_param = self.new_parameter_declaration(None, None, self.new_identifier("obj"), None, None, None);
+        let obj_param = self.new_parameter_declaration(
+            None,
+            None,
+            self.new_identifier("obj"),
+            None,
+            None,
+            None,
+        );
 
         let arrow = self.new_arrow_function(
             None,
@@ -776,19 +1115,47 @@ impl crate::NodeFactory {
     }
 
     // factory.go:1033
-    pub fn new_es_decorate_class_element_access_set_method(&self, name_computed: bool, name_expr: P<Node>) -> P<Node> {
+    pub fn new_es_decorate_class_element_access_set_method(
+        &self,
+        name_computed: bool,
+        name_expr: P<Node>,
+    ) -> P<Node> {
         let accessor = if name_computed {
-            self.new_element_access_expression(self.new_identifier("obj"), None, name_expr, NodeFlags::None)
+            self.new_element_access_expression(
+                self.new_identifier("obj"),
+                None,
+                name_expr,
+                NodeFlags::None,
+            )
         } else {
-            self.new_property_access_expression(self.new_identifier("obj"), None, name_expr, NodeFlags::None)
+            self.new_property_access_expression(
+                self.new_identifier("obj"),
+                None,
+                name_expr,
+                NodeFlags::None,
+            )
         };
 
         let assignment = self.new_assignment_expression(accessor, self.new_identifier("value"));
         let stmt = self.new_expression_statement(assignment);
         let body = self.new_block(self.new_node_list(vec![stmt]), false);
 
-        let obj_param = self.new_parameter_declaration(None, None, self.new_identifier("obj"), None, None, None);
-        let value_param = self.new_parameter_declaration(None, None, self.new_identifier("value"), None, None, None);
+        let obj_param = self.new_parameter_declaration(
+            None,
+            None,
+            self.new_identifier("obj"),
+            None,
+            None,
+            None,
+        );
+        let value_param = self.new_parameter_declaration(
+            None,
+            None,
+            self.new_identifier("value"),
+            None,
+            None,
+            None,
+        );
 
         let arrow = self.new_arrow_function(
             None,
@@ -804,15 +1171,34 @@ impl crate::NodeFactory {
     }
 
     // factory.go:1062
-    pub fn new_es_decorate_class_element_access_has_method(&self, name_computed: bool, name_expr: Option<P<Node>>) -> P<Node> {
+    pub fn new_es_decorate_class_element_access_has_method(
+        &self,
+        name_computed: bool,
+        name_expr: Option<P<Node>>,
+    ) -> P<Node> {
         // The property name for the "in" expression
         let property_name = match name_expr {
-            Some(name_expr) if !name_computed && ast::is_identifier(name_expr) => self.new_string_literal_from_node(name_expr),
+            Some(name_expr) if !name_computed && ast::is_identifier(name_expr) => {
+                self.new_string_literal_from_node(name_expr)
+            }
             _ => name_expr.unwrap(),
         };
 
-        let obj_param = self.new_parameter_declaration(None, None, self.new_identifier("obj"), None, None, None);
-        let in_expr = self.new_binary_expression(None, property_name, None, self.new_token(Kind::InKeyword), self.new_identifier("obj"));
+        let obj_param = self.new_parameter_declaration(
+            None,
+            None,
+            self.new_identifier("obj"),
+            None,
+            None,
+            None,
+        );
+        let in_expr = self.new_binary_expression(
+            None,
+            property_name,
+            None,
+            self.new_token(Kind::InKeyword),
+            self.new_identifier("obj"),
+        );
 
         let arrow = self.new_arrow_function(
             None,
@@ -838,27 +1224,42 @@ impl crate::NodeFactory {
     //     a. Let _setAccess_ be a new Abstract Closure with parameters (_object_, _value_) that captures _kind_ and _name_ ...
     //     b. Perform ! CreateDataPropertyOrThrow(_access_, "set", _setAccess_).
     // factory.go:1098
-    pub fn new_es_decorate_class_element_access_object(&self, name_computed: bool, name_expr: P<Node>, has_get: bool, has_set: bool) -> P<Node> {
+    pub fn new_es_decorate_class_element_access_object(
+        &self,
+        name_computed: bool,
+        name_expr: P<Node>,
+        has_get: bool,
+        has_set: bool,
+    ) -> P<Node> {
         let mut access_props = Vec::new();
 
         // "has" method: obj => name in obj
-        access_props.push(self.new_es_decorate_class_element_access_has_method(name_computed, Some(name_expr)));
+        access_props.push(
+            self.new_es_decorate_class_element_access_has_method(name_computed, Some(name_expr)),
+        );
 
         // "get" method: obj => obj.name or obj => obj[name]
         if has_get {
-            access_props.push(self.new_es_decorate_class_element_access_get_method(name_computed, name_expr));
+            access_props.push(
+                self.new_es_decorate_class_element_access_get_method(name_computed, name_expr),
+            );
         }
 
         // "set" method: (obj, value) => { obj.name = value; } or (obj, value) => { obj[name] = value; }
         if has_set {
-            access_props.push(self.new_es_decorate_class_element_access_set_method(name_computed, name_expr));
+            access_props.push(
+                self.new_es_decorate_class_element_access_set_method(name_computed, name_expr),
+            );
         }
 
         self.new_object_literal_expression(self.new_node_list(access_props), false)
     }
 
     // factory.go:1122
-    #[expect(clippy::fn_params_excessive_bools, reason = "The boolean parameters preserve the upstream Go function signature.")]
+    #[expect(
+        clippy::fn_params_excessive_bools,
+        reason = "The boolean parameters preserve the upstream Go function signature."
+    )]
     pub fn new_es_decorate_class_element_context_object(
         &self,
         kind: &str,
@@ -871,38 +1272,93 @@ impl crate::NodeFactory {
         metadata: P<Node>,
     ) -> P<Node> {
         // Build the name value for the context's "name" property
-        let name_value = if !name_computed && (ast::is_private_identifier(name_expr) || ast::is_identifier(name_expr)) {
+        let name_value = if !name_computed
+            && (ast::is_private_identifier(name_expr) || ast::is_identifier(name_expr))
+        {
             self.new_string_literal_from_node(name_expr)
         } else {
             name_expr
         };
 
         // Build the access object with has/get/set arrow functions
-        let access_obj = self.new_es_decorate_class_element_access_object(name_computed, name_expr, has_get, has_set);
+        let access_obj = self.new_es_decorate_class_element_access_object(
+            name_computed,
+            name_expr,
+            has_get,
+            has_set,
+        );
 
-        let static_expr = if is_static { self.new_true_expression() } else { self.new_false_expression() };
+        let static_expr =
+            if is_static { self.new_true_expression() } else { self.new_false_expression() };
 
-        let private_expr = if is_private { self.new_true_expression() } else { self.new_false_expression() };
+        let private_expr =
+            if is_private { self.new_true_expression() } else { self.new_false_expression() };
 
         let props = vec![
-            self.new_property_assignment(None, self.new_identifier("kind"), None, None, self.new_string_literal(alloc_str(kind), TokenFlags::None)),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("kind"),
+                None,
+                None,
+                self.new_string_literal(alloc_str(kind), TokenFlags::None),
+            ),
             self.new_property_assignment(None, self.new_identifier("name"), None, None, name_value),
-            self.new_property_assignment(None, self.new_identifier("static"), None, None, static_expr),
-            self.new_property_assignment(None, self.new_identifier("private"), None, None, private_expr),
-            self.new_property_assignment(None, self.new_identifier("access"), None, None, access_obj),
-            self.new_property_assignment(None, self.new_identifier("metadata"), None, None, metadata),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("static"),
+                None,
+                None,
+                static_expr,
+            ),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("private"),
+                None,
+                None,
+                private_expr,
+            ),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("access"),
+                None,
+                None,
+                access_obj,
+            ),
+            self.new_property_assignment(
+                None,
+                self.new_identifier("metadata"),
+                None,
+                None,
+                metadata,
+            ),
         ];
         self.new_object_literal_expression(self.new_node_list(props), false)
     }
 
     // factory.go:1168
-    pub fn new_es_decorate_helper(&self, ctor: P<Node>, descriptor_in: P<Node>, decorators: P<Node>, context_in: P<Node>, initializers: P<Node>, extra_initializers: P<Node>) -> P<Node> {
+    pub fn new_es_decorate_helper(
+        &self,
+        ctor: P<Node>,
+        descriptor_in: P<Node>,
+        decorators: P<Node>,
+        context_in: P<Node>,
+        initializers: P<Node>,
+        extra_initializers: P<Node>,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&ES_DECORATE_HELPER));
-        self.new_helper_call("__esDecorate", vec![ctor, descriptor_in, decorators, context_in, initializers, extra_initializers])
+        self.new_helper_call(
+            "__esDecorate",
+            vec![ctor, descriptor_in, decorators, context_in, initializers, extra_initializers],
+        )
     }
 
     // factory.go:1179
-    pub fn new_run_initializers_helper(&self, this_arg: P<Node>, initializers: P<Node>, value: Option<P<Node>>) -> P<Node> {
+    pub fn new_run_initializers_helper(
+        &self,
+        this_arg: P<Node>,
+        initializers: P<Node>,
+        value: Option<P<Node>>,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&RUN_INITIALIZERS_HELPER));
         let arguments = match value {
             Some(value) => vec![this_arg, initializers, value],
@@ -926,7 +1382,12 @@ impl crate::NodeFactory {
     }
 
     // factory.go:1220
-    pub fn new_set_function_name_helper(&self, fn_: P<Node>, name: P<Node>, prefix: &str) -> P<Node> {
+    pub fn new_set_function_name_helper(
+        &self,
+        fn_: P<Node>,
+        name: P<Node>,
+        prefix: &str,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&SET_FUNCTION_NAME_HELPER));
         let arguments = if !prefix.is_empty() {
             vec![fn_, name, self.new_string_literal(alloc_str(prefix), TokenFlags::None)]
@@ -954,23 +1415,37 @@ impl crate::NodeFactory {
 
     // Allocates a new Call expression to the `__exportStar` helper.
     // factory.go:1264
-    pub fn new_export_star_helper(&self, module_expression: P<Node>, exports_expression: P<Node>) -> P<Node> {
+    pub fn new_export_star_helper(
+        &self,
+        module_expression: P<Node>,
+        exports_expression: P<Node>,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&EXPORT_STAR_HELPER));
         self.new_helper_call("__exportStar", vec![module_expression, exports_expression])
     }
 
     // factory.go:1275
-    pub fn new_assignment_target_wrapper(&self, param_name: P<Node>, expression: P<Node>) -> P<Node> {
+    pub fn new_assignment_target_wrapper(
+        &self,
+        param_name: P<Node>,
+        expression: P<Node>,
+    ) -> P<Node> {
         let set_accessor = self.new_set_accessor_declaration(
             None, /*modifiers*/
             self.new_identifier("value"),
             None, /*typeParameters*/
-            Some(self.new_node_list(vec![self.new_parameter_declaration(None, None, param_name, None, None, None)])),
+            Some(self.new_node_list(vec![
+                self.new_parameter_declaration(None, None, param_name, None, None, None),
+            ])),
             None, /*returnType*/
             None, /*fullSignature*/
-            Some(self.new_block(self.new_node_list(vec![self.new_expression_statement(expression)]), false)),
+            Some(self.new_block(
+                self.new_node_list(vec![self.new_expression_statement(expression)]),
+                false,
+            )),
         );
-        let obj_literal = self.new_object_literal_expression(self.new_node_list(vec![set_accessor]), false);
+        let obj_literal =
+            self.new_object_literal_expression(self.new_node_list(vec![set_accessor]), false);
         // Explicit parens required because of v8 regression (https://bugs.chromium.org/p/v8/issues/detail?id=9560)
         self.new_property_access_expression(
             self.new_parenthesized_expression(obj_literal),
@@ -982,9 +1457,17 @@ impl crate::NodeFactory {
 
     // Allocates a new Call expression to the `__rewriteRelativeImportExtension` helper.
     // factory.go:1300
-    pub fn new_rewrite_relative_import_extensions_helper(&self, first_argument: P<Node>, preserve_jsx: bool) -> P<Node> {
+    pub fn new_rewrite_relative_import_extensions_helper(
+        &self,
+        first_argument: P<Node>,
+        preserve_jsx: bool,
+    ) -> P<Node> {
         self.emit_context().request_emit_helper(helper(&REWRITE_RELATIVE_IMPORT_EXTENSIONS_HELPER));
-        let arguments = if preserve_jsx { vec![first_argument, self.new_token(Kind::TrueKeyword)] } else { vec![first_argument] };
+        let arguments = if preserve_jsx {
+            vec![first_argument, self.new_token(Kind::TrueKeyword)]
+        } else {
+            vec![first_argument]
+        };
         self.new_helper_call("__rewriteRelativeImportExtension", arguments)
     }
 }

@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use tsrs_ast::{self as ast, Kind, Node, NodeFactory, NodeList, NodeVisitorHooks, SourceFile};
 use tsrs_core::context::Context;
-use tsrs_core::{alloc_slice, TextRange, P};
+use tsrs_core::{P, TextRange, alloc_slice};
 use tsrs_lsproto as lsproto;
 use tsrs_scanner as scanner;
 
@@ -47,7 +47,10 @@ impl SelectionRangeBuilder {
         let mut result = result;
         for i in 0..self.ranges.len() {
             let index = (self.oldest_index + i) % self.ranges.len();
-            result = Some(lsproto::SelectionRange { range: self.ranges[index], parent: result.map(Box::new) });
+            result = Some(lsproto::SelectionRange {
+                range: self.ranges[index],
+                parent: result.map(Box::new),
+            });
         }
         result
     }
@@ -55,16 +58,26 @@ impl SelectionRangeBuilder {
 
 impl LanguageService {
     // selectionranges.go:48
-    pub fn provide_selection_ranges(&self, _ctx: &Context, params: &lsproto::SelectionRangeParams) -> Result<lsproto::SelectionRangeResponse, lsproto::Error> {
+    pub fn provide_selection_ranges(
+        &self,
+        _ctx: &Context,
+        params: &lsproto::SelectionRangeParams,
+    ) -> Result<lsproto::SelectionRangeResponse, lsproto::Error> {
         let (_, source_file) = self.get_program_and_file(&params.text_document.uri);
 
         let mut results = Vec::with_capacity(params.positions.len());
         results = match params.positions.iter().try_fold(results, |mut results, &position| {
-            let positions = self.converters.from_lsp_position_for_source_file(source_file, position, Feature::SelectionRanges);
+            let positions = self.converters.from_lsp_position_for_source_file(
+                source_file,
+                position,
+                Feature::SelectionRanges,
+            );
             if positions.len() != 1 || !positions[0].fidelity.is_single_segment() {
                 return std::ops::ControlFlow::Break(Ok(lsproto::SelectionRangesOrNull::default()));
             }
-            if let Some(selection_range) = get_smart_selection_range(self, positions[0].script, positions[0].position) {
+            if let Some(selection_range) =
+                get_smart_selection_range(self, positions[0].script, positions[0].position)
+            {
                 results.push(selection_range);
             }
 
@@ -79,7 +92,11 @@ impl LanguageService {
 }
 
 // selectionranges.go:68
-fn get_selection_children(factory: &NodeFactory, node: P<Node>, source_file: P<SourceFile>) -> Vec<P<Node>> {
+fn get_selection_children(
+    factory: &NodeFactory,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+) -> Vec<P<Node>> {
     if !ast::is_mapped_type_node(node) {
         return get_children_from_non_jsdoc_node(node, source_file);
     }
@@ -91,7 +108,9 @@ fn get_selection_children(factory: &NodeFactory, node: P<Node>, source_file: P<S
 
     let open_brace_token = children[0];
     let close_brace_token = children[children.len() - 1];
-    if open_brace_token.kind() != Kind::OpenBraceToken || close_brace_token.kind() != Kind::CloseBraceToken {
+    if open_brace_token.kind() != Kind::OpenBraceToken
+        || close_brace_token.kind() != Kind::CloseBraceToken
+    {
         return children;
     }
 
@@ -108,20 +127,34 @@ fn get_selection_children(factory: &NodeFactory, node: P<Node>, source_file: P<S
 
     // Group the type parameter with its surrounding brackets.
     let grouped_with_brackets = group_children(factory, &grouped_with_plus_minus_tokens, |child| {
-        child.kind() == Kind::OpenBracketToken || child.kind() == Kind::TypeParameter || child.kind() == Kind::CloseBracketToken
+        child.kind() == Kind::OpenBracketToken
+            || child.kind() == Kind::TypeParameter
+            || child.kind() == Kind::CloseBracketToken
     });
 
     // Go exposes the trailing semicolon directly, so keep it in the right-hand
     // group to produce the same effective selection tree as Strada.
     vec![
         open_brace_token,
-        create_syntax_list(factory, &split_children(factory, &grouped_with_brackets, |child| child.kind() == Kind::ColonToken, false)),
+        create_syntax_list(
+            factory,
+            &split_children(
+                factory,
+                &grouped_with_brackets,
+                |child| child.kind() == Kind::ColonToken,
+                false,
+            ),
+        ),
         close_brace_token,
     ]
 }
 
 // selectionranges.go:114
-fn group_children(factory: &NodeFactory, children: &[P<Node>], group_on: impl Fn(P<Node>) -> bool) -> Vec<P<Node>> {
+fn group_children(
+    factory: &NodeFactory,
+    children: &[P<Node>],
+    group_on: impl Fn(P<Node>) -> bool,
+) -> Vec<P<Node>> {
     let mut result = Vec::new();
     let mut group: Vec<P<Node>> = Vec::new();
     for &child in children {
@@ -142,7 +175,12 @@ fn group_children(factory: &NodeFactory, children: &[P<Node>], group_on: impl Fn
 }
 
 // selectionranges.go:134
-fn split_children(factory: &NodeFactory, children: &[P<Node>], pivot_on: impl Fn(P<Node>) -> bool, separate_trailing_semicolon: bool) -> Vec<P<Node>> {
+fn split_children(
+    factory: &NodeFactory,
+    children: &[P<Node>],
+    pivot_on: impl Fn(P<Node>) -> bool,
+    separate_trailing_semicolon: bool,
+) -> Vec<P<Node>> {
     if children.len() < 2 {
         return children.to_vec();
     }
@@ -154,7 +192,8 @@ fn split_children(factory: &NodeFactory, children: &[P<Node>], pivot_on: impl Fn
     let left_children = &children[..split_token_index];
     let split_token = children[split_token_index];
     let last_token = children[children.len() - 1];
-    let separate_last_token = separate_trailing_semicolon && last_token.kind() == Kind::SemicolonToken;
+    let separate_last_token =
+        separate_trailing_semicolon && last_token.kind() == Kind::SemicolonToken;
     let mut right_end = children.len();
     if separate_last_token {
         right_end -= 1;
@@ -178,10 +217,7 @@ fn split_children(factory: &NodeFactory, children: &[P<Node>], pivot_on: impl Fn
 // selectionranges.go:181
 fn create_syntax_list(factory: &NodeFactory, children: &[P<Node>]) -> P<Node> {
     let list = factory.new_syntax_list(alloc_slice(children));
-    list.set_loc(TextRange::from_text_pos(
-        children[0].pos(),
-        children[children.len() - 1].end(),
-    ));
+    list.set_loc(TextRange::from_text_pos(children[0].pos(), children[children.len() - 1].end()));
     list
 }
 
@@ -201,16 +237,12 @@ impl SmartSelection<'_> {
         };
         let start =
             scanner::get_token_pos_of_node(node, self.source_file, true /*includeJSDoc*/);
-        let end = node
-            .end()
-            .expect_source("parsed nodes have source positions");
+        let end = node.end().expect_source("parsed nodes have source positions");
         start <= self.pos && self.pos < end
     }
 
     fn position_should_snap_to_node(&self, node: P<Node>) -> bool {
-        let node_end = node
-            .end()
-            .expect_source("parsed nodes have source positions");
+        let node_end = node.end().expect_source("parsed nodes have source positions");
         if self.pos < node_end {
             return true;
         }
@@ -231,7 +263,11 @@ impl SmartSelection<'_> {
             return;
         }
 
-        let (lsp_range, fidelity) = self.l.converters.to_lsp_range_for_feature(&self.source_file, TextRange::new(start, end), Feature::SelectionRanges);
+        let (lsp_range, fidelity) = self.l.converters.to_lsp_range_for_feature(
+            &self.source_file,
+            TextRange::new(start, end),
+            Feature::SelectionRanges,
+        );
         if fidelity.is_none() {
             return;
         }
@@ -249,8 +285,12 @@ impl SmartSelection<'_> {
 
         let mut comment_pos = start;
         let text = self.source_file.text().as_bytes();
-        comment_pos += u32::try_from((comment_pos..end).take_while(|&index| (index as usize) < text.len() && text[index as usize] == b'/').count())
-            .expect("comment length exceeds u32");
+        comment_pos += u32::try_from(
+            (comment_pos..end)
+                .take_while(|&index| (index as usize) < text.len() && text[index as usize] == b'/')
+                .count(),
+        )
+        .expect("comment length exceeds u32");
         self.push_selection_range(comment_pos, end);
     }
 
@@ -259,7 +299,8 @@ impl SmartSelection<'_> {
             return true;
         }
         let line_starts = self.source_file.ecma_line_map();
-        scanner::compute_line_of_position(line_starts, pos1) == scanner::compute_line_of_position(line_starts, pos2)
+        scanner::compute_line_of_position(line_starts, pos1)
+            == scanner::compute_line_of_position(line_starts, pos2)
     }
 }
 
@@ -287,7 +328,10 @@ fn should_skip_node(node: P<Node>, parent: Option<P<Node>>) -> bool {
         }
     }
 
-    if ast::is_jsdoc_type_expression(node) || ast::is_jsdoc_signature(node) || ast::is_jsdoc_type_literal(node) {
+    if ast::is_jsdoc_type_expression(node)
+        || ast::is_jsdoc_signature(node)
+        || ast::is_jsdoc_type_literal(node)
+    {
         return true;
     }
 
@@ -314,12 +358,14 @@ fn collect_visited_children(node: P<Node>) -> Vec<VisitedChild> {
         })),
         None,
         NodeVisitorHooks {
-            visit_nodes: Some(Rc::new(move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
-                if let Some(list) = nodes {
-                    nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
-                }
-                nodes
-            })),
+            visit_nodes: Some(Rc::new(
+                move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
+                    if let Some(list) = nodes {
+                        nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
+                    }
+                    nodes
+                },
+            )),
             ..Default::default()
         },
     );
@@ -348,10 +394,7 @@ fn get_smart_selection_range(
             &source_file,
             TextRange::from_text_pos(source_file.as_node().pos(), source_file.as_node().end()),
         );
-        root = Some(lsproto::SelectionRange {
-            range: full_range,
-            parent: None,
-        });
+        root = Some(lsproto::SelectionRange { range: full_range, parent: None });
         s.last_range = full_range;
     }
 
@@ -366,8 +409,7 @@ fn get_smart_selection_range(
             }
             let found_comment = scanner::get_trailing_comment_ranges(
                 source_file.text(),
-                node.end()
-                    .expect_source("parsed nodes have source positions"),
+                node.end().expect_source("parsed nodes have source positions"),
             )
             .next();
             if let Some(found_comment) = found_comment {
@@ -388,9 +430,7 @@ fn get_smart_selection_range(
             if s.node_contains_position(Some(node)) {
                 // Add range for multi-line function bodies before skipping the block
                 if ast::is_block(node) && ast::is_function_like_declaration(parent) {
-                    let node_end = node
-                        .end()
-                        .expect_source("parsed nodes have source positions");
+                    let node_end = node.end().expect_source("parsed nodes have source positions");
                     if !s.positions_are_on_same_line(
                         astnav::get_start_of_node(node, source_file, false),
                         node_end,
@@ -411,7 +451,8 @@ fn get_smart_selection_range(
                         .checked_sub(2)
                         .expect("template expression begins after `${`");
                     // The '}' is the first character of the template literal (middle or tail)
-                    let span_end = astnav::get_start_of_node(template_span.literal, source_file, false) + 1;
+                    let span_end =
+                        astnav::get_start_of_node(template_span.literal, source_file, false) + 1;
                     // Validate the positions are reasonable
                     let text = source_file.text();
                     if span_end as usize <= text.len() && span_start < span_end {
@@ -421,17 +462,21 @@ fn get_smart_selection_range(
 
                 if !should_skip_node(node, Some(parent)) {
                     let start = astnav::get_start_of_node(node, source_file, false);
-                    let end = node
-                        .end()
-                        .expect_source("parsed nodes have source positions");
+                    let end = node.end().expect_source("parsed nodes have source positions");
                     s.push_selection_range(start, end);
 
                     if ast::is_mapped_type_node(node) {
                         let mut selection_parent = node;
                         loop {
                             let mut selection_child: Option<P<Node>> = None;
-                            for child in get_selection_children(&factory, selection_parent, source_file) {
-                                let child_start = scanner::get_token_pos_of_node(child, source_file, true /*includeJSDoc*/);
+                            for child in
+                                get_selection_children(&factory, selection_parent, source_file)
+                            {
+                                let child_start = scanner::get_token_pos_of_node(
+                                    child,
+                                    source_file,
+                                    true, /*includeJSDoc*/
+                                );
                                 if child_start > s.pos {
                                     break;
                                 }
@@ -447,14 +492,19 @@ fn get_smart_selection_range(
                                 }
                             }
                             match selection_child {
-                                Some(child) if ast::is_syntax_list(child) => selection_parent = child,
+                                Some(child) if ast::is_syntax_list(child) => {
+                                    selection_parent = child;
+                                }
                                 _ => break,
                             }
                         }
                     }
 
                     // String literals should have a stop both inside and outside their quotes.
-                    if ast::is_string_literal(node) || node.kind() == Kind::TemplateExpression || node.kind() == Kind::NoSubstitutionTemplateLiteral {
+                    if ast::is_string_literal(node)
+                        || node.kind() == Kind::TemplateExpression
+                        || node.kind() == Kind::NoSubstitutionTemplateLiteral
+                    {
                         // Only add inner content range if there's actually content (handles unterminated literals)
                         if start + 1 < end.saturating_sub(1) {
                             s.push_selection_range(start + 1, end - 1);
@@ -477,7 +527,8 @@ fn get_smart_selection_range(
                 VisitedChild::Nodes(nodes) => {
                     let nodes_slice = nodes.nodes();
                     if !nodes_slice.is_empty() {
-                        let should_skip_list = ast::is_variable_declaration_list(parent) || ast::is_template_expression(parent);
+                        let should_skip_list = ast::is_variable_declaration_list(parent)
+                            || ast::is_template_expression(parent);
 
                         if !should_skip_list {
                             let start =

@@ -18,7 +18,11 @@ impl Cloneable for testValue {
 
 fn base_of(entries: &[(&str, &str)]) -> SharedMap<String, testValue> {
     let mut m = FxHashMap::default();
-    m.extend(entries.iter().map(|(k, v)| (k.to_string(), Shared::new(testValue { data: v.to_string() }))));
+    m.extend(
+        entries
+            .iter()
+            .map(|(k, v)| (k.to_string(), Shared::new(testValue { data: v.to_string() }))),
+    );
     Arc::new(m)
 }
 
@@ -87,7 +91,8 @@ fn sync_map_proxy_operations_delegation() {
     entry2.change(|v| v.data = "changed_by_entry2".to_string());
 
     // Determine which is the proxy and which is the target
-    let (proxy, target) = if entry1.proxy_for().is_some() { (entry1, entry2) } else { (entry2, entry1) };
+    let (proxy, target) =
+        if entry1.proxy_for().is_some() { (entry1, entry2) } else { (entry2, entry1) };
 
     // Test that proxy operations are delegated to the target
     // Change through proxy should affect target
@@ -96,7 +101,10 @@ fn sync_map_proxy_operations_delegation() {
     assert_eq!("changed_through_proxy", proxy.value().unwrap().data);
 
     // ChangeIf through proxy should work
-    let changed = proxy.change_if(|v| v.data == "changed_through_proxy", |v| v.data = "conditional_change".to_string());
+    let changed = proxy.change_if(
+        |v| v.data == "changed_through_proxy",
+        |v| v.data = "conditional_change".to_string(),
+    );
     assert!(changed);
     assert_eq!("conditional_change", target.value().unwrap().data);
     assert_eq!("conditional_change", proxy.value().unwrap().data);

@@ -27,7 +27,10 @@ impl MergedSymbols {
     }
 
     #[inline]
-    #[expect(clippy::trivially_copy_pass_by_ref, reason = "preserves the map's borrowed-key lookup API; inlined at callers")]
+    #[expect(
+        clippy::trivially_copy_pass_by_ref,
+        reason = "preserves the map's borrowed-key lookup API; inlined at callers"
+    )]
     pub fn get(&self, symbol: &P<Symbol>) -> Option<&P<Symbol>> {
         let (word, bit) = Self::filter_position(*symbol);
         if self.filter[word] & bit == 0 {

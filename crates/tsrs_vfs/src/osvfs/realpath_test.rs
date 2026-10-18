@@ -87,7 +87,8 @@ fn test_get_accessible_entries() {
 
     assert_eq!(entries.directories, vec!["dir1", "dir2"]);
     assert_eq!(entries.files, vec!["file1", "file2"]);
-    let symlinks = entries.symlinks.expect("expected Symlinks to be set for directory with symlinks");
+    let symlinks =
+        entries.symlinks.expect("expected Symlinks to be set for directory with symlinks");
     assert_eq!(symlinks.len(), 4);
     for name in ["file1", "file2", "dir1", "dir2"] {
         assert!(symlinks.contains(name), "expected {name:?} to be in Symlinks");
@@ -97,6 +98,7 @@ fn test_get_accessible_entries() {
     let entries = fs.get_accessible_entries(&tspath::normalize_path(&target));
     assert_eq!(entries.directories, vec!["dir1", "dir2"]);
     assert_eq!(entries.files, vec!["file1", "file2"]);
-    let symlinks = entries.symlinks.expect("expected Symlinks to be non-nil for directory without symlinks");
+    let symlinks =
+        entries.symlinks.expect("expected Symlinks to be non-nil for directory without symlinks");
     assert_eq!(symlinks.len(), 0);
 }

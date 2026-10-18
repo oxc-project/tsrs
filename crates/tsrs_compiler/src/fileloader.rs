@@ -2,25 +2,37 @@ use std::sync::{Arc, Mutex};
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::{
-    self as ast, new_compiler_diagnostic, new_diagnostic, ContentMapperSourceFileInfo, Diagnostic, DiagnosticExt, FileReference, Kind, Node,
+    self as ast, ContentMapperSourceFileInfo, Diagnostic, DiagnosticExt, FileReference, Kind, Node,
     NodeFactory, NodeFlags, SourceFile, SourceFileMetaData, SourceFileParseOptions, TokenFlags,
+    new_compiler_diagnostic, new_diagnostic,
 };
-use tsrs_contentmapper::{self as contentmapper, DiagnosticDirectiveErrorKind, InitializeErrorKind, Mapper, ProjectErrorKind, TransformErrorKind};
+use tsrs_contentmapper::{
+    self as contentmapper, DiagnosticDirectiveErrorKind, InitializeErrorKind, Mapper,
+    ProjectErrorKind, TransformErrorKind,
+};
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{alloc_str, CompilerOptions, ModuleKind, ModuleResolutionKind, ResolutionMode, ScriptKind, TextRange, P};
-use tsrs_spanmap::MappingErrorKind;
+use tsrs_core::{
+    CompilerOptions, ModuleKind, ModuleResolutionKind, P, ResolutionMode, ScriptKind, TextRange,
+    alloc_str,
+};
 use tsrs_diagnostics::{self as diagnostics, Message};
-use tsrs_module::{self as module, DiagAndArgs, ModeAwareCache, ModeAwareCacheKey, ResolvedModule, ResolvedTypeReferenceDirective, Resolver};
+use tsrs_module::{
+    self as module, DiagAndArgs, ModeAwareCache, ModeAwareCacheKey, ResolvedModule,
+    ResolvedTypeReferenceDirective, Resolver,
+};
+use tsrs_spanmap::MappingErrorKind;
 use tsrs_tsoptions as tsoptions;
 
-use crate::file_include::{fileIncludeKind, automaticTypeDirectiveFileData, FileIncludeReason};
-use crate::filesparser::{filesParser, parseTask, resolvedRef, TaskId};
+use crate::file_include::{FileIncludeReason, automaticTypeDirectiveFileData, fileIncludeKind};
+use crate::filesparser::{TaskId, filesParser, parseTask, resolvedRef};
 use crate::host::CompilerHost;
+use crate::includeprocessor::fileIncludeData;
 use crate::processing_diagnostic::{includeExplainingDiagnostic, processingDiagnostic};
 use crate::program::{ProgramConfig, ProgramOptions};
-use crate::projectreferencefilemapper::{projectReferenceFileMapper, projectReferenceFileMapperBuilder, resolution_host_for};
+use crate::projectreferencefilemapper::{
+    projectReferenceFileMapper, projectReferenceFileMapperBuilder, resolution_host_for,
+};
 use crate::projectreferenceparser::projectReferenceParser;
-use crate::includeprocessor::fileIncludeData;
 
 // maxContentMapperFailures is the number of transform failures a single content mapper may accumulate
 // before it is disabled for the rest of the program.
@@ -124,7 +136,8 @@ pub struct processedFiles {
     pub(crate) project_reference_file_mapper: Option<&'static projectReferenceFileMapper>,
     pub(crate) missing_files: Vec<String>,
     pub(crate) resolved_modules: FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>>,
-    pub(crate) type_resolutions_in_file: FxHashMap<Path, ModeAwareCache<P<ResolvedTypeReferenceDirective>>>,
+    pub(crate) type_resolutions_in_file:
+        FxHashMap<Path, ModeAwareCache<P<ResolvedTypeReferenceDirective>>>,
     pub(crate) source_file_meta_datas: FxHashMap<Path, SourceFileMetaData>,
     pub(crate) jsx_runtime_import_specifiers: FxHashMap<Path, P<jsxRuntimeImportSpecifier>>,
     pub(crate) import_helpers_import_specifiers: FxHashMap<Path, P<Node>>,
@@ -151,13 +164,21 @@ pub(crate) struct jsxRuntimeImportSpecifier {
 
 // fileloader.go:337 (Go runs it on the loader before creating the resolver; it only needs the options and the host,
 // and returns the builder the loader keeps)
-fn add_project_reference_tasks(opts: &ProgramConfig, host: &Arc<dyn CompilerHost>, _single_threaded: bool) -> projectReferenceFileMapperBuilder {
-    let mut mapper = projectReferenceFileMapper::new(opts.config, opts.can_use_project_reference_source());
+fn add_project_reference_tasks(
+    opts: &ProgramConfig,
+    host: &Arc<dyn CompilerHost>,
+    _single_threaded: bool,
+) -> projectReferenceFileMapperBuilder {
+    let mut mapper =
+        projectReferenceFileMapper::new(opts.config, opts.can_use_project_reference_source());
     let resolution_host = resolution_host_for(Arc::clone(host));
     mapper.loader_host = Some(resolution_host);
     let project_references = opts.config.resolved_project_reference_paths();
     if project_references.is_empty() {
-        return projectReferenceFileMapperBuilder { mapper: Box::leak(Box::new(mapper)), host: resolution_host };
+        return projectReferenceFileMapperBuilder {
+            mapper: Box::leak(Box::new(mapper)),
+            host: resolution_host,
+        };
     }
 
     let mut parser = projectReferenceParser::new(&**host);
@@ -167,12 +188,16 @@ fn add_project_reference_tasks(opts: &ProgramConfig, host: &Arc<dyn CompilerHost
     projectReferenceFileMapperBuilder { mapper, host: mapper.resolution_host(resolution_host) }
 }
 
-pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: bool) -> (processedFiles, P<module::ResolutionData>, Option<String>) {
+pub(crate) fn process_all_program_files(
+    opts: &ProgramOptions,
+    single_threaded: bool,
+) -> (processedFiles, P<module::ResolutionData>, Option<String>) {
     let _regions = crate::programregions::enter(opts.regions.as_deref());
     let compiler_options = opts.config.compiler_options().unwrap();
     let root_files = opts.config.file_names();
     let content_mapper_extensions = opts.config.content_mapper_extensions();
-    let supported_extensions = tsoptions::get_supported_extensions(Some(&compiler_options), &content_mapper_extensions);
+    let supported_extensions =
+        tsoptions::get_supported_extensions(Some(&compiler_options), &content_mapper_extensions);
     let supported_extensions_with_json_if_resolve_json_module =
         tsoptions::get_supported_extensions_with_json_if_resolve_json_module(
             Some(&compiler_options),
@@ -180,7 +205,8 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
         );
     let max_node_module_js_depth = compiler_options.max_node_module_js_depth.unwrap_or(0);
     let host = Arc::clone(&opts.host);
-    let project_references = add_project_reference_tasks(&opts.program_config(), &host, single_threaded);
+    let project_references =
+        add_project_reference_tasks(&opts.program_config(), &host, single_threaded);
     // The mapper (with its resolution hosts) is leaked for the program to own (`SharedProgramData`). If loading
     // unwinds (a panic while loading, e.g. the module resolver's `Unexpected moduleResolution`, which the API turns
     // into an error), no program will own it: free it then. Declared before the resolver and loader, so it is
@@ -191,7 +217,11 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
             if std::thread::panicking() {
                 // SAFETY: loading unwound, so no program was created from this mapper; the resolver and loader that
                 // referred to it were dropped first.
-                unsafe { crate::program::free_project_reference_file_mapper(std::ptr::from_ref::<projectReferenceFileMapper>(self.0).cast_mut()) };
+                unsafe {
+                    crate::program::free_project_reference_file_mapper(
+                        std::ptr::from_ref::<projectReferenceFileMapper>(self.0).cast_mut(),
+                    );
+                };
             }
         }
     }
@@ -212,13 +242,18 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
         opts: opts.program_config(),
         host: Arc::clone(&host),
         resolver,
-        default_library_path: tspath::get_normalized_absolute_path(host.default_library_path(), host.get_current_directory()),
+        default_library_path: tspath::get_normalized_absolute_path(
+            host.default_library_path(),
+            host.get_current_directory(),
+        ),
         compare_paths_options: ComparePathsOptions {
             use_case_sensitive_file_names: host.fs().use_case_sensitive_file_names(),
             current_directory: host.get_current_directory().to_string(),
         },
         files_parser: filesParser::new(single_threaded, max_node_module_js_depth),
-        root_tasks: Vec::with_capacity(root_files.len() + compiler_options.lib.as_ref().map_or(0, std::vec::Vec::len)),
+        root_tasks: Vec::with_capacity(
+            root_files.len() + compiler_options.lib.as_ref().map_or(0, std::vec::Vec::len),
+        ),
         tasks: Vec::new(),
         total_file_count: 0,
         lib_file_count: 0,
@@ -236,7 +271,9 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
     // The lookups (a file_exists per root file) are independent; tasks are still created in root order.
     let curr_dir = host.get_current_directory().to_string();
     let containing_file = match &loader.opts.config.config_file {
-        Some(config_file) => tspath::get_normalized_absolute_path(config_file.source_file.file_name(), &curr_dir),
+        Some(config_file) => {
+            tspath::get_normalized_absolute_path(config_file.source_file.file_name(), &curr_dir)
+        }
         None => curr_dir.clone(),
     };
     let lookup = |root_file: &String| {
@@ -255,19 +292,32 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
         );
         // The task's path, which `filesParser::start` would otherwise compute from the task's file name on this thread.
         let name = if looked_up.1.is_some() { &abs_path } else { &looked_up.0 };
-        let path = tspath::to_path(name, host.get_current_directory(), host.fs().use_case_sensitive_file_names());
+        let path = tspath::to_path(
+            name,
+            host.get_current_directory(),
+            host.fs().use_case_sensitive_file_names(),
+        );
         (abs_path, looked_up, path)
     };
-    let looked_up: Vec<(String, (String, Option<sourceFileFromReferenceDiagnostic>), Path)> = if single_threaded {
-        root_files.iter().map(lookup).collect()
-    } else {
-        use rayon::prelude::*;
-        crate::program::worker_pool().install(|| root_files.par_iter().map(lookup).collect())
-    };
-    for (index, (abs_path, (resolved_file, diagnostic), path)) in looked_up.into_iter().enumerate() {
+    let looked_up: Vec<(String, (String, Option<sourceFileFromReferenceDiagnostic>), Path)> =
+        if single_threaded {
+            root_files.iter().map(lookup).collect()
+        } else {
+            use rayon::prelude::*;
+            crate::program::worker_pool().install(|| root_files.par_iter().map(lookup).collect())
+        };
+    for (index, (abs_path, (resolved_file, diagnostic), path)) in looked_up.into_iter().enumerate()
+    {
         let mut reason = FileIncludeReason::new(fileIncludeKind::RootFile);
         reason.index = index;
-        loader.add_root_file_task_with(abs_path, resolved_file, diagnostic, None, P::new(reason), path);
+        loader.add_root_file_task_with(
+            abs_path,
+            resolved_file,
+            diagnostic,
+            None,
+            P::new(reason),
+            path,
+        );
     }
     tsrs_core::phases::record("Program: root file lookups", roots_start.elapsed());
     if !root_files.is_empty() && compiler_options.no_lib.is_false_or_unknown() {
@@ -295,9 +345,13 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
     }
 
     let root_tasks = loader.root_tasks.clone();
-    tsrs_core::phases::time("Program: file graph (parse + resolve)", || filesParser::parse(&mut loader, &root_tasks));
+    tsrs_core::phases::time("Program: file graph (parse + resolve)", || {
+        filesParser::parse(&mut loader, &root_tasks);
+    });
 
-    let processed = tsrs_core::phases::time("Program: collect files", || filesParser::get_processed_files(&mut loader));
+    let processed = tsrs_core::phases::time("Program: collect files", || {
+        filesParser::get_processed_files(&mut loader)
+    });
     let resolution_data = loader.resolver.get_resolution_data();
     let module_resolution_error = loader.module_resolution_error.take();
     // tsrs-only: the loader's tasks and maps and the resolver's caches (heap only; nothing the program refers to) are
@@ -311,7 +365,11 @@ pub(crate) fn process_all_program_files(opts: &ProgramOptions, single_threaded: 
 
 impl fileLoader {
     pub(crate) fn to_path(&self, file: &str) -> Path {
-        tspath::to_path(file, self.host.get_current_directory(), self.host.fs().use_case_sensitive_file_names())
+        tspath::to_path(
+            file,
+            self.host.get_current_directory(),
+            self.host.fs().use_case_sensitive_file_names(),
+        )
     }
 
     fn new_task(&mut self, task: parseTask) -> TaskId {
@@ -319,9 +377,17 @@ impl fileLoader {
         self.tasks.len() - 1
     }
 
-    fn add_root_task(&mut self, file_name: &str, lib_file: Option<P<LibFile>>, include_reason: P<FileIncludeReason>) {
-        let abs_path = tspath::get_normalized_absolute_path(file_name, self.host.get_current_directory());
-        if self.opts.config.compiler_options().unwrap().allow_non_ts_extensions.is_true() || tspath::has_extension(&abs_path) {
+    fn add_root_task(
+        &mut self,
+        file_name: &str,
+        lib_file: Option<P<LibFile>>,
+        include_reason: P<FileIncludeReason>,
+    ) {
+        let abs_path =
+            tspath::get_normalized_absolute_path(file_name, self.host.get_current_directory());
+        if self.opts.config.compiler_options().unwrap().allow_non_ts_extensions.is_true()
+            || tspath::has_extension(&abs_path)
+        {
             let mut task = parseTask::new(abs_path);
             task.lib_file = lib_file;
             task.include_reason = Some(include_reason);
@@ -346,12 +412,13 @@ impl fileLoader {
         if let Some(diagnostic) = diagnostic {
             root_task.normalized_file_path = abs_path.into();
             root_task.failed_lookup = true;
-            root_task.data().processing_diagnostics = vec![processingDiagnostic::explaining(includeExplainingDiagnostic {
-                file: None,
-                diagnostic_reason: Some(include_reason),
-                message: diagnostic.message,
-                args: diagnostic.args,
-            })];
+            root_task.data().processing_diagnostics =
+                vec![processingDiagnostic::explaining(includeExplainingDiagnostic {
+                    file: None,
+                    diagnostic_reason: Some(include_reason),
+                    message: diagnostic.message,
+                    args: diagnostic.args,
+                })];
         }
         let id = self.new_task(root_task);
         self.root_tasks.push(id);
@@ -364,7 +431,8 @@ impl fileLoader {
         } else {
             self.host.get_current_directory().to_string()
         };
-        let containing_file_name = tspath::combine_paths(&containing_directory, &[module::INFERRED_TYPES_CONTAINING_FILE]);
+        let containing_file_name =
+            tspath::combine_paths(&containing_directory, &[module::INFERRED_TYPES_CONTAINING_FILE]);
         let mut task = parseTask::new(containing_file_name);
         task.is_for_automatic_type_directive = true;
         let id = self.new_task(task);
@@ -374,24 +442,42 @@ impl fileLoader {
     pub(crate) fn resolve_automatic_type_directives(
         &self,
         containing_file_name: &str,
-    ) -> (Vec<resolvedRef>, ModeAwareCache<P<ResolvedTypeReferenceDirective>>, Vec<DiagAndArgs>, Vec<processingDiagnostic>) {
+    ) -> (
+        Vec<resolvedRef>,
+        ModeAwareCache<P<ResolvedTypeReferenceDirective>>,
+        Vec<DiagAndArgs>,
+        Vec<processingDiagnostic>,
+    ) {
         let mut to_parse = Vec::new();
         let mut type_resolutions_in_file = ModeAwareCache::default();
         let mut type_resolutions_trace = Vec::new();
         let mut p_diagnostics = Vec::new();
-        let automatic_type_directive_names =
-            module::get_automatic_type_directive_names(&self.opts.config.compiler_options().unwrap(), self.project_references.host);
+        let automatic_type_directive_names = module::get_automatic_type_directive_names(
+            &self.opts.config.compiler_options().unwrap(),
+            self.project_references.host,
+        );
         for name in automatic_type_directive_names {
             // Under node16/nodenext module resolution, load `types`/ata include names as cjs resolution results by passing an `undefined` mode.
             // Under bundler module resolution, this also triggers the "import" condition to be used.
             let resolution_mode = ModuleKind::None;
-            let (resolved, trace) = self.resolver.resolve_type_reference_directive(&name, containing_file_name, resolution_mode, None);
-            type_resolutions_in_file.insert(ModeAwareCacheKey { name: alloc_str(&name), mode: resolution_mode }, resolved);
+            let (resolved, trace) = self.resolver.resolve_type_reference_directive(
+                &name,
+                containing_file_name,
+                resolution_mode,
+                None,
+            );
+            type_resolutions_in_file.insert(
+                ModeAwareCacheKey { name: alloc_str(&name), mode: resolution_mode },
+                resolved,
+            );
             type_resolutions_trace.extend(trace);
             if resolved.is_resolved() {
-                let mut reason = FileIncludeReason::new(fileIncludeKind::AutomaticTypeDirectiveFile);
-                reason.automatic_type_directive =
-                    Some(P::new(automaticTypeDirectiveFileData { type_reference: name.clone(), package_id: resolved.package_id }));
+                let mut reason =
+                    FileIncludeReason::new(fileIncludeKind::AutomaticTypeDirectiveFile);
+                reason.automatic_type_directive = Some(P::new(automaticTypeDirectiveFileData {
+                    type_reference: name.clone(),
+                    package_id: resolved.package_id,
+                }));
                 to_parse.push(resolvedRef {
                     file_name: std::borrow::Cow::Borrowed(resolved.resolved_file_name),
                     increase_depth: resolved.is_external_library_import,
@@ -400,9 +486,12 @@ impl fileLoader {
                     package_id: resolved.package_id,
                 });
             } else {
-                let mut reason = FileIncludeReason::new(fileIncludeKind::AutomaticTypeDirectiveFile);
-                reason.automatic_type_directive =
-                    Some(P::new(automaticTypeDirectiveFileData { type_reference: name.clone(), package_id: tsrs_module::PackageId::default() }));
+                let mut reason =
+                    FileIncludeReason::new(fileIncludeKind::AutomaticTypeDirectiveFile);
+                reason.automatic_type_directive = Some(P::new(automaticTypeDirectiveFileData {
+                    type_reference: name.clone(),
+                    package_id: tsrs_module::PackageId::default(),
+                }));
                 p_diagnostics.push(processingDiagnostic::explaining(includeExplainingDiagnostic {
                     file: None,
                     diagnostic_reason: Some(P::new(reason)),
@@ -420,7 +509,8 @@ impl fileLoader {
 
     fn get_default_lib_file_priority(&self, a: P<SourceFile>) -> usize {
         // defaultLibraryPath and a.FileName() are absolute and normalized; a prefix check should suffice.
-        let default_library_path = tspath::remove_trailing_directory_separator(&self.default_library_path);
+        let default_library_path =
+            tspath::remove_trailing_directory_separator(&self.default_library_path);
         let a_file_name = a.file_name();
 
         if a_file_name.starts_with(default_library_path)
@@ -447,13 +537,21 @@ impl fileLoader {
 
     pub(crate) fn parse_options_for_task(&self, t: TaskId) -> SourceFileParseOptions {
         let task = &self.tasks[t];
-        parse_options_for(&*self.host, &self.project_references, &task.normalized_file_path, &task.path, &task.metadata())
+        parse_options_for(
+            &*self.host,
+            &self.project_references,
+            &task.normalized_file_path,
+            &task.path,
+            &task.metadata(),
+        )
     }
 
     // fileloader.go:415
     pub(crate) fn parse_source_file(&self, t: TaskId) -> Option<P<SourceFile>> {
         let is_root = self.tasks[t].include_reason.is_some_and(|r| r.is_root_file());
-        crate::fileregions::parse_task(is_root, || self.source_file_parser().parse_source_file(self.parse_options_for_task(t)))
+        crate::fileregions::parse_task(is_root, || {
+            self.source_file_parser().parse_source_file(self.parse_options_for_task(t))
+        })
     }
 
     pub(crate) fn source_file_parser(&self) -> sourceFileParser<'_> {
@@ -479,8 +577,14 @@ pub(crate) struct sourceFileParser<'a> {
 
 impl sourceFileParser<'_> {
     // fileloader.go:415, from where the parse options are known.
-    pub(crate) fn parse_source_file(&self, parse_options: SourceFileParseOptions) -> Option<P<SourceFile>> {
-        if tspath::file_extension_is_one_of(&parse_options.file_name, &str_slice(self.content_mapper_extensions)) {
+    pub(crate) fn parse_source_file(
+        &self,
+        parse_options: SourceFileParseOptions,
+    ) -> Option<P<SourceFile>> {
+        if tspath::file_extension_is_one_of(
+            &parse_options.file_name,
+            &str_slice(self.content_mapper_extensions),
+        ) {
             return self.parse_content_mapped_file(parse_options);
         }
         self.host.get_source_file(parse_options)
@@ -497,24 +601,34 @@ impl sourceFileParser<'_> {
     // fileloader.go:443
     fn parse_content_mapped_file(&self, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
         // A reference into the command line's `content_mappers()`, which the host and the bookkeeping key by address.
-        let mapper: &'static Mapper = self.opts.config.get().get_content_mapper_for_file_name(&opts.file_name).unwrap();
+        let mapper: &'static Mapper =
+            self.opts.config.get().get_content_mapper_for_file_name(&opts.file_name).unwrap();
         let label = mapper.diagnostic_name();
         let transform_identity = self.get_content_mapper_transform_identity(mapper);
         if self.content_mapper_unavailable(Some(mapper)) {
             // The mapper failed initialization or exceeded its failure budget; add the file empty without re-reporting.
-            return Some(self.empty_content_mapped_file(opts, &mapper.identity(), &transform_identity));
+            return Some(self.empty_content_mapped_file(
+                opts,
+                &mapper.identity(),
+                &transform_identity,
+            ));
         }
         match self.host.get_content_mapped_source_files(opts.clone(), mapper) {
             Err(err) => {
-                let source_file = self.empty_content_mapped_file(opts, &mapper.identity(), &transform_identity);
+                let source_file =
+                    self.empty_content_mapped_file(opts, &mapper.identity(), &transform_identity);
                 // Go passes `transformError`, which is `err` itself: only a TransformError wraps another error.
-                if err.as_transform_error().is_some_and(|transform_error| transform_error.kind == TransformErrorKind::Initialize) {
+                if err.as_transform_error().is_some_and(|transform_error| {
+                    transform_error.kind == TransformErrorKind::Initialize
+                }) {
                     self.record_content_mapper_initialization_failure(mapper, label, &err);
                     return Some(source_file);
                 }
                 if self.record_content_mapper_failure(mapper, label) {
                     let diagnostic = match err.as_mapping_error() {
-                        Some(problem) => content_mapper_mapping_diagnostic(source_file, label, problem),
+                        Some(problem) => {
+                            content_mapper_mapping_diagnostic(source_file, label, problem)
+                        }
                         None => content_mapper_transform_diagnostic(source_file, label, &err),
                     };
                     let mut diagnostics = source_file.diagnostics().to_vec();
@@ -529,7 +643,11 @@ impl sourceFileParser<'_> {
 }
 
 // fileloader.go:478
-fn content_mapper_transform_diagnostic(file: P<SourceFile>, label: &str, err: &contentmapper::Error) -> P<Diagnostic> {
+fn content_mapper_transform_diagnostic(
+    file: P<SourceFile>,
+    label: &str,
+    err: &contentmapper::Error,
+) -> P<Diagnostic> {
     if let Some(collision) = err.as_supplemental_file_collision_error() {
         return content_mapper_transform_diagnostic_chain(
             file,
@@ -567,10 +685,20 @@ fn content_mapper_transform_diagnostic(file: P<SourceFile>, label: &str, err: &c
                         _ => {}
                     }
                 }
-                return content_mapper_transform_diagnostic_chain(file, label, &diagnostics::The_content_mapper_process_could_not_be_started_or_initialized, &[]);
+                return content_mapper_transform_diagnostic_chain(
+                    file,
+                    label,
+                    &diagnostics::The_content_mapper_process_could_not_be_started_or_initialized,
+                    &[],
+                );
             }
             TransformErrorKind::Project => {
-                return content_mapper_transform_diagnostic_chain(file, label, content_mapper_project_error_diagnostic(err), &[]);
+                return content_mapper_transform_diagnostic_chain(
+                    file,
+                    label,
+                    content_mapper_project_error_diagnostic(err),
+                    &[],
+                );
             }
             TransformErrorKind::Request => {
                 return content_mapper_transform_diagnostic_chain(
@@ -621,7 +749,12 @@ fn content_mapper_transform_diagnostic(file: P<SourceFile>, label: &str, err: &c
                     }
                     return content_mapper_transform_diagnostic_with_detail(file, label, detail);
                 }
-                return content_mapper_transform_diagnostic_chain(file, label, &diagnostics::The_content_mapper_returned_an_invalid_transform_response, &[]);
+                return content_mapper_transform_diagnostic_chain(
+                    file,
+                    label,
+                    &diagnostics::The_content_mapper_returned_an_invalid_transform_response,
+                    &[],
+                );
             }
             TransformErrorKind::Mappings => {
                 return new_diagnostic(
@@ -634,7 +767,12 @@ fn content_mapper_transform_diagnostic(file: P<SourceFile>, label: &str, err: &c
             TransformErrorKind::Unknown => {}
         }
     }
-    new_diagnostic(Some(file), TextRange::new(0, 0), &diagnostics::The_content_mapper_0_failed_to_transform_this_file, &[&label])
+    new_diagnostic(
+        Some(file),
+        TextRange::new(0, 0),
+        &diagnostics::The_content_mapper_0_failed_to_transform_this_file,
+        &[&label],
+    )
 }
 
 // ContentMapperProjectErrorDiagnostic returns the localized diagnostic message for a project setup error.
@@ -663,19 +801,42 @@ pub fn content_mapper_project_error_diagnostic(err: &contentmapper::Error) -> &'
 }
 
 // fileloader.go:554
-fn content_mapper_transform_diagnostic_chain(file: P<SourceFile>, label: &str, message: &'static Message, args: &[&dyn std::fmt::Display]) -> P<Diagnostic> {
-    content_mapper_transform_diagnostic_with_detail(file, label, new_compiler_diagnostic(message, args))
+fn content_mapper_transform_diagnostic_chain(
+    file: P<SourceFile>,
+    label: &str,
+    message: &'static Message,
+    args: &[&dyn std::fmt::Display],
+) -> P<Diagnostic> {
+    content_mapper_transform_diagnostic_with_detail(
+        file,
+        label,
+        new_compiler_diagnostic(message, args),
+    )
 }
 
 // fileloader.go:558
-fn content_mapper_transform_diagnostic_with_detail(file: P<SourceFile>, label: &str, detail: P<Diagnostic>) -> P<Diagnostic> {
-    new_diagnostic(Some(file), TextRange::new(0, 0), &diagnostics::The_content_mapper_0_failed_to_transform_this_file, &[&label]).add_message_chain(detail)
+fn content_mapper_transform_diagnostic_with_detail(
+    file: P<SourceFile>,
+    label: &str,
+    detail: P<Diagnostic>,
+) -> P<Diagnostic> {
+    new_diagnostic(
+        Some(file),
+        TextRange::new(0, 0),
+        &diagnostics::The_content_mapper_0_failed_to_transform_this_file,
+        &[&label],
+    )
+    .add_message_chain(detail)
 }
 
 // contentMapperMappingDiagnostic builds the diagnostic reported against a mapper that produced an
 // invalid span map, including the offsets involved so the mapper's author can locate the problem.
 // fileloader.go:569
-fn content_mapper_mapping_diagnostic(file: P<SourceFile>, label: &str, problem: &tsrs_spanmap::MappingError) -> P<Diagnostic> {
+fn content_mapper_mapping_diagnostic(
+    file: P<SourceFile>,
+    label: &str,
+    problem: &tsrs_spanmap::MappingError,
+) -> P<Diagnostic> {
     let loc = TextRange::new(0, 0);
     match problem.kind {
         MappingErrorKind::Overlap => new_diagnostic(
@@ -722,7 +883,10 @@ impl sourceFileParser<'_> {
                 return identity;
             }
         }
-        format!("{:032x}", mapper.transform_identity(self.opts.config.compiler_options().as_deref()))
+        format!(
+            "{:032x}",
+            mapper.transform_identity(self.opts.config.compiler_options().as_deref())
+        )
     }
 
     // fileloader.go:599
@@ -730,7 +894,12 @@ impl sourceFileParser<'_> {
     // transform could not be used, retaining the original content for diagnostics. Importers see it as an
     // empty module rather than triggering a "cannot find module" error. It is still marked as content-mapped
     // so it is excluded from emit like a successfully mapped file.
-    fn empty_content_mapped_file(&self, opts: SourceFileParseOptions, mapper_identity: &str, transform_identity: &str) -> P<SourceFile> {
+    fn empty_content_mapped_file(
+        &self,
+        opts: SourceFileParseOptions,
+        mapper_identity: &str,
+        transform_identity: &str,
+    ) -> P<SourceFile> {
         let content = self.host.fs().read_file(&opts.file_name).unwrap_or_default();
         let virtual_file_name = alloc_str(&format!("{}{}", opts.file_name, tspath::EXTENSION_TS));
         let source_file = tsrs_parser::parse_source_file(opts.clone(), "", ScriptKind::TS);
@@ -748,14 +917,20 @@ impl sourceFileParser<'_> {
 
 // ContentMapperInitializationDiagnostic returns a fileless diagnostic for a mapper initialization failure.
 // fileloader.go:613
-pub fn content_mapper_initialization_diagnostic(label: &str, err: &contentmapper::Error) -> P<Diagnostic> {
+pub fn content_mapper_initialization_diagnostic(
+    label: &str,
+    err: &contentmapper::Error,
+) -> P<Diagnostic> {
     let mut label = label;
     if let Some(initialize_error) = err.as_initialize_error() {
         if label.is_empty() {
             label = &initialize_error.mapper_name;
         }
     }
-    let diagnostic = new_compiler_diagnostic(&diagnostics::The_content_mapper_0_could_not_be_initialized, &[&label]);
+    let diagnostic = new_compiler_diagnostic(
+        &diagnostics::The_content_mapper_0_could_not_be_initialized,
+        &[&label],
+    );
     if let Some(initialize_error) = err.as_initialize_error() {
         let detail = match initialize_error.kind {
             InitializeErrorKind::ProcessStart => new_compiler_diagnostic(
@@ -791,7 +966,10 @@ pub fn content_mapper_initialization_diagnostic(label: &str, err: &contentmapper
         };
         return diagnostic.add_message_chain(detail);
     }
-    diagnostic.add_message_chain(new_compiler_diagnostic(&diagnostics::The_content_mapper_process_could_not_be_started_or_initialized, &[]))
+    diagnostic.add_message_chain(new_compiler_diagnostic(
+        &diagnostics::The_content_mapper_process_could_not_be_started_or_initialized,
+        &[],
+    ))
 }
 
 // ContentMapperProjectDiagnostic returns a fileless diagnostic for project setup or mapper initialization.
@@ -812,11 +990,17 @@ impl sourceFileParser<'_> {
         };
         let state = self.content_mapper_mu.lock().unwrap();
         state.content_mapper_init_failed.contains(&mapper_key(mapper))
-            || state.content_mapper_failures.get(&mapper_key(mapper)).copied().unwrap_or(0) >= MAX_CONTENT_MAPPER_FAILURES
+            || state.content_mapper_failures.get(&mapper_key(mapper)).copied().unwrap_or(0)
+                >= MAX_CONTENT_MAPPER_FAILURES
     }
 
     // fileloader.go:659
-    fn record_content_mapper_initialization_failure(&self, mapper: &Mapper, label: &str, err: &contentmapper::Error) {
+    fn record_content_mapper_initialization_failure(
+        &self,
+        mapper: &Mapper,
+        label: &str,
+        err: &contentmapper::Error,
+    ) {
         let mut state = self.content_mapper_mu.lock().unwrap();
         if state.content_mapper_init_failed.contains(&mapper_key(mapper)) {
             return;
@@ -864,7 +1048,8 @@ pub(crate) fn source_file_meta_data(
         .get()
         .new_resolver(project_references.host)
         .get_package_scope_for_path(&tspath::get_directory_path(file_name));
-    let module_resolution_kind = opts.config.compiler_options().unwrap().get_module_resolution_kind();
+    let module_resolution_kind =
+        opts.config.compiler_options().unwrap().get_module_resolution_kind();
 
     let mut package_json_type = String::new();
     let mut package_json_directory = String::new();
@@ -873,7 +1058,12 @@ pub(crate) fn source_file_meta_data(
         if let Some(value) = scope.contents.unwrap().fields.type_.get_value() {
             if !tspath::file_extension_is_one_of(
                 file_name,
-                &[tspath::EXTENSION_MTS, tspath::EXTENSION_CTS, tspath::EXTENSION_MJS, tspath::EXTENSION_CJS],
+                &[
+                    tspath::EXTENSION_MTS,
+                    tspath::EXTENSION_CTS,
+                    tspath::EXTENSION_MJS,
+                    tspath::EXTENSION_CJS,
+                ],
             ) && ModuleResolutionKind::Node16 <= module_resolution_kind
                 && module_resolution_kind <= ModuleResolutionKind::NodeNext
                 || file_name.contains("/node_modules/")
@@ -897,7 +1087,11 @@ pub(crate) fn parse_options_for(
     metadata: &SourceFileMetaData,
 ) -> SourceFileParseOptions {
     let path = if path.is_empty() {
-        tspath::to_path(normalized_file_path, host.get_current_directory(), host.fs().use_case_sensitive_file_names())
+        tspath::to_path(
+            normalized_file_path,
+            host.get_current_directory(),
+            host.fs().use_case_sensitive_file_names(),
+        )
     } else {
         path.clone()
     };
@@ -905,7 +1099,11 @@ pub(crate) fn parse_options_for(
     SourceFileParseOptions {
         file_name: normalized_file_path.to_string(),
         path,
-        external_module_indicator_options: ast::get_external_module_indicator_options(normalized_file_path, &options, metadata),
+        external_module_indicator_options: ast::get_external_module_indicator_options(
+            normalized_file_path,
+            &options,
+            metadata,
+        ),
     }
 }
 
@@ -978,7 +1176,8 @@ impl fileLoader {
             resolver: &*self.resolver,
             project_references: &self.project_references,
             supported_extensions: &self.supported_extensions,
-            supported_extensions_with_json: &self.supported_extensions_with_json_if_resolve_json_module,
+            supported_extensions_with_json: &self
+                .supported_extensions_with_json_if_resolve_json_module,
             content_mapper_extensions: &self.content_mapper_extensions,
             content_mapper_mu: &self.content_mapper_mu,
             task_data_by_path: &self.files_parser.task_data_by_path,
@@ -1026,19 +1225,35 @@ fn tripleslash_reference_lookup(
     (normalized_file_name, looked_up)
 }
 
-pub(crate) fn prefetch_resolutions(ctx: &prefetchContext, file: P<SourceFile>, meta: &SourceFileMetaData) -> prefetchedResolutions {
+pub(crate) fn prefetch_resolutions(
+    ctx: &prefetchContext,
+    file: P<SourceFile>,
+    meta: &SourceFileMetaData,
+) -> prefetchedResolutions {
     let (opts, resolver, project_references) = (ctx.opts, ctx.resolver, ctx.project_references);
     let compiler_options = opts.config.compiler_options().unwrap();
-    let (redirect, file_name) = project_references.get_redirect_for_resolution(file.file_name(), file.path());
+    let (redirect, file_name) =
+        project_references.get_redirect_for_resolution(file.file_name(), file.path());
     let redirect = redirect.map(crate::projectreferencefilemapper::as_resolved_project_reference);
     let options_for_file = module::get_compiler_options_with_redirect(compiler_options, redirect);
     let mut referenced_files = Vec::new();
     let mut type_references = Vec::new();
     if !compiler_options.no_resolve.is_true() && !opts.skip_module_resolution {
-        referenced_files.extend(file.referenced_files.get().iter().map(|ref_| tripleslash_reference_lookup(ctx, &ref_.file_name, file.file_name()).1));
+        referenced_files.extend(
+            file.referenced_files
+                .get()
+                .iter()
+                .map(|ref_| tripleslash_reference_lookup(ctx, &ref_.file_name, file.file_name()).1),
+        );
         type_references.extend(file.type_reference_directives.get().iter().map(|ref_| {
-            let resolution_mode = get_mode_for_type_reference_directive_in_file(*ref_, file, meta, &options_for_file);
-            resolver.resolve_type_reference_directive(&ref_.file_name, &file_name, resolution_mode, redirect)
+            let resolution_mode =
+                get_mode_for_type_reference_directive_in_file(*ref_, file, meta, &options_for_file);
+            resolver.resolve_type_reference_directive(
+                &ref_.file_name,
+                &file_name,
+                resolution_mode,
+                redirect,
+            )
         }));
     }
     let mut imports = Vec::new();
@@ -1046,14 +1261,22 @@ pub(crate) fn prefetch_resolutions(ctx: &prefetchContext, file: P<SourceFile>, m
     let mut reason_path: Option<&'static str> = None;
     if !opts.skip_module_resolution {
         let imports_of_file = file.imports();
-        let augmentations = file.module_augmentations.get().iter().copied().filter(|imp| imp.kind() == Kind::StringLiteral);
-        for (import_index, entry) in imports_of_file.iter().copied().chain(augmentations).enumerate() {
+        let augmentations = file
+            .module_augmentations
+            .get()
+            .iter()
+            .copied()
+            .filter(|imp| imp.kind() == Kind::StringLiteral);
+        for (import_index, entry) in
+            imports_of_file.iter().copied().chain(augmentations).enumerate()
+        {
             let module_name = entry.text();
             if module_name.is_empty() {
                 imports.push(None);
                 continue;
             }
-            let mode = get_mode_for_usage_location(file.file_name(), meta, entry, Some(&options_for_file));
+            let mode =
+                get_mode_for_usage_location(file.file_name(), meta, entry, Some(&options_for_file));
             let resolution = resolver.resolve_module_name(module_name, &file_name, mode, redirect);
             // As resolve_imports_and_module_augmentations inserts them, in the same order (a failed resolution gets a
             // default module).
@@ -1061,7 +1284,8 @@ pub(crate) fn prefetch_resolutions(ctx: &prefetchContext, file: P<SourceFile>, m
                 Ok((resolved, _)) => *resolved,
                 Err(_) => P::new(ResolvedModule::default()),
             };
-            resolutions_in_file.insert(ModeAwareCacheKey { name: alloc_str(module_name), mode }, resolved_module);
+            resolutions_in_file
+                .insert(ModeAwareCacheKey { name: alloc_str(module_name), mode }, resolved_module);
             let mut prepared = None;
             if let Ok((resolved, _)) = &resolution {
                 if resolved.is_resolved() {
@@ -1095,7 +1319,13 @@ pub(crate) fn prefetch_resolutions(ctx: &prefetchContext, file: P<SourceFile>, m
             imports.push(Some(prefetchedImport { resolution, mode, prepared }));
         }
     }
-    prefetchedResolutions { referenced_files, imports, type_references, reason_path, resolutions_in_file }
+    prefetchedResolutions {
+        referenced_files,
+        imports,
+        type_references,
+        reason_path,
+        resolutions_in_file,
+    }
 }
 
 // The sub task for a resolved import (what `add_sub_task_normalized` builds), from the tasks known before the round.
@@ -1106,14 +1336,21 @@ fn prepare_sub_task(
     elide_on_depth: bool,
 ) -> preparedSubTask {
     let normalized_file_path = tspath::normalize_path(resolved.resolved_file_name);
-    let mut path = tspath::to_path(&normalized_file_path, ctx.host.get_current_directory(), ctx.host.fs().use_case_sensitive_file_names());
+    let mut path = tspath::to_path(
+        &normalized_file_path,
+        ctx.host.get_current_directory(),
+        ctx.host.fs().use_case_sensitive_file_names(),
+    );
     // A reference to a file that already has a task shares that task's strings (one copy per file name, as Go's
     // strings are shared); the values are equal either way.
     let mut shared_name: Option<Arc<str>> = None;
     let mut data_id = crate::filesparser::NO_DATA;
     if let Some((known_path, &data)) = ctx.task_data_by_path.get_key_value(&path) {
         path = known_path.clone();
-        shared_name = ctx.datas[data].tasks.get_key_value(&normalized_file_path).map(|(name, _)| Arc::clone(name));
+        shared_name = ctx.datas[data]
+            .tasks
+            .get_key_value(&normalized_file_path)
+            .map(|(name, _)| Arc::clone(name));
         data_id = data as u32;
     }
     preparedSubTask {
@@ -1129,7 +1366,10 @@ fn prepare_sub_task(
 
 impl fileLoader {
     pub(crate) fn is_supported_extension(&self, canonical_file_name: &str) -> bool {
-        is_supported_extension(&self.supported_extensions_with_json_if_resolve_json_module, canonical_file_name)
+        is_supported_extension(
+            &self.supported_extensions_with_json_if_resolve_json_module,
+            canonical_file_name,
+        )
     }
 
     // `prefetched` is the lookup computed ahead by the prefetch (tripleslash_reference_lookup), if any.
@@ -1140,8 +1380,7 @@ impl fileLoader {
         index: usize,
         prefetched: Option<(String, Option<sourceFileFromReferenceDiagnostic>)>,
     ) -> Result<resolvedRef, processingDiagnostic> {
-        let include_reason =
-            FileIncludeReason::new_referenced(
+        let include_reason = FileIncludeReason::new_referenced(
             fileIncludeKind::ReferenceFile,
             tsrs_core::alloc_str(self.to_path(containing_file).as_str()),
             Some(index),
@@ -1150,7 +1389,10 @@ impl fileLoader {
 
         let (resolved_file_name, diagnostic) = match prefetched {
             Some(looked_up) => looked_up,
-            None => tripleslash_reference_lookup(&self.prefetch_context(), module_name, containing_file).1,
+            None => {
+                tripleslash_reference_lookup(&self.prefetch_context(), module_name, containing_file)
+                    .1
+            }
         };
         if let Some(diagnostic) = diagnostic {
             return Err(processingDiagnostic::explaining(includeExplainingDiagnostic {
@@ -1178,29 +1420,41 @@ impl fileLoader {
         }
         let meta = self.tasks[t].metadata();
         let task_path = self.tasks[t].reason_path();
-        let mut prefetched =
-            self.tasks[t].data().prefetched_resolutions.as_mut().map(|p| std::mem::take(&mut p.type_references).into_iter());
+        let mut prefetched = self.tasks[t]
+            .data()
+            .prefetched_resolutions
+            .as_mut()
+            .map(|p| std::mem::take(&mut p.type_references).into_iter());
 
         let mut type_resolutions_in_file = ModeAwareCache::default();
         let mut type_resolutions_trace = Vec::new();
         for (index, ref_) in type_reference_directives.iter().enumerate() {
-            let (redirect, file_name) = self.project_references.get_redirect_for_resolution(file.file_name(), file.path());
-            let redirect = redirect.map(crate::projectreferencefilemapper::as_resolved_project_reference);
+            let (redirect, file_name) =
+                self.project_references.get_redirect_for_resolution(file.file_name(), file.path());
+            let redirect =
+                redirect.map(crate::projectreferencefilemapper::as_resolved_project_reference);
             let resolution_mode = get_mode_for_type_reference_directive_in_file(
                 *ref_,
                 file,
                 &meta,
-                &module::get_compiler_options_with_redirect(self.opts.config.compiler_options().unwrap(), redirect),
+                &module::get_compiler_options_with_redirect(
+                    self.opts.config.compiler_options().unwrap(),
+                    redirect,
+                ),
             );
             let (resolved, trace) = match prefetched.as_mut() {
-                Some(prefetched) => prefetched.next().expect("prefetched type reference resolution"),
-                None => self.resolver.resolve_type_reference_directive(&ref_.file_name, &file_name, resolution_mode, redirect),
+                Some(prefetched) => {
+                    prefetched.next().expect("prefetched type reference resolution")
+                }
+                None => self.resolver.resolve_type_reference_directive(
+                    &ref_.file_name,
+                    &file_name,
+                    resolution_mode,
+                    redirect,
+                ),
             };
             type_resolutions_in_file.insert(
-                ModeAwareCacheKey {
-                    name: alloc_str(&ref_.file_name),
-                    mode: resolution_mode,
-                },
+                ModeAwareCacheKey { name: alloc_str(&ref_.file_name), mode: resolution_mode },
                 resolved,
             );
             let include_reason = FileIncludeReason::new_referenced(
@@ -1224,7 +1478,10 @@ impl fileLoader {
                     None,
                 );
             } else {
-                self.tasks[t].data().processing_diagnostics.push(processingDiagnostic::unknown_reference(include_reason));
+                self.tasks[t]
+                    .data()
+                    .processing_diagnostics
+                    .push(processingDiagnostic::unknown_reference(include_reason));
             }
         }
 
@@ -1237,29 +1494,45 @@ impl fileLoader {
         let file = self.tasks[t].file.unwrap();
 
         let imports = file.imports();
-        let mut module_names: Vec<P<Node>> = Vec::with_capacity(imports.len() + file.module_augmentations.get().len() + 2);
+        let mut module_names: Vec<P<Node>> =
+            Vec::with_capacity(imports.len() + file.module_augmentations.get().len() + 2);
 
         let is_java_script_file = ast::is_source_file_js(file);
         let is_external_module_file = ast::is_external_module(file);
 
-        let (redirect, file_name) = self.project_references.get_redirect_for_resolution(file.file_name(), file.path());
-        let redirect = redirect.map(crate::projectreferencefilemapper::as_resolved_project_reference);
-        let options_for_file = module::get_compiler_options_with_redirect(self.opts.config.compiler_options().unwrap(), redirect);
-        if is_java_script_file || (!file.is_declaration_file.get() && (options_for_file.get_isolated_modules() || is_external_module_file)) {
+        let (redirect, file_name) =
+            self.project_references.get_redirect_for_resolution(file.file_name(), file.path());
+        let redirect =
+            redirect.map(crate::projectreferencefilemapper::as_resolved_project_reference);
+        let options_for_file = module::get_compiler_options_with_redirect(
+            self.opts.config.compiler_options().unwrap(),
+            redirect,
+        );
+        if is_java_script_file
+            || (!file.is_declaration_file.get()
+                && (options_for_file.get_isolated_modules() || is_external_module_file))
+        {
             if options_for_file.import_helpers.is_true() {
-                let specifier = self.create_synthetic_import(EXTERNAL_HELPERS_MODULE_NAME_TEXT, file);
+                let specifier =
+                    self.create_synthetic_import(EXTERNAL_HELPERS_MODULE_NAME_TEXT, file);
                 module_names.push(specifier);
                 self.tasks[t].data().import_helpers_import_specifier = Some(specifier);
             }
         }
 
         if is_java_script_file || file.script_kind.get() == tsrs_core::ScriptKind::TSX {
-            let jsx_import = ast::get_jsx_runtime_import(&ast::get_jsx_implicit_import_base(&options_for_file, Some(file)), &options_for_file);
+            let jsx_import = ast::get_jsx_runtime_import(
+                &ast::get_jsx_implicit_import_base(&options_for_file, Some(file)),
+                &options_for_file,
+            );
             if !jsx_import.is_empty() {
                 let specifier = self.create_synthetic_import(&jsx_import, file);
                 module_names.push(specifier);
                 self.tasks[t].data().jsx_runtime_import_specifier =
-                    Some(P::new(jsxRuntimeImportSpecifier { module_reference: jsx_import, specifier }));
+                    Some(P::new(jsxRuntimeImportSpecifier {
+                        module_reference: jsx_import,
+                        specifier,
+                    }));
             }
         }
 
@@ -1276,7 +1549,8 @@ impl fileLoader {
         }
 
         if !module_names.is_empty() {
-            let mut resolutions_in_file: ModeAwareCache<P<ResolvedModule>> = ModeAwareCache::default();
+            let mut resolutions_in_file: ModeAwareCache<P<ResolvedModule>> =
+                ModeAwareCache::default();
             let mut resolutions_trace = Vec::new();
             let prefetched = self.tasks[t].data().prefetched_resolutions.take();
             if imports_start == 0 {
@@ -1306,7 +1580,11 @@ impl fileLoader {
             }
             let mut prefetched = prefetched.map(|p| p.imports);
             // The metadata (two strings, cloned) only serves resolution modes the prefetch did not compute.
-            let meta = if prefetched.is_none() || imports_start > 0 { Some(self.tasks[t].metadata()) } else { None };
+            let meta = if prefetched.is_none() || imports_start > 0 {
+                Some(self.tasks[t].metadata())
+            } else {
+                None
+            };
 
             for (index, &entry) in module_names.iter().enumerate() {
                 let prefetched_resolution = match prefetched.as_mut() {
@@ -1320,9 +1598,20 @@ impl fileLoader {
                     continue;
                 }
 
-                let (resolution, mode, prepared) = if let Some(prefetched) = prefetched_resolution { (prefetched.resolution, prefetched.mode, Some(prefetched.prepared)) } else {
-                    let mode = get_mode_for_usage_location(file.file_name(), meta.as_ref().expect("metadata"), entry, Some(&options_for_file));
-                    (self.resolver.resolve_module_name(module_name, &file_name, mode, redirect), mode, None)
+                let (resolution, mode, prepared) = if let Some(prefetched) = prefetched_resolution {
+                    (prefetched.resolution, prefetched.mode, Some(prefetched.prepared))
+                } else {
+                    let mode = get_mode_for_usage_location(
+                        file.file_name(),
+                        meta.as_ref().expect("metadata"),
+                        entry,
+                        Some(&options_for_file),
+                    );
+                    (
+                        self.resolver.resolve_module_name(module_name, &file_name, mode, redirect),
+                        mode,
+                        None,
+                    )
                 };
                 let (resolved_module, trace) = match resolution {
                     Ok((resolved_module, trace)) => (resolved_module, trace),
@@ -1333,7 +1622,10 @@ impl fileLoader {
                         (P::new(ResolvedModule::default()), Vec::new())
                     }
                 };
-                resolutions_in_file.insert(ModeAwareCacheKey { name: alloc_str(module_name), mode }, resolved_module);
+                resolutions_in_file.insert(
+                    ModeAwareCacheKey { name: alloc_str(module_name), mode },
+                    resolved_module,
+                );
                 resolutions_trace.extend(trace);
 
                 if !resolved_module.is_resolved() {
@@ -1344,18 +1636,21 @@ impl fileLoader {
                 let import_index = index.checked_sub(imports_start);
                 let Some(prepared) = prepared else {
                     // Not prefetched (`--traceResolution`, a single file, or a synthetic import).
-                    let (should_add_file, is_js_file_from_node_modules) =
-                        resolved_import_sub_task(&self.project_references, &*self.host, &options_for_file, file, module_name, import_index, &resolved_module);
+                    let (should_add_file, is_js_file_from_node_modules) = resolved_import_sub_task(
+                        &self.project_references,
+                        &*self.host,
+                        &options_for_file,
+                        file,
+                        module_name,
+                        import_index,
+                        &resolved_module,
+                    );
                     if should_add_file {
                         let include_reason = FileIncludeReason::new_referenced(
                             fileIncludeKind::Import,
                             self.tasks[t].reason_path(),
                             import_index,
-                            if import_index.is_none() {
-                                Some(entry)
-                            } else {
-                                None
-                            },
+                            if import_index.is_none() { Some(entry) } else { None },
                         );
                         self.add_sub_task_normalized(
                             t,
@@ -1384,8 +1679,14 @@ impl fileLoader {
     }
 
     fn create_synthetic_import(&self, text: &str, file: P<SourceFile>) -> P<Node> {
-        let external_helpers_module_reference = self.factory.new_string_literal(tsrs_core::alloc_str(text), TokenFlags::None);
-        let import_decl = self.factory.new_import_declaration(None, None, external_helpers_module_reference, None);
+        let external_helpers_module_reference =
+            self.factory.new_string_literal(tsrs_core::alloc_str(text), TokenFlags::None);
+        let import_decl = self.factory.new_import_declaration(
+            None,
+            None,
+            external_helpers_module_reference,
+            None,
+        );
         external_helpers_module_reference.set_parent(Some(import_decl));
         import_decl.set_parent(Some(file.as_node()));
         external_helpers_module_reference
@@ -1398,25 +1699,44 @@ impl fileLoader {
 
         let mut path = tspath::combine_paths(&self.default_library_path, &[name]);
         let mut replaced = false;
-        if !self.opts.skip_module_resolution && self.opts.config.compiler_options().unwrap().lib_replacement.is_true() && name != "lib.d.ts" {
+        if !self.opts.skip_module_resolution
+            && self.opts.config.compiler_options().unwrap().lib_replacement.is_true()
+            && name != "lib.d.ts"
+        {
             let library_name = get_library_name_from_lib_file_name(name);
-            let resolve_from =
-                get_inferred_library_name_resolve_from(&self.opts.config.compiler_options().unwrap(), self.host.get_current_directory(), name);
+            let resolve_from = get_inferred_library_name_resolve_from(
+                &self.opts.config.compiler_options().unwrap(),
+                self.host.get_current_directory(),
+                name,
+            );
             let (resolution, trace) = self.resolve_library(&library_name, &resolve_from);
             if let Some(resolution) = resolution.filter(|r| r.is_resolved()) {
                 path = resolution.resolved_file_name.to_string();
                 replaced = true;
             }
             let key = self.to_path(&resolve_from);
-            self.path_for_lib_file_resolutions.entry(key).or_insert(libResolution { library_name, resolution, trace });
+            self.path_for_lib_file_resolutions.entry(key).or_insert(libResolution {
+                library_name,
+                resolution,
+                trace,
+            });
         }
 
         let lib_file = P::new(LibFile { name: name.to_string(), path, replaced });
         *self.path_for_lib_file_cache.entry(name.to_string()).or_insert(lib_file)
     }
 
-    fn resolve_library(&mut self, library_name: &str, resolve_from: &str) -> (Option<P<ResolvedModule>>, Vec<DiagAndArgs>) {
-        match self.resolver.resolve_module_name(library_name, resolve_from, ModuleKind::CommonJS, None) {
+    fn resolve_library(
+        &mut self,
+        library_name: &str,
+        resolve_from: &str,
+    ) -> (Option<P<ResolvedModule>>, Vec<DiagAndArgs>) {
+        match self.resolver.resolve_module_name(
+            library_name,
+            resolve_from,
+            ModuleKind::CommonJS,
+            None,
+        ) {
             Ok((resolved, trace)) => (Some(resolved), trace),
             Err(err) => {
                 if self.module_resolution_error.is_none() {
@@ -1427,7 +1747,12 @@ impl fileLoader {
         }
     }
 
-    pub(crate) fn add_sub_task(&mut self, t: TaskId, ref_: &resolvedRef, lib_file: Option<P<LibFile>>) {
+    pub(crate) fn add_sub_task(
+        &mut self,
+        t: TaskId,
+        ref_: &resolvedRef,
+        lib_file: Option<P<LibFile>>,
+    ) {
         self.add_sub_task_normalized(t, ref_, lib_file, None);
     }
 
@@ -1437,9 +1762,14 @@ impl fileLoader {
         let mut sub_task = parseTask::with_path(prepared.normalized_file_path, prepared.path);
         sub_task.data_id = prepared.data_id;
         if sub_task.data_id == crate::filesparser::NO_DATA {
-            if let Some((known_path, &data)) = self.files_parser.task_data_by_path.get_key_value(&sub_task.path) {
+            if let Some((known_path, &data)) =
+                self.files_parser.task_data_by_path.get_key_value(&sub_task.path)
+            {
                 sub_task.path = known_path.clone();
-                if let Some((name, _)) = self.files_parser.datas[data].tasks.get_key_value(&sub_task.normalized_file_path) {
+                if let Some((name, _)) = self.files_parser.datas[data]
+                    .tasks
+                    .get_key_value(&sub_task.normalized_file_path)
+                {
                     sub_task.normalized_file_path = Arc::clone(name);
                 }
                 sub_task.data_id = data as u32;
@@ -1469,9 +1799,13 @@ impl fileLoader {
         // strings are shared); the values are equal either way.
         let mut shared_name: Option<std::sync::Arc<str>> = None;
         let mut data_id = crate::filesparser::NO_DATA;
-        if let Some((known_path, &data)) = self.files_parser.task_data_by_path.get_key_value(&path) {
+        if let Some((known_path, &data)) = self.files_parser.task_data_by_path.get_key_value(&path)
+        {
             path = known_path.clone();
-            shared_name = self.files_parser.datas[data].tasks.get_key_value(&normalized_file_path).map(|(name, _)| Arc::clone(name));
+            shared_name = self.files_parser.datas[data]
+                .tasks
+                .get_key_value(&normalized_file_path)
+                .map(|(name, _)| Arc::clone(name));
             data_id = data as u32;
         }
         let mut sub_task = match shared_name {
@@ -1506,14 +1840,22 @@ pub(crate) fn resolved_import_sub_task(
     let is_from_node_modules_search = resolved_module.is_external_library_import;
     // Don't treat redirected files as JS files.
     let is_js_file = !resolved_module.resolved_using_extra_extensions
-        && !tspath::file_extension_is_one_of(resolved_file_name, tspath::SUPPORTED_TS_EXTENSIONS_WITH_JSON_FLAT)
+        && !tspath::file_extension_is_one_of(
+            resolved_file_name,
+            tspath::SUPPORTED_TS_EXTENSIONS_WITH_JSON_FLAT,
+        )
         && project_references
             .get_redirect_parsed_command_line_for_resolution(
                 resolved_file_name,
-                &tspath::to_path(resolved_file_name, host.get_current_directory(), host.fs().use_case_sensitive_file_names()),
+                &tspath::to_path(
+                    resolved_file_name,
+                    host.get_current_directory(),
+                    host.fs().use_case_sensitive_file_names(),
+                ),
             )
             .is_none();
-    let is_js_file_from_node_modules = is_from_node_modules_search && is_js_file && resolved_file_name.contains("/node_modules/");
+    let is_js_file_from_node_modules =
+        is_from_node_modules_search && is_js_file && resolved_file_name.contains("/node_modules/");
 
     // add file to program only if:
     // - resolution was successful
@@ -1547,8 +1889,11 @@ pub(crate) fn source_file_from_reference(
     let allow_non_ts_extensions = options.allow_non_ts_extensions.is_true();
     let diagnostic_file_name = tspath::normalize_slashes(reference_text);
     if tspath::has_extension(file_name) {
-        let canonical_file_name = tspath::get_canonical_file_name(file_name, fs.use_case_sensitive_file_names());
-        if !allow_non_ts_extensions && !is_supported_extension(supported_extensions_with_json, &canonical_file_name) {
+        let canonical_file_name =
+            tspath::get_canonical_file_name(file_name, fs.use_case_sensitive_file_names());
+        if !allow_non_ts_extensions
+            && !is_supported_extension(supported_extensions_with_json, &canonical_file_name)
+        {
             if tspath::has_js_file_extension(&canonical_file_name) {
                 return (
                     String::new(),
@@ -1570,16 +1915,23 @@ pub(crate) fn source_file_from_reference(
         if !fs.file_exists(file_name) {
             return (
                 String::new(),
-                Some(sourceFileFromReferenceDiagnostic { message: &diagnostics::File_0_not_found, args: vec![diagnostic_file_name] }),
+                Some(sourceFileFromReferenceDiagnostic {
+                    message: &diagnostics::File_0_not_found,
+                    args: vec![diagnostic_file_name],
+                }),
             );
         }
 
         if is_referenced_file_reason
-            && tspath::get_canonical_file_name(containing_file, fs.use_case_sensitive_file_names()) == canonical_file_name
+            && tspath::get_canonical_file_name(containing_file, fs.use_case_sensitive_file_names())
+                == canonical_file_name
         {
             return (
                 String::new(),
-                Some(sourceFileFromReferenceDiagnostic { message: &diagnostics::A_file_cannot_have_a_reference_to_itself, args: vec![] }),
+                Some(sourceFileFromReferenceDiagnostic {
+                    message: &diagnostics::A_file_cannot_have_a_reference_to_itself,
+                    args: vec![],
+                }),
             );
         }
         return (file_name.to_string(), None);
@@ -1592,7 +1944,10 @@ pub(crate) fn source_file_from_reference(
     if allow_non_ts_extensions {
         return (
             String::new(),
-            Some(sourceFileFromReferenceDiagnostic { message: &diagnostics::File_0_not_found, args: vec![diagnostic_file_name] }),
+            Some(sourceFileFromReferenceDiagnostic {
+                message: &diagnostics::File_0_not_found,
+                args: vec![diagnostic_file_name],
+            }),
         );
     }
 
@@ -1616,12 +1971,18 @@ pub(crate) fn source_file_from_reference(
     )
 }
 
-pub(crate) fn is_supported_extension(supported_extensions_with_json: &[Vec<String>], canonical_file_name: &str) -> bool {
-    supported_extensions_with_json.iter().any(|group| tspath::file_extension_is_one_of(canonical_file_name, &str_slice(group)))
+pub(crate) fn is_supported_extension(
+    supported_extensions_with_json: &[Vec<String>],
+    canonical_file_name: &str,
+) -> bool {
+    supported_extensions_with_json
+        .iter()
+        .any(|group| tspath::file_extension_is_one_of(canonical_file_name, &str_slice(group)))
 }
 
 fn supported_extensions_display(supported_extensions: &[Vec<String>]) -> String {
-    let flat: Vec<&str> = supported_extensions.iter().flatten().map(std::string::String::as_str).collect();
+    let flat: Vec<&str> =
+        supported_extensions.iter().flatten().map(std::string::String::as_str).collect();
     format!("'{}'", flat.join("', '"))
 }
 
@@ -1649,13 +2010,20 @@ fn get_library_name_from_lib_file_name(lib_file_name: &str) -> String {
     path
 }
 
-fn get_inferred_library_name_resolve_from(options: &CompilerOptions, current_directory: &str, lib_file_name: &str) -> String {
+fn get_inferred_library_name_resolve_from(
+    options: &CompilerOptions,
+    current_directory: &str,
+    lib_file_name: &str,
+) -> String {
     let containing_directory = if !options.config_file_path.is_empty() {
         tspath::get_directory_path(&options.config_file_path)
     } else {
         current_directory.to_string()
     };
-    tspath::combine_paths(&containing_directory, &[&format!("__lib_node_modules_lookup_{lib_file_name}__.ts")])
+    tspath::combine_paths(
+        &containing_directory,
+        &[&format!("__lib_node_modules_lookup_{lib_file_name}__.ts")],
+    )
 }
 
 pub(crate) fn get_mode_for_type_reference_directive_in_file(
@@ -1671,9 +2039,17 @@ pub(crate) fn get_mode_for_type_reference_directive_in_file(
     }
 }
 
-pub(crate) fn get_default_resolution_mode_for_file(file_name: &str, meta: &SourceFileMetaData, options: &CompilerOptions) -> ResolutionMode {
+pub(crate) fn get_default_resolution_mode_for_file(
+    file_name: &str,
+    meta: &SourceFileMetaData,
+    options: &CompilerOptions,
+) -> ResolutionMode {
     if import_syntax_affects_module_resolution(options) {
-        ast::get_implied_node_format_for_emit_worker(file_name, options.get_emit_module_kind(), meta)
+        ast::get_implied_node_format_for_emit_worker(
+            file_name,
+            options.get_emit_module_kind(),
+            meta,
+        )
     } else {
         ModuleKind::None
     }
@@ -1694,7 +2070,9 @@ pub(crate) fn get_mode_for_usage_location(
         let is_type_only = ast::is_exclusively_type_only_import_or_export(parent);
         if is_type_only {
             let attributes = match parent.kind() {
-                Kind::ImportDeclaration | Kind::JSImportDeclaration => parent.as_import_declaration().attributes(),
+                Kind::ImportDeclaration | Kind::JSImportDeclaration => {
+                    parent.as_import_declaration().attributes()
+                }
                 Kind::ExportDeclaration => parent.as_export_declaration().attributes,
                 Kind::JSDocImportTag => parent.as_jsdoc_import_tag().attributes,
                 _ => None,
@@ -1705,7 +2083,10 @@ pub(crate) fn get_mode_for_usage_location(
         }
     }
     if ast::is_literal_type_node(parent) && ast::is_import_type_node(parent.parent().unwrap()) {
-        if let Some(override_) = ast::get_resolution_mode_override(parent.parent().unwrap().as_import_type_node().attributes, None) {
+        if let Some(override_) = ast::get_resolution_mode_override(
+            parent.parent().unwrap().as_import_type_node().attributes,
+            None,
+        ) {
             return override_;
         }
     }
@@ -1721,7 +2102,8 @@ pub(crate) fn get_mode_for_usage_location(
 
 fn import_syntax_affects_module_resolution(options: &CompilerOptions) -> bool {
     let module_resolution = options.get_module_resolution_kind();
-    ModuleResolutionKind::Node16 <= module_resolution && module_resolution <= ModuleResolutionKind::NodeNext
+    ModuleResolutionKind::Node16 <= module_resolution
+        && module_resolution <= ModuleResolutionKind::NodeNext
         || options.get_resolve_package_json_exports()
         || options.get_resolve_package_json_imports()
 }
@@ -1734,7 +2116,8 @@ pub(crate) fn get_emit_syntax_for_usage_location_worker(
 ) -> ResolutionMode {
     let parent = usage.parent().unwrap();
     if ast::is_require_call(parent, false /*requireStringLiteralLikeArgument*/)
-        || ast::is_external_module_reference(parent) && ast::is_import_equals_declaration(parent.parent().unwrap())
+        || ast::is_external_module_reference(parent)
+            && ast::is_import_equals_declaration(parent.parent().unwrap())
     {
         return ModuleKind::CommonJS;
     }

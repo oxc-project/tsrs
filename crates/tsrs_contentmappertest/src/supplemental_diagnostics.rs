@@ -1,9 +1,15 @@
-use tsrs_contentmapper::{MappedOutput, ProtocolJson, SupplementalOutput, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedOutput, ProtocolJson, SupplementalOutput,
+    TransformParams, TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
-use crate::protocol::{initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    unmarshal_params,
+};
 
 // supplemental_diagnostics.go:13
 pub(crate) struct supplementalDiagnosticsHandler;
@@ -27,7 +33,11 @@ impl ipc::Handler for supplementalDiagnosticsHandler {
                     ..Default::default()
                 }])?;
                 Ok(TransformResult {
-                    mapped_output: MappedOutput { text: "export {};".to_string(), extension: ".ts".to_string(), ..Default::default() },
+                    mapped_output: MappedOutput {
+                        text: "export {};".to_string(),
+                        extension: ".ts".to_string(),
+                        ..Default::default()
+                    },
                     supplemental: vec![SupplementalOutput {
                         mapped_output: MappedOutput {
                             text: format!("{PREFIX}{}", p.content),
@@ -44,7 +54,11 @@ impl ipc::Handler for supplementalDiagnosticsHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

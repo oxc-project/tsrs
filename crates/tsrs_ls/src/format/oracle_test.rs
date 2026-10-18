@@ -11,7 +11,9 @@ use crate::lsutil;
 
 fn serialize(edits: &[tsrs_core::TextChange]) -> String {
     let mut s = String::new();
-    s.extend(edits.iter().map(|e| format!("{},{},{};", e.pos(), e.end(), tsrs_core::json::marshal_string(&e.new_text))));
+    s.extend(edits.iter().map(|e| {
+        format!("{},{},{};", e.pos(), e.end(), tsrs_core::json::marshal_string(&e.new_text))
+    }));
     s
 }
 
@@ -27,7 +29,9 @@ fn run_oracle() {
         return;
     };
     let options = match std::env::var("TSRS_FORMAT_ORACLE_PRESET").as_deref() {
-        Ok("api") => settings(4, 4, 4, Tristate::True, |s| s.insert_space_before_type_annotation = Tristate::True),
+        Ok("api") => settings(4, 4, 4, Tristate::True, |s| {
+            s.insert_space_before_type_annotation = Tristate::True;
+        }),
         Ok(preset @ ("alt" | "insert")) => {
             let mut s = lsutil::get_default_format_code_settings();
             s.tab_size = 2;
@@ -74,8 +78,15 @@ fn run_oracle() {
             continue;
         };
         total += 1;
-        #[expect(clippy::case_sensitive_file_extension_comparisons, reason = "The Go oracle selects TSX using the exact fixture suffix.")]
-        let (name, kind) = if path.ends_with(".tsx") { ("/file.tsx", ScriptKind::TSX) } else { ("/file.ts", ScriptKind::TS) };
+        #[expect(
+            clippy::case_sensitive_file_extension_comparisons,
+            reason = "The Go oracle selects TSX using the exact fixture suffix."
+        )]
+        let (name, kind) = if path.ends_with(".tsx") {
+            ("/file.tsx", ScriptKind::TSX)
+        } else {
+            ("/file.ts", ScriptKind::TS)
+        };
         let got = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let file = parse_for_test(name, &text, kind);
             if indent_mode {
@@ -93,12 +104,18 @@ fn run_oracle() {
             if failures.len() <= 5 {
                 let dir = crate::astnav::repo_root().join("target/scratch/lsfound/oracle/diff");
                 std::fs::create_dir_all(&dir).unwrap();
-                let base = std::path::Path::new(path).file_name().unwrap().to_string_lossy().to_string();
+                let base =
+                    std::path::Path::new(path).file_name().unwrap().to_string_lossy().to_string();
                 std::fs::write(dir.join(format!("{base}.want")), want.replace(';', ";\n")).unwrap();
                 std::fs::write(dir.join(format!("{base}.got")), got.replace(';', ";\n")).unwrap();
             }
         }
     }
     eprintln!("format oracle: {}/{} files match", total - failures.len(), total);
-    assert!(failures.is_empty(), "{} mismatches, first: {:?}", failures.len(), &failures[..failures.len().min(20)]);
+    assert!(
+        failures.is_empty(),
+        "{} mismatches, first: {:?}",
+        failures.len(),
+        &failures[..failures.len().min(20)]
+    );
 }

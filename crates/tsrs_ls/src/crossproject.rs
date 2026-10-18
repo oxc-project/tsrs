@@ -1,4 +1,4 @@
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
 
 use indexmap::map::Entry;
@@ -9,7 +9,9 @@ use tsrs_core::context::Context;
 use tsrs_core::tspath::Path;
 use tsrs_lsproto::{self as lsproto, HasLocation, HasLocations};
 
-use crate::findallreferences::{nonLocalDefinition, SymbolAndEntriesData, SymbolEntryTransformOptions};
+use crate::findallreferences::{
+    SymbolAndEntriesData, SymbolEntryTransformOptions, nonLocalDefinition,
+};
 use crate::languageservice::LanguageService;
 
 // crossproject.go:17
@@ -43,9 +45,22 @@ struct response<Resp> {
 pub trait CrossProjectOrchestrator: Send + Sync {
     fn get_default_project(&self) -> Arc<dyn Project>;
     fn get_all_projects_for_initial_request(&self) -> Vec<Arc<dyn Project>>;
-    fn get_language_service_for_project_with_file(&self, ctx: &Context, project: &Arc<dyn Project>, uri: &lsproto::DocumentUri) -> Option<Arc<LanguageService>>;
-    fn get_projects_for_file(&self, ctx: &Context, uri: &lsproto::DocumentUri) -> Result<Vec<Arc<dyn Project>>, lsproto::Error>;
-    fn get_projects_loading_project_tree(&self, ctx: &Context, requested_project_trees: &Set<Path>) -> Box<dyn Iterator<Item = Arc<dyn Project>> + '_>;
+    fn get_language_service_for_project_with_file(
+        &self,
+        ctx: &Context,
+        project: &Arc<dyn Project>,
+        uri: &lsproto::DocumentUri,
+    ) -> Option<Arc<LanguageService>>;
+    fn get_projects_for_file(
+        &self,
+        ctx: &Context,
+        uri: &lsproto::DocumentUri,
+    ) -> Result<Vec<Arc<dyn Project>>, lsproto::Error>;
+    fn get_projects_loading_project_tree(
+        &self,
+        ctx: &Context,
+        requested_project_trees: &Set<Path>,
+    ) -> Box<dyn Iterator<Item = Arc<dyn Project>> + '_>;
 }
 
 impl LanguageService {
@@ -58,7 +73,13 @@ impl LanguageService {
         ctx: &Context,
         params: &Req,
         orchestrator: Option<&dyn CrossProjectOrchestrator>,
-        symbol_and_entries_to_resp: fn(&LanguageService, &Context, &Req, &SymbolAndEntriesData, SymbolEntryTransformOptions) -> Result<Resp, lsproto::Error>,
+        symbol_and_entries_to_resp: fn(
+            &LanguageService,
+            &Context,
+            &Req,
+            &SymbolAndEntriesData,
+            SymbolEntryTransformOptions,
+        ) -> Result<Resp, lsproto::Error>,
         combine_results: fn(Vec<Resp>) -> Resp,
         is_rename: bool,
         implementations: bool,
@@ -70,9 +91,17 @@ impl LanguageService {
         // Single project
         let Some(orchestrator) = orchestrator else {
             let computed;
-            let data = if let Some(data) = default_project_data { data } else {
+            let data = if let Some(data) = default_project_data {
+                data
+            } else {
                 computed = default_ls
-                    .provide_symbols_and_entries(ctx, params.text_document_uri(), params.text_document_position(), is_rename, implementations)
+                    .provide_symbols_and_entries(
+                        ctx,
+                        params.text_document_uri(),
+                        params.text_document_position(),
+                        is_rename,
+                        implementations,
+                    )
                     .unwrap_or_default();
                 &computed
             };
@@ -87,7 +116,10 @@ impl LanguageService {
         let mut err: Option<lsproto::Error> = None;
         let mut panics_occurred: Vec<String> = Vec::new();
 
-        fn can_search_project<Resp>(results: &OrderedMap<String, response<Resp>>, project: &Arc<dyn Project>) -> bool {
+        fn can_search_project<Resp>(
+            results: &OrderedMap<String, response<Resp>>,
+            project: &Arc<dyn Project>,
+        ) -> bool {
             !results.contains_key(&project.id())
         }
         fn enqueue_item<'a, Resp: Default>(
@@ -137,59 +169,80 @@ impl LanguageService {
                 if ctx.err().is_some() {
                     continue;
                 }
-                let outcome = catch_unwind(AssertUnwindSafe(|| -> Option<Result<Resp, lsproto::Error>> {
-                    // Process the item
-                    let fetched: Arc<LanguageService>;
-                    let ls: &LanguageService = if let Some(ls) = item.ls { ls } else {
-                        // Get it now
-                        fetched = orchestrator.get_language_service_for_project_with_file(ctx, &item.project, &item.uri)?;
-                        &fetched
-                    };
-                    let (data, ok) = match item.symbol_data {
-                        Some(data) => (data, true),
-                        None => match ls.provide_symbols_and_entries(ctx, &item.uri, item.position, is_rename, implementations) {
+                let outcome =
+                    catch_unwind(AssertUnwindSafe(|| -> Option<Result<Resp, lsproto::Error>> {
+                        // Process the item
+                        let fetched: Arc<LanguageService>;
+                        let ls: &LanguageService = if let Some(ls) = item.ls {
+                            ls
+                        } else {
+                            // Get it now
+                            fetched = orchestrator.get_language_service_for_project_with_file(
+                                ctx,
+                                &item.project,
+                                &item.uri,
+                            )?;
+                            &fetched
+                        };
+                        let (data, ok) = match item.symbol_data {
                             Some(data) => (data, true),
-                            None => (SymbolAndEntriesData::default(), false),
-                        },
-                    };
-                    if ctx.err().is_some() {
-                        return None;
-                    }
-                    if ok {
-                        for entry in &data.symbols_and_entries {
-                            // Find the default definition that can be in another project
-                            // Later we will use this load ancestor tree that references this location and expand search
-                            if Arc::ptr_eq(&item.project, &default_project) && default_definition.is_none() {
-                                default_definition = ls.get_non_local_definition(ctx, entry);
-                            }
-                            ls.for_each_original_definition_location(ctx, entry, &mut |uri, position| {
-                                // Get default configured project for this file
-                                let Ok(def_projects) = orchestrator.get_projects_for_file(ctx, &uri) else {
-                                    return;
-                                };
-                                for def_project in def_projects {
-                                    // Optimization: don't enqueue if will be discarded
-                                    if can_search_project(&results, &def_project) {
-                                        enqueue_item(
-                                            &mut results,
-                                            &mut queue,
-                                            projectAndTextDocumentPosition {
-                                                project: def_project,
-                                                ls: None,
-                                                uri: uri.clone(),
-                                                position,
-                                                symbol_data: None,
-                                                for_original_location: true,
-                                            },
-                                        );
-                                    }
-                                }
-                            });
+                            None => match ls.provide_symbols_and_entries(
+                                ctx,
+                                &item.uri,
+                                item.position,
+                                is_rename,
+                                implementations,
+                            ) {
+                                Some(data) => (data, true),
+                                None => (SymbolAndEntriesData::default(), false),
+                            },
+                        };
+                        if ctx.err().is_some() {
+                            return None;
                         }
-                    }
+                        if ok {
+                            for entry in &data.symbols_and_entries {
+                                // Find the default definition that can be in another project
+                                // Later we will use this load ancestor tree that references this location and expand search
+                                if Arc::ptr_eq(&item.project, &default_project)
+                                    && default_definition.is_none()
+                                {
+                                    default_definition = ls.get_non_local_definition(ctx, entry);
+                                }
+                                ls.for_each_original_definition_location(
+                                    ctx,
+                                    entry,
+                                    &mut |uri, position| {
+                                        // Get default configured project for this file
+                                        let Ok(def_projects) =
+                                            orchestrator.get_projects_for_file(ctx, &uri)
+                                        else {
+                                            return;
+                                        };
+                                        for def_project in def_projects {
+                                            // Optimization: don't enqueue if will be discarded
+                                            if can_search_project(&results, &def_project) {
+                                                enqueue_item(
+                                                    &mut results,
+                                                    &mut queue,
+                                                    projectAndTextDocumentPosition {
+                                                        project: def_project,
+                                                        ls: None,
+                                                        uri: uri.clone(),
+                                                        position,
+                                                        symbol_data: None,
+                                                        for_original_location: true,
+                                                    },
+                                                );
+                                            }
+                                        }
+                                    },
+                                );
+                            }
+                        }
 
-                    Some(symbol_and_entries_to_resp(ls, ctx, params, &data, options))
-                }));
+                        Some(symbol_and_entries_to_resp(ls, ctx, params, &data, options))
+                    }));
                 match outcome {
                     Ok(Some(Ok(result))) => {
                         let response = results.get_mut(&item.project.id()).unwrap();
@@ -207,14 +260,19 @@ impl LanguageService {
                         let r = payload
                             .downcast_ref::<String>()
                             .cloned()
-                            .or_else(|| payload.downcast_ref::<&str>().map(std::string::ToString::to_string))
+                            .or_else(|| {
+                                payload.downcast_ref::<&str>().map(std::string::ToString::to_string)
+                            })
                             .unwrap_or_default();
                         let stack = std::backtrace::Backtrace::force_capture();
                         panics_occurred.push(format!("panic handling request: {r}\n{stack}"));
                     }
                 }
             }
-            assert!(panics_occurred.is_empty(), "Panics occurred during cross-project handling: {panics_occurred:?}");
+            assert!(
+                panics_occurred.is_empty(),
+                "Panics occurred during cross-project handling: {panics_occurred:?}"
+            );
             if let Some(e) = ctx.err() {
                 return Err(e.into());
             }
@@ -225,37 +283,55 @@ impl LanguageService {
             let mut has_more_work = false;
             if let Some(default_definition) = &default_definition {
                 let mut requested_project_trees: Set<Path> = Set::new();
-                requested_project_trees.m.extend(results.iter().filter_map(
-                    |(key, response)| {
-                        if response.complete { Some(Path::new(key.clone())) } else { None }
-                    },
-                ));
+                requested_project_trees.m.extend(results.iter().filter_map(|(key, response)| {
+                    if response.complete { Some(Path::new(key.clone())) } else { None }
+                }));
 
                 // Load more projects based on default definition found
-                for loaded_project in orchestrator.get_projects_loading_project_tree(ctx, &requested_project_trees) {
+                for loaded_project in
+                    orchestrator.get_projects_loading_project_tree(ctx, &requested_project_trees)
+                {
                     if let Some(e) = ctx.err() {
                         return Err(e.into());
                     }
 
                     // Can loop forever without this (enqueue here, dequeue above, repeat)
-                    if !can_search_project(&results, &loaded_project) || loaded_project.get_program().is_none() {
+                    if !can_search_project(&results, &loaded_project)
+                        || loaded_project.get_program().is_none()
+                    {
                         continue;
                     }
 
                     // Enqueue the project and location for further processing
                     let mut target: Option<(lsproto::DocumentUri, lsproto::Position)> = None;
                     if loaded_project.has_file(&default_definition.position.uri.file_name()) {
-                        target = Some((default_definition.position.uri.clone(), default_definition.position.pos));
-                    } else if let Some(source_pos) = default_definition.get_source_position(default_ls).filter(|p| loaded_project.has_file(&p.uri.file_name())) {
+                        target = Some((
+                            default_definition.position.uri.clone(),
+                            default_definition.position.pos,
+                        ));
+                    } else if let Some(source_pos) = default_definition
+                        .get_source_position(default_ls)
+                        .filter(|p| loaded_project.has_file(&p.uri.file_name()))
+                    {
                         target = Some((source_pos.uri.clone(), source_pos.pos));
-                    } else if let Some(generated_pos) = default_definition.get_generated_position(default_ls).filter(|p| loaded_project.has_file(&p.uri.file_name())) {
+                    } else if let Some(generated_pos) = default_definition
+                        .get_generated_position(default_ls)
+                        .filter(|p| loaded_project.has_file(&p.uri.file_name()))
+                    {
                         target = Some((generated_pos.uri.clone(), generated_pos.pos));
                     }
                     if let Some((uri, position)) = target {
                         enqueue_item(
                             &mut results,
                             &mut queue,
-                            projectAndTextDocumentPosition { project: loaded_project, ls: None, uri, position, symbol_data: None, for_original_location: false },
+                            projectAndTextDocumentPosition {
+                                project: loaded_project,
+                                ls: None,
+                                uri,
+                                position,
+                                symbol_data: None,
+                                for_original_location: false,
+                            },
                         );
                         has_more_work = true;
                     }
@@ -278,14 +354,25 @@ impl LanguageService {
         ordered.extend(all_projects.iter().filter_map(|project| {
             let id = project.id();
             if seen_projects.add_if_absent(id.clone()) {
-                if let Some(response) = results.get_mut(&id) { if response.complete { Some(std::mem::take(&mut response.result)) } else { None } } else { None }
+                if let Some(response) = results.get_mut(&id) {
+                    if response.complete {
+                        Some(std::mem::take(&mut response.result))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             } else {
                 None
             }
         }));
         // Prefer the searches from locations for default definition
         ordered.extend(results.iter_mut().filter_map(|(key, response)| {
-            if !response.for_original_location && seen_projects.add_if_absent(key.clone()) && response.complete {
+            if !response.for_original_location
+                && seen_projects.add_if_absent(key.clone())
+                && response.complete
+            {
                 Some(std::mem::take(&mut response.result))
             } else {
                 None
@@ -293,7 +380,10 @@ impl LanguageService {
         }));
         // Then the searches from original locations
         ordered.extend(results.iter_mut().filter_map(|(key, response)| {
-            if response.for_original_location && seen_projects.add_if_absent(key.clone()) && response.complete {
+            if response.for_original_location
+                && seen_projects.add_if_absent(key.clone())
+                && response.complete
+            {
                 Some(std::mem::take(&mut response.result))
             } else {
                 None
@@ -311,8 +401,14 @@ impl LanguageService {
 }
 
 // crossproject.go:298
-pub(crate) fn combine_location_array<T: HasLocation + Clone>(mut combined: Vec<T>, locations: &[T], seen: &mut Set<lsproto::Location>) -> Vec<T> {
-    combined.extend(locations.iter().filter_map(|loc| if seen.add_if_absent(loc.get_location()) { Some(loc.clone()) } else { None }));
+pub(crate) fn combine_location_array<T: HasLocation + Clone>(
+    mut combined: Vec<T>,
+    locations: &[T],
+    seen: &mut Set<lsproto::Location>,
+) -> Vec<T> {
+    combined.extend(locations.iter().filter_map(|loc| {
+        if seen.add_if_absent(loc.get_location()) { Some(loc.clone()) } else { None }
+    }));
     combined
 }
 
@@ -331,12 +427,16 @@ pub(crate) fn combine_response_locations<T: HasLocations>(results: &[T]) -> Vec<
 }
 
 // crossproject.go:322
-pub(crate) fn combine_references(results: &[lsproto::ReferencesResponse]) -> lsproto::ReferencesResponse {
+pub(crate) fn combine_references(
+    results: &[lsproto::ReferencesResponse],
+) -> lsproto::ReferencesResponse {
     lsproto::LocationsOrNull { locations: Some(combine_response_locations(results)) }
 }
 
 // crossproject.go:326
-pub(crate) fn combine_vs_references(results: Vec<lsproto::VSReferencesResponse>) -> lsproto::VSReferencesResponse {
+pub(crate) fn combine_vs_references(
+    results: Vec<lsproto::VSReferencesResponse>,
+) -> lsproto::VSReferencesResponse {
     let mut combined: Vec<lsproto::VSReferenceItem> = Vec::new();
     // Re-number IDs across projects to maintain unique IDs and correct definition references
     let mut next_id: usize = 0;
@@ -367,25 +467,38 @@ pub(crate) fn combine_vs_references(results: Vec<lsproto::VSReferencesResponse>)
 
 // Go's `return ...combineResponseLocations(results)` restarts the iteration over all results; so does the port.
 // crossproject.go:354
-pub(crate) fn combine_implementations(results: &[lsproto::ImplementationResponse]) -> lsproto::ImplementationResponse {
+pub(crate) fn combine_implementations(
+    results: &[lsproto::ImplementationResponse],
+) -> lsproto::ImplementationResponse {
     let mut combined: Vec<lsproto::LocationLink> = Vec::new();
     let mut seen_locations: Set<lsproto::Location> = Set::new();
     for resp in results {
         if let Some(definition_links) = &resp.definition_links {
             combined = combine_location_array(combined, definition_links, &mut seen_locations);
         } else if resp.locations.is_some() {
-            return lsproto::LocationOrLocationsOrDefinitionLinksOrNull { locations: Some(combine_response_locations(results)), ..Default::default() };
+            return lsproto::LocationOrLocationsOrDefinitionLinksOrNull {
+                locations: Some(combine_response_locations(results)),
+                ..Default::default()
+            };
         }
     }
-    lsproto::LocationOrLocationsOrDefinitionLinksOrNull { definition_links: Some(combined), ..Default::default() }
+    lsproto::LocationOrLocationsOrDefinitionLinksOrNull {
+        definition_links: Some(combined),
+        ..Default::default()
+    }
 }
 
 // Go builds `map`s (random iteration order) keyed by document URI; the port keeps first-seen order.
 // crossproject.go:367
-pub(crate) fn combine_rename_response(results: Vec<lsproto::RenameResponse>) -> lsproto::RenameResponse {
-    let mut combined: OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>> = OrderedMap::default();
-    let mut seen_changes: FxHashMap<lsproto::DocumentUri, Set<lsproto::Range>> = FxHashMap::default();
-    let mut document_changes: Vec<lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile> = Vec::new();
+pub(crate) fn combine_rename_response(
+    results: Vec<lsproto::RenameResponse>,
+) -> lsproto::RenameResponse {
+    let mut combined: OrderedMap<lsproto::DocumentUri, Vec<lsproto::TextEdit>> =
+        OrderedMap::default();
+    let mut seen_changes: FxHashMap<lsproto::DocumentUri, Set<lsproto::Range>> =
+        FxHashMap::default();
+    let mut document_changes: Vec<lsproto::TextDocumentEditOrCreateFileOrRenameFileOrDeleteFile> =
+        Vec::new();
     let mut seen_renames: Set<[lsproto::DocumentUri; 2]> = Set::new();
 
     for resp in results {
@@ -393,12 +506,14 @@ pub(crate) fn combine_rename_response(results: Vec<lsproto::RenameResponse>) -> 
             continue;
         };
         if let Some(changes) = workspace_edit.document_changes {
-            document_changes.extend(changes.into_iter().filter_map(|change| match &change.rename_file {
-                Some(rename_file) => {
-                    let key = [rename_file.old_uri.clone(), rename_file.new_uri.clone()];
-                    if seen_renames.add_if_absent(key) { Some(change) } else { None }
+            document_changes.extend(changes.into_iter().filter_map(|change| {
+                match &change.rename_file {
+                    Some(rename_file) => {
+                        let key = [rename_file.old_uri.clone(), rename_file.new_uri.clone()];
+                        if seen_renames.add_if_absent(key) { Some(change) } else { None }
+                    }
+                    None => Some(change),
                 }
-                None => Some(change),
             }));
         }
         if let Some(changes) = workspace_edit.changes {
@@ -430,11 +545,17 @@ pub(crate) fn combine_rename_response(results: Vec<lsproto::RenameResponse>) -> 
 }
 
 // crossproject.go:423
-pub(crate) fn combine_incoming_calls(results: Vec<lsproto::CallHierarchyIncomingCallsResponse>) -> lsproto::CallHierarchyIncomingCallsResponse {
+pub(crate) fn combine_incoming_calls(
+    results: Vec<lsproto::CallHierarchyIncomingCallsResponse>,
+) -> lsproto::CallHierarchyIncomingCallsResponse {
     let mut combined: Vec<lsproto::CallHierarchyIncomingCall> = Vec::new();
     let mut seen_calls: Set<lsproto::Location> = Set::new();
     combined.extend(
-        results.into_iter().filter_map(|resp| resp.call_hierarchy_incoming_calls).flatten().filter(|call| seen_calls.add_if_absent(call.from.get_location())),
+        results
+            .into_iter()
+            .filter_map(|resp| resp.call_hierarchy_incoming_calls)
+            .flatten()
+            .filter(|call| seen_calls.add_if_absent(call.from.get_location())),
     );
     lsproto::CallHierarchyIncomingCallsOrNull { call_hierarchy_incoming_calls: Some(combined) }
 }

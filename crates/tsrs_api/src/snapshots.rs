@@ -6,14 +6,15 @@ use std::collections::hash_map::Entry;
 use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
+use tsrs_core::P;
 use tsrs_core::collections::{OrderedMap, Set};
 use tsrs_core::json::Value;
 use tsrs_core::tspath::Path;
-use tsrs_core::P;
 use tsrs_project::dirty::Shared;
 use tsrs_project::{
-    parse_configured_project_id, parse_synthetic_project_id, APICreateProgramRequest, APIReconfigureProgramRequest, APISnapshotRequest,
-    FileChangeSummary, Project, Snapshot, SyntheticProjectID, ID as ProjectID,
+    APICreateProgramRequest, APIReconfigureProgramRequest, APISnapshotRequest, FileChangeSummary,
+    ID as ProjectID, Project, Snapshot, SyntheticProjectID, parse_configured_project_id,
+    parse_synthetic_project_id,
 };
 use tsrs_tsoptions::gojson;
 
@@ -22,7 +23,7 @@ use crate::diagnostics::diagnostic_from_response;
 use crate::handler::{ApiError, ApiResult};
 use crate::requestfs::{self, RequestFileSystem, RequestParams};
 use crate::session::{OpenState, Session};
-use crate::wire::{b, s, strings, DocumentIdentifier, Obj, Params};
+use crate::wire::{DocumentIdentifier, Obj, Params, b, s, strings};
 
 fn file_uri(file_name: &str) -> tsrs_lsproto::DocumentUri {
     tsrs_ls::lsconv::file_name_to_document_uri(file_name)
@@ -41,7 +42,11 @@ impl DocumentIdentifier {
 /// Go `NewProjectResponse`.
 pub fn project_response(p: &Project) -> Value {
     let command_line = p.command_line.expect("project_response called with unloaded project");
-    let config_file_name = if p.kind == tsrs_project::Kind::Configured { p.config_file_name().to_string() } else { String::new() };
+    let config_file_name = if p.kind == tsrs_project::Kind::Configured {
+        p.config_file_name().to_string()
+    } else {
+        String::new()
+    };
     let options = match command_line.compiler_options() {
         Some(o) => gojson::compiler_options_to_go_json(&o),
         None => Value::Null,
@@ -83,15 +88,27 @@ fn compute_snapshot_changes(prev: &Snapshot, next: &Snapshot) -> Value {
                     continue;
                 }
                 let empty = FxHashMap::default();
-                let old_files = old.get_program().map_or(&empty, tsrs_compiler::Program::files_by_path);
-                let new_files = new.get_program().map_or(&empty, tsrs_compiler::Program::files_by_path);
+                let old_files =
+                    old.get_program().map_or(&empty, tsrs_compiler::Program::files_by_path);
+                let new_files =
+                    new.get_program().map_or(&empty, tsrs_compiler::Program::files_by_path);
                 let mut changed_files: Vec<&Path> = Vec::new();
                 let mut deleted_files: Vec<&Path> = Vec::new();
-                #[expect(clippy::iter_over_hash_type, reason = "both lists are sorted before they are serialized")]
+                #[expect(
+                    clippy::iter_over_hash_type,
+                    reason = "both lists are sorted before they are serialized"
+                )]
                 for (path, old_file) in old_files {
                     match new_files.get(path) {
                         None => deleted_files.push(path),
-                        Some(new_file) if !std::ptr::eq::<tsrs_ast::SourceFile>(&raw const **old_file, &raw const **new_file) => changed_files.push(path),
+                        Some(new_file)
+                            if !std::ptr::eq::<tsrs_ast::SourceFile>(
+                                &raw const **old_file,
+                                &raw const **new_file,
+                            ) =>
+                        {
+                            changed_files.push(path);
+                        }
                         _ => {}
                     }
                 }
@@ -100,8 +117,16 @@ fn compute_snapshot_changes(prev: &Snapshot, next: &Snapshot) -> Value {
                     changed_files.sort();
                     deleted_files.sort();
                     let o = Obj::new()
-                        .set_opt("changedFiles", (!changed_files.is_empty()).then(|| strings(changed_files.iter().map(|p| p.as_str()))))
-                        .set_opt("deletedFiles", (!deleted_files.is_empty()).then(|| strings(deleted_files.iter().map(|p| p.as_str()))));
+                        .set_opt(
+                            "changedFiles",
+                            (!changed_files.is_empty())
+                                .then(|| strings(changed_files.iter().map(|p| p.as_str()))),
+                        )
+                        .set_opt(
+                            "deletedFiles",
+                            (!deleted_files.is_empty())
+                                .then(|| strings(deleted_files.iter().map(|p| p.as_str()))),
+                        );
                     changed.insert(new.id().0, o.build());
                 }
             }
@@ -120,15 +145,24 @@ struct RequestEcho {
 }
 
 impl Session {
-    fn create_programs_request(&self, item: &Value, what: &str, i: usize) -> ApiResult<APICreateProgramRequest> {
+    fn create_programs_request(
+        &self,
+        item: &Value,
+        what: &str,
+        i: usize,
+    ) -> ApiResult<APICreateProgramRequest> {
         if matches!(item, Value::Null) {
             return Err(ApiError::client(format!("{what}[{i}] must not be null")));
         }
         let p = Params(item);
         p.object()?;
         let cwd = self.current_directory();
-        let root_file_names = DocumentIdentifier::parse_list(p.array("rootFiles")?, "rootFiles")?.iter().map(|d| d.to_absolute_file_name(cwd)).collect();
-        let mut options = gojson::compiler_options_from_go_json(p.get("compilerOptions")).map_err(ApiError::invalid_request)?;
+        let root_file_names = DocumentIdentifier::parse_list(p.array("rootFiles")?, "rootFiles")?
+            .iter()
+            .map(|d| d.to_absolute_file_name(cwd))
+            .collect();
+        let mut options = gojson::compiler_options_from_go_json(p.get("compilerOptions"))
+            .map_err(ApiError::invalid_request)?;
         crate::predecode::exact_compiler_options_ints(p.get("compilerOptions"), &mut options);
         let mut request = APICreateProgramRequest {
             root_file_names,
@@ -158,7 +192,11 @@ impl Session {
                 })
                 .collect::<ApiResult<_>>()?;
         }
-        request.config_file_parsing_diagnostics = opts.array("configFileParsingDiagnostics")?.iter().map(diagnostic_from_response).collect::<ApiResult<_>>()?;
+        request.config_file_parsing_diagnostics = opts
+            .array("configFileParsingDiagnostics")?
+            .iter()
+            .map(diagnostic_from_response)
+            .collect::<ApiResult<_>>()?;
         let resolver = opts.u64("moduleResolver")?;
         if resolver != 0 {
             let (factory, id) = self.module_resolver_factory(resolver)?;
@@ -174,15 +212,23 @@ impl Session {
         let mut req = APISnapshotRequest::default();
         for d in DocumentIdentifier::parse_list(p.array("openProjects")?, "openProjects")? {
             let config_file_name = d.to_absolute_file_name(&cwd);
-            let id = parse_configured_project_id(&self.to_path(&config_file_name))
-                .ok_or_else(|| ApiError::client(format!("invalid configured project ID: {config_file_name}")))?;
+            let id =
+                parse_configured_project_id(&self.to_path(&config_file_name)).ok_or_else(|| {
+                    ApiError::client(format!("invalid configured project ID: {config_file_name}"))
+                })?;
             req.ensure_programs.get_or_insert_with(Set::new).add(id.as_id());
             req.open_projects.get_or_insert_with(Set::new).add(config_file_name);
         }
         for d in DocumentIdentifier::parse_list(p.array("closeProjects")?, "closeProjects")? {
-            req.close_projects.get_or_insert_with(Set::new).add(self.to_path(&d.to_absolute_file_name(&cwd)));
+            req.close_projects
+                .get_or_insert_with(Set::new)
+                .add(self.to_path(&d.to_absolute_file_name(&cwd)));
         }
-        let open_files_list = if p.has("openFiles") { Some(DocumentIdentifier::parse_list(p.array("openFiles")?, "openFiles")?) } else { None };
+        let open_files_list = if p.has("openFiles") {
+            Some(DocumentIdentifier::parse_list(p.array("openFiles")?, "openFiles")?)
+        } else {
+            None
+        };
         for d in open_files_list.iter().flatten() {
             let file_name = d.to_absolute_file_name(&cwd);
             let path = self.to_path(&file_name);
@@ -194,19 +240,30 @@ impl Session {
             }
         }
         for d in DocumentIdentifier::parse_list(p.array("closeFiles")?, "closeFiles")? {
-            req.close_files.get_or_insert_with(Set::new).add(self.to_path(&d.to_uri(&cwd).file_name()));
+            req.close_files
+                .get_or_insert_with(Set::new)
+                .add(self.to_path(&d.to_uri(&cwd).file_name()));
         }
         let create = p.array("createPrograms")?;
-        req.create_programs = create.iter().enumerate().map(|(i, item)| self.create_programs_request(item, "createPrograms", i)).collect::<Result<_, _>>()?;
+        req.create_programs = create
+            .iter()
+            .enumerate()
+            .map(|(i, item)| self.create_programs_request(item, "createPrograms", i))
+            .collect::<Result<_, _>>()?;
         let mut reconfigured: Set<SyntheticProjectID> = Set::new();
         for (i, item) in p.array("reconfigurePrograms")?.iter().enumerate() {
             if matches!(item, Value::Null) {
                 return Err(ApiError::client(format!("reconfigurePrograms[{i}] must not be null")));
             }
             let id_text = Params(item).str("id")?.to_string();
-            let program_id = parse_synthetic_project_id(&id_text).ok_or_else(|| ApiError::client(format!("invalid synthetic project handle: {id_text}")))?;
+            let program_id = parse_synthetic_project_id(&id_text).ok_or_else(|| {
+                ApiError::client(format!("invalid synthetic project handle: {id_text}"))
+            })?;
             if reconfigured.has(&program_id) {
-                return Err(ApiError::client(format!("synthetic program reconfigured more than once: {}", program_id.0)));
+                return Err(ApiError::client(format!(
+                    "synthetic program reconfigured more than once: {}",
+                    program_id.0
+                )));
             }
             reconfigured.add(program_id.clone());
             let request = self.create_programs_request(item, "reconfigurePrograms", i)?;
@@ -217,7 +274,10 @@ impl Session {
             // Decoded (and validated by `predecode`) like Go's SyntheticProjectID, which normalizes the number.
             let program_id = parse_synthetic_project_id(&id).unwrap_or(SyntheticProjectID(id));
             if reconfigured.has(&program_id) {
-                return Err(ApiError::client(format!("synthetic program cannot be reconfigured and removed: {}", program_id.0)));
+                return Err(ApiError::client(format!(
+                    "synthetic program cannot be reconfigured and removed: {}",
+                    program_id.0
+                )));
             }
             req.remove_programs.get_or_insert_with(Set::new).add(program_id);
         }
@@ -227,20 +287,44 @@ impl Session {
             Value::Array(items) => {
                 for item in items {
                     match item {
-                        Value::String(id) => req.ensure_programs.get_or_insert_with(Set::new).add(ProjectID(id.clone())),
+                        Value::String(id) => req
+                            .ensure_programs
+                            .get_or_insert_with(Set::new)
+                            .add(ProjectID(id.clone())),
                         // Go decodes into []project.ID: null is the zero ID.
-                        Value::Null => req.ensure_programs.get_or_insert_with(Set::new).add(ProjectID(String::new())),
-                        _ => return Err(ApiError::invalid_request("ensurePrograms must be true or an array of project IDs")),
+                        Value::Null => req
+                            .ensure_programs
+                            .get_or_insert_with(Set::new)
+                            .add(ProjectID(String::new())),
+                        _ => {
+                            return Err(ApiError::invalid_request(
+                                "ensurePrograms must be true or an array of project IDs",
+                            ));
+                        }
                     }
                 }
             }
-            _ => return Err(ApiError::invalid_request("ensurePrograms must be true or an array of project IDs")),
+            _ => {
+                return Err(ApiError::invalid_request(
+                    "ensurePrograms must be true or an array of project IDs",
+                ));
+            }
         }
-        Ok((req, RequestEcho { has_create_programs: p.has("createPrograms"), open_files: open_files_list }))
+        Ok((
+            req,
+            RequestEcho {
+                has_create_programs: p.has("createPrograms"),
+                open_files: open_files_list,
+            },
+        ))
     }
 
     /// Go `reconcileSnapshotOpens`.
-    fn reconcile_snapshot_opens(&self, req: &mut APISnapshotRequest, base: &OpenState) -> OpenState {
+    fn reconcile_snapshot_opens(
+        &self,
+        req: &mut APISnapshotRequest,
+        base: &OpenState,
+    ) -> OpenState {
         let mut state = base.clone();
         if let Some(close) = &mut req.close_projects {
             let keys: Vec<Path> = close.keys().iter().cloned().collect();
@@ -300,25 +384,46 @@ impl Session {
             return Ok(summary);
         }
         let cwd = self.current_directory();
-        summary.changed.m.extend((DocumentIdentifier::parse_list(p.array("changed")?, "changed")?).into_iter().map(|d| d.to_uri(cwd)));
-        summary.created.m.extend((DocumentIdentifier::parse_list(p.array("created")?, "created")?).into_iter().map(|d| d.to_uri(cwd)));
-        summary.deleted.m.extend((DocumentIdentifier::parse_list(p.array("deleted")?, "deleted")?).into_iter().map(|d| d.to_uri(cwd)));
+        summary.changed.m.extend(
+            (DocumentIdentifier::parse_list(p.array("changed")?, "changed")?)
+                .into_iter()
+                .map(|d| d.to_uri(cwd)),
+        );
+        summary.created.m.extend(
+            (DocumentIdentifier::parse_list(p.array("created")?, "created")?)
+                .into_iter()
+                .map(|d| d.to_uri(cwd)),
+        );
+        summary.deleted.m.extend(
+            (DocumentIdentifier::parse_list(p.array("deleted")?, "deleted")?)
+                .into_iter()
+                .map(|d| d.to_uri(cwd)),
+        );
         if summary.changed.len() + summary.created.len() + summary.deleted.len() > 0 {
             summary.includes_watch_change_outside_node_modules = true;
         }
         Ok(summary)
     }
 
-    fn snapshot_response(&self, snapshot: &Snapshot, base: Option<&Snapshot>, echo: &RequestEcho) -> ApiResult<Value> {
+    fn snapshot_response(
+        &self,
+        snapshot: &Snapshot,
+        base: Option<&Snapshot>,
+        echo: &RequestEcho,
+    ) -> ApiResult<Value> {
         let cwd = self.current_directory();
         // createSnapshotOperationResponse
         let mut operation = Obj::new();
         if echo.has_create_programs {
             let mut ids = Vec::new();
             ids = snapshot.created_programs().iter().try_fold(ids, |mut ids, created| {
-                let created = created.as_ref().ok_or_else(|| ApiError::internal("created program result missing"))?;
+                let created = created
+                    .as_ref()
+                    .ok_or_else(|| ApiError::internal("created program result missing"))?;
                 let id = created.id();
-                let synthetic = id.synthetic().ok_or_else(|| ApiError::internal("created program has non-synthetic project ID"))?;
+                let synthetic = id.synthetic().ok_or_else(|| {
+                    ApiError::internal("created program has non-synthetic project ID")
+                })?;
                 ids.push(s(synthetic.0));
                 Ok::<_, ApiError>(ids)
             })?;
@@ -327,9 +432,12 @@ impl Session {
         if let Some(open_files) = &echo.open_files {
             let mut results = Vec::new();
             results = open_files.iter().try_fold(results, |mut results, f| {
-                let project = snapshot
-                    .get_default_project(&f.to_uri(cwd))
-                    .ok_or_else(|| ApiError::internal(format!("no project found for opened file {}", f.to_absolute_file_name(cwd))))?;
+                let project = snapshot.get_default_project(&f.to_uri(cwd)).ok_or_else(|| {
+                    ApiError::internal(format!(
+                        "no project found for opened file {}",
+                        f.to_absolute_file_name(cwd)
+                    ))
+                })?;
                 results.push(Obj::new().set("project", s(project.id().0)).build());
                 Ok::<_, ApiError>(results)
             })?;
@@ -339,24 +447,32 @@ impl Session {
         let mut out = Obj::new().set("snapshot", Value::Number(snapshot.id() as f64));
         match base {
             None => {
-                projects.extend(
-                    snapshot
-                        .project_collection
-                        .projects()
-                        .into_iter()
-                        .filter_map(|proj| if proj.command_line.is_some() { Some(project_response(&proj)) } else { None }),
-                );
+                projects.extend(snapshot.project_collection.projects().into_iter().filter_map(
+                    |proj| {
+                        if proj.command_line.is_some() {
+                            Some(project_response(&proj))
+                        } else {
+                            None
+                        }
+                    },
+                ));
                 out = out.set("projects", Value::Array(projects));
             }
             Some(base) => {
                 let old = base.project_collection.projects_by_id();
-                projects.extend(snapshot.project_collection.projects_by_id().iter().filter_map(|(id, new)| {
-                    let include = match old.get(id) {
-                        None => true,
-                        Some(old) => !same_project(old, new),
-                    };
-                    if include && new.command_line.is_some() { Some(project_response(new)) } else { None }
-                }));
+                projects.extend(snapshot.project_collection.projects_by_id().iter().filter_map(
+                    |(id, new)| {
+                        let include = match old.get(id) {
+                            None => true,
+                            Some(old) => !same_project(old, new),
+                        };
+                        if include && new.command_line.is_some() {
+                            Some(project_response(new))
+                        } else {
+                            None
+                        }
+                    },
+                ));
                 out = out.set("projects", Value::Array(projects));
                 // `json:"changes,omitempty"` (json/v2): a SnapshotChanges that encodes as `{}` is omitted.
                 let changes = compute_snapshot_changes(base, snapshot);
@@ -369,15 +485,17 @@ impl Session {
     }
 
     fn module_resolution_error(snapshot: &Snapshot) -> ApiResult<()> {
-        if let Some(result) = snapshot.project_collection.projects().into_iter().find_map(|project| {
-            if let Some(program) = project.get_program() {
-                if let Some(err) = program.module_resolution_error() {
-                    return Some(Err(ApiError::internal(err.to_string())));
+        if let Some(result) =
+            snapshot.project_collection.projects().into_iter().find_map(|project| {
+                if let Some(program) = project.get_program() {
+                    if let Some(err) = program.module_resolution_error() {
+                        return Some(Err(ApiError::internal(err.to_string())));
+                    }
                 }
-            }
 
-            None
-        }) {
+                None
+            })
+        {
             return result;
         }
         Ok(())
@@ -394,7 +512,14 @@ impl Session {
             return Ok(None);
         }
         let params = RequestParams::parse(p.get("fileSystem")).map_err(ApiError::client)?;
-        let fs = requestfs::new_for_update(&params, ScopedFs::wrap(self.snapshot_host_fs()), base, self.current_directory(), file_changes).map_err(ApiError::client)?;
+        let fs = requestfs::new_for_update(
+            &params,
+            ScopedFs::wrap(self.snapshot_host_fs()),
+            base,
+            self.current_directory(),
+            file_changes,
+        )
+        .map_err(ApiError::client)?;
         // Go sets ReplaceFileSystem from the *request's* kind, not the compacted result's.
         Ok(Some((Arc::new(fs), params.kind == requestfs::Kind::Full)))
     }
@@ -406,26 +531,33 @@ impl Session {
         let (mut req, echo) = self.to_api_snapshot_request(p)?;
         let open_state = self.reconcile_snapshot_opens(&mut req, &OpenState::default());
         let mut file_changes = self.to_file_change_summary(p.get("fileNotifications"))?;
-        let snapshot_fs = if let Some((fs, replace)) = self.request_file_system(p, None, &mut file_changes)? {
-            req.layered_file_system = Some(Arc::clone(&fs) as Arc<dyn tsrs_project::LayeredFileSystem>);
-            req.replace_file_system = replace;
-            Some(fs)
-        } else {
-            // Attribution only: same host filesystem, never a replacement.
-            req.file_system = Some(ScopedFs::wrap(self.snapshot_host_fs()));
-            None
-        };
+        let snapshot_fs =
+            if let Some((fs, replace)) = self.request_file_system(p, None, &mut file_changes)? {
+                req.layered_file_system =
+                    Some(Arc::clone(&fs) as Arc<dyn tsrs_project::LayeredFileSystem>);
+                req.replace_file_system = replace;
+                Some(fs)
+            } else {
+                // Attribution only: same host filesystem, never a replacement.
+                req.file_system = Some(ScopedFs::wrap(self.snapshot_host_fs()));
+                None
+            };
         let ctx = tsrs_core::context::Context::background();
         let root = self.snapshot_host.new_root_snapshot();
         // The root reference is released even if building a program unwinds (see `Snapshot::clone_snapshot`).
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.snapshot_host.clone_snapshot(&ctx, &root, file_changes, Some(Arc::new(req)))));
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.snapshot_host.clone_snapshot(&ctx, &root, file_changes, Some(Arc::new(req)))
+        }));
         root.deref();
         let result = result.unwrap_or_else(|panic| std::panic::resume_unwind(panic));
         let snapshot = match result {
             Ok(s) => s,
             Err((s, err)) => {
                 s.deref();
-                return Err(ApiError::client(format!("failed to create snapshot: {}", err.message)));
+                return Err(ApiError::client(format!(
+                    "failed to create snapshot: {}",
+                    err.message
+                )));
             }
         };
         if let Err(e) = Self::module_resolution_error(&snapshot) {
@@ -455,22 +587,32 @@ impl Session {
         let (mut req, echo) = self.to_api_snapshot_request(changes)?;
         let open_state = self.reconcile_snapshot_opens(&mut req, &base.open_state);
         let mut file_changes = self.to_file_change_summary(changes.get("fileNotifications"))?;
-        let new_fs = self.request_file_system(changes, base.file_system.as_deref(), &mut file_changes)?;
+        let new_fs =
+            self.request_file_system(changes, base.file_system.as_deref(), &mut file_changes)?;
         let replaced = new_fs.as_ref().is_some_and(|(_, replace)| *replace);
         let snapshot_fs = new_fs.map(|(fs, _)| fs).or_else(|| base.file_system.clone());
         if let Some(fs) = &snapshot_fs {
-            req.layered_file_system = Some(Arc::clone(fs) as Arc<dyn tsrs_project::LayeredFileSystem>);
+            req.layered_file_system =
+                Some(Arc::clone(fs) as Arc<dyn tsrs_project::LayeredFileSystem>);
             req.replace_file_system = replaced;
         } else {
             // Attribution only: same host filesystem, never a replacement.
             req.file_system = Some(ScopedFs::wrap(self.snapshot_host_fs()));
         }
         let ctx = tsrs_core::context::Context::background();
-        let snapshot = match self.snapshot_host.clone_snapshot(&ctx, &base.snapshot, file_changes, Some(Arc::new(req))) {
+        let snapshot = match self.snapshot_host.clone_snapshot(
+            &ctx,
+            &base.snapshot,
+            file_changes,
+            Some(Arc::new(req)),
+        ) {
             Ok(s) => s,
             Err((s, err)) => {
                 s.deref();
-                return Err(ApiError::client(format!("failed to update snapshot: {}", err.message)));
+                return Err(ApiError::client(format!(
+                    "failed to update snapshot: {}",
+                    err.message
+                )));
             }
         };
         if let Err(e) = Self::module_resolution_error(&snapshot) {
@@ -547,7 +689,12 @@ impl tsrs_vfs::FS for ScopedFs {
     fn remove(&self, path: &str) -> Result<(), String> {
         self.scope.enter(|| self.inner.remove(path))
     }
-    fn chtimes(&self, path: &str, a: std::time::SystemTime, m: std::time::SystemTime) -> Result<(), String> {
+    fn chtimes(
+        &self,
+        path: &str,
+        a: std::time::SystemTime,
+        m: std::time::SystemTime,
+    ) -> Result<(), String> {
         self.scope.enter(|| self.inner.chtimes(path, a, m))
     }
     fn directory_exists(&self, path: &str) -> bool {

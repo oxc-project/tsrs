@@ -4,14 +4,23 @@
 use tsrs_core::json::Value;
 
 use super::handlers_ls as ls;
-use super::handlers_symbols::{self as sym, AliasQuery, SymbolProperty, SymbolTableProperty, SymbolTypeQuery};
-use super::handlers_types::{self as ty, Intrinsic, NodeTypeOp, ParameterAt, SignatureProperty, SignatureTypeOp, TypeArrayProperty, TypeListOp, TypeOp, TypePredicateOp, TypeProperty, TypeSymbolProperty};
+use super::handlers_symbols::{
+    self as sym, AliasQuery, SymbolProperty, SymbolTableProperty, SymbolTypeQuery,
+};
+use super::handlers_types::{
+    self as ty, Intrinsic, NodeTypeOp, ParameterAt, SignatureProperty, SignatureTypeOp,
+    TypeArrayProperty, TypeListOp, TypeOp, TypePredicateOp, TypeProperty, TypeSymbolProperty,
+};
 use super::host::{CheckerHost, CheckerResponse, CheckerResult};
 use super::params::Params;
 
 /// Handles a checker-lane method. Returns `None` for methods this lane does not implement, so the core
 /// dispatcher can fall through to other lanes.
-pub fn handle(host: &dyn CheckerHost, method: &str, params: &Value) -> Option<CheckerResult<CheckerResponse>> {
+pub fn handle(
+    host: &dyn CheckerHost,
+    method: &str,
+    params: &Value,
+) -> Option<CheckerResult<CheckerResponse>> {
     if !is_checker_method(method) {
         return None;
     }
@@ -42,7 +51,9 @@ fn dispatch(h: &dyn CheckerHost, method: &str, p: &Params) -> CheckerResult<Chec
         "getTypeOfSymbol" => sym::get_type_of_symbol(h, p, SymbolTypeQuery::TypeOf),
         "getTypesOfSymbols" => sym::get_types_of_symbols(h, p),
         "getDeclaredTypeOfSymbol" => sym::get_type_of_symbol(h, p, SymbolTypeQuery::DeclaredType),
-        "getNonMissingTypeOfSymbol" => sym::get_type_of_symbol(h, p, SymbolTypeQuery::NonMissingType),
+        "getNonMissingTypeOfSymbol" => {
+            sym::get_type_of_symbol(h, p, SymbolTypeQuery::NonMissingType)
+        }
         "resolveName" => sym::resolve_name(h, p),
         "getSymbolsInScope" => sym::get_symbols_in_scope(h, p),
         "getSignaturesOfType" => ty::get_signatures_of_type(h, p),
@@ -62,26 +73,44 @@ fn dispatch(h: &dyn CheckerHost, method: &str, p: &Params) -> CheckerResult<Chec
         "getFreshTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::FreshType),
         "getRegularTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::RegularType),
         "getTypesOfType" => ty::resolve_type_array_property(h, p, TypeArrayProperty::Types),
-        "getTypeParametersOfType" => ty::resolve_type_array_property(h, p, TypeArrayProperty::TypeParameters),
-        "getOuterTypeParametersOfType" => ty::resolve_type_array_property(h, p, TypeArrayProperty::OuterTypeParameters),
-        "getLocalTypeParametersOfType" => ty::resolve_type_array_property(h, p, TypeArrayProperty::LocalTypeParameters),
+        "getTypeParametersOfType" => {
+            ty::resolve_type_array_property(h, p, TypeArrayProperty::TypeParameters)
+        }
+        "getOuterTypeParametersOfType" => {
+            ty::resolve_type_array_property(h, p, TypeArrayProperty::OuterTypeParameters)
+        }
+        "getLocalTypeParametersOfType" => {
+            ty::resolve_type_array_property(h, p, TypeArrayProperty::LocalTypeParameters)
+        }
         "getThisTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::ThisType),
-        "getAliasTypeArgumentsOfType" => ty::resolve_type_array_property(h, p, TypeArrayProperty::AliasTypeArguments),
-        "getAliasSymbolOfType" => ty::resolve_type_symbol_property(h, p, TypeSymbolProperty::AliasSymbol),
+        "getAliasTypeArgumentsOfType" => {
+            ty::resolve_type_array_property(h, p, TypeArrayProperty::AliasTypeArguments)
+        }
+        "getAliasSymbolOfType" => {
+            ty::resolve_type_symbol_property(h, p, TypeSymbolProperty::AliasSymbol)
+        }
         "getObjectTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::ObjectType),
         "getIndexTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::IndexType),
         "getCheckTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::CheckType),
         "getExtendsTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::ExtendsType),
         "getBaseTypeOfType" => ty::resolve_type_property(h, p, TypeProperty::BaseType),
         "getConstraintOfType" => ty::resolve_type_property(h, p, TypeProperty::SubstConstraint),
-        "getTypeParameterOfMappedType" => ty::resolve_type_property(h, p, TypeProperty::MappedTypeParameter),
-        "getConstraintTypeOfMappedType" => ty::resolve_type_property(h, p, TypeProperty::MappedConstraintType),
+        "getTypeParameterOfMappedType" => {
+            ty::resolve_type_property(h, p, TypeProperty::MappedTypeParameter)
+        }
+        "getConstraintTypeOfMappedType" => {
+            ty::resolve_type_property(h, p, TypeProperty::MappedConstraintType)
+        }
         "getNameTypeOfMappedType" => ty::resolve_type_property(h, p, TypeProperty::MappedNameType),
-        "getTemplateTypeOfMappedType" => ty::resolve_type_property(h, p, TypeProperty::MappedTemplateType),
+        "getTemplateTypeOfMappedType" => {
+            ty::resolve_type_property(h, p, TypeProperty::MappedTemplateType)
+        }
 
         "getTypeParametersOfSignature" => ty::get_type_parameters_of_signature(h, p),
         "getParametersOfSignature" => ty::signature_property(h, p, SignatureProperty::Parameters),
-        "getThisParameterOfSignature" => ty::signature_property(h, p, SignatureProperty::ThisParameter),
+        "getThisParameterOfSignature" => {
+            ty::signature_property(h, p, SignatureProperty::ThisParameter)
+        }
         "getTargetOfSignature" => ty::signature_property(h, p, SignatureProperty::Target),
 
         "getContextualType" => ty::node_type_op(h, p, NodeTypeOp::Contextual),
@@ -92,15 +121,21 @@ fn dispatch(h: &dyn CheckerHost, method: &str, p: &Params) -> CheckerResult<Chec
         "getTypeFromTypeNode" => ty::node_type_op(h, p, NodeTypeOp::FromTypeNode),
         "getWidenedType" => ty::type_op(h, p, "type", TypeOp::Widened),
         "getParameterType" => ty::signature_parameter_at(h, p, ParameterAt::ParameterType),
-        "getTypeParameterAtPosition" => ty::signature_parameter_at(h, p, ParameterAt::TypeParameter),
+        "getTypeParameterAtPosition" => {
+            ty::signature_parameter_at(h, p, ParameterAt::TypeParameter)
+        }
         "isArrayLikeType" => ty::type_predicate_op(h, p, TypePredicateOp::IsArrayLike),
         "isTypeAssignableTo" => ty::is_type_assignable_to(h, p),
         "getShorthandAssignmentValueSymbol" => sym::get_shorthand_assignment_value_symbol(h, p),
         "getTypeOfSymbolAtLocation" => ty::get_type_of_symbol_at_location(h, p),
         "typeToString" => ty::type_to_string(h, p),
         "isContextSensitive" => ty::is_context_sensitive(h, p),
-        "getReturnTypeOfSignature" => ty::signature_type_op(h, p, "objectId", SignatureTypeOp::ReturnType),
-        "getRestTypeOfSignature" => ty::signature_type_op(h, p, "signature", SignatureTypeOp::RestType),
+        "getReturnTypeOfSignature" => {
+            ty::signature_type_op(h, p, "objectId", SignatureTypeOp::ReturnType)
+        }
+        "getRestTypeOfSignature" => {
+            ty::signature_type_op(h, p, "signature", SignatureTypeOp::RestType)
+        }
         "getTypePredicateOfSignature" => ty::get_type_predicate_of_signature(h, p),
         "getBaseTypes" => ty::type_list_op(h, p, TypeListOp::BaseTypes),
         "getPropertiesOfType" => ty::get_properties_of_type(h, p),
@@ -111,15 +146,25 @@ fn dispatch(h: &dyn CheckerHost, method: &str, p: &Params) -> CheckerResult<Chec
         "getTypeOfPropertyOfType" => ty::get_type_of_property_of_type(h, p),
         "getIndexInfoOfType" => ty::get_index_info_of_type(h, p),
         "getIndexInfosOfType" => ty::get_index_infos_of_type(h, p),
-        "getConstraintOfTypeParameter" => ty::type_op(h, p, "objectId", TypeOp::ConstraintOfTypeParameter),
-        "getDefaultFromTypeParameter" => ty::type_op(h, p, "objectId", TypeOp::DefaultFromTypeParameter),
+        "getConstraintOfTypeParameter" => {
+            ty::type_op(h, p, "objectId", TypeOp::ConstraintOfTypeParameter)
+        }
+        "getDefaultFromTypeParameter" => {
+            ty::type_op(h, p, "objectId", TypeOp::DefaultFromTypeParameter)
+        }
         "getBaseConstraintOfType" => ty::type_op(h, p, "type", TypeOp::BaseConstraint),
         "getTypeArguments" => ty::type_list_op(h, p, TypeListOp::TypeArguments),
-        "getTrueTypeOfConditionalType" => ty::type_op(h, p, "objectId", TypeOp::TrueTypeOfConditional),
-        "getFalseTypeOfConditionalType" => ty::type_op(h, p, "objectId", TypeOp::FalseTypeOfConditional),
+        "getTrueTypeOfConditionalType" => {
+            ty::type_op(h, p, "objectId", TypeOp::TrueTypeOfConditional)
+        }
+        "getFalseTypeOfConditionalType" => {
+            ty::type_op(h, p, "objectId", TypeOp::FalseTypeOfConditional)
+        }
         "getConstantValue" => ty::get_constant_value(h, p),
         "getSignatureFromDeclaration" => ty::get_signature_from_declaration(h, p),
-        "getExportSpecifierLocalTargetSymbol" => sym::get_export_specifier_local_target_symbol(h, p),
+        "getExportSpecifierLocalTargetSymbol" => {
+            sym::get_export_specifier_local_target_symbol(h, p)
+        }
         "getAliasedSymbol" => sym::alias_query(h, p, AliasQuery::Aliased),
         "getImmediateAliasedSymbol" => sym::alias_query(h, p, AliasQuery::ImmediateAliased),
         "getTargetSymbol" => sym::alias_query(h, p, AliasQuery::Target),
@@ -157,30 +202,121 @@ fn dispatch(h: &dyn CheckerHost, method: &str, p: &Params) -> CheckerResult<Chec
 
 /// Every method this lane dispatches.
 pub const CHECKER_METHODS: &[&str] = &[
-    "getSymbolAtPosition", "getSymbolsAtPositions", "getSymbolAtLocation", "getSymbolsAtLocations", "getSymbolOfSourceFile",
-    "getSymbolsOfSourceFiles", "getTypeOfSymbol", "getTypesOfSymbols", "getDeclaredTypeOfSymbol", "getNonMissingTypeOfSymbol",
-    "resolveName", "getSymbolsInScope", "getSignaturesOfType", "getResolvedSignature", "getTypeAtLocation", "getTypeAtLocations",
-    "getTypeAtPosition", "getTypesAtPositions", "getParentOfSymbol", "getMembersOfSymbol", "getExportsOfSymbol",
-    "getExportSymbolOfSymbol", "getSymbolOfType", "getTargetOfType", "getFreshTypeOfType", "getRegularTypeOfType", "getTypesOfType",
-    "getTypeParametersOfType", "getOuterTypeParametersOfType", "getLocalTypeParametersOfType", "getThisTypeOfType",
-    "getAliasTypeArgumentsOfType", "getAliasSymbolOfType", "getObjectTypeOfType", "getIndexTypeOfType", "getCheckTypeOfType",
-    "getExtendsTypeOfType", "getBaseTypeOfType", "getConstraintOfType", "getTypeParameterOfMappedType",
-    "getConstraintTypeOfMappedType", "getNameTypeOfMappedType", "getTemplateTypeOfMappedType", "getTypeParametersOfSignature",
-    "getParametersOfSignature", "getThisParameterOfSignature", "getTargetOfSignature", "getContextualType",
-    "getContextualTypeForArgument", "getAwaitedType", "getBaseTypeOfLiteralType", "getNonNullableType", "getTypeFromTypeNode",
-    "getWidenedType", "getParameterType", "getTypeParameterAtPosition", "isArrayLikeType", "isTypeAssignableTo",
-    "getShorthandAssignmentValueSymbol", "getTypeOfSymbolAtLocation", "typeToTypeNode", "signatureToSignatureDeclaration",
-    "typeToString", "isContextSensitive", "getReturnTypeOfSignature", "getRestTypeOfSignature", "getTypePredicateOfSignature",
-    "getBaseTypes", "getPropertiesOfType", "getApparentPropertiesOfType", "getApparentType", "getReducedType", "getPropertyOfType",
-    "getTypeOfPropertyOfType", "getIndexInfoOfType", "getIndexInfosOfType", "getConstraintOfTypeParameter",
-    "getDefaultFromTypeParameter", "getBaseConstraintOfType", "getTypeArguments", "getTrueTypeOfConditionalType",
-    "getFalseTypeOfConditionalType", "getConstantValue", "getSignatureFromDeclaration", "getExportSpecifierLocalTargetSymbol",
-    "getAliasedSymbol", "getImmediateAliasedSymbol", "getTargetSymbol", "getExportSymbolOfSymbolForChecker", "getFullyQualifiedName",
-    "getExportsOfModule", "getMemberInModuleExports", "getJsDocTags", "getDocumentationComment", "isArrayType", "isReadonlySymbol",
-    "getReferencesToSymbolInFile", "getReferencedSymbolsForNode", "getSignatureUsages", "getCompletionsAtPosition",
-    "getImportAdderEdits", "getAnyType", "getStringType", "getNumberType", "getBooleanType", "getVoidType",
-    "getUndefinedType", "getNullType", "getNeverType", "getUnknownType", "getBigIntType", "getESSymbolType", "getNonPrimitiveType",
-    "getWellKnownSymbols", "getWellKnownSignatures",
+    "getSymbolAtPosition",
+    "getSymbolsAtPositions",
+    "getSymbolAtLocation",
+    "getSymbolsAtLocations",
+    "getSymbolOfSourceFile",
+    "getSymbolsOfSourceFiles",
+    "getTypeOfSymbol",
+    "getTypesOfSymbols",
+    "getDeclaredTypeOfSymbol",
+    "getNonMissingTypeOfSymbol",
+    "resolveName",
+    "getSymbolsInScope",
+    "getSignaturesOfType",
+    "getResolvedSignature",
+    "getTypeAtLocation",
+    "getTypeAtLocations",
+    "getTypeAtPosition",
+    "getTypesAtPositions",
+    "getParentOfSymbol",
+    "getMembersOfSymbol",
+    "getExportsOfSymbol",
+    "getExportSymbolOfSymbol",
+    "getSymbolOfType",
+    "getTargetOfType",
+    "getFreshTypeOfType",
+    "getRegularTypeOfType",
+    "getTypesOfType",
+    "getTypeParametersOfType",
+    "getOuterTypeParametersOfType",
+    "getLocalTypeParametersOfType",
+    "getThisTypeOfType",
+    "getAliasTypeArgumentsOfType",
+    "getAliasSymbolOfType",
+    "getObjectTypeOfType",
+    "getIndexTypeOfType",
+    "getCheckTypeOfType",
+    "getExtendsTypeOfType",
+    "getBaseTypeOfType",
+    "getConstraintOfType",
+    "getTypeParameterOfMappedType",
+    "getConstraintTypeOfMappedType",
+    "getNameTypeOfMappedType",
+    "getTemplateTypeOfMappedType",
+    "getTypeParametersOfSignature",
+    "getParametersOfSignature",
+    "getThisParameterOfSignature",
+    "getTargetOfSignature",
+    "getContextualType",
+    "getContextualTypeForArgument",
+    "getAwaitedType",
+    "getBaseTypeOfLiteralType",
+    "getNonNullableType",
+    "getTypeFromTypeNode",
+    "getWidenedType",
+    "getParameterType",
+    "getTypeParameterAtPosition",
+    "isArrayLikeType",
+    "isTypeAssignableTo",
+    "getShorthandAssignmentValueSymbol",
+    "getTypeOfSymbolAtLocation",
+    "typeToTypeNode",
+    "signatureToSignatureDeclaration",
+    "typeToString",
+    "isContextSensitive",
+    "getReturnTypeOfSignature",
+    "getRestTypeOfSignature",
+    "getTypePredicateOfSignature",
+    "getBaseTypes",
+    "getPropertiesOfType",
+    "getApparentPropertiesOfType",
+    "getApparentType",
+    "getReducedType",
+    "getPropertyOfType",
+    "getTypeOfPropertyOfType",
+    "getIndexInfoOfType",
+    "getIndexInfosOfType",
+    "getConstraintOfTypeParameter",
+    "getDefaultFromTypeParameter",
+    "getBaseConstraintOfType",
+    "getTypeArguments",
+    "getTrueTypeOfConditionalType",
+    "getFalseTypeOfConditionalType",
+    "getConstantValue",
+    "getSignatureFromDeclaration",
+    "getExportSpecifierLocalTargetSymbol",
+    "getAliasedSymbol",
+    "getImmediateAliasedSymbol",
+    "getTargetSymbol",
+    "getExportSymbolOfSymbolForChecker",
+    "getFullyQualifiedName",
+    "getExportsOfModule",
+    "getMemberInModuleExports",
+    "getJsDocTags",
+    "getDocumentationComment",
+    "isArrayType",
+    "isReadonlySymbol",
+    "getReferencesToSymbolInFile",
+    "getReferencedSymbolsForNode",
+    "getSignatureUsages",
+    "getCompletionsAtPosition",
+    "getImportAdderEdits",
+    "getAnyType",
+    "getStringType",
+    "getNumberType",
+    "getBooleanType",
+    "getVoidType",
+    "getUndefinedType",
+    "getNullType",
+    "getNeverType",
+    "getUnknownType",
+    "getBigIntType",
+    "getESSymbolType",
+    "getNonPrimitiveType",
+    "getWellKnownSymbols",
+    "getWellKnownSignatures",
 ];
 
 pub fn is_checker_method(method: &str) -> bool {

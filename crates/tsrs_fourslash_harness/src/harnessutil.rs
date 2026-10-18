@@ -6,7 +6,9 @@ use std::sync::LazyLock;
 
 use tsrs_core::tspath;
 use tsrs_core::{CompilerOptions, ModuleKind, ModuleResolutionKind, ScriptTarget};
-use tsrs_tsoptions::{self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue};
+use tsrs_tsoptions::{
+    self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue,
+};
 
 use crate::testing::T;
 
@@ -45,9 +47,16 @@ pub fn set_options_from_test_config(
 
         if let Some(command_line_option) = get_command_line_option(name) {
             let parsed_value = get_option_value(t, command_line_option, value, current_directory);
-            let errors = tsoptions::parse_compiler_options(command_line_option.name, &parsed_value, compiler_options);
+            let errors = tsoptions::parse_compiler_options(
+                command_line_option.name,
+                &parsed_value,
+                compiler_options,
+            );
             if !errors.is_empty() {
-                t.fatal(&format!("Error parsing value '{value}' for compiler option '{}'.", command_line_option.name));
+                t.fatal(&format!(
+                    "Error parsing value '{value}' for compiler option '{}'.",
+                    command_line_option.name
+                ));
             }
             continue;
         }
@@ -81,35 +90,44 @@ static COMPILER_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::n
 });
 
 // harnessutil.go:340
-static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
-    use CommandLineOptionKind::{Boolean, String, List};
-    vec![
-        new_option("useCaseSensitiveFileNames", Boolean),
-        new_option("baselineFile", String),
-        new_option("includeBuiltFile", String),
-        new_option("fileName", String),
-        new_option("libFiles", List),
-        new_option("noImplicitReferences", Boolean),
-        new_option("currentDirectory", String),
-        new_option("symlink", String),
-        new_option("link", String),
-        new_option("noTypesAndSymbols", Boolean),
-        // Emitted js baseline will print full paths for every output file
-        new_option("fullEmitPaths", Boolean),
-        // used to enable error collection in `transpile` baselines
-        new_option("reportDiagnostics", Boolean),
-        // Adds suggestion diagnostics to error baselines
-        new_option("captureSuggestions", Boolean),
-    ]
-});
+static HARNESS_COMMAND_LINE_OPTIONS: LazyLock<Vec<&'static CommandLineOption>> =
+    LazyLock::new(|| {
+        use CommandLineOptionKind::{Boolean, List, String};
+        vec![
+            new_option("useCaseSensitiveFileNames", Boolean),
+            new_option("baselineFile", String),
+            new_option("includeBuiltFile", String),
+            new_option("fileName", String),
+            new_option("libFiles", List),
+            new_option("noImplicitReferences", Boolean),
+            new_option("currentDirectory", String),
+            new_option("symlink", String),
+            new_option("link", String),
+            new_option("noTypesAndSymbols", Boolean),
+            // Emitted js baseline will print full paths for every output file
+            new_option("fullEmitPaths", Boolean),
+            // used to enable error collection in `transpile` baselines
+            new_option("reportDiagnostics", Boolean),
+            // Adds suggestion diagnostics to error baselines
+            new_option("captureSuggestions", Boolean),
+        ]
+    });
 
 // harnessutil.go:398
 fn get_harness_option(name: &str) -> Option<&'static CommandLineOption> {
-    HARNESS_COMMAND_LINE_OPTIONS.iter().copied().find(|option| option.name.eq_ignore_ascii_case(name))
+    HARNESS_COMMAND_LINE_OPTIONS
+        .iter()
+        .copied()
+        .find(|option| option.name.eq_ignore_ascii_case(name))
 }
 
 // harnessutil.go:404
-fn parse_harness_option(t: &T, key: &str, value: &CompilerOptionsValue, harness_options: &mut HarnessOptions) {
+fn parse_harness_option(
+    t: &T,
+    key: &str,
+    value: &CompilerOptionsValue,
+    harness_options: &mut HarnessOptions,
+) {
     let b = || matches!(value, CompilerOptionsValue::Bool(true));
     let s = || value.as_str().unwrap_or("").to_string();
     match key {
@@ -118,7 +136,10 @@ fn parse_harness_option(t: &T, key: &str, value: &CompilerOptionsValue, harness_
         "includeBuiltFile" => harness_options.include_built_file = s(),
         "fileName" => harness_options.file_name = s(),
         "libFiles" => {
-            harness_options.lib_files = value.as_array().map(|a| a.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect()).unwrap_or_default();
+            harness_options.lib_files = value
+                .as_array()
+                .map(|a| a.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect())
+                .unwrap_or_default();
         }
         "noImplicitReferences" => harness_options.no_implicit_references = b(),
         "currentDirectory" => harness_options.current_directory = s(),
@@ -134,34 +155,64 @@ fn parse_harness_option(t: &T, key: &str, value: &CompilerOptionsValue, harness_
 }
 
 // harnessutil.go:442
-fn get_option_value(t: &T, option: &'static CommandLineOption, value: &str, cwd: &str) -> CompilerOptionsValue {
+fn get_option_value(
+    t: &T,
+    option: &'static CommandLineOption,
+    value: &str,
+    cwd: &str,
+) -> CompilerOptionsValue {
     match option.kind {
         CommandLineOptionKind::String => {
             if option.is_file_path {
-                return CompilerOptionsValue::String(tspath::get_normalized_absolute_path(value, cwd));
+                return CompilerOptionsValue::String(tspath::get_normalized_absolute_path(
+                    value, cwd,
+                ));
             }
             CompilerOptionsValue::String(value.to_string())
         }
         CommandLineOptionKind::Number => match value.parse::<i64>() {
             Ok(n) => CompilerOptionsValue::Int(n),
-            Err(_) => t.fatal(&format!("Value for option '{}' must be a number, got: {value}", option.name)),
+            Err(_) => t.fatal(&format!(
+                "Value for option '{}' must be a number, got: {value}",
+                option.name
+            )),
         },
         CommandLineOptionKind::Boolean => match value.to_lowercase().as_str() {
             "true" => CompilerOptionsValue::Bool(true),
             "false" => CompilerOptionsValue::Bool(false),
-            _ => t.fatal(&format!("Value for option '{}' must be a boolean, got: {value}", option.name)),
+            _ => t.fatal(&format!(
+                "Value for option '{}' must be a boolean, got: {value}",
+                option.name
+            )),
         },
-        CommandLineOptionKind::Enum => if let Some(v) = option.enum_map().and_then(|m| m.get(value.to_lowercase().as_str())) {
-            v.clone()
-        } else {
-            let keys: Vec<String> = option.enum_map().map(|m| m.iter().map(|(k, _)| k.to_string()).collect()).unwrap_or_default();
-            t.fatal(&format!("Value for option '{}' must be one of {}, got: {value}", option.name, keys.join(",")))
-        },
+        CommandLineOptionKind::Enum => {
+            if let Some(v) = option.enum_map().and_then(|m| m.get(value.to_lowercase().as_str())) {
+                v.clone()
+            } else {
+                let keys: Vec<String> = option
+                    .enum_map()
+                    .map(|m| m.iter().map(|(k, _)| k.to_string()).collect())
+                    .unwrap_or_default();
+                t.fatal(&format!(
+                    "Value for option '{}' must be one of {}, got: {value}",
+                    option.name,
+                    keys.join(",")
+                ))
+            }
+        }
         CommandLineOptionKind::List | CommandLineOptionKind::ListOrElement => {
             let (list_val, errors) = tsoptions::parse_list_type_option(option, value);
             if option.elements().is_some_and(|e| e.is_file_path) {
                 return CompilerOptionsValue::Array(
-                    list_val.iter().map(|item| CompilerOptionsValue::String(tspath::get_normalized_absolute_path(item.as_str().unwrap_or(""), cwd))).collect(),
+                    list_val
+                        .iter()
+                        .map(|item| {
+                            CompilerOptionsValue::String(tspath::get_normalized_absolute_path(
+                                item.as_str().unwrap_or(""),
+                                cwd,
+                            ))
+                        })
+                        .collect(),
                 );
             }
             if !errors.is_empty() {
@@ -169,26 +220,34 @@ fn get_option_value(t: &T, option: &'static CommandLineOption, value: &str, cwd:
             }
             CompilerOptionsValue::Array(list_val)
         }
-        CommandLineOptionKind::Object => t.fatal(&format!("Object type options like '{}' are not supported", option.name)),
+        CommandLineOptionKind::Object => {
+            t.fatal(&format!("Object type options like '{}' are not supported", option.name))
+        }
     }
 }
 
 // harnessutil.go:1182
 fn get_command_line_option(option: &str) -> Option<&'static CommandLineOption> {
-    COMPILER_OPTIONS.iter().copied().find(|option_decl| option_decl.name.eq_ignore_ascii_case(option))
+    COMPILER_OPTIONS
+        .iter()
+        .copied()
+        .find(|option_decl| option_decl.name.eq_ignore_ascii_case(option))
 }
 
 // harnessutil.go:1236
 pub fn skip_unsupported_compiler_options(t: &T, options: &CompilerOptions) {
     fail_on_unsupported_compiler_options(t, options);
     match options.module {
-        ModuleKind::UMD | ModuleKind::System => t.skip(&format!("unsupported module kind {:?}", options.module)),
+        ModuleKind::UMD | ModuleKind::System => {
+            t.skip(&format!("unsupported module kind {:?}", options.module))
+        }
         _ => {}
     }
     match options.module_resolution {
-        ModuleResolutionKind::Node10 | ModuleResolutionKind::Classic => {
-            t.skip(&format!("unsupported module resolution kind {}", options.module_resolution.value()))
-        }
+        ModuleResolutionKind::Node10 | ModuleResolutionKind::Classic => t.skip(&format!(
+            "unsupported module resolution kind {}",
+            options.module_resolution.value()
+        )),
         _ => {}
     }
     if options.es_module_interop.is_false() {

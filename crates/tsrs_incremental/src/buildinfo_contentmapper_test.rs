@@ -3,16 +3,24 @@
 
 use std::sync::Arc;
 
-use tsrs_contentmapper::{self as contentmapper, Definition, Manifest, Mapper, OptionDiagnostic, Request, TransformResultFiles};
+use tsrs_contentmapper::{
+    self as contentmapper, Definition, Manifest, Mapper, OptionDiagnostic, Request,
+    TransformResultFiles,
+};
 use tsrs_core::{CompilerOptions, P};
-use tsrs_tsoptions::{new_parsed_command_line, ParsedCommandLine};
-use tsrs_vfs::{vfstest, FS};
+use tsrs_tsoptions::{ParsedCommandLine, new_parsed_command_line};
+use tsrs_vfs::{FS, vfstest};
 
-use crate::{content_mapper_identities, read_build_info_program, BuildInfo, BuildInfoReader};
+use crate::{BuildInfo, BuildInfoReader, content_mapper_identities, read_build_info_program};
 
 // buildinfo_contentmapper_test.go:16
 fn config_with_mappers(mappers: Vec<Mapper>) -> P<ParsedCommandLine> {
-    let mut config = new_parsed_command_line(P::new(CompilerOptions::default()), Vec::new(), Vec::new(), tsrs_core::tspath::ComparePathsOptions::default());
+    let mut config = new_parsed_command_line(
+        P::new(CompilerOptions::default()),
+        Vec::new(),
+        Vec::new(),
+        tsrs_core::tspath::ComparePathsOptions::default(),
+    );
     config.parsed_config.content_mappers = mappers.into();
     P::new(config)
 }
@@ -53,7 +61,11 @@ impl contentmapper::Project for fakeContentMapperProject {
     fn diagnostics(&self) -> Vec<OptionDiagnostic> {
         Vec::new()
     }
-    fn transform(&self, _mapper: &Mapper, _request: Request<'_>) -> Result<TransformResultFiles, contentmapper::Error> {
+    fn transform(
+        &self,
+        _mapper: &Mapper,
+        _request: Request<'_>,
+    ) -> Result<TransformResultFiles, contentmapper::Error> {
         Ok(TransformResultFiles::default())
     }
     fn close(&self) -> Result<(), contentmapper::Error> {
@@ -63,8 +75,17 @@ impl contentmapper::Project for fakeContentMapperProject {
 
 fn mapper(package: &str, name: &str, version: &str, dynamic_config: bool) -> Mapper {
     Mapper {
-        definition: Definition { package: package.to_string(), extensions: vec![".vue".to_string()], options: String::new() },
-        manifest: Manifest { name: name.to_string(), version: version.to_string(), dynamic_config, ..Default::default() },
+        definition: Definition {
+            package: package.to_string(),
+            extensions: vec![".vue".to_string()],
+            options: String::new(),
+        },
+        manifest: Manifest {
+            name: name.to_string(),
+            version: version.to_string(),
+            dynamic_config,
+            ..Default::default()
+        },
         ..Default::default()
     }
 }
@@ -78,7 +99,9 @@ fn incremental_build_info(content_mapper_identities: &[&str]) -> BuildInfo {
     BuildInfo {
         version: tsrs_core::version().to_string(),
         file_names: vec!["/src/a.ts".to_string()],
-        content_mapper_identities: Some(content_mapper_identities.iter().map(std::string::ToString::to_string).collect()),
+        content_mapper_identities: Some(
+            content_mapper_identities.iter().map(std::string::ToString::to_string).collect(),
+        ),
         ..Default::default()
     }
 }
@@ -88,21 +111,30 @@ fn incremental_build_info(content_mapper_identities: &[&str]) -> BuildInfo {
 #[test]
 fn test_dynamic_content_mapper_identities() {
     let config = config_with_mappers(vec![mapper("dynamic", "dynamic", "1.0.0", true)]);
-    let project = Arc::new(fakeContentMapperProject { identities: vec!["dynamic@1.0.0:opaque".to_string()], err: None });
+    let project = Arc::new(fakeContentMapperProject {
+        identities: vec!["dynamic@1.0.0:opaque".to_string()],
+        err: None,
+    });
     let identities = content_mapper_identities(Some(&*project)).unwrap();
     assert_eq!(identities, Some(project.identities.clone()));
 
     let build_info = incremental_build_info(&["dynamic@1.0.0:old"]);
     let host = host_with(project);
     let program = read_build_info_program(config, &fakeBuildInfoReader { build_info }, &*host);
-    assert!(program.is_none(), "expected opaque mapper identity changes to discard the old program");
+    assert!(
+        program.is_none(),
+        "expected opaque mapper identity changes to discard the old program"
+    );
 }
 
 // buildinfo_contentmapper_test.go:101. The project's error is returned as it is, with no identities.
 #[test]
 fn test_content_mapper_identity_error() {
     let want = contentmapper::Error::Other("identity failed".to_string());
-    let result = content_mapper_identities(Some(&fakeContentMapperProject { identities: Vec::new(), err: Some(want.clone()) }));
+    let result = content_mapper_identities(Some(&fakeContentMapperProject {
+        identities: Vec::new(),
+        err: Some(want.clone()),
+    }));
     match result {
         Ok(identities) => panic!("expected an error, got {identities:?}"),
         Err(err) => assert_eq!(err.error(), want.error()),
@@ -116,9 +148,15 @@ fn test_read_build_info_program_content_mapper_identity_mismatch() {
     // project cannot be reused: the old program is discarded (nil) so the project is rebuilt.
     let build_info = incremental_build_info(&["vue@1.0.0"]);
     let config = config_with_mappers(vec![mapper("vue", "vue", "2.0.0", false)]);
-    let project = Arc::new(fakeContentMapperProject { identities: vec!["vue@2.0.0:current".to_string()], err: None });
+    let project = Arc::new(fakeContentMapperProject {
+        identities: vec!["vue@2.0.0:current".to_string()],
+        err: None,
+    });
     let host = host_with(project);
 
     let program = read_build_info_program(config, &fakeBuildInfoReader { build_info }, &*host);
-    assert!(program.is_none(), "expected the old program to be discarded when the mapper identity changed");
+    assert!(
+        program.is_none(),
+        "expected the old program to be discarded when the mapper identity changed"
+    );
 }

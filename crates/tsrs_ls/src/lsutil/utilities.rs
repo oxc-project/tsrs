@@ -1,7 +1,7 @@
 use tsrs_ast::{self as ast, Kind, Node, NodeFlags, SourceFile, Symbol, TokenFlags};
 use tsrs_compiler::Program;
 use tsrs_core::stringutil::{push_rune, unicode_to_upper};
-use tsrs_core::{tspath, Tristate, P};
+use tsrs_core::{P, Tristate, tspath};
 use tsrs_scanner as scanner;
 
 use super::*;
@@ -43,9 +43,7 @@ pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
                     file.get(),
                     scanner::skip_trivia(
                         file.text(),
-                        last_token
-                            .end()
-                            .expect_source("parsed tokens have source positions"),
+                        last_token.end().expect_source("parsed tokens have source positions"),
                     ),
                 );
                 // Avoid counting missing semicolon in single-line objects:
@@ -60,10 +58,14 @@ pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
             return true;
         }
 
-        node.for_each_child(&mut |n| visit(n, file, with_semicolon, without_semicolon, n_statements_to_observe))
+        node.for_each_child(&mut |n| {
+            visit(n, file, with_semicolon, without_semicolon, n_statements_to_observe)
+        })
     }
 
-    file.as_node().for_each_child(&mut |n| visit(n, file, &mut with_semicolon, &mut without_semicolon, n_statements_to_observe));
+    file.as_node().for_each_child(&mut |n| {
+        visit(n, file, &mut with_semicolon, &mut without_semicolon, n_statements_to_observe)
+    });
 
     // One statement missing a semicolon isn't sufficient evidence to say the user
     // doesn't want semicolons, because they may not even be done writing that statement.
@@ -83,7 +85,9 @@ pub fn probably_uses_semicolons(file: P<SourceFile>) -> bool {
 // utilities.go:77
 pub fn should_use_uri_style_node_core_modules(file: P<SourceFile>, program: &Program) -> Tristate {
     if let Some(result) = file.imports().iter().find_map(|&node| {
-        if tsrs_core::node_core_modules().contains(node.text()) && !tsrs_core::is_exclusively_prefixed_node_core_module(node.text()) {
+        if tsrs_core::node_core_modules().contains(node.text())
+            && !tsrs_core::is_exclusively_prefixed_node_core_module(node.text())
+        {
             if node.text().starts_with("node:") {
                 return Some(Tristate::True);
             }
@@ -107,16 +111,24 @@ pub fn quote_preference_from_string(str: P<Node>) -> QuotePreference {
 }
 
 // utilities.go:98
-pub fn get_quote_preference(source_file: P<SourceFile>, preferences: &UserPreferences) -> QuotePreference {
-    if preferences.quote_preference != QuotePreference::Unknown && preferences.quote_preference != QuotePreference::Auto {
+pub fn get_quote_preference(
+    source_file: P<SourceFile>,
+    preferences: &UserPreferences,
+) -> QuotePreference {
+    if preferences.quote_preference != QuotePreference::Unknown
+        && preferences.quote_preference != QuotePreference::Auto
+    {
         if preferences.quote_preference == QuotePreference::Single {
             return QuotePreference::Single;
         }
         return QuotePreference::Double;
     }
     // ignore synthetic import added when importHelpers: true
-    let first_module_specifier =
-        source_file.imports().iter().copied().find(|&n| ast::is_string_literal(n) && !ast::node_is_synthesized(n.parent().unwrap()));
+    let first_module_specifier = source_file
+        .imports()
+        .iter()
+        .copied()
+        .find(|&n| ast::is_string_literal(n) && !ast::node_is_synthesized(n.parent().unwrap()));
     if let Some(first_module_specifier) = first_module_specifier {
         return quote_preference_from_string(first_module_specifier);
     }
@@ -124,18 +136,27 @@ pub fn get_quote_preference(source_file: P<SourceFile>, preferences: &UserPrefer
 }
 
 // utilities.go:115
-pub fn module_symbol_to_valid_identifier(module_symbol: P<Symbol>, force_capitalize: bool) -> String {
+pub fn module_symbol_to_valid_identifier(
+    module_symbol: P<Symbol>,
+    force_capitalize: bool,
+) -> String {
     let mut module_name = module_symbol.name();
-    if let Some(ambient_module_name) = ast::try_get_ambient_module_name_from_symbol_name(module_name) {
+    if let Some(ambient_module_name) =
+        ast::try_get_ambient_module_name_from_symbol_name(module_name)
+    {
         module_name = ambient_module_name;
     }
     module_specifier_to_valid_identifier(module_name, force_capitalize)
 }
 
 // utilities.go:123
-pub fn module_specifier_to_valid_identifier(module_specifier: &str, force_capitalize: bool) -> String {
+pub fn module_specifier_to_valid_identifier(
+    module_specifier: &str,
+    force_capitalize: bool,
+) -> String {
     let without_ext = tspath::remove_any_file_extension(module_specifier);
-    let base_name = tspath::get_base_file_name(without_ext.strip_suffix("/index").unwrap_or(without_ext));
+    let base_name =
+        tspath::get_base_file_name(without_ext.strip_suffix("/index").unwrap_or(without_ext));
     let mut res = String::new();
     let mut last_char_was_valid = true;
     let base_name_runes: Vec<u32> = base_name.chars().map(|c| c as u32).collect();

@@ -17,7 +17,15 @@ pub trait Host: Send + Sync {
     // Used for module specifier completions.
     // ! Do not use for anything else, as this violates the principle that
     // the host is a snapshot-in-time.
-    fn read_directory(&self, current_dir: &str, path: &str, extensions: &[String], excludes: &[String], includes: &[String], depth: usize) -> Vec<String>;
+    fn read_directory(
+        &self,
+        current_dir: &str,
+        path: &str,
+        extensions: &[String],
+        excludes: &[String],
+        includes: &[String],
+        depth: usize,
+    ) -> Vec<String>;
     fn get_directories(&self, path: &str) -> Vec<String>;
     fn directory_exists(&self, path: &str) -> bool;
     fn file_exists(&self, path: &str) -> bool;

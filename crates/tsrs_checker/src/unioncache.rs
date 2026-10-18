@@ -34,9 +34,9 @@
 //! notes/perf-union-inference.md).
 
 use crate::*;
-use tsrs_core::ptr::PKey;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU64, Ordering};
+use tsrs_core::ptr::PKey;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum UnionCacheMode {
@@ -80,7 +80,9 @@ pub(crate) fn union_cache_mode() -> UnionCacheMode {
 
 fn stats_on() -> bool {
     static STATS: OnceLock<bool> = OnceLock::new();
-    *STATS.get_or_init(|| std::env::var("TSRS_UNION_CACHE_STATS").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *STATS.get_or_init(|| {
+        std::env::var("TSRS_UNION_CACHE_STATS").is_ok_and(|v| !v.is_empty() && v != "0")
+    })
 }
 
 static LOOKUPS: AtomicU64 = AtomicU64::new(0);
@@ -94,7 +96,13 @@ static SKIP_ERROR: AtomicU64 = AtomicU64::new(0);
 
 fn bits() -> u32 {
     static BITS: OnceLock<u32> = OnceLock::new();
-    *BITS.get_or_init(|| std::env::var("TSRS_UNION_CACHE_BITS").ok().and_then(|v| v.parse().ok()).filter(|b| (4..=24).contains(b)).unwrap_or(10))
+    *BITS.get_or_init(|| {
+        std::env::var("TSRS_UNION_CACHE_BITS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .filter(|b| (4..=24).contains(b))
+            .unwrap_or(10)
+    })
 }
 /// Key words: the inputs, then for an alias its symbol and type arguments.
 pub(crate) const MAX_WORDS: usize = 8;
@@ -147,7 +155,14 @@ struct LongEntry {
 impl UnionFrontCache {
     pub(crate) fn new() -> Self {
         let mode = union_cache_mode();
-        UnionFrontCache { mode, impure: 0, slots: Vec::new(), shift: 64 - bits(), stats: mode != UnionCacheMode::Off && (stats_on() || mode == UnionCacheMode::Shadow), long: LongKeys::default() }
+        UnionFrontCache {
+            mode,
+            impure: 0,
+            slots: Vec::new(),
+            shift: 64 - bits(),
+            stats: mode != UnionCacheMode::Off && (stats_on() || mode == UnionCacheMode::Shadow),
+            long: LongKeys::default(),
+        }
     }
 }
 
@@ -180,8 +195,16 @@ fn count(on: bool, counter: &AtomicU64) {
 
 /// The key of a call, or None when it does not fit in `MAX_WORDS`.
 #[inline(always)]
-#[expect(clippy::inline_always, reason = "on the getUnionType path; out of line the key is built in memory and copied")]
-fn make_key(types: &[P<Type>], reduction: UnionReduction, alias: AliasArg<'_>, shift: u32) -> Option<([PKey; MAX_WORDS], u16, usize)> {
+#[expect(
+    clippy::inline_always,
+    reason = "on the getUnionType path; out of line the key is built in memory and copied"
+)]
+fn make_key(
+    types: &[P<Type>],
+    reduction: UnionReduction,
+    alias: AliasArg<'_>,
+    shift: u32,
+) -> Option<([PKey; MAX_WORDS], u16, usize)> {
     let (symbol, type_arguments): (Option<P<Symbol>>, &[P<Type>]) = match alias {
         AliasArg::None => (None, &[]),
         AliasArg::Some(alias) => (alias.symbol.get(), alias.type_arguments.get()),
@@ -209,13 +232,19 @@ fn make_key(types: &[P<Type>], reduction: UnionReduction, alias: AliasArg<'_>, s
         }
     }
     h ^= h >> 29;
-    let meta = 1 | ((reduction as u16) << 1) | ((types.len() as u16) << 3) | (u16::from(has_alias) << 7);
+    let meta =
+        1 | ((reduction as u16) << 1) | ((types.len() as u16) << 3) | (u16::from(has_alias) << 7);
     Some((key, meta, (h >> shift) as usize))
 }
 
 /// The key words of a call that does not fit `make_key` (inputs, then the alias's symbol and type arguments), its meta
 /// and its hash, or None for an alias without a symbol (not cached, as in `make_key`).
-fn make_long_key(words: &mut Vec<PKey>, types: &[P<Type>], reduction: UnionReduction, alias: AliasArg<'_>) -> Option<(u16, u64)> {
+fn make_long_key(
+    words: &mut Vec<PKey>,
+    types: &[P<Type>],
+    reduction: UnionReduction,
+    alias: AliasArg<'_>,
+) -> Option<(u16, u64)> {
     let (symbol, type_arguments): (Option<P<Symbol>>, &[P<Type>]) = match alias {
         AliasArg::None => (None, &[]),
         AliasArg::Some(alias) => (alias.symbol.get(), alias.type_arguments.get()),
@@ -240,7 +269,12 @@ fn make_long_key(words: &mut Vec<PKey>, types: &[P<Type>], reduction: UnionReduc
 
 impl Checker {
     /// `get_union_type_front_cached` for keys longer than `MAX_WORDS`.
-    fn get_union_type_long_cached(&mut self, types: &[P<Type>], union_reduction: UnionReduction, alias: AliasArg<'_>) -> P<Type> {
+    fn get_union_type_long_cached(
+        &mut self,
+        types: &[P<Type>],
+        union_reduction: UnionReduction,
+        alias: AliasArg<'_>,
+    ) -> P<Type> {
         let mut probe = std::mem::take(&mut self.union_front_cache.long.probe);
         let Some((meta, hash)) = make_long_key(&mut probe, types, union_reduction, alias) else {
             self.union_front_cache.long.probe = probe;
@@ -254,7 +288,9 @@ impl Checker {
             long.table
                 .find(hash, |&i| {
                     let e = &long.entries[i as usize];
-                    e.hash == hash && e.meta == meta && long.words[e.start as usize..(e.start + e.len) as usize] == probe[..]
+                    e.hash == hash
+                        && e.meta == meta
+                        && long.words[e.start as usize..(e.start + e.len) as usize] == probe[..]
                 })
                 .map(|&i| long.entries[i as usize].result)
         };
@@ -264,7 +300,14 @@ impl Checker {
             if cache.mode == UnionCacheMode::Shadow {
                 count(cache.stats, &SHADOW_CHECKS);
                 let fresh = self.get_union_type_ex_uncached(types, union_reduction, alias, None);
-                assert!(fresh == cached, "TSRS_UNION_CACHE=shadow: union of {} types ({union_reduction:?}, alias {}): cached type {}, fresh type {}", types.len(), !alias.is_none(), cached.id.0, fresh.id.0);
+                assert!(
+                    fresh == cached,
+                    "TSRS_UNION_CACHE=shadow: union of {} types ({union_reduction:?}, alias {}): cached type {}, fresh type {}",
+                    types.len(),
+                    !alias.is_none(),
+                    cached.id.0,
+                    fresh.id.0
+                );
             }
             return cached;
         }
@@ -273,8 +316,10 @@ impl Checker {
         let total_instantiation_count = self.total_instantiation_count;
         let impure = self.union_front_cache.impure;
         let result = self.get_union_type_ex_uncached(types, union_reduction, alias, None);
-        let created = type_count != self.type_count && !(self.type_count == type_count + 1 && result.id.0 == self.type_count);
-        let instantiated = instantiation_count != self.instantiation_count || total_instantiation_count != self.total_instantiation_count;
+        let created = type_count != self.type_count
+            && !(self.type_count == type_count + 1 && result.id.0 == self.type_count);
+        let instantiated = instantiation_count != self.instantiation_count
+            || total_instantiation_count != self.total_instantiation_count;
         let impure = impure != self.union_front_cache.impure;
         let error = result == self.error_type;
         let cache = &mut self.union_front_cache;
@@ -282,7 +327,13 @@ impl Checker {
             count(cache.stats, &STORES);
             let long = &mut cache.long;
             let index = long.entries.len() as u32;
-            long.entries.push(LongEntry { hash, start: long.words.len() as u32, len: probe.len() as u32, meta, result });
+            long.entries.push(LongEntry {
+                hash,
+                start: long.words.len() as u32,
+                len: probe.len() as u32,
+                meta,
+                result,
+            });
             long.words.extend_from_slice(&probe);
             let entries = &long.entries;
             long.table.insert_unique(hash, index, |&i| entries[i as usize].hash);
@@ -297,8 +348,15 @@ impl Checker {
     }
 
     /// The front of `getUnionType` for calls with two or more inputs and no origin.
-    pub(crate) fn get_union_type_front_cached(&mut self, types: &[P<Type>], union_reduction: UnionReduction, alias: AliasArg<'_>) -> P<Type> {
-        let Some((key, meta, index)) = make_key(types, union_reduction, alias, self.union_front_cache.shift) else {
+    pub(crate) fn get_union_type_front_cached(
+        &mut self,
+        types: &[P<Type>],
+        union_reduction: UnionReduction,
+        alias: AliasArg<'_>,
+    ) -> P<Type> {
+        let Some((key, meta, index)) =
+            make_key(types, union_reduction, alias, self.union_front_cache.shift)
+        else {
             return self.get_union_type_long_cached(types, union_reduction, alias);
         };
         let cache = &mut self.union_front_cache;
@@ -313,7 +371,8 @@ impl Checker {
             if cache.mode == UnionCacheMode::Shadow {
                 count(cache.stats, &SHADOW_CHECKS);
                 let fresh = self.get_union_type_ex_uncached(types, union_reduction, alias, None);
-                assert!(fresh == cached,
+                assert!(
+                    fresh == cached,
                     "TSRS_UNION_CACHE=shadow: union of [{}] ({union_reduction:?}, alias {}): cached type {} (flags {:?}), fresh type {} (flags {:?})",
                     types.iter().map(|t| t.id.0.to_string()).collect::<Vec<_>>().join(", "),
                     !alias.is_none(),
@@ -331,8 +390,10 @@ impl Checker {
         let impure = self.union_front_cache.impure;
         let result = self.get_union_type_ex_uncached(types, union_reduction, alias, None);
         // Nothing created, or only the result (the union this call interned, which the next call finds).
-        let created = type_count != self.type_count && !(self.type_count == type_count + 1 && result.id.0 == self.type_count);
-        let instantiated = instantiation_count != self.instantiation_count || total_instantiation_count != self.total_instantiation_count;
+        let created = type_count != self.type_count
+            && !(self.type_count == type_count + 1 && result.id.0 == self.type_count);
+        let instantiated = instantiation_count != self.instantiation_count
+            || total_instantiation_count != self.total_instantiation_count;
         let impure = impure != self.union_front_cache.impure;
         let error = result == self.error_type;
         let cache = &mut self.union_front_cache;

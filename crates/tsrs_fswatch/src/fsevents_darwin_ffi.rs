@@ -11,7 +11,7 @@
 // All `unsafe` of the FSEvents backend is confined to this file: the C declarations, the wrappers below (each
 // documents the invariant it relies on) and the callback.
 
-use std::ffi::{c_char, c_void, CString};
+use std::ffi::{CString, c_char, c_void};
 
 use crate::fsevents_darwin::{fs_events_callback, fseventsWatchSnapshot};
 
@@ -31,20 +31,45 @@ struct FSEventStreamContext {
     copy_description: *const c_void,
 }
 
-type FSEventStreamCallback = extern "C" fn(stream: FSEventStreamRef, info: *mut c_void, num_events: usize, event_paths: *mut c_void, event_flags: *const u32, event_ids: *const u64);
+type FSEventStreamCallback = extern "C" fn(
+    stream: FSEventStreamRef,
+    info: *mut c_void,
+    num_events: usize,
+    event_paths: *mut c_void,
+    event_flags: *const u32,
+    event_ids: *const u64,
+);
 
 #[link(name = "CoreFoundation", kind = "framework")]
 unsafe extern "C" {
     fn CFRelease(cf: CFTypeRef);
-    fn CFStringCreateWithCString(alloc: CFTypeRef, c_str: *const c_char, encoding: u32) -> CFTypeRef;
-    fn CFArrayCreate(alloc: CFTypeRef, values: *const CFTypeRef, num_values: CFIndex, callbacks: *const c_void) -> CFTypeRef;
+    fn CFStringCreateWithCString(
+        alloc: CFTypeRef,
+        c_str: *const c_char,
+        encoding: u32,
+    ) -> CFTypeRef;
+    fn CFArrayCreate(
+        alloc: CFTypeRef,
+        values: *const CFTypeRef,
+        num_values: CFIndex,
+        callbacks: *const c_void,
+    ) -> CFTypeRef;
     fn CFArrayGetValueAtIndex(array: CFTypeRef, idx: CFIndex) -> CFTypeRef;
-    fn CFStringCreateMutableCopy(alloc: CFTypeRef, max_length: CFIndex, string: CFTypeRef) -> CFTypeRef;
+    fn CFStringCreateMutableCopy(
+        alloc: CFTypeRef,
+        max_length: CFIndex,
+        string: CFTypeRef,
+    ) -> CFTypeRef;
     fn CFStringNormalize(string: CFTypeRef, the_form: CFIndex);
     fn CFStringFold(string: CFTypeRef, the_flags: usize, the_locale: CFTypeRef);
     fn CFStringGetLength(string: CFTypeRef) -> CFIndex;
     fn CFStringGetMaximumSizeForEncoding(length: CFIndex, encoding: u32) -> CFIndex;
-    fn CFStringGetCString(string: CFTypeRef, buffer: *mut c_char, buffer_size: CFIndex, encoding: u32) -> Boolean;
+    fn CFStringGetCString(
+        string: CFTypeRef,
+        buffer: *mut c_char,
+        buffer_size: CFIndex,
+        encoding: u32,
+    ) -> Boolean;
 }
 
 #[link(name = "CoreServices", kind = "framework")]
@@ -70,9 +95,17 @@ unsafe extern "C" {
 // libSystem (always linked).
 unsafe extern "C" {
     fn dispatch_queue_create(label: *const c_char, attr: *const c_void) -> dispatch_queue_t;
-    fn dispatch_queue_attr_make_with_qos_class(attr: *const c_void, qos_class: u32, relative_priority: i32) -> *const c_void;
+    fn dispatch_queue_attr_make_with_qos_class(
+        attr: *const c_void,
+        qos_class: u32,
+        relative_priority: i32,
+    ) -> *const c_void;
     fn dispatch_release(object: *mut c_void);
-    fn dispatch_sync_f(queue: dispatch_queue_t, context: *mut c_void, work: extern "C" fn(*mut c_void));
+    fn dispatch_sync_f(
+        queue: dispatch_queue_t,
+        context: *mut c_void,
+        work: extern "C" fn(*mut c_void),
+    );
 }
 
 pub(crate) const cfStringEncodingUTF8: u32 = 0x0800_0100;
@@ -96,7 +129,8 @@ impl Drop for CFRef {
 pub(crate) fn cf_string_create(s: &str) -> Option<CFRef> {
     let cstr = CString::new(s).ok()?;
     // SAFETY: `cstr` is NUL-terminated and outlives the call; NULL allocator = default.
-    let r = unsafe { CFStringCreateWithCString(std::ptr::null(), cstr.as_ptr(), cfStringEncodingUTF8) };
+    let r =
+        unsafe { CFStringCreateWithCString(std::ptr::null(), cstr.as_ptr(), cfStringEncodingUTF8) };
     (!r.is_null()).then_some(CFRef(r))
 }
 
@@ -105,7 +139,9 @@ pub(crate) fn cf_string_create(s: &str) -> Option<CFRef> {
 pub(crate) fn cf_array_create(values: &[CFRef]) -> Option<CFRef> {
     let ptrs: Vec<CFTypeRef> = values.iter().map(|v| v.0).collect();
     // SAFETY: `ptrs` holds `ptrs.len()` valid CF objects for the duration of the call.
-    let r = unsafe { CFArrayCreate(std::ptr::null(), ptrs.as_ptr(), ptrs.len() as CFIndex, std::ptr::null()) };
+    let r = unsafe {
+        CFArrayCreate(std::ptr::null(), ptrs.as_ptr(), ptrs.len() as CFIndex, std::ptr::null())
+    };
     (!r.is_null()).then_some(CFRef(r))
 }
 
@@ -195,7 +231,13 @@ fn cf_string_to_go(src: CFTypeRef) -> String {
         let length = CFStringGetLength(src);
         let buf_size = CFStringGetMaximumSizeForEncoding(length, cfStringEncodingUTF8) + 1;
         let mut buf = vec![0u8; buf_size as usize];
-        if CFStringGetCString(src, buf.as_mut_ptr().cast::<c_char>(), buf_size, cfStringEncodingUTF8) == 0 {
+        if CFStringGetCString(
+            src,
+            buf.as_mut_ptr().cast::<c_char>(),
+            buf_size,
+            cfStringEncodingUTF8,
+        ) == 0
+        {
             return String::new();
         }
         // CFStringGetCString writes a NUL terminator; trim it.
@@ -285,11 +327,15 @@ unsafe impl Sync for streamCallback {}
 // overflow and a full rebuild. Writing 10k files with all cores busy dropped events on every run with a NULL
 // attribute and on none with QOS_CLASS_DEFAULT or QOS_CLASS_USER_INITIATED. The callback is short (tens of
 // microseconds per batch), so running it ahead of the compiler's threads costs nothing measurable.
-pub(crate) fn new_stream_callback(watches: &[fseventsWatchSnapshot]) -> Option<Box<streamCallback>> {
+pub(crate) fn new_stream_callback(
+    watches: &[fseventsWatchSnapshot],
+) -> Option<Box<streamCallback>> {
     let label = b"typescript.fswatch.fsevents.stream\0";
     const QOS_CLASS_USER_INITIATED: u32 = 0x19;
     // SAFETY: NULL = DISPATCH_QUEUE_SERIAL; the returned attribute is a static libdispatch object (not released).
-    let attr = unsafe { dispatch_queue_attr_make_with_qos_class(std::ptr::null(), QOS_CLASS_USER_INITIATED, 0) };
+    let attr = unsafe {
+        dispatch_queue_attr_make_with_qos_class(std::ptr::null(), QOS_CLASS_USER_INITIATED, 0)
+    };
     // SAFETY: `label` is NUL-terminated; `attr` is a serial queue attribute.
     let queue = unsafe { dispatch_queue_create(label.as_ptr().cast::<c_char>(), attr) };
     if queue.is_null() {
@@ -320,13 +366,27 @@ impl streamCallback {
     }
 }
 
-extern "C" fn fs_events_callback_c(_stream: FSEventStreamRef, info: *mut c_void, num_events: usize, event_paths: *mut c_void, event_flags: *const u32, event_ids: *const u64) {
+extern "C" fn fs_events_callback_c(
+    _stream: FSEventStreamRef,
+    info: *mut c_void,
+    num_events: usize,
+    event_paths: *mut c_void,
+    event_flags: *const u32,
+    event_ids: *const u64,
+) {
     // SAFETY: `info` is the `streamCallback` passed to FSEventStreamCreate; it stays alive until
     // `teardown_stream` has waited for the stream's queue, so no callback outlives it.
     let cb = unsafe { &*(info as *const streamCallback) };
-    let payload = fsEventsCallbackPayload { num_events, paths: event_paths.cast_const(), flags: event_flags, ids: event_ids };
+    let payload = fsEventsCallbackPayload {
+        num_events,
+        paths: event_paths.cast_const(),
+        flags: event_flags,
+        ids: event_ids,
+    };
     // A panic must not unwind into CoreServices.
-    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| fs_events_callback(cb, &payload)));
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        fs_events_callback(cb, &payload);
+    }));
 }
 
 // An FSEventStream handle (Go keeps it as an atomic uintptr).
@@ -347,7 +407,10 @@ pub(crate) enum streamStartError {
 
 // The FFI part of fsevents_darwin.go `startStream`: create the CF path array and the stream, schedule it on the
 // callback's queue, start and flush it. On failure the callback is closed (Go: `cb.close()`).
-pub(crate) fn create_and_start_stream(paths: &[String], cb: &mut Box<streamCallback>) -> Result<fsEventStream, streamStartError> {
+pub(crate) fn create_and_start_stream(
+    paths: &[String],
+    cb: &mut Box<streamCallback>,
+) -> Result<fsEventStream, streamStartError> {
     let mut cf_strings = Vec::with_capacity(paths.len());
     cf_strings = match paths.iter().try_fold(cf_strings, |mut cf_strings, path| {
         match cf_string_create(path) {
@@ -365,12 +428,28 @@ pub(crate) fn create_and_start_stream(paths: &[String], cb: &mut Box<streamCallb
     };
 
     let info: *mut streamCallback = &raw mut **cb;
-    let ctx = FSEventStreamContext { version: 0, info: info.cast::<c_void>(), retain: std::ptr::null(), release: std::ptr::null(), copy_description: std::ptr::null() };
+    let ctx = FSEventStreamContext {
+        version: 0,
+        info: info.cast::<c_void>(),
+        retain: std::ptr::null(),
+        release: std::ptr::null(),
+        copy_description: std::ptr::null(),
+    };
     // kFSEventStreamEventIdSinceNow == ((FSEventStreamEventId)0xFFFFFFFFFFFFFFFFULL)
     const eventIDSinceNow: u64 = 0xFFFF_FFFF_FFFF_FFFF;
     // SAFETY: `ctx` is copied by FSEventStreamCreate; `paths_to_watch` is a valid CFArray of CFStrings; `info`
     // points into the boxed callback, whose address is stable until the stream is torn down.
-    let stream = unsafe { FSEventStreamCreate(std::ptr::null(), fs_events_callback_c, &raw const ctx, paths_to_watch.0, eventIDSinceNow, 0.001, fsEventStreamCreateFlags) };
+    let stream = unsafe {
+        FSEventStreamCreate(
+            std::ptr::null(),
+            fs_events_callback_c,
+            &raw const ctx,
+            paths_to_watch.0,
+            eventIDSinceNow,
+            0.001,
+            fsEventStreamCreateFlags,
+        )
+    };
     drop(paths_to_watch);
     drop(cf_strings);
     if stream.is_null() {
@@ -396,7 +475,10 @@ pub(crate) fn create_and_start_stream(paths: &[String], cb: &mut Box<streamCallb
 // teardownStream performs the full FSEventStream cleanup. Stop and Invalidate
 // prevent new callbacks, waitDispatchQueue waits for callbacks already queued
 // on the stream's serial dispatch queue.
-#[expect(clippy::needless_pass_by_value, reason = "takes the stream by value: it is torn down exactly once and must not be used after")]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "takes the stream by value: it is torn down exactly once and must not be used after"
+)]
 pub(crate) fn teardown_stream(stream: fsEventStream, cb: Option<&mut Box<streamCallback>>) {
     // SAFETY: `stream` is a started stream that is torn down exactly once (the caller swapped it out).
     unsafe {
@@ -412,4 +494,3 @@ pub(crate) fn teardown_stream(stream: fsEventStream, cb: Option<&mut Box<streamC
         FSEventStreamRelease(stream.0);
     }
 }
-

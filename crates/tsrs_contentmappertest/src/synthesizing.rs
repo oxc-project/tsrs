@@ -1,8 +1,14 @@
-use tsrs_contentmapper::{MappedOutput, ProtocolJson, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedOutput, ProtocolJson, TransformParams,
+    TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
-use crate::protocol::{initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    unmarshal_params,
+};
 
 // synthesizing.go:12
 const SYNTHESIZED_OUTPUT: &str = "export const el = jsxRuntime(Widget);\n";
@@ -35,7 +41,11 @@ impl ipc::Handler for synthesizingHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

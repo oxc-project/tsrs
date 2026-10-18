@@ -1,8 +1,13 @@
-use tsrs_contentmapper::{ProtocolJson, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, ProtocolJson, TransformParams, TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
-use crate::protocol::{identity_mapped_output, initialize_result, no_notifications, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    identity_mapped_output, initialize_result, no_notifications, testHandler, unexpected_method,
+    unmarshal_params,
+};
 
 // verbatim.go:11
 pub(crate) struct verbatimHandler;
@@ -26,7 +31,11 @@ impl ipc::Handler for verbatimHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }
@@ -48,7 +57,11 @@ impl ipc::Handler for moduleVerbatimHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

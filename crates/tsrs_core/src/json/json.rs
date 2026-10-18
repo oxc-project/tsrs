@@ -117,14 +117,22 @@ fn newline(out: &mut String, prefix: &str, indent: &str, depth: usize) {
     out.extend(std::iter::repeat_n(indent, depth));
 }
 
-fn write_value(out: &mut String, v: &Value, prefix: &str, indent: &str, depth: usize) -> Result<(), String> {
+fn write_value(
+    out: &mut String,
+    v: &Value,
+    prefix: &str,
+    indent: &str,
+    depth: usize,
+) -> Result<(), String> {
     let multiline = !prefix.is_empty() || !indent.is_empty();
     match v {
         Value::Null => out.push_str("null"),
         Value::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
         // An integral value below 1e21 prints as its digits (es6_number_string's first case); writing those directly
         // avoids the shortest-digits formatting and its allocations, which dominate large integer arrays.
-        Value::Number(n) if n.fract() == 0.0 && n.abs() < 9_007_199_254_740_992.0 => write_i64(out, *n as i64),
+        Value::Number(n) if n.fract() == 0.0 && n.abs() < 9_007_199_254_740_992.0 => {
+            write_i64(out, *n as i64);
+        }
         Value::Number(n) => out.push_str(&marshal_f64(*n)?),
         Value::Integer(n) => write_i64(out, *n),
         Value::String(s) => write_string(out, s),
@@ -194,7 +202,10 @@ fn write_string(out: &mut String, s: &str) {
     let mut i = 0;
     while i < bytes.len() {
         // Copy the run of bytes that need no escaping in one go.
-        let run = bytes[i..].iter().position(|&b| !(0x20..0x80).contains(&b) || b == b'"' || b == b'\\').unwrap_or(bytes.len() - i);
+        let run = bytes[i..]
+            .iter()
+            .position(|&b| !(0x20..0x80).contains(&b) || b == b'"' || b == b'\\')
+            .unwrap_or(bytes.len() - i);
         if run > 0 {
             out.push_str(&s[i..i + run]);
             i += run;
@@ -232,7 +243,10 @@ pub fn unmarshal(input: &str) -> Result<Value, String> {
     let v = p.parse_value(0)?;
     p.skip_ws();
     if p.pos != p.s.len() {
-        return Err(format!("jsontext: invalid character after top-level value at offset {}", p.pos));
+        return Err(format!(
+            "jsontext: invalid character after top-level value at offset {}",
+            p.pos
+        ));
     }
     Ok(v)
 }
@@ -248,7 +262,9 @@ struct JsonParser<'a> {
 
 impl JsonParser<'_> {
     fn skip_ws(&mut self) {
-        self.pos += (self.pos..self.s.len()).take_while(|&index| matches!(self.s[index], b' ' | b'\t' | b'\n' | b'\r')).count();
+        self.pos += (self.pos..self.s.len())
+            .take_while(|&index| matches!(self.s[index], b' ' | b'\t' | b'\n' | b'\r'))
+            .count();
     }
 
     fn err<T>(&self, msg: &str) -> Result<T, String> {
@@ -311,7 +327,10 @@ impl JsonParser<'_> {
                     let value = self.parse_value(depth + 1)?;
                     match members.entry(key) {
                         Entry::Occupied(entry) => {
-                            return self.err(&format!("duplicate object member name {}", marshal_string(entry.key())));
+                            return self.err(&format!(
+                                "duplicate object member name {}",
+                                marshal_string(entry.key())
+                            ));
                         }
                         Entry::Vacant(entry) => {
                             entry.insert(value);
@@ -431,7 +450,9 @@ impl JsonParser<'_> {
                         b't' => out.push('\t'),
                         b'u' => {
                             let mut r = self.hex4()?;
-                            if (0xD800..0xDC00).contains(&r) && self.s[self.pos..].starts_with(b"\\u") {
+                            if (0xD800..0xDC00).contains(&r)
+                                && self.s[self.pos..].starts_with(b"\\u")
+                            {
                                 let save = self.pos;
                                 self.pos += 2;
                                 let r2 = self.hex4()?;
@@ -463,8 +484,12 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let v = unmarshal(r#"{"a": 1, "b": "two", "c": { "d": [4.5, true, null] }, "e": "é😀<>"}"#).unwrap();
-        assert_eq!(marshal(&v).unwrap(), r#"{"a":1,"b":"two","c":{"d":[4.5,true,null]},"e":"é😀<>"}"#);
+        let v = unmarshal(r#"{"a": 1, "b": "two", "c": { "d": [4.5, true, null] }, "e": "é😀<>"}"#)
+            .unwrap();
+        assert_eq!(
+            marshal(&v).unwrap(),
+            r#"{"a":1,"b":"two","c":{"d":[4.5,true,null]},"e":"é😀<>"}"#
+        );
         assert_eq!(
             marshal_indent(&unmarshal(r#"{"a":[1,2],"b":{}}"#).unwrap(), "", "  ").unwrap(),
             "{\n  \"a\": [\n    1,\n    2\n  ],\n  \"b\": {}\n}"
@@ -476,16 +501,42 @@ mod tests {
         assert_eq!(marshal_f64(1.5e-7).unwrap(), "1.5e-7");
         assert_eq!(marshal_f64(1e20).unwrap(), "100000000000000000000");
         // The integer fast path agrees with the general ES6 formatting.
-        for n in [0.0, -0.0, 1.0, -1.0, 9.0, 10.0, 12345.0, -987_654_321.0, 9_007_199_254_740_991.0, -9_007_199_254_740_991.0, 9_007_199_254_740_992.0, 1e20] {
+        for n in [
+            0.0,
+            -0.0,
+            1.0,
+            -1.0,
+            9.0,
+            10.0,
+            12345.0,
+            -987_654_321.0,
+            9_007_199_254_740_991.0,
+            -9_007_199_254_740_991.0,
+            9_007_199_254_740_992.0,
+            1e20,
+        ] {
             assert_eq!(marshal(&Value::Number(n)).unwrap(), marshal_f64(n).unwrap(), "{n}");
         }
         assert_eq!(marshal(&Value::Integer(i64::MIN)).unwrap(), i64::MIN.to_string());
-        assert_eq!(marshal_string("plain/ascii run é \"q\" \\ tab\t end"), "\"plain/ascii run é \\\"q\\\" \\\\ tab\\t end\"");
+        assert_eq!(
+            marshal_string("plain/ascii run é \"q\" \\ tab\t end"),
+            "\"plain/ascii run é \\\"q\\\" \\\\ tab\\t end\""
+        );
         assert!(marshal_f64(f64::NAN).is_err());
         assert!(unmarshal("{\"a\":1,\"a\":2}").is_err());
         assert!(unmarshal("[1,]").is_err());
         // The integer fast path agrees with the general parse, including the sign of zero.
-        for text in ["0", "-0", "7", "-42", "123456789012345", "-999999999999999", "1234567890123456", "1.5", "2e3"] {
+        for text in [
+            "0",
+            "-0",
+            "7",
+            "-42",
+            "123456789012345",
+            "-999999999999999",
+            "1234567890123456",
+            "1.5",
+            "2e3",
+        ] {
             let Value::Number(n) = unmarshal(text).unwrap() else { panic!() };
             let expected: f64 = text.parse().unwrap();
             assert_eq!(n.to_bits(), expected.to_bits(), "{text}");
@@ -495,8 +546,12 @@ mod tests {
     #[test]
     fn unicode_escape_needs_four_hex_digits() {
         assert_eq!(unmarshal(r#""\u0041\u00e9\u00C9""#).unwrap(), Value::String("AéÉ".to_string()));
-        for text in [r#""\u+041""#, r#""\u-041""#, r#""\u 041""#, r#""\u004""#, r#""\ud83d\u+e00""#] {
-            assert!(unmarshal(text).unwrap_err().starts_with("jsontext: invalid escape sequence"), "{text}");
+        for text in [r#""\u+041""#, r#""\u-041""#, r#""\u 041""#, r#""\u004""#, r#""\ud83d\u+e00""#]
+        {
+            assert!(
+                unmarshal(text).unwrap_err().starts_with("jsontext: invalid escape sequence"),
+                "{text}"
+            );
         }
     }
 
@@ -506,16 +561,34 @@ mod tests {
         std::thread::Builder::new()
             .stack_size(256 << 20)
             .spawn(|| {
-                let nested = |open: &str, close: &str, depth: usize| format!("{}{}", open.repeat(depth), close.repeat(depth));
+                let nested = |open: &str, close: &str, depth: usize| {
+                    format!("{}{}", open.repeat(depth), close.repeat(depth))
+                };
                 assert!(unmarshal(&nested("[", "]", MAX_NESTING_DEPTH)).is_ok());
-                assert!(unmarshal(&format!("{{\"a\":{}}}", nested("[", "]", MAX_NESTING_DEPTH - 1))).is_ok());
-                assert_eq!(unmarshal(&nested("[", "]", MAX_NESTING_DEPTH + 1)).unwrap_err(), "jsontext: exceeded max depth at offset 10000");
+                assert!(
+                    unmarshal(&format!("{{\"a\":{}}}", nested("[", "]", MAX_NESTING_DEPTH - 1)))
+                        .is_ok()
+                );
+                assert_eq!(
+                    unmarshal(&nested("[", "]", MAX_NESTING_DEPTH + 1)).unwrap_err(),
+                    "jsontext: exceeded max depth at offset 10000"
+                );
                 let deep_object = format!("{{\"a\":{}", nested("[", "]", MAX_NESTING_DEPTH));
-                assert_eq!(unmarshal(&deep_object).unwrap_err(), "jsontext: exceeded max depth at offset 10004");
+                assert_eq!(
+                    unmarshal(&deep_object).unwrap_err(),
+                    "jsontext: exceeded max depth at offset 10004"
+                );
                 // Far deeper than the stack could recurse.
                 assert!(unmarshal(&nested("[", "]", 2_000_000)).is_err());
                 // Scalars at the limit are fine.
-                assert!(unmarshal(&format!("{}1{}", "[".repeat(MAX_NESTING_DEPTH), "]".repeat(MAX_NESTING_DEPTH))).is_ok());
+                assert!(
+                    unmarshal(&format!(
+                        "{}1{}",
+                        "[".repeat(MAX_NESTING_DEPTH),
+                        "]".repeat(MAX_NESTING_DEPTH)
+                    ))
+                    .is_ok()
+                );
             })
             .unwrap()
             .join()

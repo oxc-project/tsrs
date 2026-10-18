@@ -21,10 +21,7 @@ pub fn project_config(name: &str) -> &'static str {
         "xstate-main" => "bench/.work/solutions/xstate-main/tsconfig.json",
         "webpack" => "bench/.work/solutions/webpack/tsconfig.json",
         "drizzle-orm" => "bench/.work/solutions/drizzle-orm/tsconfig.json",
-        _ => panic!(
-            "unknown TSRS_BENCH_PROJECT {name:?}; expected one of {}",
-            PROJECTS.join(", ")
-        ),
+        _ => panic!("unknown TSRS_BENCH_PROJECT {name:?}; expected one of {}", PROJECTS.join(", ")),
     }
 }
 
@@ -95,20 +92,11 @@ impl PreparedProject {
             "benchmark capture failed: {expected:?}"
         );
         let fs = Arc::new(recording.freeze());
-        Self {
-            cwd,
-            lib_path,
-            args,
-            fs,
-            expected,
-        }
+        Self { cwd, lib_path, args, fs, expected }
     }
 
     pub fn invocation(&self) -> (&'static BenchmarkSystem, Vec<String>) {
-        (
-            BenchmarkSystem::new(&self.cwd, &self.lib_path, Arc::clone(&self.fs)),
-            self.args.clone(),
-        )
+        (BenchmarkSystem::new(&self.cwd, &self.lib_path, Arc::clone(&self.fs)), self.args.clone())
     }
 
     pub fn verify(&self, result: &Compilation) {
@@ -142,10 +130,7 @@ impl BenchmarkSystem {
 
     pub fn compile(&'static self, args: Vec<String>) -> Compilation {
         let result = execute::command_line(self, args);
-        assert!(
-            result.watcher.is_none(),
-            "watch mode is not a benchmark compilation"
-        );
+        assert!(result.watcher.is_none(), "watch mode is not a benchmark compilation");
         Compilation {
             status: result.status,
             output: std::mem::take(&mut *self.output.lock().unwrap()),

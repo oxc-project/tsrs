@@ -9,9 +9,9 @@ use std::sync::Arc;
 
 use tsrs_ast::{Node, SourceFile};
 use tsrs_compiler::Program;
+use tsrs_core::P;
 use tsrs_core::context::Context;
 use tsrs_core::json::Value;
-use tsrs_core::P;
 use tsrs_project::Snapshot;
 
 use super::registry::CheckerRegistry;
@@ -125,12 +125,20 @@ pub trait CheckerHost {
     fn node_handle(&self, node: P<Node>) -> CheckerResult<String>;
 
     /// Go `snapshotData.resolveNodeHandle(program, handle)`.
-    fn resolve_node_handle(&self, program: &'static Program, handle: &str) -> CheckerResult<P<Node>>;
+    fn resolve_node_handle(
+        &self,
+        program: &'static Program,
+        handle: &str,
+    ) -> CheckerResult<P<Node>>;
 
     /// Go `encoder.EncodeNode(node, nil)` for a synthesized node.
     fn encode_node(&self, node: P<Node>) -> CheckerResult<Vec<u8>>;
 
     /// Go `snapshotHost.CloneSnapshotWithAutoImports(ctx, base, file.ToURI(cwd), nil)`. The returned
     /// snapshot carries one reference owned by the caller (Go `defer preparedSnapshot.Deref()`).
-    fn clone_snapshot_with_auto_imports(&self, base: &Snapshot, file_name: &str) -> CheckerResult<Arc<Snapshot>>;
+    fn clone_snapshot_with_auto_imports(
+        &self,
+        base: &Snapshot,
+        file_name: &str,
+    ) -> CheckerResult<Arc<Snapshot>>;
 }

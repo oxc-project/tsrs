@@ -7,8 +7,8 @@ use tsrs_ast::*;
 use tsrs_core::collections::OrderedSet;
 use tsrs_core::*;
 
+use crate::factory::{NodeFactory, new_node_factory_for_context};
 use crate::*;
-use crate::factory::{new_node_factory_for_context, NodeFactory};
 
 // Stores side-table information used during transformation that can be read by the printer to customize emit
 //
@@ -63,18 +63,21 @@ pub fn new_scratch_emit_context() -> P<EmitContext> {
 }
 
 fn new_emit_context_in(scratch: bool) -> P<EmitContext> {
-    let c = P::new_in(scratch, EmitContext {
-        factory: new_node_factory_for_context(scratch),
-        auto_generate: RefCell::default(),
-        text_source: RefCell::default(),
-        original: RefCell::default(),
-        emit_nodes: RefCell::default(),
-        assigned_name: RefCell::default(),
-        class_this: RefCell::default(),
-        var_scope_stack: RefCell::default(),
-        let_scope_stack: RefCell::default(),
-        emit_helpers: RefCell::default(),
-    });
+    let c = P::new_in(
+        scratch,
+        EmitContext {
+            factory: new_node_factory_for_context(scratch),
+            auto_generate: RefCell::default(),
+            text_source: RefCell::default(),
+            original: RefCell::default(),
+            emit_nodes: RefCell::default(),
+            assigned_name: RefCell::default(),
+            class_this: RefCell::default(),
+            var_scope_stack: RefCell::default(),
+            let_scope_stack: RefCell::default(),
+            emit_helpers: RefCell::default(),
+        },
+    );
     c.factory.set_emit_context(c);
     c
 }
@@ -118,16 +121,27 @@ impl EmitContext {
         // `new_scratch_emit_context`), which allocates it with `P::new_in` in the process-lifetime arena or the
         // thread's scratch region; the visitor (and the `P<EmitContext>` its hooks capture) must not outlive that
         // region.
-        let c: P<EmitContext> = P::from_static(unsafe { &*std::ptr::from_ref::<EmitContext>(self) });
+        let c: P<EmitContext> =
+            P::from_static(unsafe { &*std::ptr::from_ref::<EmitContext>(self) });
         tsrs_ast::new_node_visitor(
             Some(visit),
             Some(self.factory.as_node_factory().clone()),
             NodeVisitorHooks {
-                visit_parameters: Some(Rc::new(move |nodes, visitor| c.visit_parameters(nodes, visitor))),
-                visit_function_body: Some(Rc::new(move |node, visitor| c.visit_function_body(node, visitor))),
-                visit_iteration_body: Some(Rc::new(move |body, visitor| c.visit_iteration_body(body, visitor))),
-                visit_top_level_statements: Some(Rc::new(move |nodes, visitor| c.visit_variable_environment(nodes, visitor))),
-                visit_embedded_statement: Some(Rc::new(move |node, visitor| c.visit_embedded_statement(node, visitor))),
+                visit_parameters: Some(Rc::new(move |nodes, visitor| {
+                    c.visit_parameters(nodes, visitor)
+                })),
+                visit_function_body: Some(Rc::new(move |node, visitor| {
+                    c.visit_function_body(node, visitor)
+                })),
+                visit_iteration_body: Some(Rc::new(move |body, visitor| {
+                    c.visit_iteration_body(body, visitor)
+                })),
+                visit_top_level_statements: Some(Rc::new(move |nodes, visitor| {
+                    c.visit_variable_environment(nodes, visitor)
+                })),
+                visit_embedded_statement: Some(Rc::new(move |node, visitor| {
+                    c.visit_embedded_statement(node, visitor)
+                })),
                 ..Default::default()
             },
         )
@@ -154,15 +168,23 @@ impl EmitContext {
         let scope = self.var_scope_stack.borrow_mut().pop();
         let (functions, variables, initialization_statements) = {
             let scope = scope.borrow();
-            (scope.functions.clone(), scope.variables.clone(), scope.initialization_statements.clone())
+            (
+                scope.functions.clone(),
+                scope.variables.clone(),
+                scope.initialization_statements.clone(),
+            )
         };
         let mut statements: Vec<P<Node>> = Vec::new();
         if !functions.is_empty() {
             statements = functions;
         }
         if !variables.is_empty() {
-            let var_decl_list = self.factory.new_variable_declaration_list(self.factory.new_node_list(variables), NodeFlags::None);
-            let var_statement = self.factory.new_variable_statement(None /*modifiers*/, var_decl_list);
+            let var_decl_list = self.factory.new_variable_declaration_list(
+                self.factory.new_node_list(variables),
+                NodeFlags::None,
+            );
+            let var_statement =
+                self.factory.new_variable_statement(None /*modifiers*/, var_decl_list);
             self.set_emit_flags(var_statement, EmitFlags::CustomPrologue);
             statements.push(var_statement);
         }
@@ -174,7 +196,10 @@ impl EmitContext {
     }
 
     // Invokes c.EndVariableEnvironment() and merges the results into `statements`
-    pub fn end_and_merge_variable_environment_list(&self, statements: Option<P<NodeList>>) -> Option<P<NodeList>> {
+    pub fn end_and_merge_variable_environment_list(
+        &self,
+        statements: Option<P<NodeList>>,
+    ) -> Option<P<NodeList>> {
         let nodes: &[P<Node>] = match statements {
             Some(statements) => statements.nodes(),
             None => &[],
@@ -198,7 +223,10 @@ impl EmitContext {
     }
 
     // Go's unexported `endAndMergeVariableEnvironment` (renamed: collides with the exported method after snake-casing).
-    pub(crate) fn end_and_merge_variable_environment_worker(&self, statements: &[P<Node>]) -> (Vec<P<Node>>, bool) {
+    pub(crate) fn end_and_merge_variable_environment_worker(
+        &self,
+        statements: &[P<Node>],
+    ) -> (Vec<P<Node>>, bool) {
         let declarations = self.end_variable_environment();
         self.merge_environment_worker(statements, &declarations)
     }
@@ -207,7 +235,11 @@ impl EmitContext {
     //
     // NOTE: This is the equivalent of `transformContext.hoistVariableDeclaration` in Strada.
     pub fn add_variable_declaration(&self, name: P<Node>) {
-        let var_decl = self.factory.new_variable_declaration(name, None /*exclamationToken*/, None /*typeNode*/, None /*initializer*/);
+        let var_decl = self.factory.new_variable_declaration(
+            name, None, /*exclamationToken*/
+            None, /*typeNode*/
+            None, /*initializer*/
+        );
         self.set_emit_flags(var_decl, EmitFlags::NoNestedSourceMaps);
         let scope = Rc::clone(self.var_scope_stack.borrow().peek());
         let mut scope = scope.borrow_mut();
@@ -245,8 +277,12 @@ impl EmitContext {
         let variables = scope.borrow().variables.clone();
         let mut statements: Vec<P<Node>> = Vec::new();
         if !variables.is_empty() {
-            let var_decl_list = self.factory.new_variable_declaration_list(self.factory.new_node_list(variables), NodeFlags::Let);
-            let var_statement = self.factory.new_variable_statement(None /*modifiers*/, var_decl_list);
+            let var_decl_list = self.factory.new_variable_declaration_list(
+                self.factory.new_node_list(variables),
+                NodeFlags::Let,
+            );
+            let var_statement =
+                self.factory.new_variable_statement(None /*modifiers*/, var_decl_list);
             self.set_emit_flags(var_statement, EmitFlags::CustomPrologue);
             statements.push(var_statement);
         }
@@ -254,7 +290,10 @@ impl EmitContext {
     }
 
     // Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-    pub fn end_and_merge_lexical_environment_list(&self, statements: Option<P<NodeList>>) -> Option<P<NodeList>> {
+    pub fn end_and_merge_lexical_environment_list(
+        &self,
+        statements: Option<P<NodeList>>,
+    ) -> Option<P<NodeList>> {
         let nodes: &[P<Node>] = match statements {
             Some(statements) => statements.nodes(),
             None => &[],
@@ -280,21 +319,32 @@ impl EmitContext {
     // Invokes c.EndLexicalEnvironment() and merges the results into `statements`
     //
     // Go's unexported `endAndMergeLexicalEnvironment` (renamed: collides with the exported method after snake-casing).
-    pub(crate) fn end_and_merge_lexical_environment_worker(&self, statements: &[P<Node>]) -> (Vec<P<Node>>, bool) {
+    pub(crate) fn end_and_merge_lexical_environment_worker(
+        &self,
+        statements: &[P<Node>],
+    ) -> (Vec<P<Node>>, bool) {
         let declarations = self.end_lexical_environment();
         self.merge_environment_worker(statements, &declarations)
     }
 
     // Adds a `let` declaration to the current LexicalEnvironment.
     pub fn add_lexical_declaration(&self, name: P<Node>) {
-        let var_decl = self.factory.new_variable_declaration(name, None /*exclamationToken*/, None /*typeNode*/, None /*initializer*/);
+        let var_decl = self.factory.new_variable_declaration(
+            name, None, /*exclamationToken*/
+            None, /*typeNode*/
+            None, /*initializer*/
+        );
         self.set_emit_flags(var_decl, EmitFlags::NoNestedSourceMaps);
         let scope = Rc::clone(self.let_scope_stack.borrow().peek());
         scope.borrow_mut().variables.push(var_decl);
     }
 
     // Merges declarations produced by c.EndVariableEnvironment() or c.EndLexicalEnvironment() into a statement list
-    pub fn merge_environment_list(&self, statements: P<NodeList>, declarations: &[P<Node>]) -> P<NodeList> {
+    pub fn merge_environment_list(
+        &self,
+        statements: P<NodeList>,
+        declarations: &[P<Node>],
+    ) -> P<NodeList> {
         let (result, changed) = self.merge_environment_worker(statements.nodes(), declarations);
         if changed {
             let list = self.factory.new_node_list(result);
@@ -305,13 +355,21 @@ impl EmitContext {
     }
 
     // Merges declarations produced by c.EndVariableEnvironment() or c.EndLexicalEnvironment() into a slice of statements
-    pub fn merge_environment(&self, statements: &[P<Node>], declarations: &[P<Node>]) -> Vec<P<Node>> {
+    pub fn merge_environment(
+        &self,
+        statements: &[P<Node>],
+        declarations: &[P<Node>],
+    ) -> Vec<P<Node>> {
         let (result, _) = self.merge_environment_worker(statements, declarations);
         result
     }
 
     // Go's unexported `mergeEnvironment` (renamed: collides with the exported method after snake-casing).
-    pub(crate) fn merge_environment_worker(&self, statements: &[P<Node>], declarations: &[P<Node>]) -> (Vec<P<Node>>, bool) {
+    pub(crate) fn merge_environment_worker(
+        &self,
+        statements: &[P<Node>],
+        declarations: &[P<Node>],
+    ) -> (Vec<P<Node>>, bool) {
         if declarations.is_empty() {
             return (statements.to_vec(), false);
         }
@@ -349,15 +407,43 @@ impl EmitContext {
 
         // find standard prologues on left in the following order: standard directives, hoisted functions, hoisted variables, other custom
         let left_standard_prologue_end = find_span_end(statements, is_prologue_directive, 0);
-        let left_hoisted_functions_end = find_span_end_with_emit_context(self, statements, EmitContext::is_hoisted_function, left_standard_prologue_end);
-        let left_hoisted_variables_end = find_span_end_with_emit_context(self, statements, EmitContext::is_hoisted_variable_statement, left_hoisted_functions_end);
+        let left_hoisted_functions_end = find_span_end_with_emit_context(
+            self,
+            statements,
+            EmitContext::is_hoisted_function,
+            left_standard_prologue_end,
+        );
+        let left_hoisted_variables_end = find_span_end_with_emit_context(
+            self,
+            statements,
+            EmitContext::is_hoisted_variable_statement,
+            left_hoisted_functions_end,
+        );
 
         // find standard prologues on right in the following order: standard directives, hoisted functions, hoisted variables, other custom
         let right_standard_prologue_end = find_span_end(declarations, is_prologue_directive, 0);
-        let right_hoisted_functions_end = find_span_end_with_emit_context(self, declarations, EmitContext::is_hoisted_function, right_standard_prologue_end);
-        let right_hoisted_variables_end = find_span_end_with_emit_context(self, declarations, EmitContext::is_hoisted_variable_statement, right_hoisted_functions_end);
-        let right_custom_prologue_end = find_span_end_with_emit_context(self, declarations, EmitContext::is_custom_prologue, right_hoisted_variables_end);
-        assert!(right_custom_prologue_end == declarations.len(), "Expected declarations to be valid standard or custom prologues");
+        let right_hoisted_functions_end = find_span_end_with_emit_context(
+            self,
+            declarations,
+            EmitContext::is_hoisted_function,
+            right_standard_prologue_end,
+        );
+        let right_hoisted_variables_end = find_span_end_with_emit_context(
+            self,
+            declarations,
+            EmitContext::is_hoisted_variable_statement,
+            right_hoisted_functions_end,
+        );
+        let right_custom_prologue_end = find_span_end_with_emit_context(
+            self,
+            declarations,
+            EmitContext::is_custom_prologue,
+            right_hoisted_variables_end,
+        );
+        assert!(
+            right_custom_prologue_end == declarations.len(),
+            "Expected declarations to be valid standard or custom prologues"
+        );
 
         let mut left: Vec<P<Node>> = statements.to_vec();
 
@@ -410,7 +496,11 @@ impl EmitContext {
                 changed = true;
             } else {
                 let mut left_prologues: FxHashSet<&'static str> = FxHashSet::default();
-                left_prologues.extend(statements[..left_standard_prologue_end].iter().map(|&left_prologue| left_prologue.expression().unwrap().text()));
+                left_prologues.extend(
+                    statements[..left_standard_prologue_end]
+                        .iter()
+                        .map(|&left_prologue| left_prologue.expression().unwrap().text()),
+                );
                 for &right_prologue in declarations[..right_standard_prologue_end].iter().rev() {
                     if !left_prologues.contains(right_prologue.expression().unwrap().text()) {
                         left = concatenate(&[right_prologue], &left).into_owned();
@@ -434,10 +524,20 @@ impl EmitContext {
     pub(crate) fn is_hoisted_variable_statement(&self, node: P<Node>) -> bool {
         self.is_custom_prologue(node)
             && is_variable_statement(node)
-            && every(node.as_variable_statement().declaration_list.as_variable_declaration_list().declarations.nodes(), |&n| is_hoisted_variable(n))
+            && every(
+                node.as_variable_statement()
+                    .declaration_list
+                    .as_variable_declaration_list()
+                    .declarations
+                    .nodes(),
+                |&n| is_hoisted_variable(n),
+            )
     }
 
-    #[expect(clippy::unused_self, reason = "This method implements the NodeFactory creation hook, whose callback receives the emit context.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "This method implements the NodeFactory creation hook, whose callback receives the emit context."
+    )]
     pub(crate) fn on_create(&self, node: P<Node>) {
         node.flags.set(node.flags.get() | NodeFlags::Synthesized);
     }
@@ -483,13 +583,20 @@ impl EmitContext {
     pub fn get_node_for_generated_name(&self, name: P<Node>) -> P<Node> {
         if let Some(auto_generate) = self.get_auto_generate_info(Some(name)) {
             if auto_generate.flags.is_node() {
-                return self.get_node_for_generated_name_worker(auto_generate.node.unwrap(), auto_generate.id);
+                return self.get_node_for_generated_name_worker(
+                    auto_generate.node.unwrap(),
+                    auto_generate.id,
+                );
             }
         }
         name
     }
 
-    pub(crate) fn get_node_for_generated_name_worker(&self, node: P<Node>, auto_generate_id: AutoGenerateId) -> P<Node> {
+    pub(crate) fn get_node_for_generated_name_worker(
+        &self,
+        node: P<Node>,
+        auto_generate_id: AutoGenerateId,
+    ) -> P<Node> {
         let mut node = node;
         let mut original = self.original(node);
         while let Some(o) = original {
@@ -584,7 +691,12 @@ impl EmitContext {
         None
     }
 
-    pub fn is_file_level_unique_name(&self, source_file: P<SourceFile>, name: &str, has_global_name: Option<&dyn Fn(&str) -> bool>) -> bool {
+    pub fn is_file_level_unique_name(
+        &self,
+        source_file: P<SourceFile>,
+        name: &str,
+        has_global_name: Option<&dyn Fn(&str) -> bool>,
+    ) -> bool {
         if let Some(has_global_name) = has_global_name {
             if has_global_name(name) {
                 return false;
@@ -621,7 +733,8 @@ impl EmitContext {
     }
 
     pub fn set_snippet_element(&self, node: P<Node>, snippet_element: SnippetElement) {
-        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().snippet_element = Some(snippet_element);
+        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().snippet_element =
+            Some(snippet_element);
     }
 
     // Gets the range to use for a node when emitting comments.
@@ -684,7 +797,8 @@ impl EmitContext {
     // Gets the range for a token of a node when emitting source maps.
     pub fn token_source_map_range(&self, node: P<Node>, kind: Kind) -> Option<TextRange> {
         if let Some(emit_node) = self.emit_nodes.borrow().get(&node) {
-            if let Some(ranges) = emit_node.rare().and_then(|r| r.token_source_map_ranges.as_ref()) {
+            if let Some(ranges) = emit_node.rare().and_then(|r| r.token_source_map_ranges.as_ref())
+            {
                 if let Some(loc) = ranges.get(&kind) {
                     return Some(*loc);
                 }
@@ -697,7 +811,11 @@ impl EmitContext {
     pub fn set_token_source_map_range(&self, node: P<Node>, kind: Kind, loc: TextRange) {
         let mut emit_nodes = self.emit_nodes.borrow_mut();
         let emit_node = emit_nodes.entry(node).or_default();
-        emit_node.rare_mut().token_source_map_ranges.get_or_insert_with(FxHashMap::default).insert(kind, loc);
+        emit_node
+            .rare_mut()
+            .token_source_map_ranges
+            .get_or_insert_with(FxHashMap::default)
+            .insert(kind, loc);
     }
 
     pub fn assigned_name(&self, node: P<Node>) -> Option<P<Node>> {
@@ -767,17 +885,27 @@ impl EmitContext {
     pub fn set_external_helpers_module_name(&self, node: P<SourceFile>, name: P<Node>) {
         let parse_node = self.parse_node(Some(node.as_node()));
         let Some(parse_node) = parse_node else {
-            panic!("Node must be a parse tree node or have an Original pointer to a parse tree node.");
+            panic!(
+                "Node must be a parse tree node or have an Original pointer to a parse tree node."
+            );
         };
 
-        self.emit_nodes.borrow_mut().entry(parse_node).or_default().rare_mut().external_helpers_module_name = Some(name);
+        self.emit_nodes
+            .borrow_mut()
+            .entry(parse_node)
+            .or_default()
+            .rare_mut()
+            .external_helpers_module_name = Some(name);
     }
 
     pub fn has_recorded_external_helpers(&self, node: P<SourceFile>) -> bool {
         if let Some(parse_node) = self.parse_node(Some(node.as_node())) {
             let emit_nodes = self.emit_nodes.borrow();
             let emit_node = emit_nodes.get(&parse_node);
-            return emit_node.is_some_and(|emit_node| emit_node.rare().is_some_and(|r| r.external_helpers_module_name.is_some()) || emit_node.emit_flags.intersects(EmitFlags::ExternalHelpers));
+            return emit_node.is_some_and(|emit_node| {
+                emit_node.rare().is_some_and(|r| r.external_helpers_module_name.is_some())
+                    || emit_node.emit_flags.intersects(EmitFlags::ExternalHelpers)
+            });
         }
         false
     }
@@ -785,7 +913,9 @@ impl EmitContext {
     pub fn is_call_to_helper(&self, first_segment: P<Node>, helper_name: &str) -> bool {
         is_call_expression(first_segment)
             && is_identifier(first_segment.expression().unwrap())
-            && self.emit_flags(first_segment.expression().unwrap()).intersects(EmitFlags::HelperName)
+            && self
+                .emit_flags(first_segment.expression().unwrap())
+                .intersects(EmitFlags::HelperName)
             && first_segment.expression().unwrap().text() == helper_name
     }
 
@@ -793,13 +923,21 @@ impl EmitContext {
     // Visitor Hooks
     //
 
-    pub fn visit_variable_environment(&self, nodes: Option<P<NodeList>>, visitor: &mut NodeVisitor) -> Option<P<NodeList>> {
+    pub fn visit_variable_environment(
+        &self,
+        nodes: Option<P<NodeList>>,
+        visitor: &mut NodeVisitor,
+    ) -> Option<P<NodeList>> {
         self.start_variable_environment();
         let visited = visitor.visit_nodes(nodes);
         self.end_and_merge_variable_environment_list(visited)
     }
 
-    pub fn visit_parameters(&self, nodes: Option<P<NodeList>>, visitor: &mut NodeVisitor) -> Option<P<NodeList>> {
+    pub fn visit_parameters(
+        &self,
+        nodes: Option<P<NodeList>>,
+        visitor: &mut NodeVisitor,
+    ) -> Option<P<NodeList>> {
         self.start_variable_environment();
         let scope = Rc::clone(self.var_scope_stack.borrow().peek());
         let old_flags = scope.borrow().flags;
@@ -821,7 +959,10 @@ impl EmitContext {
         nodes
     }
 
-    pub(crate) fn add_default_value_assignments_if_needed(&self, node_list: Option<P<NodeList>>) -> Option<P<NodeList>> {
+    pub(crate) fn add_default_value_assignments_if_needed(
+        &self,
+        node_list: Option<P<NodeList>>,
+    ) -> Option<P<NodeList>> {
         let Some(node_list) = node_list else {
             return node_list;
         };
@@ -856,11 +997,17 @@ impl EmitContext {
         }
     }
 
-    pub(crate) fn add_default_value_assignment_for_binding_pattern(&self, parameter: P<Node>) -> P<Node> {
+    pub(crate) fn add_default_value_assignment_for_binding_pattern(
+        &self,
+        parameter: P<Node>,
+    ) -> P<Node> {
         let p = parameter.as_parameter_declaration();
         let init_node = if let Some(initializer) = p.initializer() {
             self.factory.new_conditional_expression(
-                self.factory.new_strict_equality_expression(self.factory.new_generated_name_for_node(parameter), self.factory.new_void_zero_expression()),
+                self.factory.new_strict_equality_expression(
+                    self.factory.new_generated_name_for_node(parameter),
+                    self.factory.new_void_zero_expression(),
+                ),
                 self.factory.new_token(Kind::QuestionToken),
                 initializer,
                 self.factory.new_token(Kind::ColonToken),
@@ -872,7 +1019,12 @@ impl EmitContext {
         self.add_initialization_statement(self.factory.new_variable_statement(
             None,
             self.factory.new_variable_declaration_list(
-                self.factory.new_node_list(vec![self.factory.new_variable_declaration(p.name(), None, p.type_(), Some(init_node))]),
+                self.factory.new_node_list(vec![self.factory.new_variable_declaration(
+                    p.name(),
+                    None,
+                    p.type_(),
+                    Some(init_node),
+                )]),
                 NodeFlags::None,
             ),
         ));
@@ -887,7 +1039,12 @@ impl EmitContext {
         )
     }
 
-    pub(crate) fn add_default_value_assignment_for_initializer(&self, parameter: P<Node>, name: P<Node>, initializer: P<Node>) -> P<Node> {
+    pub(crate) fn add_default_value_assignment_for_initializer(
+        &self,
+        parameter: P<Node>,
+        name: P<Node>,
+        initializer: P<Node>,
+    ) -> P<Node> {
         let p = parameter.as_parameter_declaration();
         self.add_emit_flags(initializer, EmitFlags::NoSourceMap | EmitFlags::NoComments);
         let name_clone = name.clone_node(&self.factory);
@@ -895,11 +1052,33 @@ impl EmitContext {
         let init_assignment = self.factory.new_assignment_expression(name_clone, initializer);
         init_assignment.set_loc(parameter.loc());
         self.add_emit_flags(init_assignment, EmitFlags::NoComments);
-        let init_block = self.factory.new_block(self.factory.new_node_list(vec![self.factory.new_expression_statement(init_assignment)]), false);
+        let init_block = self.factory.new_block(
+            self.factory
+                .new_node_list(vec![self.factory.new_expression_statement(init_assignment)]),
+            false,
+        );
         init_block.set_loc(parameter.loc());
-        self.add_emit_flags(init_block, EmitFlags::SingleLine | EmitFlags::NoTrailingSourceMap | EmitFlags::NoTokenSourceMaps | EmitFlags::NoComments);
-        self.add_initialization_statement(self.factory.new_if_statement(self.factory.new_type_check(name.clone_node(&self.factory), "undefined"), init_block, None));
-        self.factory.update_parameter_declaration(parameter, parameter.modifiers(), p.dot_dot_dot_token(), p.name(), p.question_token(), p.type_(), None)
+        self.add_emit_flags(
+            init_block,
+            EmitFlags::SingleLine
+                | EmitFlags::NoTrailingSourceMap
+                | EmitFlags::NoTokenSourceMaps
+                | EmitFlags::NoComments,
+        );
+        self.add_initialization_statement(self.factory.new_if_statement(
+            self.factory.new_type_check(name.clone_node(&self.factory), "undefined"),
+            init_block,
+            None,
+        ));
+        self.factory.update_parameter_declaration(
+            parameter,
+            parameter.modifiers(),
+            p.dot_dot_dot_token(),
+            p.name(),
+            p.question_token(),
+            p.type_(),
+            None,
+        )
     }
 
     pub fn add_initialization_statement(&self, node: P<Node>) {
@@ -922,7 +1101,11 @@ impl EmitContext {
         block
     }
 
-    pub fn visit_function_body(&self, node: Option<P<Node>>, visitor: &mut NodeVisitor) -> Option<P<Node>> {
+    pub fn visit_function_body(
+        &self,
+        node: Option<P<Node>>,
+        visitor: &mut NodeVisitor,
+    ) -> Option<P<Node>> {
         // !!! c.resumeVariableEnvironment()
         let updated = visitor.visit_node(node);
         let declarations = self.end_variable_environment();
@@ -931,7 +1114,10 @@ impl EmitContext {
         }
 
         let Some(updated) = updated else {
-            return Some(self.factory.new_block(self.factory.new_node_list(declarations), true /*multiLine*/));
+            return Some(
+                self.factory
+                    .new_block(self.factory.new_node_list(declarations), true /*multiLine*/),
+            );
         };
 
         if !is_block(updated) {
@@ -951,7 +1137,11 @@ impl EmitContext {
         ))
     }
 
-    pub fn visit_iteration_body(&self, body: Option<P<Node>>, visitor: &mut NodeVisitor) -> Option<P<Node>> {
+    pub fn visit_iteration_body(
+        &self,
+        body: Option<P<Node>>,
+        visitor: &mut NodeVisitor,
+    ) -> Option<P<Node>> {
         body?;
 
         self.start_lexical_environment();
@@ -966,20 +1156,33 @@ impl EmitContext {
                 statements.extend_from_slice(updated.statements());
                 let statements_list = self.factory.new_node_list(statements);
                 statements_list.loc.set(updated.statement_list().unwrap().loc.get());
-                return Some(self.factory.update_block(updated, statements_list, updated.as_block().multi_line));
+                return Some(self.factory.update_block(
+                    updated,
+                    statements_list,
+                    updated.as_block().multi_line,
+                ));
             }
             statements.push(updated);
-            return Some(self.factory.new_block(self.factory.new_node_list(statements), true /*multiLine*/));
+            return Some(
+                self.factory
+                    .new_block(self.factory.new_node_list(statements), true /*multiLine*/),
+            );
         }
 
         Some(updated)
     }
 
-    pub fn visit_embedded_statement(&self, node: Option<P<Node>>, visitor: &mut NodeVisitor) -> Option<P<Node>> {
+    pub fn visit_embedded_statement(
+        &self,
+        node: Option<P<Node>>,
+        visitor: &mut NodeVisitor,
+    ) -> Option<P<Node>> {
         let node = node?;
         let embedded_statement = visitor.visit_embedded_statement(Some(node));
         match embedded_statement {
-            Some(embedded_statement) if !is_not_emitted_statement(embedded_statement) => Some(embedded_statement),
+            Some(embedded_statement) if !is_not_emitted_statement(embedded_statement) => {
+                Some(embedded_statement)
+            }
             _ => {
                 let empty_statement = visitor.factory.new_empty_statement();
                 empty_statement.set_loc(node.loc());
@@ -990,8 +1193,13 @@ impl EmitContext {
         }
     }
 
-    pub fn set_synthetic_leading_comments(&self, node: P<Node>, comments: Vec<SynthesizedComment>) -> P<Node> {
-        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().leading_comments = comments;
+    pub fn set_synthetic_leading_comments(
+        &self,
+        node: P<Node>,
+        comments: Vec<SynthesizedComment>,
+    ) -> P<Node> {
+        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().leading_comments =
+            comments;
         node
     }
 
@@ -1002,19 +1210,15 @@ impl EmitContext {
         text: &str,
         has_trailing_new_line: bool,
     ) -> P<Node> {
-        self.emit_nodes
-            .borrow_mut()
-            .entry(node)
-            .or_default()
-            .rare_mut()
-            .leading_comments
-            .push(SynthesizedComment {
+        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().leading_comments.push(
+            SynthesizedComment {
                 kind,
                 loc: TextRange::synthetic(),
                 has_leading_new_line: false,
                 has_trailing_new_line,
                 text: text.to_string(),
-            });
+            },
+        );
         node
     }
 
@@ -1025,8 +1229,13 @@ impl EmitContext {
         Vec::new()
     }
 
-    pub fn set_synthetic_trailing_comments(&self, node: P<Node>, comments: Vec<SynthesizedComment>) -> P<Node> {
-        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().trailing_comments = comments;
+    pub fn set_synthetic_trailing_comments(
+        &self,
+        node: P<Node>,
+        comments: Vec<SynthesizedComment>,
+    ) -> P<Node> {
+        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().trailing_comments =
+            comments;
         node
     }
 
@@ -1037,19 +1246,15 @@ impl EmitContext {
         text: &str,
         has_trailing_new_line: bool,
     ) -> P<Node> {
-        self.emit_nodes
-            .borrow_mut()
-            .entry(node)
-            .or_default()
-            .rare_mut()
-            .trailing_comments
-            .push(SynthesizedComment {
+        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().trailing_comments.push(
+            SynthesizedComment {
                 kind,
                 loc: TextRange::synthetic(),
                 has_leading_new_line: false,
                 has_trailing_new_line,
                 text: text.to_string(),
-            });
+            },
+        );
         node
     }
 
@@ -1063,7 +1268,8 @@ impl EmitContext {
     // SetTypeNode stores the original type node on a name node when the type is erased,
     // so the emitter can use the type's position for comment preservation.
     pub fn set_type_node(&self, node: P<Node>, type_node: P<Node>) {
-        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().type_node = Some(type_node);
+        self.emit_nodes.borrow_mut().entry(node).or_default().rare_mut().type_node =
+            Some(type_node);
     }
 
     // GetTypeNode gets the type node stored on a name node by the type eraser.
@@ -1191,7 +1397,12 @@ impl emitNode {
         let helpers = src.map_or_else(Vec::new, |r| r.helpers.clone());
         let external_helpers_module_name = src.and_then(|r| r.external_helpers_module_name);
         let snippet_element = src.and_then(|r| r.snippet_element);
-        if self.rare.is_some() || token_source_map_ranges.is_some() || !helpers.is_empty() || external_helpers_module_name.is_some() || snippet_element.is_some() {
+        if self.rare.is_some()
+            || token_source_map_ranges.is_some()
+            || !helpers.is_empty()
+            || external_helpers_module_name.is_some()
+            || snippet_element.is_some()
+        {
             let rare = self.rare_mut();
             rare.token_source_map_ranges = token_source_map_ranges;
             rare.helpers = helpers;

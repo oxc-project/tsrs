@@ -1,14 +1,19 @@
 // The common source directory helpers of Go's `outputpaths` package, used by option verification and
 // sourceFileMayBeEmitted. The emit output paths live in tsrs_tsoptions::outputpaths.
 
-use tsrs_core::tspath;
 use tsrs_core::CompilerOptions;
+use tsrs_core::tspath;
 
-fn compute_common_source_directory_of_filenames(file_names: &[String], current_directory: &str, use_case_sensitive_file_names: bool) -> String {
+fn compute_common_source_directory_of_filenames(
+    file_names: &[String],
+    current_directory: &str,
+    use_case_sensitive_file_names: bool,
+) -> String {
     let mut common_path_components: Option<Vec<String>> = None;
     for source_file in file_names {
         // Each file contributes into common source file path
-        let mut source_path_components = tspath::get_normalized_path_components(source_file, current_directory);
+        let mut source_path_components =
+            tspath::get_normalized_path_components(source_file, current_directory);
 
         // The base file name is not part of the common directory path
         source_path_components.pop();
@@ -22,7 +27,10 @@ fn compute_common_source_directory_of_filenames(file_names: &[String], current_d
         let n = common.len().min(source_path_components.len());
         for i in 0..n {
             if tspath::get_canonical_file_name(&common[i], use_case_sensitive_file_names)
-                != tspath::get_canonical_file_name(&source_path_components[i], use_case_sensitive_file_names)
+                != tspath::get_canonical_file_name(
+                    &source_path_components[i],
+                    use_case_sensitive_file_names,
+                )
             {
                 if i == 0 {
                     // Failed to find any common path component
@@ -48,11 +56,19 @@ fn compute_common_source_directory_of_filenames(file_names: &[String], current_d
     }
 }
 
-pub fn get_computed_common_source_directory(emitted_files: &[String], current_directory: &str, use_case_sensitive_file_names: bool) -> String {
-    let mut common_source_directory =
-        compute_common_source_directory_of_filenames(emitted_files, current_directory, use_case_sensitive_file_names);
+pub fn get_computed_common_source_directory(
+    emitted_files: &[String],
+    current_directory: &str,
+    use_case_sensitive_file_names: bool,
+) -> String {
+    let mut common_source_directory = compute_common_source_directory_of_filenames(
+        emitted_files,
+        current_directory,
+        use_case_sensitive_file_names,
+    );
     if !common_source_directory.is_empty() {
-        common_source_directory = tspath::ensure_trailing_directory_separator(&common_source_directory);
+        common_source_directory =
+            tspath::ensure_trailing_directory_separator(&common_source_directory);
     }
     common_source_directory
 }
@@ -78,14 +94,19 @@ pub fn get_common_source_directory(
             check(&files(), &common_source_directory);
         }
     } else {
-        common_source_directory = compute_common_source_directory_of_filenames(&files(), current_directory, use_case_sensitive_file_names);
+        common_source_directory = compute_common_source_directory_of_filenames(
+            &files(),
+            current_directory,
+            use_case_sensitive_file_names,
+        );
     }
 
     if !common_source_directory.is_empty() {
         // Make sure directory path ends with directory separator so this string can directly
         // used to replace with "" to get the relative path of the source file and the relative path doesn't
         // start with / making it rooted path
-        common_source_directory = tspath::ensure_trailing_directory_separator(&common_source_directory);
+        common_source_directory =
+            tspath::ensure_trailing_directory_separator(&common_source_directory);
     }
 
     common_source_directory
@@ -99,7 +120,11 @@ pub fn get_source_file_path_in_new_dir_worker(
     use_case_sensitive_file_names: bool,
 ) -> String {
     let mut source_file_path = tspath::get_normalized_absolute_path(file_name, current_directory);
-    if let Some(trimmed) = tspath::trim_file_path_prefix(&source_file_path, common_source_directory, use_case_sensitive_file_names) {
+    if let Some(trimmed) = tspath::trim_file_path_prefix(
+        &source_file_path,
+        common_source_directory,
+        use_case_sensitive_file_names,
+    ) {
         source_file_path = trimmed.to_string();
     }
     tspath::combine_paths(new_dir_path, &[&source_file_path])

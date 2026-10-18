@@ -27,7 +27,10 @@ impl Recorder {
     }
 }
 
-fn watch(dir: &std::path::Path, file: &std::path::Path) -> (Arc<Recorder>, Box<dyn tsrs_fswatch::Watch>) {
+fn watch(
+    dir: &std::path::Path,
+    file: &std::path::Path,
+) -> (Arc<Recorder>, Box<dyn tsrs_fswatch::Watch>) {
     let recorder = Arc::new(Recorder { seen: Mutex::new(Vec::new()), cv: Condvar::new() });
     let r = Arc::clone(&recorder);
     let file = file.to_path_buf();
@@ -49,7 +52,8 @@ fn watch(dir: &std::path::Path, file: &std::path::Path) -> (Arc<Recorder>, Box<d
 }
 
 fn temp_dir(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("tsrs-fswatch-settle-{}-{}", std::process::id(), name));
+    let dir =
+        std::env::temp_dir().join(format!("tsrs-fswatch-settle-{}-{}", std::process::id(), name));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::canonicalize(&dir).unwrap()
@@ -74,7 +78,10 @@ fn a_truncation_waits_for_the_data() {
     recorder.clear();
 
     let mut f = std::fs::File::create(&file).unwrap();
-    assert!(recorder.wait_for(1, Duration::from_millis(300)).is_empty(), "fired while the file was empty");
+    assert!(
+        recorder.wait_for(1, Duration::from_millis(300)).is_empty(),
+        "fired while the file was empty"
+    );
     f.write_all(b"export const a = 1;\n").unwrap();
     drop(f);
     let written = Instant::now();
@@ -84,7 +91,11 @@ fn a_truncation_waits_for_the_data() {
     let (at, content) = &seen[0];
     assert_eq!(content, "export const a = 1;\n");
     // At the write, not when the hold times out (`settleIdleTime`, 1 s).
-    assert!(at.duration_since(written) < Duration::from_millis(300), "fired {:?} after the write", at.duration_since(written));
+    assert!(
+        at.duration_since(written) < Duration::from_millis(300),
+        "fired {:?} after the write",
+        at.duration_since(written)
+    );
     let _ = watch.close();
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -101,7 +112,11 @@ fn a_complete_save_is_not_delayed() {
     let written = Instant::now();
     let seen = recorder.wait_for(1, Duration::from_secs(2));
     assert_eq!(seen.len(), 1);
-    assert!(seen[0].0.duration_since(written) < Duration::from_millis(100), "fired {:?} after the write", seen[0].0.duration_since(written));
+    assert!(
+        seen[0].0.duration_since(written) < Duration::from_millis(100),
+        "fired {:?} after the write",
+        seen[0].0.duration_since(written)
+    );
     let _ = watch.close();
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -119,7 +134,10 @@ fn an_emptied_file_stops_holding_after_the_idle_time() {
     let seen = recorder.wait_for(1, Duration::from_secs(5));
     assert_eq!(seen.len(), 1, "an empty file must not hold the callbacks for good");
     let waited = seen[0].0.duration_since(written);
-    assert!(waited >= Duration::from_millis(900) && waited < Duration::from_millis(2500), "released after {waited:?}");
+    assert!(
+        waited >= Duration::from_millis(900) && waited < Duration::from_millis(2500),
+        "released after {waited:?}"
+    );
     let _ = watch.close();
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -144,7 +162,8 @@ fn a_burst_of_writes_is_one_batch() {
 
     // A formatter: 20 files, 5 ms apart (100 ms in all, much longer than FSEvents takes to deliver the first).
     for i in 0..20 {
-        std::fs::write(dir.join(format!("f{i}.ts")), format!("export const f{i} = {i};\n")).unwrap();
+        std::fs::write(dir.join(format!("f{i}.ts")), format!("export const f{i} = {i};\n"))
+            .unwrap();
         std::thread::sleep(Duration::from_millis(5));
     }
     std::thread::sleep(Duration::from_millis(700));

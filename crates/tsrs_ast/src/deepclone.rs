@@ -27,11 +27,7 @@ fn get_deep_clone_visitor(f: NodeFactory, synthetic_location: bool) -> NodeVisit
         Rc::new(move |nodes: Option<P<NodeList>>, v: &mut NodeVisitor| {
             let nodes = nodes?;
             let visited = v.visit_nodes(Some(nodes)).unwrap();
-            let new_list = if visited != nodes {
-                visited
-            } else {
-                nodes.clone_list(&v.factory)
-            };
+            let new_list = if visited != nodes { visited } else { nodes.clone_list(&v.factory) };
             if synthetic_location {
                 new_list.loc.set(undefined_text_range());
                 if nodes.has_trailing_comma() {
@@ -44,11 +40,7 @@ fn get_deep_clone_visitor(f: NodeFactory, synthetic_location: bool) -> NodeVisit
         Rc::new(move |nodes: Option<P<ModifierList>>, v: &mut NodeVisitor| {
             let nodes = nodes?;
             let visited = v.visit_modifiers(Some(nodes)).unwrap();
-            let new_list = if visited != nodes {
-                visited
-            } else {
-                nodes.clone_list(&v.factory)
-            };
+            let new_list = if visited != nodes { visited } else { nodes.clone_list(&v.factory) };
             if synthetic_location {
                 new_list.list.loc.set(undefined_text_range());
                 if nodes.has_trailing_comma() {
@@ -61,13 +53,21 @@ fn get_deep_clone_visitor(f: NodeFactory, synthetic_location: bool) -> NodeVisit
     new_node_visitor(
         Some(visit),
         Some(f),
-        NodeVisitorHooks { visit_nodes: Some(visit_nodes), visit_modifiers: Some(visit_modifiers), ..Default::default() },
+        NodeVisitorHooks {
+            visit_nodes: Some(visit_nodes),
+            visit_modifiers: Some(visit_modifiers),
+            ..Default::default()
+        },
     )
 }
 
 // The visitor owns a handle to this factory (`NodeFactory::clone` shares hooks and counters).
 impl NodeFactory {
-    fn with_deep_clone_visitor<R>(&self, synthetic_location: bool, f: impl FnOnce(&mut NodeVisitor) -> R) -> R {
+    fn with_deep_clone_visitor<R>(
+        &self,
+        synthetic_location: bool,
+        f: impl FnOnce(&mut NodeVisitor) -> R,
+    ) -> R {
         let mut visitor = get_deep_clone_visitor(self.clone(), synthetic_location);
         f(&mut visitor)
     }
@@ -78,14 +78,22 @@ impl NodeFactory {
 
     pub fn deep_clone_reparse(&self, node: Option<P<Node>>) -> Option<P<Node>> {
         let node = node?;
-        let node = self.with_deep_clone_visitor(false /*syntheticLocation*/, |v| v.visit_node(Some(node))).unwrap();
+        let node = self
+            .with_deep_clone_visitor(false /*syntheticLocation*/, |v| v.visit_node(Some(node)))
+            .unwrap();
         set_parent_in_children(node);
         node.set_flags(node.flags() | NodeFlags::Reparsed);
         Some(node)
     }
 
-    pub fn deep_clone_reparse_modifiers(&self, modifiers: Option<P<ModifierList>>) -> Option<P<ModifierList>> {
-        self.with_deep_clone_visitor(false /*syntheticLocation*/, |v| v.visit_modifiers(modifiers))
+    pub fn deep_clone_reparse_modifiers(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+    ) -> Option<P<ModifierList>> {
+        self.with_deep_clone_visitor(
+            false, /*syntheticLocation*/
+            |v| v.visit_modifiers(modifiers),
+        )
     }
 }
 
@@ -115,9 +123,6 @@ mod tests {
 
         let synthetic = f.deep_clone_node(Some(name)).unwrap();
         assert_eq!(synthetic.loc(), undefined_text_range());
-        assert_eq!(
-            synthetic.as_qualified_name().right.loc(),
-            undefined_text_range()
-        );
+        assert_eq!(synthetic.as_qualified_name().right.loc(), undefined_text_range());
     }
 }

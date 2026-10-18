@@ -3,7 +3,9 @@ use crate::*;
 impl DeclarationTransformer {
     // transform.go:2328
     pub(crate) fn ensure_modifiers(&self, node: P<Node>) -> Option<P<ModifierList>> {
-        let current_flags = ast::get_combined_modifier_flags(self.emit_context().parse_node(Some(node)).unwrap()) & ModifierFlags::All;
+        let current_flags =
+            ast::get_combined_modifier_flags(self.emit_context().parse_node(Some(node)).unwrap())
+                & ModifierFlags::All;
         let new_flags = self.ensure_modifier_flags(node);
         if current_flags == new_flags {
             // Elide decorators
@@ -12,10 +14,14 @@ impl DeclarationTransformer {
                 return mods;
             };
             if can_reuse_modifier_nodes(mods.nodes()) {
-                return Some(self.factory().new_modifier_list(mods.nodes().iter().copied().filter(|&m| ast::is_modifier(m)).collect()));
+                return Some(self.factory().new_modifier_list(
+                    mods.nodes().iter().copied().filter(|&m| ast::is_modifier(m)).collect(),
+                ));
             }
         }
-        let result = ast::create_modifiers_from_modifier_flags(new_flags, |k| self.factory().new_modifier(k));
+        let result = ast::create_modifiers_from_modifier_flags(new_flags, |k| {
+            self.factory().new_modifier(k)
+        });
         if result.is_empty() {
             return None;
         }
@@ -24,7 +30,8 @@ impl DeclarationTransformer {
 
     // transform.go:2348
     pub(crate) fn ensure_modifier_flags(&self, node: P<Node>) -> ModifierFlags {
-        let mut mask = ModifierFlags::All ^ (ModifierFlags::Public | ModifierFlags::Async | ModifierFlags::Override); // No async and override modifiers in declaration files
+        let mut mask = ModifierFlags::All
+            ^ (ModifierFlags::Public | ModifierFlags::Async | ModifierFlags::Override); // No async and override modifiers in declaration files
         let mut additions = ModifierFlags::None;
         if self.needs_declare.get() && !is_always_type(node) {
             additions = ModifierFlags::Ambient;
@@ -43,8 +50,19 @@ impl DeclarationTransformer {
     // transform.go:2365
     // SIG: `params` is Go `*ast.TypeParameterList`, nil when the declaration has no type parameters (VisitNodes(nil)
     // returns nil): `P<NodeList>` -> `Option<P<NodeList>>`.
-    pub(crate) fn ensure_type_params(&self, node: P<Node>, params: Option<P<NodeList>>) -> Option<P<NodeList>> {
-        if !self.host.get_effective_declaration_flags(self.emit_context().parse_node(Some(node)).unwrap(), ModifierFlags::Private).is_empty() {
+    pub(crate) fn ensure_type_params(
+        &self,
+        node: P<Node>,
+        params: Option<P<NodeList>>,
+    ) -> Option<P<NodeList>> {
+        if !self
+            .host
+            .get_effective_declaration_flags(
+                self.emit_context().parse_node(Some(node)).unwrap(),
+                ModifierFlags::Private,
+            )
+            .is_empty()
+        {
             return None;
         }
         let mut type_parameters = self.visitor().visit_nodes(params);
@@ -57,7 +75,8 @@ impl DeclarationTransformer {
         if !self.suppress_new_diagnostic_contexts.get() {
             old_diag = Some(self.state.get_symbol_accessibility_diagnostic.borrow().clone());
             if can_produce_diagnostics(node) {
-                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = create_get_symbol_accessibility_diagnostic_for_node(node);
+                *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+                    create_get_symbol_accessibility_diagnostic_for_node(node);
             }
         }
 
@@ -85,7 +104,15 @@ impl DeclarationTransformer {
 
     // transform.go:2399
     pub(crate) fn update_param_list(&self, node: P<Node>, params: P<NodeList>) -> P<NodeList> {
-        if !self.host.get_effective_declaration_flags(self.emit_context().parse_node(Some(node)).unwrap(), ModifierFlags::Private).is_empty() || params.nodes().is_empty() {
+        if !self
+            .host
+            .get_effective_declaration_flags(
+                self.emit_context().parse_node(Some(node)).unwrap(),
+                ModifierFlags::Private,
+            )
+            .is_empty()
+            || params.nodes().is_empty()
+        {
             return self.factory().new_node_list(Vec::new());
         }
         let mut results = Vec::with_capacity(params.nodes().len());
@@ -97,7 +124,8 @@ impl DeclarationTransformer {
     pub(crate) fn ensure_parameter(&self, p: P<Node>) -> P<Node> {
         let old_diag = self.state.get_symbol_accessibility_diagnostic.borrow().clone();
         if !self.suppress_new_diagnostic_contexts.get() {
-            *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = create_get_symbol_accessibility_diagnostic_for_node(p);
+            *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+                create_get_symbol_accessibility_diagnostic_for_node(p);
         }
         let param = p.as_parameter_declaration();
         let mut question_token = None;
@@ -124,11 +152,16 @@ impl DeclarationTransformer {
     // transform.go:2436
     pub(crate) fn ensure_no_initializer(&self, node: P<Node>) -> Option<P<Node>> {
         if self.should_print_with_initializer(node) {
-            let unwrapped_initializer = unwrap_parenthesized_expression(node.initializer().unwrap());
+            let unwrapped_initializer =
+                unwrap_parenthesized_expression(node.initializer().unwrap());
             if !ast::is_primitive_literal_value(unwrapped_initializer, true) {
                 self.resolver.lock(|c| self.tracker.report_inference_fallback(c, node));
             }
-            return self.resolver.create_literal_const_value(self.emit_context(), self.emit_context().parse_node(Some(node)).unwrap(), self.tracker.get());
+            return self.resolver.create_literal_const_value(
+                self.emit_context(),
+                self.emit_context().parse_node(Some(node)).unwrap(),
+                self.tracker.get(),
+            );
         }
         None
     }
@@ -137,15 +170,28 @@ impl DeclarationTransformer {
     pub(crate) fn visit_binding_name(&self, node: P<Node>) -> P<Node> {
         match node.kind() {
             Kind::Identifier | Kind::OmittedExpression => node,
-            Kind::ArrayBindingPattern | Kind::ObjectBindingPattern => self.binding_name_visitor().visit_each_child(Some(node)).unwrap(),
+            Kind::ArrayBindingPattern | Kind::ObjectBindingPattern => {
+                self.binding_name_visitor().visit_each_child(Some(node)).unwrap()
+            }
             Kind::BindingElement => {
                 if let Some(property_name) = node.property_name() {
-                    if ast::is_computed_property_name(property_name) && ast::is_entity_name_expression(property_name.expression().unwrap()) {
-                        self.check_entity_name_visibility(property_name.expression().unwrap(), self.enclosing_declaration.get());
+                    if ast::is_computed_property_name(property_name)
+                        && ast::is_entity_name_expression(property_name.expression().unwrap())
+                    {
+                        self.check_entity_name_visibility(
+                            property_name.expression().unwrap(),
+                            self.enclosing_declaration.get(),
+                        );
                     }
                 }
                 let elem = node.as_binding_element();
-                self.factory().update_binding_element(node, elem.dot_dot_dot_token(), node.property_name(), self.binding_name_visitor().visit_node(node.name()), None /*initializer*/)
+                self.factory().update_binding_element(
+                    node,
+                    elem.dot_dot_dot_token(),
+                    node.property_name(),
+                    self.binding_name_visitor().visit_node(node.name()),
+                    None, /*initializer*/
+                )
             }
             _ => node,
         }
@@ -165,12 +211,19 @@ impl DeclarationTransformer {
                 decl.modifiers(),
                 import_equals.is_type_only,
                 import_equals.name,
-                self.factory().update_external_module_reference(import_equals.module_reference, self.rewrite_module_specifier(decl, specifier).unwrap()),
+                self.factory().update_external_module_reference(
+                    import_equals.module_reference,
+                    self.rewrite_module_specifier(decl, specifier).unwrap(),
+                ),
             ))
         } else {
             let old_diag = self.state.get_symbol_accessibility_diagnostic.borrow().clone();
-            *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = create_get_symbol_accessibility_diagnostic_for_node(decl);
-            self.check_entity_name_visibility(import_equals.module_reference, self.enclosing_declaration.get());
+            *self.state.get_symbol_accessibility_diagnostic.borrow_mut() =
+                create_get_symbol_accessibility_diagnostic_for_node(decl);
+            self.check_entity_name_visibility(
+                import_equals.module_reference,
+                self.enclosing_declaration.get(),
+            );
             *self.state.get_symbol_accessibility_diagnostic.borrow_mut() = old_diag;
             Some(decl)
         }
@@ -205,7 +258,12 @@ impl DeclarationTransformer {
             return Some(self.factory().update_import_declaration(
                 decl,
                 decl.modifiers(),
-                Some(self.factory().update_import_clause(import_clause, phase_modifier, visible_default_binding, None /*namedBindings*/)),
+                Some(self.factory().update_import_clause(
+                    import_clause,
+                    phase_modifier,
+                    visible_default_binding,
+                    None, /*namedBindings*/
+                )),
                 self.rewrite_module_specifier(decl, Some(import_decl.module_specifier)).unwrap(),
                 import_decl.attributes(),
             ));
@@ -222,22 +280,40 @@ impl DeclarationTransformer {
             return Some(self.factory().update_import_declaration(
                 decl,
                 decl.modifiers(),
-                Some(self.factory().update_import_clause(import_clause, phase_modifier, visible_default_binding, named_bindings_result)),
+                Some(self.factory().update_import_clause(
+                    import_clause,
+                    phase_modifier,
+                    visible_default_binding,
+                    named_bindings_result,
+                )),
                 self.rewrite_module_specifier(decl, Some(import_decl.module_specifier)).unwrap(),
                 import_decl.attributes(),
             ));
         }
         // Named imports (optionally with visible default)
-        let binding_list: Vec<P<Node>> = named_bindings.elements().iter().copied().filter(|&b| self.resolver.is_declaration_visible(b)).collect();
+        let binding_list: Vec<P<Node>> = named_bindings
+            .elements()
+            .iter()
+            .copied()
+            .filter(|&b| self.resolver.is_declaration_visible(b))
+            .collect();
         if !binding_list.is_empty() || visible_default_binding.is_some() {
             let mut named_imports = None;
             if !binding_list.is_empty() {
-                named_imports = Some(self.factory().update_named_imports(named_bindings, self.factory().new_node_list(binding_list)));
+                named_imports = Some(self.factory().update_named_imports(
+                    named_bindings,
+                    self.factory().new_node_list(binding_list),
+                ));
             }
             return Some(self.factory().update_import_declaration(
                 decl,
                 decl.modifiers(),
-                Some(self.factory().update_import_clause(import_clause, phase_modifier, visible_default_binding, named_imports)),
+                Some(self.factory().update_import_clause(
+                    import_clause,
+                    phase_modifier,
+                    visible_default_binding,
+                    named_imports,
+                )),
                 self.rewrite_module_specifier(decl, Some(import_decl.module_specifier)).unwrap(),
                 import_decl.attributes(),
             ));
@@ -266,8 +342,10 @@ impl DeclarationTransformer {
 
     // transform.go:2595
     pub(crate) fn transform_jsdoc_type_literal(&self, input: P<Node>) -> P<Node> {
-        let (members, _) = self.visitor().visit_slice(input.as_jsdoc_type_literal().jsdoc_property_tags);
-        let replacement = self.factory().new_type_literal_node(self.factory().new_node_list_from_static(members));
+        let (members, _) =
+            self.visitor().visit_slice(input.as_jsdoc_type_literal().jsdoc_property_tags);
+        let replacement =
+            self.factory().new_type_literal_node(self.factory().new_node_list_from_static(members));
         self.emit_context().set_original(replacement, input);
         replacement
     }
@@ -275,7 +353,13 @@ impl DeclarationTransformer {
     // transform.go:2602
     pub(crate) fn transform_jsdoc_property_tag(&self, input: P<Node>) -> P<Node> {
         let tag = input.as_jsdoc_parameter_or_property_tag();
-        let replacement = self.factory().new_property_signature_declaration(None, self.visit_fn(Some(tag.tag_name())).unwrap(), None, self.visit_fn(tag.type_expression), None);
+        let replacement = self.factory().new_property_signature_declaration(
+            None,
+            self.visit_fn(Some(tag.tag_name())).unwrap(),
+            None,
+            self.visit_fn(tag.type_expression),
+            None,
+        );
         self.emit_context().set_original(replacement, input);
         replacement
     }
@@ -289,9 +373,7 @@ impl DeclarationTransformer {
 
     // transform.go:2620
     pub(crate) fn transform_jsdoc_nullable_type(&self, input: P<Node>) -> P<Node> {
-        let replacement = self
-            .factory()
-            .new_union_type_node(self.factory().new_node_list(vec![
+        let replacement = self.factory().new_union_type_node(self.factory().new_node_list(vec![
                 self.visit_fn(Some(input.as_jsdoc_nullable_type().type_))
                     .unwrap(),
                 self.factory().new_literal_type_node(
@@ -309,20 +391,19 @@ impl DeclarationTransformer {
 
     // transform.go:2633
     pub(crate) fn transform_jsdoc_variadic_type(&self, input: P<Node>) -> P<Node> {
-        let replacement = self.factory().new_array_type_node(self.visit_fn(Some(input.as_jsdoc_variadic_type().type_)).unwrap());
+        let replacement = self.factory().new_array_type_node(
+            self.visit_fn(Some(input.as_jsdoc_variadic_type().type_)).unwrap(),
+        );
         self.emit_context().set_original(replacement, input);
         replacement
     }
 
     // transform.go:2639
     pub(crate) fn transform_jsdoc_optional_type(&self, input: P<Node>) -> P<Node> {
-        let replacement = self
-            .factory()
-            .new_union_type_node(self.factory().new_node_list(vec![
-                self.visit_fn(Some(input.as_jsdoc_optional_type().type_))
-                    .unwrap(),
-                self.factory().new_keyword_type_node(Kind::UndefinedKeyword),
-            ]));
+        let replacement = self.factory().new_union_type_node(self.factory().new_node_list(vec![
+            self.visit_fn(Some(input.as_jsdoc_optional_type().type_)).unwrap(),
+            self.factory().new_keyword_type_node(Kind::UndefinedKeyword),
+        ]));
         self.emit_context().set_original(replacement, input);
         replacement
     }
@@ -334,7 +415,9 @@ impl DeclarationTransformer {
             // Numeric property names are string properties in JS; convert to string literal
             name_expr = self.factory().new_string_literal(name_expr.text(), TokenFlags::None);
         }
-        if ast::is_string_literal_like(name_expr) && scanner::is_identifier_text(name_expr.text(), tsrs_core::LanguageVariant::Standard) {
+        if ast::is_string_literal_like(name_expr)
+            && scanner::is_identifier_text(name_expr.text(), tsrs_core::LanguageVariant::Standard)
+        {
             let result = self.factory().new_identifier(name_expr.text()); // prefer non-string literal names where possible
             let kw_kind = scanner::identifier_to_keyword_kind(result);
             // keep keywords as strings, except `default`, which has special reformulations in the transformer
@@ -362,7 +445,8 @@ impl DeclarationTransformer {
         if let Some(mods) = mods {
             let flags = node.modifier_flags();
             if flags.intersects(ModifierFlags::Ambient) {
-                let filtered: Vec<P<Node>> = mods.nodes().iter().copied().filter(|&m| is_not_declare_modifier(m)).collect();
+                let filtered: Vec<P<Node>> =
+                    mods.nodes().iter().copied().filter(|&m| is_not_declare_modifier(m)).collect();
                 node.as_mutable().set_modifiers(Some(self.factory().new_modifier_list(filtered)));
             }
         }
@@ -370,12 +454,21 @@ impl DeclarationTransformer {
     }
 
     // transform.go:2687
-    pub(crate) fn visit_cjs_export_assignments(&self, expression: Option<P<Node>>) -> Option<P<Node>> {
+    pub(crate) fn visit_cjs_export_assignments(
+        &self,
+        expression: Option<P<Node>>,
+    ) -> Option<P<Node>> {
         let expression = expression?;
         let (_, mut cleanup_diagnostic_context) = self.setup_diagnostic_context(expression);
         if ast::get_assignment_declaration_kind(expression) == JSDeclarationKind::ModuleExports {
-            if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some() {
-                let result = Some(self.transform_export_assignment(expression.parent().unwrap(), expression, expression.as_binary_expression().right(), true /*isExportEquals*/));
+            if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some()
+            {
+                let result = Some(self.transform_export_assignment(
+                    expression.parent().unwrap(),
+                    expression,
+                    expression.as_binary_expression().right(),
+                    true, /*isExportEquals*/
+                ));
                 if let Some(result) = result {
                     self.cjs_export_assignment.set(Some(result));
                     self.result_has_scope_marker.set(true);
@@ -397,20 +490,45 @@ impl DeclarationTransformer {
                 self.transform_expando_assignment(expression);
             }
             JSDeclarationKind::ExportsProperty => {
-                if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some() {
-                    let result = self.transform_common_js_export(expression, self.get_name_expression_preferring_identifier(ast::get_element_or_property_access_name(expression.as_binary_expression().left).unwrap()));
+                if self
+                    .state
+                    .current_source_file
+                    .get()
+                    .unwrap()
+                    .common_js_module_indicator()
+                    .is_some()
+                {
+                    let result = self.transform_common_js_export(
+                        expression,
+                        self.get_name_expression_preferring_identifier(
+                            ast::get_element_or_property_access_name(
+                                expression.as_binary_expression().left,
+                            )
+                            .unwrap(),
+                        ),
+                    );
                     if let Some(result) = result {
                         self.cjs_export_members.borrow_mut().push(result);
                     }
                 }
             }
             JSDeclarationKind::ObjectDefinePropertyExports
-                if self.state.current_source_file.get().unwrap().common_js_module_indicator().is_some() => {
-                    let result = self.transform_common_js_export(expression, self.get_name_expression_preferring_identifier(expression.arguments()[1]));
-                    if let Some(result) = result {
-                        self.cjs_export_members.borrow_mut().push(result);
-                    }
+                if self
+                    .state
+                    .current_source_file
+                    .get()
+                    .unwrap()
+                    .common_js_module_indicator()
+                    .is_some() =>
+            {
+                let result = self.transform_common_js_export(
+                    expression,
+                    self.get_name_expression_preferring_identifier(expression.arguments()[1]),
+                );
+                if let Some(result) = result {
+                    self.cjs_export_members.borrow_mut().push(result);
                 }
+            }
             _ => {}
         }
         let result = self.expression_visitor().visit_each_child(Some(expression)); // recur through the whole tree, looking for special assignments
@@ -444,11 +562,15 @@ impl DeclarationTransformer {
             return;
         }
 
-        if ast::is_function_declaration(declaration) && declaration.function_like_data().unwrap().full_signature.get().is_some() {
+        if ast::is_function_declaration(declaration)
+            && declaration.function_like_data().unwrap().full_signature.get().is_some()
+        {
             return;
         }
 
-        if ast::is_variable_declaration(declaration) && !ast::is_function_like(declaration.initializer()) {
+        if ast::is_variable_declaration(declaration)
+            && !ast::is_function_like(declaration.initializer())
+        {
             return; // We're going to add a type, no need to dupe members with a namespace
         }
 
@@ -459,13 +581,17 @@ impl DeclarationTransformer {
 
         let name = self.factory().new_identifier(ns.text());
         let property = self.try_get_property_name(left);
-        if property.is_empty() || !scanner::is_identifier_text(&property, tsrs_core::LanguageVariant::Standard) {
+        if property.is_empty()
+            || !scanner::is_identifier_text(&property, tsrs_core::LanguageVariant::Standard)
+        {
             return;
         }
 
         let host_id = self.get_expando_host_id(declaration);
 
-        if ast::is_declaration(declaration) && is_declaration_and_not_visible(self.emit_context(), self.resolver, declaration) {
+        if ast::is_declaration(declaration)
+            && is_declaration_and_not_visible(self.emit_context(), self.resolver, declaration)
+        {
             // The host isn't visible (yet) - printing the type of a visible declaration may still
             // late-mark it as visible (e.g. an exported variable whose type prints as `typeof host`),
             // so defer the assignment to be processed if and when that happens.
@@ -473,7 +599,9 @@ impl DeclarationTransformer {
             return;
         }
 
-        if ast::is_function_declaration(declaration) && !should_emit_function_properties(declaration) {
+        if ast::is_function_declaration(declaration)
+            && !should_emit_function_properties(declaration)
+        {
             return;
         }
 
@@ -481,11 +609,16 @@ impl DeclarationTransformer {
 
         let export_name = self.factory().new_identifier(alloc_str(&property));
         let mut local_name = self.try_get_name_of_assigned_expression(node);
-        if local_name.is_none() && !self.resolver.is_name_resolvable(self.enclosing_declaration.get(), &property) && !ast::is_non_contextual_keyword(scanner::string_to_token(export_name.text())) {
+        if local_name.is_none()
+            && !self.resolver.is_name_resolvable(self.enclosing_declaration.get(), &property)
+            && !ast::is_non_contextual_keyword(scanner::string_to_token(export_name.text()))
+        {
             // use exportName as localName if there won't be any conflicts or keyword issues
             local_name = Some(export_name);
         }
-        if local_name.is_none() || ast::is_non_contextual_keyword(scanner::string_to_token(local_name.unwrap().text())) {
+        if local_name.is_none()
+            || ast::is_non_contextual_keyword(scanner::string_to_token(local_name.unwrap().text()))
+        {
             // fallback to a generated name if the localName doesn't exist or is a keyword
             local_name = Some(self.factory().new_generated_name_for_node(node));
         }
@@ -501,14 +634,28 @@ impl DeclarationTransformer {
             return;
         }
 
-        let preexisting_expando_has_export = self.expando_members.borrow().get(&host_id).is_some_and(|members| members.iter().any(|&m| ast::is_export_declaration(m)));
+        let preexisting_expando_has_export = self
+            .expando_members
+            .borrow()
+            .get(&host_id)
+            .is_some_and(|members| members.iter().any(|&m| ast::is_export_declaration(m)));
         let mut var_modifiers = None;
 
         if preexisting_expando_has_export {
-            var_modifiers = Some(self.factory().new_modifier_list(ast::create_modifiers_from_modifier_flags(ModifierFlags::Export, |k| self.factory().new_modifier(k))));
+            var_modifiers = Some(self.factory().new_modifier_list(
+                ast::create_modifiers_from_modifier_flags(ModifierFlags::Export, |k| {
+                    self.factory().new_modifier(k)
+                }),
+            ));
         }
 
-        let synthesized_namespace = self.factory().new_module_declaration(None /*modifiers*/, Kind::NamespaceKeyword, name, None, Some(self.factory().new_module_block(self.factory().new_node_list(Vec::new()))));
+        let synthesized_namespace = self.factory().new_module_declaration(
+            None, /*modifiers*/
+            Kind::NamespaceKeyword,
+            name,
+            None,
+            Some(self.factory().new_module_block(self.factory().new_node_list(Vec::new()))),
+        );
         synthesized_namespace.set_parent(self.enclosing_declaration.get());
         let declaration_data = synthesized_namespace.declaration_data().unwrap();
         declaration_data.set_symbol(Some(host));
@@ -523,14 +670,32 @@ impl DeclarationTransformer {
         let mut statements = vec![self.factory().new_variable_statement(
             var_modifiers,
             self.factory().new_variable_declaration_list(
-                self.factory().new_node_list(vec![self.factory().new_variable_declaration(local_name, None /*exclamationToken*/, self.ensure_type(node, false), None /*initializer*/)]),
+                self.factory().new_node_list(vec![self.factory().new_variable_declaration(
+                    local_name,
+                    None, /*exclamationToken*/
+                    self.ensure_type(node, false),
+                    None, /*initializer*/
+                )]),
                 NodeFlags::None,
             ),
         )];
 
         if local_name.text() != export_name.text() {
-            let named_exports = self.factory().new_named_exports(self.factory().new_node_list(vec![self.factory().new_export_specifier(false /*isTypeOnly*/, Some(local_name), export_name)]));
-            statements.push(self.factory().new_export_declaration(None /*modifiers*/, false /*isTypeOnly*/, Some(named_exports), None /*moduleSpecifier*/, None /*attributes*/));
+            let named_exports =
+                self.factory().new_named_exports(self.factory().new_node_list(vec![
+                    self.factory().new_export_specifier(
+                        false, /*isTypeOnly*/
+                        Some(local_name),
+                        export_name,
+                    ),
+                ]));
+            statements.push(self.factory().new_export_declaration(
+                None,  /*modifiers*/
+                false, /*isTypeOnly*/
+                Some(named_exports),
+                None, /*moduleSpecifier*/
+                None, /*attributes*/
+            ));
         }
 
         if statements.len() > 1 && !preexisting_expando_has_export {
@@ -538,7 +703,11 @@ impl DeclarationTransformer {
             let members = self.expando_members.borrow().get(&host_id).cloned().unwrap_or_default();
             for decl in members {
                 let modifier_flags = ModifierFlags::Export | ast::get_combined_modifier_flags(decl);
-                decl.as_mutable().set_modifiers(Some(self.factory().new_modifier_list(ast::create_modifiers_from_modifier_flags(modifier_flags, |k| self.factory().new_modifier(k)))));
+                decl.as_mutable().set_modifiers(Some(self.factory().new_modifier_list(
+                    ast::create_modifiers_from_modifier_flags(modifier_flags, |k| {
+                        self.factory().new_modifier(k)
+                    }),
+                )));
             }
         }
         self.expando_members.borrow_mut().entry(host_id).or_default().extend(statements);
@@ -549,13 +718,21 @@ impl DeclarationTransformer {
 
     // transform.go:2868
     pub(crate) fn get_expando_host_id(&self, declaration: P<Node>) -> NodeId {
-        let root = if ast::is_variable_declaration(declaration) { declaration.parent().unwrap().parent().unwrap() } else { declaration };
+        let root = if ast::is_variable_declaration(declaration) {
+            declaration.parent().unwrap().parent().unwrap()
+        } else {
+            declaration
+        };
         ast::get_node_id(self.emit_context().most_original(Some(root)).unwrap())
     }
 
     // transform.go:2874
     pub(crate) fn transform_expando_host(&self, name: P<Node>, declaration: P<Node>) {
-        let root = if ast::is_variable_declaration(declaration) { declaration.parent().unwrap().parent().unwrap() } else { declaration };
+        let root = if ast::is_variable_declaration(declaration) {
+            declaration.parent().unwrap().parent().unwrap()
+        } else {
+            declaration
+        };
         let id = self.get_expando_host_id(declaration);
 
         if self.expando_hosts.borrow().contains_key(&id) {
@@ -566,7 +743,8 @@ impl DeclarationTransformer {
         self.needs_declare.set(true);
 
         let mut modifier_flags = self.ensure_modifier_flags(root);
-        let default_export = modifier_flags.intersects(ModifierFlags::Export) && modifier_flags.intersects(ModifierFlags::Default);
+        let default_export = modifier_flags.intersects(ModifierFlags::Export)
+            && modifier_flags.intersects(ModifierFlags::Default);
 
         self.needs_declare.set(save_needs_declare);
 
@@ -578,11 +756,16 @@ impl DeclarationTransformer {
 
         let (_, mut cleanup_diagnostic_context) = self.setup_diagnostic_context(declaration);
 
-        let modifiers = self.factory().new_modifier_list(ast::create_modifiers_from_modifier_flags(modifier_flags, |k| self.factory().new_modifier(k)));
+        let modifiers = self.factory().new_modifier_list(
+            ast::create_modifiers_from_modifier_flags(modifier_flags, |k| {
+                self.factory().new_modifier(k)
+            }),
+        );
         let mut replacement: Vec<P<Node>> = Vec::new();
 
         if ast::is_function_declaration(declaration) {
-            let (type_parameters, parameters, asterisk_token) = extract_expando_host_params(declaration);
+            let (type_parameters, parameters, asterisk_token) =
+                extract_expando_host_params(declaration);
             replacement.push(self.factory().update_function_declaration(
                 declaration,
                 Some(modifiers),
@@ -594,7 +777,9 @@ impl DeclarationTransformer {
                 None, /*fullSignature*/
                 None, /*body*/
             ));
-        } else if ast::is_variable_declaration(declaration) && ast::is_function_expression_or_arrow_function(declaration.initializer().unwrap()) {
+        } else if ast::is_variable_declaration(declaration)
+            && ast::is_function_expression_or_arrow_function(declaration.initializer().unwrap())
+        {
             let fn_ = declaration.initializer().unwrap();
             let (type_parameters, parameters, asterisk_token) = extract_expando_host_params(fn_);
             replacement.push(self.factory().new_function_declaration(
@@ -614,7 +799,8 @@ impl DeclarationTransformer {
             return;
         }
 
-        let report_expando_function_errors = Rc::clone(self.state.report_expando_function_errors.get().unwrap());
+        let report_expando_function_errors =
+            Rc::clone(self.state.report_expando_function_errors.get().unwrap());
         self.resolver.lock(|c| report_expando_function_errors(c, declaration));
 
         if default_export {
@@ -622,11 +808,18 @@ impl DeclarationTransformer {
                 self.result_has_external_module_indicator.set(true);
             }
             self.result_has_scope_marker.set(true);
-            replacement.push(self.factory().new_export_assignment(None /*modifiers*/, false /*isExportEquals*/, None /*typeNode*/, name));
+            replacement.push(self.factory().new_export_assignment(
+                None,  /*modifiers*/
+                false, /*isExportEquals*/
+                None,  /*typeNode*/
+                name,
+            ));
         }
 
         // store host result to be added to the output when it's actually visited
-        self.expando_hosts.borrow_mut().insert(id, Some(self.factory().new_syntax_list(alloc_vec(replacement))));
+        self.expando_hosts
+            .borrow_mut()
+            .insert(id, Some(self.factory().new_syntax_list(alloc_vec(replacement))));
         let has_late_replacement = self.late_statement_replacement_map.borrow().contains_key(&id);
         if has_late_replacement {
             let block = self.create_full_expando_block(id);
@@ -654,7 +847,9 @@ impl DeclarationTransformer {
             let mut host: Vec<P<Node>> = Vec::new();
             if let Some(n) = n.filter(|n| n.kind() == Kind::SyntaxList) {
                 // find the first named syntax list element and use its' name & modifiers
-                if let Some((c, c_name)) = n.iter_children().into_iter().find_map(|c| c.name().map(|c_name| (c, c_name))) {
+                if let Some((c, c_name)) =
+                    n.iter_children().into_iter().find_map(|c| c.name().map(|c_name| (c, c_name)))
+                {
                     name = Some(c_name.clone_node(self.factory()));
                     if let Some(c_modifiers) = c.modifiers() {
                         modifiers = Some(c_modifiers.clone_list(self.factory().as_node_factory()));
@@ -669,7 +864,13 @@ impl DeclarationTransformer {
                 host = vec![n];
             }
             if let Some(name) = name {
-                let module_decl = self.factory().new_module_declaration(modifiers, Kind::NamespaceKeyword, name, None, Some(self.factory().new_module_block(self.factory().new_node_list(add_ons))));
+                let module_decl = self.factory().new_module_declaration(
+                    modifiers,
+                    Kind::NamespaceKeyword,
+                    name,
+                    None,
+                    Some(self.factory().new_module_block(self.factory().new_node_list(add_ons))),
+                );
                 let mut members = host;
                 members.push(module_decl);
                 return Some(self.factory().new_syntax_list(alloc_vec(members)));
@@ -680,7 +881,9 @@ impl DeclarationTransformer {
 }
 
 // transform.go:2980
-pub(crate) fn extract_expando_host_params(node: P<Node>) -> (Option<P<NodeList>>, Option<P<NodeList>>, Option<P<Node>>) {
+pub(crate) fn extract_expando_host_params(
+    node: P<Node>,
+) -> (Option<P<NodeList>>, Option<P<NodeList>>, Option<P<Node>>) {
     match node.kind() {
         Kind::FunctionExpression => {
             let fn_ = node.as_function_expression();

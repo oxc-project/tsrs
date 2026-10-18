@@ -48,7 +48,9 @@ impl SymbolTrackerImpl {
 
     // tracker.go:60
     pub(crate) fn is_bound_expando(&self, c: &mut Checker, node: P<Node>) -> bool {
-        if !(ast::is_expando_property_declaration(node) && ast::is_property_access_expression(node.as_binary_expression().left)) {
+        if !(ast::is_expando_property_declaration(node)
+            && ast::is_property_access_expression(node.as_binary_expression().left))
+        {
             return false;
         }
         // Match transformExpandoAssignment: only an assignment rooted at an identifier (`f.x = ...`) can bind an expando
@@ -85,7 +87,8 @@ impl SymbolTrackerImpl {
         }
         if self.state.resolver.is_expando_function_declaration_unsafe(c, node) {
             // within a node builder call that should already lock the checker, use the unsafe call
-            let report_expando_function_errors = Rc::clone(self.state.report_expando_function_errors.get().unwrap());
+            let report_expando_function_errors =
+                Rc::clone(self.state.report_expando_function_errors.get().unwrap());
             report_expando_function_errors(c, node);
         }
         if !self.is_child_of_bound_expando(c, node) {
@@ -118,10 +121,26 @@ impl SymbolTrackerImpl {
 
     // tracker.go:123
     // ReportNonlocalAugmentation implements checker.SymbolTracker.
-    pub fn report_nonlocal_augmentation(&self, containing_file: P<SourceFile>, parent_symbol: P<Symbol>, augmenting_symbol: P<Symbol>) {
-        let primary_declaration = parent_symbol.declarations().iter().copied().find(|&d| ast::get_source_file_of_node(d) == Some(containing_file));
-        let augmenting_declarations: Vec<P<Node>> = augmenting_symbol.declarations().iter().copied().filter(|&d| ast::get_source_file_of_node(d) != Some(containing_file)).collect();
-        if let Some(primary_declaration) = primary_declaration && !augmenting_declarations.is_empty() {
+    pub fn report_nonlocal_augmentation(
+        &self,
+        containing_file: P<SourceFile>,
+        parent_symbol: P<Symbol>,
+        augmenting_symbol: P<Symbol>,
+    ) {
+        let primary_declaration = parent_symbol
+            .declarations()
+            .iter()
+            .copied()
+            .find(|&d| ast::get_source_file_of_node(d) == Some(containing_file));
+        let augmenting_declarations: Vec<P<Node>> = augmenting_symbol
+            .declarations()
+            .iter()
+            .copied()
+            .filter(|&d| ast::get_source_file_of_node(d) != Some(containing_file))
+            .collect();
+        if let Some(primary_declaration) = primary_declaration
+            && !augmenting_declarations.is_empty()
+        {
             for augmentations in augmenting_declarations {
                 let diag = create_diagnostic_for_node(augmentations, &diagnostics::Declaration_augments_declaration_in_another_file_This_cannot_be_serialized, &[]);
                 let related = create_diagnostic_for_node(primary_declaration, &diagnostics::This_is_the_declaration_being_augmented_Consider_moving_the_augmenting_declaration_into_the_same_file, &[]);
@@ -138,7 +157,11 @@ impl SymbolTrackerImpl {
         if let Some(location) = location {
             let diag = create_diagnostic_for_node(location, &diagnostics::Property_0_of_exported_anonymous_class_type_may_not_be_private_or_protected, &[&property_name]);
             if ast::is_variable_declaration(location.parent().unwrap()) {
-                let related = create_diagnostic_for_node(location, &diagnostics::Add_a_type_annotation_to_the_variable_0, &[&self.error_declaration_name_with_fallback()]);
+                let related = create_diagnostic_for_node(
+                    location,
+                    &diagnostics::Add_a_type_annotation_to_the_variable_0,
+                    &[&self.error_declaration_name_with_fallback()],
+                );
                 diag.add_related_info(related);
             }
             self.state.add_diagnostic(diag);
@@ -177,10 +200,16 @@ impl SymbolTrackerImpl {
         if self.state.error_name_node.get().is_some() {
             return scanner::declaration_name_to_string(self.state.error_name_node.get());
         }
-        if self.error_fallback_node().is_some() && ast::get_name_of_declaration(self.error_fallback_node()).is_some() {
-            return scanner::declaration_name_to_string(ast::get_name_of_declaration(self.error_fallback_node()));
+        if self.error_fallback_node().is_some()
+            && ast::get_name_of_declaration(self.error_fallback_node()).is_some()
+        {
+            return scanner::declaration_name_to_string(ast::get_name_of_declaration(
+                self.error_fallback_node(),
+            ));
         }
-        if self.error_fallback_node().is_some() && ast::is_export_assignment(self.error_fallback_node().unwrap()) {
+        if self.error_fallback_node().is_some()
+            && ast::is_export_assignment(self.error_fallback_node().unwrap())
+        {
             if self.error_fallback_node().unwrap().as_export_assignment().is_export_equals {
                 return "export=".to_string();
             }
@@ -191,7 +220,13 @@ impl SymbolTrackerImpl {
 
     // tracker.go:189
     // TrackSymbol implements checker.SymbolTracker.
-    pub fn track_symbol(&self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool {
+    pub fn track_symbol(
+        &self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool {
         if symbol.flags().intersects(SymbolFlags::TypeParameter) {
             return false;
         }
@@ -203,11 +238,20 @@ impl SymbolTrackerImpl {
             return false;
         }
 
-        self.handle_symbol_accessibility_error(&self.resolver.is_symbol_accessible(c, symbol, enclosing_declaration, meaning, true /*shouldComputeAliasToMarkVisible*/))
+        self.handle_symbol_accessibility_error(&self.resolver.is_symbol_accessible(
+            c,
+            symbol,
+            enclosing_declaration,
+            meaning,
+            true, /*shouldComputeAliasToMarkVisible*/
+        ))
     }
 
     // tracker.go:204
-    pub(crate) fn handle_symbol_accessibility_error(&self, symbol_accessibility_result: &SymbolAccessibilityResult) -> bool {
+    pub(crate) fn handle_symbol_accessibility_error(
+        &self,
+        symbol_accessibility_result: &SymbolAccessibilityResult,
+    ) -> bool {
         if symbol_accessibility_result.accessibility == SymbolAccessibility::Accessible {
             // Add aliases back onto the possible imports list if they're not there so we can try them again with updated visibility info
             if !symbol_accessibility_result.aliases_to_make_visible.is_empty() {
@@ -224,7 +268,8 @@ impl SymbolTrackerImpl {
             // The checker should issue errors on unresolvable names, skip the declaration emit error for using a private/unreachable name for those
         } else if symbol_accessibility_result.accessibility != SymbolAccessibility::NotResolved {
             // Report error
-            let get_symbol_accessibility_diagnostic = self.state.get_symbol_accessibility_diagnostic.borrow().clone();
+            let get_symbol_accessibility_diagnostic =
+                self.state.get_symbol_accessibility_diagnostic.borrow().clone();
             let error_info = get_symbol_accessibility_diagnostic(symbol_accessibility_result);
             if let Some(info) = error_info {
                 let mut diag_node = symbol_accessibility_result.error_node;
@@ -232,9 +277,24 @@ impl SymbolTrackerImpl {
                     diag_node = info.error_node;
                 }
                 if let Some(type_name) = info.type_name {
-                    self.state.add_diagnostic(create_diagnostic_for_node(diag_node, info.diagnostic_message, &[&scanner::get_text_of_node(type_name), &symbol_accessibility_result.error_symbol_name, &symbol_accessibility_result.error_module_name]));
+                    self.state.add_diagnostic(create_diagnostic_for_node(
+                        diag_node,
+                        info.diagnostic_message,
+                        &[
+                            &scanner::get_text_of_node(type_name),
+                            &symbol_accessibility_result.error_symbol_name,
+                            &symbol_accessibility_result.error_module_name,
+                        ],
+                    ));
                 } else {
-                    self.state.add_diagnostic(create_diagnostic_for_node(diag_node, info.diagnostic_message, &[&symbol_accessibility_result.error_symbol_name, &symbol_accessibility_result.error_module_name]));
+                    self.state.add_diagnostic(create_diagnostic_for_node(
+                        diag_node,
+                        info.diagnostic_message,
+                        &[
+                            &symbol_accessibility_result.error_symbol_name,
+                            &symbol_accessibility_result.error_module_name,
+                        ],
+                    ));
                 }
                 return true;
             }
@@ -246,7 +306,11 @@ impl SymbolTrackerImpl {
 // tracker.go:235
 // SIG: node is `impl Into<Option<P<Node>>>` (was `P<Node>`): Go passes a possibly-nil node (handleSymbolAccessibilityError's
 // diagNode) and NewDiagnosticForNode accepts nil; existing `P<Node>` callers compile unchanged.
-pub(crate) fn create_diagnostic_for_node(node: impl Into<Option<P<Node>>>, message: &'static Message, args: &[&dyn Display]) -> P<Diagnostic> {
+pub(crate) fn create_diagnostic_for_node(
+    node: impl Into<Option<P<Node>>>,
+    message: &'static Message,
+    args: &[&dyn Display],
+) -> P<Diagnostic> {
     checker::new_diagnostic_for_node(node.into(), Some(message), args)
 }
 
@@ -258,7 +322,11 @@ impl SymbolTrackerSharedState {
 }
 
 // tracker.go:255
-pub fn new_symbol_tracker(host: &'static dyn DeclarationEmitHost, resolver: Resolver, state: P<SymbolTrackerSharedState>) -> P<SymbolTrackerImpl> {
+pub fn new_symbol_tracker(
+    host: &'static dyn DeclarationEmitHost,
+    resolver: Resolver,
+    state: P<SymbolTrackerSharedState>,
+) -> P<SymbolTrackerImpl> {
     P::new(SymbolTrackerImpl {
         host,
         resolver,

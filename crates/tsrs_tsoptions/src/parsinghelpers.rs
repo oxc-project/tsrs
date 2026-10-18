@@ -3,7 +3,9 @@ use tsrs_ast::Diagnostic;
 use tsrs_core::collections::{OrderedMap, OrderedMapExt};
 use tsrs_core::tspath;
 use tsrs_core::{
-    BuildOptions, CompilerOptions, JsxEmit, ModuleDetectionKind, ModuleKind, ModuleResolutionKind, NewLineKind, PluginImport, ProjectReference, ScriptTarget, Tristate, TypeAcquisition, WatchOptions, P,
+    BuildOptions, CompilerOptions, JsxEmit, ModuleDetectionKind, ModuleKind, ModuleResolutionKind,
+    NewLineKind, P, PluginImport, ProjectReference, ScriptTarget, Tristate, TypeAcquisition,
+    WatchOptions,
 };
 use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
@@ -11,8 +13,8 @@ use tsrs_diagnostics::Message;
 use crate::commandlineoption::{CommandLineOption, CommandLineOptionKind, CompilerOptionsValue};
 use crate::contentmappers::Mapper;
 use crate::enummaps::{
-    JSX_OPTION_MAP, MODULE_DETECTION_OPTION_MAP, MODULE_OPTION_MAP, MODULE_RESOLUTION_OPTION_MAP, NEW_LINE_OPTION_MAP,
-    TARGET_OPTION_MAP,
+    JSX_OPTION_MAP, MODULE_DETECTION_OPTION_MAP, MODULE_OPTION_MAP, MODULE_RESOLUTION_OPTION_MAP,
+    NEW_LINE_OPTION_MAP, TARGET_OPTION_MAP,
 };
 use crate::errors::{extra_key_diagnostics, extra_key_did_you_mean_diagnostics};
 use crate::namemap::BUILD_NAME_MAP;
@@ -31,13 +33,17 @@ pub fn parse_tristate(value: &CompilerOptionsValue) -> Tristate {
 pub fn parse_string_array(value: &CompilerOptionsValue) -> Option<Vec<String>> {
     if let CompilerOptionsValue::Array(arr) = value {
         let mut result = Vec::with_capacity(arr.len());
-        result.extend(arr.iter().filter_map(|v| if let CompilerOptionsValue::String(str) = v { Some(str.clone()) } else { None }));
+        result.extend(arr.iter().filter_map(|v| {
+            if let CompilerOptionsValue::String(str) = v { Some(str.clone()) } else { None }
+        }));
         return Some(result);
     }
     None
 }
 
-pub(crate) fn parse_string_map(value: &CompilerOptionsValue) -> Option<OrderedMap<String, Option<Vec<String>>>> {
+pub(crate) fn parse_string_map(
+    value: &CompilerOptionsValue,
+) -> Option<OrderedMap<String, Option<Vec<String>>>> {
     if let CompilerOptionsValue::Object(m) = value {
         let mut result = OrderedMap::with_capacity_and_hasher(m.len(), rustc_hash::FxBuildHasher);
         result.extend(m.iter().map(|(k, v)| (k.clone(), parse_string_array(v))));
@@ -78,7 +84,9 @@ pub(crate) struct ProjectReferenceParseResult {
     pub(crate) circular_valid: bool,
 }
 
-pub(crate) fn parse_project_reference(json: &CompilerOptionsValue) -> Option<ProjectReferenceParseResult> {
+pub(crate) fn parse_project_reference(
+    json: &CompilerOptionsValue,
+) -> Option<ProjectReferenceParseResult> {
     if let CompilerOptionsValue::Object(v) = json {
         let mut result = ProjectReferenceParseResult {
             reference: ProjectReference::default(),
@@ -106,7 +114,9 @@ pub(crate) fn parse_project_reference(json: &CompilerOptionsValue) -> Option<Pro
     None
 }
 
-pub(crate) fn parse_content_mapper(value: &CompilerOptionsValue) -> (Option<Mapper>, Vec<P<Diagnostic>>) {
+pub(crate) fn parse_content_mapper(
+    value: &CompilerOptionsValue,
+) -> (Option<Mapper>, Vec<P<Diagnostic>>) {
     let CompilerOptionsValue::Object(v) = value else {
         return (None, Vec::new());
     };
@@ -114,7 +124,9 @@ pub(crate) fn parse_content_mapper(value: &CompilerOptionsValue) -> (Option<Mapp
     let mut mapper = Mapper::default();
     if let Some(pkg) = v.get("package") {
         match pkg {
-            CompilerOptionsValue::String(str) if !str.is_empty() => mapper.definition.package.clone_from(str),
+            CompilerOptionsValue::String(str) if !str.is_empty() => {
+                mapper.definition.package.clone_from(str);
+            }
             _ => errors.push(new_compiler_diagnostic(
                 &diagnostics::Compiler_option_0_requires_a_value_of_type_1,
                 &[&"contentMapper.package", &"string"],
@@ -175,7 +187,9 @@ pub(crate) fn parse_string_array_strict(value: &CompilerOptionsValue) -> Option<
     Some(result)
 }
 
-pub(crate) fn parse_json_to_string_key(json: &CompilerOptionsValue) -> OrderedMap<String, CompilerOptionsValue> {
+pub(crate) fn parse_json_to_string_key(
+    json: &CompilerOptionsValue,
+) -> OrderedMap<String, CompilerOptionsValue> {
     let mut result = OrderedMap::with_capacity_and_hasher(6, rustc_hash::FxBuildHasher);
     if let CompilerOptionsValue::Object(m) = json {
         if let Some(v) = m.get("include") {
@@ -195,7 +209,10 @@ pub(crate) fn parse_json_to_string_key(json: &CompilerOptionsValue) -> OrderedMa
         }
         if let Some(v) = m.get("extends") {
             if let CompilerOptionsValue::String(str) = v {
-                result.set("extends".to_string(), CompilerOptionsValue::Array(vec![CompilerOptionsValue::String(str.clone())]));
+                result.set(
+                    "extends".to_string(),
+                    CompilerOptionsValue::Array(vec![CompilerOptionsValue::String(str.clone())]),
+                );
             }
             result.set("extends".to_string(), v.clone());
         }
@@ -283,7 +300,11 @@ impl OptionParser for BuildOptionsParser {
 }
 
 // Go `ParseCompilerOptions`.
-pub fn parse_compiler_options(key: &str, value: &CompilerOptionsValue, all_options: &mut CompilerOptions) -> Vec<P<Diagnostic>> {
+pub fn parse_compiler_options(
+    key: &str,
+    value: &CompilerOptionsValue,
+    all_options: &mut CompilerOptions,
+) -> Vec<P<Diagnostic>> {
     if value.is_null() {
         return Vec::new();
     }
@@ -292,7 +313,11 @@ pub fn parse_compiler_options(key: &str, value: &CompilerOptionsValue, all_optio
 }
 
 // Go `parseCompilerOptions`.
-pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsValue, all_options: &mut CompilerOptions) -> bool {
+pub(crate) fn parse_compiler_options_worker(
+    key: &str,
+    value: &CompilerOptionsValue,
+    all_options: &mut CompilerOptions,
+) -> bool {
     let option = COMMAND_LINE_COMPILER_OPTIONS_MAP.get(key);
     let key = match option {
         Some(option) => option.name,
@@ -300,13 +325,19 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
     };
     match key {
         "allowJs" => all_options.allow_js = parse_tristate(value),
-        "allowImportingTsExtensions" => all_options.allow_importing_ts_extensions = parse_tristate(value),
-        "allowSyntheticDefaultImports" => all_options.allow_synthetic_default_imports = parse_tristate(value),
+        "allowImportingTsExtensions" => {
+            all_options.allow_importing_ts_extensions = parse_tristate(value);
+        }
+        "allowSyntheticDefaultImports" => {
+            all_options.allow_synthetic_default_imports = parse_tristate(value);
+        }
         "allowNonTsExtensions" => all_options.allow_non_ts_extensions = parse_tristate(value),
         "allowUmdGlobalAccess" => all_options.allow_umd_global_access = parse_tristate(value),
         "allowUnreachableCode" => all_options.allow_unreachable_code = parse_tristate(value),
         "allowUnusedLabels" => all_options.allow_unused_labels = parse_tristate(value),
-        "allowArbitraryExtensions" => all_options.allow_arbitrary_extensions = parse_tristate(value),
+        "allowArbitraryExtensions" => {
+            all_options.allow_arbitrary_extensions = parse_tristate(value);
+        }
         "alwaysStrict" => all_options.always_strict = parse_tristate(value),
         "assumeChangesOnlyAffectDirectDependencies" => {
             all_options.assume_changes_only_affect_direct_dependencies = parse_tristate(value);
@@ -323,8 +354,12 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
         "disableSourceOfProjectReferenceRedirect" => {
             all_options.disable_source_of_project_reference_redirect = parse_tristate(value);
         }
-        "disableSolutionSearching" => all_options.disable_solution_searching = parse_tristate(value),
-        "disableReferencedProjectLoad" => all_options.disable_referenced_project_load = parse_tristate(value),
+        "disableSolutionSearching" => {
+            all_options.disable_solution_searching = parse_tristate(value);
+        }
+        "disableReferencedProjectLoad" => {
+            all_options.disable_referenced_project_load = parse_tristate(value);
+        }
         "declarationMap" => all_options.declaration_map = parse_tristate(value),
         "declaration" => all_options.declaration = parse_tristate(value),
         "downlevelIteration" => all_options.downlevel_iteration = parse_tristate(value),
@@ -334,10 +369,14 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
         "emitDecoratorMetadata" => all_options.emit_decorator_metadata = parse_tristate(value),
         "emitBOM" => all_options.emit_bom = parse_tristate(value),
         "esModuleInterop" => all_options.es_module_interop = parse_tristate(value),
-        "exactOptionalPropertyTypes" => all_options.exact_optional_property_types = parse_tristate(value),
+        "exactOptionalPropertyTypes" => {
+            all_options.exact_optional_property_types = parse_tristate(value);
+        }
         "explainFiles" => all_options.explain_files = parse_tristate(value),
         "experimentalDecorators" => all_options.experimental_decorators = parse_tristate(value),
-        "forceConsistentCasingInFileNames" => all_options.force_consistent_casing_in_file_names = parse_tristate(value),
+        "forceConsistentCasingInFileNames" => {
+            all_options.force_consistent_casing_in_file_names = parse_tristate(value);
+        }
         "generateCpuProfile" => all_options.generate_cpu_profile = parse_string(value),
         "generateTrace" => all_options.generate_trace = parse_string(value),
         "isolatedModules" => all_options.isolated_modules = parse_tristate(value),
@@ -367,26 +406,40 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
         "locale" => all_options.locale = parse_string(value),
         "mapRoot" => all_options.map_root = parse_string(value),
         "module" => all_options.module = float_or_int32_to_module_kind(value),
-        "moduleDetectionKind" => all_options.module_detection = float_or_int32_to_module_detection_kind(value),
-        "moduleResolution" => all_options.module_resolution = float_or_int32_to_module_resolution_kind(value),
+        "moduleDetectionKind" => {
+            all_options.module_detection = float_or_int32_to_module_detection_kind(value);
+        }
+        "moduleResolution" => {
+            all_options.module_resolution = float_or_int32_to_module_resolution_kind(value);
+        }
         "moduleSuffixes" => all_options.module_suffixes = parse_string_array(value),
-        "moduleDetection" => all_options.module_detection = float_or_int32_to_module_detection_kind(value),
+        "moduleDetection" => {
+            all_options.module_detection = float_or_int32_to_module_detection_kind(value);
+        }
         "noCheck" => all_options.no_check = parse_tristate(value),
-        "noFallthroughCasesInSwitch" => all_options.no_fallthrough_cases_in_switch = parse_tristate(value),
+        "noFallthroughCasesInSwitch" => {
+            all_options.no_fallthrough_cases_in_switch = parse_tristate(value);
+        }
         "noEmitForJsFiles" => all_options.no_emit_for_js_files = parse_tristate(value),
         "noErrorTruncation" => all_options.no_error_truncation = parse_tristate(value),
         "noImplicitAny" => all_options.no_implicit_any = parse_tristate(value),
         "noImplicitThis" => all_options.no_implicit_this = parse_tristate(value),
         "noLib" => all_options.no_lib = parse_tristate(value),
-        "noPropertyAccessFromIndexSignature" => all_options.no_property_access_from_index_signature = parse_tristate(value),
-        "noUncheckedIndexedAccess" => all_options.no_unchecked_indexed_access = parse_tristate(value),
+        "noPropertyAccessFromIndexSignature" => {
+            all_options.no_property_access_from_index_signature = parse_tristate(value);
+        }
+        "noUncheckedIndexedAccess" => {
+            all_options.no_unchecked_indexed_access = parse_tristate(value);
+        }
         "noEmitHelpers" => all_options.no_emit_helpers = parse_tristate(value),
         "noEmitOnError" => all_options.no_emit_on_error = parse_tristate(value),
         "noImplicitReturns" => all_options.no_implicit_returns = parse_tristate(value),
         "noUnusedLocals" => all_options.no_unused_locals = parse_tristate(value),
         "noUnusedParameters" => all_options.no_unused_parameters = parse_tristate(value),
         "noImplicitOverride" => all_options.no_implicit_override = parse_tristate(value),
-        "noUncheckedSideEffectImports" => all_options.no_unchecked_side_effect_imports = parse_tristate(value),
+        "noUncheckedSideEffectImports" => {
+            all_options.no_unchecked_side_effect_imports = parse_tristate(value);
+        }
         "outFile" => all_options.out_file = parse_string(value),
         "noResolve" => all_options.no_resolve = parse_tristate(value),
         "paths" => all_options.paths = parse_string_map(value),
@@ -396,17 +449,23 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
                 all_options.plugins = None;
             }
             if let CompilerOptionsValue::Array(plugins) = value {
-                all_options.plugins = Some(plugins
-                    .iter()
-                    .map(|plugin| {
-                        if let CompilerOptionsValue::Object(plugin_map) = plugin {
-                            return PluginImport {
-                                name: parse_string(plugin_map.get("name").unwrap_or(&CompilerOptionsValue::Null)),
-                            };
-                        }
-                        PluginImport::default()
-                    })
-                    .collect());
+                all_options.plugins = Some(
+                    plugins
+                        .iter()
+                        .map(|plugin| {
+                            if let CompilerOptionsValue::Object(plugin_map) = plugin {
+                                return PluginImport {
+                                    name: parse_string(
+                                        plugin_map
+                                            .get("name")
+                                            .unwrap_or(&CompilerOptionsValue::Null),
+                                    ),
+                                };
+                            }
+                            PluginImport::default()
+                        })
+                        .collect(),
+                );
             }
         }
         "preserveWatchOutput" => all_options.preserve_watch_output = parse_tristate(value),
@@ -415,20 +474,30 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
         "project" => all_options.project = parse_string(value),
         "pretty" => all_options.pretty = parse_tristate(value),
         "resolveJsonModule" => all_options.resolve_json_module = parse_tristate(value),
-        "resolvePackageJsonExports" => all_options.resolve_package_json_exports = parse_tristate(value),
-        "resolvePackageJsonImports" => all_options.resolve_package_json_imports = parse_tristate(value),
+        "resolvePackageJsonExports" => {
+            all_options.resolve_package_json_exports = parse_tristate(value);
+        }
+        "resolvePackageJsonImports" => {
+            all_options.resolve_package_json_imports = parse_tristate(value);
+        }
         "reactNamespace" => all_options.react_namespace = parse_string(value),
-        "rewriteRelativeImportExtensions" => all_options.rewrite_relative_import_extensions = parse_tristate(value),
+        "rewriteRelativeImportExtensions" => {
+            all_options.rewrite_relative_import_extensions = parse_tristate(value);
+        }
         "rootDir" => all_options.root_dir = parse_string(value),
         "rootDirs" => all_options.root_dirs = parse_string_array(value),
         "removeComments" => all_options.remove_comments = parse_tristate(value),
         "stableTypeOrdering" => all_options.stable_type_ordering = parse_tristate(value),
         "strict" => all_options.strict = parse_tristate(value),
         "strictBindCallApply" => all_options.strict_bind_call_apply = parse_tristate(value),
-        "strictBuiltinIteratorReturn" => all_options.strict_builtin_iterator_return = parse_tristate(value),
+        "strictBuiltinIteratorReturn" => {
+            all_options.strict_builtin_iterator_return = parse_tristate(value);
+        }
         "strictFunctionTypes" => all_options.strict_function_types = parse_tristate(value),
         "strictNullChecks" => all_options.strict_null_checks = parse_tristate(value),
-        "strictPropertyInitialization" => all_options.strict_property_initialization = parse_tristate(value),
+        "strictPropertyInitialization" => {
+            all_options.strict_property_initialization = parse_tristate(value);
+        }
         "skipDefaultLibCheck" => all_options.skip_default_lib_check = parse_tristate(value),
         "sourceMap" => all_options.source_map = parse_tristate(value),
         "sourceRoot" => all_options.source_root = parse_string(value),
@@ -439,8 +508,12 @@ pub(crate) fn parse_compiler_options_worker(key: &str, value: &CompilerOptionsVa
         "tsBuildInfoFile" => all_options.ts_build_info_file = parse_string(value),
         "typeRoots" => all_options.type_roots = parse_string_array(value),
         "types" => all_options.types = parse_string_array(value),
-        "useDefineForClassFields" => all_options.use_define_for_class_fields = parse_tristate(value),
-        "useUnknownInCatchVariables" => all_options.use_unknown_in_catch_variables = parse_tristate(value),
+        "useDefineForClassFields" => {
+            all_options.use_define_for_class_fields = parse_tristate(value);
+        }
+        "useUnknownInCatchVariables" => {
+            all_options.use_unknown_in_catch_variables = parse_tristate(value);
+        }
         "verbatimModuleSyntax" => all_options.verbatim_module_syntax = parse_tristate(value),
         "version" => all_options.version = parse_tristate(value),
         "help" => all_options.help = parse_tristate(value),
@@ -497,29 +570,47 @@ macro_rules! float_or_int32_to_flag {
 
 float_or_int32_to_flag!(float_or_int32_to_jsx_emit, JsxEmit, JSX_OPTION_MAP);
 float_or_int32_to_flag!(float_or_int32_to_module_kind, ModuleKind, MODULE_OPTION_MAP);
-float_or_int32_to_flag!(float_or_int32_to_module_detection_kind, ModuleDetectionKind, MODULE_DETECTION_OPTION_MAP);
-float_or_int32_to_flag!(float_or_int32_to_module_resolution_kind, ModuleResolutionKind, MODULE_RESOLUTION_OPTION_MAP);
+float_or_int32_to_flag!(
+    float_or_int32_to_module_detection_kind,
+    ModuleDetectionKind,
+    MODULE_DETECTION_OPTION_MAP
+);
+float_or_int32_to_flag!(
+    float_or_int32_to_module_resolution_kind,
+    ModuleResolutionKind,
+    MODULE_RESOLUTION_OPTION_MAP
+);
 float_or_int32_to_flag!(float_or_int32_to_script_target, ScriptTarget, TARGET_OPTION_MAP);
 float_or_int32_to_flag!(float_or_int32_to_new_line_kind, NewLineKind, NEW_LINE_OPTION_MAP);
 
-pub fn parse_watch_options(key: &str, value: &CompilerOptionsValue, all_options: &mut WatchOptions) -> Vec<P<Diagnostic>> {
+pub fn parse_watch_options(
+    key: &str,
+    value: &CompilerOptionsValue,
+    all_options: &mut WatchOptions,
+) -> Vec<P<Diagnostic>> {
     match key {
         "watchInterval" => all_options.interval = parse_number(value),
         "watchFile" => {
             if !value.is_null() {
-                let CompilerOptionsValue::WatchFileKind(v) = value else { panic!("interface conversion") };
+                let CompilerOptionsValue::WatchFileKind(v) = value else {
+                    panic!("interface conversion")
+                };
                 all_options.file_kind = *v;
             }
         }
         "watchDirectory" => {
             if !value.is_null() {
-                let CompilerOptionsValue::WatchDirectoryKind(v) = value else { panic!("interface conversion") };
+                let CompilerOptionsValue::WatchDirectoryKind(v) = value else {
+                    panic!("interface conversion")
+                };
                 all_options.directory_kind = *v;
             }
         }
         "fallbackPolling" => {
             if !value.is_null() {
-                let CompilerOptionsValue::PollingKind(v) = value else { panic!("interface conversion") };
+                let CompilerOptionsValue::PollingKind(v) = value else {
+                    panic!("interface conversion")
+                };
                 all_options.fallback_polling = *v;
             }
         }
@@ -531,7 +622,11 @@ pub fn parse_watch_options(key: &str, value: &CompilerOptionsValue, all_options:
     Vec::new()
 }
 
-pub fn parse_type_acquisition(key: &str, value: &CompilerOptionsValue, all_options: &mut TypeAcquisition) -> Vec<P<Diagnostic>> {
+pub fn parse_type_acquisition(
+    key: &str,
+    value: &CompilerOptionsValue,
+    all_options: &mut TypeAcquisition,
+) -> Vec<P<Diagnostic>> {
     if value.is_null() {
         return Vec::new();
     }
@@ -539,13 +634,19 @@ pub fn parse_type_acquisition(key: &str, value: &CompilerOptionsValue, all_optio
         "enable" => all_options.enable = parse_tristate(value),
         "include" => all_options.include = parse_string_array(value),
         "exclude" => all_options.exclude = parse_string_array(value),
-        "disableFilenameBasedTypeAcquisition" => all_options.disable_filename_based_type_acquisition = parse_tristate(value),
+        "disableFilenameBasedTypeAcquisition" => {
+            all_options.disable_filename_based_type_acquisition = parse_tristate(value);
+        }
         _ => {}
     }
     Vec::new()
 }
 
-pub fn parse_build_options(key: &str, value: &CompilerOptionsValue, all_options: &mut BuildOptions) -> Vec<P<Diagnostic>> {
+pub fn parse_build_options(
+    key: &str,
+    value: &CompilerOptionsValue,
+    all_options: &mut BuildOptions,
+) -> Vec<P<Diagnostic>> {
     if value.is_null() {
         return Vec::new();
     }
@@ -605,7 +706,14 @@ macro_rules! impl_is_zero_for_enum {
     };
 }
 
-impl_is_zero_for_enum!(JsxEmit, ModuleKind, ModuleResolutionKind, ModuleDetectionKind, NewLineKind, ScriptTarget);
+impl_is_zero_for_enum!(
+    JsxEmit,
+    ModuleKind,
+    ModuleResolutionKind,
+    ModuleDetectionKind,
+    NewLineKind,
+    ScriptTarget
+);
 
 // Every exported field of core.CompilerOptions in declaration order, with its JSON name.
 macro_rules! for_each_compiler_options_field {
@@ -812,7 +920,12 @@ impl ToOptionsValue for Option<OrderedMap<String, Option<Vec<String>>>> {
         match self {
             Some(m) => CompilerOptionsValue::Object(
                 m.iter()
-                    .map(|(k, v)| (k.clone(), CompilerOptionsValue::StringArray(v.clone().unwrap_or_default())))
+                    .map(|(k, v)| {
+                        (
+                            k.clone(),
+                            CompilerOptionsValue::StringArray(v.clone().unwrap_or_default()),
+                        )
+                    })
                     .collect(),
             ),
             None => CompilerOptionsValue::Null,
@@ -847,7 +960,14 @@ macro_rules! impl_to_options_value_for_enum {
     };
 }
 
-impl_to_options_value_for_enum!(JsxEmit, ModuleKind, ModuleResolutionKind, ModuleDetectionKind, NewLineKind, ScriptTarget);
+impl_to_options_value_for_enum!(
+    JsxEmit,
+    ModuleKind,
+    ModuleResolutionKind,
+    ModuleDetectionKind,
+    NewLineKind,
+    ScriptTarget
+);
 
 // declscompiler.go:1234
 // Go walks the struct fields by reflection; `i` is the field index.
@@ -893,8 +1013,12 @@ pub(crate) fn merge_compiler_options(
     let mut explicit_null_fields: FxHashSet<&str> = FxHashSet::default();
     if let Some(CompilerOptionsValue::Object(raw_map)) = raw_source {
         // Options are nested under "compilerOptions" in both tsconfig.json and wrapped command line options
-        if let Some(CompilerOptionsValue::Object(compiler_options_map)) = raw_map.get("compilerOptions") {
-            explicit_null_fields.extend(compiler_options_map.iter().filter_map(|(key, value)| if value.is_null() { Some(key.as_str()) } else { None }));
+        if let Some(CompilerOptionsValue::Object(compiler_options_map)) =
+            raw_map.get("compilerOptions")
+        {
+            explicit_null_fields.extend(compiler_options_map.iter().filter_map(|(key, value)| {
+                if value.is_null() { Some(key.as_str()) } else { None }
+            }));
         }
     }
 
@@ -943,7 +1067,9 @@ pub fn convert_option_to_absolute_path(
         if option.elements().unwrap().is_file_path {
             if let CompilerOptionsValue::StringArray(arr) = v {
                 return Some(CompilerOptionsValue::StringArray(
-                    arr.iter().map(|item| tspath::get_normalized_absolute_path(item, cwd)).collect(),
+                    arr.iter()
+                        .map(|item| tspath::get_normalized_absolute_path(item, cwd))
+                        .collect(),
                 ));
             }
             if let CompilerOptionsValue::Array(arr) = v {
@@ -951,7 +1077,9 @@ pub fn convert_option_to_absolute_path(
                     arr.iter()
                         .map(|item| {
                             if let CompilerOptionsValue::String(s) = item {
-                                return CompilerOptionsValue::String(tspath::get_normalized_absolute_path(s, cwd));
+                                return CompilerOptionsValue::String(
+                                    tspath::get_normalized_absolute_path(s, cwd),
+                                );
                             }
                             item.clone()
                         })
@@ -961,7 +1089,9 @@ pub fn convert_option_to_absolute_path(
         }
     } else if option.is_file_path {
         if let CompilerOptionsValue::String(value) = v {
-            return Some(CompilerOptionsValue::String(tspath::get_normalized_absolute_path(value, cwd)));
+            return Some(CompilerOptionsValue::String(tspath::get_normalized_absolute_path(
+                value, cwd,
+            )));
         }
     }
     None

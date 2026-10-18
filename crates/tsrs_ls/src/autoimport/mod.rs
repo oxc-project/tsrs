@@ -12,7 +12,7 @@ mod util;
 mod view;
 
 pub use export::*;
-pub use fix::{get_import_kind_for_import_statement, Fix};
+pub use fix::{Fix, get_import_kind_for_import_statement};
 pub use import_adder::*;
 pub use index::{Index, Named};
 pub use registry::*;

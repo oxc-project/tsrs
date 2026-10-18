@@ -56,17 +56,24 @@ Resolving real path for '<DIR>/node_modules/pkg/index.d.ts', result '<DIR>/node_
 ";
 
 fn scratch(name: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("tsrs-trace-order-{}-{}", name, std::process::id()));
+    let dir =
+        std::env::temp_dir().join(format!("tsrs-trace-order-{}-{}", name, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("node_modules/pkg")).unwrap();
     let files = [
-        ("tsconfig.json", r#"{"compilerOptions":{"noEmit":true,"module":"esnext","moduleResolution":"bundler","types":[]},"files":["index.ts"]}"#),
+        (
+            "tsconfig.json",
+            r#"{"compilerOptions":{"noEmit":true,"module":"esnext","moduleResolution":"bundler","types":[]},"files":["index.ts"]}"#,
+        ),
         // Ends the package.json lookups of the importing files' directories here, wherever the scratch directory is.
         ("package.json", r#"{"name":"root","private":true}"#),
         ("index.ts", "import \"./a\";\nimport \"./b\";\n"),
         ("a.ts", "import { p } from \"pkg\"; export const a = p;\n"),
         ("b.ts", "import { p } from \"pkg\"; export const b = p;\n"),
-        ("node_modules/pkg/package.json", r#"{"name":"pkg","version":"1.0.0","types":"index.d.ts"}"#),
+        (
+            "node_modules/pkg/package.json",
+            r#"{"name":"pkg","version":"1.0.0","types":"index.d.ts"}"#,
+        ),
         ("node_modules/pkg/index.d.ts", "export declare const p: number;\n"),
     ];
     for (name, text) in files {
@@ -77,7 +84,8 @@ fn scratch(name: &str) -> PathBuf {
 
 #[test]
 fn traces_follow_go_single_threaded_order_at_any_checker_count() {
-    for (i, extra) in [&["--singleThreaded"][..], &["--checkers", "4"][..]].into_iter().enumerate() {
+    for (i, extra) in [&["--singleThreaded"][..], &["--checkers", "4"][..]].into_iter().enumerate()
+    {
         let dir = scratch(&i.to_string());
         let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
             .args(["-p", ".", "--traceResolution"])
@@ -87,7 +95,10 @@ fn traces_follow_go_single_threaded_order_at_any_checker_count() {
             .unwrap();
         assert!(out.status.success(), "{extra:?}: exit {:?}", out.status.code());
         let canonical = std::fs::canonicalize(&dir).unwrap();
-        let stdout = String::from_utf8(out.stdout).unwrap().replace(canonical.to_str().unwrap(), "<DIR>").replace(dir.to_str().unwrap(), "<DIR>");
+        let stdout = String::from_utf8(out.stdout)
+            .unwrap()
+            .replace(canonical.to_str().unwrap(), "<DIR>")
+            .replace(dir.to_str().unwrap(), "<DIR>");
         assert_eq!(stdout, EXPECTED, "{extra:?}");
         let _ = std::fs::remove_dir_all(&dir);
     }

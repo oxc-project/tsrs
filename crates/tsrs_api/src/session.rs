@@ -9,20 +9,20 @@
 //   reached through a live `SnapshotData` and are never exposed as addresses. Wire handles are the
 //   pinned Go IDs (snapshot ids, project ids, symbol/type/signature ids, node handles).
 
-use std::sync::Weak;
 use rustc_hash::FxHashMap;
+use std::sync::Weak;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 
 use tsrs_compiler::{CheckerHandle, Program};
-use tsrs_core::context::{with_checker_lifetime, CheckerLifetime, Context};
+use tsrs_core::context::{CheckerLifetime, Context, with_checker_lifetime};
 use tsrs_core::json::{self, Value};
-use tsrs_project::{Snapshot, SnapshotHost, ID as ProjectID};
+use tsrs_project::{ID as ProjectID, Snapshot, SnapshotHost};
 use tsrs_vfs::FS;
 
 use crate::checker::{self, CheckerSnapshotState};
 use crate::handler::{ApiError, ApiResult, ClientConn, Handler, Response};
-use crate::methods::{method_info, Owner};
+use crate::methods::{Owner, method_info};
 use crate::program::DiagnosticKind;
 use crate::wire::{Obj, Params};
 
@@ -44,7 +44,12 @@ pub struct SessionOptions {
 }
 
 impl SessionOptions {
-    pub fn new(cwd: String, default_library_path: String, fs: Arc<dyn FS>, binary_responses: bool) -> SessionOptions {
+    pub fn new(
+        cwd: String,
+        default_library_path: String,
+        fs: Arc<dyn FS>,
+        binary_responses: bool,
+    ) -> SessionOptions {
         SessionOptions { cwd, default_library_path, fs, binary_responses, run_external_code: false }
     }
 }
@@ -147,7 +152,10 @@ impl Session {
             // and recorded in the session options, and its projects get no content mapper project.
         };
         let parse_config_host: &'static crate::config::ApiParseConfigHost =
-            Box::leak(Box::new(crate::config::ApiParseConfigHost { fs: Arc::clone(&init.fs), cwd: init.options.current_directory.clone() }));
+            Box::leak(Box::new(crate::config::ApiParseConfigHost {
+                fs: Arc::clone(&init.fs),
+                cwd: init.options.current_directory.clone(),
+            }));
         let id = SESSION_ID_COUNTER.fetch_add(1, Ordering::SeqCst) + 1;
         let base_fs = Arc::clone(&init.fs);
         Arc::new_cyclic(|weak_self| Session {
@@ -220,7 +228,11 @@ impl Session {
     }
 
     pub fn to_path(&self, file_name: &str) -> tsrs_core::tspath::Path {
-        tsrs_core::tspath::to_path(file_name, self.current_directory(), self.use_case_sensitive_file_names())
+        tsrs_core::tspath::to_path(
+            file_name,
+            self.current_directory(),
+            self.use_case_sensitive_file_names(),
+        )
     }
 
     pub fn use_case_sensitive_file_names(&self) -> bool {
@@ -242,11 +254,20 @@ impl Session {
 
     /// Go `getSnapshotData`: resolves a client snapshot handle, pinning it for the caller.
     pub fn snapshot_data(&self, handle: SnapshotID) -> ApiResult<Arc<SnapshotData>> {
-        self.snapshots.read().unwrap().get(&handle).map(|(sd, _)| Arc::clone(sd)).ok_or_else(|| ApiError::client(format!("snapshot {handle} not found")))
+        self.snapshots
+            .read()
+            .unwrap()
+            .get(&handle)
+            .map(|(sd, _)| Arc::clone(sd))
+            .ok_or_else(|| ApiError::client(format!("snapshot {handle} not found")))
     }
 
     /// Go `setupChecker`: resolves snapshot -> project -> program and acquires the API-lifetime checker.
-    pub fn setup_checker(&self, snapshot: SnapshotID, project: &ProjectID) -> ApiResult<CheckerSetup> {
+    pub fn setup_checker(
+        &self,
+        snapshot: SnapshotID,
+        project: &ProjectID,
+    ) -> ApiResult<CheckerSetup> {
         let sd = self.snapshot_data(snapshot)?;
         let program = sd.get_program(project)?;
         let ctx = with_checker_lifetime(&Context::background(), CheckerLifetime::API);
@@ -256,7 +277,12 @@ impl Session {
 
     /// Go `registerSnapshot`: the same snapshot id returned twice (no changes) bumps the API ref count so
     /// each client-side snapshot can be disposed independently.
-    pub(crate) fn register_snapshot(&self, snapshot: Arc<Snapshot>, open_state: OpenState, file_system: Option<Arc<crate::requestfs::RequestFileSystem>>) -> SnapshotID {
+    pub(crate) fn register_snapshot(
+        &self,
+        snapshot: Arc<Snapshot>,
+        open_state: OpenState,
+        file_system: Option<Arc<crate::requestfs::RequestFileSystem>>,
+    ) -> SnapshotID {
         let handle = snapshot.id();
         let mut snapshots = self.snapshots.write().unwrap();
         if let Some(entry) = snapshots.get_mut(&handle) {
@@ -264,7 +290,13 @@ impl Session {
             snapshot.deref();
             entry.1 += 1;
         } else {
-            let sd = Arc::new(SnapshotData { handle, snapshot, file_system, open_state, checker_state: CheckerSnapshotState::default() });
+            let sd = Arc::new(SnapshotData {
+                handle,
+                snapshot,
+                file_system,
+                open_state,
+                checker_state: CheckerSnapshotState::default(),
+            });
             snapshots.insert(handle, (sd, 1));
         }
         handle
@@ -278,11 +310,7 @@ impl Session {
                 return Err(ApiError::client(format!("snapshot {handle} not found")));
             };
             entry.1 -= 1;
-            if entry.1 == 0 {
-                snapshots.remove(&handle)
-            } else {
-                None
-            }
+            if entry.1 == 0 { snapshots.remove(&handle) } else { None }
         };
         drop(removed);
         Ok(())
@@ -295,12 +323,13 @@ impl Session {
                     Response::Binary(params.to_vec())
                 } else {
                     Response::Json(tsrs_core::utf8::from_utf8_lossy(params).into_owned())
-                })
+                });
             }
             "ping" => return Ok(Response::Json("\"pong\"".to_string())),
             _ => {}
         }
-        let info = method_info(method).ok_or_else(|| ApiError::invalid_request(format!("unknown API method {method:?}")))?;
+        let info = method_info(method)
+            .ok_or_else(|| ApiError::invalid_request(format!("unknown API method {method:?}")))?;
         let raw_params = params;
         // Go `unmarshalPayload`: `noParams` methods ignore the payload; the others decode with Go's strict
         // JSON (unpaired surrogates and duplicate members are errors), reported as
@@ -308,8 +337,9 @@ impl Session {
         let params = match crate::methods::params_type(method) {
             None => Value::Null,
             Some(go_type) => {
-                tsrs_api_transport::strictjson::validate(params)
-                    .map_err(|e| ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: {e}")))?;
+                tsrs_api_transport::strictjson::validate(params).map_err(|e| {
+                    ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: {e}"))
+                })?;
                 let value = parse_params(params)?;
                 // encoding/json/v2 into a struct: `null` leaves the zero value; any other non-object is an error.
                 let kind = match &value {
@@ -320,7 +350,9 @@ impl Session {
                     Value::Number(_) | Value::Integer(_) => Some("JSON number".to_string()),
                 };
                 if let Some(kind) = kind {
-                    return Err(ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: json: cannot unmarshal {kind} into Go api.{go_type}")));
+                    return Err(ApiError::invalid_request(format!(
+                        "failed to unmarshal *api.{go_type}: json: cannot unmarshal {kind} into Go api.{go_type}"
+                    )));
                 }
                 // `null` decodes to the zero-value struct: handlers see `{}`.
                 if matches!(value, Value::Null) {
@@ -339,15 +371,27 @@ impl Session {
         let typed = |e: ApiError| match (e.kind.clone(), go_type) {
             // Field-level decode errors are Go unmarshal errors of the params struct (the exact jsontext wording
             // for nested type mismatches is not reproduced).
-            (crate::handler::ErrorKind::InvalidRequest, Some(t)) if !e.message.starts_with("failed to unmarshal") => {
-                ApiError::invalid_request(format!("failed to unmarshal *api.{t}: json: {}", e.message))
+            (crate::handler::ErrorKind::InvalidRequest, Some(t))
+                if !e.message.starts_with("failed to unmarshal") =>
+            {
+                ApiError::invalid_request(format!(
+                    "failed to unmarshal *api.{t}: json: {}",
+                    e.message
+                ))
             }
             _ => e,
         };
         self.dispatch_parsed(method, &params, info.owner, raw_params, lexemes).map_err(typed)
     }
 
-    fn dispatch_parsed(&self, method: &str, params: &Value, owner: Owner, raw: &[u8], lexemes: rustc_hash::FxHashMap<String, String>) -> ApiResult<Response> {
+    fn dispatch_parsed(
+        &self,
+        method: &str,
+        params: &Value,
+        owner: Owner,
+        raw: &[u8],
+        lexemes: rustc_hash::FxHashMap<String, String>,
+    ) -> ApiResult<Response> {
         let params = params.clone();
         // Raw payload and exact number literals of this request, for the objects of this params tree (by address).
         let _request = crate::predecode::enter_request(raw, lexemes, &params);
@@ -355,7 +399,8 @@ impl Session {
             return Err(ApiError::client("session is closed"));
         }
         if owner == Owner::Checker {
-            return checker::handle(self, method, &params).unwrap_or_else(|| Err(ApiError::unsupported(method)));
+            return checker::handle(self, method, &params)
+                .unwrap_or_else(|| Err(ApiError::unsupported(method)));
         }
         let p = Params(&params);
         if method == "batchRequests" {
@@ -383,7 +428,9 @@ impl Session {
             // value (owned JSON) is built.
             "parseCommandLine" => scratch(|| self.handle_parse_command_line(p))?,
             "readConfigFile" => scratch(|| self.handle_read_config_file(p))?,
-            "parseJsonConfigFileContent" => scratch(|| self.handle_parse_json_config_file_content(p))?,
+            "parseJsonConfigFileContent" => {
+                scratch(|| self.handle_parse_json_config_file_content(p))?
+            }
             "parseConfigFile" => scratch(|| self.handle_parse_config_file(p))?,
             "createSnapshot" => self.handle_create_snapshot(p)?,
             "updateSnapshot" => self.handle_update_snapshot(p)?,
@@ -393,19 +440,33 @@ impl Session {
             "getModeForUsageLocation" => self.handle_get_mode_for_usage_location(p)?,
             "getModeForResolutionAtIndex" => self.handle_get_mode_for_resolution_at_index(p)?,
             "getResolvedModule" => self.handle_get_resolved_module(p)?,
-            "getResolvedModuleFromModuleSpecifier" => self.handle_get_resolved_module_from_module_specifier(p)?,
-            "getResolvedTypeReferenceDirective" => self.handle_get_resolved_type_reference_directive(p)?,
-            "getResolvedTypeReferenceDirectiveFromTypeReferenceDirective" => self.handle_get_resolved_type_reference_directive_from_reference(p)?,
+            "getResolvedModuleFromModuleSpecifier" => {
+                self.handle_get_resolved_module_from_module_specifier(p)?
+            }
+            "getResolvedTypeReferenceDirective" => {
+                self.handle_get_resolved_type_reference_directive(p)?
+            }
+            "getResolvedTypeReferenceDirectiveFromTypeReferenceDirective" => {
+                self.handle_get_resolved_type_reference_directive_from_reference(p)?
+            }
             "getConfigFileNames" => self.handle_get_config_file_names(p)?,
             "getSourceFileMetadata" => self.handle_get_source_file_metadata(p)?,
-            "getSyntacticDiagnostics" => self.handle_get_diagnostics(p, DiagnosticKind::Syntactic)?,
+            "getSyntacticDiagnostics" => {
+                self.handle_get_diagnostics(p, DiagnosticKind::Syntactic)?
+            }
             "getBindDiagnostics" => self.handle_get_diagnostics(p, DiagnosticKind::Bind)?,
             "getSemanticDiagnostics" => self.handle_get_diagnostics(p, DiagnosticKind::Semantic)?,
-            "getSuggestionDiagnostics" => self.handle_get_diagnostics(p, DiagnosticKind::Suggestion)?,
-            "getDeclarationDiagnostics" => self.handle_get_diagnostics(p, DiagnosticKind::Declaration)?,
+            "getSuggestionDiagnostics" => {
+                self.handle_get_diagnostics(p, DiagnosticKind::Suggestion)?
+            }
+            "getDeclarationDiagnostics" => {
+                self.handle_get_diagnostics(p, DiagnosticKind::Declaration)?
+            }
             "getProgramDiagnostics" => self.handle_get_program_diagnostics(p)?,
             "getGlobalDiagnostics" => self.handle_get_global_diagnostics(p)?,
-            "getConfigFileParsingDiagnostics" => self.handle_get_config_file_parsing_diagnostics(p)?,
+            "getConfigFileParsingDiagnostics" => {
+                self.handle_get_config_file_parsing_diagnostics(p)?
+            }
             "createModuleResolver" => self.handle_create_module_resolver(p)?,
             "releaseModuleResolver" => self.handle_release_module_resolver(p)?,
             "resolveModuleName" => self.handle_resolve_module_name(p)?,
@@ -416,7 +477,11 @@ impl Session {
             "cleanBuild" => self.handle_build(p, false, true)?,
             "cleanReferences" => self.handle_build(p, true, true)?,
             // Go: standalone (non-LSP) sessions reject it the same way.
-            "getCurrentLanguageServerSnapshot" => return Err(ApiError::client("getCurrentLanguageServerSnapshot requires an LSP-connected API session")),
+            "getCurrentLanguageServerSnapshot" => {
+                return Err(ApiError::client(
+                    "getCurrentLanguageServerSnapshot requires an LSP-connected API session",
+                ));
+            }
             "printNode" => self.handle_print_node(p)?,
             "formatNodeForInsertion" => self.handle_format_node_for_insertion(p)?,
             "transpileModule" => self.handle_transpile(p, false)?,
@@ -425,8 +490,12 @@ impl Session {
             "transpileDeclarationFromFile" => self.handle_transpile_from_file(p, true)?,
             "emit" => self.handle_emit(p)?,
             "emitToString" => self.handle_emit_to_string(p)?,
-            "getJavaScriptEmit" => self.handle_selected_files_emit(p, tsrs_compiler::EmitOnly::EmitOnlyJs)?,
-            "getDeclarationEmit" => self.handle_selected_files_emit(p, tsrs_compiler::EmitOnly::EmitOnlyDts)?,
+            "getJavaScriptEmit" => {
+                self.handle_selected_files_emit(p, tsrs_compiler::EmitOnly::EmitOnlyJs)?
+            }
+            "getDeclarationEmit" => {
+                self.handle_selected_files_emit(p, tsrs_compiler::EmitOnly::EmitOnlyDts)?
+            }
             _ => return Err(ApiError::unsupported(method)),
         };
         json_response(&result)
@@ -435,7 +504,9 @@ impl Session {
 
 impl Handler for Session {
     fn handle_request(&self, method: &str, params: &[u8]) -> ApiResult<Response> {
-        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.dispatch(method, params))) {
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            self.dispatch(method, params)
+        })) {
             Ok(result) => result,
             Err(panic) => {
                 let message = panic
@@ -446,7 +517,9 @@ impl Handler for Session {
                 // tsrs_module's resolver, like pinned Go's (resolver.go `Unexpected moduleResolution`), panics when a
                 // module is resolved with a moduleResolution number that names no kind; Go's server crashes there.
                 if let Some(n) = message.strip_prefix("Unexpected moduleResolution: ") {
-                    return Err(ApiError::client(format!("unsupported moduleResolution value {n} (not a ModuleResolutionKind)")));
+                    return Err(ApiError::client(format!(
+                        "unsupported moduleResolution value {n} (not a ModuleResolutionKind)"
+                    )));
                 }
                 Err(ApiError::internal(format!("panic: {message}")))
             }
@@ -476,7 +549,8 @@ pub fn parse_params(params: &[u8]) -> ApiResult<Value> {
     if params.is_empty() {
         return Ok(Value::Null);
     }
-    let text = tsrs_core::utf8::compat::from_utf8(params).map_err(|e| ApiError::invalid_request(format!("params are not UTF-8: {e}")))?;
+    let text = tsrs_core::utf8::compat::from_utf8(params)
+        .map_err(|e| ApiError::invalid_request(format!("params are not UTF-8: {e}")))?;
     json::unmarshal(text).map_err(ApiError::invalid_request)
 }
 

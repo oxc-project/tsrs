@@ -5,7 +5,7 @@ use tsrs_lsproto as lsproto;
 use tsrs_lsproto::jsonrpc;
 use tsrs_lsproto::{Error, ErrorCode, ErrorTag, Json, Message, ResponseMessage};
 
-use crate::server::{new_server, to_writer, Reader, ServerOptions, Writer};
+use crate::server::{Reader, ServerOptions, Writer, new_server, to_writer};
 
 // server_test.go:16
 struct shutdownTestReader;
@@ -68,7 +68,10 @@ fn test_server_outgoing_queue_does_not_block_without_writer() {
     let _ = server.background_ctx.set(test_ctx);
 
     let msg = lsproto::WINDOW_LOG_MESSAGE_INFO
-        .new_notification_message(lsproto::LogMessageParams { type_: lsproto::MessageType::Info, message: "queued".to_string() })
+        .new_notification_message(lsproto::LogMessageParams {
+            type_: lsproto::MessageType::Info,
+            message: "queued".to_string(),
+        })
         .message();
 
     let (tx, rx) = std::sync::mpsc::channel();
@@ -99,13 +102,22 @@ fn test_server_outgoing_queue_does_not_block_without_writer() {
 #[test]
 fn test_write_loop_recovers_from_unserializable_response() {
     // The 20000-deep value is built, encoded and dropped recursively: run on a thread with a large stack.
-    std::thread::Builder::new().stack_size(256 << 20).spawn(write_loop_recovers_from_unserializable_response).unwrap().join().unwrap();
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(write_loop_recovers_from_unserializable_response)
+        .unwrap()
+        .join()
+        .unwrap();
 }
 
 fn write_loop_recovers_from_unserializable_response() {
     let (ctx, cancel) = Context::background().with_cancel();
     let messages = Arc::new(Mutex::new(Vec::new()));
-    let writer = cancelingTestWriter { writer: to_writer(std::io::sink()), cancel, messages: std::sync::Arc::clone(&messages) };
+    let writer = cancelingTestWriter {
+        writer: to_writer(std::io::sink()),
+        cancel,
+        messages: std::sync::Arc::clone(&messages),
+    };
     let server = new_server(options(Box::new(writer)));
 
     let _ = server.background_ctx.set(ctx.clone());
@@ -120,14 +132,28 @@ fn write_loop_recovers_from_unserializable_response() {
     let bad_result = vec![*deep.unwrap()];
     let bad_id = jsonrpc::new_id_string("bad");
     server
-        .send(ResponseMessage { id: Some(bad_id.clone()), result: Some(bad_result.to_json()), ..Default::default() }.message())
+        .send(
+            ResponseMessage {
+                id: Some(bad_id.clone()),
+                result: Some(bad_result.to_json()),
+                ..Default::default()
+            }
+            .message(),
+        )
         .unwrap_or_else(|err| panic!("failed to enqueue bad response: {err}"));
     drop(bad_result);
 
     // A subsequent well-formed response must still be delivered.
     let good_id = jsonrpc::new_id_string("good");
     server
-        .send(ResponseMessage { id: Some(good_id.clone()), result: Some(lsproto::SelectionRangesOrNull::default().to_json()), ..Default::default() }.message())
+        .send(
+            ResponseMessage {
+                id: Some(good_id.clone()),
+                result: Some(lsproto::SelectionRangesOrNull::default().to_json()),
+                ..Default::default()
+            }
+            .message(),
+        )
         .unwrap_or_else(|err| panic!("failed to enqueue good response: {err}"));
 
     let err = server.write_loop(&ctx).unwrap_err();
@@ -140,12 +166,24 @@ fn write_loop_recovers_from_unserializable_response() {
         let resp = msg.as_response();
         if resp.id.as_ref() == Some(&bad_id) {
             match &resp.error {
-                None => panic!("expected an error response for the unserializable request, got a result"),
-                Some(error) => assert_eq!(error.code, ErrorCode::InternalError.0, "error response code = {}, want {}", error.code, ErrorCode::InternalError.0),
+                None => panic!(
+                    "expected an error response for the unserializable request, got a result"
+                ),
+                Some(error) => assert_eq!(
+                    error.code,
+                    ErrorCode::InternalError.0,
+                    "error response code = {}, want {}",
+                    error.code,
+                    ErrorCode::InternalError.0
+                ),
             }
             saw_error = true;
         } else if resp.id.as_ref() == Some(&good_id) {
-            assert!(resp.error.is_none(), "expected a successful response for the good request, got error: {:?}", resp.error);
+            assert!(
+                resp.error.is_none(),
+                "expected a successful response for the good request, got error: {:?}",
+                resp.error
+            );
             saw_good = true;
         } else {
             panic!("unexpected response id: {:?}", resp.id);
@@ -153,7 +191,10 @@ fn write_loop_recovers_from_unserializable_response() {
     }
 
     assert!(saw_error, "did not receive an error response for the unserializable request");
-    assert!(saw_good, "did not receive the subsequent well-formed response (write loop likely died)");
+    assert!(
+        saw_good,
+        "did not receive the subsequent well-formed response (write loop likely died)"
+    );
 }
 
 // server_test.go:41
@@ -166,16 +207,22 @@ fn test_server_shutdown_no_deadlock() {
         return;
     }
     // Programs are built on this thread (parse + bind): use a large stack like the server threads.
-    std::thread::Builder::new().stack_size(256 << 20).spawn(server_shutdown_no_deadlock).unwrap().join().unwrap();
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(server_shutdown_no_deadlock)
+        .unwrap()
+        .join()
+        .unwrap();
 }
 
 fn server_shutdown_no_deadlock() {
     use tsrs_project as project;
 
-    let fs: Arc<dyn tsrs_vfs::FS> = Arc::new(tsrs_vfs::bundled::wrap_fs(tsrs_vfs::vfstest::from_map(
-        [("/test/tsconfig.json", "{}"), ("/test/index.ts", "const x = 1;")],
-        false,
-    )));
+    let fs: Arc<dyn tsrs_vfs::FS> =
+        Arc::new(tsrs_vfs::bundled::wrap_fs(tsrs_vfs::vfstest::from_map(
+            [("/test/tsconfig.json", "{}"), ("/test/index.ts", "const x = 1;")],
+            false,
+        )));
 
     let mut opts = options(Box::new(shutdownTestWriter));
     opts.fs = Some(std::sync::Arc::clone(&fs));
@@ -215,7 +262,13 @@ fn server_shutdown_no_deadlock() {
     server.set_session_for_test(std::sync::Arc::clone(&session));
 
     // Open a file to establish a project
-    session.did_open_file(&ctx, "file:///test/index.ts".into(), 1, "const x = 1;".to_string(), lsproto::LanguageKind::TypeScript);
+    session.did_open_file(
+        &ctx,
+        "file:///test/index.ts".into(),
+        1,
+        "const x = 1;".to_string(),
+        lsproto::LanguageKind::TypeScript,
+    );
     session.wait_for_background_tasks();
 
     // Shutdown (cancel context and wait for write loop to exit)
@@ -228,7 +281,9 @@ fn server_shutdown_no_deadlock() {
         "file:///test/index.ts".into(),
         2,
         vec![lsproto::TextDocumentContentChangePartialOrWholeDocument {
-            whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument { text: "const x = 2;".to_string() }),
+            whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument {
+                text: "const x = 2;".to_string(),
+            }),
             ..Default::default()
         }],
     );
@@ -246,8 +301,12 @@ fn completion_resolve_snaps_client_data_position() {
     use crate::lsptestutil::{acknowledge_registrations, new_lsp_client, test_server_options};
 
     let text = "/** 日本 ü */\nconst abc = 1;\nab\n";
-    let (client, close_client) = new_lsp_client(test_server_options("/home/projects", &[]), Some(acknowledge_registrations()));
-    let (init_msg, _) = client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", &[]),
+        Some(acknowledge_registrations()),
+    );
+    let (init_msg, _) =
+        client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
     assert!(init_msg.error.is_none(), "Initialize failed");
     client.send_notification(lsproto::INITIALIZED_INFO, lsproto::InitializedParams::default());
     client.server.init_complete().wait();
@@ -255,19 +314,30 @@ fn completion_resolve_snaps_client_data_position() {
     client.send_notification(
         lsproto::TEXT_DOCUMENT_DID_OPEN_INFO,
         lsproto::DidOpenTextDocumentParams {
-            text_document: lsproto::TextDocumentItem { uri: uri.clone(), language_id: lsproto::LanguageKind::TypeScript, text: text.to_string(), ..Default::default() },
+            text_document: lsproto::TextDocumentItem {
+                uri: uri.clone(),
+                language_id: lsproto::LanguageKind::TypeScript,
+                text: text.to_string(),
+                ..Default::default()
+            },
         },
     );
     let (msg, list) = client.send_request(
         lsproto::TEXT_DOCUMENT_COMPLETION_INFO,
-        lsproto::CompletionParams { text_document: lsproto::TextDocumentIdentifier { uri }, position: lsproto::Position { line: 2, character: 2 }, ..Default::default() },
+        lsproto::CompletionParams {
+            text_document: lsproto::TextDocumentIdentifier { uri },
+            position: lsproto::Position { line: 2, character: 2 },
+            ..Default::default()
+        },
     );
     assert!(msg.error.is_none(), "{:?}", msg.error);
     let list = list.unwrap();
     let items = list.list.map(|l| l.items).or(list.items).unwrap();
     let item = items.into_iter().find(|i| i.label == "abc").expect("abc completion");
     let inside_character = text.find('日').unwrap() + 1;
-    for position in [inside_character, inside_character + 1, text.find('ü').unwrap() + 1, text.len() + 100] {
+    for position in
+        [inside_character, inside_character + 1, text.find('ü').unwrap() + 1, text.len() + 100]
+    {
         let mut item = item.clone();
         item.data.as_mut().unwrap().position = i32::try_from(position).unwrap();
         let (msg, _) = client.send_request(lsproto::COMPLETION_ITEM_RESOLVE_INFO, item);
@@ -284,9 +354,16 @@ fn completion_resolve_snaps_client_data_position() {
 fn bad_client_input_does_not_end_the_session() {
     use crate::lsptestutil::{acknowledge_registrations, new_lsp_client, test_server_options};
 
-    let files = [("/home/projects/tsconfig.json", "{}"), ("/home/projects/index.ts", "export const abc = 1;\n")];
-    let (client, close_client) = new_lsp_client(test_server_options("/home/projects", &files), Some(acknowledge_registrations()));
-    let (init_msg, _) = client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
+    let files = [
+        ("/home/projects/tsconfig.json", "{}"),
+        ("/home/projects/index.ts", "export const abc = 1;\n"),
+    ];
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", &files),
+        Some(acknowledge_registrations()),
+    );
+    let (init_msg, _) =
+        client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
     assert!(init_msg.error.is_none(), "Initialize failed");
     client.send_notification(lsproto::INITIALIZED_INFO, lsproto::InitializedParams::default());
     client.server.init_complete().wait();
@@ -294,18 +371,29 @@ fn bad_client_input_does_not_end_the_session() {
     let hover = |uri: &lsproto::DocumentUri| {
         client.send_request(
             lsproto::TEXT_DOCUMENT_HOVER_INFO,
-            lsproto::HoverParams { text_document: lsproto::TextDocumentIdentifier { uri: uri.clone() }, position: lsproto::Position { line: 0, character: 14 }, ..Default::default() },
+            lsproto::HoverParams {
+                text_document: lsproto::TextDocumentIdentifier { uri: uri.clone() },
+                position: lsproto::Position { line: 0, character: 14 },
+                ..Default::default()
+            },
         )
     };
     let open = |uri: &lsproto::DocumentUri| {
         client.send_notification(
             lsproto::TEXT_DOCUMENT_DID_OPEN_INFO,
             lsproto::DidOpenTextDocumentParams {
-                text_document: lsproto::TextDocumentItem { uri: uri.clone(), language_id: lsproto::LanguageKind::TypeScript, text: "export const abc = 1;\n".to_string(), ..Default::default() },
+                text_document: lsproto::TextDocumentItem {
+                    uri: uri.clone(),
+                    language_id: lsproto::LanguageKind::TypeScript,
+                    text: "export const abc = 1;\n".to_string(),
+                    ..Default::default()
+                },
             },
         );
     };
-    let is_invalid_params = |msg: &lsproto::ResponseMessage| msg.error.as_ref().is_some_and(|e| e.code == lsproto::ErrorCode::InvalidParams.0);
+    let is_invalid_params = |msg: &lsproto::ResponseMessage| {
+        msg.error.as_ref().is_some_and(|e| e.code == lsproto::ErrorCode::InvalidParams.0)
+    };
     open(&good);
 
     for bad in ["", "not a uri", "relative/path.ts", "file://", "foo://host"] {
@@ -313,46 +401,77 @@ fn bad_client_input_does_not_end_the_session() {
         let (msg, _) = hover(&uri);
         assert!(is_invalid_params(&msg), "hover {bad:?}: {:?}", msg.error);
         open(&uri);
-        client.send_notification(lsproto::TEXT_DOCUMENT_DID_CLOSE_INFO, lsproto::DidCloseTextDocumentParams { text_document: lsproto::TextDocumentIdentifier { uri: uri.clone() } });
+        client.send_notification(
+            lsproto::TEXT_DOCUMENT_DID_CLOSE_INFO,
+            lsproto::DidCloseTextDocumentParams {
+                text_document: lsproto::TextDocumentIdentifier { uri: uri.clone() },
+            },
+        );
         client.send_notification(
             lsproto::WORKSPACE_DID_CHANGE_WATCHED_FILES_INFO,
-            lsproto::DidChangeWatchedFilesParams { changes: vec![lsproto::FileEvent { uri: uri.clone(), type_: lsproto::FileChangeType(2) }] },
+            lsproto::DidChangeWatchedFilesParams {
+                changes: vec![lsproto::FileEvent {
+                    uri: uri.clone(),
+                    type_: lsproto::FileChangeType(2),
+                }],
+            },
         );
         let (msg, _) = client.send_request(
             lsproto::WORKSPACE_WILL_RENAME_FILES_INFO,
-            lsproto::RenameFilesParams { files: vec![lsproto::FileRename { old_uri: uri.clone(), new_uri: good.clone() }] },
+            lsproto::RenameFilesParams {
+                files: vec![lsproto::FileRename { old_uri: uri.clone(), new_uri: good.clone() }],
+            },
         );
         assert!(is_invalid_params(&msg), "willRenameFiles {bad:?}: {:?}", msg.error);
-        let item = lsproto::CallHierarchyItem { name: "abc".to_string(), uri: uri.clone(), ..Default::default() };
-        let (msg, _) = client.send_request(lsproto::CALL_HIERARCHY_OUTGOING_CALLS_INFO, lsproto::CallHierarchyOutgoingCallsParams { item, ..Default::default() });
+        let item = lsproto::CallHierarchyItem {
+            name: "abc".to_string(),
+            uri: uri.clone(),
+            ..Default::default()
+        };
+        let (msg, _) = client.send_request(
+            lsproto::CALL_HIERARCHY_OUTGOING_CALLS_INFO,
+            lsproto::CallHierarchyOutgoingCallsParams { item, ..Default::default() },
+        );
         assert!(is_invalid_params(&msg), "outgoingCalls {bad:?}: {:?}", msg.error);
     }
 
     // A change right after the close of the same document.
     let other = lsproto::DocumentUri::from("file:///home/projects/other.ts");
     open(&other);
-    client.send_notification(lsproto::TEXT_DOCUMENT_DID_CLOSE_INFO, lsproto::DidCloseTextDocumentParams { text_document: lsproto::TextDocumentIdentifier { uri: other.clone() } });
+    client.send_notification(
+        lsproto::TEXT_DOCUMENT_DID_CLOSE_INFO,
+        lsproto::DidCloseTextDocumentParams {
+            text_document: lsproto::TextDocumentIdentifier { uri: other.clone() },
+        },
+    );
     client.send_notification(
         lsproto::TEXT_DOCUMENT_DID_CHANGE_INFO,
         lsproto::DidChangeTextDocumentParams {
             text_document: lsproto::VersionedTextDocumentIdentifier { uri: other, version: 2 },
             content_changes: vec![lsproto::TextDocumentContentChangePartialOrWholeDocument {
-                whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument { text: "x".to_string() }),
+                whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument {
+                    text: "x".to_string(),
+                }),
                 ..Default::default()
             }],
         },
     );
 
-    for file_name in ["", "tsconfig.json", "untitled:Untitled-1", "file:///home/projects/index.ts"] {
+    for file_name in ["", "tsconfig.json", "untitled:Untitled-1", "file:///home/projects/index.ts"]
+    {
         let item = lsproto::CompletionItem {
             label: "abc".to_string(),
-            data: Some(lsproto::CompletionItemData { file_name: file_name.to_string(), ..Default::default() }),
+            data: Some(lsproto::CompletionItemData {
+                file_name: file_name.to_string(),
+                ..Default::default()
+            }),
             ..Default::default()
         };
         let (msg, _) = client.send_request(lsproto::COMPLETION_ITEM_RESOLVE_INFO, item);
         assert!(is_invalid_params(&msg), "resolve {file_name:?}: {:?}", msg.error);
     }
-    let (msg, _) = client.send_request(lsproto::CODE_LENS_RESOLVE_INFO, lsproto::CodeLens::default());
+    let (msg, _) =
+        client.send_request(lsproto::CODE_LENS_RESOLVE_INFO, lsproto::CodeLens::default());
     assert!(is_invalid_params(&msg), "code lens without data: {:?}", msg.error);
 
     let (msg, resp) = hover(&good);
@@ -366,13 +485,20 @@ fn bad_client_input_does_not_end_the_session() {
 fn document_requests_before_initialized_get_an_error() {
     use crate::lsptestutil::{acknowledge_registrations, new_lsp_client, test_server_options};
 
-    let (client, close_client) = new_lsp_client(test_server_options("/home/projects", &[]), Some(acknowledge_registrations()));
-    let (init_msg, _) = client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", &[]),
+        Some(acknowledge_registrations()),
+    );
+    let (init_msg, _) =
+        client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams::default());
     assert!(init_msg.error.is_none(), "Initialize failed");
     let uri = lsproto::DocumentUri::from("file:///home/projects/index.ts");
     let (msg, _) = client.send_request(
         lsproto::TEXT_DOCUMENT_HOVER_INFO,
-        lsproto::HoverParams { text_document: lsproto::TextDocumentIdentifier { uri }, ..Default::default() },
+        lsproto::HoverParams {
+            text_document: lsproto::TextDocumentIdentifier { uri },
+            ..Default::default()
+        },
     );
     assert_eq!(msg.error.map(|e| e.code), Some(lsproto::ErrorCode::ServerNotInitialized.0));
     let _ = close_client.close();
@@ -384,9 +510,20 @@ fn document_requests_before_initialized_get_an_error() {
 fn a_bad_root_uri_falls_back_to_the_server_directory() {
     use crate::lsptestutil::{acknowledge_registrations, new_lsp_client, test_server_options};
 
-    let files = [("/home/projects/tsconfig.json", "{}"), ("/home/projects/index.ts", "export const abc = 1;\n")];
-    let (client, close_client) = new_lsp_client(test_server_options("/home/projects", &files), Some(acknowledge_registrations()));
-    let params = lsproto::InitializeParams { root_uri: lsproto::DocumentUriOrNull { document_uri: Some(lsproto::DocumentUri::from("not a uri")) }, ..Default::default() };
+    let files = [
+        ("/home/projects/tsconfig.json", "{}"),
+        ("/home/projects/index.ts", "export const abc = 1;\n"),
+    ];
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", &files),
+        Some(acknowledge_registrations()),
+    );
+    let params = lsproto::InitializeParams {
+        root_uri: lsproto::DocumentUriOrNull {
+            document_uri: Some(lsproto::DocumentUri::from("not a uri")),
+        },
+        ..Default::default()
+    };
     let (init_msg, _) = client.send_request(lsproto::INITIALIZE_INFO, params);
     assert!(init_msg.error.is_none(), "Initialize failed");
     client.send_notification(lsproto::INITIALIZED_INFO, lsproto::InitializedParams::default());
@@ -395,12 +532,21 @@ fn a_bad_root_uri_falls_back_to_the_server_directory() {
     client.send_notification(
         lsproto::TEXT_DOCUMENT_DID_OPEN_INFO,
         lsproto::DidOpenTextDocumentParams {
-            text_document: lsproto::TextDocumentItem { uri: uri.clone(), language_id: lsproto::LanguageKind::TypeScript, text: "export const abc = 1;\n".to_string(), ..Default::default() },
+            text_document: lsproto::TextDocumentItem {
+                uri: uri.clone(),
+                language_id: lsproto::LanguageKind::TypeScript,
+                text: "export const abc = 1;\n".to_string(),
+                ..Default::default()
+            },
         },
     );
     let (msg, resp) = client.send_request(
         lsproto::TEXT_DOCUMENT_HOVER_INFO,
-        lsproto::HoverParams { text_document: lsproto::TextDocumentIdentifier { uri }, position: lsproto::Position { line: 0, character: 14 }, ..Default::default() },
+        lsproto::HoverParams {
+            text_document: lsproto::TextDocumentIdentifier { uri },
+            position: lsproto::Position { line: 0, character: 14 },
+            ..Default::default()
+        },
     );
     assert!(msg.error.is_none() && resp.is_some(), "{:?}", msg.error);
     let _ = close_client.close();
@@ -408,22 +554,39 @@ fn a_bad_root_uri_falls_back_to_the_server_directory() {
 
 // Not a Go test. `workspace/willRenameFiles` sends a `documentChanges` workspace edit with one entry per changed file or
 // renamed companion file; returns (uri, edit text) for each text edit and (old uri, new uri) for each file rename.
-fn will_rename_files(files: &[(&str, &str)], renames: &[(&str, &str)]) -> (Vec<(String, String)>, Vec<(String, String)>) {
+fn will_rename_files(
+    files: &[(&str, &str)],
+    renames: &[(&str, &str)],
+) -> (Vec<(String, String)>, Vec<(String, String)>) {
     use crate::lsptestutil::{acknowledge_registrations, new_lsp_client, test_server_options};
 
-    let (client, close_client) = new_lsp_client(test_server_options("/home/projects", files), Some(acknowledge_registrations()));
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", files),
+        Some(acknowledge_registrations()),
+    );
     let capabilities = lsproto::ClientCapabilities {
         workspace: Some(lsproto::WorkspaceClientCapabilities {
-            workspace_edit: Some(lsproto::WorkspaceEditClientCapabilities { document_changes: Some(true), ..Default::default() }),
+            workspace_edit: Some(lsproto::WorkspaceEditClientCapabilities {
+                document_changes: Some(true),
+                ..Default::default()
+            }),
             ..Default::default()
         }),
         ..Default::default()
     };
-    let (init_msg, _) = client.send_request(lsproto::INITIALIZE_INFO, lsproto::InitializeParams { capabilities, ..Default::default() });
+    let (init_msg, _) = client.send_request(
+        lsproto::INITIALIZE_INFO,
+        lsproto::InitializeParams { capabilities, ..Default::default() },
+    );
     assert!(init_msg.error.is_none(), "Initialize failed");
     client.send_notification(lsproto::INITIALIZED_INFO, lsproto::InitializedParams::default());
     client.server.init_complete().wait();
-    let (file_name, text) = files.iter().find(|(name, _)| std::path::Path::new(name).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("ts"))).unwrap();
+    let (file_name, text) = files
+        .iter()
+        .find(|(name, _)| {
+            std::path::Path::new(name).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("ts"))
+        })
+        .unwrap();
     client.send_notification(
         lsproto::TEXT_DOCUMENT_DID_OPEN_INFO,
         lsproto::DidOpenTextDocumentParams {
@@ -438,7 +601,10 @@ fn will_rename_files(files: &[(&str, &str)], renames: &[(&str, &str)]) -> (Vec<(
     let params = lsproto::RenameFilesParams {
         files: renames
             .iter()
-            .map(|(old, new)| lsproto::FileRename { old_uri: lsproto::DocumentUri::from(format!("file://{old}")), new_uri: lsproto::DocumentUri::from(format!("file://{new}")) })
+            .map(|(old, new)| lsproto::FileRename {
+                old_uri: lsproto::DocumentUri::from(format!("file://{old}")),
+                new_uri: lsproto::DocumentUri::from(format!("file://{new}")),
+            })
             .collect(),
     };
     let (msg, resp) = client.send_request(lsproto::WORKSPACE_WILL_RENAME_FILES_INFO, params);
@@ -446,13 +612,20 @@ fn will_rename_files(files: &[(&str, &str)], renames: &[(&str, &str)]) -> (Vec<(
     let _ = close_client.close();
     let mut edits = Vec::new();
     let mut file_renames = Vec::new();
-    for change in resp.and_then(|r| r.workspace_edit).and_then(|e| e.document_changes).unwrap_or_default() {
+    for change in
+        resp.and_then(|r| r.workspace_edit).and_then(|e| e.document_changes).unwrap_or_default()
+    {
         if let Some(rename) = change.rename_file {
             file_renames.push((rename.old_uri.to_string(), rename.new_uri.to_string()));
         }
         if let Some(text_document_edit) = change.text_document_edit {
             let uri = text_document_edit.text_document.uri.to_string();
-            edits.extend(text_document_edit.edits.into_iter().map(|edit| (uri.clone(), edit.text_edit.expect("a plain text edit").new_text)));
+            edits.extend(
+                text_document_edit
+                    .edits
+                    .into_iter()
+                    .map(|edit| (uri.clone(), edit.text_edit.expect("a plain text edit").new_text)),
+            );
         }
     }
     (edits, file_renames)
@@ -465,8 +638,14 @@ fn will_rename_files_leaves_unrelated_unresolved_imports_alone() {
     let files = [
         ("/home/projects/tsconfig.json", "{}"),
         ("/home/projects/a.ts", "export const a = 1;\n"),
-        ("/home/projects/b.ts", "import { a } from \"./a\";\nimport { x } from \"../../../x\";\nimport { y } from \"./missing\";\n"),
-        ("/home/projects/c.ts", "/// <reference path=\"../../../y.d.ts\" />\nimport { x } from \"../../../x\";\n"),
+        (
+            "/home/projects/b.ts",
+            "import { a } from \"./a\";\nimport { x } from \"../../../x\";\nimport { y } from \"./missing\";\n",
+        ),
+        (
+            "/home/projects/c.ts",
+            "/// <reference path=\"../../../y.d.ts\" />\nimport { x } from \"../../../x\";\n",
+        ),
     ];
     let (edits, _) = will_rename_files(&files, &[("/home/projects/a.ts", "/home/projects/a2.ts")]);
     assert_eq!(edits, vec![("file:///home/projects/b.ts".to_string(), "./a2".to_string())]);
@@ -481,15 +660,24 @@ fn will_rename_files_computes_several_renames_together() {
         ("/home/projects/src/a.ts", "import { b } from \"./b\";\nimport { c } from \"./c\";\n"),
         ("/home/projects/src/b.ts", "export const b = 1;\n"),
         ("/home/projects/src/c.ts", "export const c = 1;\n"),
-        ("/home/projects/main.ts", "import { b } from \"./src/b\";\nimport { a } from \"./src/a\";\n"),
+        (
+            "/home/projects/main.ts",
+            "import { b } from \"./src/b\";\nimport { a } from \"./src/a\";\n",
+        ),
     ];
     let (mut edits, _) = will_rename_files(
         &files,
-        &[("/home/projects/src/a.ts", "/home/projects/lib/a.ts"), ("/home/projects/src/b.ts", "/home/projects/lib/b.ts")],
+        &[
+            ("/home/projects/src/a.ts", "/home/projects/lib/a.ts"),
+            ("/home/projects/src/b.ts", "/home/projects/lib/b.ts"),
+        ],
     );
     edits.sort();
     let edit = |file: &str, text: &str| (format!("file:///home/projects/{file}"), text.to_string());
-    assert_eq!(edits, vec![edit("main.ts", "./lib/a"), edit("main.ts", "./lib/b"), edit("src/a.ts", "../src/c")]);
+    assert_eq!(
+        edits,
+        vec![edit("main.ts", "./lib/a"), edit("main.ts", "./lib/b"), edit("src/a.ts", "../src/c")]
+    );
 }
 
 // Not a Go test (Go took the new declaration file's extension from the old name, so `foo.css` was renamed to
@@ -502,8 +690,18 @@ fn will_rename_files_renames_the_companion_only_for_a_matching_declaration() {
         ("/home/projects/foo.d.css.ts", "export {};\n"),
         ("/home/projects/foo.css", ""),
     ];
-    let (_, renames) = will_rename_files(&files, &[("/home/projects/foo.d.css.ts", "/home/projects/bar.d.ts")]);
+    let (_, renames) =
+        will_rename_files(&files, &[("/home/projects/foo.d.css.ts", "/home/projects/bar.d.ts")]);
     assert_eq!(renames, Vec::<(String, String)>::new());
-    let (_, renames) = will_rename_files(&files, &[("/home/projects/foo.d.css.ts", "/home/projects/bar.d.css.ts")]);
-    assert_eq!(renames, vec![("file:///home/projects/foo.css".to_string(), "file:///home/projects/bar.css".to_string())]);
+    let (_, renames) = will_rename_files(
+        &files,
+        &[("/home/projects/foo.d.css.ts", "/home/projects/bar.d.css.ts")],
+    );
+    assert_eq!(
+        renames,
+        vec![(
+            "file:///home/projects/foo.css".to_string(),
+            "file:///home/projects/bar.css".to_string()
+        )]
+    );
 }

@@ -6,13 +6,13 @@ use std::sync::{Arc, LazyLock};
 
 use regex::Regex;
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_core::collections::{group_by, MultiMap, OrderedMap};
+use tsrs_core::collections::{MultiMap, OrderedMap, group_by};
 use tsrs_core::stringutil;
 use tsrs_ls::lsconv::{self, LSPLineMap, Script};
 use tsrs_ls::spanmap::SpanMap;
 use tsrs_lsproto as lsproto;
 
-use crate::fourslash::{new_test_converters, FourslashTest, Marker, MarkerOrRange, TestConverters};
+use crate::fourslash::{FourslashTest, Marker, MarkerOrRange, TestConverters, new_test_converters};
 use crate::testing::T;
 use crate::testutil::baseline;
 
@@ -26,13 +26,16 @@ pub(crate) const CALL_HIERARCHY_CMD: BaselineCommand = BaselineCommand("Call Hie
 pub(crate) const CLOSING_TAG_CMD: BaselineCommand = BaselineCommand("Closing Tag");
 pub(crate) const DOCUMENT_HIGHLIGHTS_CMD: BaselineCommand = BaselineCommand("documentHighlights");
 pub(crate) const FIND_ALL_REFERENCES_CMD: BaselineCommand = BaselineCommand("findAllReferences");
-pub(crate) const VS_FIND_ALL_REFERENCES_CMD: BaselineCommand = BaselineCommand("vsFindAllReferences");
+pub(crate) const VS_FIND_ALL_REFERENCES_CMD: BaselineCommand =
+    BaselineCommand("vsFindAllReferences");
 pub(crate) const GO_TO_DEFINITION_CMD: BaselineCommand = BaselineCommand("goToDefinition");
 pub(crate) const GO_TO_IMPLEMENTATION_CMD: BaselineCommand = BaselineCommand("goToImplementation");
-pub(crate) const GO_TO_SOURCE_DEFINITION_CMD: BaselineCommand = BaselineCommand("goToSourceDefinition");
+pub(crate) const GO_TO_SOURCE_DEFINITION_CMD: BaselineCommand =
+    BaselineCommand("goToSourceDefinition");
 pub(crate) const GO_TO_TYPE_DEFINITION_CMD: BaselineCommand = BaselineCommand("goToType");
 pub(crate) const INLAY_HINTS_CMD: BaselineCommand = BaselineCommand("Inlay Hints");
-pub(crate) const NON_SUGGESTION_DIAGNOSTICS_CMD: BaselineCommand = BaselineCommand("Syntax and Semantic Diagnostics");
+pub(crate) const NON_SUGGESTION_DIAGNOSTICS_CMD: BaselineCommand =
+    BaselineCommand("Syntax and Semantic Diagnostics");
 pub(crate) const QUICK_INFO_CMD: BaselineCommand = BaselineCommand("QuickInfo");
 pub(crate) const VS_QUICK_INFO_CMD: BaselineCommand = BaselineCommand("VSQuickInfo");
 pub(crate) const LINKED_EDITING_CMD: BaselineCommand = BaselineCommand("linkedEditing");
@@ -44,7 +47,12 @@ pub(crate) const DOCUMENT_SYMBOLS_CMD: BaselineCommand = BaselineCommand("Docume
 
 impl FourslashTest {
     // baselineutil.go:48
-    pub(crate) fn add_result_to_baseline(&mut self, _t: &T, command: BaselineCommand, actual: &str) {
+    pub(crate) fn add_result_to_baseline(
+        &mut self,
+        _t: &T,
+        command: BaselineCommand,
+        actual: &str,
+    ) {
         let b: &mut String = if self.test_data.is_state_baselining_enabled() {
             // Single baseline for all commands
             &mut self.state_baseline.as_mut().unwrap().baseline
@@ -66,21 +74,38 @@ impl FourslashTest {
     }
 
     // baselineutil.go:96
-    pub(crate) fn get_baseline_options(command: BaselineCommand, _test_path: &str) -> baseline::Options {
-        baseline::Options { subfolder: format!("fourslash/{}", normalize_command_name(command.0)), ..Default::default() }
+    pub(crate) fn get_baseline_options(
+        command: BaselineCommand,
+        _test_path: &str,
+    ) -> baseline::Options {
+        baseline::Options {
+            subfolder: format!("fourslash/{}", normalize_command_name(command.0)),
+            ..Default::default()
+        }
     }
 }
 
 // baselineutil.go:77
 pub(crate) fn get_baseline_file_name(t: &T, command: BaselineCommand) -> String {
-    format!("{}.{}", crate::fourslash::get_base_file_name_from_test(t), get_baseline_extension(command))
+    format!(
+        "{}.{}",
+        crate::fourslash::get_base_file_name_from_test(t),
+        get_baseline_extension(command)
+    )
 }
 
 // baselineutil.go:81
 pub(crate) fn get_baseline_extension(command: BaselineCommand) -> &'static str {
     match command {
-        QUICK_INFO_CMD | VS_QUICK_INFO_CMD | SIGNATURE_HELP_CMD | SMART_SELECTION_CMD | INLAY_HINTS_CMD | NON_SUGGESTION_DIAGNOSTICS_CMD
-        | DOCUMENT_SYMBOLS_CMD | CLOSING_TAG_CMD | VS_FIND_ALL_REFERENCES_CMD => "baseline",
+        QUICK_INFO_CMD
+        | VS_QUICK_INFO_CMD
+        | SIGNATURE_HELP_CMD
+        | SMART_SELECTION_CMD
+        | INLAY_HINTS_CMD
+        | NON_SUGGESTION_DIAGNOSTICS_CMD
+        | DOCUMENT_SYMBOLS_CMD
+        | CLOSING_TAG_CMD
+        | VS_FIND_ALL_REFERENCES_CMD => "baseline",
         CALL_HIERARCHY_CMD => "callHierarchy.txt",
         AUTO_IMPORTS_CMD => "baseline.md",
         LINKED_EDITING_CMD => "linkedEditing.txt",
@@ -108,7 +133,7 @@ pub(crate) struct DocumentSpan {
 pub(crate) struct BaselineFourslashLocationsOptions {
     // markerInfo
     pub(crate) marker: Option<MarkerOrRange>, // location
-    pub(crate) marker_name: String,          // name of the marker to be printed in baseline
+    pub(crate) marker_name: String,           // name of the marker to be printed in baseline
 
     pub(crate) end_marker: String,
 
@@ -128,12 +153,23 @@ pub(crate) fn location_to_span(loc: &lsproto::Location) -> DocumentSpan {
 
 impl FourslashTest {
     // baselineutil.go:141
-    pub(crate) fn get_baseline_for_locations_with_file_contents(&self, locations: &[lsproto::Location], options: BaselineFourslashLocationsOptions) -> String {
-        self.get_baseline_for_spans_with_file_contents(&locations.iter().map(location_to_span).collect::<Vec<_>>(), options)
+    pub(crate) fn get_baseline_for_locations_with_file_contents(
+        &self,
+        locations: &[lsproto::Location],
+        options: BaselineFourslashLocationsOptions,
+    ) -> String {
+        self.get_baseline_for_spans_with_file_contents(
+            &locations.iter().map(location_to_span).collect::<Vec<_>>(),
+            options,
+        )
     }
 
     // baselineutil.go:148
-    pub(crate) fn get_baseline_for_spans_with_file_contents(&self, spans: &[DocumentSpan], mut options: BaselineFourslashLocationsOptions) -> String {
+    pub(crate) fn get_baseline_for_spans_with_file_contents(
+        &self,
+        spans: &[DocumentSpan],
+        mut options: BaselineFourslashLocationsOptions,
+    ) -> String {
         let spans_by_file = group_by(spans, |span: &DocumentSpan| span.uri.clone());
         if options.preserve_result_order {
             options.ordered_files = unique_files_in_span_order(spans);
@@ -155,41 +191,67 @@ impl FourslashTest {
         let mut span_to_context_id: FxHashMap<DocumentSpan, usize> = FxHashMap::default();
 
         let mut baseline_entries: Vec<String> = Vec::new();
-        let mut add_file_entry = |path: &str, found_marker: &mut bool, found_additional_location: &mut bool, baseline_entries: &mut Vec<String>| {
-            let file_name = lsconv::file_name_to_document_uri(path);
-            let ranges = grouped_ranges.get(&file_name);
-            if ranges.is_empty() {
-                return;
-            }
+        let mut add_file_entry =
+            |path: &str,
+             found_marker: &mut bool,
+             found_additional_location: &mut bool,
+             baseline_entries: &mut Vec<String>| {
+                let file_name = lsconv::file_name_to_document_uri(path);
+                let ranges = grouped_ranges.get(&file_name);
+                if ranges.is_empty() {
+                    return;
+                }
 
-            let Some(content) = self.text_of_file(path) else {
-                return;
+                let Some(content) = self.text_of_file(path) else {
+                    return;
+                };
+
+                if let Some(marker) = &options.marker {
+                    if marker.file_name() == path {
+                        *found_marker = true;
+                    }
+                }
+
+                if let Some(additional_span) = &options.additional_span {
+                    if additional_span.uri == file_name {
+                        *found_additional_location = true;
+                    }
+                }
+
+                baseline_entries.push(Self::get_baseline_content_for_file(
+                    path,
+                    &content,
+                    ranges,
+                    &mut span_to_context_id,
+                    options,
+                ));
             };
-
-            if let Some(marker) = &options.marker {
-                if marker.file_name() == path {
-                    *found_marker = true;
-                }
-            }
-
-            if let Some(additional_span) = &options.additional_span {
-                if additional_span.uri == file_name {
-                    *found_additional_location = true;
-                }
-            }
-
-            baseline_entries.push(Self::get_baseline_content_for_file(path, &content, ranges, &mut span_to_context_id, options));
-        };
         if options.preserve_result_order {
             for uri in &options.ordered_files {
-                add_file_entry(&uri.file_name(), &mut found_marker, &mut found_additional_location, &mut baseline_entries);
+                add_file_entry(
+                    &uri.file_name(),
+                    &mut found_marker,
+                    &mut found_additional_location,
+                    &mut baseline_entries,
+                );
             }
         } else {
             for path in get_accessible_file_paths(&*self.vfs, "/") {
-                add_file_entry(&path, &mut found_marker, &mut found_additional_location, &mut baseline_entries);
+                add_file_entry(
+                    &path,
+                    &mut found_marker,
+                    &mut found_additional_location,
+                    &mut baseline_entries,
+                );
             }
-            for path in get_accessible_file_paths(&*self.vfs, &tsrs_vfs::bundled::embed::lib_path()) {
-                add_file_entry(&path, &mut found_marker, &mut found_additional_location, &mut baseline_entries);
+            for path in get_accessible_file_paths(&*self.vfs, &tsrs_vfs::bundled::embed::lib_path())
+            {
+                add_file_entry(
+                    &path,
+                    &mut found_marker,
+                    &mut found_additional_location,
+                    &mut baseline_entries,
+                );
             }
         }
         drop(add_file_entry);
@@ -221,7 +283,13 @@ impl FourslashTest {
                 // If we didn't find the marker in any file, we need to add it.
                 let marker_file_name = marker.file_name();
                 if let Some(content) = self.text_of_file(&marker_file_name) {
-                    baseline_entries.push(Self::get_baseline_content_for_file(&marker_file_name, &content, &[], &mut span_to_context_id, options));
+                    baseline_entries.push(Self::get_baseline_content_for_file(
+                        &marker_file_name,
+                        &content,
+                        &[],
+                        &mut span_to_context_id,
+                        options,
+                    ));
                 }
             }
         }
@@ -312,7 +380,9 @@ impl BaselineDetail {
     // baselineutil.go:299
     pub(crate) fn get_range(&self, spans: &[DocumentSpan]) -> lsproto::Range {
         match self.kind {
-            DetailKind::ContextStart | DetailKind::ContextEnd => spans[self.span.unwrap()].context_span.unwrap(),
+            DetailKind::ContextStart | DetailKind::ContextEnd => {
+                spans[self.span.unwrap()].context_span.unwrap()
+            }
             DetailKind::TextStart | DetailKind::TextEnd => spans[self.span.unwrap()].text_span,
             DetailKind::Marker => lsproto::Range { start: self.pos, end: self.pos },
         }
@@ -337,7 +407,12 @@ impl FourslashTest {
 
         if let Some(marker) = &options.marker {
             if marker.file_name() == file_name {
-                details.push(BaselineDetail { pos: marker.ls_pos(), position_marker: options.marker_name.clone(), span: None, kind: DetailKind::Marker });
+                details.push(BaselineDetail {
+                    pos: marker.ls_pos(),
+                    position_marker: options.marker_name.clone(),
+                    span: None,
+                    kind: DetailKind::Marker,
+                });
             }
         }
 
@@ -346,7 +421,12 @@ impl FourslashTest {
 
             // Add context span markers if present
             if let Some(context_span) = span.context_span {
-                details.push(BaselineDetail { pos: context_span.start, position_marker: "<|".to_string(), span: Some(si), kind: DetailKind::ContextStart });
+                details.push(BaselineDetail {
+                    pos: context_span.start,
+                    position_marker: "<|".to_string(),
+                    span: Some(si),
+                    kind: DetailKind::ContextStart,
+                });
 
                 // Check if context span starts after text span
                 if lsproto::compare_positions(context_span.start, span.text_span.start).is_gt() {
@@ -359,16 +439,30 @@ impl FourslashTest {
             if let Some(get_location_data) = &options.get_location_data {
                 start_marker += &get_location_data(span);
             }
-            details.push(BaselineDetail { pos: span.text_span.start, position_marker: start_marker, span: Some(si), kind: DetailKind::TextStart });
+            details.push(BaselineDetail {
+                pos: span.text_span.start,
+                position_marker: start_marker,
+                span: Some(si),
+                kind: DetailKind::TextStart,
+            });
             details.push(BaselineDetail {
                 pos: span.text_span.end,
-                position_marker: if options.end_marker.is_empty() { "|]".to_string() } else { options.end_marker.clone() },
+                position_marker: if options.end_marker.is_empty() {
+                    "|]".to_string()
+                } else {
+                    options.end_marker.clone()
+                },
                 span: Some(si),
                 kind: DetailKind::TextEnd,
             });
 
             if let Some(context_span) = span.context_span {
-                details.push(BaselineDetail { pos: context_span.end, position_marker: "|>".to_string(), span: Some(si), kind: DetailKind::ContextEnd });
+                details.push(BaselineDetail {
+                    pos: context_span.end,
+                    position_marker: "|>".to_string(),
+                    span: Some(si),
+                    kind: DetailKind::ContextEnd,
+                });
             }
 
             if let Some(start_marker_prefix) = &options.start_marker_prefix {
@@ -377,9 +471,14 @@ impl FourslashTest {
                     // we want the span's prefix to appear before the marker name.
                     // i.e. We want `/*START PREFIX*/A: /*RENAME*/[|ARENAME|]`,
                     // not `/*RENAME*//*START PREFIX*/A: [|ARENAME|]`
-                    let at_marker = options.marker.as_ref().is_some_and(|m| file_name == m.file_name() && span.text_span.start == m.ls_pos());
+                    let at_marker = options.marker.as_ref().is_some_and(|m| {
+                        file_name == m.file_name() && span.text_span.start == m.ls_pos()
+                    });
                     if at_marker {
-                        assert!(!detail_prefixes.contains_key(&0), "Expected only single prefix at marker location");
+                        assert!(
+                            !detail_prefixes.contains_key(&0),
+                            "Expected only single prefix at marker location"
+                        );
                         detail_prefixes.insert(0, start_prefix);
                     } else if span.context_span.is_some_and(|c| c.start == span.text_span.start) {
                         detail_prefixes.insert(context_span_index, start_prefix);
@@ -392,7 +491,9 @@ impl FourslashTest {
             if let Some(end_marker_suffix) = &options.end_marker_suffix {
                 if let Some(end_suffix) = end_marker_suffix(span) {
                     // Same as above for suffixes:
-                    let at_marker = options.marker.as_ref().is_some_and(|m| file_name == m.file_name() && span.text_span.end == m.ls_pos());
+                    let at_marker = options.marker.as_ref().is_some_and(|m| {
+                        file_name == m.file_name() && span.text_span.end == m.ls_pos()
+                    });
                     if at_marker {
                         detail_suffixes.insert(0, end_suffix);
                     } else if span.context_span.is_some_and(|c| c.end == span.text_span.end) {
@@ -623,7 +724,10 @@ pub(crate) fn new_text_with_context(file_name: &str, content: &str) -> TextWithC
         file_name: file_name.to_string(),
         content: content.to_string(),
         line_starts,
-        converters: new_test_converters(lsconv::new_converters(lsproto::PositionEncodingKind::UTF8, move |_| Some(Arc::clone(&ls)))),
+        converters: new_test_converters(lsconv::new_converters(
+            lsproto::PositionEncodingKind::UTF8,
+            move |_| Some(Arc::clone(&ls)),
+        )),
         pos_info: None,
         line_info: 0,
     };
@@ -644,35 +748,34 @@ pub(crate) fn is_lib_file(file_name: &str) -> bool {
 
 impl TextWithContext {
     fn script(&self) -> ContentScript {
-        ContentScript { file_name: self.file_name.clone(), content: Arc::from(self.content.as_str()) }
+        ContentScript {
+            file_name: self.file_name.clone(),
+            content: Arc::from(self.content.as_str()),
+        }
     }
 
     fn position_index(&self, p: lsproto::Position) -> usize {
-        usize::try_from(
-            self.converters
-                .line_and_character_to_position(self.script(), p),
-        )
-        .expect("source position exceeds usize")
+        usize::try_from(self.converters.line_and_character_to_position(self.script(), p))
+            .expect("source position exceeds usize")
     }
 
     // baselineutil.go:589
     pub(crate) fn add(&mut self, detail: Option<&BaselineDetail>) {
         assert!(!(self.new_content.is_empty() && detail.is_none()), "Unsupported");
-        if detail.is_none_or(|d| d.kind != DetailKind::TextEnd && d.kind != DetailKind::ContextEnd) {
+        if detail.is_none_or(|d| d.kind != DetailKind::TextEnd && d.kind != DetailKind::ContextEnd)
+        {
             // Calculate pos to location number of lines
             let mut pos_line_index = self.line_info;
             if self.pos_info != Some(self.pos) {
                 pos_line_index = self.line_starts.compute_index_of_line_start(
-                    self.converters
-                        .line_and_character_to_position(self.script(), self.pos),
+                    self.converters.line_and_character_to_position(self.script(), self.pos),
                 );
             }
 
             let mut location_line_index = self.line_starts.line_starts.len() - 1;
             if let Some(detail) = detail {
                 location_line_index = self.line_starts.compute_index_of_line_start(
-                    self.converters
-                        .line_and_character_to_position(self.script(), detail.pos),
+                    self.converters.line_and_character_to_position(self.script(), detail.pos),
                 );
                 self.pos_info = Some(detail.pos);
                 self.line_info = location_line_index;
@@ -688,8 +791,14 @@ impl TextWithContext {
             // first nLinesContext and last nLinesContext
             if location_line_index > pos_line_index + n_lines {
                 if !self.new_content.is_empty() {
-                    let skipped_string =
-                        if self.is_lib_file { "--- (line: --) skipped ---\n".to_string() } else { format!("--- (line: {}) skipped ---", pos_line_index + self.n_lines_context + 1) };
+                    let skipped_string = if self.is_lib_file {
+                        "--- (line: --) skipped ---\n".to_string()
+                    } else {
+                        format!(
+                            "--- (line: {}) skipped ---",
+                            pos_line_index + self.n_lines_context + 1
+                        )
+                    };
 
                     self.readable_contents.push('\n');
                     let start = self.position_index(self.pos);
@@ -712,7 +821,11 @@ impl TextWithContext {
                     if self.is_lib_file {
                         self.new_content.push_str("--- (line: --) skipped ---\n");
                     } else {
-                        let _ = writeln!(self.new_content, "--- (line: {}) skipped ---", location_line_index - self.n_lines_context + 1);
+                        let _ = writeln!(
+                            self.new_content,
+                            "--- (line: {}) skipped ---",
+                            location_line_index - self.n_lines_context + 1
+                        );
                     }
                     let start = self.line_starts.line_starts
                         [location_line_index - self.n_lines_context + 1];
@@ -821,12 +934,16 @@ impl FourslashTest {
             if text_range.start.line != text_range.end.line {
                 t.fatal(&format!("Expected text range to be on a single line, got {text_range:?}"));
             }
-            let underline = " ".repeat(text_range.start.character as usize) + &"^".repeat((text_range.end.character - text_range.start.character) as usize);
+            let underline = " ".repeat(text_range.start.character as usize)
+                + &"^".repeat((text_range.end.character - text_range.start.character) as usize);
 
             let file_name = marker.file_name();
             let mut lines = match files_to_lines.get(&file_name) {
                 Some(l) => l.clone(),
-                None => LINE_SPLITTER.split(&self.get_script_info(&file_name).content).map(std::string::ToString::to_string).collect(),
+                None => LINE_SPLITTER
+                    .split(&self.get_script_info(&file_name).content)
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             };
 
             let mut tooltip_lines: Vec<String> = Vec::new();
@@ -834,9 +951,14 @@ impl FourslashTest {
                 tooltip_lines = get_tooltip_lines(item, &previous);
             }
             if tooltip_lines.is_empty() {
-                tooltip_lines = vec![format!("No {} at /*{}*/.", op_name, marker.name.clone().unwrap_or_default())];
+                tooltip_lines = vec![format!(
+                    "No {} at /*{}*/.",
+                    op_name,
+                    marker.name.clone().unwrap_or_default()
+                )];
             }
-            let tooltip_lines: Vec<String> = tooltip_lines.iter().map(|line| format!("| {line}")).collect();
+            let tooltip_lines: Vec<String> =
+                tooltip_lines.iter().map(|line| format!("| {line}")).collect();
 
             let mut lines_to_insert = Vec::with_capacity(tooltip_lines.len() + 3);
             lines_to_insert.push(underline);

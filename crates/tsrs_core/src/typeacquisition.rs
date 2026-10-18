@@ -15,9 +15,12 @@ impl TypeAcquisition {
             (Some(ta), Some(other)) => {
                 std::ptr::eq(ta, other)
                     || (ta.enable == other.enable
-                        && ta.include.as_deref().unwrap_or_default() == other.include.as_deref().unwrap_or_default()
-                        && ta.exclude.as_deref().unwrap_or_default() == other.exclude.as_deref().unwrap_or_default()
-                        && ta.disable_filename_based_type_acquisition == other.disable_filename_based_type_acquisition)
+                        && ta.include.as_deref().unwrap_or_default()
+                            == other.include.as_deref().unwrap_or_default()
+                        && ta.exclude.as_deref().unwrap_or_default()
+                            == other.exclude.as_deref().unwrap_or_default()
+                        && ta.disable_filename_based_type_acquisition
+                            == other.disable_filename_based_type_acquisition)
             }
             _ => false,
         }

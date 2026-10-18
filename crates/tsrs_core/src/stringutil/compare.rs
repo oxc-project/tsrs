@@ -1,4 +1,4 @@
-use super::rangetable::{decode_rune, unicode_simple_fold, unicode_to_lower, Rune};
+use super::rangetable::{Rune, decode_rune, unicode_simple_fold, unicode_to_lower};
 use std::cmp::Ordering;
 
 /// Go `strings.EqualFold` (Unicode simple case folding).
@@ -57,7 +57,8 @@ fn equal_fold_unicode(mut s: &[u8], mut t: &[u8]) -> bool {
         // Fast check for ASCII.
         if tr < 0x80 {
             // ASCII only, sr/tr must be upper/lower case
-            if (b'A' as Rune..=b'Z' as Rune).contains(&sr) && tr == sr + ('a' as Rune - 'A' as Rune) {
+            if (b'A' as Rune..=b'Z' as Rune).contains(&sr) && tr == sr + ('a' as Rune - 'A' as Rune)
+            {
                 continue;
             }
             return false;
@@ -171,7 +172,12 @@ pub fn has_suffix(s: &str, suffix: &str, case_sensitive: bool) -> bool {
     equal_fold_bytes(&s.as_bytes()[s.len() - suffix.len()..], suffix.as_bytes())
 }
 
-pub fn has_prefix_and_suffix_without_overlap(s: &str, prefix: &str, suffix: &str, case_sensitive: bool) -> bool {
+pub fn has_prefix_and_suffix_without_overlap(
+    s: &str,
+    prefix: &str,
+    suffix: &str,
+    case_sensitive: bool,
+) -> bool {
     if prefix.len() + suffix.len() > s.len() {
         return false;
     }
@@ -226,7 +232,12 @@ mod tests {
             assert!(!equal_fold(a, b), "{a} {b}");
             assert!(!equal_fold(b, a), "{b} {a}");
         }
-        for (a, b) in [("\u{390}", "\u{1FD3}"), ("\u{3B0}", "\u{1FE3}"), ("\u{3D1}", "\u{3F4}"), ("\u{FB05}", "\u{FB06}")] {
+        for (a, b) in [
+            ("\u{390}", "\u{1FD3}"),
+            ("\u{3B0}", "\u{1FE3}"),
+            ("\u{3D1}", "\u{3F4}"),
+            ("\u{FB05}", "\u{FB06}"),
+        ] {
             assert!(equal_fold(a, b), "{a} {b}");
             assert!(equal_fold(b, a), "{b} {a}");
             assert!(equal_fold(&format!("ab{a}c"), &format!("AB{b}C")), "{a} {b}");

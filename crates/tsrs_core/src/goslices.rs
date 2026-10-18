@@ -528,7 +528,9 @@ mod tests {
         for n in [0usize, 1, 2, 19, 20, 21, 39, 40, 41, 100, 257, 1000] {
             let mut v: Vec<(u32, usize)> = (0..n)
                 .map(|i| {
-                    seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+                    seed = seed
+                        .wrapping_mul(6_364_136_223_846_793_005)
+                        .wrapping_add(1_442_695_040_888_963_407);
                     ((seed >> 59) as u32, i)
                 })
                 .collect();
@@ -558,7 +560,9 @@ mod tests {
         for (n, want) in expected {
             let mut v: Vec<(i32, usize)> = (0..n)
                 .map(|i| {
-                    seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+                    seed = seed
+                        .wrapping_mul(6_364_136_223_846_793_005)
+                        .wrapping_add(1_442_695_040_888_963_407);
                     ((seed >> 61) as i32, i)
                 })
                 .collect();

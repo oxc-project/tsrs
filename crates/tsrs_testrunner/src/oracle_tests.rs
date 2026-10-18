@@ -16,14 +16,19 @@ fn render_record(rec: &Value) -> String {
         .as_array()
         .map(|a| {
             a.iter()
-                .map(|f| TestFile { unit_name: f["name"].as_str().unwrap().to_string(), content: f["content"].as_str().unwrap().to_string() })
+                .map(|f| TestFile {
+                    unit_name: f["name"].as_str().unwrap().to_string(),
+                    content: f["content"].as_str().unwrap().to_string(),
+                })
                 .collect()
         })
         .unwrap_or_default();
     let mut file_cache: FxHashMap<String, Rc<FileLike>> = FxHashMap::default();
     let texts = &rec["texts"];
-    let diags: Vec<Diag> =
-        rec["diags"].as_array().map(|a| a.iter().map(|d| to_diag(d, texts, &mut file_cache)).collect()).unwrap_or_default();
+    let diags: Vec<Diag> = rec["diags"]
+        .as_array()
+        .map(|a| a.iter().map(|d| to_diag(d, texts, &mut file_cache)).collect())
+        .unwrap_or_default();
     tsbaseline::do_error_baseline(&files, &diags, rec["pretty"].as_bool().unwrap_or(false))
 }
 
@@ -44,21 +49,25 @@ fn bundled_lib_text(name: &str) -> String {
 
 fn to_diag(v: &Value, texts: &Value, cache: &mut FxHashMap<String, Rc<FileLike>>) -> Diag {
     let file = v["file"].as_str().map(|name| {
-        Rc::clone(cache
-            .entry(name.to_string())
-            .or_insert_with(|| {
-                let text = match texts[name].as_str() {
-                    Some(t) => t.to_string(),
-                    None => bundled_lib_text(name),
-                };
-                FileLike::new(name.to_string(), text)
-            }))
+        Rc::clone(cache.entry(name.to_string()).or_insert_with(|| {
+            let text = match texts[name].as_str() {
+                Some(t) => t.to_string(),
+                None => bundled_lib_text(name),
+            };
+            FileLike::new(name.to_string(), text)
+        }))
     });
     let message = v["message"].as_str().unwrap_or("").to_string();
     let key = v["key"].as_str().unwrap_or("");
-    let strs = |k: &str| -> Vec<String> { v[k].as_array().map(|a| a.iter().map(|s| s.as_str().unwrap_or("").to_string()).collect()).unwrap_or_default() };
+    let strs = |k: &str| -> Vec<String> {
+        v[k].as_array()
+            .map(|a| a.iter().map(|s| s.as_str().unwrap_or("").to_string()).collect())
+            .unwrap_or_default()
+    };
     let list = |k: &str, cache: &mut FxHashMap<String, Rc<FileLike>>| -> Vec<Diag> {
-        v[k].as_array().map(|a| a.iter().map(|d| to_diag(d, texts, cache)).collect()).unwrap_or_default()
+        v[k].as_array()
+            .map(|a| a.iter().map(|d| to_diag(d, texts, cache)).collect())
+            .unwrap_or_default()
     };
     let chain = list("chain", cache);
     let related = list("related", cache);
@@ -80,6 +89,7 @@ fn to_diag(v: &Value, texts: &Value, cache: &mut FxHashMap<String, Rc<FileLike>>
 #[test]
 fn renders_like_go() {
     // Go-captured diagnostics (message chains, related information, two files) and Go's own rendering.
-    let rec: Value = serde_json::from_str(include_str!("../testdata/importTag23.oracle.json")).unwrap();
+    let rec: Value =
+        serde_json::from_str(include_str!("../testdata/importTag23.oracle.json")).unwrap();
     assert_eq!(render_record(&rec), rec["baseline"].as_str().unwrap());
 }

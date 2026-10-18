@@ -49,7 +49,10 @@ impl RangeMarker {
 
     // test_parser.go:48
     pub fn ls_location(&self) -> lsproto::Location {
-        lsproto::Location { uri: lsconv::file_name_to_document_uri(&self.file_name), range: self.ls_range }
+        lsproto::Location {
+            uri: lsconv::file_name_to_document_uri(&self.file_name),
+            range: self.ls_range,
+        }
     }
 }
 
@@ -191,10 +194,7 @@ pub fn parse_test_data(t: &T, contents: &str, file_name: &str) -> TestData {
                     // The marker is an anonymous object marker, which does not need a name. Markers are only set into markerPositions if they have a name
                     continue;
                 }
-                t.fatal(&format!(
-                    "Marker at position {:?} is unnamed",
-                    marker.position
-                ));
+                t.fatal(&format!("Marker at position {:?} is unnamed", marker.position));
             };
             if let Some(existing) = marker_positions.get(name) {
                 t.fatal(&format!(
@@ -206,7 +206,10 @@ pub fn parse_test_data(t: &T, contents: &str, file_name: &str) -> TestData {
         }
     }
 
-    if has_ts_config && has_unsupported_global_options_with_config(&global_options) && !is_state_baselining_enabled(&global_options) {
+    if has_ts_config
+        && has_unsupported_global_options_with_config(&global_options)
+        && !is_state_baselining_enabled(&global_options)
+    {
         t.fatal("It is not allowed to use global options along with config files.");
     }
 
@@ -215,7 +218,9 @@ pub fn parse_test_data(t: &T, contents: &str, file_name: &str) -> TestData {
 
 // test_parser.go:171
 fn has_unsupported_global_options_with_config(global_options: &OrderedMap<String, String>) -> bool {
-    global_options.keys().any(|option| !matches!(option.to_lowercase().as_str(), "symlink" | "link" | "usecasesensitivefilenames"))
+    global_options.keys().any(|option| {
+        !matches!(option.to_lowercase().as_str(), "symlink" | "link" | "usecasesensitivefilenames")
+    })
 }
 
 // test_parser.go:183
@@ -300,7 +305,11 @@ fn decode_rune_in_string(s: &str) -> (char, usize) {
 }
 
 // test_parser.go:242
-fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<String, String>) -> Result<TestFileWithMarkers, FourslashError> {
+fn parse_file_content(
+    file_name: &str,
+    content: &str,
+    file_options: &OrderedMap<String, String>,
+) -> Result<TestFileWithMarkers, FourslashError> {
     let file_name = tspath::get_normalized_absolute_path(file_name, "/");
     let content = chomp_leading_space(content);
     let content = content.as_str();
@@ -329,7 +338,9 @@ fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<
     // The latest position of the start of an unflushed plain text area
     let mut last_normal_char_position: usize = 0;
 
-    let flush = |output: &mut String, last_normal_char_position: usize, last_safe_char_index: Option<usize>| {
+    let flush = |output: &mut String,
+                 last_normal_char_position: usize,
+                 last_safe_char_index: Option<usize>| {
         if let Some(last_safe_char_index) = last_safe_char_index {
             output.push_str(&content[last_normal_char_position..last_safe_char_index]);
         } else {
@@ -363,7 +374,12 @@ fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<
                 } else if previous_character == '|' && current_character == ']' {
                     // found a range end
                     let Some(range_start) = open_ranges.pop() else {
-                        return Err(report_error(&file_name, line, column, "Found range end with no matching start."));
+                        return Err(report_error(
+                            &file_name,
+                            line,
+                            column,
+                            "Found range end with no matching start.",
+                        ));
                     };
 
                     range_markers.push((
@@ -379,7 +395,10 @@ fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<
                     flush(&mut output, last_normal_char_position, Some(i - 1));
                     last_normal_char_position = i + 1;
                     difference += 2;
-                } else if previous_character == '/' && current_character == '*' && (i + 1 >= bytes.len() || bytes[i + 1] != b'/') {
+                } else if previous_character == '/'
+                    && current_character == '*'
+                    && (i + 1 >= bytes.len() || bytes[i + 1] != b'/')
+                {
                     // found a possible marker start
                     state = ParserState::InSlashStarMarker;
                     open_marker = Some(LocationInformation {
@@ -439,11 +458,7 @@ fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<
                     markers.push(marker);
 
                     // Set the current start to point to the end of the current marker to ignore its text
-                    flush(
-                        &mut output,
-                        last_normal_char_position,
-                        Some(om.source_position),
-                    );
+                    flush(&mut output, last_normal_char_position, Some(om.source_position));
                     last_normal_char_position = i + 1;
                     difference += i + 1 - om.source_position;
 
@@ -492,25 +507,40 @@ fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<
     flush(&mut output, last_normal_char_position, None);
 
     if let Some(open_range) = open_ranges.first() {
-        return Err(report_error(&file_name, open_range.location_information.source_line, open_range.location_information.source_column, "Unterminated range."));
+        return Err(report_error(
+            &file_name,
+            open_range.location_information.source_line,
+            open_range.location_information.source_column,
+            "Unterminated range.",
+        ));
     }
 
     if let Some(om) = open_marker {
-        return Err(report_error(&file_name, om.source_line, om.source_column, "Unterminated marker."));
+        return Err(report_error(
+            &file_name,
+            om.source_line,
+            om.source_column,
+            "Unterminated marker.",
+        ));
     }
 
     let output_string = output;
     // Set LS positions for markers
     let line_map = lsconv::compute_lsp_line_starts(&output_string);
-    let converters = new_test_converters(lsconv::new_converters(lsproto::PositionEncodingKind::UTF8, move |_| Some(Arc::clone(&line_map))));
+    let converters = new_test_converters(lsconv::new_converters(
+        lsproto::PositionEncodingKind::UTF8,
+        move |_| Some(Arc::clone(&line_map)),
+    ));
 
-    let emit = file_options.get(EMIT_THIS_FILE_OPTION).map(std::string::String::as_str) == Some("true");
+    let emit =
+        file_options.get(EMIT_THIS_FILE_OPTION).map(std::string::String::as_str) == Some("true");
 
     let test_file_info = TestFileInfo {
         file_name: file_name.clone(),
         content: output_string,
         emit,
-        open: file_options.get(NO_OPEN_FILE_OPTION).map(std::string::String::as_str) != Some("true"),
+        open: file_options.get(NO_OPEN_FILE_OPTION).map(std::string::String::as_str)
+            != Some("true"),
     };
 
     // slices.SortStableFunc: by start, then the longer range first
@@ -559,16 +589,32 @@ fn parse_file_content(file_name: &str, content: &str, file_options: &OrderedMap<
 }
 
 // test_parser.go:466
-fn get_object_marker(file_name: &str, location: &LocationInformation, text: &str) -> Result<PendingMarker, FourslashError> {
+fn get_object_marker(
+    file_name: &str,
+    location: &LocationInformation,
+    text: &str,
+) -> Result<PendingMarker, FourslashError> {
     // Attempt to parse the marker value as JSON
     let v = tsrs_core::json::unmarshal(&format!("{{ {text} }}"));
 
     let Ok(v) = v else {
-        return Err(report_error(file_name, location.source_line, location.source_column, &format!("Unable to parse marker text {text}")));
+        return Err(report_error(
+            file_name,
+            location.source_line,
+            location.source_column,
+            &format!("Unable to parse marker text {text}"),
+        ));
     };
     let marker_value = match Any::from_json(&v) {
         Any::Map(m) if !m.is_empty() => m,
-        _ => return Err(report_error(file_name, location.source_line, location.source_column, "Object markers can not be empty")),
+        _ => {
+            return Err(report_error(
+                file_name,
+                location.source_line,
+                location.source_column,
+                "Object markers can not be empty",
+            ));
+        }
     };
 
     let mut marker = PendingMarker { position: location.position, name: None, data: marker_value };
@@ -592,15 +638,19 @@ struct PendingMarker {
 
 // test_parser.go:495
 fn report_error(file_name: &str, line: usize, col: usize, message: &str) -> FourslashError {
-    FourslashError {
-        err: format!("{file_name} ({line},{col}): {message}"),
-    }
+    FourslashError { err: format!("{file_name} ({line},{col}): {message}") }
 }
 
 // test_parser.go:499
 fn chomp_leading_space(content: &str) -> String {
     let lines: Vec<&str> = content.split('\n').collect();
-    if let Some(result) = lines.iter().find_map(|line| if !line.is_empty() && line.as_bytes()[0] != b' ' { Some(content.to_string()) } else { None }) {
+    if let Some(result) = lines.iter().find_map(|line| {
+        if !line.is_empty() && line.as_bytes()[0] != b' ' {
+            Some(content.to_string())
+        } else {
+            None
+        }
+    }) {
         return result;
     }
 

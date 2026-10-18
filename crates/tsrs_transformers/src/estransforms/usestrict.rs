@@ -1,14 +1,20 @@
 use crate::*;
 
 // usestrict.go:9
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_use_strict_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(useStrictTransformer {
         base: Transformer::default(),
         compiler_options: opts.compiler_options,
         get_emit_module_format_of_file: Rc::clone(&opts.get_emit_module_format_of_file),
     });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| Some(tx.visit(n))), Some(opts.context)))
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| Some(tx.visit(n))),
+        Some(opts.context),
+    ))
 }
 
 // usestrict.go:17
@@ -39,7 +45,10 @@ impl useStrictTransformer {
 
         // ESM is always strict. If the file is ESM, and CJS emit
         // has not been requested, then skip adding "use strict".
-        if is_external_module && module_kind >= ModuleKind::ES2015 && (module_kind == ModuleKind::Preserve || format >= ModuleKind::ES2015) {
+        if is_external_module
+            && module_kind >= ModuleKind::ES2015
+            && (module_kind == ModuleKind::Preserve || format >= ModuleKind::ES2015)
+        {
             return node.as_node();
         }
 

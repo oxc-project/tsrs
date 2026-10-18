@@ -38,7 +38,12 @@ struct watchRegistryState {
 
 // watch.go:43
 pub(crate) fn new_watch_registry() -> watchRegistry {
-    watchRegistry { mu: Mutex::new(watchRegistryState { entries: FxHashMap::default(), pending: FxHashSet::default() }) }
+    watchRegistry {
+        mu: Mutex::new(watchRegistryState {
+            entries: FxHashMap::default(),
+            pending: FxHashSet::default(),
+        }),
+    }
 }
 
 impl watchRegistry {
@@ -49,7 +54,8 @@ impl watchRegistry {
     pub(crate) fn acquire(&self, watcher: &lsproto::FileSystemWatcher, id: WatcherID) -> bool {
         let mut st = self.mu.lock().unwrap();
         let key = to_file_system_watcher_key(watcher);
-        let value = st.entries.entry(key).or_insert_with(|| fileSystemWatcherValue { count: 0, id });
+        let value =
+            st.entries.entry(key).or_insert_with(|| fileSystemWatcherValue { count: 0, id });
         value.count += 1;
         value.count == 1
     }
@@ -210,7 +216,10 @@ pub fn new_watched_files_for_paths(
     current_directory: &str,
     use_case_sensitive_file_names: bool,
 ) -> Arc<WatchedFiles<Vec<String>>> {
-    let compare_paths_options = ComparePathsOptions { current_directory: current_directory.to_string(), use_case_sensitive_file_names };
+    let compare_paths_options = ComparePathsOptions {
+        current_directory: current_directory.to_string(),
+        use_case_sensitive_file_names,
+    };
     let workspace_directory = workspace_directory.to_string();
     new_watched_files(
         name,
@@ -256,12 +265,19 @@ impl<T> WatchedFiles<T> {
             st.ignored = result.ignored;
             let mut changed = false;
             let same_globs = st.workspace_watchers.len() == globs.len()
-                && st.workspace_watchers.iter().zip(&globs).all(|(a, b)| a.glob_pattern.pattern.as_ref().unwrap() == b);
+                && st
+                    .workspace_watchers
+                    .iter()
+                    .zip(&globs)
+                    .all(|(a, b)| a.glob_pattern.pattern.as_ref().unwrap() == b);
             if !same_globs {
                 st.workspace_watchers = globs
                     .iter()
                     .map(|glob| lsproto::FileSystemWatcher {
-                        glob_pattern: lsproto::PatternOrRelativePattern { pattern: Some(glob.clone()), ..Default::default() },
+                        glob_pattern: lsproto::PatternOrRelativePattern {
+                            pattern: Some(glob.clone()),
+                            ..Default::default()
+                        },
                         kind: Some(self.watch_kind),
                     })
                     .collect();
@@ -269,14 +285,21 @@ impl<T> WatchedFiles<T> {
             }
             let dirs_outside = sorted_compact(result.directories_outside_workspace);
             let same_dirs = st.outside_workspace_watchers.len() == dirs_outside.len()
-                && st
-                    .outside_workspace_watchers
-                    .iter()
-                    .zip(&dirs_outside)
-                    .all(|(a, b)| file_system_watcher_glob_string(a) == recursive_directory_glob_pattern(b, self.has_relative_pattern_capability));
+                && st.outside_workspace_watchers.iter().zip(&dirs_outside).all(|(a, b)| {
+                    file_system_watcher_glob_string(a)
+                        == recursive_directory_glob_pattern(b, self.has_relative_pattern_capability)
+                });
             if !same_dirs {
-                st.outside_workspace_watchers =
-                    dirs_outside.iter().map(|dir| new_recursive_directory_watcher(dir, self.watch_kind, self.has_relative_pattern_capability)).collect();
+                st.outside_workspace_watchers = dirs_outside
+                    .iter()
+                    .map(|dir| {
+                        new_recursive_directory_watcher(
+                            dir,
+                            self.watch_kind,
+                            self.has_relative_pattern_capability,
+                        )
+                    })
+                    .collect();
                 changed = true;
             }
             if changed {
@@ -355,9 +378,12 @@ pub(crate) fn create_resolution_lookup_glob_mapper(
     current_directory: &str,
     use_case_sensitive_file_names: bool,
 ) -> ComputeGlobPatterns<Option<Arc<SyncSet<Path>>>> {
-    let workspace_directory_path = tspath::to_path(workspace_directory, current_directory, use_case_sensitive_file_names);
-    let current_directory_path = tspath::to_path(current_directory, current_directory, use_case_sensitive_file_names);
-    let lib_directory_path = tspath::to_path(lib_directory, current_directory, use_case_sensitive_file_names);
+    let workspace_directory_path =
+        tspath::to_path(workspace_directory, current_directory, use_case_sensitive_file_names);
+    let current_directory_path =
+        tspath::to_path(current_directory, current_directory, use_case_sensitive_file_names);
+    let lib_directory_path =
+        tspath::to_path(lib_directory, current_directory, use_case_sensitive_file_names);
 
     Arc::new(move |data: &Option<Arc<SyncSet<Path>>>| {
         let mut ignored = FxHashSet::default();
@@ -404,26 +430,39 @@ pub(crate) fn create_resolution_lookup_glob_mapper(
             globs.push(get_recursive_glob_pattern(&lib_directory_path));
         }
         if !node_modules_directories.is_empty() {
-            let mut node_modules_globs: Vec<String> = node_modules_directories.keys().iter().map(|dir| get_recursive_glob_pattern(dir)).collect();
+            let mut node_modules_globs: Vec<String> = node_modules_directories
+                .keys()
+                .iter()
+                .map(|dir| get_recursive_glob_pattern(dir))
+                .collect();
             node_modules_globs.sort();
             globs.extend(node_modules_globs);
         }
         let mut outside_dirs = Vec::new();
         if !external_directories.is_empty() {
-            let external_dir_strings: Vec<String> = external_directories.keys().iter().map(std::string::ToString::to_string).collect();
-            let (mut external_directory_parents, ignored_external_dirs) = tspath::get_common_parents(
-                &external_dir_strings,
-                minWatchLocationDepth,
-                get_path_components_for_watching,
-                // Already using tspath.Path
-                &ComparePathsOptions { use_case_sensitive_file_names: true, current_directory: String::new() },
-            );
+            let external_dir_strings: Vec<String> =
+                external_directories.keys().iter().map(std::string::ToString::to_string).collect();
+            let (mut external_directory_parents, ignored_external_dirs) =
+                tspath::get_common_parents(
+                    &external_dir_strings,
+                    minWatchLocationDepth,
+                    get_path_components_for_watching,
+                    // Already using tspath.Path
+                    &ComparePathsOptions {
+                        use_case_sensitive_file_names: true,
+                        current_directory: String::new(),
+                    },
+                );
             external_directory_parents.sort();
             ignored = ignored_external_dirs;
             outside_dirs = external_directory_parents;
         }
 
-        PatternsAndIgnored { directories_outside_workspace: outside_dirs, patterns_inside_workspace: globs, ignored }
+        PatternsAndIgnored {
+            directories_outside_workspace: outside_dirs,
+            patterns_inside_workspace: globs,
+            ignored,
+        }
     })
 }
 
@@ -438,26 +477,42 @@ pub(crate) fn get_typings_locations_globs(
     let (mut include_typings_location, mut include_workspace) = (false, false);
     let mut external_directories: FxHashMap<Path, String> = FxHashMap::default();
     let mut globs: FxHashMap<Path, String> = FxHashMap::default();
-    let compare_paths_options = ComparePathsOptions { current_directory: current_directory.to_string(), use_case_sensitive_file_names };
+    let compare_paths_options = ComparePathsOptions {
+        current_directory: current_directory.to_string(),
+        use_case_sensitive_file_names,
+    };
     for file in typings_files {
         if tspath::contains_path(typings_location, file, &compare_paths_options) {
             include_typings_location = true;
         } else if !tspath::contains_path(workspace_directory, file, &compare_paths_options) {
             let directory = tspath::get_directory_path(file);
-            external_directories.insert(tspath::to_path(&directory, current_directory, use_case_sensitive_file_names), directory);
+            external_directories.insert(
+                tspath::to_path(&directory, current_directory, use_case_sensitive_file_names),
+                directory,
+            );
         } else {
             include_workspace = true;
         }
     }
     let external: Vec<String> = external_directories.values().cloned().collect();
-    let (mut external_directory_parents, ignored) =
-        tspath::get_common_parents(&external, minWatchLocationDepth, get_path_components_for_watching, &compare_paths_options);
+    let (mut external_directory_parents, ignored) = tspath::get_common_parents(
+        &external,
+        minWatchLocationDepth,
+        get_path_components_for_watching,
+        &compare_paths_options,
+    );
     external_directory_parents.sort();
     if include_workspace {
-        globs.insert(tspath::to_path(workspace_directory, current_directory, use_case_sensitive_file_names), get_recursive_glob_pattern(workspace_directory));
+        globs.insert(
+            tspath::to_path(workspace_directory, current_directory, use_case_sensitive_file_names),
+            get_recursive_glob_pattern(workspace_directory),
+        );
     }
     if include_typings_location {
-        globs.insert(tspath::to_path(typings_location, current_directory, use_case_sensitive_file_names), get_recursive_glob_pattern(typings_location));
+        globs.insert(
+            tspath::to_path(typings_location, current_directory, use_case_sensitive_file_names),
+            get_recursive_glob_pattern(typings_location),
+        );
     }
     PatternsAndIgnored {
         directories_outside_workspace: external_directory_parents,
@@ -473,7 +528,8 @@ pub(crate) fn get_path_components_for_watching(path: &str, current_directory: &s
     if root_length <= 1 {
         return components;
     }
-    let rest: Vec<&str> = components[1..root_length].iter().map(std::string::String::as_str).collect();
+    let rest: Vec<&str> =
+        components[1..root_length].iter().map(std::string::String::as_str).collect();
     let new_root = tspath::combine_paths(&components[0], &rest);
     let mut result = vec![new_root];
     result.extend(components[root_length..].iter().cloned());
@@ -525,13 +581,20 @@ fn recursive_directory_glob_pattern(directory: &str, use_relative_pattern: bool)
 // newRecursiveDirectoryWatcher creates a FileSystemWatcher for recursively
 // watching a directory. When useRelativePattern is true, a RelativePattern with
 // a file:// base URI is used; otherwise a plain glob Pattern is used.
-fn new_recursive_directory_watcher(directory: &str, kind: lsproto::WatchKind, use_relative_pattern: bool) -> lsproto::FileSystemWatcher {
+fn new_recursive_directory_watcher(
+    directory: &str,
+    kind: lsproto::WatchKind,
+    use_relative_pattern: bool,
+) -> lsproto::FileSystemWatcher {
     if use_relative_pattern {
         let base_uri = lsproto::URI(lsconv::file_name_to_document_uri(directory).0);
         return lsproto::FileSystemWatcher {
             glob_pattern: lsproto::PatternOrRelativePattern {
                 relative_pattern: Some(lsproto::RelativePattern {
-                    base_uri: lsproto::WorkspaceFolderOrURI { uri: Some(base_uri), ..Default::default() },
+                    base_uri: lsproto::WorkspaceFolderOrURI {
+                        uri: Some(base_uri),
+                        ..Default::default()
+                    },
                     pattern: "**/*".to_string(),
                 }),
                 ..Default::default()
@@ -541,7 +604,10 @@ fn new_recursive_directory_watcher(directory: &str, kind: lsproto::WatchKind, us
     }
     let glob = get_recursive_glob_pattern(directory);
     lsproto::FileSystemWatcher {
-        glob_pattern: lsproto::PatternOrRelativePattern { pattern: Some(glob), ..Default::default() },
+        glob_pattern: lsproto::PatternOrRelativePattern {
+            pattern: Some(glob),
+            ..Default::default()
+        },
         kind: Some(kind),
     }
 }

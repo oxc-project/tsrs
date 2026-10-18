@@ -1,15 +1,15 @@
 use std::sync::{Arc, OnceLock};
 
 use rustc_hash::FxHashMap;
-use tsrs_core::{breadth_first_search_parallel_ex, BreadthFirstSearchOptions};
-use tsrs_core::collections::{new_set_with_size_hint, OrderedMap, OrderedMapExt, Set, SyncSet};
+use tsrs_core::collections::{OrderedMap, OrderedMapExt, Set, SyncSet, new_set_with_size_hint};
 use tsrs_core::tspath::Path;
+use tsrs_core::{BreadthFirstSearchOptions, breadth_first_search_parallel_ex};
 use tsrs_ls as ls;
 
 use crate::configfileregistry::ConfigFileRegistry;
 use crate::dirty::{Shared, SharedMap};
 use crate::overlayfs::{OverlayMap, ToPath};
-use crate::project::{ConfiguredProjectID, Project, SyntheticProjectID, ID};
+use crate::project::{ConfiguredProjectID, ID, Project, SyntheticProjectID};
 
 #[derive(Clone)]
 pub struct ProjectCollection {
@@ -130,7 +130,8 @@ impl ProjectCollection {
     // projectcollection.go:108
     // SyntheticProjects returns all synthetic projects in a stable order.
     pub fn synthetic_projects(&self) -> Vec<Shared<Project>> {
-        let mut projects: Vec<Shared<Project>> = self.synthetic_projects.values().cloned().collect();
+        let mut projects: Vec<Shared<Project>> =
+            self.synthetic_projects.values().cloned().collect();
         projects.sort_by_key(|a| a.id());
         projects
     }
@@ -139,8 +140,10 @@ impl ProjectCollection {
     // ProjectsByID returns all projects keyed by project ID in stable order.
     pub fn projects_by_id(&self) -> OrderedMap<ID, Shared<Project>> {
         let mut projects: OrderedMap<ID, Shared<Project>> = OrderedMap::default();
-        projects.extend(self.configured_projects().into_iter().map(|project| (project.id(), project)));
-        projects.extend(self.synthetic_projects().into_iter().map(|project| (project.id(), project)));
+        projects
+            .extend(self.configured_projects().into_iter().map(|project| (project.id(), project)));
+        projects
+            .extend(self.synthetic_projects().into_iter().map(|project| (project.id(), project)));
         if let Some(inferred_project) = &self.inferred_project {
             projects.set(inferred_project.id(), inferred_project.clone());
         }
@@ -150,7 +153,8 @@ impl ProjectCollection {
     // projectcollection.go:137
     // Projects returns all configured, synthetic, and inferred projects in a stable order.
     pub fn projects(&self) -> Vec<Shared<Project>> {
-        let mut projects = Vec::with_capacity(self.configured_projects.len() + self.synthetic_projects.len() + 1);
+        let mut projects =
+            Vec::with_capacity(self.configured_projects.len() + self.synthetic_projects.len() + 1);
         self.fill_configured_projects(&mut projects);
         projects.extend(self.synthetic_projects());
         if let Some(inferred_project) = &self.inferred_project {
@@ -180,11 +184,20 @@ impl ProjectCollection {
     // projectcollection.go:165
     // GetLanguageServiceProjectsContainingFile does not consider synthetic projects
     // (ones created by API via createProgram)
-    pub fn get_language_service_projects_containing_file(&self, path: &Path) -> Vec<Arc<dyn ls::Project>> {
+    pub fn get_language_service_projects_containing_file(
+        &self,
+        path: &Path,
+    ) -> Vec<Arc<dyn ls::Project>> {
         let mut projects: Vec<Arc<dyn ls::Project>> = Vec::new();
-        projects.extend(self.configured_projects().into_iter().filter_map(|project| -> Option<Arc<dyn ls::Project>> {
-            if project.contains_file(path) { Some(Arc::<Project>::clone(project.arc())) } else { None }
-        }));
+        projects.extend(self.configured_projects().into_iter().filter_map(
+            |project| -> Option<Arc<dyn ls::Project>> {
+                if project.contains_file(path) {
+                    Some(Arc::<Project>::clone(project.arc()))
+                } else {
+                    None
+                }
+            },
+        ));
         if let Some(inferred_project) = &self.inferred_project {
             if inferred_project.contains_file(path) {
                 projects.push(Arc::<Project>::clone(inferred_project.arc()));
@@ -196,19 +209,23 @@ impl ProjectCollection {
     // projectcollection.go:179
     // GetOpenConfiguredProjects returns configured projects containing at least one open file.
     pub fn get_open_configured_projects(&self) -> Arc<Set<ConfiguredProjectID>> {
-        Arc::clone(self.open_configured_projects
-            .get_or_init(|| {
-                let mut open_projects = new_set_with_size_hint(self.configured_projects.len());
-                #[expect(clippy::iter_over_hash_type, reason = "only inserts into a set; Go ranges the set too")]
-                for path in self.open_files.keys() {
-                    if let Some(project_id) = self.file_default_projects.as_ref().and_then(|m| m.get(path)) {
-                        if let Some(configured_id) = project_id.configured() {
-                            if self.configured_projects.contains_key(&configured_id) {
-                                open_projects.add(configured_id);
-                                continue;
-                            }
+        Arc::clone(self.open_configured_projects.get_or_init(|| {
+            let mut open_projects = new_set_with_size_hint(self.configured_projects.len());
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "only inserts into a set; Go ranges the set too"
+            )]
+            for path in self.open_files.keys() {
+                if let Some(project_id) =
+                    self.file_default_projects.as_ref().and_then(|m| m.get(path))
+                {
+                    if let Some(configured_id) = project_id.configured() {
+                        if self.configured_projects.contains_key(&configured_id) {
+                            open_projects.add(configured_id);
+                            continue;
                         }
                     }
+                }
 
                 // only inserts into a set; Go ranges the map too
                 open_projects.m.extend(self.configured_projects.values().filter_map(|project| {
@@ -284,7 +301,12 @@ impl ProjectCollection {
     fn find_default_configured_project(&self, path: &Path) -> Option<Shared<Project>> {
         let config_file_name = self.config_file_registry.get_config_file_name(path);
         if !config_file_name.is_empty() {
-            return self.find_default_configured_project_worker(path, &config_file_name, None, None);
+            return self.find_default_configured_project_worker(
+                path,
+                &config_file_name,
+                None,
+                None,
+            );
         }
         None
     }
@@ -312,7 +334,11 @@ impl ProjectCollection {
                 command_line
                     .resolved_project_reference_paths()
                     .iter()
-                    .filter_map(|config_file_name| self.configured_projects.get(&ConfiguredProjectID((self.to_path)(config_file_name))).cloned())
+                    .filter_map(|config_file_name| {
+                        self.configured_projects
+                            .get(&ConfiguredProjectID((self.to_path)(config_file_name)))
+                            .cloned()
+                    })
                     .collect()
             },
             |project: &Shared<Project>| {
@@ -343,9 +369,15 @@ impl ProjectCollection {
                 return fallback;
             }
         }
-        let ancestor_config_name = self.config_file_registry.get_ancestor_config_file_name(path, config_file_name);
+        let ancestor_config_name =
+            self.config_file_registry.get_ancestor_config_file_name(path, config_file_name);
         if !ancestor_config_name.is_empty() {
-            return self.find_default_configured_project_worker(path, &ancestor_config_name, Some(visited), fallback);
+            return self.find_default_configured_project_worker(
+                path,
+                &ancestor_config_name,
+                Some(visited),
+                fallback,
+            );
         }
         fallback
     }

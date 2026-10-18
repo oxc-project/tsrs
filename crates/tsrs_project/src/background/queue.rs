@@ -30,28 +30,36 @@ struct workerPool {
     available: Condvar,
 }
 
-#[expect(clippy::infinite_loop, reason = "background worker threads serve the process-wide queue until process exit")]
+#[expect(
+    clippy::infinite_loop,
+    reason = "background worker threads serve the process-wide queue until process exit"
+)]
 fn worker_pool() -> &'static workerPool {
     static POOL: OnceLock<&'static workerPool> = OnceLock::new();
     POOL.get_or_init(|| {
-        let pool: &'static workerPool = Box::leak(Box::new(workerPool { tasks: Mutex::new(VecDeque::new()), available: Condvar::new() }));
+        let pool: &'static workerPool = Box::leak(Box::new(workerPool {
+            tasks: Mutex::new(VecDeque::new()),
+            available: Condvar::new(),
+        }));
         for i in 0..WORKER_COUNT {
             std::thread::Builder::new()
                 .name(format!("project-background-{i}"))
                 .stack_size(WORKER_STACK_SIZE)
-                .spawn(move || loop {
-                    let task = {
-                        let mut tasks = pool.tasks.lock().unwrap();
-                        loop {
-                            if let Some(task) = tasks.pop_front() {
-                                break task;
+                .spawn(move || {
+                    loop {
+                        let task = {
+                            let mut tasks = pool.tasks.lock().unwrap();
+                            loop {
+                                if let Some(task) = tasks.pop_front() {
+                                    break task;
+                                }
+                                tasks = pool.available.wait(tasks).unwrap();
                             }
-                            tasks = pool.available.wait(tasks).unwrap();
-                        }
-                    };
-                    // Go: a panicking task crashes the process. Here the panic hook reports it and the shared
-                    // worker keeps serving other queues.
-                    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(task));
+                        };
+                        // Go: a panicking task crashes the process. Here the panic hook reports it and the shared
+                        // worker keeps serving other queues.
+                        let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(task));
+                    }
                 })
                 .expect("failed to spawn background worker thread");
         }
@@ -69,7 +77,10 @@ pub fn go(f: impl FnOnce() + Send + 'static) {
 // queue.go:16
 // NewQueue creates a new background queue for managing background tasks execution.
 pub fn new_queue() -> Queue {
-    Queue { pending: Arc::new(pendingCount { count: Mutex::new(0), zero: Condvar::new() }), closed: RwLock::new(false) }
+    Queue {
+        pending: Arc::new(pendingCount { count: Mutex::new(0), zero: Condvar::new() }),
+        closed: RwLock::new(false),
+    }
 }
 
 impl Queue {

@@ -34,7 +34,14 @@ impl table {
         for r in &self.rows {
             // Go: "%-*s %*s\n"
             let name = format!("{}:", r.name);
-            let _ = writeln!(out, "{:<nw$} {:>vw$}", name, r.value, nw = name_width + 1, vw = value_width);
+            let _ = writeln!(
+                out,
+                "{:<nw$} {:>vw$}",
+                name,
+                r.value,
+                nw = name_width + 1,
+                vw = value_width
+            );
         }
         w(&out);
     }
@@ -82,7 +89,15 @@ fn memory_used_bytes() -> u64 {
     let mut info: libc::proc_taskinfo = unsafe { std::mem::zeroed() };
     let size = std::mem::size_of::<libc::proc_taskinfo>() as libc::c_int;
     // SAFETY: `info` is a writable proc_taskinfo of `size` bytes, as PROC_PIDTASKINFO requires.
-    let n = unsafe { libc::proc_pidinfo(std::process::id() as libc::c_int, libc::PROC_PIDTASKINFO, 0, std::ptr::addr_of_mut!(info).cast(), size) };
+    let n = unsafe {
+        libc::proc_pidinfo(
+            std::process::id() as libc::c_int,
+            libc::PROC_PIDTASKINFO,
+            0,
+            std::ptr::addr_of_mut!(info).cast(),
+            size,
+        )
+    };
     if n != size {
         return 0;
     }
@@ -160,7 +175,10 @@ impl Statistics {
             table.add_duration(&format!("{prefix}Config time"), self.compile_times.config_time);
         }
         if !self.compile_times.build_info_read_time.is_zero() {
-            table.add_duration(&format!("{prefix}BuildInfo read time"), self.compile_times.build_info_read_time);
+            table.add_duration(
+                &format!("{prefix}BuildInfo read time"),
+                self.compile_times.build_info_read_time,
+            );
         }
         table.add_duration(&format!("{prefix}Parse time"), self.compile_times.parse_time);
         if !self.compile_times.bind_time.is_zero() {
@@ -173,7 +191,10 @@ impl Statistics {
             table.add_duration(&format!("{prefix}Emit time"), self.compile_times.emit_time);
         }
         if !self.compile_times.changes_compute_time.is_zero() {
-            table.add_duration(&format!("{prefix}Changes compute time"), self.compile_times.changes_compute_time);
+            table.add_duration(
+                &format!("{prefix}Changes compute time"),
+                self.compile_times.changes_compute_time,
+            );
         }
         self.add_content_mapper_statistics(&mut table, prefix);
         table.add_duration(&format!("{prefix}Total time"), self.compile_times.total_time);
@@ -204,7 +225,10 @@ impl Statistics {
     fn add_content_mapper_statistics(&self, table: &mut table, prefix: &str) {
         let timings = &self.compile_times.content_mapper_times;
         if !timings.request_wait.is_zero() {
-            table.add_duration(&format!("{prefix}Content mapper request wait time"), timings.request_wait);
+            table.add_duration(
+                &format!("{prefix}Content mapper request wait time"),
+                timings.request_wait,
+            );
         }
         let mut identities: Vec<&String> = timings.mappers.keys().collect();
         identities.sort();
@@ -212,16 +236,28 @@ impl Statistics {
             let mapper = &timings.mappers[identity];
             let initialization_count = mapper.spawn.count;
             if initialization_count != 0 {
-                table.add_duration(&format!("{prefix}{identity} initialization time"), mapper.spawn.duration + mapper.initialize.duration);
+                table.add_duration(
+                    &format!("{prefix}{identity} initialization time"),
+                    mapper.spawn.duration + mapper.initialize.duration,
+                );
             }
             if mapper.transform.count != 0 {
-                table.add_duration(&format!("{prefix}{identity} transform time"), mapper.transform.duration);
+                table.add_duration(
+                    &format!("{prefix}{identity} transform time"),
+                    mapper.transform.duration,
+                );
             }
             if mapper.open_project.count != 0 {
-                table.add_duration(&format!("{prefix}{identity} openProject time"), mapper.open_project.duration);
+                table.add_duration(
+                    &format!("{prefix}{identity} openProject time"),
+                    mapper.open_project.duration,
+                );
             }
             if mapper.close_project.count != 0 {
-                table.add_duration(&format!("{prefix}{identity} closeProject time"), mapper.close_project.duration);
+                table.add_duration(
+                    &format!("{prefix}{identity} closeProject time"),
+                    mapper.close_project.duration,
+                );
             }
         }
     }

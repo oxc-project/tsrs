@@ -1,5 +1,5 @@
 use tsrs_ast::{self as ast, CommentRange, Kind, Node, NodeFactory};
-use tsrs_core::{LanguageVariant, ScriptKind, P};
+use tsrs_core::{LanguageVariant, P, ScriptKind};
 use tsrs_scanner as scanner;
 
 pub(crate) fn get_language_variant(script_kind: ScriptKind) -> LanguageVariant {
@@ -20,14 +20,15 @@ pub(crate) fn token_is_identifier_or_keyword_or_greater_than(token: Kind) -> boo
     token == Kind::GreaterThanToken || token_is_identifier_or_keyword(token)
 }
 
-pub fn get_jsdoc_comment_ranges(_f: &mut NodeFactory, comment_ranges: &[CommentRange], node: P<Node>, text: &'static str) -> Vec<CommentRange> {
+pub fn get_jsdoc_comment_ranges(
+    _f: &mut NodeFactory,
+    comment_ranges: &[CommentRange],
+    node: P<Node>,
+    text: &'static str,
+) -> Vec<CommentRange> {
     let mut comment_ranges = comment_ranges.to_vec();
-    let node_pos = node
-        .pos()
-        .expect_source("parsed nodes have source positions");
-    let node_end = node
-        .end()
-        .expect_source("parsed nodes have source positions");
+    let node_pos = node.pos().expect_source("parsed nodes have source positions");
+    let node_end = node.end().expect_source("parsed nodes have source positions");
     match node.kind() {
         Kind::Parameter
         | Kind::TypeParameter

@@ -36,7 +36,13 @@ pub fn new_ref_count_cache<K: Hash + Eq, V, AcquireArgs>(
     options: RefCountCacheOptions,
     parse: impl Fn(&K, AcquireArgs) -> V + Send + Sync + 'static,
 ) -> RefCountCache<K, V, AcquireArgs> {
-    RefCountCache { options, entries: SyncMap::default(), parse: Box::new(parse), on_evict: None, on_revive: None }
+    RefCountCache {
+        options,
+        entries: SyncMap::default(),
+        parse: Box::new(parse),
+        on_evict: None,
+        on_revive: None,
+    }
 }
 
 impl<K: Hash + Eq + Clone, V: Clone, AcquireArgs> RefCountCache<K, V, AcquireArgs> {
@@ -86,7 +92,11 @@ impl<K: Hash + Eq + Clone, V: Clone, AcquireArgs> RefCountCache<K, V, AcquireArg
     // acquisitions of the same identity that miss serialize on it.
     //
     // The caller is responsible for calling Deref when a value is returned without error.
-    pub fn acquire_or_error<E>(&self, identity: &K, produce: impl FnOnce() -> Result<V, E>) -> Result<V, E> {
+    pub fn acquire_or_error<E>(
+        &self,
+        identity: &K,
+        produce: impl FnOnce() -> Result<V, E>,
+    ) -> Result<V, E> {
         self.load_or_store_new_locked_entry(identity, |entry, loaded| {
             if loaded {
                 return Ok(entry.value.clone().unwrap());
@@ -153,9 +163,15 @@ impl<K: Hash + Eq + Clone, V: Clone, AcquireArgs> RefCountCache<K, V, AcquireArg
     //
     // Go returns the entry locked and the caller unlocks it with `defer`; here the caller's code runs as `f`
     // while the lock is held.
-    fn load_or_store_new_locked_entry<R>(&self, key: &K, f: impl FnOnce(&mut refCountCacheEntryState<V>, bool) -> R) -> R {
+    fn load_or_store_new_locked_entry<R>(
+        &self,
+        key: &K,
+        f: impl FnOnce(&mut refCountCacheEntryState<V>, bool) -> R,
+    ) -> R {
         loop {
-            let entry = Arc::new(refCountCacheEntry { mu: Mutex::new(refCountCacheEntryState { value: None, ref_count: 1 }) });
+            let entry = Arc::new(refCountCacheEntry {
+                mu: Mutex::new(refCountCacheEntryState { value: None, ref_count: 1 }),
+            });
             let mut guard = entry.mu.lock().unwrap();
             let (existing, loaded) = self.entries.load_or_store(key.clone(), Arc::clone(&entry));
             if loaded {
@@ -176,4 +192,3 @@ impl<K: Hash + Eq + Clone, V: Clone, AcquireArgs> RefCountCache<K, V, AcquireArg
         self.entries.size()
     }
 }
-

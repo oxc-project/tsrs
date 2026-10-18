@@ -15,7 +15,11 @@ pub struct Transformer {
 
 impl Transformer {
     // transformer.go:14
-    pub fn new_transformer(&'static self, visit: ast::VisitFn, emit_context: Option<P<EmitContext>>) -> P<Transformer> {
+    pub fn new_transformer(
+        &'static self,
+        visit: ast::VisitFn,
+        emit_context: Option<P<EmitContext>>,
+    ) -> P<Transformer> {
         assert!(self.emit_context.get().is_none(), "Transformer already initialized");
         let emit_context = emit_context.unwrap_or_else(printer::new_emit_context);
         let _ = self.emit_context.set(emit_context);

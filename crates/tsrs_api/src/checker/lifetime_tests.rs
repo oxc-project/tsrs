@@ -8,15 +8,15 @@
 // TSRS_CHECKER_STRESS_REPORT=<file> writes per-outcome counts.
 
 use rustc_hash::FxHashMap;
-use std::sync::mpsc;
 use std::sync::Arc;
+use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 
 use tsrs_api_transport as transport;
 use tsrs_api_transport::jsonrpc::{FrameReader, FrameWriter};
 use tsrs_core::json::{self, Value};
-use tsrs_vfs::{bundled, vfstest, FS};
+use tsrs_vfs::{FS, bundled, vfstest};
 
 use super::session_tests::get;
 use crate::session::{Session, SessionOptions};
@@ -24,7 +24,12 @@ use crate::session::{Session, SessionOptions};
 struct Fwd(Arc<Session>);
 
 impl transport::Handler for Fwd {
-    fn handle_request(&self, _cx: &transport::RequestContext, method: &str, params: &[u8]) -> Result<transport::Response, transport::ApiError> {
+    fn handle_request(
+        &self,
+        _cx: &transport::RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<transport::Response, transport::ApiError> {
         match crate::handler::Handler::handle_request(&*self.0, method, params) {
             Ok(crate::handler::Response::Json(t)) => Ok(transport::Response::Json(t.into_bytes())),
             Ok(crate::handler::Response::Binary(b)) => Ok(transport::Response::Binary(b)),
@@ -38,13 +43,23 @@ fn env_num(name: &str, default: usize) -> usize {
     std::env::var(name).ok().and_then(|v| v.parse().ok()).unwrap_or(default)
 }
 
-const B: &str = "import { value, big } from \"./a\";\nexport const use = value;\nexport const all = big;\n";
+const B: &str =
+    "import { value, big } from \"./a\";\nexport const use = value;\nexport const all = big;\n";
 
 /// a.ts for version k: `value` is a number (even k) or a string (odd k), plus enough declarations that
 /// a fresh checker does real work when `big` is resolved.
 fn a_ts(k: usize) -> String {
-    let mut s = if k.is_multiple_of(2) { "export const value: number = 1;\n".to_string() } else { "export const value: string = \"s\";\n".to_string() };
-    s.extend((0..400).map(|i| format!("export interface I{i}<T> {{ p{i}: T; q{i}: I{}<T> | undefined; }}\n", (i + 1) % 400)));
+    let mut s = if k.is_multiple_of(2) {
+        "export const value: number = 1;\n".to_string()
+    } else {
+        "export const value: string = \"s\";\n".to_string()
+    };
+    s.extend((0..400).map(|i| {
+        format!(
+            "export interface I{i}<T> {{ p{i}: T; q{i}: I{}<T> | undefined; }}\n",
+            (i + 1) % 400
+        )
+    }));
     s.push_str("export type Big = ");
     s.push_str(&(0..400).map(|i| format!("I{i}<number>")).collect::<Vec<_>>().join(" | "));
     s.push_str(";\n");
@@ -73,7 +88,12 @@ impl Client {
     fn send(&mut self, method: &str, params: &str) -> String {
         self.next += 1;
         let id = self.next.to_string();
-        self.w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"{method}","params":{params}}}"#).as_bytes()).unwrap();
+        self.w
+            .write_frame(
+                format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"{method}","params":{params}}}"#)
+                    .as_bytes(),
+            )
+            .unwrap();
         id
     }
     fn wait(&mut self, id: &str) -> Value {
@@ -82,7 +102,10 @@ impl Client {
             if let Some(v) = self.pending.remove(id) {
                 return v;
             }
-            let v = self.rx.recv_timeout(deadline.saturating_duration_since(Instant::now())).unwrap_or_else(|_| panic!("response {id} not received"));
+            let v = self
+                .rx
+                .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                .unwrap_or_else(|_| panic!("response {id} not received"));
             let got = json::marshal(&get(&v, "id")).unwrap();
             self.pending.insert(got, v);
         }
@@ -97,11 +120,21 @@ impl Client {
 
 fn start() -> Client {
     let files: [(&str, &str); 0] = [];
-    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|(k, v)| (k.to_string(), v.to_string())), false)));
-    let session = Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.to_string(), v.to_string())),
+        false,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
     let (server_r, client_w) = std::io::pipe().unwrap();
     let (client_r, server_w) = std::io::pipe().unwrap();
-    let conn = transport::AsyncConn::new(Box::new(FrameReader::new(server_r)), Box::new(FrameWriter::new(server_w)), Arc::new(Fwd(session)), transport::ConnOptions::default(), None);
+    let conn = transport::AsyncConn::new(
+        Box::new(FrameReader::new(server_r)),
+        Box::new(FrameWriter::new(server_w)),
+        Arc::new(Fwd(session)),
+        transport::ConnOptions::default(),
+        None,
+    );
     let run = thread::spawn(move || conn.run());
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
@@ -132,7 +165,8 @@ struct Counts {
     other: Vec<String>,
 }
 
-const TSCONFIG: &str = r#"{ "compilerOptions": { "noLib": true, "strict": true }, "files": ["a.ts", "b.ts"] }"#;
+const TSCONFIG: &str =
+    r#"{ "compilerOptions": { "noLib": true, "strict": true }, "files": ["a.ts", "b.ts"] }"#;
 const NUMBER: f64 = 64.0;
 const STRING: f64 = 32.0;
 
@@ -150,23 +184,36 @@ fn checker_requests_race_snapshot_update_and_release() {
     }
     assert!(counts.other.is_empty(), "unexpected outcomes: {:#?}", counts.other);
     assert!(counts.correct > 0 && counts.stale_handle_rejected > 0, "{counts:#?}");
-    assert!(counts.correct_across_release > 0, "no request overlapped a release; the run proves nothing: {counts:#?}");
+    assert!(
+        counts.correct_across_release > 0,
+        "no request overlapped a release; the run proves nothing: {counts:#?}"
+    );
 }
 
 fn run_stress(rounds: usize, fanout: usize) -> Counts {
     let mut c = start();
     let mut counts = Counts::default();
-    let full = format!(r#"{{"kind":"full","files":{{"/p/tsconfig.json":{},"/p/a.ts":{},"/p/b.ts":{}}}}}"#, q(TSCONFIG), q(&a_ts(0)), q(B));
-    let r = c.call("createSnapshot", &format!(r#"{{"openProjects":["/p/tsconfig.json"],"fileSystem":{full}}}"#));
+    let full = format!(
+        r#"{{"kind":"full","files":{{"/p/tsconfig.json":{},"/p/a.ts":{},"/p/b.ts":{}}}}}"#,
+        q(TSCONFIG),
+        q(&a_ts(0)),
+        q(B)
+    );
+    let r = c.call(
+        "createSnapshot",
+        &format!(r#"{{"openProjects":["/p/tsconfig.json"],"fileSystem":{full}}}"#),
+    );
     let mut snap = match get(&r, "snapshot") {
         Value::Number(n) => n,
         other => panic!("{other:?}"),
     };
-    let project = match get(&match get(&r, "projects") {
-        Value::Array(a) => a[0].clone(),
-        other => panic!("{other:?}"),
-    }, "id")
-    {
+    let project = match get(
+        &match get(&r, "projects") {
+            Value::Array(a) => a[0].clone(),
+            other => panic!("{other:?}"),
+        },
+        "id",
+    ) {
         Value::String(p) => p,
         other => panic!("{other:?}"),
     };
@@ -176,15 +223,26 @@ fn run_stress(rounds: usize, fanout: usize) -> Counts {
         let expected = if k % 2 == 0 { NUMBER } else { STRING };
         let sp = format!(r#""snapshot":{snap},"project":{}"#, q(&project));
         // Handles obtained from S_k before the race.
-        let t = c.call("getTypeAtPosition", &format!(r#"{{{sp},"file":"/p/b.ts","position":{use_pos}}}"#));
+        let t = c.call(
+            "getTypeAtPosition",
+            &format!(r#"{{{sp},"file":"/p/b.ts","position":{use_pos}}}"#),
+        );
         assert_eq!(get(&t, "flags"), Value::Number(expected));
         let type_id = json::marshal(&get(&t, "id")).unwrap();
-        let sym = c.call("getSymbolAtPosition", &format!(r#"{{{sp},"file":"/p/b.ts","position":{use_pos}}}"#));
+        let sym = c.call(
+            "getSymbolAtPosition",
+            &format!(r#"{{{sp},"file":"/p/b.ts","position":{use_pos}}}"#),
+        );
         let sym_ref = json::marshal(&get(&sym, "reference")).unwrap();
         // Race: fan-out of checker requests on S_k, the update to S_{k+1} and the release of S_k.
         // The update reads S_k, so it completes before S_k is released.
         let layer = format!(r#"{{"kind":"layer","files":{{"/p/a.ts":{}}}}}"#, q(&a_ts(k + 1)));
-        let update = c.send("updateSnapshot", &format!(r#"{{"snapshot":{snap},"changes":{{"ensurePrograms":true,"fileSystem":{layer}}}}}"#));
+        let update = c.send(
+            "updateSnapshot",
+            &format!(
+                r#"{{"snapshot":{snap},"changes":{{"ensurePrograms":true,"fileSystem":{layer}}}}}"#
+            ),
+        );
         let v = c.wait(&update);
         let Value::Number(next) = get(&get(&v, "result"), "snapshot") else {
             panic!("updateSnapshot failed: {}", json::marshal(&v).unwrap());
@@ -194,8 +252,16 @@ fn run_stress(rounds: usize, fanout: usize) -> Counts {
         let mut ids = Vec::new();
         for i in 0..fanout {
             let (method, params, check): (&str, String, u8) = match i % 4 {
-                0 => ("getTypeAtPosition", format!(r#"{{{sp},"file":"/p/b.ts","position":{all_pos}}}"#), 1),
-                1 => ("getTypeAtPosition", format!(r#"{{{sp},"file":"/p/b.ts","position":{use_pos}}}"#), 0),
+                0 => (
+                    "getTypeAtPosition",
+                    format!(r#"{{{sp},"file":"/p/b.ts","position":{all_pos}}}"#),
+                    1,
+                ),
+                1 => (
+                    "getTypeAtPosition",
+                    format!(r#"{{{sp},"file":"/p/b.ts","position":{use_pos}}}"#),
+                    0,
+                ),
                 2 => ("typeToString", format!(r#"{{{sp},"type":{type_id}}}"#), 2),
                 _ => ("getTypeOfSymbol", format!(r#"{{{sp},"symbol":{sym_ref}}}"#), 0),
             };
@@ -212,17 +278,36 @@ fn run_stress(rounds: usize, fanout: usize) -> Counts {
             let error = get(&get(&v, "error"), "message");
             match (check, &error) {
                 (8, Value::Null) => {}
-                (0, Value::Null) if get(&result, "flags") == Value::Number(expected) => counts.correct += 1,
+                (0, Value::Null) if get(&result, "flags") == Value::Number(expected) => {
+                    counts.correct += 1;
+                }
                 (1, Value::Null) if get(&result, "flags") != Value::Null => counts.correct += 1,
-                (2, Value::Null) if result == Value::String(if k % 2 == 0 { "number" } else { "string" }.into()) => counts.correct += 1,
-                (0..=2, Value::String(m)) if m == &format!("api: client error: snapshot {snap} not found") => counts.snapshot_gone += 1,
-                _ => counts.other.push(format!("round {k} check {check}: {}", json::marshal(&v).unwrap())),
+                (2, Value::Null)
+                    if result
+                        == Value::String(if k % 2 == 0 { "number" } else { "string" }.into()) =>
+                {
+                    counts.correct += 1;
+                }
+                (0..=2, Value::String(m))
+                    if m == &format!("api: client error: snapshot {snap} not found") =>
+                {
+                    counts.snapshot_gone += 1;
+                }
+                _ => counts
+                    .other
+                    .push(format!("round {k} check {check}: {}", json::marshal(&v).unwrap())),
             }
         }
-        let released_at = arrivals.iter().find(|(c, _, _)| *c == 8).map(|(_, a, _)| json::marshal(a).unwrap().parse::<f64>().unwrap()).unwrap();
+        let released_at = arrivals
+            .iter()
+            .find(|(c, _, _)| *c == 8)
+            .map(|(_, a, _)| json::marshal(a).unwrap().parse::<f64>().unwrap())
+            .unwrap();
         counts.correct_across_release += arrivals
             .iter()
-            .filter(|(c, a, ok)| *c != 8 && *ok && json::marshal(a).unwrap().parse::<f64>().unwrap() > released_at)
+            .filter(|(c, a, ok)| {
+                *c != 8 && *ok && json::marshal(a).unwrap().parse::<f64>().unwrap() > released_at
+            })
             .count();
         // After the release every S_k handle fails safely, also in the new snapshot's requests.
         for (method, params) in [
@@ -233,8 +318,14 @@ fn run_stress(rounds: usize, fanout: usize) -> Counts {
             let id = c.send(method, &params);
             let v = c.wait(&id);
             match get(&get(&v, "error"), "message") {
-                Value::String(m) if m == format!("api: client error: snapshot {snap} not found") => counts.stale_handle_rejected += 1,
-                _ => counts.other.push(format!("round {k} stale {method}: {}", json::marshal(&v).unwrap())),
+                Value::String(m)
+                    if m == format!("api: client error: snapshot {snap} not found") =>
+                {
+                    counts.stale_handle_rejected += 1;
+                }
+                _ => counts
+                    .other
+                    .push(format!("round {k} stale {method}: {}", json::marshal(&v).unwrap())),
             }
         }
         snap = next;
@@ -247,7 +338,9 @@ fn run_stress(rounds: usize, fanout: usize) -> Counts {
         match (get(&v, "error"), get(&get(&v, "result"), "flags")) {
             (Value::Null, f) if f == Value::Number(next_expected) => counts.correct += 1,
             (Value::Object(_), _) => counts.stale_handle_rejected += 1,
-            _ => counts.other.push(format!("round {k} carried symbol: {}", json::marshal(&v).unwrap())),
+            _ => counts
+                .other
+                .push(format!("round {k} carried symbol: {}", json::marshal(&v).unwrap())),
         }
     }
     drop(c.w);
@@ -264,21 +357,39 @@ fn released_snapshot_checker_memory_is_poisoned() {
     use crate::handler::{Handler, Response};
     let poison = std::env::var_os("TSRS_ARENA_POISON").is_some_and(|v| v == "1");
     let files: [(&str, &str); 0] = [];
-    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|(k, v)| (k.to_string(), v.to_string())), false)));
-    let session = Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.to_string(), v.to_string())),
+        false,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
     let call = |method: &str, params: String| -> Value {
         match session.handle_request(method, params.as_bytes()) {
             Ok(Response::Json(t)) => json::unmarshal(&t).unwrap(),
             other => panic!("{method}: {other:?}"),
         }
     };
-    let full = format!(r#"{{"kind":"full","files":{{"/p/tsconfig.json":{},"/p/a.ts":{},"/p/b.ts":{}}}}}"#, q(TSCONFIG), q(&a_ts(0)), q(B));
-    let r = call("createSnapshot", format!(r#"{{"openProjects":["/p/tsconfig.json"],"fileSystem":{full}}}"#));
+    let full = format!(
+        r#"{{"kind":"full","files":{{"/p/tsconfig.json":{},"/p/a.ts":{},"/p/b.ts":{}}}}}"#,
+        q(TSCONFIG),
+        q(&a_ts(0)),
+        q(B)
+    );
+    let r = call(
+        "createSnapshot",
+        format!(r#"{{"openProjects":["/p/tsconfig.json"],"fileSystem":{full}}}"#),
+    );
     let Value::Number(snap) = get(&r, "snapshot") else { panic!() };
     let Value::Array(projects) = get(&r, "projects") else { panic!() };
     let Value::String(project) = get(&projects[0], "id") else { panic!() };
     let pos = B.find("all =").unwrap();
-    let t = call("getTypeAtPosition", format!(r#"{{"snapshot":{snap},"project":{},"file":"/p/b.ts","position":{pos}}}"#, q(&project)));
+    let t = call(
+        "getTypeAtPosition",
+        format!(
+            r#"{{"snapshot":{snap},"project":{},"file":"/p/b.ts","position":{pos}}}"#,
+            q(&project)
+        ),
+    );
     let Value::Number(id) = get(&t, "id") else { panic!() };
     let (flags, before) = {
         let sd = session.snapshot_data(snap as u64).unwrap();
@@ -293,6 +404,9 @@ fn released_snapshot_checker_memory_is_poisoned() {
         // SAFETY: flags points to the aligned u32 storage; poison mode keeps its freed region mapped and filled.
         let after = unsafe { std::ptr::read_volatile(flags) };
         let addr = flags.addr();
-        assert_eq!(after, poison_word, "released checker memory was not freed/poisoned at {addr:#x}");
+        assert_eq!(
+            after, poison_word,
+            "released checker memory was not freed/poisoned at {addr:#x}"
+        );
     }
 }

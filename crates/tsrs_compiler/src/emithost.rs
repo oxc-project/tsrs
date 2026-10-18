@@ -8,10 +8,10 @@
 use tsrs_ast::{FileReference, ModifierFlags, Node, SourceFile};
 use tsrs_checker::CheckerSlot;
 use tsrs_core::tspath::Path;
-use tsrs_core::{ResolutionMode, P};
+use tsrs_core::{P, ResolutionMode};
 use tsrs_declarations::{DeclarationEmitHost, Resolver};
 use tsrs_module::symlinks::KnownSymlinks;
-use tsrs_module::{packagejson, ResolvedModule};
+use tsrs_module::{ResolvedModule, packagejson};
 use tsrs_tsoptions::outputpaths::{self, OutputPaths, OutputPathsHost};
 
 use crate::emitter;
@@ -26,7 +26,11 @@ pub(crate) struct EmitHost {
 }
 
 // emitHost.go:38 (the checker acquisition is the caller's; see above)
-pub(crate) fn new_emit_host(program: &'static Program, emit_resolver: P<tsrs_checker::EmitResolver>, checker_slot: P<CheckerSlot>) -> &'static EmitHost {
+pub(crate) fn new_emit_host(
+    program: &'static Program,
+    emit_resolver: P<tsrs_checker::EmitResolver>,
+    checker_slot: P<CheckerSlot>,
+) -> &'static EmitHost {
     P::new(EmitHost { program, emit_resolver: Resolver::new(emit_resolver, checker_slot) }).get()
 }
 
@@ -60,17 +64,28 @@ impl tsrs_modulespecifiers::ModuleSpecifierGenerationHost for EmitHost {
 
     fn get_global_typings_cache_location(&self) -> String {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_global_typings_cache_location(self.program)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_global_typings_cache_location(
+            self.program,
+        )
     }
 
-    fn get_project_reference_from_source(&self, path: &Path) -> Option<P<tsrs_tsoptions::SourceOutputAndProjectReference>> {
+    fn get_project_reference_from_source(
+        &self,
+        path: &Path,
+    ) -> Option<P<tsrs_tsoptions::SourceOutputAndProjectReference>> {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_project_reference_from_source(self.program, path)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_project_reference_from_source(
+            self.program,
+            path,
+        )
     }
 
     fn get_redirect_targets(&self, path: &Path) -> Vec<String> {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_redirect_targets(self.program, path)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_redirect_targets(
+            self.program,
+            path,
+        )
     }
 
     fn get_source_of_project_reference_if_output_included(&self, file: P<SourceFile>) -> String {
@@ -90,33 +105,61 @@ impl tsrs_modulespecifiers::ModuleSpecifierGenerationHost for EmitHost {
 
     fn get_package_json_info(&self, pkg_json_path: &str) -> Option<P<packagejson::InfoCacheEntry>> {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_package_json_info(self.program, pkg_json_path)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_package_json_info(
+            self.program,
+            pkg_json_path,
+        )
     }
 
-    fn exports_module_name_cache(&self, options: &tsrs_core::CompilerOptions) -> Option<&tsrs_modulespecifiers::ExportsModuleNameCache> {
+    fn exports_module_name_cache(
+        &self,
+        options: &tsrs_core::CompilerOptions,
+    ) -> Option<&tsrs_modulespecifiers::ExportsModuleNameCache> {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::exports_module_name_cache(self.program, options)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::exports_module_name_cache(
+            self.program,
+            options,
+        )
     }
 
     fn get_default_resolution_mode_for_file(&self, file: P<SourceFile>) -> ResolutionMode {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_default_resolution_mode_for_file(self.program, file)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_default_resolution_mode_for_file(
+            self.program,
+            file,
+        )
     }
 
-    fn get_resolved_module_from_module_specifier(&self, file: P<SourceFile>, module_specifier: P<Node>) -> Option<P<ResolvedModule>> {
+    fn get_resolved_module_from_module_specifier(
+        &self,
+        file: P<SourceFile>,
+        module_specifier: P<Node>,
+    ) -> Option<P<ResolvedModule>> {
         let _outer = tsrs_core::arena::escape_scratch();
         tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_resolved_module_from_module_specifier(self.program, file, module_specifier)
     }
 
-    fn get_mode_for_usage_location(&self, file: P<SourceFile>, module_specifier: P<Node>) -> ResolutionMode {
+    fn get_mode_for_usage_location(
+        &self,
+        file: P<SourceFile>,
+        module_specifier: P<Node>,
+    ) -> ResolutionMode {
         let _outer = tsrs_core::arena::escape_scratch();
-        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_mode_for_usage_location(self.program, file, module_specifier)
+        tsrs_modulespecifiers::ModuleSpecifierGenerationHost::get_mode_for_usage_location(
+            self.program,
+            file,
+            module_specifier,
+        )
     }
 }
 
 impl DeclarationEmitHost for EmitHost {
     // emitHost.go:103
-    fn get_source_file_from_reference(&self, origin: P<SourceFile>, ref_: P<FileReference>) -> Option<P<SourceFile>> {
+    fn get_source_file_from_reference(
+        &self,
+        origin: P<SourceFile>,
+        ref_: P<FileReference>,
+    ) -> Option<P<SourceFile>> {
         let _outer = tsrs_core::arena::escape_scratch();
         self.program.get_source_file_from_reference(origin, ref_)
     }
@@ -125,7 +168,12 @@ impl DeclarationEmitHost for EmitHost {
     fn get_output_paths_for(&self, file: P<SourceFile>, force_dts_paths: bool) -> OutputPaths {
         let _outer = tsrs_core::arena::escape_scratch();
         // TODO: cache
-        outputpaths::get_output_paths_for(file, &self.program.options(), self, outputpaths::ForceEmitPaths { dts: force_dts_paths, ..Default::default() })
+        outputpaths::get_output_paths_for(
+            file,
+            &self.program.options(),
+            self,
+            outputpaths::ForceEmitPaths { dts: force_dts_paths, ..Default::default() },
+        )
     }
 
     // emitHost.go:99
@@ -135,7 +183,11 @@ impl DeclarationEmitHost for EmitHost {
     }
 
     // emitHost.go:90
-    fn get_effective_declaration_flags(&self, node: P<Node>, flags: ModifierFlags) -> ModifierFlags {
+    fn get_effective_declaration_flags(
+        &self,
+        node: P<Node>,
+        flags: ModifierFlags,
+    ) -> ModifierFlags {
         let _outer = tsrs_core::arena::escape_scratch();
         self.get_emit_resolver().get_effective_declaration_flags(node, flags)
     }
@@ -202,7 +254,10 @@ impl tsrs_transformers::EmitHost for EmitHost {
     }
 
     // emitHost.go:83
-    fn get_project_reference_from_source(&self, path: &Path) -> Option<P<tsrs_tsoptions::SourceOutputAndProjectReference>> {
+    fn get_project_reference_from_source(
+        &self,
+        path: &Path,
+    ) -> Option<P<tsrs_tsoptions::SourceOutputAndProjectReference>> {
         let _outer = tsrs_core::arena::escape_scratch();
         self.program.get_project_reference_from_source(path)
     }

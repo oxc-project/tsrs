@@ -1,12 +1,15 @@
 // Go package `tsoptions/tsoptionstest`: test helpers shared with other crates' tests.
 
-use tsrs_core::tspath;
 use tsrs_core::P;
-use tsrs_vfs::vfstest;
+use tsrs_core::tspath;
 use tsrs_vfs::FS;
+use tsrs_vfs::vfstest;
 
 use crate::parsedcommandline::ParsedCommandLine;
-use crate::tsconfigparsing::{new_tsconfig_source_file_from_file_path, parse_json_source_file_config_file_content, ParseConfigHost};
+use crate::tsconfigparsing::{
+    ParseConfigHost, new_tsconfig_source_file_from_file_path,
+    parse_json_source_file_config_file_content,
+};
 
 pub fn get_parsed_command_line(
     json_text: &str,
@@ -21,7 +24,16 @@ pub fn get_parsed_command_line(
         tspath::to_path(&config_file_name, current_directory, use_case_sensitive_file_names),
         json_text,
     );
-    parse_json_source_file_config_file_content(tsconfig_source_file, host, current_directory, None, None, &config_file_name, &[], None)
+    parse_json_source_file_config_file_content(
+        tsconfig_source_file,
+        host,
+        current_directory,
+        None,
+        None,
+        &config_file_name,
+        &[],
+        None,
+    )
 }
 
 pub struct VfsParseConfigHost {
@@ -46,7 +58,11 @@ pub fn new_vfs_parse_config_host(
     use_case_sensitive_file_names: bool,
 ) -> &'static VfsParseConfigHost {
     P::new(VfsParseConfigHost {
-        vfs: P::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.to_string())), use_case_sensitive_file_names)).get(),
+        vfs: P::new(vfstest::from_map(
+            files.iter().map(|(k, v)| (*k, v.to_string())),
+            use_case_sensitive_file_names,
+        ))
+        .get(),
         current_directory: current_directory.to_string(),
     })
     .get()

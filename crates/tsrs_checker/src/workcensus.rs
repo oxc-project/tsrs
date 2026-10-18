@@ -24,7 +24,12 @@ use tsrs_core::P;
 /// `TSRS_WORK_CENSUS_SLOW`=<ms>: print spans of a few categories that take longer (diagnosis only).
 pub fn slow_threshold_ns() -> u64 {
     static NS: OnceLock<u64> = OnceLock::new();
-    *NS.get_or_init(|| std::env::var("TSRS_WORK_CENSUS_SLOW").ok().and_then(|v| v.parse::<f64>().ok()).map_or(u64::MAX, |ms| (ms * 1e6) as u64))
+    *NS.get_or_init(|| {
+        std::env::var("TSRS_WORK_CENSUS_SLOW")
+            .ok()
+            .and_then(|v| v.parse::<f64>().ok())
+            .map_or(u64::MAX, |ms| (ms * 1e6) as u64)
+    })
 }
 
 /// The output file; None unless the binary was built with `-p tsrs_checker --features tsrs_checker/work-census` and `TSRS_WORK_CENSUS` is set.
@@ -33,7 +38,10 @@ pub fn census_path() -> Option<&'static str> {
         return None;
     }
     static PATH: OnceLock<Option<String>> = OnceLock::new();
-    PATH.get_or_init(|| std::env::var("TSRS_WORK_CENSUS").ok().filter(|v| !v.is_empty() && v != "0")).as_deref()
+    PATH.get_or_init(|| {
+        std::env::var("TSRS_WORK_CENSUS").ok().filter(|v| !v.is_empty() && v != "0")
+    })
+    .as_deref()
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
@@ -174,19 +182,11 @@ pub struct Census {
 }
 
 pub(crate) fn bucket(n: usize) -> u32 {
-    if n <= 1 {
-        0
-    } else {
-        (n - 1).bit_width()
-    }
+    if n <= 1 { 0 } else { (n - 1).bit_width() }
 }
 
 fn bucket_label(b: u32) -> String {
-    if b == 0 {
-        "<=1".to_string()
-    } else {
-        format!("{}..{}", (1usize << (b - 1)) + 1, 1usize << b)
-    }
+    if b == 0 { "<=1".to_string() } else { format!("{}..{}", (1usize << (b - 1)) + 1, 1usize << b) }
 }
 
 impl Census {
@@ -341,10 +341,23 @@ pub(crate) fn rel_kind(c: &Checker, rel: P<crate::relater_types::Relation>) -> u
     }
 }
 
-const REL_NAMES: [&str; 6] = ["assignable", "comparable", "subtype", "strictSubtype", "identity", "other"];
+const REL_NAMES: [&str; 6] =
+    ["assignable", "comparable", "subtype", "strictSubtype", "identity", "other"];
 
-const KIND_LABELS: [&str; 12] =
-    ["object", "union", "intersection", "literal", "type-parameter", "indexed-access", "conditional", "substitution", "index", "template-literal", "primitive", "other"];
+const KIND_LABELS: [&str; 12] = [
+    "object",
+    "union",
+    "intersection",
+    "literal",
+    "type-parameter",
+    "indexed-access",
+    "conditional",
+    "substitution",
+    "index",
+    "template-literal",
+    "primitive",
+    "other",
+];
 
 pub(crate) fn type_identity(t: P<Type>) -> (Option<P<Symbol>>, u8) {
     if let Some(alias) = t.alias() {
@@ -396,7 +409,9 @@ fn file_and_line(node: P<Node>) -> String {
     };
     let line = tsrs_scanner::get_ecma_line_of_position(&*sf, pos);
     let name = sf.file_name();
-    let short: String = if let Some(i) = name.find("/node_modules/") { name[i + 1..].to_string() } else {
+    let short: String = if let Some(i) = name.find("/node_modules/") {
+        name[i + 1..].to_string()
+    } else {
         // The last three path components.
         let start = name.rmatch_indices('/').nth(2).map_or(0, |(i, _)| i + 1);
         name[start..].to_string()
@@ -461,7 +476,11 @@ impl CKey {
                 None => format!("{} -> <{}>", REL_NAMES[r as usize], KIND_LABELS[k as usize]),
             },
             CKey::Bucket(b) => format!("size {}", bucket_label(b)),
-            CKey::Mapped(n, b) => format!("{} | keys {}", n.map_or_else(|| "?".to_string(), node_label), bucket_label(b)),
+            CKey::Mapped(n, b) => format!(
+                "{} | keys {}",
+                n.map_or_else(|| "?".to_string(), node_label),
+                bucket_label(b)
+            ),
         }
     }
 }
@@ -514,11 +533,7 @@ impl Checker {
 
     #[inline]
     pub(crate) fn census_mut(&mut self) -> Option<&mut Census> {
-        if cfg!(feature = "work-census") {
-            self.census.as_deref_mut()
-        } else {
-            None
-        }
+        if cfg!(feature = "work-census") { self.census.as_deref_mut() } else { None }
     }
 
     #[inline]
@@ -543,12 +558,15 @@ impl Checker {
         g.frames += c.frames;
         g.pair_ns = c.pair_ns;
         let mut rows: Vec<((Cat, CKey), Stat)> = c.stats.iter().map(|(k, v)| (*k, *v)).collect();
-        rows.sort_by_key(|((cat, _), s)| (*cat, std::cmp::Reverse(s.incl_ns), std::cmp::Reverse(s.count)));
+        rows.sort_by_key(|((cat, _), s)| {
+            (*cat, std::cmp::Reverse(s.incl_ns), std::cmp::Reverse(s.count))
+        });
         for ((cat, key), s) in rows {
             let e = g.stats.entry((cat, key.label())).or_default();
             add_stat(e, &s);
         }
-        let mut fan: Vec<((P<ConditionalRoot>, u32), Stat)> = c.fanout.iter().map(|(k, v)| (*k, *v)).collect();
+        let mut fan: Vec<((P<ConditionalRoot>, u32), Stat)> =
+            c.fanout.iter().map(|(k, v)| (*k, *v)).collect();
         fan.sort_by_key(|(_, s)| std::cmp::Reverse(s.incl_ns));
         for ((root, b), s) in fan {
             let e = g.fanout.entry((CKey::Root(root).label(), b)).or_default();
@@ -567,7 +585,8 @@ impl Checker {
                 g.rel_cache[i][j] += v;
             }
         }
-        let infer: Vec<(u32, u64, usize, u32, Option<P<Node>>)> = c.infer_keys.values().copied().collect();
+        let infer: Vec<(u32, u64, usize, u32, Option<P<Node>>)> =
+            c.infer_keys.values().copied().collect();
         let mut by_callee: FxHashMap<Option<P<Node>>, Stat> = FxHashMap::default();
         for (n, ns, _, other, decl) in infer {
             g.infer_distinct += 1;
@@ -625,7 +644,8 @@ pub fn census_report() {
     let Some(path) = census_path() else { return };
     let guard = GLOBAL.lock().unwrap();
     let Some(g) = guard.as_ref() else { return };
-    let top: usize = std::env::var("TSRS_WORK_CENSUS_TOP").ok().and_then(|v| v.parse().ok()).unwrap_or(60);
+    let top: usize =
+        std::env::var("TSRS_WORK_CENSUS_TOP").ok().and_then(|v| v.parse().ok()).unwrap_or(60);
     let total = g.total_wall_ns.max(1);
     let pct = |ns: u64| 100.0 * ns as f64 / total as f64;
     let mut out = String::new();
@@ -645,8 +665,14 @@ pub fn census_report() {
     }
     let mut cat_rows: Vec<(Cat, Stat)> = cats.into_iter().collect();
     cat_rows.sort_by_key(|(c, _)| *c);
-    let _ = writeln!(out, "\n## categories (incl = outermost span of the category; self = minus every nested span)\n");
-    let _ = writeln!(out, "| category | calls | outer calls | incl ms | incl % | self ms | self % | a | b | c |");
+    let _ = writeln!(
+        out,
+        "\n## categories (incl = outermost span of the category; self = minus every nested span)\n"
+    );
+    let _ = writeln!(
+        out,
+        "| category | calls | outer calls | incl ms | incl % | self ms | self % | a | b | c |"
+    );
     let _ = writeln!(out, "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
     for (cat, s) in &cat_rows {
         let _ = writeln!(
@@ -684,26 +710,71 @@ pub fn census_report() {
         (Cat::VarInit, "quick type used", "-", "-"),
     ];
     for (cat, a, b, cc) in extras {
-        let mut rows: Vec<(&String, &Stat)> = all.iter().filter(|((c, _), _)| *c == cat).map(|((_, k), s)| (k, *s)).collect();
+        let mut rows: Vec<(&String, &Stat)> =
+            all.iter().filter(|((c, _), _)| *c == cat).map(|((_, k), s)| (k, *s)).collect();
         if rows.is_empty() {
             continue;
         }
-        rows.sort_by(|x, y| y.1.key_incl_ns.cmp(&x.1.key_incl_ns).then(y.1.incl_ns.cmp(&x.1.incl_ns)).then(y.1.count.cmp(&x.1.count)).then(x.0.cmp(y.0)));
-        let _ = writeln!(out, "\n## {} by key (top {top} of {}, by key incl = outermost span of this key)\n", cat.name(), rows.len());
-        let _ = writeln!(out, "| key | calls | key incl ms | key incl % | cat-outer incl ms | self ms | {a} | {b} | {cc} |");
+        rows.sort_by(|x, y| {
+            y.1.key_incl_ns
+                .cmp(&x.1.key_incl_ns)
+                .then(y.1.incl_ns.cmp(&x.1.incl_ns))
+                .then(y.1.count.cmp(&x.1.count))
+                .then(x.0.cmp(y.0))
+        });
+        let _ = writeln!(
+            out,
+            "\n## {} by key (top {top} of {}, by key incl = outermost span of this key)\n",
+            cat.name(),
+            rows.len()
+        );
+        let _ = writeln!(
+            out,
+            "| key | calls | key incl ms | key incl % | cat-outer incl ms | self ms | {a} | {b} | {cc} |"
+        );
         let _ = writeln!(out, "| --- | --- | --- | --- | --- | --- | --- | --- | --- |");
         for (k, s) in rows.iter().take(top) {
-            let _ = writeln!(out, "| {} | {} | {:.1} | {:.2} | {:.1} | {:.1} | {} | {} | {} |", k.replace('|', "/"), s.count, ms(s.key_incl_ns), pct(s.key_incl_ns), ms(s.incl_ns), ms(s.self_ns), s.a, s.b, s.c);
+            let _ = writeln!(
+                out,
+                "| {} | {} | {:.1} | {:.2} | {:.1} | {:.1} | {} | {} | {} |",
+                k.replace('|', "/"),
+                s.count,
+                ms(s.key_incl_ns),
+                pct(s.key_incl_ns),
+                ms(s.incl_ns),
+                ms(s.self_ns),
+                s.a,
+                s.b,
+                s.c
+            );
         }
     }
     // Distribution fan-out.
     let mut fan: Vec<(&(String, u32), &Stat)> = g.fanout.iter().collect();
     fan.sort_by(|x, y| y.1.key_incl_ns.cmp(&x.1.key_incl_ns).then(x.0.cmp(y.0)));
-    let _ = writeln!(out, "\n## conditional distribution by root and fan-out bucket (top {top} of {}, by key incl)\n", fan.len());
-    let _ = writeln!(out, "| root | fan-out | distributions | constituents | never | key incl ms | key incl % | self ms |");
+    let _ = writeln!(
+        out,
+        "\n## conditional distribution by root and fan-out bucket (top {top} of {}, by key incl)\n",
+        fan.len()
+    );
+    let _ = writeln!(
+        out,
+        "| root | fan-out | distributions | constituents | never | key incl ms | key incl % | self ms |"
+    );
     let _ = writeln!(out, "| --- | --- | --- | --- | --- | --- | --- | --- |");
     for ((k, b), s) in fan.iter().take(top) {
-        let _ = writeln!(out, "| {} | {} | {} | {} | {} | {:.1} | {:.2} | {:.1} |", k.replace('|', "/"), bucket_label(*b), s.count, s.a, s.b, ms(s.key_incl_ns), pct(s.key_incl_ns), ms(s.self_ns));
+        let _ = writeln!(
+            out,
+            "| {} | {} | {} | {} | {} | {:.1} | {:.2} | {:.1} |",
+            k.replace('|', "/"),
+            bucket_label(*b),
+            s.count,
+            s.a,
+            s.b,
+            ms(s.key_incl_ns),
+            pct(s.key_incl_ns),
+            ms(s.self_ns)
+        );
     }
     let mut by_bucket: FxHashMap<u32, Stat> = FxHashMap::default();
     let fan_all: Vec<(&(String, u32), &Stat)> = g.fanout.iter().collect();
@@ -712,16 +783,34 @@ pub fn census_report() {
     }
     let mut bb: Vec<(u32, Stat)> = by_bucket.into_iter().collect();
     bb.sort_by_key(|(b, _)| *b);
-    let _ = writeln!(out, "\n| fan-out | distributions | constituents | never | key incl ms (may nest across roots) |\n| --- | --- | --- | --- | --- |");
+    let _ = writeln!(
+        out,
+        "\n| fan-out | distributions | constituents | never | key incl ms (may nest across roots) |\n| --- | --- | --- | --- | --- |"
+    );
     for (b, s) in bb {
-        let _ = writeln!(out, "| {} | {} | {} | {} | {:.1} |", bucket_label(b), s.count, s.a, s.b, ms(s.key_incl_ns));
+        let _ = writeln!(
+            out,
+            "| {} | {} | {} | {} | {:.1} |",
+            bucket_label(b),
+            s.count,
+            s.a,
+            s.b,
+            ms(s.key_incl_ns)
+        );
     }
     // Relations.
-    let _ = writeln!(out, "\n## relation caches (recursiveTypeRelatedTo)\n\n| relation | hits | misses | maybe-stack hits |\n| --- | --- | --- | --- |");
+    let _ = writeln!(
+        out,
+        "\n## relation caches (recursiveTypeRelatedTo)\n\n| relation | hits | misses | maybe-stack hits |\n| --- | --- | --- | --- |"
+    );
     for (i, row) in g.rel_cache.iter().enumerate() {
         let _ = writeln!(out, "| {} | {} | {} | {} |", REL_NAMES[i], row[0], row[1], row[2]);
     }
-    let _ = writeln!(out, "\nstructuredTypeRelatedTo distinct (source, target) pairs (1/8 sample) {}, under more than one relation {}", g.rel_pairs_total, g.rel_pairs_multi);
+    let _ = writeln!(
+        out,
+        "\nstructuredTypeRelatedTo distinct (source, target) pairs (1/8 sample) {}, under more than one relation {}",
+        g.rel_pairs_total, g.rel_pairs_multi
+    );
     let mut masks: Vec<(u8, u64)> = g.rel_pairs_masks.iter().map(|(k, v)| (*k, *v)).collect();
     masks.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
     for (m, n) in masks.iter().take(12) {
@@ -745,10 +834,20 @@ pub fn census_report() {
     for (k, s) in rows.iter().take(25) {
         let _ = writeln!(out, "| {} | {} | {:.1} |", k.replace('|', "/"), s.count, ms(s.incl_ns));
     }
-    let _ = writeln!(out, "\n## flow walks: steps per getFlowTypeOfReference invocation (exclusive of nested invocations)\n\n| steps | invocations | steps total | incl ms |\n| --- | --- | --- | --- |");
+    let _ = writeln!(
+        out,
+        "\n## flow walks: steps per getFlowTypeOfReference invocation (exclusive of nested invocations)\n\n| steps | invocations | steps total | incl ms |\n| --- | --- | --- | --- |"
+    );
     for (i, s) in g.flow_hist.iter().enumerate() {
         if s.count > 0 {
-            let _ = writeln!(out, "| {} | {} | {} | {:.1} |", bucket_label(i as u32), s.count, s.a, ms(s.incl_ns));
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {:.1} |",
+                bucket_label(i as u32),
+                s.count,
+                s.a,
+                ms(s.incl_ns)
+            );
         }
     }
     let _ = writeln!(
@@ -762,20 +861,58 @@ pub fn census_report() {
     let mut ru: Vec<(&(u8, u8, u8), &Stat)> = g.rel_union.iter().collect();
     ru.sort_by(|x, y| y.1.key_incl_ns.cmp(&x.1.key_incl_ns).then(x.0.cmp(y.0)));
     let _ = writeln!(out, "\n## typeRelatedToSomeType outcomes (source kind / key map / exit)\n");
-    let _ = writeln!(out, "source kinds: 0 fresh object literal, 1 object literal, 2 other object, 3 intersection, 4 primitive/literal, 5 other");
-    let _ = writeln!(out, "key map: 0 union < 10 or not computed, 1 no key property, 2 key property + match related, 3 key property + match failed, 4 key property + no match");
-    let _ = writeln!(out, "exit: 0 contains, 1 primitive-union fast path, 2 by key match, 3 first constituent, 4 within first 10%, 5 later, 6 none (false)\n");
-    let _ = writeln!(out, "| source | key map | exit | calls | constituents tried | incl ms | incl % |\n| --- | --- | --- | --- | --- | --- | --- |");
+    let _ = writeln!(
+        out,
+        "source kinds: 0 fresh object literal, 1 object literal, 2 other object, 3 intersection, 4 primitive/literal, 5 other"
+    );
+    let _ = writeln!(
+        out,
+        "key map: 0 union < 10 or not computed, 1 no key property, 2 key property + match related, 3 key property + match failed, 4 key property + no match"
+    );
+    let _ = writeln!(
+        out,
+        "exit: 0 contains, 1 primitive-union fast path, 2 by key match, 3 first constituent, 4 within first 10%, 5 later, 6 none (false)\n"
+    );
+    let _ = writeln!(
+        out,
+        "| source | key map | exit | calls | constituents tried | incl ms | incl % |\n| --- | --- | --- | --- | --- | --- | --- |"
+    );
     for ((sk, km, ex), s) in ru.iter().take(60) {
-        let _ = writeln!(out, "| {sk} | {km} | {ex} | {} | {} | {:.1} | {:.2} |", s.count, s.a, ms(s.key_incl_ns), pct(s.key_incl_ns));
+        let _ = writeln!(
+            out,
+            "| {sk} | {km} | {ex} | {} | {} | {:.1} | {:.2} |",
+            s.count,
+            s.a,
+            ms(s.key_incl_ns),
+            pct(s.key_incl_ns)
+        );
     }
     let mut rl: Vec<(&(u8, u8), &Stat)> = g.rel_union_late.iter().collect();
     rl.sort_by_key(|(k, _)| **k);
-    let _ = writeln!(out, "\n## typeRelatedToSomeType constituent loop: failed checks before the related one\n");
-    let _ = writeln!(out, "| union size | outcome | calls | failed checks | of which cache hits | ms in failed checks | % |\n| --- | --- | --- | --- | --- | --- | --- |");
+    let _ = writeln!(
+        out,
+        "\n## typeRelatedToSomeType constituent loop: failed checks before the related one\n"
+    );
+    let _ = writeln!(
+        out,
+        "| union size | outcome | calls | failed checks | of which cache hits | ms in failed checks | % |\n| --- | --- | --- | --- | --- | --- | --- |"
+    );
     for ((b, kind), s) in rl {
-        let what = match kind { 0 => "related later, no single-property index", 1 => "related later, a property index excludes all earlier", _ => "none related" };
-        let _ = writeln!(out, "| {} | {what} | {} | {} | {} | {:.1} | {:.2} |", bucket_label(*b as u32), s.count, s.a, s.b, ms(s.incl_ns), pct(s.incl_ns));
+        let what = match kind {
+            0 => "related later, no single-property index",
+            1 => "related later, a property index excludes all earlier",
+            _ => "none related",
+        };
+        let _ = writeln!(
+            out,
+            "| {} | {what} | {} | {} | {} | {:.1} | {:.2} |",
+            bucket_label(*b as u32),
+            s.count,
+            s.a,
+            s.b,
+            ms(s.incl_ns),
+            pct(s.incl_ns)
+        );
     }
     std::fs::write(path, out).expect("TSRS_WORK_CENSUS");
 }

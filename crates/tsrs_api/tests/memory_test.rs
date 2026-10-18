@@ -19,7 +19,14 @@ fn arr(v: &Value) -> &Vec<Value> {
 
 fn create_program(s: &tsrs_api::Session, roots: &[String], options: &str) -> (u64, String) {
     let roots: Vec<String> = roots.iter().map(|r| quote(r)).collect();
-    let r = call(s, "createSnapshot", &format!("{{\"createPrograms\":[{{\"rootFiles\":[{}],\"compilerOptions\":{options}}}]}}", roots.join(",")));
+    let r = call(
+        s,
+        "createSnapshot",
+        &format!(
+            "{{\"createPrograms\":[{{\"rootFiles\":[{}],\"compilerOptions\":{options}}}]}}",
+            roots.join(",")
+        ),
+    );
     let snapshot = match get(&r, "snapshot") {
         Value::Number(n) => *n as u64,
         v => panic!("{v:?}"),
@@ -38,7 +45,11 @@ fn rss_kib() -> u64 {
     unsafe { malloc_trim(0) };
     std::fs::read_to_string("/proc/self/status")
         .ok()
-        .and_then(|s| s.lines().find(|l| l.starts_with("VmRSS:")).and_then(|l| l.split_whitespace().nth(1)?.parse().ok()))
+        .and_then(|s| {
+            s.lines()
+                .find(|l| l.starts_with("VmRSS:"))
+                .and_then(|l| l.split_whitespace().nth(1)?.parse().ok())
+        })
         .unwrap_or(0)
 }
 
@@ -53,7 +64,8 @@ fn released_snapshots_free_program_and_emit_memory() {
     let s = session(&dir.dir(), false);
     let n: usize = std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(60);
     let round = |s: &tsrs_api::Session| {
-        let (snap, project) = create_program(s, std::slice::from_ref(&a), "{\"declaration\":true,\"noLib\":true}");
+        let (snap, project) =
+            create_program(s, std::slice::from_ref(&a), "{\"declaration\":true,\"noLib\":true}");
         let sp = format!("\"snapshot\":{snap},\"project\":{}", quote(&project));
         call(s, "getSemanticDiagnostics", &format!("{{{sp}}}"));
         let out = call(s, "emitToString", &format!("{{{sp}}}"));
@@ -84,7 +96,10 @@ fn create_and_release_snapshot_cycles_do_not_accumulate() {
     let mut prev: Option<u64> = None;
     let mut cycle = |s: &tsrs_api::Session| {
         let r = call(s, "createSnapshot", &format!("{{\"openProjects\":[{}]}}", quote(&cfg)));
-        let snap = match get(&r, "snapshot") { Value::Number(n) => *n as u64, _ => unreachable!() };
+        let snap = match get(&r, "snapshot") {
+            Value::Number(n) => *n as u64,
+            _ => unreachable!(),
+        };
         if let Some(p) = prev.replace(snap) {
             call(s, "release", &format!("{{\"snapshot\":{p}}}"));
         }
@@ -107,7 +122,8 @@ fn repeated_transpile_reclaims_scratch_memory() {
     let _g = MEMORY.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
     let dir = TempDir::new("tmloop");
     let s = session(&dir.dir(), false);
-    let n: usize = std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
+    let n: usize =
+        std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
     let body = "export function f(a: string): number { return a.length; }\n".repeat(40);
     let req_js = format!("{{\"input\":{},\"options\":{{}}}}", quote(&body));
     let first_js = call(&s, "transpileModule", &req_js);
@@ -139,7 +155,8 @@ fn repeated_config_parsing_reclaims_memory() {
         dir.write(&format!("src/f{i}.ts"), "export {};\n");
     }
     let s = session(&dir.dir(), false);
-    let n: usize = std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
+    let n: usize =
+        std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
     let req = format!("{{\"file\":{}}}", quote(&cfg));
     let first = call(&s, "parseConfigFile", &req);
     for _ in 0..10 {
@@ -176,8 +193,18 @@ fn failed_program_builds_release_their_files() {
     };
     let fail = |i: usize| {
         std::fs::write(&root, body(i)).unwrap();
-        let e = call_err(&s, "createSnapshot", &format!(r#"{{"createPrograms":[{{"rootFiles":[{}],"compilerOptions":{{"moduleResolution":-1,"noLib":true}}}}]}}"#, quote(&root)));
-        assert_eq!(e, "api: client error: unsupported moduleResolution value -1 (not a ModuleResolutionKind)");
+        let e = call_err(
+            &s,
+            "createSnapshot",
+            &format!(
+                r#"{{"createPrograms":[{{"rootFiles":[{}],"compilerOptions":{{"moduleResolution":-1,"noLib":true}}}}]}}"#,
+                quote(&root)
+            ),
+        );
+        assert_eq!(
+            e,
+            "api: client error: unsupported moduleResolution value -1 (not a ModuleResolutionKind)"
+        );
     };
     for i in 0..5 {
         fail(i);
@@ -191,7 +218,15 @@ fn failed_program_builds_release_their_files() {
     eprintln!("failed createSnapshot x{n} (changing ~150 KB root): rss grew {grown} KiB");
     assert!(grown < (n as u64) * 64, "rss grew {grown} KiB over {n} failed builds");
     // The retained snapshot's copy of a.ts (also acquired and rolled back by every failed build) is still alive.
-    let sf = call(&s, "getSourceFile", &format!(r#"{{"snapshot":{keep},"project":{},"file":{}}}"#, quote(&keep_project), quote(&a)));
+    let sf = call(
+        &s,
+        "getSourceFile",
+        &format!(
+            r#"{{"snapshot":{keep},"project":{},"file":{}}}"#,
+            quote(&keep_project),
+            quote(&a)
+        ),
+    );
     assert!(!matches!(sf, Value::Null));
     let (next, _) = create_program(&s, std::slice::from_ref(&a), "{\"noLib\":true}");
     call(&s, "release", &format!("{{\"snapshot\":{next}}}"));

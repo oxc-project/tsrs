@@ -5,8 +5,12 @@ use tsrs_ast::Kind;
 use super::*;
 
 // rulesmap.go:11
-pub(crate) fn get_rules(context: &FormattingContext, mut rules: Vec<&'static RuleImpl>) -> Vec<&'static RuleImpl> {
-    let bucket = &get_rules_map()[get_rule_bucket_index(context.current_token_span.kind, context.next_token_span.kind)];
+pub(crate) fn get_rules(
+    context: &FormattingContext,
+    mut rules: Vec<&'static RuleImpl>,
+) -> Vec<&'static RuleImpl> {
+    let bucket = &get_rules_map()
+        [get_rule_bucket_index(context.current_token_span.kind, context.next_token_span.kind)];
     if !bucket.is_empty() {
         let mut rule_action_mask = RuleAction::None;
         'outer: for &rule in bucket {
@@ -27,7 +31,10 @@ pub(crate) fn get_rules(context: &FormattingContext, mut rules: Vec<&'static Rul
 
 // rulesmap.go:34
 fn get_rule_bucket_index(row: Kind, column: Kind) -> usize {
-    assert!(row <= Kind::LastKeyword && column <= Kind::LastKeyword, "Must compute formatting context from tokens");
+    assert!(
+        row <= Kind::LastKeyword && column <= Kind::LastKeyword,
+        "Must compute formatting context from tokens"
+    );
     (row as usize * MAP_ROW_LENGTH) + column as usize
 }
 
@@ -77,7 +84,13 @@ fn build_rules_map() -> Vec<Vec<&'static RuleImpl>> {
         for &left in &rule.left_token_range.tokens {
             for &right in &rule.right_token_range.tokens {
                 let index = get_rule_bucket_index(left, right);
-                add_rule(&mut m[index], rule.rule, specific_rule, &mut rules_bucket_construction_state_list, index);
+                add_rule(
+                    &mut m[index],
+                    rule.rule,
+                    specific_rule,
+                    &mut rules_bucket_construction_state_list,
+                    index,
+                );
             }
         }
     }
@@ -124,7 +137,11 @@ fn add_rule(
     let position = if rule.action() & RuleAction::StopAction != RuleAction::None {
         if specific_tokens { RulesPosition::StopRulesSpecific } else { RulesPosition::StopRulesAny }
     } else if !rule.context().is_empty() {
-        if specific_tokens { RulesPosition::ContextRulesSpecific } else { RulesPosition::ContextRulesAny }
+        if specific_tokens {
+            RulesPosition::ContextRulesSpecific
+        } else {
+            RulesPosition::ContextRulesAny
+        }
     } else if specific_tokens {
         RulesPosition::NoContextRulesSpecific
     } else {
@@ -152,6 +169,9 @@ fn get_rule_insertion_index(mut index_bitmap: u32, mask_position: RulesPosition)
 // rulesmap.go:152
 fn increase_insertion_index(index_bitmap: u32, mask_position: RulesPosition) -> u32 {
     let value = ((index_bitmap >> mask_position.0) & MASK) + 1;
-    assert!((value & MASK) == value, "Adding more rules into the sub-bucket than allowed. Maximum allowed is 32 rules.");
+    assert!(
+        (value & MASK) == value,
+        "Adding more rules into the sub-bucket than allowed. Maximum allowed is 32 rules."
+    );
     (index_bitmap & !(MASK << mask_position.0)) | (value << mask_position.0)
 }

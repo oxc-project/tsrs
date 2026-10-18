@@ -1,8 +1,8 @@
-use tsrs_ast::{is_external_module, SourceFileParseOptions};
-use tsrs_core::{tspath, ScriptKind};
+use tsrs_ast::{SourceFileParseOptions, is_external_module};
+use tsrs_core::{ScriptKind, tspath};
 use tsrs_tsoptions::{Definition, Manifest, Mapper};
 
-use crate::{parse_result, MappedResult, TransformResultFiles};
+use crate::{MappedResult, TransformResultFiles, parse_result};
 
 fn parse_options() -> SourceFileParseOptions {
     SourceFileParseOptions {
@@ -14,7 +14,10 @@ fn parse_options() -> SourceFileParseOptions {
 
 fn mapper(extensions: &[&str]) -> Mapper {
     Mapper {
-        definition: Definition { extensions: extensions.iter().map(std::string::ToString::to_string).collect(), ..Default::default() },
+        definition: Definition {
+            extensions: extensions.iter().map(std::string::ToString::to_string).collect(),
+            ..Default::default()
+        },
         manifest: Manifest { name: "mapper".to_string(), ..Default::default() },
         ..Default::default()
     }
@@ -36,10 +39,15 @@ fn test_parse_result_supplemental_file_extensions() {
     let result = TransformResultFiles {
         virtual_extension: ".ts".to_string(),
         mappings: Some(mappings),
-        supplemental: [".js", ".jsx", ".ts", ".tsx", ".mts", ".cts", ".json"].iter().map(|ext| mapped("", ext)).collect(),
+        supplemental: [".js", ".jsx", ".ts", ".tsx", ".mts", ".cts", ".json"]
+            .iter()
+            .map(|ext| mapped("", ext))
+            .collect(),
         ..Default::default()
     };
-    let files = parse_result(parse_options(), "", &mapper(&[".astro"]), "transform-identity", result).unwrap();
+    let files =
+        parse_result(parse_options(), "", &mapper(&[".astro"]), "transform-identity", result)
+            .unwrap();
     let canonical = files.canonical.unwrap();
     assert_eq!(canonical.content_mapper_transform_identity(), "transform-identity");
     let canonical_supplementals = canonical.supplemental_source_files();

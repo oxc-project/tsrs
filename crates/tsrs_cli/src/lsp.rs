@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use tsrs_core::context::{CancelFunc, Context};
 use tsrs_core::tspath;
-use tsrs_vfs::{bundled, osvfs, FS};
+use tsrs_vfs::{FS, bundled, osvfs};
 
 // lsp.go:20
 pub fn run_lsp(args: &[String]) -> i32 {
@@ -58,7 +58,11 @@ pub fn run_lsp(args: &[String]) -> i32 {
         typings_location,
         parse_cache: None,
         npm_install: Some(Arc::new(|cwd: &str, args: &[String]| {
-            let output = std::process::Command::new("npm").args(args).current_dir(cwd).stderr(std::process::Stdio::piped()).output();
+            let output = std::process::Command::new("npm")
+                .args(args)
+                .current_dir(cwd)
+                .stderr(std::process::Stdio::piped())
+                .output();
             match output {
                 Ok(output) if output.status.success() => Ok(output.stdout),
                 Ok(output) => Err(format!("exit status {}", output.status.code().unwrap_or(-1))),
@@ -81,7 +85,11 @@ pub fn run_lsp(args: &[String]) -> i32 {
 // newParentProcessWatchdog returns a SetParentProcessID callback if the platform
 // supports process-alive checking and no client process ID override was provided,
 // or nil otherwise.
-fn new_parent_process_watchdog(ctx: &Context, stop: &CancelFunc, client_process_id: i64) -> Option<Box<dyn Fn(i32) + Send + Sync>> {
+fn new_parent_process_watchdog(
+    ctx: &Context,
+    stop: &CancelFunc,
+    client_process_id: i64,
+) -> Option<Box<dyn Fn(i32) + Send + Sync>> {
     if !PROCESS_ALIVE_SUPPORTED {
         return None;
     }
@@ -91,7 +99,9 @@ fn new_parent_process_watchdog(ctx: &Context, stop: &CancelFunc, client_process_
     }
     let ctx = ctx.clone();
     let stop = stop.clone();
-    Some(Box::new(move |parent_pid: i32| start_parent_process_watchdog(&ctx, &stop, parent_pid as i64)))
+    Some(Box::new(move |parent_pid: i32| {
+        start_parent_process_watchdog(&ctx, &stop, parent_pid as i64);
+    }))
 }
 
 // lsp.go:95
@@ -106,15 +116,17 @@ fn start_parent_process_watchdog(ctx: &Context, stop: &CancelFunc, parent_pid: i
     let stop = stop.clone();
     std::thread::Builder::new()
         .name("lsp-parent-watchdog".to_string())
-        .spawn(move || loop {
-            // time.NewTicker(5 * time.Second): select on ctx.Done() and the ticker.
-            if ctx.wait_timeout(Duration::from_secs(5)) {
-                return;
-            }
-            if !is_process_alive(parent_pid) {
-                eprintln!("Parent process {parent_pid} has exited, shutting down.");
-                stop.call();
-                return;
+        .spawn(move || {
+            loop {
+                // time.NewTicker(5 * time.Second): select on ctx.Done() and the ticker.
+                if ctx.wait_timeout(Duration::from_secs(5)) {
+                    return;
+                }
+                if !is_process_alive(parent_pid) {
+                    eprintln!("Parent process {parent_pid} has exited, shutting down.");
+                    stop.call();
+                    return;
+                }
             }
         })
         .expect("failed to spawn the parent process watchdog");
@@ -156,7 +168,9 @@ fn is_process_alive(_pid: i64) -> bool {
 
 // vfs/osvfs/os.go:193
 fn get_global_typings_cache_location() -> String {
-    let cache_dir = user_cache_dir().unwrap_or_else(|| std::env::temp_dir().to_string_lossy().trim_end_matches('/').to_string());
+    let cache_dir = user_cache_dir().unwrap_or_else(|| {
+        std::env::temp_dir().to_string_lossy().trim_end_matches('/').to_string()
+    });
 
     let subdir = if cfg!(windows) { "Microsoft/TypeScript" } else { "typescript" };
     tspath::combine_paths(&cache_dir, &[subdir, tsrs_core::version_major_minor()])
@@ -310,11 +324,17 @@ impl flagSet {
                     None => true,
                     Some("1" | "t" | "T" | "TRUE" | "true" | "True") => true,
                     Some("0" | "f" | "F" | "FALSE" | "false" | "False") => false,
-                    Some(v) => return self.fail(&format!("invalid boolean value {v:?} for -{name}: parse error")),
+                    Some(v) => {
+                        return self.fail(&format!(
+                            "invalid boolean value {v:?} for -{name}: parse error"
+                        ));
+                    }
                 };
                 self.flags[index].value = flagValue::Bool(b);
             } else {
-                let value = if let Some(value) = value { value } else {
+                let value = if let Some(value) = value {
+                    value
+                } else {
                     if i >= args.len() {
                         return self.fail(&format!("flag needs an argument: -{name}"));
                     }
@@ -324,7 +344,11 @@ impl flagSet {
                 let new_value = match self.flags[index].value {
                     flagValue::Int(_) => match parse_go_int(&value) {
                         Ok(n) => flagValue::Int(n),
-                        Err(reason) => return self.fail(&format!("invalid value {value:?} for flag -{name}: {reason}")),
+                        Err(reason) => {
+                            return self.fail(&format!(
+                                "invalid value {value:?} for flag -{name}: {reason}"
+                            ));
+                        }
                     },
                     _ => flagValue::String(value),
                 };
@@ -341,17 +365,18 @@ fn parse_go_int(s: &str) -> Result<i64, &'static str> {
         Some(rest) => (true, rest),
         None => (false, s.strip_prefix('+').unwrap_or(s)),
     };
-    let (radix, digits) = if let Some(rest) = body.strip_prefix("0x").or_else(|| body.strip_prefix("0X")) {
-        (16, rest)
-    } else if let Some(rest) = body.strip_prefix("0b").or_else(|| body.strip_prefix("0B")) {
-        (2, rest)
-    } else if let Some(rest) = body.strip_prefix("0o").or_else(|| body.strip_prefix("0O")) {
-        (8, rest)
-    } else if body.len() > 1 && body.starts_with('0') {
-        (8, &body[1..])
-    } else {
-        (10, body)
-    };
+    let (radix, digits) =
+        if let Some(rest) = body.strip_prefix("0x").or_else(|| body.strip_prefix("0X")) {
+            (16, rest)
+        } else if let Some(rest) = body.strip_prefix("0b").or_else(|| body.strip_prefix("0B")) {
+            (2, rest)
+        } else if let Some(rest) = body.strip_prefix("0o").or_else(|| body.strip_prefix("0O")) {
+            (8, rest)
+        } else if body.len() > 1 && body.starts_with('0') {
+            (8, &body[1..])
+        } else {
+            (10, body)
+        };
     let digits = digits.replace('_', "");
     if digits.is_empty() || !digits.chars().all(|c| c.is_digit(radix)) {
         return Err("parse error");

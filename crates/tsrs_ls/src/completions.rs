@@ -1,10 +1,12 @@
 // completions.go, lines 1-1818 (the rest is in completions_2.rs .. completions_4.rs).
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_ast::{self as ast, Kind, ModifierFlags, Node, NodeFlags, SourceFile, Symbol, SymbolFlags, SymbolId};
+use tsrs_ast::{
+    self as ast, Kind, ModifierFlags, Node, NodeFlags, SourceFile, Symbol, SymbolFlags, SymbolId,
+};
 use tsrs_checker::{self as checker, Checker, ContextFlags, LiteralValue, Type};
 use tsrs_core::context::Context;
-use tsrs_core::{stringutil, tspath, P};
+use tsrs_core::{P, stringutil, tspath};
 use tsrs_lsproto as lsproto;
 use tsrs_scanner as scanner;
 
@@ -14,7 +16,9 @@ use crate::format::{self, FormatContext};
 use crate::languageservice::LanguageService;
 use crate::lsutil::{self, FormatCodeSettings, UserPreferences};
 use crate::spanmap::Feature;
-use crate::utilities::{is_in_comment, is_in_right_side_of_internal_import_equals_declaration, is_in_string};
+use crate::utilities::{
+    is_in_comment, is_in_right_side_of_internal_import_equals_declaration, is_in_string,
+};
 
 pub(crate) use crate::completions_2::*;
 pub(crate) use crate::completions_3::*;
@@ -34,7 +38,11 @@ pub fn is_err_needs_auto_imports(err: &lsproto::Error) -> bool {
 // Go keeps the formatter settings as values of the request `context.Context` (`format.WithFormatCodeSettings`).
 // The format package takes a `format::FormatContext` (format/api.rs); it travels as a value of the request
 // context so that every Go `ctx` keeps carrying it.
-pub(crate) fn with_format_code_settings(ctx: &Context, options: FormatCodeSettings, new_line: &str) -> Context {
+pub(crate) fn with_format_code_settings(
+    ctx: &Context,
+    options: FormatCodeSettings,
+    new_line: &str,
+) -> Context {
     let base = format_context(ctx);
     ctx.with_value(format::with_format_code_settings(&base, options, new_line))
 }
@@ -57,8 +65,16 @@ impl LanguageService {
         if let Some(context) = context {
             trigger_character = context.trigger_character.as_deref();
         }
-        let ctx = &with_format_code_settings(ctx, self.format_options(), &self.format_options().new_line_character);
-        let positions = self.converters.from_lsp_position_for_source_file(file, lsp_position, Feature::Completion);
+        let ctx = &with_format_code_settings(
+            ctx,
+            self.format_options(),
+            &self.format_options().new_line_character,
+        );
+        let positions = self.converters.from_lsp_position_for_source_file(
+            file,
+            lsp_position,
+            Feature::Completion,
+        );
         if positions.is_empty() || !positions[0].fidelity.is_exact() {
             // In a content-mapped file the cursor is outside a verbatim span, so any completion committed here
             // could not be applied to the original text. Offer nothing rather than edits at a bogus location.
@@ -73,11 +89,8 @@ impl LanguageService {
             trigger_character,
             false, /*includeSymbols*/
         )?;
-        let mut completion_list = ensure_item_data(
-            file,
-            position,
-            completion_list_internal.map(CompletionList::to_lsp),
-        );
+        let mut completion_list =
+            ensure_item_data(file, position, completion_list_internal.map(CompletionList::to_lsp));
         if crate::lsconv::Script::span_map(&file).is_some() {
             self.filter_content_mapped_auto_imports(ctx, program, file, completion_list.as_mut());
         }
@@ -89,7 +102,13 @@ impl LanguageService {
     // an import into synthesized virtual code with no counterpart in the original file). Surviving auto-imports carry
     // their additional edits directly so the client applies correct original-text positions on commit.
     // completions.go:78
-    fn filter_content_mapped_auto_imports(&self, ctx: &Context, program: &'static tsrs_compiler::Program, file: P<SourceFile>, list: Option<&mut lsproto::CompletionList>) {
+    fn filter_content_mapped_auto_imports(
+        &self,
+        ctx: &Context,
+        program: &'static tsrs_compiler::Program,
+        file: P<SourceFile>,
+        list: Option<&mut lsproto::CompletionList>,
+    ) {
         let Some(list) = list else {
             return;
         };
@@ -99,14 +118,15 @@ impl LanguageService {
             let Some(auto_import) = item.data.as_ref().and_then(|d| d.auto_import.clone()) else {
                 return Some(item);
             };
-            let (edits, description, ok) = (autoimport::Fix { auto_import_fix: auto_import, ..Default::default() }).edits(
-                ctx,
-                file,
-                program.options(),
-                self.format_options(),
-                &self.converters,
-                self.user_preferences(),
-            );
+            let (edits, description, ok) =
+                (autoimport::Fix { auto_import_fix: auto_import, ..Default::default() }).edits(
+                    ctx,
+                    file,
+                    program.options(),
+                    self.format_options(),
+                    &self.converters,
+                    self.user_preferences(),
+                );
             if !ok {
                 return None;
             }
@@ -127,7 +147,13 @@ impl LanguageService {
         include_symbols: bool,
     ) -> Result<Option<CompletionList>, lsproto::Error> {
         let position = crate::lsconv::snap_to_char_boundary(file.text(), position);
-        self.get_completions_at_position_internal(ctx, file, position, trigger_character, include_symbols)
+        self.get_completions_at_position_internal(
+            ctx,
+            file,
+            position,
+            trigger_character,
+            include_symbols,
+        )
     }
 }
 
@@ -192,10 +218,8 @@ fn ensure_item_data(
 // completions.go:139
 pub(crate) fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
     let canonical = file.canonical_source_file()?;
-    if let Some(i) = canonical
-        .supplemental_source_files()
-        .iter()
-        .position(|&supplemental| supplemental == file)
+    if let Some(i) =
+        canonical.supplemental_source_files().iter().position(|&supplemental| supplemental == file)
     {
         return Some(i);
     }
@@ -203,7 +227,10 @@ pub(crate) fn supplemental_file_index(file: P<SourceFile>) -> Option<usize> {
 }
 
 // completions.go:152
-pub(crate) fn source_file_for_supplemental_file_index(file: P<SourceFile>, index: Option<i32>) -> Option<P<SourceFile>> {
+pub(crate) fn source_file_for_supplemental_file_index(
+    file: P<SourceFile>,
+    index: Option<i32>,
+) -> Option<P<SourceFile>> {
     let Some(index) = index else {
         return Some(file);
     };
@@ -246,7 +273,7 @@ pub(crate) struct completionDataData {
     pub(crate) is_right_of_open_tag: bool,
     pub(crate) is_right_of_dot_or_question_dot: bool,
     pub(crate) import_statement_completion: Option<importStatementCompletionInfo>, // !!!
-    pub(crate) has_unresolved_auto_imports: bool,                                 // !!!
+    pub(crate) has_unresolved_auto_imports: bool,                                  // !!!
     // flags CompletionInfoFlags // !!!
     pub(crate) default_commit_characters: Option<Vec<String>>,
 }
@@ -335,7 +362,9 @@ impl KeywordCompletionFilters {
 fn keyword_filters_from_syntax_kind(keyword_completion: Kind) -> KeywordCompletionFilters {
     match keyword_completion {
         Kind::TypeKeyword => KeywordCompletionFilters::TypeKeyword,
-        _ => panic!("Unknown mapping from ast.Kind `Kind{keyword_completion:?}` to KeywordCompletionFilters"),
+        _ => panic!(
+            "Unknown mapping from ast.Kind `Kind{keyword_completion:?}` to KeywordCompletionFilters"
+        ),
     }
 }
 
@@ -352,7 +381,8 @@ pub enum CompletionKind {
 }
 
 // completions.go:259
-pub const COMPLETION_TRIGGER_CHARACTERS: [&str; 10] = [".", "\"", "'", "`", "/", "@", "<", "#", " ", "*"];
+pub const COMPLETION_TRIGGER_CHARACTERS: [&str; 10] =
+    [".", "\"", "'", "`", "/", "@", "<", "#", " ", "*"];
 
 // All commit characters, valid when `isNewIdentifierLocation` is false.
 // completions.go:262
@@ -389,7 +419,10 @@ pub fn deprecate_sort_text(original: &str) -> SortText {
 }
 
 // completions.go:287
-pub fn object_literal_property_sort_text(preset_sort_text: &str, symbol_display_name: &str) -> SortText {
+pub fn object_literal_property_sort_text(
+    preset_sort_text: &str,
+    symbol_display_name: &str,
+) -> SortText {
     format!("{preset_sort_text}\x00{symbol_display_name}\x00")
 }
 
@@ -440,7 +473,10 @@ impl symbolOriginInfo {
     pub(crate) fn symbol_name(&self) -> String {
         match &self.data {
             symbolOriginData::ComputedPropertyName(data) => data.symbol_name.clone(),
-            _ => panic!("symbolOriginInfo: unknown data type for symbolName(): {}", self.data.go_type()),
+            _ => panic!(
+                "symbolOriginInfo: unknown data type for symbolName(): {}",
+                self.data.go_type()
+            ),
         }
     }
 
@@ -448,7 +484,10 @@ impl symbolOriginInfo {
     pub(crate) fn as_object_literal_method(&self) -> &symbolOriginInfoObjectLiteralMethod {
         match &self.data {
             symbolOriginData::ObjectLiteralMethod(data) => data,
-            _ => panic!("interface conversion: interface {{}} is {}, not *ls.symbolOriginInfoObjectLiteralMethod", self.data.go_type()),
+            _ => panic!(
+                "interface conversion: interface {{}} is {}, not *ls.symbolOriginInfoObjectLiteralMethod",
+                self.data.go_type()
+            ),
         }
     }
 }
@@ -475,7 +514,10 @@ pub(crate) struct symbolOriginInfoObjectLiteralMethod {
 // completions.go:335
 #[derive(Clone)]
 pub(crate) struct symbolOriginInfoTypeOnlyAlias {
-    #[expect(dead_code, reason = "Go has no reader yet either: `!!! fill in additionalTextEdits from code actions` (completions.go:5712)")]
+    #[expect(
+        dead_code,
+        reason = "Go has no reader yet either: `!!! fill in additionalTextEdits from code actions` (completions.go:5712)"
+    )]
     pub(crate) declaration: P<Node>,
 }
 
@@ -502,11 +544,13 @@ pub(crate) const COMPLETION_SOURCE_CLASS_MEMBER_SNIPPET: &str = "ClassMemberSnip
 // A type-only import that needs to be promoted in order to be used at the completion location.
 pub(crate) const COMPLETION_SOURCE_TYPE_ONLY_ALIAS: &str = "TypeOnlyAlias/";
 // Auto-import that comes attached to an object literal method snippet.
-pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET: &str = "ObjectLiteralMethodSnippet/";
+pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_METHOD_SNIPPET: &str =
+    "ObjectLiteralMethodSnippet/";
 // Case completions for switch statements.
 pub(crate) const COMPLETION_SOURCE_SWITCH_CASES: &str = "SwitchCases/";
 // Completions for an object literal expression.
-pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA: &str = "ObjectLiteralMemberWithComma/";
+pub(crate) const COMPLETION_SOURCE_OBJECT_LITERAL_MEMBER_WITH_COMMA: &str =
+    "ObjectLiteralMemberWithComma/";
 
 // Value is set to false for global variables or completions from external module exports,
 // true otherwise.
@@ -523,11 +567,19 @@ enum globalsSearch {
 
 impl CompletionList {
     // completions.go:384
-    #[expect(clippy::wrong_self_convention, reason = "The method name and mutable receiver match the upstream Go operation.")]
+    #[expect(
+        clippy::wrong_self_convention,
+        reason = "The method name and mutable receiver match the upstream Go operation."
+    )]
     pub fn to_lsp(self) -> lsproto::CompletionList {
         let mut items = Vec::with_capacity(self.items.len());
         items.extend(self.items.into_iter().map(|entry| entry.completion_item));
-        lsproto::CompletionList { is_incomplete: self.is_incomplete, item_defaults: self.item_defaults, apply_kind: self.apply_kind, items }
+        lsproto::CompletionList {
+            is_incomplete: self.is_incomplete,
+            item_defaults: self.item_defaults,
+            apply_kind: self.apply_kind,
+            items,
+        }
     }
 }
 
@@ -543,7 +595,9 @@ impl LanguageService {
     ) -> Result<Option<CompletionList>, lsproto::Error> {
         let (_, previous_token) = get_relevant_tokens(position, file);
         if let Some(trigger_character) = trigger_character {
-            if !is_in_string(file, position, previous_token) && !is_valid_trigger(file, trigger_character, previous_token, position) {
+            if !is_in_string(file, position, previous_token)
+                && !is_valid_trigger(file, trigger_character, previous_token, position)
+            {
                 return Ok(None);
             }
         }
@@ -556,7 +610,9 @@ impl LanguageService {
             return Ok(None);
         }
 
-        if let Some(js_doc_snippet_completion) = self.get_jsdoc_snippet_completion(ctx, file, position) {
+        if let Some(js_doc_snippet_completion) =
+            self.get_jsdoc_snippet_completion(ctx, file, position)
+        {
             return Ok(Some(js_doc_snippet_completion));
         }
 
@@ -567,13 +623,23 @@ impl LanguageService {
         let mut checker_handle = self.get_program().get_type_checker_for_file(ctx, file);
         let checker: &mut Checker = &mut checker_handle;
 
-        let string_completions = self.get_string_literal_completions(ctx, file, position, previous_token, checker, compiler_options, include_symbols);
+        let string_completions = self.get_string_literal_completions(
+            ctx,
+            file,
+            position,
+            previous_token,
+            checker,
+            compiler_options,
+            include_symbols,
+        );
         if string_completions.is_some() {
             return Ok(string_completions);
         }
 
         if let Some(previous_token) = previous_token {
-            if (previous_token.kind() == Kind::BreakKeyword || previous_token.kind() == Kind::ContinueKeyword || previous_token.kind() == Kind::Identifier)
+            if (previous_token.kind() == Kind::BreakKeyword
+                || previous_token.kind() == Kind::ContinueKeyword
+                || previous_token.kind() == Kind::Identifier)
                 && ast::is_break_or_continue_statement(previous_token.parent().unwrap())
             {
                 return Ok(self.get_label_completions_at_position(
@@ -587,34 +653,80 @@ impl LanguageService {
         }
 
         let preferences = self.user_preferences().clone();
-        let data = self.get_completion_data(ctx, checker, file, position, &preferences, false /*forItemResolve*/)?;
+        let data = self.get_completion_data(
+            ctx,
+            checker,
+            file,
+            position,
+            &preferences,
+            false, /*forItemResolve*/
+        )?;
         let Some(data) = data else {
             return Ok(None);
         };
 
         match data {
             CompletionData::Data(mut data) => {
-                let optional_replacement_span = self.get_optional_replacement_span(Some(data.location), file);
-                let response = self.completion_info_from_data(ctx, checker, file, compiler_options, &mut data, position, optional_replacement_span, include_symbols)?;
+                let optional_replacement_span =
+                    self.get_optional_replacement_span(Some(data.location), file);
+                let response = self.completion_info_from_data(
+                    ctx,
+                    checker,
+                    file,
+                    compiler_options,
+                    &mut data,
+                    position,
+                    optional_replacement_span,
+                    include_symbols,
+                )?;
                 Ok(response)
             }
             CompletionData::Keyword(data) => {
-                let optional_replacement_span = self.get_optional_replacement_span(previous_token, file);
-                Ok(Some(self.specific_keyword_completion_info(ctx, position, file, data.keyword_completions, data.is_new_identifier_location, optional_replacement_span)))
+                let optional_replacement_span =
+                    self.get_optional_replacement_span(previous_token, file);
+                Ok(Some(self.specific_keyword_completion_info(
+                    ctx,
+                    position,
+                    file,
+                    data.keyword_completions,
+                    data.is_new_identifier_location,
+                    optional_replacement_span,
+                )))
             }
             CompletionData::JSDocTagName => {
                 // If the current position is a jsDoc tag name, only tag names should be provided for completion
                 let mut items = get_jsdoc_tag_name_completions();
-                items.extend(get_jsdoc_parameter_completions(ctx, file, position, checker, compiler_options, &preferences, true /*tagNameOnly*/));
+                items.extend(get_jsdoc_parameter_completions(
+                    ctx,
+                    file,
+                    position,
+                    checker,
+                    compiler_options,
+                    &preferences,
+                    true, /*tagNameOnly*/
+                ));
                 Ok(Some(self.js_doc_completion_info(ctx, position, file, items)))
             }
             CompletionData::JSDocTag => {
                 // If the current position is a jsDoc tag, only tags should be provided for completion
                 let mut items = get_jsdoc_tag_completions();
-                items.extend(get_jsdoc_parameter_completions(ctx, file, position, checker, compiler_options, &preferences, false /*tagNameOnly*/));
+                items.extend(get_jsdoc_parameter_completions(
+                    ctx,
+                    file,
+                    position,
+                    checker,
+                    compiler_options,
+                    &preferences,
+                    false, /*tagNameOnly*/
+                ));
                 Ok(Some(self.js_doc_completion_info(ctx, position, file, items)))
             }
-            CompletionData::JSDocParameterName(data) => Ok(Some(self.js_doc_completion_info(ctx, position, file, get_jsdoc_parameter_name_completions(data.tag)))),
+            CompletionData::JSDocParameterName(data) => Ok(Some(self.js_doc_completion_info(
+                ctx,
+                position,
+                file,
+                get_jsdoc_parameter_name_completions(data.tag),
+            ))),
         }
     }
 
@@ -663,7 +775,14 @@ impl LanguageService {
                 let no_comment_prefix = !(file.text()[line_start as usize..position as usize]
                     .chars()
                     .into_iter()
-                    .any(|r| !(stringutil::is_white_space_single_line(r as u32) || r == '*' || r == '/' || r == '(' || r == ')' || r == '|')));
+                    .any(|r| {
+                        !(stringutil::is_white_space_single_line(r as u32)
+                            || r == '*'
+                            || r == '/'
+                            || r == '('
+                            || r == ')'
+                            || r == '|')
+                    }));
                 if no_comment_prefix {
                     return Ok(Some(CompletionData::JSDocTag));
                 }
@@ -674,14 +793,10 @@ impl LanguageService {
             // Completion should work in the brackets
             if let Some(tag) = get_jsdoc_tag_at_position(current_token, position) {
                 let tag_name = tag.tag_name();
-                if tag_name
-                    .pos()
-                    .expect_source("parsed JSDoc tags have source positions")
+                if tag_name.pos().expect_source("parsed JSDoc tags have source positions")
                     <= position
                     && position
-                        <= tag_name
-                            .end()
-                            .expect_source("parsed JSDoc tags have source positions")
+                        <= tag_name.end().expect_source("parsed JSDoc tags have source positions")
                 {
                     return Ok(Some(CompletionData::JSDocTagName));
                 }
@@ -692,10 +807,12 @@ impl LanguageService {
                         current_token = astnav::get_token_at_position(file, position);
                         // Go checks currentToken for nil; GetTokenAtPosition never returns nil.
                         if !ast::is_declaration_name(current_token)
-                            && (current_token.parent().unwrap().kind() != Kind::JSDocPropertyTag || current_token.parent().unwrap().name() != Some(current_token))
+                            && (current_token.parent().unwrap().kind() != Kind::JSDocPropertyTag
+                                || current_token.parent().unwrap().name() != Some(current_token))
                         {
                             // Use as type location if inside tag's type expression
-                            inside_jsdoc_tag_type_expression = is_currently_editing_node(type_expression, file, position);
+                            inside_jsdoc_tag_type_expression =
+                                is_currently_editing_node(type_expression, file, position);
                         }
                     }
                     if !inside_jsdoc_tag_type_expression
@@ -714,7 +831,9 @@ impl LanguageService {
                                         .end()
                                         .expect_source("parsed JSDoc names have source positions"))
                     {
-                        return Ok(Some(CompletionData::JSDocParameterName(completionDataJSDocParameterName { tag })));
+                        return Ok(Some(CompletionData::JSDocParameterName(
+                            completionDataJSDocParameterName { tag },
+                        )));
                     }
                 }
             }
@@ -728,7 +847,9 @@ impl LanguageService {
 
         // The decision to provide completion depends on the contextToken, which is determined through the previousToken.
         // Note: 'previousToken' (and thus 'contextToken') can be undefined if we are the beginning of the file
-        let is_js_only_location = !inside_jsdoc_tag_type_expression && !inside_js_doc_import_tag && ast::is_source_file_js(file);
+        let is_js_only_location = !inside_jsdoc_tag_type_expression
+            && !inside_js_doc_import_tag
+            && ast::is_source_file_js(file);
         let (mut context_token, previous_token) = get_relevant_tokens(position, file);
 
         // Find the node where completion is requested on.
@@ -750,31 +871,55 @@ impl LanguageService {
         let default_commit_characters: Option<Vec<String>> = None;
 
         if let Some(ct) = context_token {
-            let import_statement_completion_info = self.get_import_statement_completion_info(ct, file);
+            let import_statement_completion_info =
+                self.get_import_statement_completion_info(ct, file);
             if import_statement_completion_info.keyword_completion != Kind::Unknown {
                 if import_statement_completion_info.is_keyword_only_completion {
                     return Ok(Some(CompletionData::Keyword(completionDataKeyword {
                         keyword_completions: vec![CompletionItem::new(lsproto::CompletionItem {
-                            label: scanner::token_to_string(import_statement_completion_info.keyword_completion).to_string(),
+                            label: scanner::token_to_string(
+                                import_statement_completion_info.keyword_completion,
+                            )
+                            .to_string(),
                             kind: Some(lsproto::CompletionItemKind::Keyword),
                             sort_text: Some(SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string()),
                             ..Default::default()
                         })],
-                        is_new_identifier_location: import_statement_completion_info.is_new_identifier_location,
+                        is_new_identifier_location: import_statement_completion_info
+                            .is_new_identifier_location,
                     })));
                 }
-                keyword_filters = keyword_filters_from_syntax_kind(import_statement_completion_info.keyword_completion);
+                keyword_filters = keyword_filters_from_syntax_kind(
+                    import_statement_completion_info.keyword_completion,
+                );
             }
-            if import_statement_completion_info.replacement_span.is_some() && preferences.include_completions_for_import_statements.is_true() {
+            if import_statement_completion_info.replacement_span.is_some()
+                && preferences.include_completions_for_import_statements.is_true()
+            {
                 // !!! flags |= CompletionInfoFlags.IsImportStatementCompletion;
-                is_new_identifier_location = import_statement_completion_info.is_new_identifier_location;
+                is_new_identifier_location =
+                    import_statement_completion_info.is_new_identifier_location;
                 import_statement_completion = Some(import_statement_completion_info.clone());
             }
             // Bail out if this is a known invalid completion location.
-            if import_statement_completion_info.replacement_span.is_none() && is_completion_list_blocker(ct, previous_token, location, file, position, type_checker) {
+            if import_statement_completion_info.replacement_span.is_none()
+                && is_completion_list_blocker(
+                    ct,
+                    previous_token,
+                    location,
+                    file,
+                    position,
+                    type_checker,
+                )
+            {
                 if keyword_filters != KeywordCompletionFilters::None {
-                    let (is_new_identifier_location, _) = compute_commit_characters_and_is_new_identifier(Some(ct), file, position);
-                    return Ok(Some(CompletionData::Keyword(keyword_completion_data(keyword_filters, is_js_only_location, is_new_identifier_location))));
+                    let (is_new_identifier_location, _) =
+                        compute_commit_characters_and_is_new_identifier(Some(ct), file, position);
+                    return Ok(Some(CompletionData::Keyword(keyword_completion_data(
+                        keyword_filters,
+                        is_js_only_location,
+                        is_new_identifier_location,
+                    ))));
                 }
                 return Ok(None);
             }
@@ -788,12 +933,17 @@ impl LanguageService {
                     Kind::PropertyAccessExpression => {
                         property_access_to_convert = Some(parent);
                         node = parent.expression().unwrap();
-                        let left_most_access_expression = ast::get_leftmost_access_expression(parent);
-                        #[expect(clippy::suspicious_operation_groupings, reason = "the parsed expression end is intentionally compared with the dot token start")]
+                        let left_most_access_expression =
+                            ast::get_leftmost_access_expression(parent);
+                        #[expect(
+                            clippy::suspicious_operation_groupings,
+                            reason = "the parsed expression end is intentionally compared with the dot token start"
+                        )]
                         if ast::node_is_missing(left_most_access_expression)
                             || ((ast::is_call_expression(node) || ast::is_function_like(node))
                                 && node.end() == ct.pos()
-                                && lsutil::get_last_child(node, file).unwrap().kind() != Kind::CloseParenToken)
+                                && lsutil::get_last_child(node, file).unwrap().kind()
+                                    != Kind::CloseParenToken)
                         {
                             // This is likely dot from incorrectly parsed expression and user is starting to write spread
                             // eg: Math.min(./**/)
@@ -813,7 +963,12 @@ impl LanguageService {
                     }
                     Kind::MetaProperty => {
                         node = lsutil::get_first_token(parent, file).unwrap();
-                        assert!(!(node.kind() != Kind::ImportKeyword && node.kind() != Kind::NewKeyword), "Unexpected token kind: Kind{:?}", node.kind());
+                        assert!(
+                            !(node.kind() != Kind::ImportKeyword
+                                && node.kind() != Kind::NewKeyword),
+                            "Unexpected token kind: Kind{:?}",
+                            node.kind()
+                        );
                     }
                     _ => {
                         // There is nothing that precedes the dot, so this likely just a stray character
@@ -838,14 +993,17 @@ impl LanguageService {
                 if parent == location {
                     match current_token.kind() {
                         Kind::GreaterThanToken => {
-                            if parent.kind() == Kind::JsxElement || parent.kind() == Kind::JsxOpeningElement {
+                            if parent.kind() == Kind::JsxElement
+                                || parent.kind() == Kind::JsxOpeningElement
+                            {
                                 location = current_token;
                             }
                         }
                         Kind::LessThanSlashToken
-                            if parent.kind() == Kind::JsxSelfClosingElement => {
-                                location = current_token;
-                            }
+                            if parent.kind() == Kind::JsxSelfClosingElement =>
+                        {
+                            location = current_token;
+                        }
                         _ => {}
                     }
                 }
@@ -858,8 +1016,12 @@ impl LanguageService {
                         }
                     }
                     // Go: `case KindBinaryExpression: if !binaryExpressionMayBeOpenTag(...) { break }; fallthrough`
-                    Kind::BinaryExpression | Kind::JsxSelfClosingElement | Kind::JsxElement | Kind::JsxOpeningElement
-                        if parent.kind() != Kind::BinaryExpression || binary_expression_may_be_open_tag(parent) =>
+                    Kind::BinaryExpression
+                    | Kind::JsxSelfClosingElement
+                    | Kind::JsxElement
+                    | Kind::JsxOpeningElement
+                        if parent.kind() != Kind::BinaryExpression
+                            || binary_expression_may_be_open_tag(parent) =>
                     {
                         is_jsx_identifier_expected = true;
                         if ct.kind() == Kind::LessThanToken {
@@ -874,7 +1036,8 @@ impl LanguageService {
                         // Second case must not match for `<div foo={undefine[||]}></div>`.
                         let previous_token = previous_token.unwrap();
                         if previous_token.kind() == Kind::CloseBraceToken
-                            || previous_token.kind() == Kind::Identifier && previous_token.parent().unwrap().kind() == Kind::JsxAttribute
+                            || previous_token.kind() == Kind::Identifier
+                                && previous_token.parent().unwrap().kind() == Kind::JsxAttribute
                         {
                             is_jsx_identifier_expected = true;
                         }
@@ -900,7 +1063,12 @@ impl LanguageService {
                                     // Note for `<div someBool f>` we don't want to treat this as a jsx inializer, instead it's the attribute name.
                                     if Some(parent) != previous_token.parent()
                                         && parent.initializer().is_none()
-                                        && astnav::find_child_of_kind(parent, Kind::EqualsToken, file).is_some()
+                                        && astnav::find_child_of_kind(
+                                            parent,
+                                            Kind::EqualsToken,
+                                            file,
+                                        )
+                                        .is_some()
                                     {
                                         jsx_initializer.initializer = Some(previous_token);
                                     }
@@ -916,9 +1084,13 @@ impl LanguageService {
 
         let is_type_only_location = inside_jsdoc_tag_type_expression
             || inside_js_doc_import_tag
-            || import_statement_completion.is_some() && location.parent().is_some() && ast::is_type_only_import_or_export_declaration(location.parent().unwrap())
+            || import_statement_completion.is_some()
+                && location.parent().is_some()
+                && ast::is_type_only_import_or_export_declaration(location.parent().unwrap())
             || !is_context_token_value_location(context_token)
-                && (is_possibly_type_argument_position(context_token, file, type_checker) || ast::is_part_of_type_node(location) || is_context_token_type_location(context_token));
+                && (is_possibly_type_argument_position(context_token, file, type_checker)
+                    || ast::is_part_of_type_node(location)
+                    || is_context_token_type_location(context_token));
 
         let mut s = getCompletionDataState {
             file,
@@ -959,7 +1131,15 @@ impl LanguageService {
             s.completion_kind = CompletionKind::Global;
             s.keyword_filters = KeywordCompletionFilters::None;
         } else if is_starting_close_tag {
-            let tag_name = context_token.unwrap().parent().unwrap().parent().unwrap().as_jsx_element().opening_element.tag_name();
+            let tag_name = context_token
+                .unwrap()
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .as_jsx_element()
+                .opening_element
+                .tag_name();
             let tag_symbol = type_checker.get_symbol_at_location_exported(tag_name);
             if let Some(tag_symbol) = tag_symbol {
                 s.symbols = vec![tag_symbol];
@@ -973,7 +1153,11 @@ impl LanguageService {
             let ok = s.try_get_global_symbols(self, ctx, type_checker)?;
             if !ok {
                 if s.keyword_filters != KeywordCompletionFilters::None {
-                    return Ok(Some(CompletionData::Keyword(keyword_completion_data(s.keyword_filters, is_js_only_location, s.is_new_identifier_location))));
+                    return Ok(Some(CompletionData::Keyword(keyword_completion_data(
+                        s.keyword_filters,
+                        is_js_only_location,
+                        s.is_new_identifier_location,
+                    ))));
                 }
                 return Ok(None);
             }
@@ -981,15 +1165,19 @@ impl LanguageService {
 
         let mut contextual_type_or_constraint: Option<P<Type>> = None;
         if let Some(previous_token) = previous_token {
-            contextual_type_or_constraint = get_contextual_type(previous_token, position, file, type_checker);
+            contextual_type_or_constraint =
+                get_contextual_type(previous_token, position, file, type_checker);
             if contextual_type_or_constraint.is_none() {
-                contextual_type_or_constraint = get_constraint_of_type_argument_property(Some(previous_token), type_checker);
+                contextual_type_or_constraint =
+                    get_constraint_of_type_argument_property(Some(previous_token), type_checker);
             }
         }
 
         // exclude literal suggestions after <input type="text" [||] /> microsoft/TypeScript#51667) and after closing quote (microsoft/TypeScript#52675)
         // for strings getStringLiteralCompletions handles completions
-        let is_literal_expected = previous_token.is_none_or(|token| !ast::is_string_literal_like(token)) && !is_jsx_identifier_expected;
+        let is_literal_expected = previous_token
+            .is_none_or(|token| !ast::is_string_literal_like(token))
+            && !is_jsx_identifier_expected;
         let mut literals: Vec<LiteralValue> = Vec::new();
         if is_literal_expected {
             let mut types: Vec<P<Type>> = Vec::new();
@@ -1000,16 +1188,32 @@ impl LanguageService {
                     types = vec![t];
                 }
             }
-            literals = types.iter().filter_map(|&t| if is_literal(t) && !t.is_enum_literal() { t.as_literal_type().value() } else { None }).collect();
+            literals = types
+                .iter()
+                .filter_map(|&t| {
+                    if is_literal(t) && !t.is_enum_literal() {
+                        t.as_literal_type().value()
+                    } else {
+                        None
+                    }
+                })
+                .collect();
         }
 
         let mut recommended_completion: Option<P<Symbol>> = None;
-        if let (Some(previous_token), Some(contextual_type_or_constraint)) = (previous_token, contextual_type_or_constraint) {
-            recommended_completion = get_recommended_completion(previous_token, contextual_type_or_constraint, type_checker);
+        if let (Some(previous_token), Some(contextual_type_or_constraint)) =
+            (previous_token, contextual_type_or_constraint)
+        {
+            recommended_completion = get_recommended_completion(
+                previous_token,
+                contextual_type_or_constraint,
+                type_checker,
+            );
         }
 
         if s.default_commit_characters.is_none() {
-            s.default_commit_characters = Some(get_default_commit_characters(s.is_new_identifier_location));
+            s.default_commit_characters =
+                Some(get_default_commit_characters(s.is_new_identifier_location));
         }
 
         Ok(Some(CompletionData::Data(Box::new(completionDataData {
@@ -1070,13 +1274,26 @@ struct getCompletionDataState {
 
 impl getCompletionDataState {
     // completions.go:796
-    fn add_symbol_origin_info(&mut self, symbol: P<Symbol>, insert_question_dot: bool, insert_await: bool) {
+    fn add_symbol_origin_info(
+        &mut self,
+        symbol: P<Symbol>,
+        insert_question_dot: bool,
+        insert_await: bool,
+    ) {
         let symbol_id = ast::get_symbol_id(symbol);
         if insert_await && self.seen_property_symbols.insert(symbol_id) {
-            self.symbol_to_origin_info_map
-                .insert(self.symbols.len() - 1, symbolOriginInfo::with_kind(get_nullable_symbol_origin_info_kind(symbolOriginInfoKind::Promise, insert_question_dot)));
+            self.symbol_to_origin_info_map.insert(
+                self.symbols.len() - 1,
+                symbolOriginInfo::with_kind(get_nullable_symbol_origin_info_kind(
+                    symbolOriginInfoKind::Promise,
+                    insert_question_dot,
+                )),
+            );
         } else if insert_question_dot {
-            self.symbol_to_origin_info_map.insert(self.symbols.len() - 1, symbolOriginInfo::with_kind(symbolOriginInfoKind::Nullable));
+            self.symbol_to_origin_info_map.insert(
+                self.symbols.len() - 1,
+                symbolOriginInfo::with_kind(symbolOriginInfoKind::Nullable),
+            );
         }
     }
 
@@ -1084,12 +1301,19 @@ impl getCompletionDataState {
     fn add_symbol_sort_info(&mut self, symbol: P<Symbol>) {
         let symbol_id = ast::get_symbol_id(symbol);
         if is_static_property(symbol) {
-            self.symbol_to_sort_text_map.insert(symbol_id, SORT_TEXT_LOCAL_DECLARATION_PRIORITY.to_string());
+            self.symbol_to_sort_text_map
+                .insert(symbol_id, SORT_TEXT_LOCAL_DECLARATION_PRIORITY.to_string());
         }
     }
 
     // completions.go:812
-    fn add_property_symbol(&mut self, type_checker: &mut Checker, symbol: P<Symbol>, insert_await: bool, insert_question_dot: bool) {
+    fn add_property_symbol(
+        &mut self,
+        type_checker: &mut Checker,
+        symbol: P<Symbol>,
+        insert_await: bool,
+        insert_question_dot: bool,
+    ) {
         // For a computed property with an accessible name like `Symbol.iterator`,
         // we'll add a completion for the *name* `Symbol` instead of for the property.
         // If this is e.g. [Symbol.iterator], add a completion for `Symbol`.
@@ -1110,29 +1334,41 @@ impl getCompletionDataState {
             // If this is nested like for `namespace N { export const sym = Symbol(); }`, we'll add the completion for `N`.
             let mut first_accessible_symbol: Option<P<Symbol>> = None;
             if let Some(name_symbol) = name_symbol {
-                first_accessible_symbol = get_first_symbol_in_chain(name_symbol, self.context_token, type_checker);
+                first_accessible_symbol =
+                    get_first_symbol_in_chain(name_symbol, self.context_token, type_checker);
             }
             let mut first_accessible_symbol_id = SymbolId(0);
             if let Some(first_accessible_symbol) = first_accessible_symbol {
                 first_accessible_symbol_id = ast::get_symbol_id(first_accessible_symbol);
             }
-            if first_accessible_symbol_id != SymbolId(0) && self.seen_property_symbols.insert(first_accessible_symbol_id) {
+            if first_accessible_symbol_id != SymbolId(0)
+                && self.seen_property_symbols.insert(first_accessible_symbol_id)
+            {
                 let first_accessible_symbol = first_accessible_symbol.unwrap();
                 self.symbols.push(first_accessible_symbol);
-                self.symbol_to_sort_text_map.insert(first_accessible_symbol_id, SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string());
+                self.symbol_to_sort_text_map
+                    .insert(first_accessible_symbol_id, SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string());
                 let module_symbol = first_accessible_symbol.parent();
                 if module_symbol.is_none()
                     || !checker::is_external_module_symbol(module_symbol.unwrap())
-                    || type_checker.try_get_member_in_module_exports_and_properties(first_accessible_symbol.name(), module_symbol.unwrap()) != Some(first_accessible_symbol)
+                    || type_checker.try_get_member_in_module_exports_and_properties(
+                        first_accessible_symbol.name(),
+                        module_symbol.unwrap(),
+                    ) != Some(first_accessible_symbol)
                 {
                     self.symbol_to_origin_info_map.insert(
                         self.symbols.len() - 1,
-                        symbolOriginInfo::with_kind(get_nullable_symbol_origin_info_kind(symbolOriginInfoKind::SymbolMember, insert_question_dot)),
+                        symbolOriginInfo::with_kind(get_nullable_symbol_origin_info_kind(
+                            symbolOriginInfoKind::SymbolMember,
+                            insert_question_dot,
+                        )),
                     );
                 } else {
                     // !!! auto-import symbol
                 }
-            } else if first_accessible_symbol_id == SymbolId(0) || !self.seen_property_symbols.contains(&first_accessible_symbol_id) {
+            } else if first_accessible_symbol_id == SymbolId(0)
+                || !self.seen_property_symbols.contains(&first_accessible_symbol_id)
+            {
                 self.symbols.push(symbol);
                 self.add_symbol_origin_info(symbol, insert_question_dot, insert_await);
                 self.add_symbol_sort_info(symbol);
@@ -1145,7 +1381,13 @@ impl getCompletionDataState {
     }
 
     // completions.go:862
-    fn add_type_properties(&mut self, type_checker: &mut Checker, t: P<Type>, insert_await: bool, insert_question_dot: bool) {
+    fn add_type_properties(
+        &mut self,
+        type_checker: &mut Checker,
+        t: P<Type>,
+        insert_await: bool,
+        insert_question_dot: bool,
+    ) {
         if type_checker.get_string_index_type(t).is_some() {
             self.is_new_identifier_location = true;
             self.default_commit_characters = Some(Vec::new());
@@ -1157,12 +1399,25 @@ impl getCompletionDataState {
             }
         }
 
-        let property_access = if self.node.kind() == Kind::ImportType { self.node } else { self.node.parent().unwrap() };
+        let property_access = if self.node.kind() == Kind::ImportType {
+            self.node
+        } else {
+            self.node.parent().unwrap()
+        };
 
         if self.in_checked_file {
             for symbol in type_checker.get_apparent_properties(t) {
-                if type_checker.is_valid_property_access_for_completions_exported(property_access, t, symbol) {
-                    self.add_property_symbol(type_checker, symbol, false /*insertAwait*/, insert_question_dot);
+                if type_checker.is_valid_property_access_for_completions_exported(
+                    property_access,
+                    t,
+                    symbol,
+                ) {
+                    self.add_property_symbol(
+                        type_checker,
+                        symbol,
+                        false, /*insertAwait*/
+                        insert_question_dot,
+                    );
                 }
             }
         } else {
@@ -1171,17 +1426,32 @@ impl getCompletionDataState {
             // each individual type has. This is because we're going to add all identifiers
             // anyways. So we might as well elevate the members that were at least part
             // of the individual types to a higher status since we know what they are.
-            self.symbols.extend(get_properties_for_completion(t, type_checker).into_iter().filter(|&symbol| {
-                type_checker.is_valid_property_access_for_completions_exported(property_access, t, symbol)
-            }));
+            self.symbols.extend(get_properties_for_completion(t, type_checker).into_iter().filter(
+                |&symbol| {
+                    type_checker.is_valid_property_access_for_completions_exported(
+                        property_access,
+                        t,
+                        symbol,
+                    )
+                },
+            ));
         }
 
         if insert_await {
             let promise_type = type_checker.get_promised_type_of_promise(t);
             if let Some(promise_type) = promise_type {
                 for symbol in type_checker.get_apparent_properties(promise_type) {
-                    if type_checker.is_valid_property_access_for_completions_exported(property_access, promise_type, symbol) {
-                        self.add_property_symbol(type_checker, symbol, true /*insertAwait*/, insert_question_dot);
+                    if type_checker.is_valid_property_access_for_completions_exported(
+                        property_access,
+                        promise_type,
+                        symbol,
+                    ) {
+                        self.add_property_symbol(
+                            type_checker,
+                            symbol,
+                            true, /*insertAwait*/
+                            insert_question_dot,
+                        );
                     }
                 }
             }
@@ -1200,7 +1470,8 @@ impl getCompletionDataState {
         let is_type_location = (is_import_type && !node.as_import_type_node().is_type_of)
             || ast::is_part_of_type_node(node.parent().unwrap())
             || is_possibly_type_argument_position(self.context_token, file, type_checker);
-        let is_rhs_of_import_declaration = is_in_right_side_of_internal_import_equals_declaration(node);
+        let is_rhs_of_import_declaration =
+            is_in_right_side_of_internal_import_equals_declaration(node);
         if ast::is_entity_name(node) || is_import_type || ast::is_property_access_expression(node) {
             let is_namespace_name = ast::is_module_declaration(node.parent().unwrap());
             if is_namespace_name {
@@ -1211,22 +1482,39 @@ impl getCompletionDataState {
             if let Some(symbol) = symbol {
                 let symbol = checker::skip_alias(symbol, type_checker);
                 if symbol.flags().intersects(SymbolFlags::Module | SymbolFlags::Enum) {
-                    let value_access_node = if is_import_type { node } else { node.parent().unwrap() };
+                    let value_access_node =
+                        if is_import_type { node } else { node.parent().unwrap() };
                     // Extract module or enum members
                     let exported_symbols = type_checker.get_exports_of_module_exported(symbol);
                     for exported_symbol in exported_symbols {
                         let is_valid_access = if is_namespace_name {
                             // At `namespace N.M/**/`, if this is the only declaration of `M`, don't include `M` as a completion.
                             exported_symbol.flags().intersects(SymbolFlags::Namespace)
-                                && !exported_symbol.declarations().iter().all(|declaration| declaration.parent() == node.parent())
+                                && !exported_symbol
+                                    .declarations()
+                                    .iter()
+                                    .all(|declaration| declaration.parent() == node.parent())
                         } else if is_rhs_of_import_declaration {
                             // Any kind is allowed when dotting off namespace in internal import equals declaration
-                            symbol_can_be_referenced_at_type_location(exported_symbol, type_checker, None)
-                                || type_checker.is_valid_property_access_exported(value_access_node, exported_symbol.name())
+                            symbol_can_be_referenced_at_type_location(
+                                exported_symbol,
+                                type_checker,
+                                None,
+                            ) || type_checker.is_valid_property_access_exported(
+                                value_access_node,
+                                exported_symbol.name(),
+                            )
                         } else if is_type_location || self.inside_jsdoc_tag_type_expression {
-                            symbol_can_be_referenced_at_type_location(exported_symbol, type_checker, None)
+                            symbol_can_be_referenced_at_type_location(
+                                exported_symbol,
+                                type_checker,
+                                None,
+                            )
                         } else {
-                            type_checker.is_valid_property_access_exported(value_access_node, exported_symbol.name())
+                            type_checker.is_valid_property_access_exported(
+                                value_access_node,
+                                exported_symbol.name(),
+                            )
                         };
                         if is_valid_access {
                             self.symbols.push(exported_symbol);
@@ -1236,14 +1524,24 @@ impl getCompletionDataState {
                     // If the module is merged with a value, we must get the type of the class and add its properties (for inherited static methods).
                     if !is_type_location
                         && !self.inside_jsdoc_tag_type_expression
-                        && symbol.declarations().iter().any(|decl| decl.kind() != Kind::SourceFile && decl.kind() != Kind::ModuleDeclaration && decl.kind() != Kind::EnumDeclaration)
+                        && symbol.declarations().iter().any(|decl| {
+                            decl.kind() != Kind::SourceFile
+                                && decl.kind() != Kind::ModuleDeclaration
+                                && decl.kind() != Kind::EnumDeclaration
+                        })
                     {
-                        let type_of_symbol = type_checker.get_type_of_symbol_at_location(symbol, Some(node)).unwrap();
+                        let type_of_symbol = type_checker
+                            .get_type_of_symbol_at_location(symbol, Some(node))
+                            .unwrap();
                         let mut t = type_checker.get_non_optional_type(type_of_symbol);
                         let mut insert_question_dot = false;
                         if type_checker.is_nullable_type(t) {
-                            let can_correct_to_question_dot =
-                                self.is_right_of_dot && !self.is_right_of_question_dot && !self.preferences.include_automatic_optional_chain_completions.is_false();
+                            let can_correct_to_question_dot = self.is_right_of_dot
+                                && !self.is_right_of_question_dot
+                                && !self
+                                    .preferences
+                                    .include_automatic_optional_chain_completions
+                                    .is_false();
                             if can_correct_to_question_dot || self.is_right_of_question_dot {
                                 t = type_checker.get_non_nullable_type(t);
                                 if can_correct_to_question_dot {
@@ -1251,7 +1549,12 @@ impl getCompletionDataState {
                                 }
                             }
                         }
-                        self.add_type_properties(type_checker, t, node.flags().intersects(NodeFlags::AwaitContext), insert_question_dot);
+                        self.add_type_properties(
+                            type_checker,
+                            t,
+                            node.flags().intersects(NodeFlags::AwaitContext),
+                            insert_question_dot,
+                        );
                     }
 
                     return;
@@ -1263,15 +1566,20 @@ impl getCompletionDataState {
             // microsoft/TypeScript#39946. Pulling on the type of a node inside of a function with a contextual `this` parameter can result in a circularity
             // if the `node` is part of the exprssion of a `yield` or `return`. This circularity doesn't exist at compile time because
             // we will check (and cache) the type of `this` *before* checking the type of the node.
-            type_checker.try_get_this_type_at_ex_exported(node, false /*includeGlobalThis*/, None);
+            type_checker
+                .try_get_this_type_at_ex_exported(node, false /*includeGlobalThis*/, None);
             let type_at_location = type_checker.get_type_at_location(node);
             let mut t = type_checker.get_non_optional_type(type_at_location);
 
             if !is_type_location {
                 let mut insert_question_dot = false;
                 if type_checker.is_nullable_type(t) {
-                    let can_correct_to_question_dot =
-                        self.is_right_of_dot && !self.is_right_of_question_dot && !self.preferences.include_automatic_optional_chain_completions.is_false();
+                    let can_correct_to_question_dot = self.is_right_of_dot
+                        && !self.is_right_of_question_dot
+                        && !self
+                            .preferences
+                            .include_automatic_optional_chain_completions
+                            .is_false();
 
                     if can_correct_to_question_dot || self.is_right_of_question_dot {
                         t = type_checker.get_non_nullable_type(t);
@@ -1280,30 +1588,54 @@ impl getCompletionDataState {
                         }
                     }
                 }
-                self.add_type_properties(type_checker, t, node.flags().intersects(NodeFlags::AwaitContext), insert_question_dot);
+                self.add_type_properties(
+                    type_checker,
+                    t,
+                    node.flags().intersects(NodeFlags::AwaitContext),
+                    insert_question_dot,
+                );
             } else {
                 let non_nullable = type_checker.get_non_nullable_type(t);
-                self.add_type_properties(type_checker, non_nullable, false /*insertAwait*/, false /*insertQuestionDot*/);
+                self.add_type_properties(
+                    type_checker,
+                    non_nullable,
+                    false, /*insertAwait*/
+                    false, /*insertQuestionDot*/
+                );
             }
         }
     }
 
     // Aggregates relevant symbols for completion in object literals in type argument positions.
     // completions.go:1026
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_object_type_literal_in_type_argument_completion_symbols(&mut self, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_object_type_literal_in_type_argument_completion_symbols(
+        &mut self,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         let Some(type_literal_node) = try_get_type_literal_node(self.context_token) else {
             return Ok(globalsSearch::Continue);
         };
 
-        let intersection_type_node = if ast::is_intersection_type_node(type_literal_node.parent().unwrap()) { type_literal_node.parent() } else { None };
+        let intersection_type_node =
+            if ast::is_intersection_type_node(type_literal_node.parent().unwrap()) {
+                type_literal_node.parent()
+            } else {
+                None
+            };
         let container_type_node = intersection_type_node.unwrap_or(type_literal_node);
 
-        let Some(container_expected_type) = get_constraint_of_type_argument_property(Some(container_type_node), type_checker) else {
+        let Some(container_expected_type) =
+            get_constraint_of_type_argument_property(Some(container_type_node), type_checker)
+        else {
             return Ok(globalsSearch::Continue);
         };
 
-        let container_actual_type = type_checker.get_type_from_type_node_exported(container_type_node);
+        let container_actual_type =
+            type_checker.get_type_from_type_node_exported(container_type_node);
 
         let members = get_properties_for_completion(container_expected_type, type_checker);
         let existing_members = get_properties_for_completion(container_actual_type, type_checker);
@@ -1311,7 +1643,9 @@ impl getCompletionDataState {
         let mut existing_member_names: FxHashSet<&'static str> = FxHashSet::default();
         existing_member_names.extend(existing_members.into_iter().map(|member| member.name()));
 
-        self.symbols.extend(members.into_iter().filter(|member| !existing_member_names.contains(member.name())));
+        self.symbols.extend(
+            members.into_iter().filter(|member| !existing_member_names.contains(member.name())),
+        );
 
         self.completion_kind = CompletionKind::ObjectPropertyDeclaration;
         self.is_new_identifier_location = true;
@@ -1322,8 +1656,16 @@ impl getCompletionDataState {
     // Aggregates relevant symbols for completion in object literals and object binding patterns.
     // Relevant symbols are stored in the captured 'symbols' variable.
     // completions.go:1071
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_object_like_completion_symbols(&mut self, l: &LanguageService, ctx: &Context, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_object_like_completion_symbols(
+        &mut self,
+        l: &LanguageService,
+        ctx: &Context,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         if let Some(context_token) = self.context_token {
             if context_token.kind() == Kind::DotDotDotToken {
                 return Ok(globalsSearch::Continue);
@@ -1331,7 +1673,9 @@ impl getCompletionDataState {
         }
         let file = self.file;
         let position = self.position;
-        let Some(object_like_container) = try_get_object_like_completion_container(self.context_token, position, file) else {
+        let Some(object_like_container) =
+            try_get_object_like_completion_container(self.context_token, position, file)
+        else {
             return Ok(globalsSearch::Continue);
         };
 
@@ -1342,7 +1686,8 @@ impl getCompletionDataState {
         let mut existing_members: &'static [P<Node>] = &[];
 
         if object_like_container.kind() == Kind::ObjectLiteralExpression {
-            let instantiated_type = try_get_object_literal_contextual_type(object_like_container, type_checker);
+            let instantiated_type =
+                try_get_object_literal_contextual_type(object_like_container, type_checker);
 
             // Check completions for Object property value shorthand
             let Some(instantiated_type) = instantiated_type else {
@@ -1351,12 +1696,21 @@ impl getCompletionDataState {
                 }
                 return Ok(globalsSearch::Continue);
             };
-            let completions_type = type_checker.get_contextual_type_exported(object_like_container, ContextFlags::IgnoreNodeInferences);
+            let completions_type = type_checker.get_contextual_type_exported(
+                object_like_container,
+                ContextFlags::IgnoreNodeInferences,
+            );
             let t = completions_type.unwrap_or(instantiated_type);
             let string_index_type = type_checker.get_string_index_type(t);
             let number_index_type = type_checker.get_number_index_type(t);
-            self.is_new_identifier_location = string_index_type.is_some() || number_index_type.is_some();
-            type_members = get_properties_for_object_expression(instantiated_type, completions_type, object_like_container, type_checker);
+            self.is_new_identifier_location =
+                string_index_type.is_some() || number_index_type.is_some();
+            type_members = get_properties_for_object_expression(
+                instantiated_type,
+                completions_type,
+                object_like_container,
+                type_checker,
+            );
             existing_members = object_like_container.properties();
 
             if type_members.is_empty() {
@@ -1366,11 +1720,18 @@ impl getCompletionDataState {
                 }
             }
         } else {
-            assert!(object_like_container.kind() == Kind::ObjectBindingPattern, "Expected 'objectLikeContainer' to be an object binding pattern.");
+            assert!(
+                object_like_container.kind() == Kind::ObjectBindingPattern,
+                "Expected 'objectLikeContainer' to be an object binding pattern."
+            );
             // We are *only* completing on properties from the type being destructured.
             self.is_new_identifier_location = false;
-            let root_declaration = ast::get_root_declaration(object_like_container.parent().unwrap());
-            assert!(ast::is_variable_like(root_declaration), "Root declaration is not variable-like.");
+            let root_declaration =
+                ast::get_root_declaration(object_like_container.parent().unwrap());
+            assert!(
+                ast::is_variable_like(root_declaration),
+                "Root declaration is not variable-like."
+            );
 
             // We don't want to complete using the type acquired by the shape
             // of the binding pattern; we are only interested in types acquired
@@ -1379,14 +1740,24 @@ impl getCompletionDataState {
             // type of parameter will flow in from the contextual type of the function.
             let mut can_get_type = ast::has_initializer(root_declaration)
                 || ast::get_type_annotation_node(root_declaration).is_some()
-                || root_declaration.parent().unwrap().parent().unwrap().kind() == Kind::ForOfStatement;
+                || root_declaration.parent().unwrap().parent().unwrap().kind()
+                    == Kind::ForOfStatement;
             if !can_get_type && root_declaration.kind() == Kind::Parameter {
                 let root_parent = root_declaration.parent().unwrap();
                 if ast::is_expression(root_parent) {
-                    can_get_type = type_checker.get_contextual_type_exported(root_parent, ContextFlags::None).is_some();
-                } else if root_parent.kind() == Kind::MethodDeclaration || root_parent.kind() == Kind::SetAccessor {
+                    can_get_type = type_checker
+                        .get_contextual_type_exported(root_parent, ContextFlags::None)
+                        .is_some();
+                } else if root_parent.kind() == Kind::MethodDeclaration
+                    || root_parent.kind() == Kind::SetAccessor
+                {
                     can_get_type = ast::is_expression(root_parent.parent().unwrap())
-                        && type_checker.get_contextual_type_exported(root_parent.parent().unwrap(), ContextFlags::None).is_some();
+                        && type_checker
+                            .get_contextual_type_exported(
+                                root_parent.parent().unwrap(),
+                                ContextFlags::None,
+                            )
+                            .is_some();
                 }
             }
             if can_get_type {
@@ -1412,19 +1783,35 @@ impl getCompletionDataState {
 
         if !type_members.is_empty() {
             // Add filtered items to the completion list.
-            let (filtered_members, spread_member_names) = filter_object_members_list(&type_members, existing_members, file, position, type_checker);
+            let (filtered_members, spread_member_names) = filter_object_members_list(
+                &type_members,
+                existing_members,
+                file,
+                position,
+                type_checker,
+            );
             self.symbols.extend(filtered_members.iter().copied());
 
             // Set sort texts.
             for &member in &filtered_members {
                 let symbol_id = ast::get_symbol_id(member);
                 if spread_member_names.contains(member.name()) {
-                    self.symbol_to_sort_text_map.insert(symbol_id, SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT.to_string());
+                    self.symbol_to_sort_text_map.insert(
+                        symbol_id,
+                        SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT.to_string(),
+                    );
                 }
                 if member.flags().intersects(SymbolFlags::Optional) {
-                    self.symbol_to_sort_text_map.entry(symbol_id).or_insert_with(|| SORT_TEXT_OPTIONAL_MEMBER.to_string());
+                    self.symbol_to_sort_text_map
+                        .entry(symbol_id)
+                        .or_insert_with(|| SORT_TEXT_OPTIONAL_MEMBER.to_string());
                 }
-                if object_like_container.kind() == Kind::ObjectLiteralExpression && self.preferences.include_completions_with_object_literal_method_snippets.is_true() {
+                if object_like_container.kind() == Kind::ObjectLiteralExpression
+                    && self
+                        .preferences
+                        .include_completions_with_object_literal_method_snippets
+                        .is_true()
+                {
                     let (display_name, _) = get_completion_entry_display_name_for_symbol(
                         file,
                         &self.preferences,
@@ -1435,14 +1822,30 @@ impl getCompletionDataState {
                     );
                     if !display_name.is_empty() {
                         let sort_text = self.symbol_to_sort_text_map.entry(symbol_id).or_default();
-                        let original_sort_text = if sort_text.is_empty() { SORT_TEXT_LOCATION_PRIORITY } else { sort_text.as_str() };
-                        *sort_text = object_literal_property_sort_text(original_sort_text, &display_name);
+                        let original_sort_text = if sort_text.is_empty() {
+                            SORT_TEXT_LOCATION_PRIORITY
+                        } else {
+                            sort_text.as_str()
+                        };
+                        *sort_text =
+                            object_literal_property_sort_text(original_sort_text, &display_name);
                     }
                 }
             }
 
-            if object_like_container.kind() == Kind::ObjectLiteralExpression && self.preferences.include_completions_with_object_literal_method_snippets.is_true() {
-                for entry in l.collect_object_literal_method_symbols(ctx, type_checker, &filtered_members, object_like_container, file) {
+            if object_like_container.kind() == Kind::ObjectLiteralExpression
+                && self
+                    .preferences
+                    .include_completions_with_object_literal_method_snippets
+                    .is_true()
+            {
+                for entry in l.collect_object_literal_method_symbols(
+                    ctx,
+                    type_checker,
+                    &filtered_members,
+                    object_like_container,
+                    file,
+                ) {
                     self.symbol_to_origin_info_map.insert(self.symbols.len(), entry.origin);
                     self.symbols.push(entry.symbol);
                 }
@@ -1471,7 +1874,11 @@ impl getCompletionDataState {
 
     // Mutates `symbols`, `symbolToOriginInfoMap`, and `symbolToSortTextMap`
     // completions.go:1219
-    fn collect_auto_imports(&mut self, l: &LanguageService, type_checker: &mut Checker) -> Result<(), lsproto::Error> {
+    fn collect_auto_imports(
+        &mut self,
+        l: &LanguageService,
+        type_checker: &mut Checker,
+    ) -> Result<(), lsproto::Error> {
         // `completionItem/resolve` for auto-import completions should be resolved via the completion item data,
         // so we don't need to collect auto-import entries again.
         if self.for_item_resolve {
@@ -1489,11 +1896,20 @@ impl getCompletionDataState {
         }
         if let Some(previous_token) = self.previous_token {
             if ast::is_identifier(previous_token) {
-                (usage_position, fidelity) = l.create_lsp_position(scanner::get_token_pos_of_node(previous_token, self.file, false /*includeJSDoc*/), self.file);
+                (usage_position, fidelity) = l.create_lsp_position(
+                    scanner::get_token_pos_of_node(
+                        previous_token,
+                        self.file,
+                        false, /*includeJSDoc*/
+                    ),
+                    self.file,
+                );
                 if !fidelity.is_exact() {
                     return Ok(());
                 }
-                if !(Some(previous_token) == self.context_token && self.import_statement_completion.is_some()) {
+                if !(Some(previous_token) == self.context_token
+                    && self.import_statement_completion.is_some())
+                {
                     lower_case_token_text = previous_token.text().to_lowercase();
                 }
             }
@@ -1502,12 +1918,21 @@ impl getCompletionDataState {
         let view = l.get_prepared_auto_import_view(self.file, type_checker)?;
         // Go checks the view for nil; a prepared view is never nil.
 
-        self.auto_imports = view.get_completions(&lower_case_token_text, usage_position, self.is_right_of_open_tag, self.is_type_only_location);
+        self.auto_imports = view.get_completions(
+            &lower_case_token_text,
+            usage_position,
+            self.is_right_of_open_tag,
+            self.is_type_only_location,
+        );
         Ok(())
     }
 
     // completions.go:1257
-    fn try_get_import_completion_symbols(&mut self, l: &LanguageService, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    fn try_get_import_completion_symbols(
+        &mut self,
+        l: &LanguageService,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         if self.import_statement_completion.is_none() {
             return Ok(globalsSearch::Continue);
         }
@@ -1528,19 +1953,32 @@ impl getCompletionDataState {
     //
     // Relevant symbols are stored in the captured 'symbols' variable.
     // completions.go:1279
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_import_or_export_clause_completion_symbols(&mut self, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_import_or_export_clause_completion_symbols(
+        &mut self,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         let Some(context_token) = self.context_token else {
             return Ok(globalsSearch::Continue);
         };
 
         // `import { |` or `import { a as 0, | }` or `import { type | }`
         let mut named_imports_or_exports: Option<P<Node>> = None;
-        if context_token.kind() == Kind::OpenBraceToken || context_token.kind() == Kind::CommaToken {
-            named_imports_or_exports = if is_named_imports_or_exports(context_token.parent().unwrap()) { context_token.parent() } else { None };
+        if context_token.kind() == Kind::OpenBraceToken || context_token.kind() == Kind::CommaToken
+        {
+            named_imports_or_exports =
+                if is_named_imports_or_exports(context_token.parent().unwrap()) {
+                    context_token.parent()
+                } else {
+                    None
+                };
         } else if is_type_keyword_token_or_identifier(context_token) {
             let grand_parent = context_token.parent().unwrap().parent().unwrap();
-            named_imports_or_exports = if is_named_imports_or_exports(grand_parent) { Some(grand_parent) } else { None };
+            named_imports_or_exports =
+                if is_named_imports_or_exports(grand_parent) { Some(grand_parent) } else { None };
         }
 
         let Some(named_imports_or_exports) = named_imports_or_exports else {
@@ -1567,7 +2005,9 @@ impl getCompletionDataState {
             return Ok(globalsSearch::Continue);
         };
 
-        let Some(module_specifier_symbol) = type_checker.get_symbol_at_location_exported(module_specifier) else {
+        let Some(module_specifier_symbol) =
+            type_checker.get_symbol_at_location_exported(module_specifier)
+        else {
             self.is_new_identifier_location = true;
             return Ok(globalsSearch::Fail);
         };
@@ -1585,7 +2025,10 @@ impl getCompletionDataState {
         }));
         let uniques: Vec<P<Symbol>> = exports
             .into_iter()
-            .filter(|&symbol| ast::symbol_name(symbol) != ast::InternalSymbolNameDefault && !existing.contains(ast::symbol_name(symbol)))
+            .filter(|&symbol| {
+                ast::symbol_name(symbol) != ast::InternalSymbolNameDefault
+                    && !existing.contains(ast::symbol_name(symbol))
+            })
             .collect();
 
         let uniques_is_empty = uniques.is_empty();
@@ -1599,8 +2042,14 @@ impl getCompletionDataState {
 
     // import { x } from "foo" with { | }
     // completions.go:1349
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_import_attributes_completion_symbols(&mut self, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_import_attributes_completion_symbols(
+        &mut self,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         let Some(context_token) = self.context_token else {
             return Ok(globalsSearch::Continue);
         };
@@ -1610,15 +2059,22 @@ impl getCompletionDataState {
             Kind::ColonToken => context_token.parent().unwrap().parent(),
             _ => None,
         };
-        let Some(import_attributes) = import_attributes.filter(|&n| ast::is_import_attributes(n)) else {
+        let Some(import_attributes) = import_attributes.filter(|&n| ast::is_import_attributes(n))
+        else {
             return Ok(globalsSearch::Continue);
         };
 
         // Go checks the attribute list for nil; the parser always creates it.
-        let elements: &'static [P<Node>] = import_attributes.as_import_attributes().attributes.nodes();
-        let existing: FxHashSet<&'static str> = elements.iter().map(|el| el.as_import_attribute().name.unwrap().text()).collect();
+        let elements: &'static [P<Node>] =
+            import_attributes.as_import_attributes().attributes.nodes();
+        let existing: FxHashSet<&'static str> =
+            elements.iter().map(|el| el.as_import_attribute().name.unwrap().text()).collect();
         let type_at_location = type_checker.get_type_at_location(import_attributes);
-        let uniques: Vec<P<Symbol>> = type_checker.get_apparent_properties(type_at_location).into_iter().filter(|&symbol| !existing.contains(ast::symbol_name(symbol))).collect();
+        let uniques: Vec<P<Symbol>> = type_checker
+            .get_apparent_properties(type_at_location)
+            .into_iter()
+            .filter(|&symbol| !existing.contains(ast::symbol_name(symbol)))
+            .collect();
         self.symbols.extend(uniques);
         Ok(globalsSearch::Success)
     }
@@ -1629,21 +2085,34 @@ impl getCompletionDataState {
     // because `tryGetImportOrExportClauseCompletionSymbols` runs first and handles that,
     // preventing this function from running.
     // completions.go:1388
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_local_named_export_completion_symbols(&mut self) -> Result<globalsSearch, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_local_named_export_completion_symbols(
+        &mut self,
+    ) -> Result<globalsSearch, lsproto::Error> {
         let Some(context_token) = self.context_token else {
             return Ok(globalsSearch::Continue);
         };
         let mut named_exports: Option<P<Node>> = None;
-        if context_token.kind() == Kind::OpenBraceToken || context_token.kind() == Kind::CommaToken {
-            named_exports = if ast::is_named_exports(context_token.parent().unwrap()) { context_token.parent() } else { None };
+        if context_token.kind() == Kind::OpenBraceToken || context_token.kind() == Kind::CommaToken
+        {
+            named_exports = if ast::is_named_exports(context_token.parent().unwrap()) {
+                context_token.parent()
+            } else {
+                None
+            };
         }
 
         let Some(named_exports) = named_exports else {
             return Ok(globalsSearch::Continue);
         };
 
-        let locals_container = ast::find_ancestor(named_exports, |node| ast::is_source_file(node) || ast::is_module_declaration(node)).unwrap();
+        let locals_container = ast::find_ancestor(named_exports, |node| {
+            ast::is_source_file(node) || ast::is_module_declaration(node)
+        })
+        .unwrap();
         self.completion_kind = CompletionKind::None;
         self.is_new_identifier_location = false;
         let local_symbol = locals_container.symbol();
@@ -1656,7 +2125,8 @@ impl getCompletionDataState {
                 self.symbols.push(symbol);
                 if local_exports.is_some_and(|e| e.has(name)) {
                     let symbol_id = ast::get_symbol_id(symbol);
-                    self.symbol_to_sort_text_map.insert(symbol_id, SORT_TEXT_OPTIONAL_MEMBER.to_string());
+                    self.symbol_to_sort_text_map
+                        .insert(symbol_id, SORT_TEXT_OPTIONAL_MEMBER.to_string());
                 }
             }
         }
@@ -1665,7 +2135,10 @@ impl getCompletionDataState {
     }
 
     // completions.go:1422
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
     fn try_get_constructor_completion(&mut self) -> Result<globalsSearch, lsproto::Error> {
         if try_get_constructor_like_completion_container(self.context_token).is_none() {
             return Ok(globalsSearch::Continue);
@@ -1683,11 +2156,22 @@ impl getCompletionDataState {
     // Aggregates relevant symbols for completion in class declaration
     // Relevant symbols are stored in the captured 'symbols' variable.
     // completions.go:1438
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_class_like_completion_symbols(&mut self, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_class_like_completion_symbols(
+        &mut self,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         let file = self.file;
         let position = self.position;
-        let Some(decl) = try_get_object_type_declaration_completion_container(file, self.context_token, self.location, position) else {
+        let Some(decl) = try_get_object_type_declaration_completion_container(
+            file,
+            self.context_token,
+            self.location,
+            position,
+        ) else {
             return Ok(globalsSearch::Continue);
         };
         let context_token = self.context_token.unwrap();
@@ -1709,14 +2193,19 @@ impl getCompletionDataState {
             return Ok(globalsSearch::Success);
         }
 
-        let class_element =
-            if context_token.kind() == Kind::SemicolonToken { context_token.parent().unwrap().parent().unwrap() } else { context_token.parent().unwrap() };
+        let class_element = if context_token.kind() == Kind::SemicolonToken {
+            context_token.parent().unwrap().parent().unwrap()
+        } else {
+            context_token.parent().unwrap()
+        };
         let mut class_element_modifier_flags = ModifierFlags::None;
         if ast::is_class_element(class_element) {
             class_element_modifier_flags = class_element.modifier_flags();
         }
         // If this is context token is not something we are editing now, consider if this would lead to be modifier.
-        if context_token.kind() == Kind::Identifier && !is_currently_editing_node(context_token, file, position) {
+        if context_token.kind() == Kind::Identifier
+            && !is_currently_editing_node(context_token, file, position)
+        {
             match context_token.text() {
                 "private" => class_element_modifier_flags |= ModifierFlags::Private,
                 "static" => class_element_modifier_flags |= ModifierFlags::Static,
@@ -1731,7 +2220,9 @@ impl getCompletionDataState {
         // No member list for private methods
         if !class_element_modifier_flags.intersects(ModifierFlags::Private) {
             // List of property symbols of base type that are not private and already implemented
-            let base_type_nodes: Vec<P<Node>> = if ast::is_class_like(decl) && class_element_modifier_flags.intersects(ModifierFlags::Override) {
+            let base_type_nodes: Vec<P<Node>> = if ast::is_class_like(decl)
+                && class_element_modifier_flags.intersects(ModifierFlags::Override)
+            {
                 ast::get_class_extends_heritage_element(decl).into_iter().collect()
             } else {
                 crate::utilities::get_all_super_type_nodes(decl)
@@ -1744,8 +2235,15 @@ impl getCompletionDataState {
                         let t = type_checker.get_type_at_location(base_type_node);
                         if class_element_modifier_flags.intersects(ModifierFlags::Static) {
                             if let Some(t_symbol) = t.symbol() {
-                                let type_of_symbol = type_checker.get_type_of_symbol_at_location(t_symbol, Some(decl)).unwrap();
-                                Some(type_checker.get_properties_of_type_exported(type_of_symbol).iter().copied())
+                                let type_of_symbol = type_checker
+                                    .get_type_of_symbol_at_location(t_symbol, Some(decl))
+                                    .unwrap();
+                                Some(
+                                    type_checker
+                                        .get_properties_of_type_exported(type_of_symbol)
+                                        .iter()
+                                        .copied(),
+                                )
                             } else {
                                 None
                             }
@@ -1756,17 +2254,28 @@ impl getCompletionDataState {
                     .flatten(),
             );
 
-            self.symbols.extend(filter_class_members_list(&base_symbols, decl.members(), class_element_modifier_flags, file, position));
+            self.symbols.extend(filter_class_members_list(
+                &base_symbols,
+                decl.members(),
+                class_element_modifier_flags,
+                file,
+                position,
+            ));
             for (index, element) in self.symbols.iter().enumerate() {
                 let symbol = *element;
                 let declaration = symbol.value_declaration();
                 if let Some(declaration) = declaration {
-                    if ast::is_class_element(declaration) && declaration.name().is_some() && ast::is_computed_property_name(declaration.name().unwrap()) {
+                    if ast::is_class_element(declaration)
+                        && declaration.name().is_some()
+                        && ast::is_computed_property_name(declaration.name().unwrap())
+                    {
                         let origin = symbolOriginInfo {
                             kind: symbolOriginInfoKind::ComputedPropertyName,
-                            data: symbolOriginData::ComputedPropertyName(symbolOriginInfoComputedPropertyName {
-                                symbol_name: type_checker.symbol_to_string_exported(symbol),
-                            }),
+                            data: symbolOriginData::ComputedPropertyName(
+                                symbolOriginInfoComputedPropertyName {
+                                    symbol_name: type_checker.symbol_to_string_exported(symbol),
+                                },
+                            ),
                         };
                         self.symbol_to_origin_info_map.insert(index, origin);
                     }
@@ -1778,29 +2287,53 @@ impl getCompletionDataState {
     }
 
     // completions.go:1529
-    #[expect(clippy::unnecessary_wraps, reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests.")]
-    fn try_get_jsx_completion_symbols(&mut self, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
-        let Some(jsx_container) = try_get_containing_jsx_element(self.context_token, self.file) else {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Completion branches share a fallible result with branches that resolve symbols or validate requests."
+    )]
+    fn try_get_jsx_completion_symbols(
+        &mut self,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
+        let Some(jsx_container) = try_get_containing_jsx_element(self.context_token, self.file)
+        else {
             return Ok(globalsSearch::Continue);
         };
         // Cursor is inside a JSX self-closing element or opening element.
         let attributes = jsx_container.attributes().unwrap();
-        let Some(attrs_type) = type_checker.get_contextual_type_exported(attributes, ContextFlags::None) else {
+        let Some(attrs_type) =
+            type_checker.get_contextual_type_exported(attributes, ContextFlags::None)
+        else {
             return Ok(globalsSearch::Continue);
         };
-        let completions_type = type_checker.get_contextual_type_exported(attributes, ContextFlags::IgnoreNodeInferences);
-        let properties = get_properties_for_object_expression(attrs_type, completions_type, attributes, type_checker);
-        let (filtered_symbols, spread_member_names) = filter_jsx_attributes(&properties, attributes.properties(), self.file, self.position, type_checker);
+        let completions_type = type_checker
+            .get_contextual_type_exported(attributes, ContextFlags::IgnoreNodeInferences);
+        let properties = get_properties_for_object_expression(
+            attrs_type,
+            completions_type,
+            attributes,
+            type_checker,
+        );
+        let (filtered_symbols, spread_member_names) = filter_jsx_attributes(
+            &properties,
+            attributes.properties(),
+            self.file,
+            self.position,
+            type_checker,
+        );
 
         self.symbols.extend(filtered_symbols.iter().copied());
         // Set sort texts.
         for &symbol in &filtered_symbols {
             let symbol_id = ast::get_symbol_id(symbol);
             if spread_member_names.contains(ast::symbol_name(symbol)) {
-                self.symbol_to_sort_text_map.insert(symbol_id, SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT.to_string());
+                self.symbol_to_sort_text_map
+                    .insert(symbol_id, SORT_TEXT_MEMBER_DECLARED_BY_SPREAD_ASSIGNMENT.to_string());
             }
             if symbol.flags().intersects(SymbolFlags::Optional) {
-                self.symbol_to_sort_text_map.entry(symbol_id).or_insert_with(|| SORT_TEXT_OPTIONAL_MEMBER.to_string());
+                self.symbol_to_sort_text_map
+                    .entry(symbol_id)
+                    .or_insert_with(|| SORT_TEXT_OPTIONAL_MEMBER.to_string());
             }
         }
 
@@ -1810,7 +2343,11 @@ impl getCompletionDataState {
     }
 
     // completions.go:1568
-    fn get_global_completions(&mut self, l: &LanguageService, type_checker: &mut Checker) -> Result<globalsSearch, lsproto::Error> {
+    fn get_global_completions(
+        &mut self,
+        l: &LanguageService,
+        type_checker: &mut Checker,
+    ) -> Result<globalsSearch, lsproto::Error> {
         let file = self.file;
         let position = self.position;
         let context_token = self.context_token;
@@ -1822,12 +2359,16 @@ impl getCompletionDataState {
         }
         // Get all entities in the current scope.
         self.completion_kind = CompletionKind::Global;
-        let (is_new_identifier_location, default_commit_characters) = compute_commit_characters_and_is_new_identifier(context_token, file, position);
+        let (is_new_identifier_location, default_commit_characters) =
+            compute_commit_characters_and_is_new_identifier(context_token, file, position);
         self.is_new_identifier_location = is_new_identifier_location;
         self.default_commit_characters = Some(default_commit_characters);
 
         if previous_token != context_token {
-            assert!(previous_token.is_some(), "Expected 'contextToken' to be defined when different from 'previousToken'.");
+            assert!(
+                previous_token.is_some(),
+                "Expected 'contextToken' to be defined when different from 'previousToken'."
+            );
         }
 
         // We need to find the node that will give us an appropriate scope to begin
@@ -1855,29 +2396,50 @@ impl getCompletionDataState {
         //   - 'contextToken' was adjusted to the token prior to 'previousToken'
         //      because we were at the end of an identifier.
         //   - 'previousToken' is defined.
-        let adjusted_position =
-            if previous_token != context_token { astnav::get_start_of_node(previous_token.unwrap(), file, false /*includeJSDoc*/) } else { position };
+        let adjusted_position = if previous_token != context_token {
+            astnav::get_start_of_node(previous_token.unwrap(), file, false /*includeJSDoc*/)
+        } else {
+            position
+        };
 
-        let scope_node = get_scope_node(context_token, adjusted_position, file).unwrap_or(file.as_node());
+        let scope_node =
+            get_scope_node(context_token, adjusted_position, file).unwrap_or(file.as_node());
 
         let symbol_meanings =
-            (if self.is_type_only_location { SymbolFlags::None } else { SymbolFlags::Value }) | SymbolFlags::Type | SymbolFlags::Namespace | SymbolFlags::Alias;
-        let type_only_alias_needs_promotion = previous_token.is_some() && !ast::is_valid_type_only_alias_use_site(previous_token.unwrap());
+            (if self.is_type_only_location { SymbolFlags::None } else { SymbolFlags::Value })
+                | SymbolFlags::Type
+                | SymbolFlags::Namespace
+                | SymbolFlags::Alias;
+        let type_only_alias_needs_promotion = previous_token.is_some()
+            && !ast::is_valid_type_only_alias_use_site(previous_token.unwrap());
 
-        self.symbols.extend(type_checker.get_symbols_in_scope_exported(scope_node, symbol_meanings));
+        self.symbols
+            .extend(type_checker.get_symbols_in_scope_exported(scope_node, symbol_meanings));
         check_each_defined(&self.symbols, "getSymbolsInScope() should all be defined");
         for (index, element) in self.symbols.iter().enumerate() {
             let symbol = *element;
             let symbol_id = ast::get_symbol_id(symbol);
-            if !type_checker.is_arguments_symbol(symbol) && !symbol.declarations().iter().any(|&decl| ast::get_source_file_of_node(decl) == Some(file)) {
-                self.symbol_to_sort_text_map.insert(symbol_id, SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string());
+            if !type_checker.is_arguments_symbol(symbol)
+                && !symbol
+                    .declarations()
+                    .iter()
+                    .any(|&decl| ast::get_source_file_of_node(decl) == Some(file))
+            {
+                self.symbol_to_sort_text_map
+                    .insert(symbol_id, SORT_TEXT_GLOBALS_OR_KEYWORDS.to_string());
             }
             if type_only_alias_needs_promotion && !symbol.flags().intersects(SymbolFlags::Value) {
-                let type_only_alias_declaration = symbol.declarations().iter().copied().find(|&d| ast::is_type_only_import_declaration(d));
+                let type_only_alias_declaration = symbol
+                    .declarations()
+                    .iter()
+                    .copied()
+                    .find(|&d| ast::is_type_only_import_declaration(d));
                 if let Some(type_only_alias_declaration) = type_only_alias_declaration {
                     let origin = symbolOriginInfo {
                         kind: symbolOriginInfoKind::TypeOnlyAlias,
-                        data: symbolOriginData::TypeOnlyAlias(symbolOriginInfoTypeOnlyAlias { declaration: type_only_alias_declaration }),
+                        data: symbolOriginData::TypeOnlyAlias(symbolOriginInfoTypeOnlyAlias {
+                            declaration: type_only_alias_declaration,
+                        }),
                     };
                     self.symbol_to_origin_info_map.insert(index, origin);
                 }
@@ -1889,15 +2451,23 @@ impl getCompletionDataState {
             let this_type = type_checker.try_get_this_type_at_ex_exported(
                 scope_node,
                 false, /*includeGlobalThis*/
-                if ast::is_class_like(scope_node.parent().unwrap()) { Some(scope_node) } else { None },
+                if ast::is_class_like(scope_node.parent().unwrap()) {
+                    Some(scope_node)
+                } else {
+                    None
+                },
             );
             if let Some(this_type) = this_type {
                 if !is_probably_global_type(this_type, file, type_checker) {
                     for symbol in get_properties_for_completion(this_type, type_checker) {
                         let symbol_id = ast::get_symbol_id(symbol);
                         self.symbols.push(symbol);
-                        self.symbol_to_origin_info_map.insert(self.symbols.len() - 1, symbolOriginInfo::with_kind(symbolOriginInfoKind::ThisType));
-                        self.symbol_to_sort_text_map.insert(symbol_id, SORT_TEXT_SUGGESTED_CLASS_MEMBERS.to_string());
+                        self.symbol_to_origin_info_map.insert(
+                            self.symbols.len() - 1,
+                            symbolOriginInfo::with_kind(symbolOriginInfoKind::ThisType),
+                        );
+                        self.symbol_to_sort_text_map
+                            .insert(symbol_id, SORT_TEXT_SUGGESTED_CLASS_MEMBERS.to_string());
                     }
                 }
             }
@@ -1905,7 +2475,9 @@ impl getCompletionDataState {
 
         self.collect_auto_imports(l, type_checker)?;
         if self.is_type_only_location {
-            if context_token.is_some() && ast::is_assertion_expression(context_token.unwrap().parent().unwrap()) {
+            if context_token.is_some()
+                && ast::is_assertion_expression(context_token.unwrap().parent().unwrap())
+            {
                 self.keyword_filters = KeywordCompletionFilters::TypeAssertionKeywords;
             } else {
                 self.keyword_filters = KeywordCompletionFilters::TypeKeywords;
@@ -1916,11 +2488,18 @@ impl getCompletionDataState {
     }
 
     // completions.go:1679
-    fn try_get_global_symbols(&mut self, l: &LanguageService, ctx: &Context, type_checker: &mut Checker) -> Result<bool, lsproto::Error> {
+    fn try_get_global_symbols(
+        &mut self,
+        l: &LanguageService,
+        ctx: &Context,
+        type_checker: &mut Checker,
+    ) -> Result<bool, lsproto::Error> {
         let mut result = globalsSearch::Continue;
         for index in 0..10 {
             result = match index {
-                0 => self.try_get_object_type_literal_in_type_argument_completion_symbols(type_checker)?,
+                0 => self.try_get_object_type_literal_in_type_argument_completion_symbols(
+                    type_checker,
+                )?,
                 1 => self.try_get_object_like_completion_symbols(l, ctx, type_checker)?,
                 2 => self.try_get_import_completion_symbols(l, type_checker)?,
                 3 => self.try_get_import_or_export_clause_completion_symbols(type_checker)?,
@@ -1945,8 +2524,15 @@ pub(crate) fn check_each_defined<'a, T>(s: &'a [T], _msg: &str) -> &'a [T] {
 }
 
 // completions.go:1802
-pub(crate) fn keyword_completion_data(keyword_filters: KeywordCompletionFilters, filter_out_ts_only_keywords: bool, is_new_identifier_location: bool) -> completionDataKeyword {
-    completionDataKeyword { keyword_completions: get_keyword_completions(keyword_filters, filter_out_ts_only_keywords), is_new_identifier_location }
+pub(crate) fn keyword_completion_data(
+    keyword_filters: KeywordCompletionFilters,
+    filter_out_ts_only_keywords: bool,
+    is_new_identifier_location: bool,
+) -> completionDataKeyword {
+    completionDataKeyword {
+        keyword_completions: get_keyword_completions(keyword_filters, filter_out_ts_only_keywords),
+        is_new_identifier_location,
+    }
 }
 
 // completions.go:1813

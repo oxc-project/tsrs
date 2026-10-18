@@ -3,11 +3,14 @@ use std::ops::Deref;
 use rustc_hash::FxHashMap;
 use tsrs_core::collections::{OrderedMap, SyncMap};
 use tsrs_core::tspath::Path;
-use tsrs_core::{CompilerOptions, ResolutionMode, P};
+use tsrs_core::{CompilerOptions, P, ResolutionMode};
 
 use crate::packagejson::{self, InfoCache, InfoCacheEntry};
-use crate::resolver::{try_parse_patterns, DefaultResolver, ParsedPatterns, ResolverOptions};
-use crate::types::{ModeAwareCacheKey, ResolutionHost, ResolvedModule, ResolvedProjectReference, ResolvedTypeReferenceDirective};
+use crate::resolver::{DefaultResolver, ParsedPatterns, ResolverOptions, try_parse_patterns};
+use crate::types::{
+    ModeAwareCacheKey, ResolutionHost, ResolvedModule, ResolvedProjectReference,
+    ResolvedTypeReferenceDirective,
+};
 
 pub type ModeAwareCache<T> = FxHashMap<ModeAwareCacheKey, T>;
 
@@ -59,11 +62,18 @@ impl TypeRefDirectiveResolutionCache {
         self.cache.size()
     }
 
-    pub(crate) fn get(&self, key: &TypeRefDirectiveResolutionCacheKey) -> Option<P<ResolvedTypeReferenceDirective>> {
+    pub(crate) fn get(
+        &self,
+        key: &TypeRefDirectiveResolutionCacheKey,
+    ) -> Option<P<ResolvedTypeReferenceDirective>> {
         self.cache.load(key)
     }
 
-    pub(crate) fn set(&self, key: TypeRefDirectiveResolutionCacheKey, value: P<ResolvedTypeReferenceDirective>) {
+    pub(crate) fn set(
+        &self,
+        key: TypeRefDirectiveResolutionCacheKey,
+        value: P<ResolvedTypeReferenceDirective>,
+    ) {
         self.cache.store(key, value);
     }
 }
@@ -80,8 +90,12 @@ impl ParsedPatternsCache {
         self.cache.size()
     }
 
-    pub(crate) fn get<V>(&self, path_mappings: Option<&OrderedMap<String, V>>) -> P<ParsedPatterns> {
-        let key = path_mappings.map_or(0, |m| std::ptr::from_ref::<OrderedMap<String, V>>(m) as usize);
+    pub(crate) fn get<V>(
+        &self,
+        path_mappings: Option<&OrderedMap<String, V>>,
+    ) -> P<ParsedPatterns> {
+        let key =
+            path_mappings.map_or(0, |m| std::ptr::from_ref::<OrderedMap<String, V>>(m) as usize);
         match self.cache.load(&key) {
             Some(patterns) => patterns,
             None => self.cache.load_or_store(key, P::new(try_parse_patterns(path_mappings))).0,
@@ -101,7 +115,10 @@ pub struct ResolutionData {
 pub(crate) fn new_resolution_data(opts: ResolverOptions) -> P<ResolutionData> {
     let package_json_info_cache = match opts.package_json_cache {
         Some(cache) => cache,
-        None => P::new(packagejson::new_info_cache(opts.host.get_current_directory(), opts.host.fs().use_case_sensitive_file_names())),
+        None => P::new(packagejson::new_info_cache(
+            opts.host.get_current_directory(),
+            opts.host.fs().use_case_sensitive_file_names(),
+        )),
     };
     P::new(ResolutionData {
         compiler_options: opts.compiler_options,

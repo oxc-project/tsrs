@@ -5,11 +5,12 @@ use rustc_hash::FxHashMap;
 
 use super::embed_generated::EMBEDDED_CONTENTS;
 use super::libs_generated::LIB_NAMES;
-use crate::{Entries, FileInfo, FileMode, FS};
+use crate::{Entries, FS, FileInfo, FileMode};
 
 const SCHEME: &str = "bundled:///";
 
-static EMBEDDED_CONTENTS_MAP: LazyLock<FxHashMap<&'static str, &'static str>> = LazyLock::new(|| EMBEDDED_CONTENTS.iter().copied().collect());
+static EMBEDDED_CONTENTS_MAP: LazyLock<FxHashMap<&'static str, &'static str>> =
+    LazyLock::new(|| EMBEDDED_CONTENTS.iter().copied().collect());
 
 fn embedded_contents(rest: &str) -> Option<&'static str> {
     EMBEDDED_CONTENTS_MAP.get(rest).copied()

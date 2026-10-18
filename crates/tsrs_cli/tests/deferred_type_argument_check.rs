@@ -9,7 +9,8 @@ use std::path::Path;
 use std::process::Command;
 
 fn run(args: &[&str]) -> String {
-    let case = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/regressions/deferred-type-argument-check");
+    let case = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../testdata/regressions/deferred-type-argument-check");
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
         .current_dir(case)
         .args(["-p", ".", "--pretty", "false"])
@@ -25,7 +26,8 @@ fn run(args: &[&str]) -> String {
 #[test]
 fn deferred_constraint_check_reports_in_its_file() {
     let expected = std::fs::read_to_string(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/regressions/deferred-type-argument-check/expected.txt"),
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../testdata/regressions/deferred-type-argument-check/expected.txt"),
     )
     .unwrap();
     assert_eq!(run(&["--singleThreaded"]), expected, "--singleThreaded");
@@ -33,7 +35,11 @@ fn deferred_constraint_check_reports_in_its_file() {
         assert_eq!(run(&["--checkers", checkers]), expected, "--checkers {checkers}");
         for seed in 1..=8 {
             let assignment = format!("random:{seed}");
-            assert_eq!(run(&["--checkers", checkers, "--checkerAssignment", &assignment]), expected, "--checkers {checkers} {assignment}");
+            assert_eq!(
+                run(&["--checkers", checkers, "--checkerAssignment", &assignment]),
+                expected,
+                "--checkers {checkers} {assignment}"
+            );
         }
     }
     assert_eq!(run(&["--checkers", "2", "--checkerAssignment", "go"]), expected, "go");

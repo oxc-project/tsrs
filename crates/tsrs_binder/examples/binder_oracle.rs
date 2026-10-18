@@ -7,9 +7,12 @@ use rustc_hash::FxHashMap;
 use std::fmt::Write as _;
 use std::io::{BufRead, Write as _};
 
-use tsrs_ast::{FlowFlags, FlowList, FlowNode, Kind, Node, NodeFlags, SourceFileParseOptions, Symbol, SymbolTable};
-use tsrs_core::tspath::Path;
+use tsrs_ast::{
+    FlowFlags, FlowList, FlowNode, Kind, Node, NodeFlags, SourceFileParseOptions, Symbol,
+    SymbolTable,
+};
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 
 fn binder_node_flags() -> NodeFlags {
     NodeFlags::ExportContext
@@ -88,7 +91,13 @@ impl Dumper {
     fn symbol(&mut self, tag: &str, s: P<Symbol>) {
         let _ = write!(self.sb, " {tag}(");
         escape(&mut self.sb, s.name.get());
-        let _ = write!(self.sb, " {:x} {} {}", s.flags.get().bits(), s.declarations().len(), node_ref(s.value_declaration()));
+        let _ = write!(
+            self.sb,
+            " {:x} {} {}",
+            s.flags.get().bits(),
+            s.declarations().len(),
+            node_ref(s.value_declaration())
+        );
         if let Some(parent) = s.parent() {
             self.sb.push_str(" p=");
             escape(&mut self.sb, parent.name.get());
@@ -131,7 +140,9 @@ impl Dumper {
             Kind::Constructor => n.as_constructor_declaration().return_flow_node(),
             Kind::FunctionDeclaration => n.as_function_declaration().return_flow_node(),
             Kind::FunctionExpression => n.as_function_expression().return_flow_node(),
-            Kind::ClassStaticBlockDeclaration => n.as_class_static_block_declaration().return_flow_node(),
+            Kind::ClassStaticBlockDeclaration => {
+                n.as_class_static_block_declaration().return_flow_node()
+            }
             Kind::CaseClause | Kind::DefaultClause => {
                 if let Some(t) = n.as_case_or_default_clause().fallthrough_flow_node() {
                     let r = self.flow_ref(Some(t));
@@ -156,7 +167,13 @@ impl Dumper {
         let _ = write!(self.sb, "F #{} {:x} ", id, f.flags.get().bits());
         if f.flags.get().intersects(FlowFlags::SwitchClause) {
             let data = f.node.get().unwrap().as_flow_switch_clause_data();
-            let _ = write!(self.sb, "SW({},{},{})", node_ref(Some(data.switch_statement)), data.clause_start, data.clause_end);
+            let _ = write!(
+                self.sb,
+                "SW({},{},{})",
+                node_ref(Some(data.switch_statement)),
+                data.clause_start,
+                data.clause_end
+            );
         } else if f.flags.get().intersects(FlowFlags::ReduceLabel) {
             let data = f.node.get().unwrap().as_flow_reduce_label_data();
             let target = self.flow_ref(Some(data.target));
@@ -203,7 +220,8 @@ fn dump(path: &str) -> Result<String, String> {
 }
 
 fn dump_unit(out: &mut String, name: &str, text: &str) {
-    let file_name = tsrs_core::tspath::normalize_path(&format!("/oracle/{}", name.trim_start_matches('/')));
+    let file_name =
+        tsrs_core::tspath::normalize_path(&format!("/oracle/{}", name.trim_start_matches('/')));
     out.push_str("U ");
     escape(out, &file_name);
     out.push('\n');
@@ -212,7 +230,12 @@ fn dump_unit(out: &mut String, name: &str, text: &str) {
         out.push_str("skipped\n");
         return;
     }
-    let opts = SourceFileParseOptions { file_name: file_name.clone(), path: Path::new(file_name.clone()), external_module_indicator_options: tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default() };
+    let opts = SourceFileParseOptions {
+        file_name: file_name.clone(),
+        path: Path::new(file_name.clone()),
+        external_module_indicator_options:
+            tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+    };
     let file = tsrs_parser::parse_source_file(opts, text, script_kind);
     tsrs_binder::bind_source_file(file);
     let mut d = Dumper::default();
@@ -244,7 +267,12 @@ fn dump_unit(out: &mut String, name: &str, text: &str) {
         }
         d.sb.push('\n');
     }
-    let _ = writeln!(d.sb, "C {} {}", file.symbol_count.get(), file.pattern_ambient_modules.get().len());
+    let _ = writeln!(
+        d.sb,
+        "C {} {}",
+        file.symbol_count.get(),
+        file.pattern_ambient_modules.get().len()
+    );
     out.push_str(&d.sb);
 }
 

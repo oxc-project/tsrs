@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use tsrs_core::tspath;
-use tsrs_vfs::{bundled, osvfs, FS};
+use tsrs_vfs::{FS, bundled, osvfs};
 
 use crate::tsc::System;
 
@@ -55,7 +55,12 @@ impl System for osSys {
     }
 
     // sys.go:68
-    fn spawn(&self, command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>) -> Result<crate::tsc::ReadWriteCloser, String> {
+    fn spawn(
+        &self,
+        command: &[String],
+        dir: &str,
+        stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<crate::tsc::ReadWriteCloser, String> {
         tsrs_contentmapper::spawn_process(command, dir, stderr)
     }
 }

@@ -104,7 +104,14 @@ fn pass(sb: &mut String, text: &'static str, variant: LanguageVariant, mode: i32
             }
         }
         flush_errors(sb, &mut s);
-        let _ = write!(sb, "{} {} {} {} ", tok as i16, s.token_start(), s.token_end(), s.token_flags().bits());
+        let _ = write!(
+            sb,
+            "{} {} {} {} ",
+            tok as i16,
+            s.token_start(),
+            s.token_end(),
+            s.token_flags().bits()
+        );
         escape(sb, s.token_value());
         sb.push('\n');
         if tok == Kind::EndOfFile {
@@ -112,7 +119,11 @@ fn pass(sb: &mut String, text: &'static str, variant: LanguageVariant, mode: i32
         }
         if !matches!(
             tok,
-            Kind::WhitespaceTrivia | Kind::NewLineTrivia | Kind::SingleLineCommentTrivia | Kind::MultiLineCommentTrivia | Kind::ConflictMarkerTrivia
+            Kind::WhitespaceTrivia
+                | Kind::NewLineTrivia
+                | Kind::SingleLineCommentTrivia
+                | Kind::MultiLineCommentTrivia
+                | Kind::ConflictMarkerTrivia
         ) {
             prev = tok;
         }
@@ -122,12 +133,8 @@ fn pass(sb: &mut String, text: &'static str, variant: LanguageVariant, mode: i32
             sb,
             "D {} {} {}",
             d.kind as i32,
-            d.loc
-                .pos()
-                .expect_source("comment directives have source positions"),
-            d.loc
-                .end()
-                .expect_source("comment directives have source positions")
+            d.loc.pos().expect_source("comment directives have source positions"),
+            d.loc.end().expect_source("comment directives have source positions")
         );
     }
 }
@@ -136,8 +143,15 @@ fn dump(path: &str) -> Result<String, String> {
     let data = std::fs::read(path).map_err(|e| e.to_string())?;
     let text = String::from_utf8(data).map_err(|_| format!("{path}: not UTF-8"))?;
     let text: &'static str = Box::leak(text.into_boxed_str());
-    #[expect(clippy::case_sensitive_file_extension_comparisons, reason = "The oracle follows Go's case-sensitive fixture suffix selection for JSX scanning.")]
-    let variant = if path.ends_with(".tsx") || path.ends_with(".jsx") { LanguageVariant::JSX } else { LanguageVariant::Standard };
+    #[expect(
+        clippy::case_sensitive_file_extension_comparisons,
+        reason = "The oracle follows Go's case-sensitive fixture suffix selection for JSX scanning."
+    )]
+    let variant = if path.ends_with(".tsx") || path.ends_with(".jsx") {
+        LanguageVariant::JSX
+    } else {
+        LanguageVariant::Standard
+    };
     let mut sb = String::new();
     for mode in 1..=4 {
         pass(&mut sb, text, variant, mode);

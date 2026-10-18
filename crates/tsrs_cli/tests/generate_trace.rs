@@ -6,20 +6,29 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-const WARNING: &str = "Warning: Failed to start tracing: --generateTrace is not supported by tsrs\n";
+const WARNING: &str =
+    "Warning: Failed to start tracing: --generateTrace is not supported by tsrs\n";
 
 fn scratch(name: &str, incremental: bool) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("tsrs-generate-trace-{}-{}", name, std::process::id()));
+    let dir =
+        std::env::temp_dir().join(format!("tsrs-generate-trace-{}-{}", name, std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    let tsconfig = format!(r#"{{ "compilerOptions": {{ "strict": true, "noEmit": true, "incremental": {incremental} }}, "files": ["a.ts"] }}"#);
+    let tsconfig = format!(
+        r#"{{ "compilerOptions": {{ "strict": true, "noEmit": true, "incremental": {incremental} }}, "files": ["a.ts"] }}"#
+    );
     std::fs::write(dir.join("tsconfig.json"), tsconfig).unwrap();
     std::fs::write(dir.join("a.ts"), "const x: number = \"not a number\";\n").unwrap();
     dir
 }
 
 fn tsrs(dir: &Path, extra: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_tsrs")).args(["-p", "tsconfig.json", "--pretty", "false"]).args(extra).current_dir(dir).output().unwrap()
+    Command::new(env!("CARGO_BIN_EXE_tsrs"))
+        .args(["-p", "tsconfig.json", "--pretty", "false"])
+        .args(extra)
+        .current_dir(dir)
+        .output()
+        .unwrap()
 }
 
 fn stdout(out: &Output) -> String {
@@ -38,7 +47,11 @@ fn generate_trace_warns_and_still_type_checks() {
         // The incremental project's second run is served from the build info (as in tsgo); its errors still count.
         for _ in 0..2 {
             let with = tsrs(&dir, &["--generateTrace", trace_dir]);
-            assert_eq!(stdout(&with), format!("{WARNING}{}", stdout(&without)), "incremental: {incremental}");
+            assert_eq!(
+                stdout(&with),
+                format!("{WARNING}{}", stdout(&without)),
+                "incremental: {incremental}"
+            );
             assert_eq!(with.status.code(), without.status.code(), "incremental: {incremental}");
         }
         let _ = std::fs::remove_dir_all(&dir);

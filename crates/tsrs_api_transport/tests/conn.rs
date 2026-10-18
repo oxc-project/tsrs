@@ -7,11 +7,12 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use tsrs_api_transport::jsonrpc::{decode_message, FrameReader, FrameWriter};
+use tsrs_api_transport::jsonrpc::{FrameReader, FrameWriter, decode_message};
 use tsrs_api_transport::msgpack::{MessagePackReader, MessagePackWriter, MessageType};
 use tsrs_api_transport::protocol::ProtocolReader;
 use tsrs_api_transport::{
-    ApiError, AsyncConn, Caller, ConnOptions, Handler, LateCaller, RequestContext, Response, SyncConn, TransportError,
+    ApiError, AsyncConn, Caller, ConnOptions, Handler, LateCaller, RequestContext, Response,
+    SyncConn, TransportError,
 };
 
 /// Delivers at most one byte per read call.
@@ -27,7 +28,11 @@ impl<R: Read> Read for Trickle<R> {
 #[test]
 fn msgpack_frames_split_across_reads() {
     let mut bytes = Vec::new();
-    for (t, m, p) in [(1u8, "a", "x".repeat(300)), (2, "readFile", "{\"kind\":\"missing\"}".to_string()), (1, "\u{1F600}", String::new())] {
+    for (t, m, p) in [
+        (1u8, "a", "x".repeat(300)),
+        (2, "readFile", "{\"kind\":\"missing\"}".to_string()),
+        (1, "\u{1F600}", String::new()),
+    ] {
         let mut w = MessagePackWriter::new(&mut bytes);
         w.write_tuple(MessageType::from_u8(t).unwrap(), m.as_bytes(), p.as_bytes()).unwrap();
     }
@@ -48,7 +53,8 @@ fn jsonrpc_frames_split_across_reads() {
     {
         let mut w = FrameWriter::new(&mut bytes);
         w.write_frame(br#"{"jsonrpc":"2.0","id":1,"method":"ping"}"#).unwrap();
-        w.write_frame("{\"jsonrpc\":\"2.0\",\"id\":\"api1\",\"result\":\"\u{1F600}\"}".as_bytes()).unwrap();
+        w.write_frame("{\"jsonrpc\":\"2.0\",\"id\":\"api1\",\"result\":\"\u{1F600}\"}".as_bytes())
+            .unwrap();
     }
     let mut r = FrameReader::new(Trickle(&bytes[..]));
     assert_eq!(r.read_message().unwrap().method, "ping");
@@ -61,7 +67,10 @@ fn oversized_frames_are_rejected_without_allocating() {
     // bin32 declaring 4 GiB - 1 with a 1 MiB limit.
     let frame = [0x93, 0x01, 0xc4, 0x01, b'a', 0xc6, 0xff, 0xff, 0xff, 0xff];
     let err = MessagePackReader::with_limit(&frame[..], 1 << 20).read_message().unwrap_err();
-    assert!(matches!(err, TransportError::FrameTooLarge { declared: 0xffff_ffff, limit: 1_048_576 }), "{err:?}");
+    assert!(
+        matches!(err, TransportError::FrameTooLarge { declared: 0xffff_ffff, limit: 1_048_576 }),
+        "{err:?}"
+    );
     let header = b"Content-Length: 1000000000000\r\n\r\n";
     let err = FrameReader::with_limit(&header[..], 1 << 20).read_message().unwrap_err();
     assert!(matches!(err, TransportError::FrameTooLarge { .. }), "{err:?}");
@@ -88,7 +97,12 @@ struct CallingHandler {
 }
 
 impl Handler for CallingHandler {
-    fn handle_request(&self, cx: &RequestContext, method: &str, params: &[u8]) -> Result<Response, ApiError> {
+    fn handle_request(
+        &self,
+        cx: &RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<Response, ApiError> {
         self.log.lock().unwrap().push(format!("{method}@{}", cx.depth));
         match method {
             "call" => {
@@ -132,11 +146,15 @@ impl MsgpackClient2 {
     }
 }
 
-fn start_sync() -> (MsgpackClient, thread::JoinHandle<Result<(), TransportError>>, Arc<CallingHandler>) {
+fn start_sync()
+-> (MsgpackClient, thread::JoinHandle<Result<(), TransportError>>, Arc<CallingHandler>) {
     let (server_r, client_w) = std::io::pipe().unwrap();
     let (client_r, server_w) = std::io::pipe().unwrap();
     let late = LateCaller::new();
-    let handler = Arc::new(CallingHandler { caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late), log: Mutex::new(Vec::new()) });
+    let handler = Arc::new(CallingHandler {
+        caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late),
+        log: Mutex::new(Vec::new()),
+    });
     let conn = SyncConn::new(
         Box::new(MessagePackReader::new(server_r)),
         Box::new(MessagePackWriter::new(server_w)),
@@ -145,7 +163,11 @@ fn start_sync() -> (MsgpackClient, thread::JoinHandle<Result<(), TransportError>
     );
     late.set(conn.caller());
     let run = thread::spawn(move || conn.run());
-    (MsgpackClient { w: MessagePackWriter::new(client_w), r: MessagePackReader::new(client_r) }, run, handler)
+    (
+        MsgpackClient { w: MessagePackWriter::new(client_w), r: MessagePackReader::new(client_r) },
+        run,
+        handler,
+    )
 }
 
 #[test]
@@ -161,13 +183,27 @@ fn sync_callback_nested_request_and_errors() {
     c.send(MessageType::Request, "depth", b"");
     assert_eq!(c.recv(), (MessageType::Response, "depth".into(), b"1".to_vec()));
     c.send(MessageType::CallResponse, "readFile", br#"{"kind":"value","value":"\ud83d\ude00"}"#);
-    assert_eq!(c.recv(), (MessageType::Response, "call".into(), br#"{"kind":"value","value":"\ud83d\ude00"}"#.to_vec()));
+    assert_eq!(
+        c.recv(),
+        (
+            MessageType::Response,
+            "call".into(),
+            br#"{"kind":"value","value":"\ud83d\ude00"}"#.to_vec()
+        )
+    );
 
     // A failed callback surfaces in the handler as a remote error.
     c.send(MessageType::Request, "call", b"\"stat\"");
     assert_eq!(c.recv().0, MessageType::Call);
     c.send(MessageType::CallError, "stat", "boom \u{1F600}".as_bytes());
-    assert_eq!(c.recv(), (MessageType::Error, "call".into(), "ipc: remote error [-32603]: boom \u{1F600}".as_bytes().to_vec()));
+    assert_eq!(
+        c.recv(),
+        (
+            MessageType::Error,
+            "call".into(),
+            "ipc: remote error [-32603]: boom \u{1F600}".as_bytes().to_vec()
+        )
+    );
 
     // Handler error.
     c.send(MessageType::Request, "nope", b"");
@@ -183,7 +219,10 @@ fn sync_callback_nested_request_and_errors() {
     assert_eq!((t, m.as_str()), (MessageType::Error, "call"));
     assert!(String::from_utf8(p).unwrap().starts_with("ipc: connection closed"));
     assert!(run.join().unwrap().is_ok());
-    assert_eq!(*handler.log.lock().unwrap(), ["bin@0", "call@0", "depth@1", "call@0", "nope@0", "call@0"]);
+    assert_eq!(
+        *handler.log.lock().unwrap(),
+        ["bin@0", "call@0", "depth@1", "call@0", "nope@0", "call@0"]
+    );
 }
 
 #[test]
@@ -220,11 +259,15 @@ impl JsonClient2 {
     }
 }
 
-fn start_async() -> (JsonClient, thread::JoinHandle<Result<(), TransportError>>, Arc<CallingHandler>) {
+fn start_async() -> (JsonClient, thread::JoinHandle<Result<(), TransportError>>, Arc<CallingHandler>)
+{
     let (server_r, client_w) = std::io::pipe().unwrap();
     let (client_r, server_w) = std::io::pipe().unwrap();
     let late = LateCaller::new();
-    let handler = Arc::new(CallingHandler { caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late), log: Mutex::new(Vec::new()) });
+    let handler = Arc::new(CallingHandler {
+        caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late),
+        log: Mutex::new(Vec::new()),
+    });
     let conn = AsyncConn::new(
         Box::new(FrameReader::new(server_r)),
         Box::new(FrameWriter::new(server_w)),
@@ -249,12 +292,21 @@ fn async_requests_progress_while_one_waits_on_a_callback() {
     c.send(r#"{"jsonrpc":"2.0","id":"two","method":"bin"}"#);
     assert_eq!(c.recv(), serde_json::json!({"jsonrpc": "2.0", "id": "two", "result": "AJ+Slg=="}));
     c.send(r#"{"jsonrpc":"2.0","id":"api1","result":{"kind":"value","value":"x"}}"#);
-    assert_eq!(c.recv(), serde_json::json!({"jsonrpc": "2.0", "id": 1, "result": {"kind": "value", "value": "x"}}));
+    assert_eq!(
+        c.recv(),
+        serde_json::json!({"jsonrpc": "2.0", "id": 1, "result": {"kind": "value", "value": "x"}})
+    );
     // Remote error.
     c.send(r#"{"jsonrpc":"2.0","id":3,"method":"call","params":"stat"}"#);
     let call = c.recv();
-    c.send(&format!(r#"{{"jsonrpc":"2.0","id":{},"error":{{"code":-32601,"message":"no handler"}}}}"#, call["id"]));
-    assert_eq!(c.recv()["error"], serde_json::json!({"code": -32603, "message": "ipc: remote error [-32601]: no handler"}));
+    c.send(&format!(
+        r#"{{"jsonrpc":"2.0","id":{},"error":{{"code":-32601,"message":"no handler"}}}}"#,
+        call["id"]
+    ));
+    assert_eq!(
+        c.recv()["error"],
+        serde_json::json!({"code": -32603, "message": "ipc: remote error [-32601]: no handler"})
+    );
     // A response for an unknown id is ignored; notifications are accepted.
     c.send(r#"{"jsonrpc":"2.0","id":"api999","result":1}"#);
     c.send(r#"{"jsonrpc":"2.0","method":"$/cancelRequest","params":{"id":3}}"#);
@@ -288,7 +340,12 @@ fn caller_after_connection_dropped_is_closed() {
     let (r, _w) = std::io::pipe().unwrap();
     let (_r2, w) = std::io::pipe().unwrap();
     let handler = Arc::new(CallingHandler { caller: late, log: Mutex::new(Vec::new()) });
-    let conn = SyncConn::new(Box::new(MessagePackReader::new(r)), Box::new(MessagePackWriter::new(w)), handler, ConnOptions::default());
+    let conn = SyncConn::new(
+        Box::new(MessagePackReader::new(r)),
+        Box::new(MessagePackWriter::new(w)),
+        handler,
+        ConnOptions::default(),
+    );
     let caller = conn.caller();
     drop(conn);
     assert!(matches!(caller.call("readFile", None), Err(TransportError::Closed(None))));

@@ -8,12 +8,12 @@ use std::any::Any as StdAny;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::fs;
+use std::io::{BufRead, BufReader, Write};
 use std::panic::{self, AssertUnwindSafe};
 use std::path::PathBuf;
-use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{mpsc, Arc, Mutex, Once};
+use std::sync::{Arc, Mutex, Once, mpsc};
 use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
@@ -66,7 +66,10 @@ pub fn install_panic_hook() {
                 return;
             }
             let msg = payload_message(payload);
-            let loc = info.location().map(|l| format!(" at {}:{}", l.file(), l.line())).unwrap_or_default();
+            let loc = info
+                .location()
+                .map(|l| format!(" at {}:{}", l.file(), l.line()))
+                .unwrap_or_default();
             let bt = std::backtrace::Backtrace::force_capture().to_string();
             // This flag only selects diagnostic output; it does not publish or protect any other data.
             if WORKER_MODE.load(Ordering::Relaxed) {
@@ -146,7 +149,8 @@ const TEST_TIMEOUT: Duration = Duration::from_secs(120);
 pub fn worker(registry: &'static [TestEntry], include_skipped: bool) {
     install_panic_hook();
     WORKER_MODE.store(true, Ordering::Relaxed);
-    let by_name: FxHashMap<&str, &'static TestEntry> = registry.iter().map(|e| (e.name, e)).collect();
+    let by_name: FxHashMap<&str, &'static TestEntry> =
+        registry.iter().map(|e| (e.name, e)).collect();
     let stdin = std::io::stdin();
     let mut line = String::new();
     loop {
@@ -160,9 +164,14 @@ pub fn worker(registry: &'static [TestEntry], include_skipped: bool) {
         };
         let entry: &'static TestEntry = entry;
         let outcome = std::thread::scope(|s| {
-            std::thread::Builder::new().stack_size(256 << 20).spawn_scoped(s, || run_test(entry, include_skipped)).expect("spawn test thread").join()
+            std::thread::Builder::new()
+                .stack_size(256 << 20)
+                .spawn_scoped(s, || run_test(entry, include_skipped))
+                .expect("spawn test thread")
+                .join()
         });
-        let outcome = outcome.unwrap_or_else(|_| Outcome::Fail("panic outside the test".to_string()));
+        let outcome =
+            outcome.unwrap_or_else(|_| Outcome::Fail("panic outside the test".to_string()));
         // Full failure messages: target/fourslash-results/failures/<name>.txt.
         let failure_file = results_dir().join("failures").join(format!("{name}.txt"));
         match &outcome {
@@ -207,7 +216,12 @@ fn spawn_worker(include_skipped: bool) -> WorkerProcess {
     if include_skipped {
         cmd.arg("--include-skipped");
     }
-    let mut child = cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().expect("spawn fourslash worker");
+    let mut child = cmd
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn fourslash worker");
     let stdin = child.stdin.take().unwrap();
     let stdout = child.stdout.take().unwrap();
     let stderr = child.stderr.take().unwrap();
@@ -233,7 +247,11 @@ fn spawn_worker(include_skipped: bool) -> WorkerProcess {
     WorkerProcess { child, stdin, results: rx, last_stderr, tests_run: 0 }
 }
 
-fn run_in_worker(worker: &mut Option<WorkerProcess>, entry: &TestEntry, include_skipped: bool) -> Outcome {
+fn run_in_worker(
+    worker: &mut Option<WorkerProcess>,
+    entry: &TestEntry,
+    include_skipped: bool,
+) -> Outcome {
     if worker.as_ref().is_some_and(|w| w.tests_run >= WORKER_TESTS) {
         let mut w = worker.take().unwrap();
         drop(w.stdin);
@@ -294,7 +312,10 @@ fn remove_failure_file(name: &str) {
 // Returns the number of failures.
 pub fn run(registry: &'static [TestEntry], opts: &RunOptions) -> usize {
     install_panic_hook();
-    let selected: Vec<&'static TestEntry> = registry.iter().filter(|e| opts.filter.as_ref().is_none_or(|re| re.is_match(e.name))).collect();
+    let selected: Vec<&'static TestEntry> = registry
+        .iter()
+        .filter(|e| opts.filter.as_ref().is_none_or(|re| re.is_match(e.name)))
+        .collect();
     let start = Instant::now();
     let next = AtomicUsize::new(0);
     let results: Mutex<Vec<Option<Outcome>>> = Mutex::new(vec![None; selected.len()]);
@@ -340,7 +361,10 @@ pub fn run(registry: &'static [TestEntry], opts: &RunOptions) -> usize {
             }
             Outcome::Fail(msg) => {
                 // Crashes and timeouts never reach the worker's own report.
-                if msg.starts_with("crash: ") || msg.starts_with("timeout: ") || msg == "worker process unavailable" {
+                if msg.starts_with("crash: ")
+                    || msg.starts_with("timeout: ")
+                    || msg == "worker process unavailable"
+                {
                     write_failure_file(e.name, &msg);
                 }
                 let first = msg.lines().next().unwrap_or("").to_string();

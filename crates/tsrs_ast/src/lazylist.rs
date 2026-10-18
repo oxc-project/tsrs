@@ -24,7 +24,7 @@
 //! program is shared; `nodes` is written once by the forcing thread before its Release store of `DONE`, and read by
 //! other threads only after an Acquire load of `DONE`.
 
-use std::sync::atomic::{AtomicU64, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
 
 use tsrs_core::{OwnedCell, P};
@@ -128,7 +128,13 @@ pub fn stats_line() -> String {
     let v: Vec<u64> = STATS.iter().map(|c| c.load(Ordering::Relaxed)).collect();
     format!(
         "lazy-dts: {} lists lazy, {} deferred by the binder, {} never reached by it, {} parsed again ({} while their file was bound); readers spent {:.1} ms parsing and binding, {:.1} ms waiting\n",
-        v[0], v[1], v[4], v[2], v[3], v[5] as f64 / 1e6, v[6] as f64 / 1e6
+        v[0],
+        v[1],
+        v[4],
+        v[2],
+        v[3],
+        v[5] as f64 / 1e6,
+        v[6] as f64 / 1e6
     )
 }
 
@@ -241,7 +247,11 @@ impl LazyNodeList {
                 PENDING => return &[],
                 s @ (DEFERRED | UNBOUND) => {
                     // Acquire: as above; the record's `bind` was published with `DEFERRED`.
-                    if self.state.compare_exchange(s, FORCING, Ordering::Acquire, Ordering::Acquire).is_ok() {
+                    if self
+                        .state
+                        .compare_exchange(s, FORCING, Ordering::Acquire, Ordering::Acquire)
+                        .is_ok()
+                    {
                         // Relaxed: read back only by this thread; another thread only needs to see a different value.
                         self.forcer.store(thread_token(), Ordering::Relaxed);
                         return self.force(s == DEFERRED);
@@ -280,7 +290,8 @@ impl LazyNodeList {
     fn force(&self, bind: bool) -> &'static [P<Node>] {
         note(2);
         let t = std::time::Instant::now();
-        let file = crate::utilities_1::get_source_file_of_node(Some(self.owner())).expect("a lazy list's file");
+        let file = crate::utilities_1::get_source_file_of_node(Some(self.owner()))
+            .expect("a lazy list's file");
         // The reader may be inside a scratch region or another allocation scope: the tree is shared and permanent.
         let _escape = tsrs_core::arena::escape_scratch();
         let _arena = tsrs_core::arena::enter_thread_arena();
@@ -313,7 +324,11 @@ impl LazyNodeList {
     /// so the deferred list is parsed and bound by `bind` now, before the merge.
     pub fn force_inline(&self, file: P<SourceFile>, bind: &mut dyn FnMut(&'static [P<Node>])) {
         // Acquire: as in `force_nodes` (the binder of this file made the earlier transitions, on this thread).
-        if self.state.compare_exchange(DEFERRED, FORCING, Ordering::Acquire, Ordering::Acquire).is_err() {
+        if self
+            .state
+            .compare_exchange(DEFERRED, FORCING, Ordering::Acquire, Ordering::Acquire)
+            .is_err()
+        {
             return;
         }
         // Relaxed: as in `force_nodes`.

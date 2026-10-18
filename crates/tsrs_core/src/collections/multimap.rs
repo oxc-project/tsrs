@@ -16,7 +16,10 @@ pub fn new_multi_map_with_size_hint<K: Hash + Eq, V>(hint: usize) -> MultiMap<K,
     MultiMap { m: FxHashMap::with_capacity_and_hasher(hint, rustc_hash::FxBuildHasher) }
 }
 
-pub fn group_by<K: Hash + Eq, V: Clone>(items: &[V], mut group_id: impl FnMut(&V) -> K) -> MultiMap<K, V> {
+pub fn group_by<K: Hash + Eq, V: Clone>(
+    items: &[V],
+    mut group_id: impl FnMut(&V) -> K,
+) -> MultiMap<K, V> {
     let mut m = MultiMap::default();
     for item in items {
         m.add(group_id(item), item.clone());

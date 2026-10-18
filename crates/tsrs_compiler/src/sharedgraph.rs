@@ -37,7 +37,10 @@ pub(crate) fn enabled() -> bool {
 // target every checker waits for the seed, whose time grows with its size, so the default stays at the first round's 1%.
 fn seed_ppm(recycle: bool) -> u64 {
     let default = if recycle { 5.0 } else { 1.0 };
-    let percent: f64 = std::env::var("TSRS_SHARED_GRAPH_SEED_PERCENT").ok().and_then(|v| v.trim().trim_end_matches('%').parse().ok()).unwrap_or(default);
+    let percent: f64 = std::env::var("TSRS_SHARED_GRAPH_SEED_PERCENT")
+        .ok()
+        .and_then(|v| v.trim().trim_end_matches('%').parse().ok())
+        .unwrap_or(default);
     (percent * 10_000.0).round().clamp(0.0, 1_000_000.0) as u64
 }
 
@@ -45,10 +48,19 @@ fn seed_ppm(recycle: bool) -> u64 {
 /// to `ppm` (parts per million) of the checked weight. Never a declaration file, and never a file that may be freed
 /// once it is checked (one with a region of its own, `fileregions`), since a frozen object must not point into a freed
 /// tree.
-pub(crate) fn seed_positions(program: &Program, files: &[P<SourceFile>], weight: &dyn Fn(u32) -> u64, ppm: u64) -> Vec<u32> {
+pub(crate) fn seed_positions(
+    program: &Program,
+    files: &[P<SourceFile>],
+    weight: &dyn Fn(u32) -> u64,
+    ppm: u64,
+) -> Vec<u32> {
     let eligible = |i: usize| {
         let f = files[i];
-        !f.is_declaration_file() && !f.is_check_leaf() && !crate::fileregions::has_region(f) && !program.skip_type_checking(f, false) && weight(i as u32) > 0
+        !f.is_declaration_file()
+            && !f.is_check_leaf()
+            && !crate::fileregions::has_region(f)
+            && !program.skip_type_checking(f, false)
+            && weight(i as u32) > 0
     };
     let total: u64 = (0..files.len()).map(|i| weight(i as u32)).sum();
     let budget = (total as u128 * ppm as u128 / 1_000_000) as u64;
@@ -96,7 +108,8 @@ struct SeedOut(&'static tsrs_checker::Checker, Vec<(usize, usize)>, std::time::I
 // to it until then.
 unsafe impl Send for SeedOut {}
 
-static SEED_THREAD: std::sync::Mutex<Option<std::thread::JoinHandle<SeedOut>>> = std::sync::Mutex::new(None);
+static SEED_THREAD: std::sync::Mutex<Option<std::thread::JoinHandle<SeedOut>>> =
+    std::sync::Mutex::new(None);
 static BASE: OnceLock<Base> = OnceLock::new();
 /// `type_count` of a fresh checker: a pool checker with more was used before the pass and is not replaced.
 static FRESH_TYPES: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(u32::MAX);
@@ -115,7 +128,12 @@ pub(crate) fn start_seed(program: &'static Program, weights: Vec<i64>, recycle: 
         .stack_size(crate::checkerpool::CHECKER_STACK_SIZE)
         .spawn(move || {
             let files = &program.files;
-            let positions = seed_positions(program, files, &|i: u32| weights.get(i as usize).copied().unwrap_or(0).max(0) as u64, seed_ppm(recycle));
+            let positions = seed_positions(
+                program,
+                files,
+                &|i: u32| weights.get(i as usize).copied().unwrap_or(0).max(0) as u64,
+                seed_ppm(recycle),
+            );
             tsrs_ast::use_id_blocks();
             tsrs_core::sharedgraph::set_seed_thread(true);
             // Everything the seed checker allocates goes to this region, which is frozen afterwards. Not a scratch scope:
@@ -135,7 +153,10 @@ pub(crate) fn start_seed(program: &'static Program, weights: Vec<i64>, recycle: 
             drop(scope);
             let chunks = region.chunks();
             // Never freed: the forks read it for the rest of the process.
-            #[expect(clippy::mem_forget, reason = "the frozen seed region must outlive every fork, to the end of the process")]
+            #[expect(
+                clippy::mem_forget,
+                reason = "the frozen seed region must outlive every fork, to the end of the process"
+            )]
             std::mem::forget(region);
             SeedOut(Box::leak(c), chunks, start)
         })
@@ -146,7 +167,8 @@ pub(crate) fn start_seed(program: &'static Program, weights: Vec<i64>, recycle: 
 /// The frozen seed: the first caller joins the seed thread and freezes its region; the others wait for it.
 fn wait_base() -> Base {
     *BASE.get_or_init(|| {
-        let handle = SEED_THREAD.lock().unwrap().take().expect("shared graph: the seed was not started");
+        let handle =
+            SEED_THREAD.lock().unwrap().take().expect("shared graph: the seed was not started");
         let out = handle.join().unwrap_or_else(|e| std::panic::resume_unwind(e));
         tsrs_core::sharedgraph::freeze(&out.1);
         if debug_regions() {
@@ -166,7 +188,8 @@ pub(crate) fn try_base() -> Option<Base> {
     if let Some(b) = BASE.get() {
         return Some(*b);
     }
-    let finished = SEED_THREAD.lock().unwrap().as_ref().is_some_and(std::thread::JoinHandle::is_finished);
+    let finished =
+        SEED_THREAD.lock().unwrap().as_ref().is_some_and(std::thread::JoinHandle::is_finished);
     finished.then(wait_base)
 }
 

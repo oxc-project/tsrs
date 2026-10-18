@@ -13,7 +13,8 @@ use super::try_remove_directory_prefix;
 fn test_try_remove_directory_prefix_case_folding_shrinks_prefix() {
     let prefix = "/a/\u{212A}\u{212A}\u{212A}\u{212A}";
     let path = "/a/kkkk/x.ts";
-    let actual = try_remove_directory_prefix(path, prefix, false /*useCaseSensitiveFileNames*/);
+    let actual =
+        try_remove_directory_prefix(path, prefix, false /*useCaseSensitiveFileNames*/);
     let Some(actual) = actual else {
         panic!("expected a non-nil result");
     };

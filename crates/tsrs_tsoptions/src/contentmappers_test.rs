@@ -2,11 +2,11 @@
 
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::tspath::ComparePathsOptions;
-use tsrs_core::{CompilerOptions, JsxEmit, ScriptTarget, Tristate, P};
+use tsrs_core::{CompilerOptions, JsxEmit, P, ScriptTarget, Tristate};
 use tsrs_diagnostics as diagnostics;
 
-use crate::contentmappers::{resolve_content_mapper_manifest, Definition, Manifest, Mapper};
-use crate::parsedcommandline::{new_parsed_command_line, ParsedCommandLine};
+use crate::contentmappers::{Definition, Manifest, Mapper, resolve_content_mapper_manifest};
+use crate::parsedcommandline::{ParsedCommandLine, new_parsed_command_line};
 use crate::parsedoptions::ParsedOptions;
 use crate::tsoptionstest::new_vfs_parse_config_host;
 
@@ -25,27 +25,48 @@ fn mapper(package: &str, extensions: &[&str]) -> Mapper {
 #[test]
 fn test_get_content_mapper_for_file_name_uses_longest_extension() {
     let command_line = ParsedCommandLine {
-        parsed_config: ParsedOptions { content_mappers: vec![mapper("z", &[".z"]), mapper("yz", &[".y.z"])].into(), ..Default::default() },
+        parsed_config: ParsedOptions {
+            content_mappers: vec![mapper("z", &[".z"]), mapper("yz", &[".y.z"])].into(),
+            ..Default::default()
+        },
         ..ParsedCommandLine::empty()
     };
     let z_mapper = &command_line.content_mappers()[0];
     let yz_mapper = &command_line.content_mappers()[1];
 
-    assert!(std::ptr::eq(command_line.get_content_mapper_for_file_name("/src/Component.y.z").unwrap(), yz_mapper));
-    assert!(std::ptr::eq(command_line.get_content_mapper_for_file_name("/src/Component.z").unwrap(), z_mapper));
+    assert!(std::ptr::eq(
+        command_line.get_content_mapper_for_file_name("/src/Component.y.z").unwrap(),
+        yz_mapper
+    ));
+    assert!(std::ptr::eq(
+        command_line.get_content_mapper_for_file_name("/src/Component.z").unwrap(),
+        z_mapper
+    ));
 }
 
 // contentmappers_test.go:30
 #[test]
 fn test_get_content_mapper_for_file_name_uses_host_case_sensitivity() {
     let insensitive = ParsedCommandLine {
-        parsed_config: ParsedOptions { content_mappers: vec![mapper("", &[".vue"])].into(), ..Default::default() },
-        compare_paths_options: ComparePathsOptions { use_case_sensitive_file_names: false, ..Default::default() },
+        parsed_config: ParsedOptions {
+            content_mappers: vec![mapper("", &[".vue"])].into(),
+            ..Default::default()
+        },
+        compare_paths_options: ComparePathsOptions {
+            use_case_sensitive_file_names: false,
+            ..Default::default()
+        },
         ..ParsedCommandLine::empty()
     };
     let sensitive = ParsedCommandLine {
-        parsed_config: ParsedOptions { content_mappers: vec![mapper("", &[".vue"])].into(), ..Default::default() },
-        compare_paths_options: ComparePathsOptions { use_case_sensitive_file_names: true, ..Default::default() },
+        parsed_config: ParsedOptions {
+            content_mappers: vec![mapper("", &[".vue"])].into(),
+            ..Default::default()
+        },
+        compare_paths_options: ComparePathsOptions {
+            use_case_sensitive_file_names: true,
+            ..Default::default()
+        },
         ..ParsedCommandLine::empty()
     };
 
@@ -69,7 +90,10 @@ fn test_get_output_file_names_excludes_mapper_owned_outputs() {
         }),
         vec!["/src/Component.vue".to_string()],
         Vec::new(),
-        ComparePathsOptions { current_directory: "/".to_string(), use_case_sensitive_file_names: true },
+        ComparePathsOptions {
+            current_directory: "/".to_string(),
+            use_case_sensitive_file_names: true,
+        },
     );
     command_line.parsed_config.content_mappers = vec![mapper("", &[".vue"])].into();
 
@@ -128,7 +152,8 @@ fn test_resolve_content_mapper_manifest() {
     );
 
     // Name, version, and the verbatim exec argv are preserved.
-    let (manifest, package_directory, diagnostic) = resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "vue-ts-mapper");
+    let (manifest, package_directory, diagnostic) =
+        resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "vue-ts-mapper");
     assert!(diagnostic.is_none());
     assert_eq!(manifest.name, "vue-ts-mapper");
     assert_eq!(manifest.version, "1.2.3");
@@ -137,25 +162,36 @@ fn test_resolve_content_mapper_manifest() {
     assert_eq!(manifest.compiler_options, ["target", "jsx"]);
 
     // Resolution walks up node_modules; a package with no version resolves to a name and empty version.
-    let (manifest, _, diagnostic) = resolve_content_mapper_manifest(host, "/home/project/src/tsconfig.json", "@scope/noversion");
+    let (manifest, _, diagnostic) = resolve_content_mapper_manifest(
+        host,
+        "/home/project/src/tsconfig.json",
+        "@scope/noversion",
+    );
     assert!(diagnostic.is_none());
     assert_eq!(manifest.name, "@scope/noversion");
     assert_eq!(manifest.version, "");
 
     // A package that is not installed reports a resolution diagnostic.
-    let (_, _, diagnostic) = resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "missing-mapper");
-    assert_eq!(diagnostic.unwrap().code(), diagnostics::The_content_mapper_package_0_could_not_be_resolved.code());
+    let (_, _, diagnostic) =
+        resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "missing-mapper");
+    assert_eq!(
+        diagnostic.unwrap().code(),
+        diagnostics::The_content_mapper_package_0_could_not_be_resolved.code()
+    );
 
     // A package whose package.json has no name reports a diagnostic.
-    let (_, package_directory, diagnostic) = resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "no-name");
+    let (_, package_directory, diagnostic) =
+        resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "no-name");
     assert_eq!(package_directory, "/home/project/node_modules/no-name");
     assert_eq!(
         diagnostic.unwrap().code(),
-        diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_specify_a_name.code()
+        diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_specify_a_name
+            .code()
     );
 
     // A package that does not declare a "typescript.contentMapper" object reports a diagnostic.
-    let (_, _, diagnostic) = resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "no-manifest");
+    let (_, _, diagnostic) =
+        resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", "no-manifest");
     assert_eq!(
         diagnostic.unwrap().code(),
         diagnostics::The_package_json_of_the_content_mapper_package_0_does_not_declare_a_typescript_contentMapper_object.code()
@@ -163,7 +199,8 @@ fn test_resolve_content_mapper_manifest() {
 
     // A "typescript.contentMapper" with no "exec", or an "exec" of the wrong type, reports a diagnostic.
     for pkg in ["no-exec", "bad-exec"] {
-        let (_, _, diagnostic) = resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", pkg);
+        let (_, _, diagnostic) =
+            resolve_content_mapper_manifest(host, "/home/project/tsconfig.json", pkg);
         let Some(diagnostic) = diagnostic else {
             panic!("expected a diagnostic for {pkg}");
         };
@@ -197,22 +234,36 @@ fn test_mapper_diagnostic_name() {
 // and TransformIdentity live in this crate.)
 #[test]
 fn test_static_content_mapper_transform_identity() {
-    let named = |package: &str, options: &str, name: &str, version: &str, compiler_options: &[&str]| Mapper {
-        definition: Definition { package: package.to_string(), options: options.to_string(), ..Default::default() },
-        manifest: Manifest {
-            name: name.to_string(),
-            version: version.to_string(),
-            compiler_options: compiler_options.iter().map(std::string::ToString::to_string).collect(),
-            ..Default::default()
-        },
-        ..Default::default()
-    };
+    let named =
+        |package: &str, options: &str, name: &str, version: &str, compiler_options: &[&str]| {
+            Mapper {
+                definition: Definition {
+                    package: package.to_string(),
+                    options: options.to_string(),
+                    ..Default::default()
+                },
+                manifest: Manifest {
+                    name: name.to_string(),
+                    version: version.to_string(),
+                    compiler_options: compiler_options
+                        .iter()
+                        .map(std::string::ToString::to_string)
+                        .collect(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        };
     assert_eq!(named("", "", "vue", "2.0.0", &[]).identity(), "vue@2.0.0");
     assert_eq!(named("anon", "", "", "", &[]).identity(), "");
 
     let jsx_mapper = named("jsx", "", "jsx", "1.0.0", &["jsx"]);
-    let jsx_preserve_identity = jsx_mapper.transform_identity(Some(&CompilerOptions { jsx: JsxEmit::Preserve, ..Default::default() }));
-    let jsx_react_identity = jsx_mapper.transform_identity(Some(&CompilerOptions { jsx: JsxEmit::React, ..Default::default() }));
+    let jsx_preserve_identity = jsx_mapper.transform_identity(Some(&CompilerOptions {
+        jsx: JsxEmit::Preserve,
+        ..Default::default()
+    }));
+    let jsx_react_identity = jsx_mapper
+        .transform_identity(Some(&CompilerOptions { jsx: JsxEmit::React, ..Default::default() }));
     assert_ne!(jsx_preserve_identity, jsx_react_identity);
 
     let options_a = named("vue", r#"{"mode":"a"}"#, "vue", "1.0.0", &[]);
@@ -229,11 +280,18 @@ fn test_static_content_mapper_transform_identity() {
 #[test]
 fn test_transform_identity_hashes_declared_options_json() {
     let mapper = Mapper {
-        definition: Definition { package: "vue".to_string(), options: r#"{"mode":"a"}"#.to_string(), ..Default::default() },
+        definition: Definition {
+            package: "vue".to_string(),
+            options: r#"{"mode":"a"}"#.to_string(),
+            ..Default::default()
+        },
         manifest: Manifest {
             name: "vue".to_string(),
             version: "1.0.0".to_string(),
-            compiler_options: ["target", "noSuchOption", "strict", "noEmit", "jsx", "lib", "paths"].iter().map(std::string::ToString::to_string).collect(),
+            compiler_options: ["target", "noSuchOption", "strict", "noEmit", "jsx", "lib", "paths"]
+                .iter()
+                .map(std::string::ToString::to_string)
+                .collect(),
             ..Default::default()
         },
         ..Default::default()
@@ -250,10 +308,17 @@ fn test_transform_identity_hashes_declared_options_json() {
     };
 
     let declared = mapper.marshal_declared_options(Some(&options)).unwrap();
-    let declared: Vec<(&str, &str)> = declared.iter().map(|(name, raw)| (name.as_str(), raw.as_str())).collect();
+    let declared: Vec<(&str, &str)> =
+        declared.iter().map(|(name, raw)| (name.as_str(), raw.as_str())).collect();
     assert_eq!(
         declared,
-        [("target", "99"), ("strict", "false"), ("jsx", "1"), ("lib", r#"["es2022","dom"]"#), ("paths", r#"{"@/*":["src/*"]}"#)]
+        [
+            ("target", "99"),
+            ("strict", "false"),
+            ("jsx", "1"),
+            ("lib", r#"["es2022","dom"]"#),
+            ("paths", r#"{"@/*":["src/*"]}"#)
+        ]
     );
     let hashed = [
         b"vue@1.0.0".as_slice(),
@@ -267,6 +332,12 @@ fn test_transform_identity_hashes_declared_options_json() {
 
     // Without options, or without declared names, the declared options are the empty object.
     assert!(mapper.marshal_declared_options(None).unwrap().is_empty());
-    let undeclared = Mapper { manifest: Manifest { name: "vue".to_string(), ..Default::default() }, ..Default::default() };
-    assert_eq!(undeclared.transform_identity(Some(&options)), xxhash_rust::xxh3::xxh3_128(b"vue\0\0{}"));
+    let undeclared = Mapper {
+        manifest: Manifest { name: "vue".to_string(), ..Default::default() },
+        ..Default::default()
+    };
+    assert_eq!(
+        undeclared.transform_identity(Some(&options)),
+        xxhash_rust::xxh3::xxh3_128(b"vue\0\0{}")
+    );
 }

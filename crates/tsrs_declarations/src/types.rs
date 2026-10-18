@@ -25,11 +25,16 @@ pub struct ReferencedFilePair {
 // Used to be passed in the TransformationContext, which is now just an EmitContext
 pub trait DeclarationEmitHost: ModuleSpecifierGenerationHost {
     // GetCurrentDirectory() / UseCaseSensitiveFileNames() come from OutputPathsHost (via ModuleSpecifierGenerationHost).
-    fn get_source_file_from_reference(&self, origin: P<SourceFile>, ref_: P<FileReference>) -> Option<P<SourceFile>>;
+    fn get_source_file_from_reference(
+        &self,
+        origin: P<SourceFile>,
+        ref_: P<FileReference>,
+    ) -> Option<P<SourceFile>>;
 
     fn get_output_paths_for(&self, file: P<SourceFile>, force_dts_paths: bool) -> OutputPaths;
     fn source_file_may_be_emitted(&self, file: P<SourceFile>, force_dts_emit: bool) -> bool;
-    fn get_effective_declaration_flags(&self, node: P<Node>, flags: ModifierFlags) -> ModifierFlags;
+    fn get_effective_declaration_flags(&self, node: P<Node>, flags: ModifierFlags)
+    -> ModifierFlags;
     fn get_emit_resolver(&self) -> Resolver;
 }
 
@@ -134,16 +139,18 @@ impl DeclarationTransformer {
 }
 
 // transform.go:215
-pub const declarationEmitNodeBuilderFlags: nodebuilder::Flags = nodebuilder::Flags::MultilineObjectLiterals
-    .union(nodebuilder::Flags::WriteClassExpressionAsTypeLiteral)
-    .union(nodebuilder::Flags::UseTypeOfFunction)
-    .union(nodebuilder::Flags::UseStructuralFallback)
-    .union(nodebuilder::Flags::AllowEmptyTuple)
-    .union(nodebuilder::Flags::GenerateNamesForShadowedTypeParams)
-    .union(nodebuilder::Flags::NoTruncation);
+pub const declarationEmitNodeBuilderFlags: nodebuilder::Flags =
+    nodebuilder::Flags::MultilineObjectLiterals
+        .union(nodebuilder::Flags::WriteClassExpressionAsTypeLiteral)
+        .union(nodebuilder::Flags::UseTypeOfFunction)
+        .union(nodebuilder::Flags::UseStructuralFallback)
+        .union(nodebuilder::Flags::AllowEmptyTuple)
+        .union(nodebuilder::Flags::GenerateNamesForShadowedTypeParams)
+        .union(nodebuilder::Flags::NoTruncation);
 
 // transform.go:223
-pub const declarationEmitInternalNodeBuilderFlags: nodebuilder::InternalFlags = nodebuilder::InternalFlags::AllowUnresolvedNames;
+pub const declarationEmitInternalNodeBuilderFlags: nodebuilder::InternalFlags =
+    nodebuilder::InternalFlags::AllowUnresolvedNames;
 
 // tracker.go:12
 pub struct SymbolTrackerImpl {
@@ -181,7 +188,8 @@ pub struct SymbolTrackerSharedState {
 }
 
 // diagnostics.go:10
-pub type GetSymbolAccessibilityDiagnostic = Rc<dyn Fn(&SymbolAccessibilityResult) -> Option<P<SymbolAccessibilityDiagnostic>>>;
+pub type GetSymbolAccessibilityDiagnostic =
+    Rc<dyn Fn(&SymbolAccessibilityResult) -> Option<P<SymbolAccessibilityDiagnostic>>>;
 
 // diagnostics.go:12
 pub struct SymbolAccessibilityDiagnostic {
@@ -204,7 +212,13 @@ pub struct SupplementalReferencesTransformer {
 // Go: `*SymbolTrackerImpl` implements `nodebuilder.SymbolTracker` (checker.SymbolTracker); the methods are in
 // tracker.rs.
 impl SymbolTracker for SymbolTrackerImpl {
-    fn track_symbol(&self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool {
+    fn track_symbol(
+        &self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool {
         SymbolTrackerImpl::track_symbol(self, c, symbol, enclosing_declaration, meaning)
     }
     fn report_inaccessible_this_error(&self) {
@@ -225,8 +239,18 @@ impl SymbolTracker for SymbolTrackerImpl {
     fn report_truncation_error(&self) {
         SymbolTrackerImpl::report_truncation_error(self);
     }
-    fn report_nonlocal_augmentation(&self, containing_file: P<SourceFile>, parent_symbol: P<Symbol>, augmenting_symbol: P<Symbol>) {
-        SymbolTrackerImpl::report_nonlocal_augmentation(self, containing_file, parent_symbol, augmenting_symbol);
+    fn report_nonlocal_augmentation(
+        &self,
+        containing_file: P<SourceFile>,
+        parent_symbol: P<Symbol>,
+        augmenting_symbol: P<Symbol>,
+    ) {
+        SymbolTrackerImpl::report_nonlocal_augmentation(
+            self,
+            containing_file,
+            parent_symbol,
+            augmenting_symbol,
+        );
     }
     fn report_non_serializable_property(&self, property_name: &str) {
         SymbolTrackerImpl::report_non_serializable_property(self, property_name);

@@ -27,7 +27,13 @@ fn run_in(dir: &Path, args: &[&str]) -> String {
         .env_remove("TSRS_HISTORY")
         .output()
         .unwrap();
-    assert_eq!(out.status.code(), Some(2), "{} {args:?}: {}", dir.display(), String::from_utf8_lossy(&out.stderr));
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "{} {args:?}: {}",
+        dir.display(),
+        String::from_utf8_lossy(&out.stderr)
+    );
     String::from_utf8(out.stdout).unwrap()
 }
 
@@ -36,7 +42,11 @@ fn run_in(dir: &Path, args: &[&str]) -> String {
 #[test]
 fn incremental_merged_interface_sites_match_clean_builds() {
     for mode in [&["--singleThreaded"][..], &["--checkers", "4"][..]] {
-        let dir = std::env::temp_dir().join(format!("tsrs-merged-incremental-{}-{}", std::process::id(), mode[0]));
+        let dir = std::env::temp_dir().join(format!(
+            "tsrs-merged-incremental-{}-{}",
+            std::process::id(),
+            mode[0]
+        ));
         std::fs::create_dir_all(&dir).unwrap();
         for name in ["bases.ts", "a.ts", "b.ts", "c.ts", "d.d.ts"] {
             std::fs::copy(case("merged-interface-check-site").join(name), dir.join(name)).unwrap();
@@ -52,10 +62,14 @@ fn incremental_merged_interface_sites_match_clean_builds() {
         };
         config(roots);
         let initial = run_in(&dir, mode);
-        std::fs::write(dir.join("extra.ts"), (0..100).fold(String::new(), |mut out, i| {
-            writeln!(out, "export const e0_{i}: number = {i};").unwrap();
-            out
-        })).unwrap();
+        std::fs::write(
+            dir.join("extra.ts"),
+            (0..100).fold(String::new(), |mut out, i| {
+                writeln!(out, "export const e0_{i}: number = {i};").unwrap();
+                out
+            }),
+        )
+        .unwrap();
         config(&extra_first);
         let added = run_in(&dir, mode);
         let added_clean = clean();
@@ -83,8 +97,13 @@ fn incremental_merged_interface_sites_follow_history_changes() {
     for name in ["bases.ts", "a.ts", "b.ts", "c.ts", "d.d.ts"] {
         std::fs::copy(case("merged-interface-check-site").join(name), dir.join(name)).unwrap();
     }
-    let config = std::fs::read_to_string(case("merged-interface-check-site").join("tsconfig.json")).unwrap();
-    std::fs::write(dir.join("tsconfig.json"), config.replace("\"strict\":true", "\"strict\":true,\"incremental\":true")).unwrap();
+    let config =
+        std::fs::read_to_string(case("merged-interface-check-site").join("tsconfig.json")).unwrap();
+    std::fs::write(
+        dir.join("tsconfig.json"),
+        config.replace("\"strict\":true", "\"strict\":true,\"incremental\":true"),
+    )
+    .unwrap();
     let info = dir.join("tsconfig.tsbuildinfo");
     let default = ["--checkers", "8"];
     let go = ["--checkers", "8", "--checkerAssignment", "go"];
@@ -92,8 +111,16 @@ fn incremental_merged_interface_sites_follow_history_changes() {
         let bytes = std::fs::read(&info).unwrap();
         let modified = std::fs::metadata(&info).unwrap().modified().unwrap();
         assert_eq!(run_in(&dir, args), expected);
-        assert_eq!(std::fs::read(&info).unwrap(), bytes, "unchanged history must preserve build info");
-        assert_eq!(std::fs::metadata(&info).unwrap().modified().unwrap(), modified, "unchanged history must not rewrite build info");
+        assert_eq!(
+            std::fs::read(&info).unwrap(),
+            bytes,
+            "unchanged history must preserve build info"
+        );
+        assert_eq!(
+            std::fs::metadata(&info).unwrap().modified().unwrap(),
+            modified,
+            "unchanged history must not rewrite build info"
+        );
     };
     let initial = run_in(&dir, &default);
     assert_eq!(initial.lines().filter(|line| line.contains("TS2320")).count(), 2);
@@ -101,7 +128,10 @@ fn incremental_merged_interface_sites_follow_history_changes() {
     unchanged(&default, &initial);
     let switched = run_in(&dir, &go);
     let go_info = std::fs::read_to_string(&info).unwrap();
-    assert!(!go_info.contains("tsrsCanonicalCheckSignature"), "Go history must rewrite tagged default caches");
+    assert!(
+        !go_info.contains("tsrsCanonicalCheckSignature"),
+        "Go history must rewrite tagged default caches"
+    );
     std::fs::remove_file(&info).unwrap();
     let fresh_go = run_in(&dir, &go);
     assert_eq!(fresh_go.lines().filter(|line| line.contains("TS2320")).count(), 4);
@@ -112,10 +142,28 @@ fn incremental_merged_interface_sites_follow_history_changes() {
     let key = "\"tsrsCanonicalCheckSignature\":";
     let start = default_info.find(key).unwrap() + key.len();
     let end = start + default_info[start..].find(',').unwrap();
-    for value in ["\"\"", "\"go4-v1:bad\"", "\"go4-v2:0123456789abcdef0123456789abcdef\"", "null", "123", "false", "{}", "[]"] {
-        std::fs::write(&info, format!("{}{value}{}", &default_info[..start], &default_info[end..])).unwrap();
-        assert_eq!(run_in(&dir, &go), fresh_go, "Go history must reject every present default tag: {value}");
-        assert_eq!(std::fs::read_to_string(&info).unwrap(), go_info, "Go rewrite must omit the default tag: {value}");
+    for value in [
+        "\"\"",
+        "\"go4-v1:bad\"",
+        "\"go4-v2:0123456789abcdef0123456789abcdef\"",
+        "null",
+        "123",
+        "false",
+        "{}",
+        "[]",
+    ] {
+        std::fs::write(&info, format!("{}{value}{}", &default_info[..start], &default_info[end..]))
+            .unwrap();
+        assert_eq!(
+            run_in(&dir, &go),
+            fresh_go,
+            "Go history must reject every present default tag: {value}"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&info).unwrap(),
+            go_info,
+            "Go rewrite must omit the default tag: {value}"
+        );
         unchanged(&go, &fresh_go);
     }
     assert_eq!(run_in(&dir, &default), initial, "Go-to-default must refresh the reporting sites");
@@ -128,14 +176,38 @@ fn incremental_merged_interface_sites_follow_history_changes() {
 // deduplicated reference sets in build info. Cached TS2320 presence and absence must follow the new report slots.
 #[test]
 fn incremental_merged_interface_sites_follow_package_export_aliases() {
-    for mode in [&["--singleThreaded"][..], &["--checkers", "4"][..], &["--checkers", "8", "--checkerAssignment", "random:3"][..]] {
-        let dir = std::env::temp_dir().join(format!("tsrs-merged-exports-{}-{}", std::process::id(), mode.join("-")));
+    for mode in [
+        &["--singleThreaded"][..],
+        &["--checkers", "4"][..],
+        &["--checkers", "8", "--checkerAssignment", "random:3"][..],
+    ] {
+        let dir = std::env::temp_dir().join(format!(
+            "tsrs-merged-exports-{}-{}",
+            std::process::id(),
+            mode.join("-")
+        ));
         std::fs::create_dir_all(dir.join("node_modules/p")).unwrap();
-        let files = ["node_modules/p/a.ts", "node_modules/p/b.ts", "c.ts", "d.ts", "e.ts", "f.ts", "g.ts", "h.ts"];
+        let files = [
+            "node_modules/p/a.ts",
+            "node_modules/p/b.ts",
+            "c.ts",
+            "d.ts",
+            "e.ts",
+            "f.ts",
+            "g.ts",
+            "h.ts",
+        ];
         for (i, name) in files.iter().enumerate() {
-            let imports = if i == 4 { "import 'p/a';\nimport 'p/b';\nimport 'p/alias';\n" } else { "import 'missing/a';\nimport 'missing/b';\nimport 'missing/c';\n" };
+            let imports = if i == 4 {
+                "import 'p/a';\nimport 'p/b';\nimport 'p/alias';\n"
+            } else {
+                "import 'missing/a';\nimport 'missing/b';\nimport 'missing/c';\n"
+            };
             let (body, nodes) = match i {
-                0 => ("declare global { interface Array<T> { length: number; [n: number]: T } interface Boolean {} interface CallableFunction {} interface Function {} interface IArguments {} interface NewableFunction {} interface Number {} interface Object {} interface RegExp {} interface String {} interface Left { kind: 'l' } interface Right { kind: 'r' } interface M extends Left, Right {} }\n", 64),
+                0 => (
+                    "declare global { interface Array<T> { length: number; [n: number]: T } interface Boolean {} interface CallableFunction {} interface Function {} interface IArguments {} interface NewableFunction {} interface Number {} interface Object {} interface RegExp {} interface String {} interface Left { kind: 'l' } interface Right { kind: 'r' } interface M extends Left, Right {} }\n",
+                    64,
+                ),
                 4 => ("declare global { interface M { extra?: number } }\n", 18),
                 _ => ("", 8),
             };
@@ -157,10 +229,19 @@ fn incremental_merged_interface_sites_follow_package_export_aliases() {
         let initial = run_in(&dir, mode);
         assert_eq!(initial.lines().filter(|line| line.contains("TS2320")).count(), 1);
         let build_info = std::fs::read(dir.join("tsconfig.tsbuildinfo")).unwrap();
-        let modified = std::fs::metadata(dir.join("tsconfig.tsbuildinfo")).unwrap().modified().unwrap();
+        let modified =
+            std::fs::metadata(dir.join("tsconfig.tsbuildinfo")).unwrap().modified().unwrap();
         assert_eq!(run_in(&dir, mode), initial, "unchanged build: {mode:?}");
-        assert_eq!(std::fs::read(dir.join("tsconfig.tsbuildinfo")).unwrap(), build_info, "unchanged build info: {mode:?}");
-        assert_eq!(std::fs::metadata(dir.join("tsconfig.tsbuildinfo")).unwrap().modified().unwrap(), modified, "unchanged build info timestamp: {mode:?}");
+        assert_eq!(
+            std::fs::read(dir.join("tsconfig.tsbuildinfo")).unwrap(),
+            build_info,
+            "unchanged build info: {mode:?}"
+        );
+        assert_eq!(
+            std::fs::metadata(dir.join("tsconfig.tsbuildinfo")).unwrap().modified().unwrap(),
+            modified,
+            "unchanged build info timestamp: {mode:?}"
+        );
         package("b");
         let changed = run_in(&dir, mode);
         let fresh = clean();
@@ -178,17 +259,36 @@ fn merged_interface_reports_where_tsgo_does() {
         let expected = std::fs::read_to_string(case(name).join("expected.txt")).unwrap();
         assert_eq!(run(name, &["--singleThreaded"]), expected, "{name} --singleThreaded");
         for checkers in ["1", "2", "3", "4", "8"] {
-            assert_eq!(run(name, &["--checkers", checkers]), expected, "{name} --checkers {checkers}");
+            assert_eq!(
+                run(name, &["--checkers", checkers]),
+                expected,
+                "{name} --checkers {checkers}"
+            );
             for seed in 1..=8 {
                 let assignment = format!("random:{seed}");
-                assert_eq!(run(name, &["--checkers", checkers, "--checkerAssignment", &assignment]), expected, "{name} --checkers {checkers} {assignment}");
+                assert_eq!(
+                    run(name, &["--checkers", checkers, "--checkerAssignment", &assignment]),
+                    expected,
+                    "{name} --checkers {checkers} {assignment}"
+                );
             }
         }
-        assert_eq!(run(name, &["--checkers", "4", "--checkerAssignment", "go"]), expected, "{name} go at 4 checkers");
+        assert_eq!(
+            run(name, &["--checkers", "4", "--checkerAssignment", "go"]),
+            expected,
+            "{name} go at 4 checkers"
+        );
     }
     // Go's history at one checker: only the first declaration reports, as tsgo-ref does.
-    let go_one = run("merged-interface-check-site", &["--checkers", "1", "--checkerAssignment", "go"]);
-    assert_eq!(go_one.lines().filter(|l| l.contains("TS2320")).collect::<Vec<_>>(), ["a.ts(1,11): error TS2320: Interface 'Merged' cannot simultaneously extend types 'Left' and 'Right'."]);
-    let go_eight = run("merged-interface-check-site", &["--checkers", "8", "--checkerAssignment", "go"]);
+    let go_one =
+        run("merged-interface-check-site", &["--checkers", "1", "--checkerAssignment", "go"]);
+    assert_eq!(
+        go_one.lines().filter(|l| l.contains("TS2320")).collect::<Vec<_>>(),
+        [
+            "a.ts(1,11): error TS2320: Interface 'Merged' cannot simultaneously extend types 'Left' and 'Right'."
+        ]
+    );
+    let go_eight =
+        run("merged-interface-check-site", &["--checkers", "8", "--checkerAssignment", "go"]);
     assert_eq!(go_eight.lines().filter(|l| l.contains("TS2320")).count(), 4);
 }

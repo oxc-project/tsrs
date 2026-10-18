@@ -2,7 +2,7 @@
 
 use std::any::Any;
 
-use tsrs_core::{OwnedCell, PackedStr, P};
+use tsrs_core::{OwnedCell, P, PackedStr};
 
 use crate::ast::*;
 use crate::flow::*;
@@ -11,7 +11,7 @@ use crate::kind::Kind;
 use crate::nodeflags::NodeFlags;
 use crate::symbol::{Symbol, SymbolTable};
 use crate::tokenflags::TokenFlags;
-use crate::visitor::{required_child, same_map_nodes, NodeVisitor};
+use crate::visitor::{NodeVisitor, required_child, same_map_nodes};
 
 // ── Base structs ──────────────────────────────────────────────────────────
 
@@ -6966,7 +6966,9 @@ impl Node {
             NodeDataTag::Block => NodeData::Block(self.payload()),
             NodeDataTag::VariableStatement => NodeData::VariableStatement(self.payload()),
             NodeDataTag::VariableDeclaration => NodeData::VariableDeclaration(self.payload()),
-            NodeDataTag::VariableDeclarationList => NodeData::VariableDeclarationList(self.payload()),
+            NodeDataTag::VariableDeclarationList => {
+                NodeData::VariableDeclarationList(self.payload())
+            }
             NodeDataTag::BindingPattern => NodeData::BindingPattern(self.payload()),
             NodeDataTag::ParameterDeclaration => NodeData::ParameterDeclaration(self.payload()),
             NodeDataTag::BindingElement => NodeData::BindingElement(self.payload()),
@@ -6983,33 +6985,53 @@ impl Node {
             NodeDataTag::NotEmittedStatement => NodeData::NotEmittedStatement(self.payload()),
             NodeDataTag::NotEmittedTypeElement => NodeData::NotEmittedTypeElement(self.payload()),
             NodeDataTag::ImportDeclaration => NodeData::ImportDeclaration(self.payload()),
-            NodeDataTag::ExternalModuleReference => NodeData::ExternalModuleReference(self.payload()),
+            NodeDataTag::ExternalModuleReference => {
+                NodeData::ExternalModuleReference(self.payload())
+            }
             NodeDataTag::NamespaceImport => NodeData::NamespaceImport(self.payload()),
             NodeDataTag::NamedImports => NodeData::NamedImports(self.payload()),
             NodeDataTag::ExportAssignment => NodeData::ExportAssignment(self.payload()),
-            NodeDataTag::NamespaceExportDeclaration => NodeData::NamespaceExportDeclaration(self.payload()),
+            NodeDataTag::NamespaceExportDeclaration => {
+                NodeData::NamespaceExportDeclaration(self.payload())
+            }
             NodeDataTag::NamespaceExport => NodeData::NamespaceExport(self.payload()),
             NodeDataTag::NamedExports => NodeData::NamedExports(self.payload()),
             NodeDataTag::ExportSpecifier => NodeData::ExportSpecifier(self.payload()),
-            NodeDataTag::CallSignatureDeclaration => NodeData::CallSignatureDeclaration(self.payload()),
-            NodeDataTag::ConstructSignatureDeclaration => NodeData::ConstructSignatureDeclaration(self.payload()),
+            NodeDataTag::CallSignatureDeclaration => {
+                NodeData::CallSignatureDeclaration(self.payload())
+            }
+            NodeDataTag::ConstructSignatureDeclaration => {
+                NodeData::ConstructSignatureDeclaration(self.payload())
+            }
             NodeDataTag::ConstructorDeclaration => NodeData::ConstructorDeclaration(self.payload()),
             NodeDataTag::GetAccessorDeclaration => NodeData::GetAccessorDeclaration(self.payload()),
             NodeDataTag::SetAccessorDeclaration => NodeData::SetAccessorDeclaration(self.payload()),
-            NodeDataTag::IndexSignatureDeclaration => NodeData::IndexSignatureDeclaration(self.payload()),
-            NodeDataTag::MethodSignatureDeclaration => NodeData::MethodSignatureDeclaration(self.payload()),
+            NodeDataTag::IndexSignatureDeclaration => {
+                NodeData::IndexSignatureDeclaration(self.payload())
+            }
+            NodeDataTag::MethodSignatureDeclaration => {
+                NodeData::MethodSignatureDeclaration(self.payload())
+            }
             NodeDataTag::MethodDeclaration => NodeData::MethodDeclaration(self.payload()),
-            NodeDataTag::PropertySignatureDeclaration => NodeData::PropertySignatureDeclaration(self.payload()),
+            NodeDataTag::PropertySignatureDeclaration => {
+                NodeData::PropertySignatureDeclaration(self.payload())
+            }
             NodeDataTag::PropertyDeclaration => NodeData::PropertyDeclaration(self.payload()),
             NodeDataTag::SemicolonClassElement => NodeData::SemicolonClassElement(self.payload()),
-            NodeDataTag::ClassStaticBlockDeclaration => NodeData::ClassStaticBlockDeclaration(self.payload()),
+            NodeDataTag::ClassStaticBlockDeclaration => {
+                NodeData::ClassStaticBlockDeclaration(self.payload())
+            }
             NodeDataTag::OmittedExpression => NodeData::OmittedExpression,
             NodeDataTag::KeywordExpression => NodeData::KeywordExpression(self.payload()),
             NodeDataTag::StringLiteral => NodeData::StringLiteral(self.payload()),
             NodeDataTag::NumericLiteral => NodeData::NumericLiteral(self.payload()),
             NodeDataTag::BigIntLiteral => NodeData::BigIntLiteral(self.payload()),
-            NodeDataTag::RegularExpressionLiteral => NodeData::RegularExpressionLiteral(self.payload()),
-            NodeDataTag::NoSubstitutionTemplateLiteral => NodeData::NoSubstitutionTemplateLiteral(self.payload()),
+            NodeDataTag::RegularExpressionLiteral => {
+                NodeData::RegularExpressionLiteral(self.payload())
+            }
+            NodeDataTag::NoSubstitutionTemplateLiteral => {
+                NodeData::NoSubstitutionTemplateLiteral(self.payload())
+            }
             NodeDataTag::BinaryExpression => NodeData::BinaryExpression(self.payload()),
             NodeDataTag::PrefixUnaryExpression => NodeData::PrefixUnaryExpression(self.payload()),
             NodeDataTag::PostfixUnaryExpression => NodeData::PostfixUnaryExpression(self.payload()),
@@ -7019,8 +7041,12 @@ impl Node {
             NodeDataTag::AsExpression => NodeData::AsExpression(self.payload()),
             NodeDataTag::SatisfiesExpression => NodeData::SatisfiesExpression(self.payload()),
             NodeDataTag::ConditionalExpression => NodeData::ConditionalExpression(self.payload()),
-            NodeDataTag::PropertyAccessExpression => NodeData::PropertyAccessExpression(self.payload()),
-            NodeDataTag::ElementAccessExpression => NodeData::ElementAccessExpression(self.payload()),
+            NodeDataTag::PropertyAccessExpression => {
+                NodeData::PropertyAccessExpression(self.payload())
+            }
+            NodeDataTag::ElementAccessExpression => {
+                NodeData::ElementAccessExpression(self.payload())
+            }
             NodeDataTag::CallExpression => NodeData::CallExpression(self.payload()),
             NodeDataTag::NewExpression => NodeData::NewExpression(self.payload()),
             NodeDataTag::MetaProperty => NodeData::MetaProperty(self.payload()),
@@ -7028,13 +7054,21 @@ impl Node {
             NodeDataTag::SpreadElement => NodeData::SpreadElement(self.payload()),
             NodeDataTag::TemplateExpression => NodeData::TemplateExpression(self.payload()),
             NodeDataTag::TemplateSpan => NodeData::TemplateSpan(self.payload()),
-            NodeDataTag::TaggedTemplateExpression => NodeData::TaggedTemplateExpression(self.payload()),
-            NodeDataTag::ParenthesizedExpression => NodeData::ParenthesizedExpression(self.payload()),
+            NodeDataTag::TaggedTemplateExpression => {
+                NodeData::TaggedTemplateExpression(self.payload())
+            }
+            NodeDataTag::ParenthesizedExpression => {
+                NodeData::ParenthesizedExpression(self.payload())
+            }
             NodeDataTag::ArrayLiteralExpression => NodeData::ArrayLiteralExpression(self.payload()),
-            NodeDataTag::ObjectLiteralExpression => NodeData::ObjectLiteralExpression(self.payload()),
+            NodeDataTag::ObjectLiteralExpression => {
+                NodeData::ObjectLiteralExpression(self.payload())
+            }
             NodeDataTag::SpreadAssignment => NodeData::SpreadAssignment(self.payload()),
             NodeDataTag::PropertyAssignment => NodeData::PropertyAssignment(self.payload()),
-            NodeDataTag::ShorthandPropertyAssignment => NodeData::ShorthandPropertyAssignment(self.payload()),
+            NodeDataTag::ShorthandPropertyAssignment => {
+                NodeData::ShorthandPropertyAssignment(self.payload())
+            }
             NodeDataTag::DeleteExpression => NodeData::DeleteExpression(self.payload()),
             NodeDataTag::TypeOfExpression => NodeData::TypeOfExpression(self.payload()),
             NodeDataTag::VoidExpression => NodeData::VoidExpression(self.payload()),
@@ -7049,7 +7083,9 @@ impl Node {
             NodeDataTag::ArrayTypeNode => NodeData::ArrayTypeNode(self.payload()),
             NodeDataTag::IndexedAccessTypeNode => NodeData::IndexedAccessTypeNode(self.payload()),
             NodeDataTag::TypeReferenceNode => NodeData::TypeReferenceNode(self.payload()),
-            NodeDataTag::ExpressionWithTypeArguments => NodeData::ExpressionWithTypeArguments(self.payload()),
+            NodeDataTag::ExpressionWithTypeArguments => {
+                NodeData::ExpressionWithTypeArguments(self.payload())
+            }
             NodeDataTag::LiteralTypeNode => NodeData::LiteralTypeNode(self.payload()),
             NodeDataTag::ThisTypeNode => NodeData::ThisTypeNode,
             NodeDataTag::TypePredicateNode => NodeData::TypePredicateNode(self.payload()),
@@ -7068,10 +7104,16 @@ impl Node {
             NodeDataTag::TemplateHead => NodeData::TemplateHead(self.payload()),
             NodeDataTag::TemplateMiddle => NodeData::TemplateMiddle(self.payload()),
             NodeDataTag::TemplateTail => NodeData::TemplateTail(self.payload()),
-            NodeDataTag::TemplateLiteralTypeNode => NodeData::TemplateLiteralTypeNode(self.payload()),
-            NodeDataTag::TemplateLiteralTypeSpan => NodeData::TemplateLiteralTypeSpan(self.payload()),
+            NodeDataTag::TemplateLiteralTypeNode => {
+                NodeData::TemplateLiteralTypeNode(self.payload())
+            }
+            NodeDataTag::TemplateLiteralTypeSpan => {
+                NodeData::TemplateLiteralTypeSpan(self.payload())
+            }
             NodeDataTag::SyntheticExpression => NodeData::SyntheticExpression(self.payload()),
-            NodeDataTag::PartiallyEmittedExpression => NodeData::PartiallyEmittedExpression(self.payload()),
+            NodeDataTag::PartiallyEmittedExpression => {
+                NodeData::PartiallyEmittedExpression(self.payload())
+            }
             NodeDataTag::JsxElement => NodeData::JsxElement(self.payload()),
             NodeDataTag::JsxAttributes => NodeData::JsxAttributes(self.payload()),
             NodeDataTag::JsxNamespacedName => NodeData::JsxNamespacedName(self.payload()),
@@ -7117,7 +7159,9 @@ impl Node {
             NodeDataTag::JSDocNameReference => NodeData::JSDocNameReference(self.payload()),
             NodeDataTag::SourceFile => NodeData::SourceFile(self.payload()),
             NodeDataTag::ModuleDeclaration => NodeData::ModuleDeclaration(self.payload()),
-            NodeDataTag::ImportEqualsDeclaration => NodeData::ImportEqualsDeclaration(self.payload()),
+            NodeDataTag::ImportEqualsDeclaration => {
+                NodeData::ImportEqualsDeclaration(self.payload())
+            }
             NodeDataTag::ExportDeclaration => NodeData::ExportDeclaration(self.payload()),
             NodeDataTag::ImportTypeNode => NodeData::ImportTypeNode(self.payload()),
             NodeDataTag::ImportClause => NodeData::ImportClause(self.payload()),
@@ -7126,10 +7170,16 @@ impl Node {
             NodeDataTag::JSDocLink => NodeData::JSDocLink(self.payload()),
             NodeDataTag::JSDocLinkPlain => NodeData::JSDocLinkPlain(self.payload()),
             NodeDataTag::JSDocLinkCode => NodeData::JSDocLinkCode(self.payload()),
-            NodeDataTag::TypeParameterDeclaration => NodeData::TypeParameterDeclaration(self.payload()),
-            NodeDataTag::SyntheticReferenceExpression => NodeData::SyntheticReferenceExpression(self.payload()),
+            NodeDataTag::TypeParameterDeclaration => {
+                NodeData::TypeParameterDeclaration(self.payload())
+            }
+            NodeDataTag::SyntheticReferenceExpression => {
+                NodeData::SyntheticReferenceExpression(self.payload())
+            }
             NodeDataTag::JSDocTypeLiteral => NodeData::JSDocTypeLiteral(self.payload()),
-            NodeDataTag::JSDocParameterOrPropertyTag => NodeData::JSDocParameterOrPropertyTag(self.payload()),
+            NodeDataTag::JSDocParameterOrPropertyTag => {
+                NodeData::JSDocParameterOrPropertyTag(self.payload())
+            }
             NodeDataTag::FlowSwitchClauseData => NodeData::FlowSwitchClauseData(self.payload()),
             NodeDataTag::FlowReduceLabelData => NodeData::FlowReduceLabelData(self.payload()),
         }
@@ -7142,122 +7192,218 @@ impl Node {
     }
     #[inline]
     pub fn as_identifier(&self) -> &'static Identifier {
-        assert!(self.data_tag() == NodeDataTag::Identifier, "as_identifier called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::Identifier,
+            "as_identifier called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_private_identifier(&self) -> &'static PrivateIdentifier {
-        assert!(self.data_tag() == NodeDataTag::PrivateIdentifier, "as_private_identifier called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PrivateIdentifier,
+            "as_private_identifier called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_qualified_name(&self) -> &'static QualifiedName {
-        assert!(self.data_tag() == NodeDataTag::QualifiedName, "as_qualified_name called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::QualifiedName,
+            "as_qualified_name called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_computed_property_name(&self) -> &'static ComputedPropertyName {
-        assert!(self.data_tag() == NodeDataTag::ComputedPropertyName, "as_computed_property_name called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ComputedPropertyName,
+            "as_computed_property_name called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_decorator(&self) -> &'static Decorator {
-        assert!(self.data_tag() == NodeDataTag::Decorator, "as_decorator called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::Decorator,
+            "as_decorator called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_empty_statement(&self) -> &'static EmptyStatement {
-        assert!(self.data_tag() == NodeDataTag::EmptyStatement, "as_empty_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::EmptyStatement,
+            "as_empty_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_if_statement(&self) -> &'static IfStatement {
-        assert!(self.data_tag() == NodeDataTag::IfStatement, "as_if_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::IfStatement,
+            "as_if_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_do_statement(&self) -> &'static DoStatement {
-        assert!(self.data_tag() == NodeDataTag::DoStatement, "as_do_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::DoStatement,
+            "as_do_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_while_statement(&self) -> &'static WhileStatement {
-        assert!(self.data_tag() == NodeDataTag::WhileStatement, "as_while_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::WhileStatement,
+            "as_while_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_for_statement(&self) -> &'static ForStatement {
-        assert!(self.data_tag() == NodeDataTag::ForStatement, "as_for_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ForStatement,
+            "as_for_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_for_in_or_of_statement(&self) -> &'static ForInOrOfStatement {
-        assert!(self.data_tag() == NodeDataTag::ForInOrOfStatement, "as_for_in_or_of_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ForInOrOfStatement,
+            "as_for_in_or_of_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_break_statement(&self) -> &'static BreakStatement {
-        assert!(self.data_tag() == NodeDataTag::BreakStatement, "as_break_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::BreakStatement,
+            "as_break_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_continue_statement(&self) -> &'static ContinueStatement {
-        assert!(self.data_tag() == NodeDataTag::ContinueStatement, "as_continue_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ContinueStatement,
+            "as_continue_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_return_statement(&self) -> &'static ReturnStatement {
-        assert!(self.data_tag() == NodeDataTag::ReturnStatement, "as_return_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ReturnStatement,
+            "as_return_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_with_statement(&self) -> &'static WithStatement {
-        assert!(self.data_tag() == NodeDataTag::WithStatement, "as_with_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::WithStatement,
+            "as_with_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_switch_statement(&self) -> &'static SwitchStatement {
-        assert!(self.data_tag() == NodeDataTag::SwitchStatement, "as_switch_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SwitchStatement,
+            "as_switch_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_case_block(&self) -> &'static CaseBlock {
-        assert!(self.data_tag() == NodeDataTag::CaseBlock, "as_case_block called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::CaseBlock,
+            "as_case_block called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_case_or_default_clause(&self) -> &'static CaseOrDefaultClause {
-        assert!(self.data_tag() == NodeDataTag::CaseOrDefaultClause, "as_case_or_default_clause called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::CaseOrDefaultClause,
+            "as_case_or_default_clause called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_throw_statement(&self) -> &'static ThrowStatement {
-        assert!(self.data_tag() == NodeDataTag::ThrowStatement, "as_throw_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ThrowStatement,
+            "as_throw_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_try_statement(&self) -> &'static TryStatement {
-        assert!(self.data_tag() == NodeDataTag::TryStatement, "as_try_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TryStatement,
+            "as_try_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_catch_clause(&self) -> &'static CatchClause {
-        assert!(self.data_tag() == NodeDataTag::CatchClause, "as_catch_clause called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::CatchClause,
+            "as_catch_clause called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_debugger_statement(&self) -> &'static DebuggerStatement {
-        assert!(self.data_tag() == NodeDataTag::DebuggerStatement, "as_debugger_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::DebuggerStatement,
+            "as_debugger_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_labeled_statement(&self) -> &'static LabeledStatement {
-        assert!(self.data_tag() == NodeDataTag::LabeledStatement, "as_labeled_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::LabeledStatement,
+            "as_labeled_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_expression_statement(&self) -> &'static ExpressionStatement {
-        assert!(self.data_tag() == NodeDataTag::ExpressionStatement, "as_expression_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ExpressionStatement,
+            "as_expression_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
@@ -7267,602 +7413,1082 @@ impl Node {
     }
     #[inline]
     pub fn as_variable_statement(&self) -> &'static VariableStatement {
-        assert!(self.data_tag() == NodeDataTag::VariableStatement, "as_variable_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::VariableStatement,
+            "as_variable_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_variable_declaration(&self) -> &'static VariableDeclaration {
-        assert!(self.data_tag() == NodeDataTag::VariableDeclaration, "as_variable_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::VariableDeclaration,
+            "as_variable_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_variable_declaration_list(&self) -> &'static VariableDeclarationList {
-        assert!(self.data_tag() == NodeDataTag::VariableDeclarationList, "as_variable_declaration_list called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::VariableDeclarationList,
+            "as_variable_declaration_list called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_binding_pattern(&self) -> &'static BindingPattern {
-        assert!(self.data_tag() == NodeDataTag::BindingPattern, "as_binding_pattern called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::BindingPattern,
+            "as_binding_pattern called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_parameter_declaration(&self) -> &'static ParameterDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ParameterDeclaration, "as_parameter_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ParameterDeclaration,
+            "as_parameter_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_binding_element(&self) -> &'static BindingElement {
-        assert!(self.data_tag() == NodeDataTag::BindingElement, "as_binding_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::BindingElement,
+            "as_binding_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_missing_declaration(&self) -> &'static MissingDeclaration {
-        assert!(self.data_tag() == NodeDataTag::MissingDeclaration, "as_missing_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::MissingDeclaration,
+            "as_missing_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_function_declaration(&self) -> &'static FunctionDeclaration {
-        assert!(self.data_tag() == NodeDataTag::FunctionDeclaration, "as_function_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::FunctionDeclaration,
+            "as_function_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_class_declaration(&self) -> &'static ClassDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ClassDeclaration, "as_class_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ClassDeclaration,
+            "as_class_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_class_expression(&self) -> &'static ClassExpression {
-        assert!(self.data_tag() == NodeDataTag::ClassExpression, "as_class_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ClassExpression,
+            "as_class_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_heritage_clause(&self) -> &'static HeritageClause {
-        assert!(self.data_tag() == NodeDataTag::HeritageClause, "as_heritage_clause called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::HeritageClause,
+            "as_heritage_clause called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_interface_declaration(&self) -> &'static InterfaceDeclaration {
-        assert!(self.data_tag() == NodeDataTag::InterfaceDeclaration, "as_interface_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::InterfaceDeclaration,
+            "as_interface_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_alias_declaration(&self) -> &'static TypeAliasDeclaration {
-        assert!(self.data_tag() == NodeDataTag::TypeAliasDeclaration, "as_type_alias_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeAliasDeclaration,
+            "as_type_alias_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_enum_member(&self) -> &'static EnumMember {
-        assert!(self.data_tag() == NodeDataTag::EnumMember, "as_enum_member called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::EnumMember,
+            "as_enum_member called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_enum_declaration(&self) -> &'static EnumDeclaration {
-        assert!(self.data_tag() == NodeDataTag::EnumDeclaration, "as_enum_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::EnumDeclaration,
+            "as_enum_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_module_block(&self) -> &'static ModuleBlock {
-        assert!(self.data_tag() == NodeDataTag::ModuleBlock, "as_module_block called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ModuleBlock,
+            "as_module_block called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_not_emitted_statement(&self) -> &'static NotEmittedStatement {
-        assert!(self.data_tag() == NodeDataTag::NotEmittedStatement, "as_not_emitted_statement called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NotEmittedStatement,
+            "as_not_emitted_statement called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_not_emitted_type_element(&self) -> &'static NotEmittedTypeElement {
-        assert!(self.data_tag() == NodeDataTag::NotEmittedTypeElement, "as_not_emitted_type_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NotEmittedTypeElement,
+            "as_not_emitted_type_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_declaration(&self) -> &'static ImportDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ImportDeclaration, "as_import_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportDeclaration,
+            "as_import_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_external_module_reference(&self) -> &'static ExternalModuleReference {
-        assert!(self.data_tag() == NodeDataTag::ExternalModuleReference, "as_external_module_reference called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ExternalModuleReference,
+            "as_external_module_reference called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_namespace_import(&self) -> &'static NamespaceImport {
-        assert!(self.data_tag() == NodeDataTag::NamespaceImport, "as_namespace_import called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NamespaceImport,
+            "as_namespace_import called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_named_imports(&self) -> &'static NamedImports {
-        assert!(self.data_tag() == NodeDataTag::NamedImports, "as_named_imports called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NamedImports,
+            "as_named_imports called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_export_assignment(&self) -> &'static ExportAssignment {
-        assert!(self.data_tag() == NodeDataTag::ExportAssignment, "as_export_assignment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ExportAssignment,
+            "as_export_assignment called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_namespace_export_declaration(&self) -> &'static NamespaceExportDeclaration {
-        assert!(self.data_tag() == NodeDataTag::NamespaceExportDeclaration, "as_namespace_export_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NamespaceExportDeclaration,
+            "as_namespace_export_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_namespace_export(&self) -> &'static NamespaceExport {
-        assert!(self.data_tag() == NodeDataTag::NamespaceExport, "as_namespace_export called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NamespaceExport,
+            "as_namespace_export called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_named_exports(&self) -> &'static NamedExports {
-        assert!(self.data_tag() == NodeDataTag::NamedExports, "as_named_exports called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NamedExports,
+            "as_named_exports called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_export_specifier(&self) -> &'static ExportSpecifier {
-        assert!(self.data_tag() == NodeDataTag::ExportSpecifier, "as_export_specifier called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ExportSpecifier,
+            "as_export_specifier called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_call_signature_declaration(&self) -> &'static CallSignatureDeclaration {
-        assert!(self.data_tag() == NodeDataTag::CallSignatureDeclaration, "as_call_signature_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::CallSignatureDeclaration,
+            "as_call_signature_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_construct_signature_declaration(&self) -> &'static ConstructSignatureDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ConstructSignatureDeclaration, "as_construct_signature_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ConstructSignatureDeclaration,
+            "as_construct_signature_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_constructor_declaration(&self) -> &'static ConstructorDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ConstructorDeclaration, "as_constructor_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ConstructorDeclaration,
+            "as_constructor_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_get_accessor_declaration(&self) -> &'static GetAccessorDeclaration {
-        assert!(self.data_tag() == NodeDataTag::GetAccessorDeclaration, "as_get_accessor_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::GetAccessorDeclaration,
+            "as_get_accessor_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_set_accessor_declaration(&self) -> &'static SetAccessorDeclaration {
-        assert!(self.data_tag() == NodeDataTag::SetAccessorDeclaration, "as_set_accessor_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SetAccessorDeclaration,
+            "as_set_accessor_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_index_signature_declaration(&self) -> &'static IndexSignatureDeclaration {
-        assert!(self.data_tag() == NodeDataTag::IndexSignatureDeclaration, "as_index_signature_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::IndexSignatureDeclaration,
+            "as_index_signature_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_method_signature_declaration(&self) -> &'static MethodSignatureDeclaration {
-        assert!(self.data_tag() == NodeDataTag::MethodSignatureDeclaration, "as_method_signature_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::MethodSignatureDeclaration,
+            "as_method_signature_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_method_declaration(&self) -> &'static MethodDeclaration {
-        assert!(self.data_tag() == NodeDataTag::MethodDeclaration, "as_method_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::MethodDeclaration,
+            "as_method_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_property_signature_declaration(&self) -> &'static PropertySignatureDeclaration {
-        assert!(self.data_tag() == NodeDataTag::PropertySignatureDeclaration, "as_property_signature_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PropertySignatureDeclaration,
+            "as_property_signature_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_property_declaration(&self) -> &'static PropertyDeclaration {
-        assert!(self.data_tag() == NodeDataTag::PropertyDeclaration, "as_property_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PropertyDeclaration,
+            "as_property_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_semicolon_class_element(&self) -> &'static SemicolonClassElement {
-        assert!(self.data_tag() == NodeDataTag::SemicolonClassElement, "as_semicolon_class_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SemicolonClassElement,
+            "as_semicolon_class_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_class_static_block_declaration(&self) -> &'static ClassStaticBlockDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ClassStaticBlockDeclaration, "as_class_static_block_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ClassStaticBlockDeclaration,
+            "as_class_static_block_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_omitted_expression(&self) -> &'static OmittedExpression {
-        assert!(self.data_tag() == NodeDataTag::OmittedExpression, "as_omitted_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::OmittedExpression,
+            "as_omitted_expression called on {:?}",
+            self.kind()
+        );
         &OmittedExpression
     }
     #[inline]
     pub fn as_keyword_expression(&self) -> &'static KeywordExpression {
-        assert!(self.data_tag() == NodeDataTag::KeywordExpression, "as_keyword_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::KeywordExpression,
+            "as_keyword_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_string_literal(&self) -> &'static StringLiteral {
-        assert!(self.data_tag() == NodeDataTag::StringLiteral, "as_string_literal called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::StringLiteral,
+            "as_string_literal called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_numeric_literal(&self) -> &'static NumericLiteral {
-        assert!(self.data_tag() == NodeDataTag::NumericLiteral, "as_numeric_literal called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NumericLiteral,
+            "as_numeric_literal called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_big_int_literal(&self) -> &'static BigIntLiteral {
-        assert!(self.data_tag() == NodeDataTag::BigIntLiteral, "as_big_int_literal called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::BigIntLiteral,
+            "as_big_int_literal called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_regular_expression_literal(&self) -> &'static RegularExpressionLiteral {
-        assert!(self.data_tag() == NodeDataTag::RegularExpressionLiteral, "as_regular_expression_literal called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::RegularExpressionLiteral,
+            "as_regular_expression_literal called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_no_substitution_template_literal(&self) -> &'static NoSubstitutionTemplateLiteral {
-        assert!(self.data_tag() == NodeDataTag::NoSubstitutionTemplateLiteral, "as_no_substitution_template_literal called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NoSubstitutionTemplateLiteral,
+            "as_no_substitution_template_literal called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_binary_expression(&self) -> &'static BinaryExpression {
-        assert!(self.data_tag() == NodeDataTag::BinaryExpression, "as_binary_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::BinaryExpression,
+            "as_binary_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_prefix_unary_expression(&self) -> &'static PrefixUnaryExpression {
-        assert!(self.data_tag() == NodeDataTag::PrefixUnaryExpression, "as_prefix_unary_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PrefixUnaryExpression,
+            "as_prefix_unary_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_postfix_unary_expression(&self) -> &'static PostfixUnaryExpression {
-        assert!(self.data_tag() == NodeDataTag::PostfixUnaryExpression, "as_postfix_unary_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PostfixUnaryExpression,
+            "as_postfix_unary_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_yield_expression(&self) -> &'static YieldExpression {
-        assert!(self.data_tag() == NodeDataTag::YieldExpression, "as_yield_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::YieldExpression,
+            "as_yield_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_arrow_function(&self) -> &'static ArrowFunction {
-        assert!(self.data_tag() == NodeDataTag::ArrowFunction, "as_arrow_function called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ArrowFunction,
+            "as_arrow_function called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_function_expression(&self) -> &'static FunctionExpression {
-        assert!(self.data_tag() == NodeDataTag::FunctionExpression, "as_function_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::FunctionExpression,
+            "as_function_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_as_expression(&self) -> &'static AsExpression {
-        assert!(self.data_tag() == NodeDataTag::AsExpression, "as_as_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::AsExpression,
+            "as_as_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_satisfies_expression(&self) -> &'static SatisfiesExpression {
-        assert!(self.data_tag() == NodeDataTag::SatisfiesExpression, "as_satisfies_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SatisfiesExpression,
+            "as_satisfies_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_conditional_expression(&self) -> &'static ConditionalExpression {
-        assert!(self.data_tag() == NodeDataTag::ConditionalExpression, "as_conditional_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ConditionalExpression,
+            "as_conditional_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_property_access_expression(&self) -> &'static PropertyAccessExpression {
-        assert!(self.data_tag() == NodeDataTag::PropertyAccessExpression, "as_property_access_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PropertyAccessExpression,
+            "as_property_access_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_element_access_expression(&self) -> &'static ElementAccessExpression {
-        assert!(self.data_tag() == NodeDataTag::ElementAccessExpression, "as_element_access_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ElementAccessExpression,
+            "as_element_access_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_call_expression(&self) -> &'static CallExpression {
-        assert!(self.data_tag() == NodeDataTag::CallExpression, "as_call_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::CallExpression,
+            "as_call_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_new_expression(&self) -> &'static NewExpression {
-        assert!(self.data_tag() == NodeDataTag::NewExpression, "as_new_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NewExpression,
+            "as_new_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_meta_property(&self) -> &'static MetaProperty {
-        assert!(self.data_tag() == NodeDataTag::MetaProperty, "as_meta_property called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::MetaProperty,
+            "as_meta_property called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_non_null_expression(&self) -> &'static NonNullExpression {
-        assert!(self.data_tag() == NodeDataTag::NonNullExpression, "as_non_null_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NonNullExpression,
+            "as_non_null_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_spread_element(&self) -> &'static SpreadElement {
-        assert!(self.data_tag() == NodeDataTag::SpreadElement, "as_spread_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SpreadElement,
+            "as_spread_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_expression(&self) -> &'static TemplateExpression {
-        assert!(self.data_tag() == NodeDataTag::TemplateExpression, "as_template_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateExpression,
+            "as_template_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_span(&self) -> &'static TemplateSpan {
-        assert!(self.data_tag() == NodeDataTag::TemplateSpan, "as_template_span called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateSpan,
+            "as_template_span called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_tagged_template_expression(&self) -> &'static TaggedTemplateExpression {
-        assert!(self.data_tag() == NodeDataTag::TaggedTemplateExpression, "as_tagged_template_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TaggedTemplateExpression,
+            "as_tagged_template_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_parenthesized_expression(&self) -> &'static ParenthesizedExpression {
-        assert!(self.data_tag() == NodeDataTag::ParenthesizedExpression, "as_parenthesized_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ParenthesizedExpression,
+            "as_parenthesized_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_array_literal_expression(&self) -> &'static ArrayLiteralExpression {
-        assert!(self.data_tag() == NodeDataTag::ArrayLiteralExpression, "as_array_literal_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ArrayLiteralExpression,
+            "as_array_literal_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_object_literal_expression(&self) -> &'static ObjectLiteralExpression {
-        assert!(self.data_tag() == NodeDataTag::ObjectLiteralExpression, "as_object_literal_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ObjectLiteralExpression,
+            "as_object_literal_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_spread_assignment(&self) -> &'static SpreadAssignment {
-        assert!(self.data_tag() == NodeDataTag::SpreadAssignment, "as_spread_assignment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SpreadAssignment,
+            "as_spread_assignment called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_property_assignment(&self) -> &'static PropertyAssignment {
-        assert!(self.data_tag() == NodeDataTag::PropertyAssignment, "as_property_assignment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PropertyAssignment,
+            "as_property_assignment called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_shorthand_property_assignment(&self) -> &'static ShorthandPropertyAssignment {
-        assert!(self.data_tag() == NodeDataTag::ShorthandPropertyAssignment, "as_shorthand_property_assignment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ShorthandPropertyAssignment,
+            "as_shorthand_property_assignment called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_delete_expression(&self) -> &'static DeleteExpression {
-        assert!(self.data_tag() == NodeDataTag::DeleteExpression, "as_delete_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::DeleteExpression,
+            "as_delete_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_of_expression(&self) -> &'static TypeOfExpression {
-        assert!(self.data_tag() == NodeDataTag::TypeOfExpression, "as_type_of_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeOfExpression,
+            "as_type_of_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_void_expression(&self) -> &'static VoidExpression {
-        assert!(self.data_tag() == NodeDataTag::VoidExpression, "as_void_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::VoidExpression,
+            "as_void_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_await_expression(&self) -> &'static AwaitExpression {
-        assert!(self.data_tag() == NodeDataTag::AwaitExpression, "as_await_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::AwaitExpression,
+            "as_await_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_assertion(&self) -> &'static TypeAssertion {
-        assert!(self.data_tag() == NodeDataTag::TypeAssertion, "as_type_assertion called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeAssertion,
+            "as_type_assertion called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_keyword_type_node(&self) -> &'static KeywordTypeNode {
-        assert!(self.data_tag() == NodeDataTag::KeywordTypeNode, "as_keyword_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::KeywordTypeNode,
+            "as_keyword_type_node called on {:?}",
+            self.kind()
+        );
         &KeywordTypeNode
     }
     #[inline]
     pub fn as_union_type_node(&self) -> &'static UnionTypeNode {
-        assert!(self.data_tag() == NodeDataTag::UnionTypeNode, "as_union_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::UnionTypeNode,
+            "as_union_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_intersection_type_node(&self) -> &'static IntersectionTypeNode {
-        assert!(self.data_tag() == NodeDataTag::IntersectionTypeNode, "as_intersection_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::IntersectionTypeNode,
+            "as_intersection_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_conditional_type_node(&self) -> &'static ConditionalTypeNode {
-        assert!(self.data_tag() == NodeDataTag::ConditionalTypeNode, "as_conditional_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ConditionalTypeNode,
+            "as_conditional_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_operator_node(&self) -> &'static TypeOperatorNode {
-        assert!(self.data_tag() == NodeDataTag::TypeOperatorNode, "as_type_operator_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeOperatorNode,
+            "as_type_operator_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_infer_type_node(&self) -> &'static InferTypeNode {
-        assert!(self.data_tag() == NodeDataTag::InferTypeNode, "as_infer_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::InferTypeNode,
+            "as_infer_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_array_type_node(&self) -> &'static ArrayTypeNode {
-        assert!(self.data_tag() == NodeDataTag::ArrayTypeNode, "as_array_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ArrayTypeNode,
+            "as_array_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_indexed_access_type_node(&self) -> &'static IndexedAccessTypeNode {
-        assert!(self.data_tag() == NodeDataTag::IndexedAccessTypeNode, "as_indexed_access_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::IndexedAccessTypeNode,
+            "as_indexed_access_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_reference_node(&self) -> &'static TypeReferenceNode {
-        assert!(self.data_tag() == NodeDataTag::TypeReferenceNode, "as_type_reference_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeReferenceNode,
+            "as_type_reference_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_expression_with_type_arguments(&self) -> &'static ExpressionWithTypeArguments {
-        assert!(self.data_tag() == NodeDataTag::ExpressionWithTypeArguments, "as_expression_with_type_arguments called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ExpressionWithTypeArguments,
+            "as_expression_with_type_arguments called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_literal_type_node(&self) -> &'static LiteralTypeNode {
-        assert!(self.data_tag() == NodeDataTag::LiteralTypeNode, "as_literal_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::LiteralTypeNode,
+            "as_literal_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_this_type_node(&self) -> &'static ThisTypeNode {
-        assert!(self.data_tag() == NodeDataTag::ThisTypeNode, "as_this_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ThisTypeNode,
+            "as_this_type_node called on {:?}",
+            self.kind()
+        );
         &ThisTypeNode
     }
     #[inline]
     pub fn as_type_predicate_node(&self) -> &'static TypePredicateNode {
-        assert!(self.data_tag() == NodeDataTag::TypePredicateNode, "as_type_predicate_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypePredicateNode,
+            "as_type_predicate_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_attribute(&self) -> &'static ImportAttribute {
-        assert!(self.data_tag() == NodeDataTag::ImportAttribute, "as_import_attribute called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportAttribute,
+            "as_import_attribute called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_attributes(&self) -> &'static ImportAttributes {
-        assert!(self.data_tag() == NodeDataTag::ImportAttributes, "as_import_attributes called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportAttributes,
+            "as_import_attributes called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_query_node(&self) -> &'static TypeQueryNode {
-        assert!(self.data_tag() == NodeDataTag::TypeQueryNode, "as_type_query_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeQueryNode,
+            "as_type_query_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_mapped_type_node(&self) -> &'static MappedTypeNode {
-        assert!(self.data_tag() == NodeDataTag::MappedTypeNode, "as_mapped_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::MappedTypeNode,
+            "as_mapped_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_literal_node(&self) -> &'static TypeLiteralNode {
-        assert!(self.data_tag() == NodeDataTag::TypeLiteralNode, "as_type_literal_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeLiteralNode,
+            "as_type_literal_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_tuple_type_node(&self) -> &'static TupleTypeNode {
-        assert!(self.data_tag() == NodeDataTag::TupleTypeNode, "as_tuple_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TupleTypeNode,
+            "as_tuple_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_named_tuple_member(&self) -> &'static NamedTupleMember {
-        assert!(self.data_tag() == NodeDataTag::NamedTupleMember, "as_named_tuple_member called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::NamedTupleMember,
+            "as_named_tuple_member called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_optional_type_node(&self) -> &'static OptionalTypeNode {
-        assert!(self.data_tag() == NodeDataTag::OptionalTypeNode, "as_optional_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::OptionalTypeNode,
+            "as_optional_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_rest_type_node(&self) -> &'static RestTypeNode {
-        assert!(self.data_tag() == NodeDataTag::RestTypeNode, "as_rest_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::RestTypeNode,
+            "as_rest_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_parenthesized_type_node(&self) -> &'static ParenthesizedTypeNode {
-        assert!(self.data_tag() == NodeDataTag::ParenthesizedTypeNode, "as_parenthesized_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ParenthesizedTypeNode,
+            "as_parenthesized_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_function_type_node(&self) -> &'static FunctionTypeNode {
-        assert!(self.data_tag() == NodeDataTag::FunctionTypeNode, "as_function_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::FunctionTypeNode,
+            "as_function_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_constructor_type_node(&self) -> &'static ConstructorTypeNode {
-        assert!(self.data_tag() == NodeDataTag::ConstructorTypeNode, "as_constructor_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ConstructorTypeNode,
+            "as_constructor_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_head(&self) -> &'static TemplateHead {
-        assert!(self.data_tag() == NodeDataTag::TemplateHead, "as_template_head called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateHead,
+            "as_template_head called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_middle(&self) -> &'static TemplateMiddle {
-        assert!(self.data_tag() == NodeDataTag::TemplateMiddle, "as_template_middle called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateMiddle,
+            "as_template_middle called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_tail(&self) -> &'static TemplateTail {
-        assert!(self.data_tag() == NodeDataTag::TemplateTail, "as_template_tail called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateTail,
+            "as_template_tail called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_literal_type_node(&self) -> &'static TemplateLiteralTypeNode {
-        assert!(self.data_tag() == NodeDataTag::TemplateLiteralTypeNode, "as_template_literal_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateLiteralTypeNode,
+            "as_template_literal_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_template_literal_type_span(&self) -> &'static TemplateLiteralTypeSpan {
-        assert!(self.data_tag() == NodeDataTag::TemplateLiteralTypeSpan, "as_template_literal_type_span called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TemplateLiteralTypeSpan,
+            "as_template_literal_type_span called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_synthetic_expression(&self) -> &'static SyntheticExpression {
-        assert!(self.data_tag() == NodeDataTag::SyntheticExpression, "as_synthetic_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SyntheticExpression,
+            "as_synthetic_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_partially_emitted_expression(&self) -> &'static PartiallyEmittedExpression {
-        assert!(self.data_tag() == NodeDataTag::PartiallyEmittedExpression, "as_partially_emitted_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::PartiallyEmittedExpression,
+            "as_partially_emitted_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_element(&self) -> &'static JsxElement {
-        assert!(self.data_tag() == NodeDataTag::JsxElement, "as_jsx_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxElement,
+            "as_jsx_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_attributes(&self) -> &'static JsxAttributes {
-        assert!(self.data_tag() == NodeDataTag::JsxAttributes, "as_jsx_attributes called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxAttributes,
+            "as_jsx_attributes called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_namespaced_name(&self) -> &'static JsxNamespacedName {
-        assert!(self.data_tag() == NodeDataTag::JsxNamespacedName, "as_jsx_namespaced_name called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxNamespacedName,
+            "as_jsx_namespaced_name called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_opening_element(&self) -> &'static JsxOpeningElement {
-        assert!(self.data_tag() == NodeDataTag::JsxOpeningElement, "as_jsx_opening_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxOpeningElement,
+            "as_jsx_opening_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_self_closing_element(&self) -> &'static JsxSelfClosingElement {
-        assert!(self.data_tag() == NodeDataTag::JsxSelfClosingElement, "as_jsx_self_closing_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxSelfClosingElement,
+            "as_jsx_self_closing_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_fragment(&self) -> &'static JsxFragment {
-        assert!(self.data_tag() == NodeDataTag::JsxFragment, "as_jsx_fragment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxFragment,
+            "as_jsx_fragment called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_opening_fragment(&self) -> &'static JsxOpeningFragment {
-        assert!(self.data_tag() == NodeDataTag::JsxOpeningFragment, "as_jsx_opening_fragment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxOpeningFragment,
+            "as_jsx_opening_fragment called on {:?}",
+            self.kind()
+        );
         &JsxOpeningFragment
     }
     #[inline]
     pub fn as_jsx_closing_fragment(&self) -> &'static JsxClosingFragment {
-        assert!(self.data_tag() == NodeDataTag::JsxClosingFragment, "as_jsx_closing_fragment called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxClosingFragment,
+            "as_jsx_closing_fragment called on {:?}",
+            self.kind()
+        );
         &JsxClosingFragment
     }
     #[inline]
     pub fn as_jsx_attribute(&self) -> &'static JsxAttribute {
-        assert!(self.data_tag() == NodeDataTag::JsxAttribute, "as_jsx_attribute called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxAttribute,
+            "as_jsx_attribute called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_spread_attribute(&self) -> &'static JsxSpreadAttribute {
-        assert!(self.data_tag() == NodeDataTag::JsxSpreadAttribute, "as_jsx_spread_attribute called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxSpreadAttribute,
+            "as_jsx_spread_attribute called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_closing_element(&self) -> &'static JsxClosingElement {
-        assert!(self.data_tag() == NodeDataTag::JsxClosingElement, "as_jsx_closing_element called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxClosingElement,
+            "as_jsx_closing_element called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsx_expression(&self) -> &'static JsxExpression {
-        assert!(self.data_tag() == NodeDataTag::JsxExpression, "as_jsx_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JsxExpression,
+            "as_jsx_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
@@ -7872,7 +8498,11 @@ impl Node {
     }
     #[inline]
     pub fn as_syntax_list(&self) -> &'static SyntaxList {
-        assert!(self.data_tag() == NodeDataTag::SyntaxList, "as_syntax_list called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SyntaxList,
+            "as_syntax_list called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
@@ -7882,227 +8512,407 @@ impl Node {
     }
     #[inline]
     pub fn as_jsdoc_type_expression(&self) -> &'static JSDocTypeExpression {
-        assert!(self.data_tag() == NodeDataTag::JSDocTypeExpression, "as_jsdoc_type_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocTypeExpression,
+            "as_jsdoc_type_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_non_nullable_type(&self) -> &'static JSDocNonNullableType {
-        assert!(self.data_tag() == NodeDataTag::JSDocNonNullableType, "as_jsdoc_non_nullable_type called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocNonNullableType,
+            "as_jsdoc_non_nullable_type called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_nullable_type(&self) -> &'static JSDocNullableType {
-        assert!(self.data_tag() == NodeDataTag::JSDocNullableType, "as_jsdoc_nullable_type called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocNullableType,
+            "as_jsdoc_nullable_type called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_all_type(&self) -> &'static JSDocAllType {
-        assert!(self.data_tag() == NodeDataTag::JSDocAllType, "as_jsdoc_all_type called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocAllType,
+            "as_jsdoc_all_type called on {:?}",
+            self.kind()
+        );
         &JSDocAllType
     }
     #[inline]
     pub fn as_jsdoc_variadic_type(&self) -> &'static JSDocVariadicType {
-        assert!(self.data_tag() == NodeDataTag::JSDocVariadicType, "as_jsdoc_variadic_type called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocVariadicType,
+            "as_jsdoc_variadic_type called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_optional_type(&self) -> &'static JSDocOptionalType {
-        assert!(self.data_tag() == NodeDataTag::JSDocOptionalType, "as_jsdoc_optional_type called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocOptionalType,
+            "as_jsdoc_optional_type called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_type_tag(&self) -> &'static JSDocTypeTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocTypeTag, "as_jsdoc_type_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocTypeTag,
+            "as_jsdoc_type_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_unknown_tag(&self) -> &'static JSDocUnknownTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocUnknownTag, "as_jsdoc_unknown_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocUnknownTag,
+            "as_jsdoc_unknown_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_template_tag(&self) -> &'static JSDocTemplateTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocTemplateTag, "as_jsdoc_template_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocTemplateTag,
+            "as_jsdoc_template_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_return_tag(&self) -> &'static JSDocReturnTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocReturnTag, "as_jsdoc_return_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocReturnTag,
+            "as_jsdoc_return_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_public_tag(&self) -> &'static JSDocPublicTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocPublicTag, "as_jsdoc_public_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocPublicTag,
+            "as_jsdoc_public_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_private_tag(&self) -> &'static JSDocPrivateTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocPrivateTag, "as_jsdoc_private_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocPrivateTag,
+            "as_jsdoc_private_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_protected_tag(&self) -> &'static JSDocProtectedTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocProtectedTag, "as_jsdoc_protected_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocProtectedTag,
+            "as_jsdoc_protected_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_readonly_tag(&self) -> &'static JSDocReadonlyTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocReadonlyTag, "as_jsdoc_readonly_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocReadonlyTag,
+            "as_jsdoc_readonly_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_override_tag(&self) -> &'static JSDocOverrideTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocOverrideTag, "as_jsdoc_override_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocOverrideTag,
+            "as_jsdoc_override_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_deprecated_tag(&self) -> &'static JSDocDeprecatedTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocDeprecatedTag, "as_jsdoc_deprecated_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocDeprecatedTag,
+            "as_jsdoc_deprecated_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_see_tag(&self) -> &'static JSDocSeeTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocSeeTag, "as_jsdoc_see_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocSeeTag,
+            "as_jsdoc_see_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_implements_tag(&self) -> &'static JSDocImplementsTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocImplementsTag, "as_jsdoc_implements_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocImplementsTag,
+            "as_jsdoc_implements_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_augments_tag(&self) -> &'static JSDocAugmentsTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocAugmentsTag, "as_jsdoc_augments_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocAugmentsTag,
+            "as_jsdoc_augments_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_satisfies_tag(&self) -> &'static JSDocSatisfiesTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocSatisfiesTag, "as_jsdoc_satisfies_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocSatisfiesTag,
+            "as_jsdoc_satisfies_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_throws_tag(&self) -> &'static JSDocThrowsTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocThrowsTag, "as_jsdoc_throws_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocThrowsTag,
+            "as_jsdoc_throws_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_this_tag(&self) -> &'static JSDocThisTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocThisTag, "as_jsdoc_this_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocThisTag,
+            "as_jsdoc_this_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_import_tag(&self) -> &'static JSDocImportTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocImportTag, "as_jsdoc_import_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocImportTag,
+            "as_jsdoc_import_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_callback_tag(&self) -> &'static JSDocCallbackTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocCallbackTag, "as_jsdoc_callback_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocCallbackTag,
+            "as_jsdoc_callback_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_overload_tag(&self) -> &'static JSDocOverloadTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocOverloadTag, "as_jsdoc_overload_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocOverloadTag,
+            "as_jsdoc_overload_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_typedef_tag(&self) -> &'static JSDocTypedefTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocTypedefTag, "as_jsdoc_typedef_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocTypedefTag,
+            "as_jsdoc_typedef_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_signature(&self) -> &'static JSDocSignature {
-        assert!(self.data_tag() == NodeDataTag::JSDocSignature, "as_jsdoc_signature called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocSignature,
+            "as_jsdoc_signature called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_name_reference(&self) -> &'static JSDocNameReference {
-        assert!(self.data_tag() == NodeDataTag::JSDocNameReference, "as_jsdoc_name_reference called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocNameReference,
+            "as_jsdoc_name_reference called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_source_file(&self) -> &'static SourceFile {
-        assert!(self.data_tag() == NodeDataTag::SourceFile, "as_source_file called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SourceFile,
+            "as_source_file called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_module_declaration(&self) -> &'static ModuleDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ModuleDeclaration, "as_module_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ModuleDeclaration,
+            "as_module_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_equals_declaration(&self) -> &'static ImportEqualsDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ImportEqualsDeclaration, "as_import_equals_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportEqualsDeclaration,
+            "as_import_equals_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_export_declaration(&self) -> &'static ExportDeclaration {
-        assert!(self.data_tag() == NodeDataTag::ExportDeclaration, "as_export_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ExportDeclaration,
+            "as_export_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_type_node(&self) -> &'static ImportTypeNode {
-        assert!(self.data_tag() == NodeDataTag::ImportTypeNode, "as_import_type_node called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportTypeNode,
+            "as_import_type_node called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_clause(&self) -> &'static ImportClause {
-        assert!(self.data_tag() == NodeDataTag::ImportClause, "as_import_clause called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportClause,
+            "as_import_clause called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_import_specifier(&self) -> &'static ImportSpecifier {
-        assert!(self.data_tag() == NodeDataTag::ImportSpecifier, "as_import_specifier called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::ImportSpecifier,
+            "as_import_specifier called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_text(&self) -> &'static JSDocText {
-        assert!(self.data_tag() == NodeDataTag::JSDocText, "as_jsdoc_text called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocText,
+            "as_jsdoc_text called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_link(&self) -> &'static JSDocLink {
-        assert!(self.data_tag() == NodeDataTag::JSDocLink, "as_jsdoc_link called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocLink,
+            "as_jsdoc_link called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_link_plain(&self) -> &'static JSDocLinkPlain {
-        assert!(self.data_tag() == NodeDataTag::JSDocLinkPlain, "as_jsdoc_link_plain called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocLinkPlain,
+            "as_jsdoc_link_plain called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_link_code(&self) -> &'static JSDocLinkCode {
-        assert!(self.data_tag() == NodeDataTag::JSDocLinkCode, "as_jsdoc_link_code called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocLinkCode,
+            "as_jsdoc_link_code called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_type_parameter_declaration(&self) -> &'static TypeParameterDeclaration {
-        assert!(self.data_tag() == NodeDataTag::TypeParameterDeclaration, "as_type_parameter_declaration called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::TypeParameterDeclaration,
+            "as_type_parameter_declaration called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_synthetic_reference_expression(&self) -> &'static SyntheticReferenceExpression {
-        assert!(self.data_tag() == NodeDataTag::SyntheticReferenceExpression, "as_synthetic_reference_expression called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::SyntheticReferenceExpression,
+            "as_synthetic_reference_expression called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_type_literal(&self) -> &'static JSDocTypeLiteral {
-        assert!(self.data_tag() == NodeDataTag::JSDocTypeLiteral, "as_jsdoc_type_literal called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocTypeLiteral,
+            "as_jsdoc_type_literal called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_jsdoc_parameter_or_property_tag(&self) -> &'static JSDocParameterOrPropertyTag {
-        assert!(self.data_tag() == NodeDataTag::JSDocParameterOrPropertyTag, "as_jsdoc_parameter_or_property_tag called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::JSDocParameterOrPropertyTag,
+            "as_jsdoc_parameter_or_property_tag called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_flow_switch_clause_data(&self) -> &'static FlowSwitchClauseData {
-        assert!(self.data_tag() == NodeDataTag::FlowSwitchClauseData, "as_flow_switch_clause_data called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::FlowSwitchClauseData,
+            "as_flow_switch_clause_data called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
     #[inline]
     pub fn as_flow_reduce_label_data(&self) -> &'static FlowReduceLabelData {
-        assert!(self.data_tag() == NodeDataTag::FlowReduceLabelData, "as_flow_reduce_label_data called on {:?}", self.kind());
+        assert!(
+            self.data_tag() == NodeDataTag::FlowReduceLabelData,
+            "as_flow_reduce_label_data called on {:?}",
+            self.kind()
+        );
         self.payload()
     }
 
@@ -8115,101 +8925,183 @@ impl Node {
     pub fn for_each_child_static<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
         match self.data_tag() {
             NodeDataTag::QualifiedName => self.payload::<QualifiedName>().for_each_child(v),
-            NodeDataTag::ComputedPropertyName => self.payload::<ComputedPropertyName>().for_each_child(v),
+            NodeDataTag::ComputedPropertyName => {
+                self.payload::<ComputedPropertyName>().for_each_child(v)
+            }
             NodeDataTag::Decorator => self.payload::<Decorator>().for_each_child(v),
             NodeDataTag::IfStatement => self.payload::<IfStatement>().for_each_child(v),
             NodeDataTag::DoStatement => self.payload::<DoStatement>().for_each_child(v),
             NodeDataTag::WhileStatement => self.payload::<WhileStatement>().for_each_child(v),
             NodeDataTag::ForStatement => self.payload::<ForStatement>().for_each_child(v),
-            NodeDataTag::ForInOrOfStatement => self.payload::<ForInOrOfStatement>().for_each_child(v),
+            NodeDataTag::ForInOrOfStatement => {
+                self.payload::<ForInOrOfStatement>().for_each_child(v)
+            }
             NodeDataTag::BreakStatement => self.payload::<BreakStatement>().for_each_child(v),
             NodeDataTag::ContinueStatement => self.payload::<ContinueStatement>().for_each_child(v),
             NodeDataTag::ReturnStatement => self.payload::<ReturnStatement>().for_each_child(v),
             NodeDataTag::WithStatement => self.payload::<WithStatement>().for_each_child(v),
             NodeDataTag::SwitchStatement => self.payload::<SwitchStatement>().for_each_child(v),
             NodeDataTag::CaseBlock => self.payload::<CaseBlock>().for_each_child(v),
-            NodeDataTag::CaseOrDefaultClause => self.payload::<CaseOrDefaultClause>().for_each_child(v),
+            NodeDataTag::CaseOrDefaultClause => {
+                self.payload::<CaseOrDefaultClause>().for_each_child(v)
+            }
             NodeDataTag::ThrowStatement => self.payload::<ThrowStatement>().for_each_child(v),
             NodeDataTag::TryStatement => self.payload::<TryStatement>().for_each_child(v),
             NodeDataTag::CatchClause => self.payload::<CatchClause>().for_each_child(v),
             NodeDataTag::LabeledStatement => self.payload::<LabeledStatement>().for_each_child(v),
-            NodeDataTag::ExpressionStatement => self.payload::<ExpressionStatement>().for_each_child(v),
+            NodeDataTag::ExpressionStatement => {
+                self.payload::<ExpressionStatement>().for_each_child(v)
+            }
             NodeDataTag::Block => self.payload::<Block>().for_each_child(v),
             NodeDataTag::VariableStatement => self.payload::<VariableStatement>().for_each_child(v),
-            NodeDataTag::VariableDeclaration => self.payload::<VariableDeclaration>().for_each_child(v),
-            NodeDataTag::VariableDeclarationList => self.payload::<VariableDeclarationList>().for_each_child(v),
+            NodeDataTag::VariableDeclaration => {
+                self.payload::<VariableDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::VariableDeclarationList => {
+                self.payload::<VariableDeclarationList>().for_each_child(v)
+            }
             NodeDataTag::BindingPattern => self.payload::<BindingPattern>().for_each_child(v),
-            NodeDataTag::ParameterDeclaration => self.payload::<ParameterDeclaration>().for_each_child(v),
+            NodeDataTag::ParameterDeclaration => {
+                self.payload::<ParameterDeclaration>().for_each_child(v)
+            }
             NodeDataTag::BindingElement => self.payload::<BindingElement>().for_each_child(v),
-            NodeDataTag::MissingDeclaration => self.payload::<MissingDeclaration>().for_each_child(v),
-            NodeDataTag::FunctionDeclaration => self.payload::<FunctionDeclaration>().for_each_child(v),
+            NodeDataTag::MissingDeclaration => {
+                self.payload::<MissingDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::FunctionDeclaration => {
+                self.payload::<FunctionDeclaration>().for_each_child(v)
+            }
             NodeDataTag::ClassDeclaration => self.payload::<ClassDeclaration>().for_each_child(v),
             NodeDataTag::ClassExpression => self.payload::<ClassExpression>().for_each_child(v),
             NodeDataTag::HeritageClause => self.payload::<HeritageClause>().for_each_child(v),
-            NodeDataTag::InterfaceDeclaration => self.payload::<InterfaceDeclaration>().for_each_child(v),
-            NodeDataTag::TypeAliasDeclaration => self.payload::<TypeAliasDeclaration>().for_each_child(v),
+            NodeDataTag::InterfaceDeclaration => {
+                self.payload::<InterfaceDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::TypeAliasDeclaration => {
+                self.payload::<TypeAliasDeclaration>().for_each_child(v)
+            }
             NodeDataTag::EnumMember => self.payload::<EnumMember>().for_each_child(v),
             NodeDataTag::EnumDeclaration => self.payload::<EnumDeclaration>().for_each_child(v),
             NodeDataTag::ModuleBlock => self.payload::<ModuleBlock>().for_each_child(v),
             NodeDataTag::ImportDeclaration => self.payload::<ImportDeclaration>().for_each_child(v),
-            NodeDataTag::ExternalModuleReference => self.payload::<ExternalModuleReference>().for_each_child(v),
+            NodeDataTag::ExternalModuleReference => {
+                self.payload::<ExternalModuleReference>().for_each_child(v)
+            }
             NodeDataTag::NamespaceImport => self.payload::<NamespaceImport>().for_each_child(v),
             NodeDataTag::NamedImports => self.payload::<NamedImports>().for_each_child(v),
             NodeDataTag::ExportAssignment => self.payload::<ExportAssignment>().for_each_child(v),
-            NodeDataTag::NamespaceExportDeclaration => self.payload::<NamespaceExportDeclaration>().for_each_child(v),
+            NodeDataTag::NamespaceExportDeclaration => {
+                self.payload::<NamespaceExportDeclaration>().for_each_child(v)
+            }
             NodeDataTag::NamespaceExport => self.payload::<NamespaceExport>().for_each_child(v),
             NodeDataTag::NamedExports => self.payload::<NamedExports>().for_each_child(v),
             NodeDataTag::ExportSpecifier => self.payload::<ExportSpecifier>().for_each_child(v),
-            NodeDataTag::CallSignatureDeclaration => self.payload::<CallSignatureDeclaration>().for_each_child(v),
-            NodeDataTag::ConstructSignatureDeclaration => self.payload::<ConstructSignatureDeclaration>().for_each_child(v),
-            NodeDataTag::ConstructorDeclaration => self.payload::<ConstructorDeclaration>().for_each_child(v),
-            NodeDataTag::GetAccessorDeclaration => self.payload::<GetAccessorDeclaration>().for_each_child(v),
-            NodeDataTag::SetAccessorDeclaration => self.payload::<SetAccessorDeclaration>().for_each_child(v),
-            NodeDataTag::IndexSignatureDeclaration => self.payload::<IndexSignatureDeclaration>().for_each_child(v),
-            NodeDataTag::MethodSignatureDeclaration => self.payload::<MethodSignatureDeclaration>().for_each_child(v),
+            NodeDataTag::CallSignatureDeclaration => {
+                self.payload::<CallSignatureDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::ConstructSignatureDeclaration => {
+                self.payload::<ConstructSignatureDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::ConstructorDeclaration => {
+                self.payload::<ConstructorDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::GetAccessorDeclaration => {
+                self.payload::<GetAccessorDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::SetAccessorDeclaration => {
+                self.payload::<SetAccessorDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::IndexSignatureDeclaration => {
+                self.payload::<IndexSignatureDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::MethodSignatureDeclaration => {
+                self.payload::<MethodSignatureDeclaration>().for_each_child(v)
+            }
             NodeDataTag::MethodDeclaration => self.payload::<MethodDeclaration>().for_each_child(v),
-            NodeDataTag::PropertySignatureDeclaration => self.payload::<PropertySignatureDeclaration>().for_each_child(v),
-            NodeDataTag::PropertyDeclaration => self.payload::<PropertyDeclaration>().for_each_child(v),
-            NodeDataTag::ClassStaticBlockDeclaration => self.payload::<ClassStaticBlockDeclaration>().for_each_child(v),
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.payload::<PropertySignatureDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::PropertyDeclaration => {
+                self.payload::<PropertyDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::ClassStaticBlockDeclaration => {
+                self.payload::<ClassStaticBlockDeclaration>().for_each_child(v)
+            }
             NodeDataTag::BinaryExpression => self.payload::<BinaryExpression>().for_each_child(v),
-            NodeDataTag::PrefixUnaryExpression => self.payload::<PrefixUnaryExpression>().for_each_child(v),
-            NodeDataTag::PostfixUnaryExpression => self.payload::<PostfixUnaryExpression>().for_each_child(v),
+            NodeDataTag::PrefixUnaryExpression => {
+                self.payload::<PrefixUnaryExpression>().for_each_child(v)
+            }
+            NodeDataTag::PostfixUnaryExpression => {
+                self.payload::<PostfixUnaryExpression>().for_each_child(v)
+            }
             NodeDataTag::YieldExpression => self.payload::<YieldExpression>().for_each_child(v),
             NodeDataTag::ArrowFunction => self.payload::<ArrowFunction>().for_each_child(v),
-            NodeDataTag::FunctionExpression => self.payload::<FunctionExpression>().for_each_child(v),
+            NodeDataTag::FunctionExpression => {
+                self.payload::<FunctionExpression>().for_each_child(v)
+            }
             NodeDataTag::AsExpression => self.payload::<AsExpression>().for_each_child(v),
-            NodeDataTag::SatisfiesExpression => self.payload::<SatisfiesExpression>().for_each_child(v),
-            NodeDataTag::ConditionalExpression => self.payload::<ConditionalExpression>().for_each_child(v),
-            NodeDataTag::PropertyAccessExpression => self.payload::<PropertyAccessExpression>().for_each_child(v),
-            NodeDataTag::ElementAccessExpression => self.payload::<ElementAccessExpression>().for_each_child(v),
+            NodeDataTag::SatisfiesExpression => {
+                self.payload::<SatisfiesExpression>().for_each_child(v)
+            }
+            NodeDataTag::ConditionalExpression => {
+                self.payload::<ConditionalExpression>().for_each_child(v)
+            }
+            NodeDataTag::PropertyAccessExpression => {
+                self.payload::<PropertyAccessExpression>().for_each_child(v)
+            }
+            NodeDataTag::ElementAccessExpression => {
+                self.payload::<ElementAccessExpression>().for_each_child(v)
+            }
             NodeDataTag::CallExpression => self.payload::<CallExpression>().for_each_child(v),
             NodeDataTag::NewExpression => self.payload::<NewExpression>().for_each_child(v),
             NodeDataTag::MetaProperty => self.payload::<MetaProperty>().for_each_child(v),
             NodeDataTag::NonNullExpression => self.payload::<NonNullExpression>().for_each_child(v),
             NodeDataTag::SpreadElement => self.payload::<SpreadElement>().for_each_child(v),
-            NodeDataTag::TemplateExpression => self.payload::<TemplateExpression>().for_each_child(v),
+            NodeDataTag::TemplateExpression => {
+                self.payload::<TemplateExpression>().for_each_child(v)
+            }
             NodeDataTag::TemplateSpan => self.payload::<TemplateSpan>().for_each_child(v),
-            NodeDataTag::TaggedTemplateExpression => self.payload::<TaggedTemplateExpression>().for_each_child(v),
-            NodeDataTag::ParenthesizedExpression => self.payload::<ParenthesizedExpression>().for_each_child(v),
-            NodeDataTag::ArrayLiteralExpression => self.payload::<ArrayLiteralExpression>().for_each_child(v),
-            NodeDataTag::ObjectLiteralExpression => self.payload::<ObjectLiteralExpression>().for_each_child(v),
+            NodeDataTag::TaggedTemplateExpression => {
+                self.payload::<TaggedTemplateExpression>().for_each_child(v)
+            }
+            NodeDataTag::ParenthesizedExpression => {
+                self.payload::<ParenthesizedExpression>().for_each_child(v)
+            }
+            NodeDataTag::ArrayLiteralExpression => {
+                self.payload::<ArrayLiteralExpression>().for_each_child(v)
+            }
+            NodeDataTag::ObjectLiteralExpression => {
+                self.payload::<ObjectLiteralExpression>().for_each_child(v)
+            }
             NodeDataTag::SpreadAssignment => self.payload::<SpreadAssignment>().for_each_child(v),
-            NodeDataTag::PropertyAssignment => self.payload::<PropertyAssignment>().for_each_child(v),
-            NodeDataTag::ShorthandPropertyAssignment => self.payload::<ShorthandPropertyAssignment>().for_each_child(v),
+            NodeDataTag::PropertyAssignment => {
+                self.payload::<PropertyAssignment>().for_each_child(v)
+            }
+            NodeDataTag::ShorthandPropertyAssignment => {
+                self.payload::<ShorthandPropertyAssignment>().for_each_child(v)
+            }
             NodeDataTag::DeleteExpression => self.payload::<DeleteExpression>().for_each_child(v),
             NodeDataTag::TypeOfExpression => self.payload::<TypeOfExpression>().for_each_child(v),
             NodeDataTag::VoidExpression => self.payload::<VoidExpression>().for_each_child(v),
             NodeDataTag::AwaitExpression => self.payload::<AwaitExpression>().for_each_child(v),
             NodeDataTag::TypeAssertion => self.payload::<TypeAssertion>().for_each_child(v),
             NodeDataTag::UnionTypeNode => self.payload::<UnionTypeNode>().for_each_child(v),
-            NodeDataTag::IntersectionTypeNode => self.payload::<IntersectionTypeNode>().for_each_child(v),
-            NodeDataTag::ConditionalTypeNode => self.payload::<ConditionalTypeNode>().for_each_child(v),
+            NodeDataTag::IntersectionTypeNode => {
+                self.payload::<IntersectionTypeNode>().for_each_child(v)
+            }
+            NodeDataTag::ConditionalTypeNode => {
+                self.payload::<ConditionalTypeNode>().for_each_child(v)
+            }
             NodeDataTag::TypeOperatorNode => self.payload::<TypeOperatorNode>().for_each_child(v),
             NodeDataTag::InferTypeNode => self.payload::<InferTypeNode>().for_each_child(v),
             NodeDataTag::ArrayTypeNode => self.payload::<ArrayTypeNode>().for_each_child(v),
-            NodeDataTag::IndexedAccessTypeNode => self.payload::<IndexedAccessTypeNode>().for_each_child(v),
+            NodeDataTag::IndexedAccessTypeNode => {
+                self.payload::<IndexedAccessTypeNode>().for_each_child(v)
+            }
             NodeDataTag::TypeReferenceNode => self.payload::<TypeReferenceNode>().for_each_child(v),
-            NodeDataTag::ExpressionWithTypeArguments => self.payload::<ExpressionWithTypeArguments>().for_each_child(v),
+            NodeDataTag::ExpressionWithTypeArguments => {
+                self.payload::<ExpressionWithTypeArguments>().for_each_child(v)
+            }
             NodeDataTag::LiteralTypeNode => self.payload::<LiteralTypeNode>().for_each_child(v),
             NodeDataTag::TypePredicateNode => self.payload::<TypePredicateNode>().for_each_child(v),
             NodeDataTag::ImportAttribute => self.payload::<ImportAttribute>().for_each_child(v),
@@ -8221,27 +9113,47 @@ impl Node {
             NodeDataTag::NamedTupleMember => self.payload::<NamedTupleMember>().for_each_child(v),
             NodeDataTag::OptionalTypeNode => self.payload::<OptionalTypeNode>().for_each_child(v),
             NodeDataTag::RestTypeNode => self.payload::<RestTypeNode>().for_each_child(v),
-            NodeDataTag::ParenthesizedTypeNode => self.payload::<ParenthesizedTypeNode>().for_each_child(v),
+            NodeDataTag::ParenthesizedTypeNode => {
+                self.payload::<ParenthesizedTypeNode>().for_each_child(v)
+            }
             NodeDataTag::FunctionTypeNode => self.payload::<FunctionTypeNode>().for_each_child(v),
-            NodeDataTag::ConstructorTypeNode => self.payload::<ConstructorTypeNode>().for_each_child(v),
-            NodeDataTag::TemplateLiteralTypeNode => self.payload::<TemplateLiteralTypeNode>().for_each_child(v),
-            NodeDataTag::TemplateLiteralTypeSpan => self.payload::<TemplateLiteralTypeSpan>().for_each_child(v),
-            NodeDataTag::SyntheticExpression => self.payload::<SyntheticExpression>().for_each_child(v),
-            NodeDataTag::PartiallyEmittedExpression => self.payload::<PartiallyEmittedExpression>().for_each_child(v),
+            NodeDataTag::ConstructorTypeNode => {
+                self.payload::<ConstructorTypeNode>().for_each_child(v)
+            }
+            NodeDataTag::TemplateLiteralTypeNode => {
+                self.payload::<TemplateLiteralTypeNode>().for_each_child(v)
+            }
+            NodeDataTag::TemplateLiteralTypeSpan => {
+                self.payload::<TemplateLiteralTypeSpan>().for_each_child(v)
+            }
+            NodeDataTag::SyntheticExpression => {
+                self.payload::<SyntheticExpression>().for_each_child(v)
+            }
+            NodeDataTag::PartiallyEmittedExpression => {
+                self.payload::<PartiallyEmittedExpression>().for_each_child(v)
+            }
             NodeDataTag::JsxElement => self.payload::<JsxElement>().for_each_child(v),
             NodeDataTag::JsxAttributes => self.payload::<JsxAttributes>().for_each_child(v),
             NodeDataTag::JsxNamespacedName => self.payload::<JsxNamespacedName>().for_each_child(v),
             NodeDataTag::JsxOpeningElement => self.payload::<JsxOpeningElement>().for_each_child(v),
-            NodeDataTag::JsxSelfClosingElement => self.payload::<JsxSelfClosingElement>().for_each_child(v),
+            NodeDataTag::JsxSelfClosingElement => {
+                self.payload::<JsxSelfClosingElement>().for_each_child(v)
+            }
             NodeDataTag::JsxFragment => self.payload::<JsxFragment>().for_each_child(v),
             NodeDataTag::JsxAttribute => self.payload::<JsxAttribute>().for_each_child(v),
-            NodeDataTag::JsxSpreadAttribute => self.payload::<JsxSpreadAttribute>().for_each_child(v),
+            NodeDataTag::JsxSpreadAttribute => {
+                self.payload::<JsxSpreadAttribute>().for_each_child(v)
+            }
             NodeDataTag::JsxClosingElement => self.payload::<JsxClosingElement>().for_each_child(v),
             NodeDataTag::JsxExpression => self.payload::<JsxExpression>().for_each_child(v),
             NodeDataTag::SyntaxList => self.payload::<SyntaxList>().for_each_child(v),
             NodeDataTag::JSDoc => self.payload::<JSDoc>().for_each_child(v),
-            NodeDataTag::JSDocTypeExpression => self.payload::<JSDocTypeExpression>().for_each_child(v),
-            NodeDataTag::JSDocNonNullableType => self.payload::<JSDocNonNullableType>().for_each_child(v),
+            NodeDataTag::JSDocTypeExpression => {
+                self.payload::<JSDocTypeExpression>().for_each_child(v)
+            }
+            NodeDataTag::JSDocNonNullableType => {
+                self.payload::<JSDocNonNullableType>().for_each_child(v)
+            }
             NodeDataTag::JSDocNullableType => self.payload::<JSDocNullableType>().for_each_child(v),
             NodeDataTag::JSDocVariadicType => self.payload::<JSDocVariadicType>().for_each_child(v),
             NodeDataTag::JSDocOptionalType => self.payload::<JSDocOptionalType>().for_each_child(v),
@@ -8254,9 +9166,13 @@ impl Node {
             NodeDataTag::JSDocProtectedTag => self.payload::<JSDocProtectedTag>().for_each_child(v),
             NodeDataTag::JSDocReadonlyTag => self.payload::<JSDocReadonlyTag>().for_each_child(v),
             NodeDataTag::JSDocOverrideTag => self.payload::<JSDocOverrideTag>().for_each_child(v),
-            NodeDataTag::JSDocDeprecatedTag => self.payload::<JSDocDeprecatedTag>().for_each_child(v),
+            NodeDataTag::JSDocDeprecatedTag => {
+                self.payload::<JSDocDeprecatedTag>().for_each_child(v)
+            }
             NodeDataTag::JSDocSeeTag => self.payload::<JSDocSeeTag>().for_each_child(v),
-            NodeDataTag::JSDocImplementsTag => self.payload::<JSDocImplementsTag>().for_each_child(v),
+            NodeDataTag::JSDocImplementsTag => {
+                self.payload::<JSDocImplementsTag>().for_each_child(v)
+            }
             NodeDataTag::JSDocAugmentsTag => self.payload::<JSDocAugmentsTag>().for_each_child(v),
             NodeDataTag::JSDocSatisfiesTag => self.payload::<JSDocSatisfiesTag>().for_each_child(v),
             NodeDataTag::JSDocThrowsTag => self.payload::<JSDocThrowsTag>().for_each_child(v),
@@ -8266,10 +9182,14 @@ impl Node {
             NodeDataTag::JSDocOverloadTag => self.payload::<JSDocOverloadTag>().for_each_child(v),
             NodeDataTag::JSDocTypedefTag => self.payload::<JSDocTypedefTag>().for_each_child(v),
             NodeDataTag::JSDocSignature => self.payload::<JSDocSignature>().for_each_child(v),
-            NodeDataTag::JSDocNameReference => self.payload::<JSDocNameReference>().for_each_child(v),
+            NodeDataTag::JSDocNameReference => {
+                self.payload::<JSDocNameReference>().for_each_child(v)
+            }
             NodeDataTag::SourceFile => self.payload::<SourceFile>().for_each_child(v),
             NodeDataTag::ModuleDeclaration => self.payload::<ModuleDeclaration>().for_each_child(v),
-            NodeDataTag::ImportEqualsDeclaration => self.payload::<ImportEqualsDeclaration>().for_each_child(v),
+            NodeDataTag::ImportEqualsDeclaration => {
+                self.payload::<ImportEqualsDeclaration>().for_each_child(v)
+            }
             NodeDataTag::ExportDeclaration => self.payload::<ExportDeclaration>().for_each_child(v),
             NodeDataTag::ImportTypeNode => self.payload::<ImportTypeNode>().for_each_child(v),
             NodeDataTag::ImportClause => self.payload::<ImportClause>().for_each_child(v),
@@ -8277,10 +9197,16 @@ impl Node {
             NodeDataTag::JSDocLink => self.payload::<JSDocLink>().for_each_child(v),
             NodeDataTag::JSDocLinkPlain => self.payload::<JSDocLinkPlain>().for_each_child(v),
             NodeDataTag::JSDocLinkCode => self.payload::<JSDocLinkCode>().for_each_child(v),
-            NodeDataTag::TypeParameterDeclaration => self.payload::<TypeParameterDeclaration>().for_each_child(v),
-            NodeDataTag::SyntheticReferenceExpression => self.payload::<SyntheticReferenceExpression>().for_each_child(v),
+            NodeDataTag::TypeParameterDeclaration => {
+                self.payload::<TypeParameterDeclaration>().for_each_child(v)
+            }
+            NodeDataTag::SyntheticReferenceExpression => {
+                self.payload::<SyntheticReferenceExpression>().for_each_child(v)
+            }
             NodeDataTag::JSDocTypeLiteral => self.payload::<JSDocTypeLiteral>().for_each_child(v),
-            NodeDataTag::JSDocParameterOrPropertyTag => self.payload::<JSDocParameterOrPropertyTag>().for_each_child(v),
+            NodeDataTag::JSDocParameterOrPropertyTag => {
+                self.payload::<JSDocParameterOrPropertyTag>().for_each_child(v)
+            }
             _ => false,
         }
     }
@@ -8289,172 +9215,424 @@ impl Node {
         let node = self.as_p();
         match self.data_tag() {
             NodeDataTag::QualifiedName => self.payload::<QualifiedName>().visit_each_child(node, v),
-            NodeDataTag::ComputedPropertyName => self.payload::<ComputedPropertyName>().visit_each_child(node, v),
+            NodeDataTag::ComputedPropertyName => {
+                self.payload::<ComputedPropertyName>().visit_each_child(node, v)
+            }
             NodeDataTag::Decorator => self.payload::<Decorator>().visit_each_child(node, v),
             NodeDataTag::IfStatement => self.payload::<IfStatement>().visit_each_child(node, v),
             NodeDataTag::DoStatement => self.payload::<DoStatement>().visit_each_child(node, v),
-            NodeDataTag::WhileStatement => self.payload::<WhileStatement>().visit_each_child(node, v),
+            NodeDataTag::WhileStatement => {
+                self.payload::<WhileStatement>().visit_each_child(node, v)
+            }
             NodeDataTag::ForStatement => self.payload::<ForStatement>().visit_each_child(node, v),
-            NodeDataTag::ForInOrOfStatement => self.payload::<ForInOrOfStatement>().visit_each_child(node, v),
-            NodeDataTag::BreakStatement => self.payload::<BreakStatement>().visit_each_child(node, v),
-            NodeDataTag::ContinueStatement => self.payload::<ContinueStatement>().visit_each_child(node, v),
-            NodeDataTag::ReturnStatement => self.payload::<ReturnStatement>().visit_each_child(node, v),
+            NodeDataTag::ForInOrOfStatement => {
+                self.payload::<ForInOrOfStatement>().visit_each_child(node, v)
+            }
+            NodeDataTag::BreakStatement => {
+                self.payload::<BreakStatement>().visit_each_child(node, v)
+            }
+            NodeDataTag::ContinueStatement => {
+                self.payload::<ContinueStatement>().visit_each_child(node, v)
+            }
+            NodeDataTag::ReturnStatement => {
+                self.payload::<ReturnStatement>().visit_each_child(node, v)
+            }
             NodeDataTag::WithStatement => self.payload::<WithStatement>().visit_each_child(node, v),
-            NodeDataTag::SwitchStatement => self.payload::<SwitchStatement>().visit_each_child(node, v),
+            NodeDataTag::SwitchStatement => {
+                self.payload::<SwitchStatement>().visit_each_child(node, v)
+            }
             NodeDataTag::CaseBlock => self.payload::<CaseBlock>().visit_each_child(node, v),
-            NodeDataTag::CaseOrDefaultClause => self.payload::<CaseOrDefaultClause>().visit_each_child(node, v),
-            NodeDataTag::ThrowStatement => self.payload::<ThrowStatement>().visit_each_child(node, v),
+            NodeDataTag::CaseOrDefaultClause => {
+                self.payload::<CaseOrDefaultClause>().visit_each_child(node, v)
+            }
+            NodeDataTag::ThrowStatement => {
+                self.payload::<ThrowStatement>().visit_each_child(node, v)
+            }
             NodeDataTag::TryStatement => self.payload::<TryStatement>().visit_each_child(node, v),
             NodeDataTag::CatchClause => self.payload::<CatchClause>().visit_each_child(node, v),
-            NodeDataTag::LabeledStatement => self.payload::<LabeledStatement>().visit_each_child(node, v),
-            NodeDataTag::ExpressionStatement => self.payload::<ExpressionStatement>().visit_each_child(node, v),
+            NodeDataTag::LabeledStatement => {
+                self.payload::<LabeledStatement>().visit_each_child(node, v)
+            }
+            NodeDataTag::ExpressionStatement => {
+                self.payload::<ExpressionStatement>().visit_each_child(node, v)
+            }
             NodeDataTag::Block => self.payload::<Block>().visit_each_child(node, v),
-            NodeDataTag::VariableStatement => self.payload::<VariableStatement>().visit_each_child(node, v),
-            NodeDataTag::VariableDeclaration => self.payload::<VariableDeclaration>().visit_each_child(node, v),
-            NodeDataTag::VariableDeclarationList => self.payload::<VariableDeclarationList>().visit_each_child(node, v),
-            NodeDataTag::BindingPattern => self.payload::<BindingPattern>().visit_each_child(node, v),
-            NodeDataTag::ParameterDeclaration => self.payload::<ParameterDeclaration>().visit_each_child(node, v),
-            NodeDataTag::BindingElement => self.payload::<BindingElement>().visit_each_child(node, v),
-            NodeDataTag::MissingDeclaration => self.payload::<MissingDeclaration>().visit_each_child(node, v),
-            NodeDataTag::FunctionDeclaration => self.payload::<FunctionDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ClassDeclaration => self.payload::<ClassDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ClassExpression => self.payload::<ClassExpression>().visit_each_child(node, v),
-            NodeDataTag::HeritageClause => self.payload::<HeritageClause>().visit_each_child(node, v),
-            NodeDataTag::InterfaceDeclaration => self.payload::<InterfaceDeclaration>().visit_each_child(node, v),
-            NodeDataTag::TypeAliasDeclaration => self.payload::<TypeAliasDeclaration>().visit_each_child(node, v),
+            NodeDataTag::VariableStatement => {
+                self.payload::<VariableStatement>().visit_each_child(node, v)
+            }
+            NodeDataTag::VariableDeclaration => {
+                self.payload::<VariableDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::VariableDeclarationList => {
+                self.payload::<VariableDeclarationList>().visit_each_child(node, v)
+            }
+            NodeDataTag::BindingPattern => {
+                self.payload::<BindingPattern>().visit_each_child(node, v)
+            }
+            NodeDataTag::ParameterDeclaration => {
+                self.payload::<ParameterDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::BindingElement => {
+                self.payload::<BindingElement>().visit_each_child(node, v)
+            }
+            NodeDataTag::MissingDeclaration => {
+                self.payload::<MissingDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::FunctionDeclaration => {
+                self.payload::<FunctionDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ClassDeclaration => {
+                self.payload::<ClassDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ClassExpression => {
+                self.payload::<ClassExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::HeritageClause => {
+                self.payload::<HeritageClause>().visit_each_child(node, v)
+            }
+            NodeDataTag::InterfaceDeclaration => {
+                self.payload::<InterfaceDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::TypeAliasDeclaration => {
+                self.payload::<TypeAliasDeclaration>().visit_each_child(node, v)
+            }
             NodeDataTag::EnumMember => self.payload::<EnumMember>().visit_each_child(node, v),
-            NodeDataTag::EnumDeclaration => self.payload::<EnumDeclaration>().visit_each_child(node, v),
+            NodeDataTag::EnumDeclaration => {
+                self.payload::<EnumDeclaration>().visit_each_child(node, v)
+            }
             NodeDataTag::ModuleBlock => self.payload::<ModuleBlock>().visit_each_child(node, v),
-            NodeDataTag::ImportDeclaration => self.payload::<ImportDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ExternalModuleReference => self.payload::<ExternalModuleReference>().visit_each_child(node, v),
-            NodeDataTag::NamespaceImport => self.payload::<NamespaceImport>().visit_each_child(node, v),
+            NodeDataTag::ImportDeclaration => {
+                self.payload::<ImportDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ExternalModuleReference => {
+                self.payload::<ExternalModuleReference>().visit_each_child(node, v)
+            }
+            NodeDataTag::NamespaceImport => {
+                self.payload::<NamespaceImport>().visit_each_child(node, v)
+            }
             NodeDataTag::NamedImports => self.payload::<NamedImports>().visit_each_child(node, v),
-            NodeDataTag::ExportAssignment => self.payload::<ExportAssignment>().visit_each_child(node, v),
-            NodeDataTag::NamespaceExportDeclaration => self.payload::<NamespaceExportDeclaration>().visit_each_child(node, v),
-            NodeDataTag::NamespaceExport => self.payload::<NamespaceExport>().visit_each_child(node, v),
+            NodeDataTag::ExportAssignment => {
+                self.payload::<ExportAssignment>().visit_each_child(node, v)
+            }
+            NodeDataTag::NamespaceExportDeclaration => {
+                self.payload::<NamespaceExportDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::NamespaceExport => {
+                self.payload::<NamespaceExport>().visit_each_child(node, v)
+            }
             NodeDataTag::NamedExports => self.payload::<NamedExports>().visit_each_child(node, v),
-            NodeDataTag::ExportSpecifier => self.payload::<ExportSpecifier>().visit_each_child(node, v),
-            NodeDataTag::CallSignatureDeclaration => self.payload::<CallSignatureDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ConstructSignatureDeclaration => self.payload::<ConstructSignatureDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ConstructorDeclaration => self.payload::<ConstructorDeclaration>().visit_each_child(node, v),
-            NodeDataTag::GetAccessorDeclaration => self.payload::<GetAccessorDeclaration>().visit_each_child(node, v),
-            NodeDataTag::SetAccessorDeclaration => self.payload::<SetAccessorDeclaration>().visit_each_child(node, v),
-            NodeDataTag::IndexSignatureDeclaration => self.payload::<IndexSignatureDeclaration>().visit_each_child(node, v),
-            NodeDataTag::MethodSignatureDeclaration => self.payload::<MethodSignatureDeclaration>().visit_each_child(node, v),
-            NodeDataTag::MethodDeclaration => self.payload::<MethodDeclaration>().visit_each_child(node, v),
-            NodeDataTag::PropertySignatureDeclaration => self.payload::<PropertySignatureDeclaration>().visit_each_child(node, v),
-            NodeDataTag::PropertyDeclaration => self.payload::<PropertyDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ClassStaticBlockDeclaration => self.payload::<ClassStaticBlockDeclaration>().visit_each_child(node, v),
-            NodeDataTag::BinaryExpression => self.payload::<BinaryExpression>().visit_each_child(node, v),
-            NodeDataTag::PrefixUnaryExpression => self.payload::<PrefixUnaryExpression>().visit_each_child(node, v),
-            NodeDataTag::PostfixUnaryExpression => self.payload::<PostfixUnaryExpression>().visit_each_child(node, v),
-            NodeDataTag::YieldExpression => self.payload::<YieldExpression>().visit_each_child(node, v),
+            NodeDataTag::ExportSpecifier => {
+                self.payload::<ExportSpecifier>().visit_each_child(node, v)
+            }
+            NodeDataTag::CallSignatureDeclaration => {
+                self.payload::<CallSignatureDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ConstructSignatureDeclaration => {
+                self.payload::<ConstructSignatureDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ConstructorDeclaration => {
+                self.payload::<ConstructorDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::GetAccessorDeclaration => {
+                self.payload::<GetAccessorDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::SetAccessorDeclaration => {
+                self.payload::<SetAccessorDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::IndexSignatureDeclaration => {
+                self.payload::<IndexSignatureDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::MethodSignatureDeclaration => {
+                self.payload::<MethodSignatureDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::MethodDeclaration => {
+                self.payload::<MethodDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.payload::<PropertySignatureDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::PropertyDeclaration => {
+                self.payload::<PropertyDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ClassStaticBlockDeclaration => {
+                self.payload::<ClassStaticBlockDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::BinaryExpression => {
+                self.payload::<BinaryExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::PrefixUnaryExpression => {
+                self.payload::<PrefixUnaryExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::PostfixUnaryExpression => {
+                self.payload::<PostfixUnaryExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::YieldExpression => {
+                self.payload::<YieldExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::ArrowFunction => self.payload::<ArrowFunction>().visit_each_child(node, v),
-            NodeDataTag::FunctionExpression => self.payload::<FunctionExpression>().visit_each_child(node, v),
+            NodeDataTag::FunctionExpression => {
+                self.payload::<FunctionExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::AsExpression => self.payload::<AsExpression>().visit_each_child(node, v),
-            NodeDataTag::SatisfiesExpression => self.payload::<SatisfiesExpression>().visit_each_child(node, v),
-            NodeDataTag::ConditionalExpression => self.payload::<ConditionalExpression>().visit_each_child(node, v),
-            NodeDataTag::PropertyAccessExpression => self.payload::<PropertyAccessExpression>().visit_each_child(node, v),
-            NodeDataTag::ElementAccessExpression => self.payload::<ElementAccessExpression>().visit_each_child(node, v),
-            NodeDataTag::CallExpression => self.payload::<CallExpression>().visit_each_child(node, v),
+            NodeDataTag::SatisfiesExpression => {
+                self.payload::<SatisfiesExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::ConditionalExpression => {
+                self.payload::<ConditionalExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::PropertyAccessExpression => {
+                self.payload::<PropertyAccessExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::ElementAccessExpression => {
+                self.payload::<ElementAccessExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::CallExpression => {
+                self.payload::<CallExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::NewExpression => self.payload::<NewExpression>().visit_each_child(node, v),
             NodeDataTag::MetaProperty => self.payload::<MetaProperty>().visit_each_child(node, v),
-            NodeDataTag::NonNullExpression => self.payload::<NonNullExpression>().visit_each_child(node, v),
+            NodeDataTag::NonNullExpression => {
+                self.payload::<NonNullExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::SpreadElement => self.payload::<SpreadElement>().visit_each_child(node, v),
-            NodeDataTag::TemplateExpression => self.payload::<TemplateExpression>().visit_each_child(node, v),
+            NodeDataTag::TemplateExpression => {
+                self.payload::<TemplateExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::TemplateSpan => self.payload::<TemplateSpan>().visit_each_child(node, v),
-            NodeDataTag::TaggedTemplateExpression => self.payload::<TaggedTemplateExpression>().visit_each_child(node, v),
-            NodeDataTag::ParenthesizedExpression => self.payload::<ParenthesizedExpression>().visit_each_child(node, v),
-            NodeDataTag::ArrayLiteralExpression => self.payload::<ArrayLiteralExpression>().visit_each_child(node, v),
-            NodeDataTag::ObjectLiteralExpression => self.payload::<ObjectLiteralExpression>().visit_each_child(node, v),
-            NodeDataTag::SpreadAssignment => self.payload::<SpreadAssignment>().visit_each_child(node, v),
-            NodeDataTag::PropertyAssignment => self.payload::<PropertyAssignment>().visit_each_child(node, v),
-            NodeDataTag::ShorthandPropertyAssignment => self.payload::<ShorthandPropertyAssignment>().visit_each_child(node, v),
-            NodeDataTag::DeleteExpression => self.payload::<DeleteExpression>().visit_each_child(node, v),
-            NodeDataTag::TypeOfExpression => self.payload::<TypeOfExpression>().visit_each_child(node, v),
-            NodeDataTag::VoidExpression => self.payload::<VoidExpression>().visit_each_child(node, v),
-            NodeDataTag::AwaitExpression => self.payload::<AwaitExpression>().visit_each_child(node, v),
+            NodeDataTag::TaggedTemplateExpression => {
+                self.payload::<TaggedTemplateExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::ParenthesizedExpression => {
+                self.payload::<ParenthesizedExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::ArrayLiteralExpression => {
+                self.payload::<ArrayLiteralExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::ObjectLiteralExpression => {
+                self.payload::<ObjectLiteralExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::SpreadAssignment => {
+                self.payload::<SpreadAssignment>().visit_each_child(node, v)
+            }
+            NodeDataTag::PropertyAssignment => {
+                self.payload::<PropertyAssignment>().visit_each_child(node, v)
+            }
+            NodeDataTag::ShorthandPropertyAssignment => {
+                self.payload::<ShorthandPropertyAssignment>().visit_each_child(node, v)
+            }
+            NodeDataTag::DeleteExpression => {
+                self.payload::<DeleteExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::TypeOfExpression => {
+                self.payload::<TypeOfExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::VoidExpression => {
+                self.payload::<VoidExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::AwaitExpression => {
+                self.payload::<AwaitExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::TypeAssertion => self.payload::<TypeAssertion>().visit_each_child(node, v),
             NodeDataTag::UnionTypeNode => self.payload::<UnionTypeNode>().visit_each_child(node, v),
-            NodeDataTag::IntersectionTypeNode => self.payload::<IntersectionTypeNode>().visit_each_child(node, v),
-            NodeDataTag::ConditionalTypeNode => self.payload::<ConditionalTypeNode>().visit_each_child(node, v),
-            NodeDataTag::TypeOperatorNode => self.payload::<TypeOperatorNode>().visit_each_child(node, v),
+            NodeDataTag::IntersectionTypeNode => {
+                self.payload::<IntersectionTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::ConditionalTypeNode => {
+                self.payload::<ConditionalTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::TypeOperatorNode => {
+                self.payload::<TypeOperatorNode>().visit_each_child(node, v)
+            }
             NodeDataTag::InferTypeNode => self.payload::<InferTypeNode>().visit_each_child(node, v),
             NodeDataTag::ArrayTypeNode => self.payload::<ArrayTypeNode>().visit_each_child(node, v),
-            NodeDataTag::IndexedAccessTypeNode => self.payload::<IndexedAccessTypeNode>().visit_each_child(node, v),
-            NodeDataTag::TypeReferenceNode => self.payload::<TypeReferenceNode>().visit_each_child(node, v),
-            NodeDataTag::ExpressionWithTypeArguments => self.payload::<ExpressionWithTypeArguments>().visit_each_child(node, v),
-            NodeDataTag::LiteralTypeNode => self.payload::<LiteralTypeNode>().visit_each_child(node, v),
-            NodeDataTag::TypePredicateNode => self.payload::<TypePredicateNode>().visit_each_child(node, v),
-            NodeDataTag::ImportAttribute => self.payload::<ImportAttribute>().visit_each_child(node, v),
-            NodeDataTag::ImportAttributes => self.payload::<ImportAttributes>().visit_each_child(node, v),
+            NodeDataTag::IndexedAccessTypeNode => {
+                self.payload::<IndexedAccessTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::TypeReferenceNode => {
+                self.payload::<TypeReferenceNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::ExpressionWithTypeArguments => {
+                self.payload::<ExpressionWithTypeArguments>().visit_each_child(node, v)
+            }
+            NodeDataTag::LiteralTypeNode => {
+                self.payload::<LiteralTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::TypePredicateNode => {
+                self.payload::<TypePredicateNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::ImportAttribute => {
+                self.payload::<ImportAttribute>().visit_each_child(node, v)
+            }
+            NodeDataTag::ImportAttributes => {
+                self.payload::<ImportAttributes>().visit_each_child(node, v)
+            }
             NodeDataTag::TypeQueryNode => self.payload::<TypeQueryNode>().visit_each_child(node, v),
-            NodeDataTag::MappedTypeNode => self.payload::<MappedTypeNode>().visit_each_child(node, v),
-            NodeDataTag::TypeLiteralNode => self.payload::<TypeLiteralNode>().visit_each_child(node, v),
+            NodeDataTag::MappedTypeNode => {
+                self.payload::<MappedTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::TypeLiteralNode => {
+                self.payload::<TypeLiteralNode>().visit_each_child(node, v)
+            }
             NodeDataTag::TupleTypeNode => self.payload::<TupleTypeNode>().visit_each_child(node, v),
-            NodeDataTag::NamedTupleMember => self.payload::<NamedTupleMember>().visit_each_child(node, v),
-            NodeDataTag::OptionalTypeNode => self.payload::<OptionalTypeNode>().visit_each_child(node, v),
+            NodeDataTag::NamedTupleMember => {
+                self.payload::<NamedTupleMember>().visit_each_child(node, v)
+            }
+            NodeDataTag::OptionalTypeNode => {
+                self.payload::<OptionalTypeNode>().visit_each_child(node, v)
+            }
             NodeDataTag::RestTypeNode => self.payload::<RestTypeNode>().visit_each_child(node, v),
-            NodeDataTag::ParenthesizedTypeNode => self.payload::<ParenthesizedTypeNode>().visit_each_child(node, v),
-            NodeDataTag::FunctionTypeNode => self.payload::<FunctionTypeNode>().visit_each_child(node, v),
-            NodeDataTag::ConstructorTypeNode => self.payload::<ConstructorTypeNode>().visit_each_child(node, v),
-            NodeDataTag::TemplateLiteralTypeNode => self.payload::<TemplateLiteralTypeNode>().visit_each_child(node, v),
-            NodeDataTag::TemplateLiteralTypeSpan => self.payload::<TemplateLiteralTypeSpan>().visit_each_child(node, v),
-            NodeDataTag::SyntheticExpression => self.payload::<SyntheticExpression>().visit_each_child(node, v),
-            NodeDataTag::PartiallyEmittedExpression => self.payload::<PartiallyEmittedExpression>().visit_each_child(node, v),
+            NodeDataTag::ParenthesizedTypeNode => {
+                self.payload::<ParenthesizedTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::FunctionTypeNode => {
+                self.payload::<FunctionTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::ConstructorTypeNode => {
+                self.payload::<ConstructorTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::TemplateLiteralTypeNode => {
+                self.payload::<TemplateLiteralTypeNode>().visit_each_child(node, v)
+            }
+            NodeDataTag::TemplateLiteralTypeSpan => {
+                self.payload::<TemplateLiteralTypeSpan>().visit_each_child(node, v)
+            }
+            NodeDataTag::SyntheticExpression => {
+                self.payload::<SyntheticExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::PartiallyEmittedExpression => {
+                self.payload::<PartiallyEmittedExpression>().visit_each_child(node, v)
+            }
             NodeDataTag::JsxElement => self.payload::<JsxElement>().visit_each_child(node, v),
             NodeDataTag::JsxAttributes => self.payload::<JsxAttributes>().visit_each_child(node, v),
-            NodeDataTag::JsxNamespacedName => self.payload::<JsxNamespacedName>().visit_each_child(node, v),
-            NodeDataTag::JsxOpeningElement => self.payload::<JsxOpeningElement>().visit_each_child(node, v),
-            NodeDataTag::JsxSelfClosingElement => self.payload::<JsxSelfClosingElement>().visit_each_child(node, v),
+            NodeDataTag::JsxNamespacedName => {
+                self.payload::<JsxNamespacedName>().visit_each_child(node, v)
+            }
+            NodeDataTag::JsxOpeningElement => {
+                self.payload::<JsxOpeningElement>().visit_each_child(node, v)
+            }
+            NodeDataTag::JsxSelfClosingElement => {
+                self.payload::<JsxSelfClosingElement>().visit_each_child(node, v)
+            }
             NodeDataTag::JsxFragment => self.payload::<JsxFragment>().visit_each_child(node, v),
             NodeDataTag::JsxAttribute => self.payload::<JsxAttribute>().visit_each_child(node, v),
-            NodeDataTag::JsxSpreadAttribute => self.payload::<JsxSpreadAttribute>().visit_each_child(node, v),
-            NodeDataTag::JsxClosingElement => self.payload::<JsxClosingElement>().visit_each_child(node, v),
+            NodeDataTag::JsxSpreadAttribute => {
+                self.payload::<JsxSpreadAttribute>().visit_each_child(node, v)
+            }
+            NodeDataTag::JsxClosingElement => {
+                self.payload::<JsxClosingElement>().visit_each_child(node, v)
+            }
             NodeDataTag::JsxExpression => self.payload::<JsxExpression>().visit_each_child(node, v),
             NodeDataTag::SyntaxList => self.payload::<SyntaxList>().visit_each_child(node, v),
             NodeDataTag::JSDoc => self.payload::<JSDoc>().visit_each_child(node, v),
-            NodeDataTag::JSDocTypeExpression => self.payload::<JSDocTypeExpression>().visit_each_child(node, v),
-            NodeDataTag::JSDocNonNullableType => self.payload::<JSDocNonNullableType>().visit_each_child(node, v),
-            NodeDataTag::JSDocNullableType => self.payload::<JSDocNullableType>().visit_each_child(node, v),
-            NodeDataTag::JSDocVariadicType => self.payload::<JSDocVariadicType>().visit_each_child(node, v),
-            NodeDataTag::JSDocOptionalType => self.payload::<JSDocOptionalType>().visit_each_child(node, v),
+            NodeDataTag::JSDocTypeExpression => {
+                self.payload::<JSDocTypeExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocNonNullableType => {
+                self.payload::<JSDocNonNullableType>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocNullableType => {
+                self.payload::<JSDocNullableType>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocVariadicType => {
+                self.payload::<JSDocVariadicType>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocOptionalType => {
+                self.payload::<JSDocOptionalType>().visit_each_child(node, v)
+            }
             NodeDataTag::JSDocTypeTag => self.payload::<JSDocTypeTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocUnknownTag => self.payload::<JSDocUnknownTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocTemplateTag => self.payload::<JSDocTemplateTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocReturnTag => self.payload::<JSDocReturnTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocPublicTag => self.payload::<JSDocPublicTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocPrivateTag => self.payload::<JSDocPrivateTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocProtectedTag => self.payload::<JSDocProtectedTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocReadonlyTag => self.payload::<JSDocReadonlyTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocOverrideTag => self.payload::<JSDocOverrideTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocDeprecatedTag => self.payload::<JSDocDeprecatedTag>().visit_each_child(node, v),
+            NodeDataTag::JSDocUnknownTag => {
+                self.payload::<JSDocUnknownTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocTemplateTag => {
+                self.payload::<JSDocTemplateTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocReturnTag => {
+                self.payload::<JSDocReturnTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocPublicTag => {
+                self.payload::<JSDocPublicTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocPrivateTag => {
+                self.payload::<JSDocPrivateTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocProtectedTag => {
+                self.payload::<JSDocProtectedTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocReadonlyTag => {
+                self.payload::<JSDocReadonlyTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocOverrideTag => {
+                self.payload::<JSDocOverrideTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocDeprecatedTag => {
+                self.payload::<JSDocDeprecatedTag>().visit_each_child(node, v)
+            }
             NodeDataTag::JSDocSeeTag => self.payload::<JSDocSeeTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocImplementsTag => self.payload::<JSDocImplementsTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocAugmentsTag => self.payload::<JSDocAugmentsTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocSatisfiesTag => self.payload::<JSDocSatisfiesTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocThrowsTag => self.payload::<JSDocThrowsTag>().visit_each_child(node, v),
+            NodeDataTag::JSDocImplementsTag => {
+                self.payload::<JSDocImplementsTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocAugmentsTag => {
+                self.payload::<JSDocAugmentsTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocSatisfiesTag => {
+                self.payload::<JSDocSatisfiesTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocThrowsTag => {
+                self.payload::<JSDocThrowsTag>().visit_each_child(node, v)
+            }
             NodeDataTag::JSDocThisTag => self.payload::<JSDocThisTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocImportTag => self.payload::<JSDocImportTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocCallbackTag => self.payload::<JSDocCallbackTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocOverloadTag => self.payload::<JSDocOverloadTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocTypedefTag => self.payload::<JSDocTypedefTag>().visit_each_child(node, v),
-            NodeDataTag::JSDocSignature => self.payload::<JSDocSignature>().visit_each_child(node, v),
-            NodeDataTag::JSDocNameReference => self.payload::<JSDocNameReference>().visit_each_child(node, v),
+            NodeDataTag::JSDocImportTag => {
+                self.payload::<JSDocImportTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocCallbackTag => {
+                self.payload::<JSDocCallbackTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocOverloadTag => {
+                self.payload::<JSDocOverloadTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocTypedefTag => {
+                self.payload::<JSDocTypedefTag>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocSignature => {
+                self.payload::<JSDocSignature>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocNameReference => {
+                self.payload::<JSDocNameReference>().visit_each_child(node, v)
+            }
             NodeDataTag::SourceFile => self.payload::<SourceFile>().visit_each_child(node, v),
-            NodeDataTag::ModuleDeclaration => self.payload::<ModuleDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ImportEqualsDeclaration => self.payload::<ImportEqualsDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ExportDeclaration => self.payload::<ExportDeclaration>().visit_each_child(node, v),
-            NodeDataTag::ImportTypeNode => self.payload::<ImportTypeNode>().visit_each_child(node, v),
+            NodeDataTag::ModuleDeclaration => {
+                self.payload::<ModuleDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ImportEqualsDeclaration => {
+                self.payload::<ImportEqualsDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ExportDeclaration => {
+                self.payload::<ExportDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::ImportTypeNode => {
+                self.payload::<ImportTypeNode>().visit_each_child(node, v)
+            }
             NodeDataTag::ImportClause => self.payload::<ImportClause>().visit_each_child(node, v),
-            NodeDataTag::ImportSpecifier => self.payload::<ImportSpecifier>().visit_each_child(node, v),
+            NodeDataTag::ImportSpecifier => {
+                self.payload::<ImportSpecifier>().visit_each_child(node, v)
+            }
             NodeDataTag::JSDocLink => self.payload::<JSDocLink>().visit_each_child(node, v),
-            NodeDataTag::JSDocLinkPlain => self.payload::<JSDocLinkPlain>().visit_each_child(node, v),
+            NodeDataTag::JSDocLinkPlain => {
+                self.payload::<JSDocLinkPlain>().visit_each_child(node, v)
+            }
             NodeDataTag::JSDocLinkCode => self.payload::<JSDocLinkCode>().visit_each_child(node, v),
-            NodeDataTag::TypeParameterDeclaration => self.payload::<TypeParameterDeclaration>().visit_each_child(node, v),
-            NodeDataTag::SyntheticReferenceExpression => self.payload::<SyntheticReferenceExpression>().visit_each_child(node, v),
-            NodeDataTag::JSDocTypeLiteral => self.payload::<JSDocTypeLiteral>().visit_each_child(node, v),
-            NodeDataTag::JSDocParameterOrPropertyTag => self.payload::<JSDocParameterOrPropertyTag>().visit_each_child(node, v),
+            NodeDataTag::TypeParameterDeclaration => {
+                self.payload::<TypeParameterDeclaration>().visit_each_child(node, v)
+            }
+            NodeDataTag::SyntheticReferenceExpression => {
+                self.payload::<SyntheticReferenceExpression>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocTypeLiteral => {
+                self.payload::<JSDocTypeLiteral>().visit_each_child(node, v)
+            }
+            NodeDataTag::JSDocParameterOrPropertyTag => {
+                self.payload::<JSDocParameterOrPropertyTag>().visit_each_child(node, v)
+            }
             _ => node,
         }
     }
@@ -8464,101 +9642,201 @@ impl Node {
         match self.data_tag() {
             NodeDataTag::Token => Token.clone_node(node, f),
             NodeDataTag::Identifier => self.payload::<Identifier>().clone_node(node, f),
-            NodeDataTag::PrivateIdentifier => self.payload::<PrivateIdentifier>().clone_node(node, f),
+            NodeDataTag::PrivateIdentifier => {
+                self.payload::<PrivateIdentifier>().clone_node(node, f)
+            }
             NodeDataTag::QualifiedName => self.payload::<QualifiedName>().clone_node(node, f),
-            NodeDataTag::ComputedPropertyName => self.payload::<ComputedPropertyName>().clone_node(node, f),
+            NodeDataTag::ComputedPropertyName => {
+                self.payload::<ComputedPropertyName>().clone_node(node, f)
+            }
             NodeDataTag::Decorator => self.payload::<Decorator>().clone_node(node, f),
             NodeDataTag::EmptyStatement => self.payload::<EmptyStatement>().clone_node(node, f),
             NodeDataTag::IfStatement => self.payload::<IfStatement>().clone_node(node, f),
             NodeDataTag::DoStatement => self.payload::<DoStatement>().clone_node(node, f),
             NodeDataTag::WhileStatement => self.payload::<WhileStatement>().clone_node(node, f),
             NodeDataTag::ForStatement => self.payload::<ForStatement>().clone_node(node, f),
-            NodeDataTag::ForInOrOfStatement => self.payload::<ForInOrOfStatement>().clone_node(node, f),
+            NodeDataTag::ForInOrOfStatement => {
+                self.payload::<ForInOrOfStatement>().clone_node(node, f)
+            }
             NodeDataTag::BreakStatement => self.payload::<BreakStatement>().clone_node(node, f),
-            NodeDataTag::ContinueStatement => self.payload::<ContinueStatement>().clone_node(node, f),
+            NodeDataTag::ContinueStatement => {
+                self.payload::<ContinueStatement>().clone_node(node, f)
+            }
             NodeDataTag::ReturnStatement => self.payload::<ReturnStatement>().clone_node(node, f),
             NodeDataTag::WithStatement => self.payload::<WithStatement>().clone_node(node, f),
             NodeDataTag::SwitchStatement => self.payload::<SwitchStatement>().clone_node(node, f),
             NodeDataTag::CaseBlock => self.payload::<CaseBlock>().clone_node(node, f),
-            NodeDataTag::CaseOrDefaultClause => self.payload::<CaseOrDefaultClause>().clone_node(node, f),
+            NodeDataTag::CaseOrDefaultClause => {
+                self.payload::<CaseOrDefaultClause>().clone_node(node, f)
+            }
             NodeDataTag::ThrowStatement => self.payload::<ThrowStatement>().clone_node(node, f),
             NodeDataTag::TryStatement => self.payload::<TryStatement>().clone_node(node, f),
             NodeDataTag::CatchClause => self.payload::<CatchClause>().clone_node(node, f),
-            NodeDataTag::DebuggerStatement => self.payload::<DebuggerStatement>().clone_node(node, f),
+            NodeDataTag::DebuggerStatement => {
+                self.payload::<DebuggerStatement>().clone_node(node, f)
+            }
             NodeDataTag::LabeledStatement => self.payload::<LabeledStatement>().clone_node(node, f),
-            NodeDataTag::ExpressionStatement => self.payload::<ExpressionStatement>().clone_node(node, f),
+            NodeDataTag::ExpressionStatement => {
+                self.payload::<ExpressionStatement>().clone_node(node, f)
+            }
             NodeDataTag::Block => self.payload::<Block>().clone_node(node, f),
-            NodeDataTag::VariableStatement => self.payload::<VariableStatement>().clone_node(node, f),
-            NodeDataTag::VariableDeclaration => self.payload::<VariableDeclaration>().clone_node(node, f),
-            NodeDataTag::VariableDeclarationList => self.payload::<VariableDeclarationList>().clone_node(node, f),
+            NodeDataTag::VariableStatement => {
+                self.payload::<VariableStatement>().clone_node(node, f)
+            }
+            NodeDataTag::VariableDeclaration => {
+                self.payload::<VariableDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::VariableDeclarationList => {
+                self.payload::<VariableDeclarationList>().clone_node(node, f)
+            }
             NodeDataTag::BindingPattern => self.payload::<BindingPattern>().clone_node(node, f),
-            NodeDataTag::ParameterDeclaration => self.payload::<ParameterDeclaration>().clone_node(node, f),
+            NodeDataTag::ParameterDeclaration => {
+                self.payload::<ParameterDeclaration>().clone_node(node, f)
+            }
             NodeDataTag::BindingElement => self.payload::<BindingElement>().clone_node(node, f),
-            NodeDataTag::MissingDeclaration => self.payload::<MissingDeclaration>().clone_node(node, f),
-            NodeDataTag::FunctionDeclaration => self.payload::<FunctionDeclaration>().clone_node(node, f),
+            NodeDataTag::MissingDeclaration => {
+                self.payload::<MissingDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::FunctionDeclaration => {
+                self.payload::<FunctionDeclaration>().clone_node(node, f)
+            }
             NodeDataTag::ClassDeclaration => self.payload::<ClassDeclaration>().clone_node(node, f),
             NodeDataTag::ClassExpression => self.payload::<ClassExpression>().clone_node(node, f),
             NodeDataTag::HeritageClause => self.payload::<HeritageClause>().clone_node(node, f),
-            NodeDataTag::InterfaceDeclaration => self.payload::<InterfaceDeclaration>().clone_node(node, f),
-            NodeDataTag::TypeAliasDeclaration => self.payload::<TypeAliasDeclaration>().clone_node(node, f),
+            NodeDataTag::InterfaceDeclaration => {
+                self.payload::<InterfaceDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::TypeAliasDeclaration => {
+                self.payload::<TypeAliasDeclaration>().clone_node(node, f)
+            }
             NodeDataTag::EnumMember => self.payload::<EnumMember>().clone_node(node, f),
             NodeDataTag::EnumDeclaration => self.payload::<EnumDeclaration>().clone_node(node, f),
             NodeDataTag::ModuleBlock => self.payload::<ModuleBlock>().clone_node(node, f),
-            NodeDataTag::NotEmittedStatement => self.payload::<NotEmittedStatement>().clone_node(node, f),
-            NodeDataTag::NotEmittedTypeElement => self.payload::<NotEmittedTypeElement>().clone_node(node, f),
-            NodeDataTag::ImportDeclaration => self.payload::<ImportDeclaration>().clone_node(node, f),
-            NodeDataTag::ExternalModuleReference => self.payload::<ExternalModuleReference>().clone_node(node, f),
+            NodeDataTag::NotEmittedStatement => {
+                self.payload::<NotEmittedStatement>().clone_node(node, f)
+            }
+            NodeDataTag::NotEmittedTypeElement => {
+                self.payload::<NotEmittedTypeElement>().clone_node(node, f)
+            }
+            NodeDataTag::ImportDeclaration => {
+                self.payload::<ImportDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::ExternalModuleReference => {
+                self.payload::<ExternalModuleReference>().clone_node(node, f)
+            }
             NodeDataTag::NamespaceImport => self.payload::<NamespaceImport>().clone_node(node, f),
             NodeDataTag::NamedImports => self.payload::<NamedImports>().clone_node(node, f),
             NodeDataTag::ExportAssignment => self.payload::<ExportAssignment>().clone_node(node, f),
-            NodeDataTag::NamespaceExportDeclaration => self.payload::<NamespaceExportDeclaration>().clone_node(node, f),
+            NodeDataTag::NamespaceExportDeclaration => {
+                self.payload::<NamespaceExportDeclaration>().clone_node(node, f)
+            }
             NodeDataTag::NamespaceExport => self.payload::<NamespaceExport>().clone_node(node, f),
             NodeDataTag::NamedExports => self.payload::<NamedExports>().clone_node(node, f),
             NodeDataTag::ExportSpecifier => self.payload::<ExportSpecifier>().clone_node(node, f),
-            NodeDataTag::CallSignatureDeclaration => self.payload::<CallSignatureDeclaration>().clone_node(node, f),
-            NodeDataTag::ConstructSignatureDeclaration => self.payload::<ConstructSignatureDeclaration>().clone_node(node, f),
-            NodeDataTag::ConstructorDeclaration => self.payload::<ConstructorDeclaration>().clone_node(node, f),
-            NodeDataTag::GetAccessorDeclaration => self.payload::<GetAccessorDeclaration>().clone_node(node, f),
-            NodeDataTag::SetAccessorDeclaration => self.payload::<SetAccessorDeclaration>().clone_node(node, f),
-            NodeDataTag::IndexSignatureDeclaration => self.payload::<IndexSignatureDeclaration>().clone_node(node, f),
-            NodeDataTag::MethodSignatureDeclaration => self.payload::<MethodSignatureDeclaration>().clone_node(node, f),
-            NodeDataTag::MethodDeclaration => self.payload::<MethodDeclaration>().clone_node(node, f),
-            NodeDataTag::PropertySignatureDeclaration => self.payload::<PropertySignatureDeclaration>().clone_node(node, f),
-            NodeDataTag::PropertyDeclaration => self.payload::<PropertyDeclaration>().clone_node(node, f),
-            NodeDataTag::SemicolonClassElement => self.payload::<SemicolonClassElement>().clone_node(node, f),
-            NodeDataTag::ClassStaticBlockDeclaration => self.payload::<ClassStaticBlockDeclaration>().clone_node(node, f),
+            NodeDataTag::CallSignatureDeclaration => {
+                self.payload::<CallSignatureDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::ConstructSignatureDeclaration => {
+                self.payload::<ConstructSignatureDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::ConstructorDeclaration => {
+                self.payload::<ConstructorDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::GetAccessorDeclaration => {
+                self.payload::<GetAccessorDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::SetAccessorDeclaration => {
+                self.payload::<SetAccessorDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::IndexSignatureDeclaration => {
+                self.payload::<IndexSignatureDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::MethodSignatureDeclaration => {
+                self.payload::<MethodSignatureDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::MethodDeclaration => {
+                self.payload::<MethodDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.payload::<PropertySignatureDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::PropertyDeclaration => {
+                self.payload::<PropertyDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::SemicolonClassElement => {
+                self.payload::<SemicolonClassElement>().clone_node(node, f)
+            }
+            NodeDataTag::ClassStaticBlockDeclaration => {
+                self.payload::<ClassStaticBlockDeclaration>().clone_node(node, f)
+            }
             NodeDataTag::OmittedExpression => OmittedExpression.clone_node(node, f),
-            NodeDataTag::KeywordExpression => self.payload::<KeywordExpression>().clone_node(node, f),
+            NodeDataTag::KeywordExpression => {
+                self.payload::<KeywordExpression>().clone_node(node, f)
+            }
             NodeDataTag::StringLiteral => self.payload::<StringLiteral>().clone_node(node, f),
             NodeDataTag::NumericLiteral => self.payload::<NumericLiteral>().clone_node(node, f),
             NodeDataTag::BigIntLiteral => self.payload::<BigIntLiteral>().clone_node(node, f),
-            NodeDataTag::RegularExpressionLiteral => self.payload::<RegularExpressionLiteral>().clone_node(node, f),
-            NodeDataTag::NoSubstitutionTemplateLiteral => self.payload::<NoSubstitutionTemplateLiteral>().clone_node(node, f),
+            NodeDataTag::RegularExpressionLiteral => {
+                self.payload::<RegularExpressionLiteral>().clone_node(node, f)
+            }
+            NodeDataTag::NoSubstitutionTemplateLiteral => {
+                self.payload::<NoSubstitutionTemplateLiteral>().clone_node(node, f)
+            }
             NodeDataTag::BinaryExpression => self.payload::<BinaryExpression>().clone_node(node, f),
-            NodeDataTag::PrefixUnaryExpression => self.payload::<PrefixUnaryExpression>().clone_node(node, f),
-            NodeDataTag::PostfixUnaryExpression => self.payload::<PostfixUnaryExpression>().clone_node(node, f),
+            NodeDataTag::PrefixUnaryExpression => {
+                self.payload::<PrefixUnaryExpression>().clone_node(node, f)
+            }
+            NodeDataTag::PostfixUnaryExpression => {
+                self.payload::<PostfixUnaryExpression>().clone_node(node, f)
+            }
             NodeDataTag::YieldExpression => self.payload::<YieldExpression>().clone_node(node, f),
             NodeDataTag::ArrowFunction => self.payload::<ArrowFunction>().clone_node(node, f),
-            NodeDataTag::FunctionExpression => self.payload::<FunctionExpression>().clone_node(node, f),
+            NodeDataTag::FunctionExpression => {
+                self.payload::<FunctionExpression>().clone_node(node, f)
+            }
             NodeDataTag::AsExpression => self.payload::<AsExpression>().clone_node(node, f),
-            NodeDataTag::SatisfiesExpression => self.payload::<SatisfiesExpression>().clone_node(node, f),
-            NodeDataTag::ConditionalExpression => self.payload::<ConditionalExpression>().clone_node(node, f),
-            NodeDataTag::PropertyAccessExpression => self.payload::<PropertyAccessExpression>().clone_node(node, f),
-            NodeDataTag::ElementAccessExpression => self.payload::<ElementAccessExpression>().clone_node(node, f),
+            NodeDataTag::SatisfiesExpression => {
+                self.payload::<SatisfiesExpression>().clone_node(node, f)
+            }
+            NodeDataTag::ConditionalExpression => {
+                self.payload::<ConditionalExpression>().clone_node(node, f)
+            }
+            NodeDataTag::PropertyAccessExpression => {
+                self.payload::<PropertyAccessExpression>().clone_node(node, f)
+            }
+            NodeDataTag::ElementAccessExpression => {
+                self.payload::<ElementAccessExpression>().clone_node(node, f)
+            }
             NodeDataTag::CallExpression => self.payload::<CallExpression>().clone_node(node, f),
             NodeDataTag::NewExpression => self.payload::<NewExpression>().clone_node(node, f),
             NodeDataTag::MetaProperty => self.payload::<MetaProperty>().clone_node(node, f),
-            NodeDataTag::NonNullExpression => self.payload::<NonNullExpression>().clone_node(node, f),
+            NodeDataTag::NonNullExpression => {
+                self.payload::<NonNullExpression>().clone_node(node, f)
+            }
             NodeDataTag::SpreadElement => self.payload::<SpreadElement>().clone_node(node, f),
-            NodeDataTag::TemplateExpression => self.payload::<TemplateExpression>().clone_node(node, f),
+            NodeDataTag::TemplateExpression => {
+                self.payload::<TemplateExpression>().clone_node(node, f)
+            }
             NodeDataTag::TemplateSpan => self.payload::<TemplateSpan>().clone_node(node, f),
-            NodeDataTag::TaggedTemplateExpression => self.payload::<TaggedTemplateExpression>().clone_node(node, f),
-            NodeDataTag::ParenthesizedExpression => self.payload::<ParenthesizedExpression>().clone_node(node, f),
-            NodeDataTag::ArrayLiteralExpression => self.payload::<ArrayLiteralExpression>().clone_node(node, f),
-            NodeDataTag::ObjectLiteralExpression => self.payload::<ObjectLiteralExpression>().clone_node(node, f),
+            NodeDataTag::TaggedTemplateExpression => {
+                self.payload::<TaggedTemplateExpression>().clone_node(node, f)
+            }
+            NodeDataTag::ParenthesizedExpression => {
+                self.payload::<ParenthesizedExpression>().clone_node(node, f)
+            }
+            NodeDataTag::ArrayLiteralExpression => {
+                self.payload::<ArrayLiteralExpression>().clone_node(node, f)
+            }
+            NodeDataTag::ObjectLiteralExpression => {
+                self.payload::<ObjectLiteralExpression>().clone_node(node, f)
+            }
             NodeDataTag::SpreadAssignment => self.payload::<SpreadAssignment>().clone_node(node, f),
-            NodeDataTag::PropertyAssignment => self.payload::<PropertyAssignment>().clone_node(node, f),
-            NodeDataTag::ShorthandPropertyAssignment => self.payload::<ShorthandPropertyAssignment>().clone_node(node, f),
+            NodeDataTag::PropertyAssignment => {
+                self.payload::<PropertyAssignment>().clone_node(node, f)
+            }
+            NodeDataTag::ShorthandPropertyAssignment => {
+                self.payload::<ShorthandPropertyAssignment>().clone_node(node, f)
+            }
             NodeDataTag::DeleteExpression => self.payload::<DeleteExpression>().clone_node(node, f),
             NodeDataTag::TypeOfExpression => self.payload::<TypeOfExpression>().clone_node(node, f),
             NodeDataTag::VoidExpression => self.payload::<VoidExpression>().clone_node(node, f),
@@ -8566,17 +9844,29 @@ impl Node {
             NodeDataTag::TypeAssertion => self.payload::<TypeAssertion>().clone_node(node, f),
             NodeDataTag::KeywordTypeNode => KeywordTypeNode.clone_node(node, f),
             NodeDataTag::UnionTypeNode => self.payload::<UnionTypeNode>().clone_node(node, f),
-            NodeDataTag::IntersectionTypeNode => self.payload::<IntersectionTypeNode>().clone_node(node, f),
-            NodeDataTag::ConditionalTypeNode => self.payload::<ConditionalTypeNode>().clone_node(node, f),
+            NodeDataTag::IntersectionTypeNode => {
+                self.payload::<IntersectionTypeNode>().clone_node(node, f)
+            }
+            NodeDataTag::ConditionalTypeNode => {
+                self.payload::<ConditionalTypeNode>().clone_node(node, f)
+            }
             NodeDataTag::TypeOperatorNode => self.payload::<TypeOperatorNode>().clone_node(node, f),
             NodeDataTag::InferTypeNode => self.payload::<InferTypeNode>().clone_node(node, f),
             NodeDataTag::ArrayTypeNode => self.payload::<ArrayTypeNode>().clone_node(node, f),
-            NodeDataTag::IndexedAccessTypeNode => self.payload::<IndexedAccessTypeNode>().clone_node(node, f),
-            NodeDataTag::TypeReferenceNode => self.payload::<TypeReferenceNode>().clone_node(node, f),
-            NodeDataTag::ExpressionWithTypeArguments => self.payload::<ExpressionWithTypeArguments>().clone_node(node, f),
+            NodeDataTag::IndexedAccessTypeNode => {
+                self.payload::<IndexedAccessTypeNode>().clone_node(node, f)
+            }
+            NodeDataTag::TypeReferenceNode => {
+                self.payload::<TypeReferenceNode>().clone_node(node, f)
+            }
+            NodeDataTag::ExpressionWithTypeArguments => {
+                self.payload::<ExpressionWithTypeArguments>().clone_node(node, f)
+            }
             NodeDataTag::LiteralTypeNode => self.payload::<LiteralTypeNode>().clone_node(node, f),
             NodeDataTag::ThisTypeNode => ThisTypeNode.clone_node(node, f),
-            NodeDataTag::TypePredicateNode => self.payload::<TypePredicateNode>().clone_node(node, f),
+            NodeDataTag::TypePredicateNode => {
+                self.payload::<TypePredicateNode>().clone_node(node, f)
+            }
             NodeDataTag::ImportAttribute => self.payload::<ImportAttribute>().clone_node(node, f),
             NodeDataTag::ImportAttributes => self.payload::<ImportAttributes>().clone_node(node, f),
             NodeDataTag::TypeQueryNode => self.payload::<TypeQueryNode>().clone_node(node, f),
@@ -8586,51 +9876,91 @@ impl Node {
             NodeDataTag::NamedTupleMember => self.payload::<NamedTupleMember>().clone_node(node, f),
             NodeDataTag::OptionalTypeNode => self.payload::<OptionalTypeNode>().clone_node(node, f),
             NodeDataTag::RestTypeNode => self.payload::<RestTypeNode>().clone_node(node, f),
-            NodeDataTag::ParenthesizedTypeNode => self.payload::<ParenthesizedTypeNode>().clone_node(node, f),
+            NodeDataTag::ParenthesizedTypeNode => {
+                self.payload::<ParenthesizedTypeNode>().clone_node(node, f)
+            }
             NodeDataTag::FunctionTypeNode => self.payload::<FunctionTypeNode>().clone_node(node, f),
-            NodeDataTag::ConstructorTypeNode => self.payload::<ConstructorTypeNode>().clone_node(node, f),
+            NodeDataTag::ConstructorTypeNode => {
+                self.payload::<ConstructorTypeNode>().clone_node(node, f)
+            }
             NodeDataTag::TemplateHead => self.payload::<TemplateHead>().clone_node(node, f),
             NodeDataTag::TemplateMiddle => self.payload::<TemplateMiddle>().clone_node(node, f),
             NodeDataTag::TemplateTail => self.payload::<TemplateTail>().clone_node(node, f),
-            NodeDataTag::TemplateLiteralTypeNode => self.payload::<TemplateLiteralTypeNode>().clone_node(node, f),
-            NodeDataTag::TemplateLiteralTypeSpan => self.payload::<TemplateLiteralTypeSpan>().clone_node(node, f),
-            NodeDataTag::SyntheticExpression => self.payload::<SyntheticExpression>().clone_node(node, f),
-            NodeDataTag::PartiallyEmittedExpression => self.payload::<PartiallyEmittedExpression>().clone_node(node, f),
+            NodeDataTag::TemplateLiteralTypeNode => {
+                self.payload::<TemplateLiteralTypeNode>().clone_node(node, f)
+            }
+            NodeDataTag::TemplateLiteralTypeSpan => {
+                self.payload::<TemplateLiteralTypeSpan>().clone_node(node, f)
+            }
+            NodeDataTag::SyntheticExpression => {
+                self.payload::<SyntheticExpression>().clone_node(node, f)
+            }
+            NodeDataTag::PartiallyEmittedExpression => {
+                self.payload::<PartiallyEmittedExpression>().clone_node(node, f)
+            }
             NodeDataTag::JsxElement => self.payload::<JsxElement>().clone_node(node, f),
             NodeDataTag::JsxAttributes => self.payload::<JsxAttributes>().clone_node(node, f),
-            NodeDataTag::JsxNamespacedName => self.payload::<JsxNamespacedName>().clone_node(node, f),
-            NodeDataTag::JsxOpeningElement => self.payload::<JsxOpeningElement>().clone_node(node, f),
-            NodeDataTag::JsxSelfClosingElement => self.payload::<JsxSelfClosingElement>().clone_node(node, f),
+            NodeDataTag::JsxNamespacedName => {
+                self.payload::<JsxNamespacedName>().clone_node(node, f)
+            }
+            NodeDataTag::JsxOpeningElement => {
+                self.payload::<JsxOpeningElement>().clone_node(node, f)
+            }
+            NodeDataTag::JsxSelfClosingElement => {
+                self.payload::<JsxSelfClosingElement>().clone_node(node, f)
+            }
             NodeDataTag::JsxFragment => self.payload::<JsxFragment>().clone_node(node, f),
             NodeDataTag::JsxOpeningFragment => JsxOpeningFragment.clone_node(node, f),
             NodeDataTag::JsxClosingFragment => JsxClosingFragment.clone_node(node, f),
             NodeDataTag::JsxAttribute => self.payload::<JsxAttribute>().clone_node(node, f),
-            NodeDataTag::JsxSpreadAttribute => self.payload::<JsxSpreadAttribute>().clone_node(node, f),
-            NodeDataTag::JsxClosingElement => self.payload::<JsxClosingElement>().clone_node(node, f),
+            NodeDataTag::JsxSpreadAttribute => {
+                self.payload::<JsxSpreadAttribute>().clone_node(node, f)
+            }
+            NodeDataTag::JsxClosingElement => {
+                self.payload::<JsxClosingElement>().clone_node(node, f)
+            }
             NodeDataTag::JsxExpression => self.payload::<JsxExpression>().clone_node(node, f),
             NodeDataTag::JsxText => self.payload::<JsxText>().clone_node(node, f),
             NodeDataTag::SyntaxList => self.payload::<SyntaxList>().clone_node(node, f),
             NodeDataTag::JSDoc => self.payload::<JSDoc>().clone_node(node, f),
-            NodeDataTag::JSDocTypeExpression => self.payload::<JSDocTypeExpression>().clone_node(node, f),
-            NodeDataTag::JSDocNonNullableType => self.payload::<JSDocNonNullableType>().clone_node(node, f),
-            NodeDataTag::JSDocNullableType => self.payload::<JSDocNullableType>().clone_node(node, f),
+            NodeDataTag::JSDocTypeExpression => {
+                self.payload::<JSDocTypeExpression>().clone_node(node, f)
+            }
+            NodeDataTag::JSDocNonNullableType => {
+                self.payload::<JSDocNonNullableType>().clone_node(node, f)
+            }
+            NodeDataTag::JSDocNullableType => {
+                self.payload::<JSDocNullableType>().clone_node(node, f)
+            }
             NodeDataTag::JSDocAllType => JSDocAllType.clone_node(node, f),
-            NodeDataTag::JSDocVariadicType => self.payload::<JSDocVariadicType>().clone_node(node, f),
-            NodeDataTag::JSDocOptionalType => self.payload::<JSDocOptionalType>().clone_node(node, f),
+            NodeDataTag::JSDocVariadicType => {
+                self.payload::<JSDocVariadicType>().clone_node(node, f)
+            }
+            NodeDataTag::JSDocOptionalType => {
+                self.payload::<JSDocOptionalType>().clone_node(node, f)
+            }
             NodeDataTag::JSDocTypeTag => self.payload::<JSDocTypeTag>().clone_node(node, f),
             NodeDataTag::JSDocUnknownTag => self.payload::<JSDocUnknownTag>().clone_node(node, f),
             NodeDataTag::JSDocTemplateTag => self.payload::<JSDocTemplateTag>().clone_node(node, f),
             NodeDataTag::JSDocReturnTag => self.payload::<JSDocReturnTag>().clone_node(node, f),
             NodeDataTag::JSDocPublicTag => self.payload::<JSDocPublicTag>().clone_node(node, f),
             NodeDataTag::JSDocPrivateTag => self.payload::<JSDocPrivateTag>().clone_node(node, f),
-            NodeDataTag::JSDocProtectedTag => self.payload::<JSDocProtectedTag>().clone_node(node, f),
+            NodeDataTag::JSDocProtectedTag => {
+                self.payload::<JSDocProtectedTag>().clone_node(node, f)
+            }
             NodeDataTag::JSDocReadonlyTag => self.payload::<JSDocReadonlyTag>().clone_node(node, f),
             NodeDataTag::JSDocOverrideTag => self.payload::<JSDocOverrideTag>().clone_node(node, f),
-            NodeDataTag::JSDocDeprecatedTag => self.payload::<JSDocDeprecatedTag>().clone_node(node, f),
+            NodeDataTag::JSDocDeprecatedTag => {
+                self.payload::<JSDocDeprecatedTag>().clone_node(node, f)
+            }
             NodeDataTag::JSDocSeeTag => self.payload::<JSDocSeeTag>().clone_node(node, f),
-            NodeDataTag::JSDocImplementsTag => self.payload::<JSDocImplementsTag>().clone_node(node, f),
+            NodeDataTag::JSDocImplementsTag => {
+                self.payload::<JSDocImplementsTag>().clone_node(node, f)
+            }
             NodeDataTag::JSDocAugmentsTag => self.payload::<JSDocAugmentsTag>().clone_node(node, f),
-            NodeDataTag::JSDocSatisfiesTag => self.payload::<JSDocSatisfiesTag>().clone_node(node, f),
+            NodeDataTag::JSDocSatisfiesTag => {
+                self.payload::<JSDocSatisfiesTag>().clone_node(node, f)
+            }
             NodeDataTag::JSDocThrowsTag => self.payload::<JSDocThrowsTag>().clone_node(node, f),
             NodeDataTag::JSDocThisTag => self.payload::<JSDocThisTag>().clone_node(node, f),
             NodeDataTag::JSDocImportTag => self.payload::<JSDocImportTag>().clone_node(node, f),
@@ -8638,11 +9968,19 @@ impl Node {
             NodeDataTag::JSDocOverloadTag => self.payload::<JSDocOverloadTag>().clone_node(node, f),
             NodeDataTag::JSDocTypedefTag => self.payload::<JSDocTypedefTag>().clone_node(node, f),
             NodeDataTag::JSDocSignature => self.payload::<JSDocSignature>().clone_node(node, f),
-            NodeDataTag::JSDocNameReference => self.payload::<JSDocNameReference>().clone_node(node, f),
+            NodeDataTag::JSDocNameReference => {
+                self.payload::<JSDocNameReference>().clone_node(node, f)
+            }
             NodeDataTag::SourceFile => self.payload::<SourceFile>().clone_node(node, f),
-            NodeDataTag::ModuleDeclaration => self.payload::<ModuleDeclaration>().clone_node(node, f),
-            NodeDataTag::ImportEqualsDeclaration => self.payload::<ImportEqualsDeclaration>().clone_node(node, f),
-            NodeDataTag::ExportDeclaration => self.payload::<ExportDeclaration>().clone_node(node, f),
+            NodeDataTag::ModuleDeclaration => {
+                self.payload::<ModuleDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::ImportEqualsDeclaration => {
+                self.payload::<ImportEqualsDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::ExportDeclaration => {
+                self.payload::<ExportDeclaration>().clone_node(node, f)
+            }
             NodeDataTag::ImportTypeNode => self.payload::<ImportTypeNode>().clone_node(node, f),
             NodeDataTag::ImportClause => self.payload::<ImportClause>().clone_node(node, f),
             NodeDataTag::ImportSpecifier => self.payload::<ImportSpecifier>().clone_node(node, f),
@@ -8650,10 +9988,16 @@ impl Node {
             NodeDataTag::JSDocLink => self.payload::<JSDocLink>().clone_node(node, f),
             NodeDataTag::JSDocLinkPlain => self.payload::<JSDocLinkPlain>().clone_node(node, f),
             NodeDataTag::JSDocLinkCode => self.payload::<JSDocLinkCode>().clone_node(node, f),
-            NodeDataTag::TypeParameterDeclaration => self.payload::<TypeParameterDeclaration>().clone_node(node, f),
-            NodeDataTag::SyntheticReferenceExpression => self.payload::<SyntheticReferenceExpression>().clone_node(node, f),
+            NodeDataTag::TypeParameterDeclaration => {
+                self.payload::<TypeParameterDeclaration>().clone_node(node, f)
+            }
+            NodeDataTag::SyntheticReferenceExpression => {
+                self.payload::<SyntheticReferenceExpression>().clone_node(node, f)
+            }
             NodeDataTag::JSDocTypeLiteral => self.payload::<JSDocTypeLiteral>().clone_node(node, f),
-            NodeDataTag::JSDocParameterOrPropertyTag => self.payload::<JSDocParameterOrPropertyTag>().clone_node(node, f),
+            NodeDataTag::JSDocParameterOrPropertyTag => {
+                self.payload::<JSDocParameterOrPropertyTag>().clone_node(node, f)
+            }
             _ => panic!("clone_node: unsupported node data for {:?}", self.kind()),
         }
     }
@@ -8661,51 +10005,127 @@ impl Node {
     pub fn name(&self) -> Option<P<Node>> {
         const OFFSETS: [(usize, bool); 194] = {
             let mut offsets = [(0, false); 194];
-            offsets[NodeDataTag::VariableDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<VariableDeclaration>, data.name), false);
-            offsets[NodeDataTag::ParameterDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<ParameterDeclaration>, data.name), false);
-            offsets[NodeDataTag::BindingElement as usize] = (std::mem::offset_of!(NodeAlloc<BindingElement>, data.name), true);
-            offsets[NodeDataTag::FunctionDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.name), true);
-            offsets[NodeDataTag::ClassDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base.name), true);
-            offsets[NodeDataTag::ClassExpression as usize] = (std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base.name), true);
-            offsets[NodeDataTag::InterfaceDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.name), false);
-            offsets[NodeDataTag::TypeAliasDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.name), false);
-            offsets[NodeDataTag::EnumMember as usize] = (std::mem::offset_of!(NodeAlloc<EnumMember>, data.named_member_base.name), false);
-            offsets[NodeDataTag::EnumDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.name), false);
-            offsets[NodeDataTag::NamespaceImport as usize] = (std::mem::offset_of!(NodeAlloc<NamespaceImport>, data.name), false);
-            offsets[NodeDataTag::NamespaceExportDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.name), false);
-            offsets[NodeDataTag::NamespaceExport as usize] = (std::mem::offset_of!(NodeAlloc<NamespaceExport>, data.name), false);
-            offsets[NodeDataTag::ExportSpecifier as usize] = (std::mem::offset_of!(NodeAlloc<ExportSpecifier>, data.name), false);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.named_member_base.name), false);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.named_member_base.name), false);
-            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<MethodSignatureDeclaration>, data.named_member_base.name), false);
-            offsets[NodeDataTag::MethodDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.named_member_base.name), false);
-            offsets[NodeDataTag::PropertySignatureDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<PropertySignatureDeclaration>, data.named_member_base.name), false);
-            offsets[NodeDataTag::PropertyDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<PropertyDeclaration>, data.named_member_base.name), false);
-            offsets[NodeDataTag::FunctionExpression as usize] = (std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.name), true);
-            offsets[NodeDataTag::PropertyAccessExpression as usize] = (std::mem::offset_of!(NodeAlloc<PropertyAccessExpression>, data.name), false);
-            offsets[NodeDataTag::MetaProperty as usize] = (std::mem::offset_of!(NodeAlloc<MetaProperty>, data.name), false);
-            offsets[NodeDataTag::PropertyAssignment as usize] = (std::mem::offset_of!(NodeAlloc<PropertyAssignment>, data.named_member_base.name), false);
-            offsets[NodeDataTag::ShorthandPropertyAssignment as usize] = (std::mem::offset_of!(NodeAlloc<ShorthandPropertyAssignment>, data.named_member_base.name), false);
-            offsets[NodeDataTag::ImportAttribute as usize] = (std::mem::offset_of!(NodeAlloc<ImportAttribute>, data.name), true);
-            offsets[NodeDataTag::NamedTupleMember as usize] = (std::mem::offset_of!(NodeAlloc<NamedTupleMember>, data.name), false);
-            offsets[NodeDataTag::JsxNamespacedName as usize] = (std::mem::offset_of!(NodeAlloc<JsxNamespacedName>, data.name), false);
-            offsets[NodeDataTag::JsxAttribute as usize] = (std::mem::offset_of!(NodeAlloc<JsxAttribute>, data.name), false);
-            offsets[NodeDataTag::JSDocCallbackTag as usize] = (std::mem::offset_of!(NodeAlloc<JSDocCallbackTag>, data.name), true);
-            offsets[NodeDataTag::JSDocTypedefTag as usize] = (std::mem::offset_of!(NodeAlloc<JSDocTypedefTag>, data.name), true);
-            offsets[NodeDataTag::JSDocNameReference as usize] = (std::mem::offset_of!(NodeAlloc<JSDocNameReference>, data.name), false);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.name), false);
-            offsets[NodeDataTag::ImportEqualsDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.name), false);
-            offsets[NodeDataTag::ImportClause as usize] = (std::mem::offset_of!(NodeAlloc<ImportClause>, data.name), true);
-            offsets[NodeDataTag::ImportSpecifier as usize] = (std::mem::offset_of!(NodeAlloc<ImportSpecifier>, data.name), false);
-            offsets[NodeDataTag::JSDocLink as usize] = (std::mem::offset_of!(NodeAlloc<JSDocLink>, data.name), true);
-            offsets[NodeDataTag::JSDocLinkPlain as usize] = (std::mem::offset_of!(NodeAlloc<JSDocLinkPlain>, data.name), true);
-            offsets[NodeDataTag::JSDocLinkCode as usize] = (std::mem::offset_of!(NodeAlloc<JSDocLinkCode>, data.name), true);
-            offsets[NodeDataTag::TypeParameterDeclaration as usize] = (std::mem::offset_of!(NodeAlloc<TypeParameterDeclaration>, data.name), false);
-            offsets[NodeDataTag::JSDocParameterOrPropertyTag as usize] = (std::mem::offset_of!(NodeAlloc<JSDocParameterOrPropertyTag>, data.name), false);
+            offsets[NodeDataTag::VariableDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<VariableDeclaration>, data.name), false);
+            offsets[NodeDataTag::ParameterDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<ParameterDeclaration>, data.name), false);
+            offsets[NodeDataTag::BindingElement as usize] =
+                (std::mem::offset_of!(NodeAlloc<BindingElement>, data.name), true);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.name), true);
+            offsets[NodeDataTag::ClassDeclaration as usize] = (
+                std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base.name),
+                true,
+            );
+            offsets[NodeDataTag::ClassExpression as usize] =
+                (std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base.name), true);
+            offsets[NodeDataTag::InterfaceDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.name), false);
+            offsets[NodeDataTag::TypeAliasDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.name), false);
+            offsets[NodeDataTag::EnumMember as usize] =
+                (std::mem::offset_of!(NodeAlloc<EnumMember>, data.named_member_base.name), false);
+            offsets[NodeDataTag::EnumDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.name), false);
+            offsets[NodeDataTag::NamespaceImport as usize] =
+                (std::mem::offset_of!(NodeAlloc<NamespaceImport>, data.name), false);
+            offsets[NodeDataTag::NamespaceExportDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.name), false);
+            offsets[NodeDataTag::NamespaceExport as usize] =
+                (std::mem::offset_of!(NodeAlloc<NamespaceExport>, data.name), false);
+            offsets[NodeDataTag::ExportSpecifier as usize] =
+                (std::mem::offset_of!(NodeAlloc<ExportSpecifier>, data.name), false);
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] = (
+                std::mem::offset_of!(
+                    NodeAlloc<GetAccessorDeclaration>,
+                    data.named_member_base.name
+                ),
+                false,
+            );
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] = (
+                std::mem::offset_of!(
+                    NodeAlloc<SetAccessorDeclaration>,
+                    data.named_member_base.name
+                ),
+                false,
+            );
+            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = (
+                std::mem::offset_of!(
+                    NodeAlloc<MethodSignatureDeclaration>,
+                    data.named_member_base.name
+                ),
+                false,
+            );
+            offsets[NodeDataTag::MethodDeclaration as usize] = (
+                std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.named_member_base.name),
+                false,
+            );
+            offsets[NodeDataTag::PropertySignatureDeclaration as usize] = (
+                std::mem::offset_of!(
+                    NodeAlloc<PropertySignatureDeclaration>,
+                    data.named_member_base.name
+                ),
+                false,
+            );
+            offsets[NodeDataTag::PropertyDeclaration as usize] = (
+                std::mem::offset_of!(NodeAlloc<PropertyDeclaration>, data.named_member_base.name),
+                false,
+            );
+            offsets[NodeDataTag::FunctionExpression as usize] =
+                (std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.name), true);
+            offsets[NodeDataTag::PropertyAccessExpression as usize] =
+                (std::mem::offset_of!(NodeAlloc<PropertyAccessExpression>, data.name), false);
+            offsets[NodeDataTag::MetaProperty as usize] =
+                (std::mem::offset_of!(NodeAlloc<MetaProperty>, data.name), false);
+            offsets[NodeDataTag::PropertyAssignment as usize] = (
+                std::mem::offset_of!(NodeAlloc<PropertyAssignment>, data.named_member_base.name),
+                false,
+            );
+            offsets[NodeDataTag::ShorthandPropertyAssignment as usize] = (
+                std::mem::offset_of!(
+                    NodeAlloc<ShorthandPropertyAssignment>,
+                    data.named_member_base.name
+                ),
+                false,
+            );
+            offsets[NodeDataTag::ImportAttribute as usize] =
+                (std::mem::offset_of!(NodeAlloc<ImportAttribute>, data.name), true);
+            offsets[NodeDataTag::NamedTupleMember as usize] =
+                (std::mem::offset_of!(NodeAlloc<NamedTupleMember>, data.name), false);
+            offsets[NodeDataTag::JsxNamespacedName as usize] =
+                (std::mem::offset_of!(NodeAlloc<JsxNamespacedName>, data.name), false);
+            offsets[NodeDataTag::JsxAttribute as usize] =
+                (std::mem::offset_of!(NodeAlloc<JsxAttribute>, data.name), false);
+            offsets[NodeDataTag::JSDocCallbackTag as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocCallbackTag>, data.name), true);
+            offsets[NodeDataTag::JSDocTypedefTag as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocTypedefTag>, data.name), true);
+            offsets[NodeDataTag::JSDocNameReference as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocNameReference>, data.name), false);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.name), false);
+            offsets[NodeDataTag::ImportEqualsDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.name), false);
+            offsets[NodeDataTag::ImportClause as usize] =
+                (std::mem::offset_of!(NodeAlloc<ImportClause>, data.name), true);
+            offsets[NodeDataTag::ImportSpecifier as usize] =
+                (std::mem::offset_of!(NodeAlloc<ImportSpecifier>, data.name), false);
+            offsets[NodeDataTag::JSDocLink as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocLink>, data.name), true);
+            offsets[NodeDataTag::JSDocLinkPlain as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocLinkPlain>, data.name), true);
+            offsets[NodeDataTag::JSDocLinkCode as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocLinkCode>, data.name), true);
+            offsets[NodeDataTag::TypeParameterDeclaration as usize] =
+                (std::mem::offset_of!(NodeAlloc<TypeParameterDeclaration>, data.name), false);
+            offsets[NodeDataTag::JSDocParameterOrPropertyTag as usize] =
+                (std::mem::offset_of!(NodeAlloc<JSDocParameterOrPropertyTag>, data.name), false);
             offsets
         };
         let (offset, optional) = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         if optional {
             // SAFETY: the tag selects this allocation's optional name field. Both allocation forms
             // have the same data offset, and the arena keeps the field alive.
@@ -8719,83 +10139,230 @@ impl Node {
     pub fn modifiers(&self) -> Option<P<ModifierList>> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::VariableStatement as usize] = std::mem::offset_of!(NodeAlloc<VariableStatement>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ParameterDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ParameterDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::MissingDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MissingDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::InterfaceDeclaration as usize] = std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::TypeAliasDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::EnumMember as usize] = std::mem::offset_of!(NodeAlloc<EnumMember>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::EnumDeclaration as usize] = std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ImportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ExportAssignment as usize] = std::mem::offset_of!(NodeAlloc<ExportAssignment>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::NamespaceExportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::IndexSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<IndexSignatureDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodSignatureDeclaration>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::PropertySignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<PropertySignatureDeclaration>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::PropertyDeclaration as usize] = std::mem::offset_of!(NodeAlloc<PropertyDeclaration>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::ClassStaticBlockDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassStaticBlockDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::BinaryExpression as usize] = std::mem::offset_of!(NodeAlloc<BinaryExpression>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::PropertyAssignment as usize] = std::mem::offset_of!(NodeAlloc<PropertyAssignment>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::ShorthandPropertyAssignment as usize] = std::mem::offset_of!(NodeAlloc<ShorthandPropertyAssignment>, data.named_member_base.modifiers_base.modifiers);
-            offsets[NodeDataTag::FunctionTypeNode as usize] = std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ConstructorTypeNode as usize] = std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ImportEqualsDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::ExportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ExportDeclaration>, data.modifiers_base.modifiers);
-            offsets[NodeDataTag::TypeParameterDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeParameterDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::VariableStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<VariableStatement>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ParameterDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ParameterDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::MissingDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MissingDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassDeclaration>,
+                data.class_like_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassExpression>,
+                data.class_like_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::InterfaceDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<InterfaceDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::TypeAliasDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<TypeAliasDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::EnumMember as usize] = std::mem::offset_of!(
+                NodeAlloc<EnumMember>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::EnumDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ImportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ExportAssignment as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportAssignment>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::NamespaceExportDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<NamespaceExportDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ConstructorDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<GetAccessorDeclaration>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<SetAccessorDeclaration>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::IndexSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<IndexSignatureDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<MethodSignatureDeclaration>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<MethodDeclaration>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::PropertySignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<PropertySignatureDeclaration>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::PropertyDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<PropertyDeclaration>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::ClassStaticBlockDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassStaticBlockDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::BinaryExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<BinaryExpression>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ArrowFunction as usize] =
+                std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::FunctionExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::PropertyAssignment as usize] = std::mem::offset_of!(
+                NodeAlloc<PropertyAssignment>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::ShorthandPropertyAssignment as usize] = std::mem::offset_of!(
+                NodeAlloc<ShorthandPropertyAssignment>,
+                data.named_member_base.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::FunctionTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ConstructorTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::ImportEqualsDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ImportEqualsDeclaration>,
+                data.modifiers_base.modifiers
+            );
+            offsets[NodeDataTag::ExportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportDeclaration>, data.modifiers_base.modifiers);
+            offsets[NodeDataTag::TypeParameterDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<TypeParameterDeclaration>,
+                data.modifiers_base.modifiers
+            );
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its modifiers cell. Both allocation
         // forms have the same data offset; read through OwnedCell to preserve its access checks.
-        unsafe { tsrs_core::ptr::arena_neighbor::<_, OwnedCell<Option<P<ModifierList>>>>(self, offset as isize) }.get()
+        unsafe {
+            tsrs_core::ptr::arena_neighbor::<_, OwnedCell<Option<P<ModifierList>>>>(
+                self,
+                offset as isize,
+            )
+        }
+        .get()
     }
 
     pub(crate) fn set_modifiers_data(&self, modifiers: Option<P<ModifierList>>) {
         match self.data_tag() {
-            NodeDataTag::VariableStatement => self.payload::<VariableStatement>().set_modifiers(modifiers),
-            NodeDataTag::ParameterDeclaration => self.payload::<ParameterDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::MissingDeclaration => self.payload::<MissingDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::FunctionDeclaration => self.payload::<FunctionDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ClassDeclaration => self.payload::<ClassDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ClassExpression => self.payload::<ClassExpression>().set_modifiers(modifiers),
-            NodeDataTag::InterfaceDeclaration => self.payload::<InterfaceDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::TypeAliasDeclaration => self.payload::<TypeAliasDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::EnumMember => self.payload::<EnumMember>().set_modifiers(modifiers),
-            NodeDataTag::EnumDeclaration => self.payload::<EnumDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ImportDeclaration => self.payload::<ImportDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ExportAssignment => self.payload::<ExportAssignment>().set_modifiers(modifiers),
-            NodeDataTag::NamespaceExportDeclaration => self.payload::<NamespaceExportDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ConstructorDeclaration => self.payload::<ConstructorDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::GetAccessorDeclaration => self.payload::<GetAccessorDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::SetAccessorDeclaration => self.payload::<SetAccessorDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::IndexSignatureDeclaration => self.payload::<IndexSignatureDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::MethodSignatureDeclaration => self.payload::<MethodSignatureDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::MethodDeclaration => self.payload::<MethodDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::PropertySignatureDeclaration => self.payload::<PropertySignatureDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::PropertyDeclaration => self.payload::<PropertyDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ClassStaticBlockDeclaration => self.payload::<ClassStaticBlockDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::BinaryExpression => self.payload::<BinaryExpression>().set_modifiers(modifiers),
-            NodeDataTag::ArrowFunction => self.payload::<ArrowFunction>().set_modifiers(modifiers),
-            NodeDataTag::FunctionExpression => self.payload::<FunctionExpression>().set_modifiers(modifiers),
-            NodeDataTag::PropertyAssignment => self.payload::<PropertyAssignment>().set_modifiers(modifiers),
-            NodeDataTag::ShorthandPropertyAssignment => self.payload::<ShorthandPropertyAssignment>().set_modifiers(modifiers),
-            NodeDataTag::FunctionTypeNode => self.payload::<FunctionTypeNode>().set_modifiers(modifiers),
-            NodeDataTag::ConstructorTypeNode => self.payload::<ConstructorTypeNode>().set_modifiers(modifiers),
-            NodeDataTag::ModuleDeclaration => self.payload::<ModuleDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ImportEqualsDeclaration => self.payload::<ImportEqualsDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::ExportDeclaration => self.payload::<ExportDeclaration>().set_modifiers(modifiers),
-            NodeDataTag::TypeParameterDeclaration => self.payload::<TypeParameterDeclaration>().set_modifiers(modifiers),
+            NodeDataTag::VariableStatement => {
+                self.payload::<VariableStatement>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ParameterDeclaration => {
+                self.payload::<ParameterDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::MissingDeclaration => {
+                self.payload::<MissingDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::FunctionDeclaration => {
+                self.payload::<FunctionDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ClassDeclaration => {
+                self.payload::<ClassDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ClassExpression => {
+                self.payload::<ClassExpression>().set_modifiers(modifiers);
+            }
+            NodeDataTag::InterfaceDeclaration => {
+                self.payload::<InterfaceDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::TypeAliasDeclaration => {
+                self.payload::<TypeAliasDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::EnumMember => {
+                self.payload::<EnumMember>().set_modifiers(modifiers);
+            }
+            NodeDataTag::EnumDeclaration => {
+                self.payload::<EnumDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ImportDeclaration => {
+                self.payload::<ImportDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ExportAssignment => {
+                self.payload::<ExportAssignment>().set_modifiers(modifiers);
+            }
+            NodeDataTag::NamespaceExportDeclaration => {
+                self.payload::<NamespaceExportDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ConstructorDeclaration => {
+                self.payload::<ConstructorDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::GetAccessorDeclaration => {
+                self.payload::<GetAccessorDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::SetAccessorDeclaration => {
+                self.payload::<SetAccessorDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::IndexSignatureDeclaration => {
+                self.payload::<IndexSignatureDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::MethodSignatureDeclaration => {
+                self.payload::<MethodSignatureDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::MethodDeclaration => {
+                self.payload::<MethodDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.payload::<PropertySignatureDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::PropertyDeclaration => {
+                self.payload::<PropertyDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ClassStaticBlockDeclaration => {
+                self.payload::<ClassStaticBlockDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::BinaryExpression => {
+                self.payload::<BinaryExpression>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ArrowFunction => {
+                self.payload::<ArrowFunction>().set_modifiers(modifiers);
+            }
+            NodeDataTag::FunctionExpression => {
+                self.payload::<FunctionExpression>().set_modifiers(modifiers);
+            }
+            NodeDataTag::PropertyAssignment => {
+                self.payload::<PropertyAssignment>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ShorthandPropertyAssignment => {
+                self.payload::<ShorthandPropertyAssignment>().set_modifiers(modifiers);
+            }
+            NodeDataTag::FunctionTypeNode => {
+                self.payload::<FunctionTypeNode>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ConstructorTypeNode => {
+                self.payload::<ConstructorTypeNode>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ModuleDeclaration => {
+                self.payload::<ModuleDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ImportEqualsDeclaration => {
+                self.payload::<ImportEqualsDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::ExportDeclaration => {
+                self.payload::<ExportDeclaration>().set_modifiers(modifiers);
+            }
+            NodeDataTag::TypeParameterDeclaration => {
+                self.payload::<TypeParameterDeclaration>().set_modifiers(modifiers);
+            }
             _ => {}
         }
     }
@@ -8803,53 +10370,104 @@ impl Node {
     pub(crate) fn flow_node_base(&self) -> Option<&'static FlowNodeBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::QualifiedName as usize] = std::mem::offset_of!(NodeAlloc<QualifiedName>, data.flow_node_base);
-            offsets[NodeDataTag::EmptyStatement as usize] = std::mem::offset_of!(NodeAlloc<EmptyStatement>, data.flow_node_base);
-            offsets[NodeDataTag::IfStatement as usize] = std::mem::offset_of!(NodeAlloc<IfStatement>, data.flow_node_base);
-            offsets[NodeDataTag::DoStatement as usize] = std::mem::offset_of!(NodeAlloc<DoStatement>, data.iteration_statement_base.flow_node_base);
-            offsets[NodeDataTag::WhileStatement as usize] = std::mem::offset_of!(NodeAlloc<WhileStatement>, data.iteration_statement_base.flow_node_base);
-            offsets[NodeDataTag::ForStatement as usize] = std::mem::offset_of!(NodeAlloc<ForStatement>, data.iteration_statement_base.flow_node_base);
-            offsets[NodeDataTag::ForInOrOfStatement as usize] = std::mem::offset_of!(NodeAlloc<ForInOrOfStatement>, data.flow_node_base);
-            offsets[NodeDataTag::BreakStatement as usize] = std::mem::offset_of!(NodeAlloc<BreakStatement>, data.flow_node_base);
-            offsets[NodeDataTag::ContinueStatement as usize] = std::mem::offset_of!(NodeAlloc<ContinueStatement>, data.flow_node_base);
-            offsets[NodeDataTag::ReturnStatement as usize] = std::mem::offset_of!(NodeAlloc<ReturnStatement>, data.flow_node_base);
-            offsets[NodeDataTag::WithStatement as usize] = std::mem::offset_of!(NodeAlloc<WithStatement>, data.flow_node_base);
-            offsets[NodeDataTag::SwitchStatement as usize] = std::mem::offset_of!(NodeAlloc<SwitchStatement>, data.flow_node_base);
-            offsets[NodeDataTag::ThrowStatement as usize] = std::mem::offset_of!(NodeAlloc<ThrowStatement>, data.flow_node_base);
-            offsets[NodeDataTag::TryStatement as usize] = std::mem::offset_of!(NodeAlloc<TryStatement>, data.flow_node_base);
-            offsets[NodeDataTag::DebuggerStatement as usize] = std::mem::offset_of!(NodeAlloc<DebuggerStatement>, data.flow_node_base);
-            offsets[NodeDataTag::LabeledStatement as usize] = std::mem::offset_of!(NodeAlloc<LabeledStatement>, data.flow_node_base);
-            offsets[NodeDataTag::ExpressionStatement as usize] = std::mem::offset_of!(NodeAlloc<ExpressionStatement>, data.flow_node_base);
-            offsets[NodeDataTag::Block as usize] = std::mem::offset_of!(NodeAlloc<Block>, data.flow_node_base);
-            offsets[NodeDataTag::VariableStatement as usize] = std::mem::offset_of!(NodeAlloc<VariableStatement>, data.flow_node_base);
-            offsets[NodeDataTag::BindingElement as usize] = std::mem::offset_of!(NodeAlloc<BindingElement>, data.flow_node_base);
-            offsets[NodeDataTag::MissingDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MissingDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::InterfaceDeclaration as usize] = std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::TypeAliasDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::EnumDeclaration as usize] = std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::ModuleBlock as usize] = std::mem::offset_of!(NodeAlloc<ModuleBlock>, data.flow_node_base);
-            offsets[NodeDataTag::NotEmittedStatement as usize] = std::mem::offset_of!(NodeAlloc<NotEmittedStatement>, data.flow_node_base);
-            offsets[NodeDataTag::ImportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::ExportAssignment as usize] = std::mem::offset_of!(NodeAlloc<ExportAssignment>, data.flow_node_base);
-            offsets[NodeDataTag::NamespaceExportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::KeywordExpression as usize] = std::mem::offset_of!(NodeAlloc<KeywordExpression>, data.flow_node_base);
-            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.flow_node_base);
-            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.flow_node_base);
-            offsets[NodeDataTag::PropertyAccessExpression as usize] = std::mem::offset_of!(NodeAlloc<PropertyAccessExpression>, data.flow_node_base);
-            offsets[NodeDataTag::ElementAccessExpression as usize] = std::mem::offset_of!(NodeAlloc<ElementAccessExpression>, data.flow_node_base);
-            offsets[NodeDataTag::MetaProperty as usize] = std::mem::offset_of!(NodeAlloc<MetaProperty>, data.flow_node_base);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::ImportEqualsDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.flow_node_base);
-            offsets[NodeDataTag::ExportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ExportDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::QualifiedName as usize] =
+                std::mem::offset_of!(NodeAlloc<QualifiedName>, data.flow_node_base);
+            offsets[NodeDataTag::EmptyStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<EmptyStatement>, data.flow_node_base);
+            offsets[NodeDataTag::IfStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<IfStatement>, data.flow_node_base);
+            offsets[NodeDataTag::DoStatement as usize] = std::mem::offset_of!(
+                NodeAlloc<DoStatement>,
+                data.iteration_statement_base.flow_node_base
+            );
+            offsets[NodeDataTag::WhileStatement as usize] = std::mem::offset_of!(
+                NodeAlloc<WhileStatement>,
+                data.iteration_statement_base.flow_node_base
+            );
+            offsets[NodeDataTag::ForStatement as usize] = std::mem::offset_of!(
+                NodeAlloc<ForStatement>,
+                data.iteration_statement_base.flow_node_base
+            );
+            offsets[NodeDataTag::ForInOrOfStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ForInOrOfStatement>, data.flow_node_base);
+            offsets[NodeDataTag::BreakStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<BreakStatement>, data.flow_node_base);
+            offsets[NodeDataTag::ContinueStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ContinueStatement>, data.flow_node_base);
+            offsets[NodeDataTag::ReturnStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ReturnStatement>, data.flow_node_base);
+            offsets[NodeDataTag::WithStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<WithStatement>, data.flow_node_base);
+            offsets[NodeDataTag::SwitchStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<SwitchStatement>, data.flow_node_base);
+            offsets[NodeDataTag::ThrowStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ThrowStatement>, data.flow_node_base);
+            offsets[NodeDataTag::TryStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<TryStatement>, data.flow_node_base);
+            offsets[NodeDataTag::DebuggerStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<DebuggerStatement>, data.flow_node_base);
+            offsets[NodeDataTag::LabeledStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<LabeledStatement>, data.flow_node_base);
+            offsets[NodeDataTag::ExpressionStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ExpressionStatement>, data.flow_node_base);
+            offsets[NodeDataTag::Block as usize] =
+                std::mem::offset_of!(NodeAlloc<Block>, data.flow_node_base);
+            offsets[NodeDataTag::VariableStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<VariableStatement>, data.flow_node_base);
+            offsets[NodeDataTag::BindingElement as usize] =
+                std::mem::offset_of!(NodeAlloc<BindingElement>, data.flow_node_base);
+            offsets[NodeDataTag::MissingDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MissingDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::ClassDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::InterfaceDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::TypeAliasDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::EnumDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::ModuleBlock as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleBlock>, data.flow_node_base);
+            offsets[NodeDataTag::NotEmittedStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<NotEmittedStatement>, data.flow_node_base);
+            offsets[NodeDataTag::ImportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::ExportAssignment as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportAssignment>, data.flow_node_base);
+            offsets[NodeDataTag::NamespaceExportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::MethodDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::KeywordExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<KeywordExpression>, data.flow_node_base);
+            offsets[NodeDataTag::ArrowFunction as usize] =
+                std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.flow_node_base);
+            offsets[NodeDataTag::FunctionExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.flow_node_base);
+            offsets[NodeDataTag::PropertyAccessExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<PropertyAccessExpression>, data.flow_node_base);
+            offsets[NodeDataTag::ElementAccessExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<ElementAccessExpression>, data.flow_node_base);
+            offsets[NodeDataTag::MetaProperty as usize] =
+                std::mem::offset_of!(NodeAlloc<MetaProperty>, data.flow_node_base);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::ImportEqualsDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.flow_node_base);
+            offsets[NodeDataTag::ExportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportDeclaration>, data.flow_node_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded FlowNodeBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -8858,66 +10476,130 @@ impl Node {
     pub fn declaration_data(&self) -> Option<&'static DeclarationBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::VariableDeclaration as usize] = std::mem::offset_of!(NodeAlloc<VariableDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ParameterDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ParameterDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::BindingElement as usize] = std::mem::offset_of!(NodeAlloc<BindingElement>, data.declaration_base);
-            offsets[NodeDataTag::MissingDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MissingDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(NodeAlloc<ClassExpression>, data.declaration_base);
-            offsets[NodeDataTag::InterfaceDeclaration as usize] = std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::TypeAliasDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::EnumMember as usize] = std::mem::offset_of!(NodeAlloc<EnumMember>, data.declaration_base);
-            offsets[NodeDataTag::EnumDeclaration as usize] = std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::NotEmittedTypeElement as usize] = std::mem::offset_of!(NodeAlloc<NotEmittedTypeElement>, data.declaration_base);
-            offsets[NodeDataTag::ImportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::NamespaceImport as usize] = std::mem::offset_of!(NodeAlloc<NamespaceImport>, data.declaration_base);
-            offsets[NodeDataTag::ExportAssignment as usize] = std::mem::offset_of!(NodeAlloc<ExportAssignment>, data.declaration_base);
-            offsets[NodeDataTag::NamespaceExportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::NamespaceExport as usize] = std::mem::offset_of!(NodeAlloc<NamespaceExport>, data.declaration_base);
-            offsets[NodeDataTag::ExportSpecifier as usize] = std::mem::offset_of!(NodeAlloc<ExportSpecifier>, data.declaration_base);
-            offsets[NodeDataTag::CallSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<CallSignatureDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ConstructSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructSignatureDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::IndexSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<IndexSignatureDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodSignatureDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::PropertySignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<PropertySignatureDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::PropertyDeclaration as usize] = std::mem::offset_of!(NodeAlloc<PropertyDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::SemicolonClassElement as usize] = std::mem::offset_of!(NodeAlloc<SemicolonClassElement>, data.declaration_base);
-            offsets[NodeDataTag::ClassStaticBlockDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassStaticBlockDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::NoSubstitutionTemplateLiteral as usize] = std::mem::offset_of!(NodeAlloc<NoSubstitutionTemplateLiteral>, data.declaration_base);
-            offsets[NodeDataTag::BinaryExpression as usize] = std::mem::offset_of!(NodeAlloc<BinaryExpression>, data.declaration_base);
-            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.declaration_base);
-            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.declaration_base);
-            offsets[NodeDataTag::CallExpression as usize] = std::mem::offset_of!(NodeAlloc<CallExpression>, data.declaration_base);
-            offsets[NodeDataTag::ObjectLiteralExpression as usize] = std::mem::offset_of!(NodeAlloc<ObjectLiteralExpression>, data.declaration_base);
-            offsets[NodeDataTag::SpreadAssignment as usize] = std::mem::offset_of!(NodeAlloc<SpreadAssignment>, data.declaration_base);
-            offsets[NodeDataTag::PropertyAssignment as usize] = std::mem::offset_of!(NodeAlloc<PropertyAssignment>, data.declaration_base);
-            offsets[NodeDataTag::ShorthandPropertyAssignment as usize] = std::mem::offset_of!(NodeAlloc<ShorthandPropertyAssignment>, data.declaration_base);
-            offsets[NodeDataTag::MappedTypeNode as usize] = std::mem::offset_of!(NodeAlloc<MappedTypeNode>, data.declaration_base);
-            offsets[NodeDataTag::TypeLiteralNode as usize] = std::mem::offset_of!(NodeAlloc<TypeLiteralNode>, data.declaration_base);
-            offsets[NodeDataTag::NamedTupleMember as usize] = std::mem::offset_of!(NodeAlloc<NamedTupleMember>, data.declaration_base);
-            offsets[NodeDataTag::FunctionTypeNode as usize] = std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.declaration_base);
-            offsets[NodeDataTag::ConstructorTypeNode as usize] = std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.declaration_base);
-            offsets[NodeDataTag::JsxAttributes as usize] = std::mem::offset_of!(NodeAlloc<JsxAttributes>, data.declaration_base);
-            offsets[NodeDataTag::JsxAttribute as usize] = std::mem::offset_of!(NodeAlloc<JsxAttribute>, data.declaration_base);
-            offsets[NodeDataTag::JsxSpreadAttribute as usize] = std::mem::offset_of!(NodeAlloc<JsxSpreadAttribute>, data.declaration_base);
-            offsets[NodeDataTag::JSDocSignature as usize] = std::mem::offset_of!(NodeAlloc<JSDocSignature>, data.declaration_base);
-            offsets[NodeDataTag::SourceFile as usize] = std::mem::offset_of!(NodeAlloc<SourceFile>, data.declaration_base);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ImportEqualsDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ExportDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ExportDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::ImportClause as usize] = std::mem::offset_of!(NodeAlloc<ImportClause>, data.declaration_base);
-            offsets[NodeDataTag::ImportSpecifier as usize] = std::mem::offset_of!(NodeAlloc<ImportSpecifier>, data.declaration_base);
-            offsets[NodeDataTag::TypeParameterDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeParameterDeclaration>, data.declaration_base);
-            offsets[NodeDataTag::JSDocTypeLiteral as usize] = std::mem::offset_of!(NodeAlloc<JSDocTypeLiteral>, data.declaration_base);
+            offsets[NodeDataTag::VariableDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<VariableDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ParameterDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ParameterDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::BindingElement as usize] =
+                std::mem::offset_of!(NodeAlloc<BindingElement>, data.declaration_base);
+            offsets[NodeDataTag::MissingDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MissingDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ClassDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ClassExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<ClassExpression>, data.declaration_base);
+            offsets[NodeDataTag::InterfaceDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::TypeAliasDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::EnumMember as usize] =
+                std::mem::offset_of!(NodeAlloc<EnumMember>, data.declaration_base);
+            offsets[NodeDataTag::EnumDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::NotEmittedTypeElement as usize] =
+                std::mem::offset_of!(NodeAlloc<NotEmittedTypeElement>, data.declaration_base);
+            offsets[NodeDataTag::ImportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::NamespaceImport as usize] =
+                std::mem::offset_of!(NodeAlloc<NamespaceImport>, data.declaration_base);
+            offsets[NodeDataTag::ExportAssignment as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportAssignment>, data.declaration_base);
+            offsets[NodeDataTag::NamespaceExportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<NamespaceExportDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::NamespaceExport as usize] =
+                std::mem::offset_of!(NodeAlloc<NamespaceExport>, data.declaration_base);
+            offsets[NodeDataTag::ExportSpecifier as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportSpecifier>, data.declaration_base);
+            offsets[NodeDataTag::CallSignatureDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<CallSignatureDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ConstructSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ConstructSignatureDeclaration>,
+                data.declaration_base
+            );
+            offsets[NodeDataTag::ConstructorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::IndexSignatureDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<IndexSignatureDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::MethodSignatureDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MethodSignatureDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::MethodDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::PropertySignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<PropertySignatureDeclaration>,
+                data.declaration_base
+            );
+            offsets[NodeDataTag::PropertyDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<PropertyDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::SemicolonClassElement as usize] =
+                std::mem::offset_of!(NodeAlloc<SemicolonClassElement>, data.declaration_base);
+            offsets[NodeDataTag::ClassStaticBlockDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ClassStaticBlockDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::NoSubstitutionTemplateLiteral as usize] = std::mem::offset_of!(
+                NodeAlloc<NoSubstitutionTemplateLiteral>,
+                data.declaration_base
+            );
+            offsets[NodeDataTag::BinaryExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<BinaryExpression>, data.declaration_base);
+            offsets[NodeDataTag::ArrowFunction as usize] =
+                std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.declaration_base);
+            offsets[NodeDataTag::FunctionExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.declaration_base);
+            offsets[NodeDataTag::CallExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<CallExpression>, data.declaration_base);
+            offsets[NodeDataTag::ObjectLiteralExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<ObjectLiteralExpression>, data.declaration_base);
+            offsets[NodeDataTag::SpreadAssignment as usize] =
+                std::mem::offset_of!(NodeAlloc<SpreadAssignment>, data.declaration_base);
+            offsets[NodeDataTag::PropertyAssignment as usize] =
+                std::mem::offset_of!(NodeAlloc<PropertyAssignment>, data.declaration_base);
+            offsets[NodeDataTag::ShorthandPropertyAssignment as usize] =
+                std::mem::offset_of!(NodeAlloc<ShorthandPropertyAssignment>, data.declaration_base);
+            offsets[NodeDataTag::MappedTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<MappedTypeNode>, data.declaration_base);
+            offsets[NodeDataTag::TypeLiteralNode as usize] =
+                std::mem::offset_of!(NodeAlloc<TypeLiteralNode>, data.declaration_base);
+            offsets[NodeDataTag::NamedTupleMember as usize] =
+                std::mem::offset_of!(NodeAlloc<NamedTupleMember>, data.declaration_base);
+            offsets[NodeDataTag::FunctionTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.declaration_base);
+            offsets[NodeDataTag::ConstructorTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.declaration_base);
+            offsets[NodeDataTag::JsxAttributes as usize] =
+                std::mem::offset_of!(NodeAlloc<JsxAttributes>, data.declaration_base);
+            offsets[NodeDataTag::JsxAttribute as usize] =
+                std::mem::offset_of!(NodeAlloc<JsxAttribute>, data.declaration_base);
+            offsets[NodeDataTag::JsxSpreadAttribute as usize] =
+                std::mem::offset_of!(NodeAlloc<JsxSpreadAttribute>, data.declaration_base);
+            offsets[NodeDataTag::JSDocSignature as usize] =
+                std::mem::offset_of!(NodeAlloc<JSDocSignature>, data.declaration_base);
+            offsets[NodeDataTag::SourceFile as usize] =
+                std::mem::offset_of!(NodeAlloc<SourceFile>, data.declaration_base);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ImportEqualsDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ExportDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::ImportClause as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportClause>, data.declaration_base);
+            offsets[NodeDataTag::ImportSpecifier as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportSpecifier>, data.declaration_base);
+            offsets[NodeDataTag::TypeParameterDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<TypeParameterDeclaration>, data.declaration_base);
+            offsets[NodeDataTag::JSDocTypeLiteral as usize] =
+                std::mem::offset_of!(NodeAlloc<JSDocTypeLiteral>, data.declaration_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded DeclarationBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -8926,24 +10608,44 @@ impl Node {
     pub fn exportable_data(&self) -> Option<&'static ExportableBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::VariableDeclaration as usize] = std::mem::offset_of!(NodeAlloc<VariableDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::BindingElement as usize] = std::mem::offset_of!(NodeAlloc<BindingElement>, data.exportable_base);
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base.exportable_base);
-            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base.exportable_base);
-            offsets[NodeDataTag::InterfaceDeclaration as usize] = std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::TypeAliasDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::EnumDeclaration as usize] = std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::NamespaceImport as usize] = std::mem::offset_of!(NodeAlloc<NamespaceImport>, data.exportable_base);
-            offsets[NodeDataTag::ExportSpecifier as usize] = std::mem::offset_of!(NodeAlloc<ExportSpecifier>, data.exportable_base);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::ImportEqualsDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.exportable_base);
-            offsets[NodeDataTag::ImportClause as usize] = std::mem::offset_of!(NodeAlloc<ImportClause>, data.exportable_base);
-            offsets[NodeDataTag::ImportSpecifier as usize] = std::mem::offset_of!(NodeAlloc<ImportSpecifier>, data.exportable_base);
+            offsets[NodeDataTag::VariableDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<VariableDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::BindingElement as usize] =
+                std::mem::offset_of!(NodeAlloc<BindingElement>, data.exportable_base);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassDeclaration>,
+                data.class_like_base.exportable_base
+            );
+            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassExpression>,
+                data.class_like_base.exportable_base
+            );
+            offsets[NodeDataTag::InterfaceDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<InterfaceDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::TypeAliasDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::EnumDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<EnumDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::NamespaceImport as usize] =
+                std::mem::offset_of!(NodeAlloc<NamespaceImport>, data.exportable_base);
+            offsets[NodeDataTag::ExportSpecifier as usize] =
+                std::mem::offset_of!(NodeAlloc<ExportSpecifier>, data.exportable_base);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::ImportEqualsDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportEqualsDeclaration>, data.exportable_base);
+            offsets[NodeDataTag::ImportClause as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportClause>, data.exportable_base);
+            offsets[NodeDataTag::ImportSpecifier as usize] =
+                std::mem::offset_of!(NodeAlloc<ImportSpecifier>, data.exportable_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded ExportableBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -8952,37 +10654,100 @@ impl Node {
     pub fn locals_container_data(&self) -> Option<&'static LocalsContainerBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::ForStatement as usize] = std::mem::offset_of!(NodeAlloc<ForStatement>, data.locals_container_base);
-            offsets[NodeDataTag::ForInOrOfStatement as usize] = std::mem::offset_of!(NodeAlloc<ForInOrOfStatement>, data.locals_container_base);
-            offsets[NodeDataTag::CaseBlock as usize] = std::mem::offset_of!(NodeAlloc<CaseBlock>, data.locals_container_base);
-            offsets[NodeDataTag::CatchClause as usize] = std::mem::offset_of!(NodeAlloc<CatchClause>, data.locals_container_base);
-            offsets[NodeDataTag::Block as usize] = std::mem::offset_of!(NodeAlloc<Block>, data.locals_container_base);
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base.locals_container_base);
-            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base.locals_container_base);
-            offsets[NodeDataTag::TypeAliasDeclaration as usize] = std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.locals_container_base);
-            offsets[NodeDataTag::CallSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<CallSignatureDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::ConstructSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructSignatureDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::IndexSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<IndexSignatureDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodSignatureDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::ClassStaticBlockDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassStaticBlockDeclaration>, data.locals_container_base);
-            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::ConditionalTypeNode as usize] = std::mem::offset_of!(NodeAlloc<ConditionalTypeNode>, data.locals_container_base);
-            offsets[NodeDataTag::MappedTypeNode as usize] = std::mem::offset_of!(NodeAlloc<MappedTypeNode>, data.locals_container_base);
-            offsets[NodeDataTag::FunctionTypeNode as usize] = std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::ConstructorTypeNode as usize] = std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::JSDocSignature as usize] = std::mem::offset_of!(NodeAlloc<JSDocSignature>, data.function_like_base.locals_container_base);
-            offsets[NodeDataTag::SourceFile as usize] = std::mem::offset_of!(NodeAlloc<SourceFile>, data.locals_container_base);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.locals_container_base);
+            offsets[NodeDataTag::ForStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ForStatement>, data.locals_container_base);
+            offsets[NodeDataTag::ForInOrOfStatement as usize] =
+                std::mem::offset_of!(NodeAlloc<ForInOrOfStatement>, data.locals_container_base);
+            offsets[NodeDataTag::CaseBlock as usize] =
+                std::mem::offset_of!(NodeAlloc<CaseBlock>, data.locals_container_base);
+            offsets[NodeDataTag::CatchClause as usize] =
+                std::mem::offset_of!(NodeAlloc<CatchClause>, data.locals_container_base);
+            offsets[NodeDataTag::Block as usize] =
+                std::mem::offset_of!(NodeAlloc<Block>, data.locals_container_base);
+            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<FunctionDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassDeclaration>,
+                data.class_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassExpression>,
+                data.class_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::TypeAliasDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<TypeAliasDeclaration>, data.locals_container_base);
+            offsets[NodeDataTag::CallSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<CallSignatureDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ConstructSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ConstructSignatureDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ConstructorDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<GetAccessorDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<SetAccessorDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::IndexSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<IndexSignatureDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<MethodSignatureDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<MethodDeclaration>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ClassStaticBlockDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ClassStaticBlockDeclaration>,
+                data.locals_container_base
+            );
+            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(
+                NodeAlloc<ArrowFunction>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(
+                NodeAlloc<FunctionExpression>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ConditionalTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<ConditionalTypeNode>, data.locals_container_base);
+            offsets[NodeDataTag::MappedTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<MappedTypeNode>, data.locals_container_base);
+            offsets[NodeDataTag::FunctionTypeNode as usize] = std::mem::offset_of!(
+                NodeAlloc<FunctionTypeNode>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::ConstructorTypeNode as usize] = std::mem::offset_of!(
+                NodeAlloc<ConstructorTypeNode>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::JSDocSignature as usize] = std::mem::offset_of!(
+                NodeAlloc<JSDocSignature>,
+                data.function_like_base.locals_container_base
+            );
+            offsets[NodeDataTag::SourceFile as usize] =
+                std::mem::offset_of!(NodeAlloc<SourceFile>, data.locals_container_base);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.locals_container_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded LocalsContainerBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -8991,24 +10756,44 @@ impl Node {
     pub fn function_like_data(&self) -> Option<&'static FunctionLikeBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::CallSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<CallSignatureDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::ConstructSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructSignatureDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::IndexSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<IndexSignatureDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodSignatureDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.function_like_base);
-            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.function_like_base);
-            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.function_like_base);
-            offsets[NodeDataTag::FunctionTypeNode as usize] = std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.function_like_base);
-            offsets[NodeDataTag::ConstructorTypeNode as usize] = std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.function_like_base);
-            offsets[NodeDataTag::JSDocSignature as usize] = std::mem::offset_of!(NodeAlloc<JSDocSignature>, data.function_like_base);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::CallSignatureDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<CallSignatureDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::ConstructSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<ConstructSignatureDeclaration>,
+                data.function_like_base
+            );
+            offsets[NodeDataTag::ConstructorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::IndexSignatureDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<IndexSignatureDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::MethodSignatureDeclaration as usize] = std::mem::offset_of!(
+                NodeAlloc<MethodSignatureDeclaration>,
+                data.function_like_base
+            );
+            offsets[NodeDataTag::MethodDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.function_like_base);
+            offsets[NodeDataTag::ArrowFunction as usize] =
+                std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.function_like_base);
+            offsets[NodeDataTag::FunctionExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.function_like_base);
+            offsets[NodeDataTag::FunctionTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionTypeNode>, data.function_like_base);
+            offsets[NodeDataTag::ConstructorTypeNode as usize] =
+                std::mem::offset_of!(NodeAlloc<ConstructorTypeNode>, data.function_like_base);
+            offsets[NodeDataTag::JSDocSignature as usize] =
+                std::mem::offset_of!(NodeAlloc<JSDocSignature>, data.function_like_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded FunctionLikeBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -9017,12 +10802,16 @@ impl Node {
     pub fn class_like_data(&self) -> Option<&'static ClassLikeBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::ClassDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base);
-            offsets[NodeDataTag::ClassExpression as usize] = std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base);
+            offsets[NodeDataTag::ClassDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ClassDeclaration>, data.class_like_base);
+            offsets[NodeDataTag::ClassExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<ClassExpression>, data.class_like_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded ClassLikeBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -9031,18 +10820,28 @@ impl Node {
     pub fn body_data(&self) -> Option<&'static BodyBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::FunctionDeclaration as usize] = std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.body_base);
-            offsets[NodeDataTag::ConstructorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.body_base);
-            offsets[NodeDataTag::GetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.body_base);
-            offsets[NodeDataTag::SetAccessorDeclaration as usize] = std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.body_base);
-            offsets[NodeDataTag::MethodDeclaration as usize] = std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.body_base);
-            offsets[NodeDataTag::ArrowFunction as usize] = std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.body_base);
-            offsets[NodeDataTag::FunctionExpression as usize] = std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.body_base);
-            offsets[NodeDataTag::ModuleDeclaration as usize] = std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.body_base);
+            offsets[NodeDataTag::FunctionDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionDeclaration>, data.body_base);
+            offsets[NodeDataTag::ConstructorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ConstructorDeclaration>, data.body_base);
+            offsets[NodeDataTag::GetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<GetAccessorDeclaration>, data.body_base);
+            offsets[NodeDataTag::SetAccessorDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<SetAccessorDeclaration>, data.body_base);
+            offsets[NodeDataTag::MethodDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<MethodDeclaration>, data.body_base);
+            offsets[NodeDataTag::ArrowFunction as usize] =
+                std::mem::offset_of!(NodeAlloc<ArrowFunction>, data.body_base);
+            offsets[NodeDataTag::FunctionExpression as usize] =
+                std::mem::offset_of!(NodeAlloc<FunctionExpression>, data.body_base);
+            offsets[NodeDataTag::ModuleDeclaration as usize] =
+                std::mem::offset_of!(NodeAlloc<ModuleDeclaration>, data.body_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded BodyBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -9051,19 +10850,40 @@ impl Node {
     pub fn literal_like_data(&self) -> Option<&'static LiteralLikeNodeBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::StringLiteral as usize] = std::mem::offset_of!(NodeAlloc<StringLiteral>, data.literal_like_node_base);
-            offsets[NodeDataTag::NumericLiteral as usize] = std::mem::offset_of!(NodeAlloc<NumericLiteral>, data.literal_like_node_base);
-            offsets[NodeDataTag::BigIntLiteral as usize] = std::mem::offset_of!(NodeAlloc<BigIntLiteral>, data.literal_like_node_base);
-            offsets[NodeDataTag::RegularExpressionLiteral as usize] = std::mem::offset_of!(NodeAlloc<RegularExpressionLiteral>, data.literal_like_node_base);
-            offsets[NodeDataTag::NoSubstitutionTemplateLiteral as usize] = std::mem::offset_of!(NodeAlloc<NoSubstitutionTemplateLiteral>, data.template_literal_like_node_base.literal_like_node_base);
-            offsets[NodeDataTag::TemplateHead as usize] = std::mem::offset_of!(NodeAlloc<TemplateHead>, data.template_literal_like_node_base.literal_like_node_base);
-            offsets[NodeDataTag::TemplateMiddle as usize] = std::mem::offset_of!(NodeAlloc<TemplateMiddle>, data.template_literal_like_node_base.literal_like_node_base);
-            offsets[NodeDataTag::TemplateTail as usize] = std::mem::offset_of!(NodeAlloc<TemplateTail>, data.template_literal_like_node_base.literal_like_node_base);
-            offsets[NodeDataTag::JsxText as usize] = std::mem::offset_of!(NodeAlloc<JsxText>, data.literal_like_node_base);
+            offsets[NodeDataTag::StringLiteral as usize] =
+                std::mem::offset_of!(NodeAlloc<StringLiteral>, data.literal_like_node_base);
+            offsets[NodeDataTag::NumericLiteral as usize] =
+                std::mem::offset_of!(NodeAlloc<NumericLiteral>, data.literal_like_node_base);
+            offsets[NodeDataTag::BigIntLiteral as usize] =
+                std::mem::offset_of!(NodeAlloc<BigIntLiteral>, data.literal_like_node_base);
+            offsets[NodeDataTag::RegularExpressionLiteral as usize] = std::mem::offset_of!(
+                NodeAlloc<RegularExpressionLiteral>,
+                data.literal_like_node_base
+            );
+            offsets[NodeDataTag::NoSubstitutionTemplateLiteral as usize] = std::mem::offset_of!(
+                NodeAlloc<NoSubstitutionTemplateLiteral>,
+                data.template_literal_like_node_base.literal_like_node_base
+            );
+            offsets[NodeDataTag::TemplateHead as usize] = std::mem::offset_of!(
+                NodeAlloc<TemplateHead>,
+                data.template_literal_like_node_base.literal_like_node_base
+            );
+            offsets[NodeDataTag::TemplateMiddle as usize] = std::mem::offset_of!(
+                NodeAlloc<TemplateMiddle>,
+                data.template_literal_like_node_base.literal_like_node_base
+            );
+            offsets[NodeDataTag::TemplateTail as usize] = std::mem::offset_of!(
+                NodeAlloc<TemplateTail>,
+                data.template_literal_like_node_base.literal_like_node_base
+            );
+            offsets[NodeDataTag::JsxText as usize] =
+                std::mem::offset_of!(NodeAlloc<JsxText>, data.literal_like_node_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded LiteralLikeNodeBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
@@ -9072,19 +10892,28 @@ impl Node {
     pub fn template_literal_like_data(&self) -> Option<&'static TemplateLiteralLikeNodeBase> {
         const OFFSETS: [usize; 194] = {
             let mut offsets = [0; 194];
-            offsets[NodeDataTag::NoSubstitutionTemplateLiteral as usize] = std::mem::offset_of!(NodeAlloc<NoSubstitutionTemplateLiteral>, data.template_literal_like_node_base);
-            offsets[NodeDataTag::TemplateHead as usize] = std::mem::offset_of!(NodeAlloc<TemplateHead>, data.template_literal_like_node_base);
-            offsets[NodeDataTag::TemplateMiddle as usize] = std::mem::offset_of!(NodeAlloc<TemplateMiddle>, data.template_literal_like_node_base);
-            offsets[NodeDataTag::TemplateTail as usize] = std::mem::offset_of!(NodeAlloc<TemplateTail>, data.template_literal_like_node_base);
+            offsets[NodeDataTag::NoSubstitutionTemplateLiteral as usize] = std::mem::offset_of!(
+                NodeAlloc<NoSubstitutionTemplateLiteral>,
+                data.template_literal_like_node_base
+            );
+            offsets[NodeDataTag::TemplateHead as usize] =
+                std::mem::offset_of!(NodeAlloc<TemplateHead>, data.template_literal_like_node_base);
+            offsets[NodeDataTag::TemplateMiddle as usize] = std::mem::offset_of!(
+                NodeAlloc<TemplateMiddle>,
+                data.template_literal_like_node_base
+            );
+            offsets[NodeDataTag::TemplateTail as usize] =
+                std::mem::offset_of!(NodeAlloc<TemplateTail>, data.template_literal_like_node_base);
             offsets
         };
         let offset = OFFSETS[self.data_tag() as usize];
-        if offset == 0 { return None; }
+        if offset == 0 {
+            return None;
+        }
         // SAFETY: the tag selects the concrete allocation and its embedded TemplateLiteralLikeNodeBase. Both
         // allocation forms have the same data offset, and the arena keeps the field alive.
         Some(unsafe { tsrs_core::ptr::arena_neighbor(self, offset as isize) })
     }
-
 }
 
 // ── NodeFactory constructors ─────────────────────────────────────────────
@@ -9096,19 +10925,18 @@ impl NodeFactory {
 
     pub fn new_private_identifier(&self, text: &'static str) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::PrivateIdentifier, PrivateIdentifier {
-            text: PackedStr::new(text),
-        })
+        self.new_node(Kind::PrivateIdentifier, PrivateIdentifier { text: PackedStr::new(text) })
     }
 
     pub fn new_qualified_name(&self, left: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_node(Kind::QualifiedName, QualifiedName {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::QualifiedName,
+            QualifiedName {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                left,
+                right,
             },
-            left,
-            right,
-        })
+        )
     }
 
     pub fn update_qualified_name(&self, node: P<Node>, left: P<Node>, right: P<Node>) -> P<Node> {
@@ -9120,9 +10948,7 @@ impl NodeFactory {
     }
 
     pub fn new_computed_property_name(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::ComputedPropertyName, ComputedPropertyName {
-            expression,
-        })
+        self.new_node(Kind::ComputedPropertyName, ComputedPropertyName { expression })
     }
 
     pub fn update_computed_property_name(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -9134,9 +10960,7 @@ impl NodeFactory {
     }
 
     pub fn new_decorator(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::Decorator, Decorator {
-            expression,
-        })
+        self.new_node(Kind::Decorator, Decorator { expression })
     }
 
     pub fn update_decorator(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -9148,45 +10972,69 @@ impl NodeFactory {
     }
 
     pub fn new_empty_statement(&self) -> P<Node> {
-        self.new_node(Kind::EmptyStatement, EmptyStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-        })
+        self.new_node(
+            Kind::EmptyStatement,
+            EmptyStatement { flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) } },
+        )
     }
 
-    pub fn new_if_statement(&self, expression: P<Node>, then_statement: P<Node>, else_statement: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::IfStatement, IfStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_if_statement(
+        &self,
+        expression: P<Node>,
+        then_statement: P<Node>,
+        else_statement: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::IfStatement,
+            IfStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                expression,
+                then_statement,
+                else_statement,
             },
-            expression,
-            then_statement,
-            else_statement,
-        })
+        )
     }
 
-    pub fn update_if_statement(&self, node: P<Node>, expression: P<Node>, then_statement: P<Node>, else_statement: Option<P<Node>>) -> P<Node> {
+    pub fn update_if_statement(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        then_statement: P<Node>,
+        else_statement: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_if_statement();
-        if expression != data.expression() || then_statement != data.then_statement() || else_statement != data.else_statement() {
-            return update_node(self.new_if_statement(expression, then_statement, else_statement), node, &self.hooks);
+        if expression != data.expression()
+            || then_statement != data.then_statement()
+            || else_statement != data.else_statement()
+        {
+            return update_node(
+                self.new_if_statement(expression, then_statement, else_statement),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_do_statement(&self, statement: P<Node>, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::DoStatement, DoStatement {
-            iteration_statement_base: IterationStatementBase {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::DoStatement,
+            DoStatement {
+                iteration_statement_base: IterationStatementBase {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    statement,
                 },
-                statement,
+                expression,
             },
-            expression,
-        })
+        )
     }
 
-    pub fn update_do_statement(&self, node: P<Node>, statement: P<Node>, expression: P<Node>) -> P<Node> {
+    pub fn update_do_statement(
+        &self,
+        node: P<Node>,
+        statement: P<Node>,
+        expression: P<Node>,
+    ) -> P<Node> {
         let data = node.as_do_statement();
         if statement != data.statement() || expression != data.expression() {
             return update_node(self.new_do_statement(statement, expression), node, &self.hooks);
@@ -9195,18 +11043,24 @@ impl NodeFactory {
     }
 
     pub fn new_while_statement(&self, expression: P<Node>, statement: P<Node>) -> P<Node> {
-        self.new_node(Kind::WhileStatement, WhileStatement {
-            iteration_statement_base: IterationStatementBase {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::WhileStatement,
+            WhileStatement {
+                iteration_statement_base: IterationStatementBase {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    statement,
                 },
-                statement,
+                expression,
             },
-            expression,
-        })
+        )
     }
 
-    pub fn update_while_statement(&self, node: P<Node>, expression: P<Node>, statement: P<Node>) -> P<Node> {
+    pub fn update_while_statement(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        statement: P<Node>,
+    ) -> P<Node> {
         let data = node.as_while_statement();
         if expression != data.expression() || statement != data.statement() {
             return update_node(self.new_while_statement(expression, statement), node, &self.hooks);
@@ -9214,63 +11068,115 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_for_statement(&self, initializer: Option<P<Node>>, condition: Option<P<Node>>, incrementor: Option<P<Node>>, statement: P<Node>) -> P<Node> {
-        self.new_node(Kind::ForStatement, ForStatement {
-            iteration_statement_base: IterationStatementBase {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+    pub fn new_for_statement(
+        &self,
+        initializer: Option<P<Node>>,
+        condition: Option<P<Node>>,
+        incrementor: Option<P<Node>>,
+        statement: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ForStatement,
+            ForStatement {
+                iteration_statement_base: IterationStatementBase {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    statement,
                 },
-                statement,
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                initializer,
+                condition,
+                incrementor,
             },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            initializer,
-            condition,
-            incrementor,
-        })
+        )
     }
 
-    pub fn update_for_statement(&self, node: P<Node>, initializer: Option<P<Node>>, condition: Option<P<Node>>, incrementor: Option<P<Node>>, statement: P<Node>) -> P<Node> {
+    pub fn update_for_statement(
+        &self,
+        node: P<Node>,
+        initializer: Option<P<Node>>,
+        condition: Option<P<Node>>,
+        incrementor: Option<P<Node>>,
+        statement: P<Node>,
+    ) -> P<Node> {
         let data = node.as_for_statement();
-        if initializer != data.initializer() || condition != data.condition() || incrementor != data.incrementor() || statement != data.statement() {
-            return update_node(self.new_for_statement(initializer, condition, incrementor, statement), node, &self.hooks);
+        if initializer != data.initializer()
+            || condition != data.condition()
+            || incrementor != data.incrementor()
+            || statement != data.statement()
+        {
+            return update_node(
+                self.new_for_statement(initializer, condition, incrementor, statement),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_for_in_or_of_statement(&self, kind: Kind, await_modifier: Option<P<Node>>, initializer: P<Node>, expression: P<Node>, statement: P<Node>) -> P<Node> {
-        self.new_node(kind, ForInOrOfStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_for_in_or_of_statement(
+        &self,
+        kind: Kind,
+        await_modifier: Option<P<Node>>,
+        initializer: P<Node>,
+        expression: P<Node>,
+        statement: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            kind,
+            ForInOrOfStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                await_modifier,
+                initializer,
+                expression,
+                statement,
             },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            await_modifier,
-            initializer,
-            expression,
-            statement,
-        })
+        )
     }
 
-    pub fn update_for_in_or_of_statement(&self, node: P<Node>, await_modifier: Option<P<Node>>, initializer: P<Node>, expression: P<Node>, statement: P<Node>) -> P<Node> {
+    pub fn update_for_in_or_of_statement(
+        &self,
+        node: P<Node>,
+        await_modifier: Option<P<Node>>,
+        initializer: P<Node>,
+        expression: P<Node>,
+        statement: P<Node>,
+    ) -> P<Node> {
         let data = node.as_for_in_or_of_statement();
-        if await_modifier != data.await_modifier() || initializer != data.initializer() || expression != data.expression() || statement != data.statement() {
-            return update_node(self.new_for_in_or_of_statement(node.kind(), await_modifier, initializer, expression, statement), node, &self.hooks);
+        if await_modifier != data.await_modifier()
+            || initializer != data.initializer()
+            || expression != data.expression()
+            || statement != data.statement()
+        {
+            return update_node(
+                self.new_for_in_or_of_statement(
+                    node.kind(),
+                    await_modifier,
+                    initializer,
+                    expression,
+                    statement,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_break_statement(&self, label: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::BreakStatement, BreakStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::BreakStatement,
+            BreakStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                label,
             },
-            label,
-        })
+        )
     }
 
     pub fn update_break_statement(&self, node: P<Node>, label: Option<P<Node>>) -> P<Node> {
@@ -9282,12 +11188,13 @@ impl NodeFactory {
     }
 
     pub fn new_continue_statement(&self, label: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ContinueStatement, ContinueStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::ContinueStatement,
+            ContinueStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                label,
             },
-            label,
-        })
+        )
     }
 
     pub fn update_continue_statement(&self, node: P<Node>, label: Option<P<Node>>) -> P<Node> {
@@ -9299,12 +11206,13 @@ impl NodeFactory {
     }
 
     pub fn new_return_statement(&self, expression: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ReturnStatement, ReturnStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::ReturnStatement,
+            ReturnStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                expression: OwnedCell::new(expression),
             },
-            expression: OwnedCell::new(expression),
-        })
+        )
     }
 
     pub fn update_return_statement(&self, node: P<Node>, expression: Option<P<Node>>) -> P<Node> {
@@ -9316,16 +11224,22 @@ impl NodeFactory {
     }
 
     pub fn new_with_statement(&self, expression: P<Node>, statement: P<Node>) -> P<Node> {
-        self.new_node(Kind::WithStatement, WithStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::WithStatement,
+            WithStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                expression,
+                statement,
             },
-            expression,
-            statement,
-        })
+        )
     }
 
-    pub fn update_with_statement(&self, node: P<Node>, expression: P<Node>, statement: P<Node>) -> P<Node> {
+    pub fn update_with_statement(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        statement: P<Node>,
+    ) -> P<Node> {
         let data = node.as_with_statement();
         if expression != data.expression() || statement != data.statement() {
             return update_node(self.new_with_statement(expression, statement), node, &self.hooks);
@@ -9334,31 +11248,44 @@ impl NodeFactory {
     }
 
     pub fn new_switch_statement(&self, expression: P<Node>, case_block: P<Node>) -> P<Node> {
-        self.new_node(Kind::SwitchStatement, SwitchStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::SwitchStatement,
+            SwitchStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                expression,
+                case_block,
             },
-            expression,
-            case_block,
-        })
+        )
     }
 
-    pub fn update_switch_statement(&self, node: P<Node>, expression: P<Node>, case_block: P<Node>) -> P<Node> {
+    pub fn update_switch_statement(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        case_block: P<Node>,
+    ) -> P<Node> {
         let data = node.as_switch_statement();
         if expression != data.expression() || case_block != data.case_block() {
-            return update_node(self.new_switch_statement(expression, case_block), node, &self.hooks);
+            return update_node(
+                self.new_switch_statement(expression, case_block),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_case_block(&self, clauses: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::CaseBlock, CaseBlock {
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
+        self.new_node(
+            Kind::CaseBlock,
+            CaseBlock {
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                clauses,
             },
-            clauses,
-        })
+        )
     }
 
     pub fn update_case_block(&self, node: P<Node>, clauses: P<NodeList>) -> P<Node> {
@@ -9369,29 +11296,47 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_case_or_default_clause(&self, kind: Kind, expression: Option<P<Node>>, statements: P<NodeList>) -> P<Node> {
-        self.new_node(kind, CaseOrDefaultClause {
-            expression,
-            statements,
-            fallthrough_flow_node: OwnedCell::new(None),
-        })
+    pub fn new_case_or_default_clause(
+        &self,
+        kind: Kind,
+        expression: Option<P<Node>>,
+        statements: P<NodeList>,
+    ) -> P<Node> {
+        self.new_node(
+            kind,
+            CaseOrDefaultClause {
+                expression,
+                statements,
+                fallthrough_flow_node: OwnedCell::new(None),
+            },
+        )
     }
 
-    pub fn update_case_or_default_clause(&self, node: P<Node>, expression: Option<P<Node>>, statements: P<NodeList>) -> P<Node> {
+    pub fn update_case_or_default_clause(
+        &self,
+        node: P<Node>,
+        expression: Option<P<Node>>,
+        statements: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_case_or_default_clause();
         if expression != data.expression() || statements != data.statements() {
-            return update_node(self.new_case_or_default_clause(node.kind(), expression, statements), node, &self.hooks);
+            return update_node(
+                self.new_case_or_default_clause(node.kind(), expression, statements),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_throw_statement(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::ThrowStatement, ThrowStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::ThrowStatement,
+            ThrowStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                expression,
             },
-            expression,
-        })
+        )
     }
 
     pub fn update_throw_statement(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -9402,63 +11347,103 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_try_statement(&self, try_block: P<Node>, catch_clause: Option<P<Node>>, finally_block: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::TryStatement, TryStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_try_statement(
+        &self,
+        try_block: P<Node>,
+        catch_clause: Option<P<Node>>,
+        finally_block: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::TryStatement,
+            TryStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                try_block,
+                catch_clause,
+                finally_block,
             },
-            try_block,
-            catch_clause,
-            finally_block,
-        })
+        )
     }
 
-    pub fn update_try_statement(&self, node: P<Node>, try_block: P<Node>, catch_clause: Option<P<Node>>, finally_block: Option<P<Node>>) -> P<Node> {
+    pub fn update_try_statement(
+        &self,
+        node: P<Node>,
+        try_block: P<Node>,
+        catch_clause: Option<P<Node>>,
+        finally_block: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_try_statement();
-        if try_block != data.try_block() || catch_clause != data.catch_clause() || finally_block != data.finally_block() {
-            return update_node(self.new_try_statement(try_block, catch_clause, finally_block), node, &self.hooks);
+        if try_block != data.try_block()
+            || catch_clause != data.catch_clause()
+            || finally_block != data.finally_block()
+        {
+            return update_node(
+                self.new_try_statement(try_block, catch_clause, finally_block),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_catch_clause(&self, variable_declaration: Option<P<Node>>, block: P<Node>) -> P<Node> {
-        self.new_node(Kind::CatchClause, CatchClause {
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
+    pub fn new_catch_clause(
+        &self,
+        variable_declaration: Option<P<Node>>,
+        block: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::CatchClause,
+            CatchClause {
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                variable_declaration,
+                block,
             },
-            variable_declaration,
-            block,
-        })
+        )
     }
 
-    pub fn update_catch_clause(&self, node: P<Node>, variable_declaration: Option<P<Node>>, block: P<Node>) -> P<Node> {
+    pub fn update_catch_clause(
+        &self,
+        node: P<Node>,
+        variable_declaration: Option<P<Node>>,
+        block: P<Node>,
+    ) -> P<Node> {
         let data = node.as_catch_clause();
         if variable_declaration != data.variable_declaration() || block != data.block() {
-            return update_node(self.new_catch_clause(variable_declaration, block), node, &self.hooks);
+            return update_node(
+                self.new_catch_clause(variable_declaration, block),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_debugger_statement(&self) -> P<Node> {
-        self.new_node(Kind::DebuggerStatement, DebuggerStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-        })
+        self.new_node(
+            Kind::DebuggerStatement,
+            DebuggerStatement { flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) } },
+        )
     }
 
     pub fn new_labeled_statement(&self, label: P<Node>, statement: P<Node>) -> P<Node> {
-        self.new_node(Kind::LabeledStatement, LabeledStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::LabeledStatement,
+            LabeledStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                label,
+                statement,
             },
-            label,
-            statement,
-        })
+        )
     }
 
-    pub fn update_labeled_statement(&self, node: P<Node>, label: P<Node>, statement: P<Node>) -> P<Node> {
+    pub fn update_labeled_statement(
+        &self,
+        node: P<Node>,
+        label: P<Node>,
+        statement: P<Node>,
+    ) -> P<Node> {
         let data = node.as_labeled_statement();
         if label != data.label() || statement != data.statement() {
             return update_node(self.new_labeled_statement(label, statement), node, &self.hooks);
@@ -9467,12 +11452,13 @@ impl NodeFactory {
     }
 
     pub fn new_expression_statement(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::ExpressionStatement, ExpressionStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::ExpressionStatement,
+            ExpressionStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                expression,
             },
-            expression,
-        })
+        )
     }
 
     pub fn update_expression_statement(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -9484,20 +11470,26 @@ impl NodeFactory {
     }
 
     pub fn new_block(&self, statements: P<NodeList>, multi_line: bool) -> P<Node> {
-        self.new_node(Kind::Block, Block {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::Block,
+            Block {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                statements,
+                multi_line,
             },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            statements,
-            multi_line,
-        })
+        )
     }
 
-    pub fn update_block(&self, node: P<Node>, statements: P<NodeList>, multi_line: bool) -> P<Node> {
+    pub fn update_block(
+        &self,
+        node: P<Node>,
+        statements: P<NodeList>,
+        multi_line: bool,
+    ) -> P<Node> {
         let data = node.as_block();
         if statements != data.statements() || multi_line != data.multi_line() {
             return update_node(self.new_block(statements, multi_line), node, &self.hooks);
@@ -9505,84 +11497,124 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_variable_statement(&self, modifiers: Option<P<ModifierList>>, declaration_list: P<Node>) -> P<Node> {
-        self.new_node(Kind::VariableStatement, VariableStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_variable_statement(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        declaration_list: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::VariableStatement,
+            VariableStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                declaration_list,
             },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            declaration_list,
-        })
+        )
     }
 
-    pub fn update_variable_statement(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, declaration_list: P<Node>) -> P<Node> {
+    pub fn update_variable_statement(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        declaration_list: P<Node>,
+    ) -> P<Node> {
         let data = node.as_variable_statement();
         if modifiers != data.modifiers() || declaration_list != data.declaration_list() {
-            return update_node(self.new_variable_statement(modifiers, declaration_list), node, &self.hooks);
+            return update_node(
+                self.new_variable_statement(modifiers, declaration_list),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_variable_declaration(&self, name: P<Node>, exclamation_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn new_variable_declaration(
+        &self,
+        name: P<Node>,
+        exclamation_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         if exclamation_token.is_some() {
-            self.new_node_with_rare(Kind::VariableDeclaration, VariableDeclaration {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::VariableDeclaration,
+                VariableDeclaration {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    name,
+                    type_: OwnedCell::new(type_node),
+                    initializer: OwnedCell::new(initializer),
                 },
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                name,
-                type_: OwnedCell::new(type_node),
-                initializer: OwnedCell::new(initializer),
-            }, VariableDeclarationRare {
-                exclamation_token,
-            })
+                VariableDeclarationRare { exclamation_token },
+            )
         } else {
-            self.new_node(Kind::VariableDeclaration, VariableDeclaration {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node(
+                Kind::VariableDeclaration,
+                VariableDeclaration {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    name,
+                    type_: OwnedCell::new(type_node),
+                    initializer: OwnedCell::new(initializer),
                 },
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                name,
-                type_: OwnedCell::new(type_node),
-                initializer: OwnedCell::new(initializer),
-            })
+            )
         }
     }
 
-    pub fn update_variable_declaration(&self, node: P<Node>, name: P<Node>, exclamation_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_variable_declaration(
+        &self,
+        node: P<Node>,
+        name: P<Node>,
+        exclamation_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_variable_declaration();
-        if name != data.name() || exclamation_token != data.exclamation_token() || type_node != data.type_() || initializer != data.initializer() {
-            return update_node(self.new_variable_declaration(name, exclamation_token, type_node, initializer), node, &self.hooks);
+        if name != data.name()
+            || exclamation_token != data.exclamation_token()
+            || type_node != data.type_()
+            || initializer != data.initializer()
+        {
+            return update_node(
+                self.new_variable_declaration(name, exclamation_token, type_node, initializer),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_variable_declaration_list(&self, declarations: P<NodeList>, flags: NodeFlags) -> P<Node> {
-        let node = self.new_node(Kind::VariableDeclarationList, VariableDeclarationList {
-            declarations,
-        });
+    pub fn new_variable_declaration_list(
+        &self,
+        declarations: P<NodeList>,
+        flags: NodeFlags,
+    ) -> P<Node> {
+        let node =
+            self.new_node(Kind::VariableDeclarationList, VariableDeclarationList { declarations });
         node.flags.set(flags);
         node
     }
 
-    pub fn update_variable_declaration_list(&self, node: P<Node>, declarations: P<NodeList>, flags: NodeFlags) -> P<Node> {
+    pub fn update_variable_declaration_list(
+        &self,
+        node: P<Node>,
+        declarations: P<NodeList>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let data = node.as_variable_declaration_list();
         if declarations != data.declarations() || flags != node.flags.get() {
-            return update_node(self.new_variable_declaration_list(declarations, flags), node, &self.hooks);
+            return update_node(
+                self.new_variable_declaration_list(declarations, flags),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_binding_pattern(&self, kind: Kind, elements: P<NodeList>) -> P<Node> {
-        self.new_node(kind, BindingPattern {
-            elements,
-        })
+        self.new_node(kind, BindingPattern { elements })
     }
 
     pub fn update_binding_pattern(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
@@ -9593,102 +11625,145 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_parameter_declaration(&self, modifiers: Option<P<ModifierList>>, dot_dot_dot_token: Option<P<Node>>, name: P<Node>, question_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn new_parameter_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        dot_dot_dot_token: Option<P<Node>>,
+        name: P<Node>,
+        question_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         if dot_dot_dot_token.is_some() || initializer.is_some() {
-            self.new_node_with_rare(Kind::Parameter, ParameterDeclaration {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::Parameter,
+                ParameterDeclaration {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    question_token: OwnedCell::new(question_token),
+                    type_: OwnedCell::new(type_node),
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                name,
-                question_token: OwnedCell::new(question_token),
-                type_: OwnedCell::new(type_node),
-            }, ParameterDeclarationRare {
-                dot_dot_dot_token,
-                initializer,
-            })
+                ParameterDeclarationRare { dot_dot_dot_token, initializer },
+            )
         } else {
-            self.new_node(Kind::Parameter, ParameterDeclaration {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node(
+                Kind::Parameter,
+                ParameterDeclaration {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    question_token: OwnedCell::new(question_token),
+                    type_: OwnedCell::new(type_node),
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                name,
-                question_token: OwnedCell::new(question_token),
-                type_: OwnedCell::new(type_node),
-            })
+            )
         }
     }
 
-    pub fn update_parameter_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, dot_dot_dot_token: Option<P<Node>>, name: P<Node>, question_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_parameter_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        dot_dot_dot_token: Option<P<Node>>,
+        name: P<Node>,
+        question_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_parameter_declaration();
-        if modifiers != data.modifiers() || dot_dot_dot_token != data.dot_dot_dot_token() || name != data.name() || question_token != data.question_token() || type_node != data.type_() || initializer != data.initializer() {
-            return update_node(self.new_parameter_declaration(modifiers, dot_dot_dot_token, name, question_token, type_node, initializer), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || dot_dot_dot_token != data.dot_dot_dot_token()
+            || name != data.name()
+            || question_token != data.question_token()
+            || type_node != data.type_()
+            || initializer != data.initializer()
+        {
+            return update_node(
+                self.new_parameter_declaration(
+                    modifiers,
+                    dot_dot_dot_token,
+                    name,
+                    question_token,
+                    type_node,
+                    initializer,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_binding_element(&self, dot_dot_dot_token: Option<P<Node>>, property_name: Option<P<Node>>, name: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn new_binding_element(
+        &self,
+        dot_dot_dot_token: Option<P<Node>>,
+        property_name: Option<P<Node>>,
+        name: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         if dot_dot_dot_token.is_some() || property_name.is_some() || initializer.is_some() {
-            self.new_node_with_rare(Kind::BindingElement, BindingElement {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::BindingElement,
+                BindingElement {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    name,
                 },
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
-                },
-                name,
-            }, BindingElementRare {
-                dot_dot_dot_token,
-                property_name,
-                initializer,
-            })
+                BindingElementRare { dot_dot_dot_token, property_name, initializer },
+            )
         } else {
-            self.new_node(Kind::BindingElement, BindingElement {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node(
+                Kind::BindingElement,
+                BindingElement {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    name,
                 },
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
-                },
-                name,
-            })
+            )
         }
     }
 
-    pub fn update_binding_element(&self, node: P<Node>, dot_dot_dot_token: Option<P<Node>>, property_name: Option<P<Node>>, name: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_binding_element(
+        &self,
+        node: P<Node>,
+        dot_dot_dot_token: Option<P<Node>>,
+        property_name: Option<P<Node>>,
+        name: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_binding_element();
-        if dot_dot_dot_token != data.dot_dot_dot_token() || property_name != data.property_name() || name != data.name() || initializer != data.initializer() {
-            return update_node(self.new_binding_element(dot_dot_dot_token, property_name, name, initializer), node, &self.hooks);
+        if dot_dot_dot_token != data.dot_dot_dot_token()
+            || property_name != data.property_name()
+            || name != data.name()
+            || initializer != data.initializer()
+        {
+            return update_node(
+                self.new_binding_element(dot_dot_dot_token, property_name, name, initializer),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_missing_declaration(&self, modifiers: Option<P<ModifierList>>) -> P<Node> {
-        self.new_node(Kind::MissingDeclaration, MissingDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::MissingDeclaration,
+            MissingDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-        })
+        )
     }
 
-    pub fn update_missing_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>) -> P<Node> {
+    pub fn update_missing_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+    ) -> P<Node> {
         let data = node.as_missing_declaration();
         if modifiers != data.modifiers() {
             return update_node(self.new_missing_declaration(modifiers), node, &self.hooks);
@@ -9696,123 +11771,210 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_function_declaration(&self, modifiers: Option<P<ModifierList>>, asterisk_token: Option<P<Node>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::FunctionDeclaration, FunctionDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_function_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        asterisk_token: Option<P<Node>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::FunctionDeclaration,
+            FunctionDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase { asterisk_token, body, end_flow_node: OwnedCell::new(None) },
+                name,
+                return_flow_node: OwnedCell::new(None),
             },
-            body_base: BodyBase {
-                asterisk_token,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            name,
-            return_flow_node: OwnedCell::new(None),
-        })
+        )
     }
 
-    pub fn update_function_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, asterisk_token: Option<P<Node>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_function_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        asterisk_token: Option<P<Node>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_function_declaration();
-        if modifiers != data.modifiers() || asterisk_token != data.asterisk_token() || name != data.name() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || body != data.body() {
-            return update_node(self.new_function_declaration(modifiers, asterisk_token, name, type_parameters, parameters, type_node, full_signature, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || asterisk_token != data.asterisk_token()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_function_declaration(
+                    modifiers,
+                    asterisk_token,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_class_declaration(&self, modifiers: Option<P<ModifierList>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, heritage_clauses: Option<P<NodeList>>, members: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::ClassDeclaration, ClassDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            class_like_base: ClassLikeBase {
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
+    pub fn new_class_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        heritage_clauses: Option<P<NodeList>>,
+        members: P<NodeList>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ClassDeclaration,
+            ClassDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                class_like_base: ClassLikeBase {
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    name,
+                    type_parameters: OwnedCell::new(type_parameters),
+                    heritage_clauses: OwnedCell::new(heritage_clauses),
+                    members,
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
-                },
-                name,
-                type_parameters: OwnedCell::new(type_parameters),
-                heritage_clauses: OwnedCell::new(heritage_clauses),
-                members,
             },
-        })
+        )
     }
 
-    pub fn update_class_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, heritage_clauses: Option<P<NodeList>>, members: P<NodeList>) -> P<Node> {
+    pub fn update_class_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        heritage_clauses: Option<P<NodeList>>,
+        members: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_class_declaration();
-        if modifiers != data.modifiers() || name != data.name() || type_parameters != data.type_parameters() || heritage_clauses != data.heritage_clauses() || members != data.members() {
-            return update_node(self.new_class_declaration(modifiers, name, type_parameters, heritage_clauses, members), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || heritage_clauses != data.heritage_clauses()
+            || members != data.members()
+        {
+            return update_node(
+                self.new_class_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    heritage_clauses,
+                    members,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_class_expression(&self, modifiers: Option<P<ModifierList>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, heritage_clauses: Option<P<NodeList>>, members: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::ClassExpression, ClassExpression {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_class_expression(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        heritage_clauses: Option<P<NodeList>>,
+        members: P<NodeList>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ClassExpression,
+            ClassExpression {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                class_like_base: ClassLikeBase {
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    name,
+                    type_parameters: OwnedCell::new(type_parameters),
+                    heritage_clauses: OwnedCell::new(heritage_clauses),
+                    members,
+                },
             },
-            class_like_base: ClassLikeBase {
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
-                },
-                name,
-                type_parameters: OwnedCell::new(type_parameters),
-                heritage_clauses: OwnedCell::new(heritage_clauses),
-                members,
-            },
-        })
+        )
     }
 
-    pub fn update_class_expression(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, heritage_clauses: Option<P<NodeList>>, members: P<NodeList>) -> P<Node> {
+    pub fn update_class_expression(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        heritage_clauses: Option<P<NodeList>>,
+        members: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_class_expression();
-        if modifiers != data.modifiers() || name != data.name() || type_parameters != data.type_parameters() || heritage_clauses != data.heritage_clauses() || members != data.members() {
-            return update_node(self.new_class_expression(modifiers, name, type_parameters, heritage_clauses, members), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || heritage_clauses != data.heritage_clauses()
+            || members != data.members()
+        {
+            return update_node(
+                self.new_class_expression(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    heritage_clauses,
+                    members,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_heritage_clause(&self, token: Kind, types: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::HeritageClause, HeritageClause {
-            token,
-            types: OwnedCell::new(types),
-        })
+        self.new_node(Kind::HeritageClause, HeritageClause { token, types: OwnedCell::new(types) })
     }
 
-    pub fn update_heritage_clause(&self, node: P<Node>, token: Kind, types: P<NodeList>) -> P<Node> {
+    pub fn update_heritage_clause(
+        &self,
+        node: P<Node>,
+        token: Kind,
+        types: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_heritage_clause();
         if token != data.token() || types != data.types() {
             return update_node(self.new_heritage_clause(token, types), node, &self.hooks);
@@ -9820,89 +11982,131 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_interface_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, heritage_clauses: Option<P<NodeList>>, members: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::InterfaceDeclaration, InterfaceDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_interface_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        heritage_clauses: Option<P<NodeList>>,
+        members: P<NodeList>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::InterfaceDeclaration,
+            InterfaceDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                name,
+                type_parameters,
+                heritage_clauses,
+                members,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            name,
-            type_parameters,
-            heritage_clauses,
-            members,
-        })
+        )
     }
 
-    pub fn update_interface_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, heritage_clauses: Option<P<NodeList>>, members: P<NodeList>) -> P<Node> {
+    pub fn update_interface_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        heritage_clauses: Option<P<NodeList>>,
+        members: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_interface_declaration();
-        if modifiers != data.modifiers() || name != data.name() || type_parameters != data.type_parameters() || heritage_clauses != data.heritage_clauses() || members != data.members() {
-            return update_node(self.new_interface_declaration(modifiers, name, type_parameters, heritage_clauses, members), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || heritage_clauses != data.heritage_clauses()
+            || members != data.members()
+        {
+            return update_node(
+                self.new_interface_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    heritage_clauses,
+                    members,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_type_alias_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::TypeAliasDeclaration, TypeAliasDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_type_alias_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::TypeAliasDeclaration,
+            TypeAliasDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                name,
+                type_parameters: OwnedCell::new(type_parameters),
+                type_: OwnedCell::new(type_node),
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            name,
-            type_parameters: OwnedCell::new(type_parameters),
-            type_: OwnedCell::new(type_node),
-        })
+        )
     }
 
-    pub fn new_js_type_alias_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::JSTypeAliasDeclaration, TypeAliasDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_js_type_alias_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSTypeAliasDeclaration,
+            TypeAliasDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                name,
+                type_parameters: OwnedCell::new(type_parameters),
+                type_: OwnedCell::new(type_node),
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            name,
-            type_parameters: OwnedCell::new(type_parameters),
-            type_: OwnedCell::new(type_node),
-        })
+        )
     }
 
-    pub fn update_type_alias_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_type_alias_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_type_alias_declaration();
-        if modifiers != data.modifiers() || name != data.name() || type_parameters != data.type_parameters() || type_node != data.type_() {
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || type_node != data.type_()
+        {
             let updated = match node.kind() {
-                Kind::TypeAliasDeclaration => self.new_type_alias_declaration(modifiers, name, type_parameters, type_node),
-                Kind::JSTypeAliasDeclaration => self.new_js_type_alias_declaration(modifiers, name, type_parameters, type_node),
+                Kind::TypeAliasDeclaration => {
+                    self.new_type_alias_declaration(modifiers, name, type_parameters, type_node)
+                }
+                Kind::JSTypeAliasDeclaration => {
+                    self.new_js_type_alias_declaration(modifiers, name, type_parameters, type_node)
+                }
                 _ => panic!("unexpected kind in update_type_alias_declaration: {:?}", node.kind()),
             };
             return update_node(updated, node, &self.hooks);
@@ -9911,22 +12115,26 @@ impl NodeFactory {
     }
 
     pub fn new_enum_member(&self, name: P<Node>, initializer: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::EnumMember, EnumMember {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(None),
+        self.new_node(
+            Kind::EnumMember,
+            EnumMember {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(None) },
+                    name,
+                    postfix_token: None,
                 },
-                name,
-                postfix_token: None,
+                initializer,
             },
-            initializer,
-        })
+        )
     }
 
-    pub fn update_enum_member(&self, node: P<Node>, name: P<Node>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_enum_member(
+        &self,
+        node: P<Node>,
+        name: P<Node>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_enum_member();
         if name != data.name() || initializer != data.initializer() {
             return update_node(self.new_enum_member(name, initializer), node, &self.hooks);
@@ -9934,40 +12142,51 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_enum_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, members: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::EnumDeclaration, EnumDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_enum_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        members: P<NodeList>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::EnumDeclaration,
+            EnumDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                name,
+                members,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            name,
-            members,
-        })
+        )
     }
 
-    pub fn update_enum_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, members: P<NodeList>) -> P<Node> {
+    pub fn update_enum_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        members: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_enum_declaration();
         if modifiers != data.modifiers() || name != data.name() || members != data.members() {
-            return update_node(self.new_enum_declaration(modifiers, name, members), node, &self.hooks);
+            return update_node(
+                self.new_enum_declaration(modifiers, name, members),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_module_block(&self, statements: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::ModuleBlock, ModuleBlock {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::ModuleBlock,
+            ModuleBlock {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                statements,
             },
-            statements,
-        })
+        )
     }
 
     pub fn update_module_block(&self, node: P<Node>, statements: P<NodeList>) -> P<Node> {
@@ -9979,95 +12198,116 @@ impl NodeFactory {
     }
 
     pub fn new_not_emitted_statement(&self) -> P<Node> {
-        self.new_node(Kind::NotEmittedStatement, NotEmittedStatement {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::NotEmittedStatement,
+            NotEmittedStatement {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
             },
-        })
+        )
     }
 
     pub fn new_not_emitted_type_element(&self) -> P<Node> {
-        self.new_node(Kind::NotEmittedTypeElement, NotEmittedTypeElement {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::NotEmittedTypeElement,
+            NotEmittedTypeElement {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
             },
-        })
+        )
     }
 
-    pub fn new_import_declaration(&self, modifiers: Option<P<ModifierList>>, import_clause: Option<P<Node>>, module_specifier: P<Node>, attributes: Option<P<Node>>) -> P<Node> {
+    pub fn new_import_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        import_clause: Option<P<Node>>,
+        module_specifier: P<Node>,
+        attributes: Option<P<Node>>,
+    ) -> P<Node> {
         if attributes.is_some() {
-            self.new_node_with_rare(Kind::ImportDeclaration, ImportDeclaration {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::ImportDeclaration,
+                ImportDeclaration {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    import_clause,
+                    module_specifier,
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
-                },
-                import_clause,
-                module_specifier,
-            }, ImportDeclarationRare {
-                attributes,
-            })
+                ImportDeclarationRare { attributes },
+            )
         } else {
-            self.new_node(Kind::ImportDeclaration, ImportDeclaration {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node(
+                Kind::ImportDeclaration,
+                ImportDeclaration {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    import_clause,
+                    module_specifier,
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
-                },
-                import_clause,
-                module_specifier,
-            })
+            )
         }
     }
 
-    pub fn new_js_import_declaration(&self, modifiers: Option<P<ModifierList>>, import_clause: Option<P<Node>>, module_specifier: P<Node>, attributes: Option<P<Node>>) -> P<Node> {
+    pub fn new_js_import_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        import_clause: Option<P<Node>>,
+        module_specifier: P<Node>,
+        attributes: Option<P<Node>>,
+    ) -> P<Node> {
         if attributes.is_some() {
-            self.new_node_with_rare(Kind::JSImportDeclaration, ImportDeclaration {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::JSImportDeclaration,
+                ImportDeclaration {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    import_clause,
+                    module_specifier,
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
-                },
-                import_clause,
-                module_specifier,
-            }, ImportDeclarationRare {
-                attributes,
-            })
+                ImportDeclarationRare { attributes },
+            )
         } else {
-            self.new_node(Kind::JSImportDeclaration, ImportDeclaration {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node(
+                Kind::JSImportDeclaration,
+                ImportDeclaration {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    import_clause,
+                    module_specifier,
                 },
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
-                },
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
-                },
-                import_clause,
-                module_specifier,
-            })
+            )
         }
     }
 
-    pub fn update_import_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, import_clause: Option<P<Node>>, module_specifier: P<Node>, attributes: Option<P<Node>>) -> P<Node> {
+    pub fn update_import_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        import_clause: Option<P<Node>>,
+        module_specifier: P<Node>,
+        attributes: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_import_declaration();
-        if modifiers != data.modifiers() || import_clause != data.import_clause() || module_specifier != data.module_specifier() || attributes != data.attributes() {
+        if modifiers != data.modifiers()
+            || import_clause != data.import_clause()
+            || module_specifier != data.module_specifier()
+            || attributes != data.attributes()
+        {
             let updated = match node.kind() {
-                Kind::ImportDeclaration => self.new_import_declaration(modifiers, import_clause, module_specifier, attributes),
-                Kind::JSImportDeclaration => self.new_js_import_declaration(modifiers, import_clause, module_specifier, attributes),
+                Kind::ImportDeclaration => self.new_import_declaration(
+                    modifiers,
+                    import_clause,
+                    module_specifier,
+                    attributes,
+                ),
+                Kind::JSImportDeclaration => self.new_js_import_declaration(
+                    modifiers,
+                    import_clause,
+                    module_specifier,
+                    attributes,
+                ),
                 _ => panic!("unexpected kind in update_import_declaration: {:?}", node.kind()),
             };
             return update_node(updated, node, &self.hooks);
@@ -10076,9 +12316,7 @@ impl NodeFactory {
     }
 
     pub fn new_external_module_reference(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::ExternalModuleReference, ExternalModuleReference {
-            expression,
-        })
+        self.new_node(Kind::ExternalModuleReference, ExternalModuleReference { expression })
     }
 
     pub fn update_external_module_reference(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -10090,15 +12328,14 @@ impl NodeFactory {
     }
 
     pub fn new_namespace_import(&self, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::NamespaceImport, NamespaceImport {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::NamespaceImport,
+            NamespaceImport {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                name,
             },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            name,
-        })
+        )
     }
 
     pub fn update_namespace_import(&self, node: P<Node>, name: P<Node>) -> P<Node> {
@@ -10110,9 +12347,7 @@ impl NodeFactory {
     }
 
     pub fn new_named_imports(&self, elements: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::NamedImports, NamedImports {
-            elements,
-        })
+        self.new_node(Kind::NamedImports, NamedImports { elements })
     }
 
     pub fn update_named_imports(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
@@ -10123,61 +12358,90 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_export_assignment(&self, modifiers: Option<P<ModifierList>>, is_export_equals: bool, type_node: Option<P<Node>>, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::ExportAssignment, ExportAssignment {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_export_assignment(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        is_export_equals: bool,
+        type_node: Option<P<Node>>,
+        expression: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ExportAssignment,
+            ExportAssignment {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                is_export_equals,
+                type_: OwnedCell::new(type_node),
+                expression: OwnedCell::new(expression),
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            is_export_equals,
-            type_: OwnedCell::new(type_node),
-            expression: OwnedCell::new(expression),
-        })
+        )
     }
 
-    pub fn update_export_assignment(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, is_export_equals: bool, type_node: Option<P<Node>>, expression: P<Node>) -> P<Node> {
+    pub fn update_export_assignment(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        is_export_equals: bool,
+        type_node: Option<P<Node>>,
+        expression: P<Node>,
+    ) -> P<Node> {
         let data = node.as_export_assignment();
-        if modifiers != data.modifiers() || is_export_equals != data.is_export_equals() || type_node != data.type_() || expression != data.expression() {
-            return update_node(self.new_export_assignment(modifiers, is_export_equals, type_node, expression), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || is_export_equals != data.is_export_equals()
+            || type_node != data.type_()
+            || expression != data.expression()
+        {
+            return update_node(
+                self.new_export_assignment(modifiers, is_export_equals, type_node, expression),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_namespace_export_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::NamespaceExportDeclaration, NamespaceExportDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_namespace_export_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::NamespaceExportDeclaration,
+            NamespaceExportDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                name,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            name,
-        })
+        )
     }
 
-    pub fn update_namespace_export_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>) -> P<Node> {
+    pub fn update_namespace_export_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+    ) -> P<Node> {
         let data = node.as_namespace_export_declaration();
         if modifiers != data.modifiers() || name != data.name() {
-            return update_node(self.new_namespace_export_declaration(modifiers, name), node, &self.hooks);
+            return update_node(
+                self.new_namespace_export_declaration(modifiers, name),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_namespace_export(&self, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::NamespaceExport, NamespaceExport {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::NamespaceExport,
+            NamespaceExport {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                name,
             },
-            name,
-        })
+        )
     }
 
     pub fn update_namespace_export(&self, node: P<Node>, name: P<Node>) -> P<Node> {
@@ -10189,9 +12453,7 @@ impl NodeFactory {
     }
 
     pub fn new_named_exports(&self, elements: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::NamedExports, NamedExports {
-            elements,
-        })
+        self.new_node(Kind::NamedExports, NamedExports { elements })
     }
 
     pub fn update_named_exports(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
@@ -10202,396 +12464,712 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_export_specifier(&self, is_type_only: bool, property_name: Option<P<Node>>, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::ExportSpecifier, ExportSpecifier {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_export_specifier(
+        &self,
+        is_type_only: bool,
+        property_name: Option<P<Node>>,
+        name: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ExportSpecifier,
+            ExportSpecifier {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                is_type_only,
+                property_name,
+                name,
             },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            is_type_only,
-            property_name,
-            name,
-        })
+        )
     }
 
-    pub fn update_export_specifier(&self, node: P<Node>, is_type_only: bool, property_name: Option<P<Node>>, name: P<Node>) -> P<Node> {
+    pub fn update_export_specifier(
+        &self,
+        node: P<Node>,
+        is_type_only: bool,
+        property_name: Option<P<Node>>,
+        name: P<Node>,
+    ) -> P<Node> {
         let data = node.as_export_specifier();
-        if is_type_only != data.is_type_only() || property_name != data.property_name() || name != data.name() {
-            return update_node(self.new_export_specifier(is_type_only, property_name, name), node, &self.hooks);
+        if is_type_only != data.is_type_only()
+            || property_name != data.property_name()
+            || name != data.name()
+        {
+            return update_node(
+                self.new_export_specifier(is_type_only, property_name, name),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_call_signature_declaration(&self, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::CallSignature, CallSignatureDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_call_signature_declaration(
+        &self,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::CallSignature,
+            CallSignatureDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_call_signature_declaration(&self, node: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_call_signature_declaration(
+        &self,
+        node: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_call_signature_declaration();
-        if type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_call_signature_declaration(type_parameters, parameters, type_node), node, &self.hooks);
+        if type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_call_signature_declaration(type_parameters, parameters, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_construct_signature_declaration(&self, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ConstructSignature, ConstructSignatureDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_construct_signature_declaration(
+        &self,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ConstructSignature,
+            ConstructSignatureDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_construct_signature_declaration(&self, node: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_construct_signature_declaration(
+        &self,
+        node: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_construct_signature_declaration();
-        if type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_construct_signature_declaration(type_parameters, parameters, type_node), node, &self.hooks);
+        if type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_construct_signature_declaration(type_parameters, parameters, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_constructor_declaration(&self, modifiers: Option<P<ModifierList>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::Constructor, ConstructorDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_constructor_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::Constructor,
+            ConstructorDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase {
+                    asterisk_token: None,
+                    body,
+                    end_flow_node: OwnedCell::new(None),
+                },
+                return_flow_node: OwnedCell::new(None),
             },
-            body_base: BodyBase {
-                asterisk_token: None,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            return_flow_node: OwnedCell::new(None),
-        })
+        )
     }
 
-    pub fn update_constructor_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_constructor_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_constructor_declaration();
-        if modifiers != data.modifiers() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || body != data.body() {
-            return update_node(self.new_constructor_declaration(modifiers, type_parameters, parameters, type_node, full_signature, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_constructor_declaration(
+                    modifiers,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_get_accessor_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::GetAccessor, GetAccessorDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_get_accessor_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::GetAccessor,
+            GetAccessorDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token: None,
                 },
-                name,
-                postfix_token: None,
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase {
+                    asterisk_token: None,
+                    body,
+                    end_flow_node: OwnedCell::new(None),
+                },
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
             },
-            body_base: BodyBase {
-                asterisk_token: None,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-        })
+        )
     }
 
-    pub fn update_get_accessor_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_get_accessor_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_get_accessor_declaration();
-        if modifiers != data.modifiers() || name != data.name() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || body != data.body() {
-            return update_node(self.new_get_accessor_declaration(modifiers, name, type_parameters, parameters, type_node, full_signature, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_get_accessor_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_set_accessor_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::SetAccessor, SetAccessorDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_set_accessor_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::SetAccessor,
+            SetAccessorDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token: None,
                 },
-                name,
-                postfix_token: None,
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase {
+                    asterisk_token: None,
+                    body,
+                    end_flow_node: OwnedCell::new(None),
+                },
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
             },
-            body_base: BodyBase {
-                asterisk_token: None,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-        })
+        )
     }
 
-    pub fn update_set_accessor_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_set_accessor_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_set_accessor_declaration();
-        if modifiers != data.modifiers() || name != data.name() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || body != data.body() {
-            return update_node(self.new_set_accessor_declaration(modifiers, name, type_parameters, parameters, type_node, full_signature, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_set_accessor_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_index_signature_declaration(&self, modifiers: Option<P<ModifierList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::IndexSignature, IndexSignatureDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_index_signature_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::IndexSignature,
+            IndexSignatureDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(None),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(None),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_index_signature_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_index_signature_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_index_signature_declaration();
-        if modifiers != data.modifiers() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_index_signature_declaration(modifiers, parameters, type_node), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_index_signature_declaration(modifiers, parameters, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_method_signature_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::MethodSignature, MethodSignatureDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_method_signature_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::MethodSignature,
+            MethodSignatureDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token,
                 },
-                name,
-                postfix_token,
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_method_signature_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_method_signature_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_method_signature_declaration();
-        if modifiers != data.modifiers() || name != data.name() || postfix_token != data.postfix_token() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_method_signature_declaration(modifiers, name, postfix_token, type_parameters, parameters, type_node), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || postfix_token != data.postfix_token()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_method_signature_declaration(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_method_declaration(&self, modifiers: Option<P<ModifierList>>, asterisk_token: Option<P<Node>>, name: P<Node>, postfix_token: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::MethodDeclaration, MethodDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_method_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        asterisk_token: Option<P<Node>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::MethodDeclaration,
+            MethodDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token,
                 },
-                name,
-                postfix_token,
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase { asterisk_token, body, end_flow_node: OwnedCell::new(None) },
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
             },
-            body_base: BodyBase {
-                asterisk_token,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-        })
+        )
     }
 
-    pub fn update_method_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, asterisk_token: Option<P<Node>>, name: P<Node>, postfix_token: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_method_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        asterisk_token: Option<P<Node>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_method_declaration();
-        if modifiers != data.modifiers() || asterisk_token != data.asterisk_token() || name != data.name() || postfix_token != data.postfix_token() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || body != data.body() {
-            return update_node(self.new_method_declaration(modifiers, asterisk_token, name, postfix_token, type_parameters, parameters, type_node, full_signature, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || asterisk_token != data.asterisk_token()
+            || name != data.name()
+            || postfix_token != data.postfix_token()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_method_declaration(
+                    modifiers,
+                    asterisk_token,
+                    name,
+                    postfix_token,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_property_signature_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn new_property_signature_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         if initializer.is_some() {
-            self.new_node_with_rare(Kind::PropertySignature, PropertySignatureDeclaration {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
-                },
-                named_member_base: NamedMemberBase {
-                    modifiers_base: ModifiersBase {
-                        modifiers: OwnedCell::new(modifiers),
+            self.new_node_with_rare(
+                Kind::PropertySignature,
+                PropertySignatureDeclaration {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    named_member_base: NamedMemberBase {
+                        modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                        name,
+                        postfix_token,
                     },
-                    name,
-                    postfix_token,
+                    type_: OwnedCell::new(type_node),
                 },
-                type_: OwnedCell::new(type_node),
-            }, PropertySignatureDeclarationRare {
-                initializer,
-            })
+                PropertySignatureDeclarationRare { initializer },
+            )
         } else {
-            self.new_node(Kind::PropertySignature, PropertySignatureDeclaration {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
-                },
-                named_member_base: NamedMemberBase {
-                    modifiers_base: ModifiersBase {
-                        modifiers: OwnedCell::new(modifiers),
+            self.new_node(
+                Kind::PropertySignature,
+                PropertySignatureDeclaration {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    named_member_base: NamedMemberBase {
+                        modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                        name,
+                        postfix_token,
                     },
-                    name,
-                    postfix_token,
+                    type_: OwnedCell::new(type_node),
                 },
-                type_: OwnedCell::new(type_node),
-            })
+            )
         }
     }
 
-    pub fn update_property_signature_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_property_signature_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_property_signature_declaration();
-        if modifiers != data.modifiers() || name != data.name() || postfix_token != data.postfix_token() || type_node != data.type_() || initializer != data.initializer() {
-            return update_node(self.new_property_signature_declaration(modifiers, name, postfix_token, type_node, initializer), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || postfix_token != data.postfix_token()
+            || type_node != data.type_()
+            || initializer != data.initializer()
+        {
+            return update_node(
+                self.new_property_signature_declaration(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_node,
+                    initializer,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_property_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::PropertyDeclaration, PropertyDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_property_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::PropertyDeclaration,
+            PropertyDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token,
                 },
-                name,
-                postfix_token,
+                type_: OwnedCell::new(type_node),
+                initializer: OwnedCell::new(initializer),
             },
-            type_: OwnedCell::new(type_node),
-            initializer: OwnedCell::new(initializer),
-        })
+        )
     }
 
-    pub fn update_property_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_property_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_property_declaration();
-        if modifiers != data.modifiers() || name != data.name() || postfix_token != data.postfix_token() || type_node != data.type_() || initializer != data.initializer() {
-            return update_node(self.new_property_declaration(modifiers, name, postfix_token, type_node, initializer), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || postfix_token != data.postfix_token()
+            || type_node != data.type_()
+            || initializer != data.initializer()
+        {
+            return update_node(
+                self.new_property_declaration(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_node,
+                    initializer,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_semicolon_class_element(&self) -> P<Node> {
-        self.new_node(Kind::SemicolonClassElement, SemicolonClassElement {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::SemicolonClassElement,
+            SemicolonClassElement {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
             },
-        })
+        )
     }
 
-    pub fn new_class_static_block_declaration(&self, modifiers: Option<P<ModifierList>>, body: P<Node>) -> P<Node> {
-        self.new_node(Kind::ClassStaticBlockDeclaration, ClassStaticBlockDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_class_static_block_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        body: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ClassStaticBlockDeclaration,
+            ClassStaticBlockDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                body,
+                return_flow_node: OwnedCell::new(None),
             },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            body,
-            return_flow_node: OwnedCell::new(None),
-        })
+        )
     }
 
-    pub fn update_class_static_block_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, body: P<Node>) -> P<Node> {
+    pub fn update_class_static_block_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        body: P<Node>,
+    ) -> P<Node> {
         let data = node.as_class_static_block_declaration();
         if modifiers != data.modifiers() || body != data.body() {
-            return update_node(self.new_class_static_block_declaration(modifiers, body), node, &self.hooks);
+            return update_node(
+                self.new_class_static_block_declaration(modifiers, body),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
@@ -10601,223 +13179,362 @@ impl NodeFactory {
     }
 
     pub fn new_keyword_expression(&self, kind: Kind) -> P<Node> {
-        self.new_node(kind, KeywordExpression {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-        })
+        self.new_node(
+            kind,
+            KeywordExpression { flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) } },
+        )
     }
 
     pub fn new_string_literal(&self, text: &'static str, token_flags: TokenFlags) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::StringLiteral, StringLiteral {
-            literal_like_node_base: LiteralLikeNodeBase {
-                text: PackedStr::new(text),
-                token_flags: OwnedCell::new(token_flags & TokenFlags::StringLiteralFlags),
+        self.new_node(
+            Kind::StringLiteral,
+            StringLiteral {
+                literal_like_node_base: LiteralLikeNodeBase {
+                    text: PackedStr::new(text),
+                    token_flags: OwnedCell::new(token_flags & TokenFlags::StringLiteralFlags),
+                },
             },
-        })
+        )
     }
 
     pub fn new_numeric_literal(&self, text: &'static str, token_flags: TokenFlags) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::NumericLiteral, NumericLiteral {
-            literal_like_node_base: LiteralLikeNodeBase {
-                text: PackedStr::new(text),
-                token_flags: OwnedCell::new(token_flags & TokenFlags::NumericLiteralFlags),
+        self.new_node(
+            Kind::NumericLiteral,
+            NumericLiteral {
+                literal_like_node_base: LiteralLikeNodeBase {
+                    text: PackedStr::new(text),
+                    token_flags: OwnedCell::new(token_flags & TokenFlags::NumericLiteralFlags),
+                },
             },
-        })
+        )
     }
 
     pub fn new_big_int_literal(&self, text: &'static str, token_flags: TokenFlags) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::BigIntLiteral, BigIntLiteral {
-            literal_like_node_base: LiteralLikeNodeBase {
-                text: PackedStr::new(text),
-                token_flags: OwnedCell::new(token_flags & TokenFlags::NumericLiteralFlags),
-            },
-        })
-    }
-
-    pub fn new_regular_expression_literal(&self, text: &'static str, token_flags: TokenFlags) -> P<Node> {
-        self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::RegularExpressionLiteral, RegularExpressionLiteral {
-            literal_like_node_base: LiteralLikeNodeBase {
-                text: PackedStr::new(text),
-                token_flags: OwnedCell::new(token_flags & TokenFlags::RegularExpressionLiteralFlags),
-            },
-        })
-    }
-
-    pub fn new_no_substitution_template_literal(&self, text: &'static str, template_flags: TokenFlags) -> P<Node> {
-        self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::NoSubstitutionTemplateLiteral, NoSubstitutionTemplateLiteral {
-            template_literal_like_node_base: TemplateLiteralLikeNodeBase {
+        self.new_node(
+            Kind::BigIntLiteral,
+            BigIntLiteral {
                 literal_like_node_base: LiteralLikeNodeBase {
                     text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(TokenFlags::None),
+                    token_flags: OwnedCell::new(token_flags & TokenFlags::NumericLiteralFlags),
                 },
-                raw_text: "",
-                template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-        })
+        )
     }
 
-    pub fn new_binary_expression(&self, modifiers: Option<P<ModifierList>>, left: P<Node>, type_node: Option<P<Node>>, operator_token: P<Node>, right: P<Node>) -> P<Node> {
-        self.new_node(Kind::BinaryExpression, BinaryExpression {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_regular_expression_literal(
+        &self,
+        text: &'static str,
+        token_flags: TokenFlags,
+    ) -> P<Node> {
+        self.text_count.set(self.text_count.get() + 1);
+        self.new_node(
+            Kind::RegularExpressionLiteral,
+            RegularExpressionLiteral {
+                literal_like_node_base: LiteralLikeNodeBase {
+                    text: PackedStr::new(text),
+                    token_flags: OwnedCell::new(
+                        token_flags & TokenFlags::RegularExpressionLiteralFlags,
+                    ),
+                },
             },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            left,
-            type_: OwnedCell::new(type_node),
-            operator_token,
-            right: OwnedCell::new(right),
-        })
+        )
     }
 
-    pub fn update_binary_expression(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, left: P<Node>, type_node: Option<P<Node>>, operator_token: P<Node>, right: P<Node>) -> P<Node> {
+    pub fn new_no_substitution_template_literal(
+        &self,
+        text: &'static str,
+        template_flags: TokenFlags,
+    ) -> P<Node> {
+        self.text_count.set(self.text_count.get() + 1);
+        self.new_node(
+            Kind::NoSubstitutionTemplateLiteral,
+            NoSubstitutionTemplateLiteral {
+                template_literal_like_node_base: TemplateLiteralLikeNodeBase {
+                    literal_like_node_base: LiteralLikeNodeBase {
+                        text: PackedStr::new(text),
+                        token_flags: OwnedCell::new(TokenFlags::None),
+                    },
+                    raw_text: "",
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
+                },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+            },
+        )
+    }
+
+    pub fn new_binary_expression(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        left: P<Node>,
+        type_node: Option<P<Node>>,
+        operator_token: P<Node>,
+        right: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::BinaryExpression,
+            BinaryExpression {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                left,
+                type_: OwnedCell::new(type_node),
+                operator_token,
+                right: OwnedCell::new(right),
+            },
+        )
+    }
+
+    pub fn update_binary_expression(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        left: P<Node>,
+        type_node: Option<P<Node>>,
+        operator_token: P<Node>,
+        right: P<Node>,
+    ) -> P<Node> {
         let data = node.as_binary_expression();
-        if modifiers != data.modifiers() || left != data.left() || type_node != data.type_() || operator_token != data.operator_token() || right != data.right() {
-            return update_node(self.new_binary_expression(modifiers, left, type_node, operator_token, right), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || left != data.left()
+            || type_node != data.type_()
+            || operator_token != data.operator_token()
+            || right != data.right()
+        {
+            return update_node(
+                self.new_binary_expression(modifiers, left, type_node, operator_token, right),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_prefix_unary_expression(&self, operator: Kind, operand: P<Node>) -> P<Node> {
-        self.new_node(Kind::PrefixUnaryExpression, PrefixUnaryExpression {
-            operator,
-            operand,
-        })
+        self.new_node(Kind::PrefixUnaryExpression, PrefixUnaryExpression { operator, operand })
     }
 
-    pub fn update_prefix_unary_expression(&self, node: P<Node>, operator: Kind, operand: P<Node>) -> P<Node> {
+    pub fn update_prefix_unary_expression(
+        &self,
+        node: P<Node>,
+        operator: Kind,
+        operand: P<Node>,
+    ) -> P<Node> {
         let data = node.as_prefix_unary_expression();
         if operator != data.operator() || operand != data.operand() {
-            return update_node(self.new_prefix_unary_expression(operator, operand), node, &self.hooks);
+            return update_node(
+                self.new_prefix_unary_expression(operator, operand),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_postfix_unary_expression(&self, operand: P<Node>, operator: Kind) -> P<Node> {
-        self.new_node(Kind::PostfixUnaryExpression, PostfixUnaryExpression {
-            operand,
-            operator,
-        })
+        self.new_node(Kind::PostfixUnaryExpression, PostfixUnaryExpression { operand, operator })
     }
 
-    pub fn update_postfix_unary_expression(&self, node: P<Node>, operand: P<Node>, operator: Kind) -> P<Node> {
+    pub fn update_postfix_unary_expression(
+        &self,
+        node: P<Node>,
+        operand: P<Node>,
+        operator: Kind,
+    ) -> P<Node> {
         let data = node.as_postfix_unary_expression();
         if operand != data.operand() || operator != data.operator() {
-            return update_node(self.new_postfix_unary_expression(operand, operator), node, &self.hooks);
+            return update_node(
+                self.new_postfix_unary_expression(operand, operator),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_yield_expression(&self, asterisk_token: Option<P<Node>>, expression: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::YieldExpression, YieldExpression {
-            asterisk_token,
-            expression,
-        })
+    pub fn new_yield_expression(
+        &self,
+        asterisk_token: Option<P<Node>>,
+        expression: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(Kind::YieldExpression, YieldExpression { asterisk_token, expression })
     }
 
-    pub fn update_yield_expression(&self, node: P<Node>, asterisk_token: Option<P<Node>>, expression: Option<P<Node>>) -> P<Node> {
+    pub fn update_yield_expression(
+        &self,
+        node: P<Node>,
+        asterisk_token: Option<P<Node>>,
+        expression: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_yield_expression();
         if asterisk_token != data.asterisk_token() || expression != data.expression() {
-            return update_node(self.new_yield_expression(asterisk_token, expression), node, &self.hooks);
+            return update_node(
+                self.new_yield_expression(asterisk_token, expression),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_arrow_function(&self, modifiers: Option<P<ModifierList>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, equals_greater_than_token: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ArrowFunction, ArrowFunction {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_arrow_function(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        equals_greater_than_token: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ArrowFunction,
+            ArrowFunction {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase {
+                    asterisk_token: None,
+                    body,
+                    end_flow_node: OwnedCell::new(None),
+                },
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                equals_greater_than_token,
             },
-            body_base: BodyBase {
-                asterisk_token: None,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-            equals_greater_than_token,
-        })
+        )
     }
 
-    pub fn update_arrow_function(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, equals_greater_than_token: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_arrow_function(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        equals_greater_than_token: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_arrow_function();
-        if modifiers != data.modifiers() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || equals_greater_than_token != data.equals_greater_than_token() || body != data.body() {
-            return update_node(self.new_arrow_function(modifiers, type_parameters, parameters, type_node, full_signature, equals_greater_than_token, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || equals_greater_than_token != data.equals_greater_than_token()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_arrow_function(
+                    modifiers,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    equals_greater_than_token,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_function_expression(&self, modifiers: Option<P<ModifierList>>, asterisk_token: Option<P<Node>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::FunctionExpression, FunctionExpression {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_function_expression(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        asterisk_token: Option<P<Node>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::FunctionExpression,
+            FunctionExpression {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(full_signature),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(full_signature),
+                body_base: BodyBase { asterisk_token, body, end_flow_node: OwnedCell::new(None) },
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                name,
+                return_flow_node: OwnedCell::new(None),
             },
-            body_base: BodyBase {
-                asterisk_token,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
-            },
-            name,
-            return_flow_node: OwnedCell::new(None),
-        })
+        )
     }
 
-    pub fn update_function_expression(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, asterisk_token: Option<P<Node>>, name: Option<P<Node>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>, full_signature: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_function_expression(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        asterisk_token: Option<P<Node>>,
+        name: Option<P<Node>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+        full_signature: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_function_expression();
-        if modifiers != data.modifiers() || asterisk_token != data.asterisk_token() || name != data.name() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() || full_signature != data.full_signature() || body != data.body() {
-            return update_node(self.new_function_expression(modifiers, asterisk_token, name, type_parameters, parameters, type_node, full_signature, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || asterisk_token != data.asterisk_token()
+            || name != data.name()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+            || full_signature != data.full_signature()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_function_expression(
+                    modifiers,
+                    asterisk_token,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    full_signature,
+                    body,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_as_expression(&self, expression: P<Node>, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::AsExpression, AsExpression {
-            expression,
-            type_: type_node,
-        })
+        self.new_node(Kind::AsExpression, AsExpression { expression, type_: type_node })
     }
 
-    pub fn update_as_expression(&self, node: P<Node>, expression: P<Node>, type_node: P<Node>) -> P<Node> {
+    pub fn update_as_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        type_node: P<Node>,
+    ) -> P<Node> {
         let data = node.as_as_expression();
         if expression != data.expression() || type_node != data.type_() {
             return update_node(self.new_as_expression(expression, type_node), node, &self.hooks);
@@ -10826,170 +13543,305 @@ impl NodeFactory {
     }
 
     pub fn new_satisfies_expression(&self, expression: P<Node>, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::SatisfiesExpression, SatisfiesExpression {
-            expression,
-            type_: type_node,
-        })
+        self.new_node(
+            Kind::SatisfiesExpression,
+            SatisfiesExpression { expression, type_: type_node },
+        )
     }
 
-    pub fn update_satisfies_expression(&self, node: P<Node>, expression: P<Node>, type_node: P<Node>) -> P<Node> {
+    pub fn update_satisfies_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        type_node: P<Node>,
+    ) -> P<Node> {
         let data = node.as_satisfies_expression();
         if expression != data.expression() || type_node != data.type_() {
-            return update_node(self.new_satisfies_expression(expression, type_node), node, &self.hooks);
+            return update_node(
+                self.new_satisfies_expression(expression, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_conditional_expression(&self, condition: P<Node>, question_token: P<Node>, when_true: P<Node>, colon_token: P<Node>, when_false: P<Node>) -> P<Node> {
-        self.new_node(Kind::ConditionalExpression, ConditionalExpression {
-            condition,
-            question_token,
-            when_true,
-            colon_token,
-            when_false,
-        })
+    pub fn new_conditional_expression(
+        &self,
+        condition: P<Node>,
+        question_token: P<Node>,
+        when_true: P<Node>,
+        colon_token: P<Node>,
+        when_false: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ConditionalExpression,
+            ConditionalExpression { condition, question_token, when_true, colon_token, when_false },
+        )
     }
 
-    pub fn update_conditional_expression(&self, node: P<Node>, condition: P<Node>, question_token: P<Node>, when_true: P<Node>, colon_token: P<Node>, when_false: P<Node>) -> P<Node> {
+    pub fn update_conditional_expression(
+        &self,
+        node: P<Node>,
+        condition: P<Node>,
+        question_token: P<Node>,
+        when_true: P<Node>,
+        colon_token: P<Node>,
+        when_false: P<Node>,
+    ) -> P<Node> {
         let data = node.as_conditional_expression();
-        if condition != data.condition() || question_token != data.question_token() || when_true != data.when_true() || colon_token != data.colon_token() || when_false != data.when_false() {
-            return update_node(self.new_conditional_expression(condition, question_token, when_true, colon_token, when_false), node, &self.hooks);
+        if condition != data.condition()
+            || question_token != data.question_token()
+            || when_true != data.when_true()
+            || colon_token != data.colon_token()
+            || when_false != data.when_false()
+        {
+            return update_node(
+                self.new_conditional_expression(
+                    condition,
+                    question_token,
+                    when_true,
+                    colon_token,
+                    when_false,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_property_access_expression(&self, expression: P<Node>, question_dot_token: Option<P<Node>>, name: P<Node>, flags: NodeFlags) -> P<Node> {
+    pub fn new_property_access_expression(
+        &self,
+        expression: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        name: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let node = if question_dot_token.is_some() {
-            self.new_node_with_rare(Kind::PropertyAccessExpression, PropertyAccessExpression {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::PropertyAccessExpression,
+                PropertyAccessExpression {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    expression,
+                    name,
                 },
-                expression,
-                name,
-            }, PropertyAccessExpressionRare {
-                question_dot_token,
-            })
+                PropertyAccessExpressionRare { question_dot_token },
+            )
         } else {
-            self.new_node(Kind::PropertyAccessExpression, PropertyAccessExpression {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node(
+                Kind::PropertyAccessExpression,
+                PropertyAccessExpression {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    expression,
+                    name,
                 },
-                expression,
-                name,
-            })
+            )
         };
         node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
-    pub fn update_property_access_expression(&self, node: P<Node>, expression: P<Node>, question_dot_token: Option<P<Node>>, name: P<Node>, flags: NodeFlags) -> P<Node> {
+    pub fn update_property_access_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        name: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let data = node.as_property_access_expression();
-        if expression != data.expression() || question_dot_token != data.question_dot_token() || name != data.name() || flags != node.flags.get() {
-            return update_node(self.new_property_access_expression(expression, question_dot_token, name, flags), node, &self.hooks);
+        if expression != data.expression()
+            || question_dot_token != data.question_dot_token()
+            || name != data.name()
+            || flags != node.flags.get()
+        {
+            return update_node(
+                self.new_property_access_expression(expression, question_dot_token, name, flags),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_element_access_expression(&self, expression: P<Node>, question_dot_token: Option<P<Node>>, argument_expression: P<Node>, flags: NodeFlags) -> P<Node> {
+    pub fn new_element_access_expression(
+        &self,
+        expression: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        argument_expression: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let node = if question_dot_token.is_some() {
-            self.new_node_with_rare(Kind::ElementAccessExpression, ElementAccessExpression {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::ElementAccessExpression,
+                ElementAccessExpression {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    expression,
+                    argument_expression,
                 },
-                expression,
-                argument_expression,
-            }, ElementAccessExpressionRare {
-                question_dot_token,
-            })
+                ElementAccessExpressionRare { question_dot_token },
+            )
         } else {
-            self.new_node(Kind::ElementAccessExpression, ElementAccessExpression {
-                flow_node_base: FlowNodeBase {
-                    flow_node: OwnedCell::new(None),
+            self.new_node(
+                Kind::ElementAccessExpression,
+                ElementAccessExpression {
+                    flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                    expression,
+                    argument_expression,
                 },
-                expression,
-                argument_expression,
-            })
+            )
         };
         node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
-    pub fn update_element_access_expression(&self, node: P<Node>, expression: P<Node>, question_dot_token: Option<P<Node>>, argument_expression: P<Node>, flags: NodeFlags) -> P<Node> {
+    pub fn update_element_access_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        argument_expression: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let data = node.as_element_access_expression();
-        if expression != data.expression() || question_dot_token != data.question_dot_token() || argument_expression != data.argument_expression() || flags != node.flags.get() {
-            return update_node(self.new_element_access_expression(expression, question_dot_token, argument_expression, flags), node, &self.hooks);
+        if expression != data.expression()
+            || question_dot_token != data.question_dot_token()
+            || argument_expression != data.argument_expression()
+            || flags != node.flags.get()
+        {
+            return update_node(
+                self.new_element_access_expression(
+                    expression,
+                    question_dot_token,
+                    argument_expression,
+                    flags,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_call_expression(&self, expression: P<Node>, question_dot_token: Option<P<Node>>, type_arguments: Option<P<NodeList>>, arguments: P<NodeList>, flags: NodeFlags) -> P<Node> {
+    pub fn new_call_expression(
+        &self,
+        expression: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+        arguments: P<NodeList>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let node = if question_dot_token.is_some() || type_arguments.is_some() {
-            self.new_node_with_rare(Kind::CallExpression, CallExpression {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::CallExpression,
+                CallExpression {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    expression,
+                    arguments,
                 },
-                expression,
-                arguments,
-            }, CallExpressionRare {
-                question_dot_token,
-                type_arguments,
-            })
+                CallExpressionRare { question_dot_token, type_arguments },
+            )
         } else {
-            self.new_node(Kind::CallExpression, CallExpression {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node(
+                Kind::CallExpression,
+                CallExpression {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    expression,
+                    arguments,
                 },
-                expression,
-                arguments,
-            })
+            )
         };
         node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
-    pub fn update_call_expression(&self, node: P<Node>, expression: P<Node>, question_dot_token: Option<P<Node>>, type_arguments: Option<P<NodeList>>, arguments: P<NodeList>, flags: NodeFlags) -> P<Node> {
+    pub fn update_call_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+        arguments: P<NodeList>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let data = node.as_call_expression();
-        if expression != data.expression() || question_dot_token != data.question_dot_token() || type_arguments != data.type_arguments() || arguments != data.arguments() || flags != node.flags.get() {
-            return update_node(self.new_call_expression(expression, question_dot_token, type_arguments, arguments, flags), node, &self.hooks);
+        if expression != data.expression()
+            || question_dot_token != data.question_dot_token()
+            || type_arguments != data.type_arguments()
+            || arguments != data.arguments()
+            || flags != node.flags.get()
+        {
+            return update_node(
+                self.new_call_expression(
+                    expression,
+                    question_dot_token,
+                    type_arguments,
+                    arguments,
+                    flags,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_new_expression(&self, expression: P<Node>, type_arguments: Option<P<NodeList>>, arguments: Option<P<NodeList>>) -> P<Node> {
+    pub fn new_new_expression(
+        &self,
+        expression: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+        arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
         if type_arguments.is_some() {
-            self.new_node_with_rare(Kind::NewExpression, NewExpression {
-                expression,
-                arguments,
-            }, NewExpressionRare {
-                type_arguments,
-            })
+            self.new_node_with_rare(
+                Kind::NewExpression,
+                NewExpression { expression, arguments },
+                NewExpressionRare { type_arguments },
+            )
         } else {
-            self.new_node(Kind::NewExpression, NewExpression {
-                expression,
-                arguments,
-            })
+            self.new_node(Kind::NewExpression, NewExpression { expression, arguments })
         }
     }
 
-    pub fn update_new_expression(&self, node: P<Node>, expression: P<Node>, type_arguments: Option<P<NodeList>>, arguments: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_new_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+        arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_new_expression();
-        if expression != data.expression() || type_arguments != data.type_arguments() || arguments != data.arguments() {
-            return update_node(self.new_new_expression(expression, type_arguments, arguments), node, &self.hooks);
+        if expression != data.expression()
+            || type_arguments != data.type_arguments()
+            || arguments != data.arguments()
+        {
+            return update_node(
+                self.new_new_expression(expression, type_arguments, arguments),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_meta_property(&self, keyword_token: Kind, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::MetaProperty, MetaProperty {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+        self.new_node(
+            Kind::MetaProperty,
+            MetaProperty {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                keyword_token,
+                name,
             },
-            keyword_token,
-            name,
-        })
+        )
     }
 
-    pub fn update_meta_property(&self, node: P<Node>, keyword_token: Kind, name: P<Node>) -> P<Node> {
+    pub fn update_meta_property(
+        &self,
+        node: P<Node>,
+        keyword_token: Kind,
+        name: P<Node>,
+    ) -> P<Node> {
         let data = node.as_meta_property();
         if keyword_token != data.keyword_token() || name != data.name() {
             return update_node(self.new_meta_property(keyword_token, name), node, &self.hooks);
@@ -10998,14 +13850,17 @@ impl NodeFactory {
     }
 
     pub fn new_non_null_expression(&self, expression: P<Node>, flags: NodeFlags) -> P<Node> {
-        let node = self.new_node(Kind::NonNullExpression, NonNullExpression {
-            expression,
-        });
+        let node = self.new_node(Kind::NonNullExpression, NonNullExpression { expression });
         node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
-    pub fn update_non_null_expression(&self, node: P<Node>, expression: P<Node>, flags: NodeFlags) -> P<Node> {
+    pub fn update_non_null_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let data = node.as_non_null_expression();
         if expression != data.expression() || flags != node.flags.get() {
             return update_node(self.new_non_null_expression(expression, flags), node, &self.hooks);
@@ -11014,9 +13869,7 @@ impl NodeFactory {
     }
 
     pub fn new_spread_element(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::SpreadElement, SpreadElement {
-            expression,
-        })
+        self.new_node(Kind::SpreadElement, SpreadElement { expression })
     }
 
     pub fn update_spread_element(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11028,28 +13881,36 @@ impl NodeFactory {
     }
 
     pub fn new_template_expression(&self, head: P<Node>, template_spans: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::TemplateExpression, TemplateExpression {
-            head,
-            template_spans,
-        })
+        self.new_node(Kind::TemplateExpression, TemplateExpression { head, template_spans })
     }
 
-    pub fn update_template_expression(&self, node: P<Node>, head: P<Node>, template_spans: P<NodeList>) -> P<Node> {
+    pub fn update_template_expression(
+        &self,
+        node: P<Node>,
+        head: P<Node>,
+        template_spans: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_template_expression();
         if head != data.head() || template_spans != data.template_spans() {
-            return update_node(self.new_template_expression(head, template_spans), node, &self.hooks);
+            return update_node(
+                self.new_template_expression(head, template_spans),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_template_span(&self, expression: P<Node>, literal: P<Node>) -> P<Node> {
-        self.new_node(Kind::TemplateSpan, TemplateSpan {
-            expression,
-            literal,
-        })
+        self.new_node(Kind::TemplateSpan, TemplateSpan { expression, literal })
     }
 
-    pub fn update_template_span(&self, node: P<Node>, expression: P<Node>, literal: P<Node>) -> P<Node> {
+    pub fn update_template_span(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        literal: P<Node>,
+    ) -> P<Node> {
         let data = node.as_template_span();
         if expression != data.expression() || literal != data.literal() {
             return update_node(self.new_template_span(expression, literal), node, &self.hooks);
@@ -11057,29 +13918,58 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_tagged_template_expression(&self, tag: P<Node>, question_dot_token: Option<P<Node>>, type_arguments: Option<P<NodeList>>, template: P<Node>, flags: NodeFlags) -> P<Node> {
-        let node = self.new_node(Kind::TaggedTemplateExpression, TaggedTemplateExpression {
-            tag,
-            question_dot_token,
-            type_arguments,
-            template,
-        });
+    pub fn new_tagged_template_expression(
+        &self,
+        tag: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+        template: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
+        let node = self.new_node(
+            Kind::TaggedTemplateExpression,
+            TaggedTemplateExpression { tag, question_dot_token, type_arguments, template },
+        );
         node.flags.set(node.flags.get() | (flags & NodeFlags::OptionalChain));
         node
     }
 
-    pub fn update_tagged_template_expression(&self, node: P<Node>, tag: P<Node>, question_dot_token: Option<P<Node>>, type_arguments: Option<P<NodeList>>, template: P<Node>, flags: NodeFlags) -> P<Node> {
+    pub fn update_tagged_template_expression(
+        &self,
+        node: P<Node>,
+        tag: P<Node>,
+        question_dot_token: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+        template: P<Node>,
+        flags: NodeFlags,
+    ) -> P<Node> {
         let data = node.as_tagged_template_expression();
-        if tag != data.tag() || question_dot_token != data.question_dot_token() || type_arguments != data.type_arguments() || template != data.template() || flags != node.flags.get() {
-            return update_node(self.new_tagged_template_expression(tag, question_dot_token, type_arguments, template, flags), node, &self.hooks);
+        if tag != data.tag()
+            || question_dot_token != data.question_dot_token()
+            || type_arguments != data.type_arguments()
+            || template != data.template()
+            || flags != node.flags.get()
+        {
+            return update_node(
+                self.new_tagged_template_expression(
+                    tag,
+                    question_dot_token,
+                    type_arguments,
+                    template,
+                    flags,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_parenthesized_expression(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::ParenthesizedExpression, ParenthesizedExpression {
-            expression: OwnedCell::new(expression),
-        })
+        self.new_node(
+            Kind::ParenthesizedExpression,
+            ParenthesizedExpression { expression: OwnedCell::new(expression) },
+        )
     }
 
     pub fn update_parenthesized_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11091,45 +13981,66 @@ impl NodeFactory {
     }
 
     pub fn new_array_literal_expression(&self, elements: P<NodeList>, multi_line: bool) -> P<Node> {
-        self.new_node(Kind::ArrayLiteralExpression, ArrayLiteralExpression {
-            elements,
-            multi_line,
-        })
+        self.new_node(Kind::ArrayLiteralExpression, ArrayLiteralExpression { elements, multi_line })
     }
 
-    pub fn update_array_literal_expression(&self, node: P<Node>, elements: P<NodeList>, multi_line: bool) -> P<Node> {
+    pub fn update_array_literal_expression(
+        &self,
+        node: P<Node>,
+        elements: P<NodeList>,
+        multi_line: bool,
+    ) -> P<Node> {
         let data = node.as_array_literal_expression();
         if elements != data.elements() || multi_line != data.multi_line() {
-            return update_node(self.new_array_literal_expression(elements, multi_line), node, &self.hooks);
+            return update_node(
+                self.new_array_literal_expression(elements, multi_line),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_object_literal_expression(&self, properties: P<NodeList>, multi_line: bool) -> P<Node> {
-        self.new_node(Kind::ObjectLiteralExpression, ObjectLiteralExpression {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_object_literal_expression(
+        &self,
+        properties: P<NodeList>,
+        multi_line: bool,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ObjectLiteralExpression,
+            ObjectLiteralExpression {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                properties,
+                multi_line,
             },
-            properties,
-            multi_line,
-        })
+        )
     }
 
-    pub fn update_object_literal_expression(&self, node: P<Node>, properties: P<NodeList>, multi_line: bool) -> P<Node> {
+    pub fn update_object_literal_expression(
+        &self,
+        node: P<Node>,
+        properties: P<NodeList>,
+        multi_line: bool,
+    ) -> P<Node> {
         let data = node.as_object_literal_expression();
         if properties != data.properties() || multi_line != data.multi_line() {
-            return update_node(self.new_object_literal_expression(properties, multi_line), node, &self.hooks);
+            return update_node(
+                self.new_object_literal_expression(properties, multi_line),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_spread_assignment(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::SpreadAssignment, SpreadAssignment {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::SpreadAssignment,
+            SpreadAssignment {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                expression,
             },
-            expression,
-        })
+        )
     }
 
     pub fn update_spread_assignment(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11140,61 +14051,121 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_property_assignment(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: P<Node>) -> P<Node> {
-        self.new_node(Kind::PropertyAssignment, PropertyAssignment {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_property_assignment(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::PropertyAssignment,
+            PropertyAssignment {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token,
                 },
-                name,
-                postfix_token,
+                type_: OwnedCell::new(type_node),
+                initializer: OwnedCell::new(initializer),
             },
-            type_: OwnedCell::new(type_node),
-            initializer: OwnedCell::new(initializer),
-        })
+        )
     }
 
-    pub fn update_property_assignment(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, initializer: P<Node>) -> P<Node> {
+    pub fn update_property_assignment(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        initializer: P<Node>,
+    ) -> P<Node> {
         let data = node.as_property_assignment();
-        if modifiers != data.modifiers() || name != data.name() || postfix_token != data.postfix_token() || type_node != data.type_() || initializer != data.initializer() {
-            return update_node(self.new_property_assignment(modifiers, name, postfix_token, type_node, initializer), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || postfix_token != data.postfix_token()
+            || type_node != data.type_()
+            || initializer != data.initializer()
+        {
+            return update_node(
+                self.new_property_assignment(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_node,
+                    initializer,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_shorthand_property_assignment(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, equals_token: Option<P<Node>>, object_assignment_initializer: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ShorthandPropertyAssignment, ShorthandPropertyAssignment {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            named_member_base: NamedMemberBase {
-                modifiers_base: ModifiersBase {
-                    modifiers: OwnedCell::new(modifiers),
+    pub fn new_shorthand_property_assignment(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        equals_token: Option<P<Node>>,
+        object_assignment_initializer: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ShorthandPropertyAssignment,
+            ShorthandPropertyAssignment {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                named_member_base: NamedMemberBase {
+                    modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                    name,
+                    postfix_token,
                 },
-                name,
-                postfix_token,
+                type_: OwnedCell::new(type_node),
+                equals_token,
+                object_assignment_initializer: OwnedCell::new(object_assignment_initializer),
             },
-            type_: OwnedCell::new(type_node),
-            equals_token,
-            object_assignment_initializer: OwnedCell::new(object_assignment_initializer),
-        })
+        )
     }
 
-    pub fn update_shorthand_property_assignment(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, postfix_token: Option<P<Node>>, type_node: Option<P<Node>>, equals_token: Option<P<Node>>, object_assignment_initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_shorthand_property_assignment(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        postfix_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        equals_token: Option<P<Node>>,
+        object_assignment_initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_shorthand_property_assignment();
-        if modifiers != data.modifiers() || name != data.name() || postfix_token != data.postfix_token() || type_node != data.type_() || equals_token != data.equals_token() || object_assignment_initializer != data.object_assignment_initializer() {
-            return update_node(self.new_shorthand_property_assignment(modifiers, name, postfix_token, type_node, equals_token, object_assignment_initializer), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || postfix_token != data.postfix_token()
+            || type_node != data.type_()
+            || equals_token != data.equals_token()
+            || object_assignment_initializer != data.object_assignment_initializer()
+        {
+            return update_node(
+                self.new_shorthand_property_assignment(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_node,
+                    equals_token,
+                    object_assignment_initializer,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_delete_expression(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::DeleteExpression, DeleteExpression {
-            expression,
-        })
+        self.new_node(Kind::DeleteExpression, DeleteExpression { expression })
     }
 
     pub fn update_delete_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11206,9 +14177,7 @@ impl NodeFactory {
     }
 
     pub fn new_type_of_expression(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::TypeOfExpression, TypeOfExpression {
-            expression,
-        })
+        self.new_node(Kind::TypeOfExpression, TypeOfExpression { expression })
     }
 
     pub fn update_type_of_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11220,9 +14189,7 @@ impl NodeFactory {
     }
 
     pub fn new_void_expression(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::VoidExpression, VoidExpression {
-            expression,
-        })
+        self.new_node(Kind::VoidExpression, VoidExpression { expression })
     }
 
     pub fn update_void_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11234,9 +14201,7 @@ impl NodeFactory {
     }
 
     pub fn new_await_expression(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::AwaitExpression, AwaitExpression {
-            expression,
-        })
+        self.new_node(Kind::AwaitExpression, AwaitExpression { expression })
     }
 
     pub fn update_await_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11248,13 +14213,15 @@ impl NodeFactory {
     }
 
     pub fn new_type_assertion(&self, type_node: P<Node>, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::TypeAssertionExpression, TypeAssertion {
-            type_: type_node,
-            expression,
-        })
+        self.new_node(Kind::TypeAssertionExpression, TypeAssertion { type_: type_node, expression })
     }
 
-    pub fn update_type_assertion(&self, node: P<Node>, type_node: P<Node>, expression: P<Node>) -> P<Node> {
+    pub fn update_type_assertion(
+        &self,
+        node: P<Node>,
+        type_node: P<Node>,
+        expression: P<Node>,
+    ) -> P<Node> {
         let data = node.as_type_assertion();
         if type_node != data.type_() || expression != data.expression() {
             return update_node(self.new_type_assertion(type_node, expression), node, &self.hooks);
@@ -11267,11 +14234,12 @@ impl NodeFactory {
     }
 
     pub fn new_union_type_node(&self, types: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::UnionType, UnionTypeNode {
-            union_or_intersection_type_node_base: UnionOrIntersectionTypeNodeBase {
-                types,
+        self.new_node(
+            Kind::UnionType,
+            UnionTypeNode {
+                union_or_intersection_type_node_base: UnionOrIntersectionTypeNodeBase { types },
             },
-        })
+        )
     }
 
     pub fn update_union_type_node(&self, node: P<Node>, types: P<NodeList>) -> P<Node> {
@@ -11283,11 +14251,12 @@ impl NodeFactory {
     }
 
     pub fn new_intersection_type_node(&self, types: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::IntersectionType, IntersectionTypeNode {
-            union_or_intersection_type_node_base: UnionOrIntersectionTypeNodeBase {
-                types,
+        self.new_node(
+            Kind::IntersectionType,
+            IntersectionTypeNode {
+                union_or_intersection_type_node_base: UnionOrIntersectionTypeNodeBase { types },
             },
-        })
+        )
     }
 
     pub fn update_intersection_type_node(&self, node: P<Node>, types: P<NodeList>) -> P<Node> {
@@ -11298,46 +14267,74 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_conditional_type_node(&self, check_type: P<Node>, extends_type: P<Node>, true_type: P<Node>, false_type: P<Node>) -> P<Node> {
-        self.new_node(Kind::ConditionalType, ConditionalTypeNode {
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
+    pub fn new_conditional_type_node(
+        &self,
+        check_type: P<Node>,
+        extends_type: P<Node>,
+        true_type: P<Node>,
+        false_type: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ConditionalType,
+            ConditionalTypeNode {
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                check_type,
+                extends_type,
+                true_type,
+                false_type,
             },
-            check_type,
-            extends_type,
-            true_type,
-            false_type,
-        })
+        )
     }
 
-    pub fn update_conditional_type_node(&self, node: P<Node>, check_type: P<Node>, extends_type: P<Node>, true_type: P<Node>, false_type: P<Node>) -> P<Node> {
+    pub fn update_conditional_type_node(
+        &self,
+        node: P<Node>,
+        check_type: P<Node>,
+        extends_type: P<Node>,
+        true_type: P<Node>,
+        false_type: P<Node>,
+    ) -> P<Node> {
         let data = node.as_conditional_type_node();
-        if check_type != data.check_type() || extends_type != data.extends_type() || true_type != data.true_type() || false_type != data.false_type() {
-            return update_node(self.new_conditional_type_node(check_type, extends_type, true_type, false_type), node, &self.hooks);
+        if check_type != data.check_type()
+            || extends_type != data.extends_type()
+            || true_type != data.true_type()
+            || false_type != data.false_type()
+        {
+            return update_node(
+                self.new_conditional_type_node(check_type, extends_type, true_type, false_type),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_type_operator_node(&self, operator: Kind, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::TypeOperator, TypeOperatorNode {
-            operator,
-            type_: type_node,
-        })
+        self.new_node(Kind::TypeOperator, TypeOperatorNode { operator, type_: type_node })
     }
 
-    pub fn update_type_operator_node(&self, node: P<Node>, operator: Kind, type_node: P<Node>) -> P<Node> {
+    pub fn update_type_operator_node(
+        &self,
+        node: P<Node>,
+        operator: Kind,
+        type_node: P<Node>,
+    ) -> P<Node> {
         let data = node.as_type_operator_node();
         if operator != data.operator() || type_node != data.type_() {
-            return update_node(self.new_type_operator_node(operator, type_node), node, &self.hooks);
+            return update_node(
+                self.new_type_operator_node(operator, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_infer_type_node(&self, type_parameter: P<Node>) -> P<Node> {
-        self.new_node(Kind::InferType, InferTypeNode {
-            type_parameter,
-        })
+        self.new_node(Kind::InferType, InferTypeNode { type_parameter })
     }
 
     pub fn update_infer_type_node(&self, node: P<Node>, type_parameter: P<Node>) -> P<Node> {
@@ -11349,9 +14346,7 @@ impl NodeFactory {
     }
 
     pub fn new_array_type_node(&self, element_type: P<Node>) -> P<Node> {
-        self.new_node(Kind::ArrayType, ArrayTypeNode {
-            element_type,
-        })
+        self.new_node(Kind::ArrayType, ArrayTypeNode { element_type })
     }
 
     pub fn update_array_type_node(&self, node: P<Node>, element_type: P<Node>) -> P<Node> {
@@ -11362,57 +14357,95 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_indexed_access_type_node(&self, object_type: P<Node>, index_type: P<Node>) -> P<Node> {
-        self.new_node(Kind::IndexedAccessType, IndexedAccessTypeNode {
-            object_type,
-            index_type,
-        })
+    pub fn new_indexed_access_type_node(
+        &self,
+        object_type: P<Node>,
+        index_type: P<Node>,
+    ) -> P<Node> {
+        self.new_node(Kind::IndexedAccessType, IndexedAccessTypeNode { object_type, index_type })
     }
 
-    pub fn update_indexed_access_type_node(&self, node: P<Node>, object_type: P<Node>, index_type: P<Node>) -> P<Node> {
+    pub fn update_indexed_access_type_node(
+        &self,
+        node: P<Node>,
+        object_type: P<Node>,
+        index_type: P<Node>,
+    ) -> P<Node> {
         let data = node.as_indexed_access_type_node();
         if object_type != data.object_type() || index_type != data.index_type() {
-            return update_node(self.new_indexed_access_type_node(object_type, index_type), node, &self.hooks);
+            return update_node(
+                self.new_indexed_access_type_node(object_type, index_type),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_type_reference_node(&self, type_name: P<Node>, type_arguments: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::TypeReference, TypeReferenceNode {
-            node_with_type_arguments_base: NodeWithTypeArgumentsBase {
-                type_arguments,
+    pub fn new_type_reference_node(
+        &self,
+        type_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::TypeReference,
+            TypeReferenceNode {
+                node_with_type_arguments_base: NodeWithTypeArgumentsBase { type_arguments },
+                type_name,
             },
-            type_name,
-        })
+        )
     }
 
-    pub fn update_type_reference_node(&self, node: P<Node>, type_name: P<Node>, type_arguments: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_type_reference_node(
+        &self,
+        node: P<Node>,
+        type_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_type_reference_node();
         if type_name != data.type_name() || type_arguments != data.type_arguments() {
-            return update_node(self.new_type_reference_node(type_name, type_arguments), node, &self.hooks);
+            return update_node(
+                self.new_type_reference_node(type_name, type_arguments),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_expression_with_type_arguments(&self, expression: P<Node>, type_arguments: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::ExpressionWithTypeArguments, ExpressionWithTypeArguments {
-            expression,
-            type_arguments: OwnedCell::new(type_arguments),
-        })
+    pub fn new_expression_with_type_arguments(
+        &self,
+        expression: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ExpressionWithTypeArguments,
+            ExpressionWithTypeArguments {
+                expression,
+                type_arguments: OwnedCell::new(type_arguments),
+            },
+        )
     }
 
-    pub fn update_expression_with_type_arguments(&self, node: P<Node>, expression: P<Node>, type_arguments: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_expression_with_type_arguments(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_expression_with_type_arguments();
         if expression != data.expression() || type_arguments != data.type_arguments() {
-            return update_node(self.new_expression_with_type_arguments(expression, type_arguments), node, &self.hooks);
+            return update_node(
+                self.new_expression_with_type_arguments(expression, type_arguments),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_literal_type_node(&self, literal: P<Node>) -> P<Node> {
-        self.new_node(Kind::LiteralType, LiteralTypeNode {
-            literal,
-        })
+        self.new_node(Kind::LiteralType, LiteralTypeNode { literal })
     }
 
     pub fn update_literal_type_node(&self, node: P<Node>, literal: P<Node>) -> P<Node> {
@@ -11427,30 +14460,49 @@ impl NodeFactory {
         self.new_empty_node(Kind::ThisType, NodeDataTag::ThisTypeNode)
     }
 
-    pub fn new_type_predicate_node(&self, asserts_modifier: Option<P<Node>>, parameter_name: P<Node>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::TypePredicate, TypePredicateNode {
-            asserts_modifier,
-            parameter_name,
-            type_: type_node,
-        })
+    pub fn new_type_predicate_node(
+        &self,
+        asserts_modifier: Option<P<Node>>,
+        parameter_name: P<Node>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::TypePredicate,
+            TypePredicateNode { asserts_modifier, parameter_name, type_: type_node },
+        )
     }
 
-    pub fn update_type_predicate_node(&self, node: P<Node>, asserts_modifier: Option<P<Node>>, parameter_name: P<Node>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_type_predicate_node(
+        &self,
+        node: P<Node>,
+        asserts_modifier: Option<P<Node>>,
+        parameter_name: P<Node>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_type_predicate_node();
-        if asserts_modifier != data.asserts_modifier() || parameter_name != data.parameter_name() || type_node != data.type_() {
-            return update_node(self.new_type_predicate_node(asserts_modifier, parameter_name, type_node), node, &self.hooks);
+        if asserts_modifier != data.asserts_modifier()
+            || parameter_name != data.parameter_name()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_type_predicate_node(asserts_modifier, parameter_name, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_import_attribute(&self, name: Option<P<Node>>, value: P<Node>) -> P<Node> {
-        self.new_node(Kind::ImportAttribute, ImportAttribute {
-            name,
-            value,
-        })
+        self.new_node(Kind::ImportAttribute, ImportAttribute { name, value })
     }
 
-    pub fn update_import_attribute(&self, node: P<Node>, name: Option<P<Node>>, value: P<Node>) -> P<Node> {
+    pub fn update_import_attribute(
+        &self,
+        node: P<Node>,
+        name: Option<P<Node>>,
+        value: P<Node>,
+    ) -> P<Node> {
         let data = node.as_import_attribute();
         if name != data.name() || value != data.value() {
             return update_node(self.new_import_attribute(name, value), node, &self.hooks);
@@ -11458,72 +14510,136 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_import_attributes(&self, token: Kind, attributes: P<NodeList>, multi_line: bool) -> P<Node> {
-        self.new_node(Kind::ImportAttributes, ImportAttributes {
-            token,
-            attributes,
-            multi_line,
-        })
+    pub fn new_import_attributes(
+        &self,
+        token: Kind,
+        attributes: P<NodeList>,
+        multi_line: bool,
+    ) -> P<Node> {
+        self.new_node(Kind::ImportAttributes, ImportAttributes { token, attributes, multi_line })
     }
 
-    pub fn update_import_attributes(&self, node: P<Node>, token: Kind, attributes: P<NodeList>, multi_line: bool) -> P<Node> {
+    pub fn update_import_attributes(
+        &self,
+        node: P<Node>,
+        token: Kind,
+        attributes: P<NodeList>,
+        multi_line: bool,
+    ) -> P<Node> {
         let data = node.as_import_attributes();
-        if token != data.token() || attributes != data.attributes() || multi_line != data.multi_line() {
-            return update_node(self.new_import_attributes(token, attributes, multi_line), node, &self.hooks);
+        if token != data.token()
+            || attributes != data.attributes()
+            || multi_line != data.multi_line()
+        {
+            return update_node(
+                self.new_import_attributes(token, attributes, multi_line),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_type_query_node(&self, expr_name: P<Node>, type_arguments: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::TypeQuery, TypeQueryNode {
-            node_with_type_arguments_base: NodeWithTypeArgumentsBase {
-                type_arguments,
+    pub fn new_type_query_node(
+        &self,
+        expr_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::TypeQuery,
+            TypeQueryNode {
+                node_with_type_arguments_base: NodeWithTypeArgumentsBase { type_arguments },
+                expr_name,
             },
-            expr_name,
-        })
+        )
     }
 
-    pub fn update_type_query_node(&self, node: P<Node>, expr_name: P<Node>, type_arguments: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_type_query_node(
+        &self,
+        node: P<Node>,
+        expr_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_type_query_node();
         if expr_name != data.expr_name() || type_arguments != data.type_arguments() {
-            return update_node(self.new_type_query_node(expr_name, type_arguments), node, &self.hooks);
+            return update_node(
+                self.new_type_query_node(expr_name, type_arguments),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_mapped_type_node(&self, readonly_token: Option<P<Node>>, type_parameter: P<Node>, name_type: Option<P<Node>>, question_token: Option<P<Node>>, type_node: Option<P<Node>>, members: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::MappedType, MappedTypeNode {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_mapped_type_node(
+        &self,
+        readonly_token: Option<P<Node>>,
+        type_parameter: P<Node>,
+        name_type: Option<P<Node>>,
+        question_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        members: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::MappedType,
+            MappedTypeNode {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                readonly_token,
+                type_parameter,
+                name_type,
+                question_token,
+                type_: type_node,
+                members,
             },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            readonly_token,
-            type_parameter,
-            name_type,
-            question_token,
-            type_: type_node,
-            members,
-        })
+        )
     }
 
-    pub fn update_mapped_type_node(&self, node: P<Node>, readonly_token: Option<P<Node>>, type_parameter: P<Node>, name_type: Option<P<Node>>, question_token: Option<P<Node>>, type_node: Option<P<Node>>, members: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_mapped_type_node(
+        &self,
+        node: P<Node>,
+        readonly_token: Option<P<Node>>,
+        type_parameter: P<Node>,
+        name_type: Option<P<Node>>,
+        question_token: Option<P<Node>>,
+        type_node: Option<P<Node>>,
+        members: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_mapped_type_node();
-        if readonly_token != data.readonly_token() || type_parameter != data.type_parameter() || name_type != data.name_type() || question_token != data.question_token() || type_node != data.type_() || members != data.members() {
-            return update_node(self.new_mapped_type_node(readonly_token, type_parameter, name_type, question_token, type_node, members), node, &self.hooks);
+        if readonly_token != data.readonly_token()
+            || type_parameter != data.type_parameter()
+            || name_type != data.name_type()
+            || question_token != data.question_token()
+            || type_node != data.type_()
+            || members != data.members()
+        {
+            return update_node(
+                self.new_mapped_type_node(
+                    readonly_token,
+                    type_parameter,
+                    name_type,
+                    question_token,
+                    type_node,
+                    members,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_type_literal_node(&self, members: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::TypeLiteral, TypeLiteralNode {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::TypeLiteral,
+            TypeLiteralNode {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                members,
             },
-            members,
-        })
+        )
     }
 
     pub fn update_type_literal_node(&self, node: P<Node>, members: P<NodeList>) -> P<Node> {
@@ -11535,9 +14651,7 @@ impl NodeFactory {
     }
 
     pub fn new_tuple_type_node(&self, elements: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::TupleType, TupleTypeNode {
-            elements,
-        })
+        self.new_node(Kind::TupleType, TupleTypeNode { elements })
     }
 
     pub fn update_tuple_type_node(&self, node: P<Node>, elements: P<NodeList>) -> P<Node> {
@@ -11548,30 +14662,50 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_named_tuple_member(&self, dot_dot_dot_token: Option<P<Node>>, name: P<Node>, question_token: Option<P<Node>>, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::NamedTupleMember, NamedTupleMember {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_named_tuple_member(
+        &self,
+        dot_dot_dot_token: Option<P<Node>>,
+        name: P<Node>,
+        question_token: Option<P<Node>>,
+        type_node: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::NamedTupleMember,
+            NamedTupleMember {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                dot_dot_dot_token,
+                name,
+                question_token,
+                type_: type_node,
             },
-            dot_dot_dot_token,
-            name,
-            question_token,
-            type_: type_node,
-        })
+        )
     }
 
-    pub fn update_named_tuple_member(&self, node: P<Node>, dot_dot_dot_token: Option<P<Node>>, name: P<Node>, question_token: Option<P<Node>>, type_node: P<Node>) -> P<Node> {
+    pub fn update_named_tuple_member(
+        &self,
+        node: P<Node>,
+        dot_dot_dot_token: Option<P<Node>>,
+        name: P<Node>,
+        question_token: Option<P<Node>>,
+        type_node: P<Node>,
+    ) -> P<Node> {
         let data = node.as_named_tuple_member();
-        if dot_dot_dot_token != data.dot_dot_dot_token() || name != data.name() || question_token != data.question_token() || type_node != data.type_() {
-            return update_node(self.new_named_tuple_member(dot_dot_dot_token, name, question_token, type_node), node, &self.hooks);
+        if dot_dot_dot_token != data.dot_dot_dot_token()
+            || name != data.name()
+            || question_token != data.question_token()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_named_tuple_member(dot_dot_dot_token, name, question_token, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_optional_type_node(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::OptionalType, OptionalTypeNode {
-            type_: type_node,
-        })
+        self.new_node(Kind::OptionalType, OptionalTypeNode { type_: type_node })
     }
 
     pub fn update_optional_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -11583,9 +14717,7 @@ impl NodeFactory {
     }
 
     pub fn new_rest_type_node(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::RestType, RestTypeNode {
-            type_: type_node,
-        })
+        self.new_node(Kind::RestType, RestTypeNode { type_: type_node })
     }
 
     pub fn update_rest_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -11597,9 +14729,7 @@ impl NodeFactory {
     }
 
     pub fn new_parenthesized_type_node(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::ParenthesizedType, ParenthesizedTypeNode {
-            type_: type_node,
-        })
+        self.new_node(Kind::ParenthesizedType, ParenthesizedTypeNode { type_: type_node })
     }
 
     pub fn update_parenthesized_type_node(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -11610,189 +14740,309 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_function_type_node(&self, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::FunctionType, FunctionTypeNode {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(None),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_function_type_node(
+        &self,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::FunctionType,
+            FunctionTypeNode {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(None) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_function_type_node(&self, node: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_function_type_node(
+        &self,
+        node: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_function_type_node();
-        if type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_function_type_node(type_parameters, parameters, type_node), node, &self.hooks);
+        if type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_function_type_node(type_parameters, parameters, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_constructor_type_node(&self, modifiers: Option<P<ModifierList>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ConstructorType, ConstructorTypeNode {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_constructor_type_node(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ConstructorType,
+            ConstructorTypeNode {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_constructor_type_node(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_constructor_type_node(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_constructor_type_node();
-        if modifiers != data.modifiers() || type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_constructor_type_node(modifiers, type_parameters, parameters, type_node), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_constructor_type_node(modifiers, type_parameters, parameters, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_template_head(&self, text: &'static str, raw_text: &'static str, template_flags: TokenFlags) -> P<Node> {
+    pub fn new_template_head(
+        &self,
+        text: &'static str,
+        raw_text: &'static str,
+        template_flags: TokenFlags,
+    ) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::TemplateHead, TemplateHead {
-            template_literal_like_node_base: TemplateLiteralLikeNodeBase {
-                literal_like_node_base: LiteralLikeNodeBase {
-                    text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(TokenFlags::None),
+        self.new_node(
+            Kind::TemplateHead,
+            TemplateHead {
+                template_literal_like_node_base: TemplateLiteralLikeNodeBase {
+                    literal_like_node_base: LiteralLikeNodeBase {
+                        text: PackedStr::new(text),
+                        token_flags: OwnedCell::new(TokenFlags::None),
+                    },
+                    raw_text,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
-                raw_text,
-                template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
             },
-        })
+        )
     }
 
-    pub fn new_template_middle(&self, text: &'static str, raw_text: &'static str, template_flags: TokenFlags) -> P<Node> {
+    pub fn new_template_middle(
+        &self,
+        text: &'static str,
+        raw_text: &'static str,
+        template_flags: TokenFlags,
+    ) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::TemplateMiddle, TemplateMiddle {
-            template_literal_like_node_base: TemplateLiteralLikeNodeBase {
-                literal_like_node_base: LiteralLikeNodeBase {
-                    text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(TokenFlags::None),
+        self.new_node(
+            Kind::TemplateMiddle,
+            TemplateMiddle {
+                template_literal_like_node_base: TemplateLiteralLikeNodeBase {
+                    literal_like_node_base: LiteralLikeNodeBase {
+                        text: PackedStr::new(text),
+                        token_flags: OwnedCell::new(TokenFlags::None),
+                    },
+                    raw_text,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
-                raw_text,
-                template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
             },
-        })
+        )
     }
 
-    pub fn new_template_tail(&self, text: &'static str, raw_text: &'static str, template_flags: TokenFlags) -> P<Node> {
+    pub fn new_template_tail(
+        &self,
+        text: &'static str,
+        raw_text: &'static str,
+        template_flags: TokenFlags,
+    ) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::TemplateTail, TemplateTail {
-            template_literal_like_node_base: TemplateLiteralLikeNodeBase {
-                literal_like_node_base: LiteralLikeNodeBase {
-                    text: PackedStr::new(text),
-                    token_flags: OwnedCell::new(TokenFlags::None),
+        self.new_node(
+            Kind::TemplateTail,
+            TemplateTail {
+                template_literal_like_node_base: TemplateLiteralLikeNodeBase {
+                    literal_like_node_base: LiteralLikeNodeBase {
+                        text: PackedStr::new(text),
+                        token_flags: OwnedCell::new(TokenFlags::None),
+                    },
+                    raw_text,
+                    template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
                 },
-                raw_text,
-                template_flags: template_flags & TokenFlags::TemplateLiteralLikeFlags,
             },
-        })
+        )
     }
 
-    pub fn new_template_literal_type_node(&self, head: P<Node>, template_spans: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::TemplateLiteralType, TemplateLiteralTypeNode {
-            head,
-            template_spans,
-        })
+    pub fn new_template_literal_type_node(
+        &self,
+        head: P<Node>,
+        template_spans: P<NodeList>,
+    ) -> P<Node> {
+        self.new_node(Kind::TemplateLiteralType, TemplateLiteralTypeNode { head, template_spans })
     }
 
-    pub fn update_template_literal_type_node(&self, node: P<Node>, head: P<Node>, template_spans: P<NodeList>) -> P<Node> {
+    pub fn update_template_literal_type_node(
+        &self,
+        node: P<Node>,
+        head: P<Node>,
+        template_spans: P<NodeList>,
+    ) -> P<Node> {
         let data = node.as_template_literal_type_node();
         if head != data.head() || template_spans != data.template_spans() {
-            return update_node(self.new_template_literal_type_node(head, template_spans), node, &self.hooks);
+            return update_node(
+                self.new_template_literal_type_node(head, template_spans),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_template_literal_type_span(&self, type_node: P<Node>, literal: P<Node>) -> P<Node> {
-        self.new_node(Kind::TemplateLiteralTypeSpan, TemplateLiteralTypeSpan {
-            type_: type_node,
-            literal,
-        })
+        self.new_node(
+            Kind::TemplateLiteralTypeSpan,
+            TemplateLiteralTypeSpan { type_: type_node, literal },
+        )
     }
 
-    pub fn update_template_literal_type_span(&self, node: P<Node>, type_node: P<Node>, literal: P<Node>) -> P<Node> {
+    pub fn update_template_literal_type_span(
+        &self,
+        node: P<Node>,
+        type_node: P<Node>,
+        literal: P<Node>,
+    ) -> P<Node> {
         let data = node.as_template_literal_type_span();
         if type_node != data.type_() || literal != data.literal() {
-            return update_node(self.new_template_literal_type_span(type_node, literal), node, &self.hooks);
+            return update_node(
+                self.new_template_literal_type_span(type_node, literal),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_synthetic_expression(&self, type_node: &'static dyn Any, is_spread: bool, tuple_name_source: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::SyntheticExpression, SyntheticExpression {
-            type_: type_node,
-            is_spread,
-            tuple_name_source,
-        })
+    pub fn new_synthetic_expression(
+        &self,
+        type_node: &'static dyn Any,
+        is_spread: bool,
+        tuple_name_source: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::SyntheticExpression,
+            SyntheticExpression { type_: type_node, is_spread, tuple_name_source },
+        )
     }
 
-    pub fn update_synthetic_expression(&self, node: P<Node>, type_node: &'static dyn Any, is_spread: bool, tuple_name_source: Option<P<Node>>) -> P<Node> {
+    pub fn update_synthetic_expression(
+        &self,
+        node: P<Node>,
+        type_node: &'static dyn Any,
+        is_spread: bool,
+        tuple_name_source: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_synthetic_expression();
-        if !std::ptr::addr_eq(std::ptr::from_ref::<dyn Any>(type_node), std::ptr::from_ref::<dyn Any>(data.type_())) || is_spread != data.is_spread() || tuple_name_source != data.tuple_name_source() {
-            return update_node(self.new_synthetic_expression(type_node, is_spread, tuple_name_source), node, &self.hooks);
+        if !std::ptr::addr_eq(
+            std::ptr::from_ref::<dyn Any>(type_node),
+            std::ptr::from_ref::<dyn Any>(data.type_()),
+        ) || is_spread != data.is_spread()
+            || tuple_name_source != data.tuple_name_source()
+        {
+            return update_node(
+                self.new_synthetic_expression(type_node, is_spread, tuple_name_source),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_partially_emitted_expression(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::PartiallyEmittedExpression, PartiallyEmittedExpression {
-            expression,
-        })
+        self.new_node(Kind::PartiallyEmittedExpression, PartiallyEmittedExpression { expression })
     }
 
-    pub fn update_partially_emitted_expression(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
+    pub fn update_partially_emitted_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+    ) -> P<Node> {
         let data = node.as_partially_emitted_expression();
         if expression != data.expression() {
-            return update_node(self.new_partially_emitted_expression(expression), node, &self.hooks);
+            return update_node(
+                self.new_partially_emitted_expression(expression),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsx_element(&self, opening_element: P<Node>, children: P<NodeList>, closing_element: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxElement, JsxElement {
-            opening_element,
-            children,
-            closing_element,
-        })
+    pub fn new_jsx_element(
+        &self,
+        opening_element: P<Node>,
+        children: P<NodeList>,
+        closing_element: P<Node>,
+    ) -> P<Node> {
+        self.new_node(Kind::JsxElement, JsxElement { opening_element, children, closing_element })
     }
 
-    pub fn update_jsx_element(&self, node: P<Node>, opening_element: P<Node>, children: P<NodeList>, closing_element: P<Node>) -> P<Node> {
+    pub fn update_jsx_element(
+        &self,
+        node: P<Node>,
+        opening_element: P<Node>,
+        children: P<NodeList>,
+        closing_element: P<Node>,
+    ) -> P<Node> {
         let data = node.as_jsx_element();
-        if opening_element != data.opening_element() || children != data.children() || closing_element != data.closing_element() {
-            return update_node(self.new_jsx_element(opening_element, children, closing_element), node, &self.hooks);
+        if opening_element != data.opening_element()
+            || children != data.children()
+            || closing_element != data.closing_element()
+        {
+            return update_node(
+                self.new_jsx_element(opening_element, children, closing_element),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_jsx_attributes(&self, properties: P<NodeList>) -> P<Node> {
-        self.new_node(Kind::JsxAttributes, JsxAttributes {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::JsxAttributes,
+            JsxAttributes {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                properties,
             },
-            properties,
-        })
+        )
     }
 
     pub fn update_jsx_attributes(&self, node: P<Node>, properties: P<NodeList>) -> P<Node> {
@@ -11804,13 +15054,15 @@ impl NodeFactory {
     }
 
     pub fn new_jsx_namespaced_name(&self, namespace: P<Node>, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxNamespacedName, JsxNamespacedName {
-            namespace,
-            name,
-        })
+        self.new_node(Kind::JsxNamespacedName, JsxNamespacedName { namespace, name })
     }
 
-    pub fn update_jsx_namespaced_name(&self, node: P<Node>, namespace: P<Node>, name: P<Node>) -> P<Node> {
+    pub fn update_jsx_namespaced_name(
+        &self,
+        node: P<Node>,
+        namespace: P<Node>,
+        name: P<Node>,
+    ) -> P<Node> {
         let data = node.as_jsx_namespaced_name();
         if namespace != data.namespace() || name != data.name() {
             return update_node(self.new_jsx_namespaced_name(namespace, name), node, &self.hooks);
@@ -11818,50 +15070,101 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsx_opening_element(&self, tag_name: P<Node>, type_arguments: Option<P<NodeList>>, attributes: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxOpeningElement, JsxOpeningElement {
-            tag_name,
-            type_arguments,
-            attributes,
-        })
+    pub fn new_jsx_opening_element(
+        &self,
+        tag_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+        attributes: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JsxOpeningElement,
+            JsxOpeningElement { tag_name, type_arguments, attributes },
+        )
     }
 
-    pub fn update_jsx_opening_element(&self, node: P<Node>, tag_name: P<Node>, type_arguments: Option<P<NodeList>>, attributes: P<Node>) -> P<Node> {
+    pub fn update_jsx_opening_element(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+        attributes: P<Node>,
+    ) -> P<Node> {
         let data = node.as_jsx_opening_element();
-        if tag_name != data.tag_name() || type_arguments != data.type_arguments() || attributes != data.attributes() {
-            return update_node(self.new_jsx_opening_element(tag_name, type_arguments, attributes), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_arguments != data.type_arguments()
+            || attributes != data.attributes()
+        {
+            return update_node(
+                self.new_jsx_opening_element(tag_name, type_arguments, attributes),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsx_self_closing_element(&self, tag_name: P<Node>, type_arguments: Option<P<NodeList>>, attributes: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxSelfClosingElement, JsxSelfClosingElement {
-            tag_name,
-            type_arguments,
-            attributes,
-        })
+    pub fn new_jsx_self_closing_element(
+        &self,
+        tag_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+        attributes: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JsxSelfClosingElement,
+            JsxSelfClosingElement { tag_name, type_arguments, attributes },
+        )
     }
 
-    pub fn update_jsx_self_closing_element(&self, node: P<Node>, tag_name: P<Node>, type_arguments: Option<P<NodeList>>, attributes: P<Node>) -> P<Node> {
+    pub fn update_jsx_self_closing_element(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_arguments: Option<P<NodeList>>,
+        attributes: P<Node>,
+    ) -> P<Node> {
         let data = node.as_jsx_self_closing_element();
-        if tag_name != data.tag_name() || type_arguments != data.type_arguments() || attributes != data.attributes() {
-            return update_node(self.new_jsx_self_closing_element(tag_name, type_arguments, attributes), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_arguments != data.type_arguments()
+            || attributes != data.attributes()
+        {
+            return update_node(
+                self.new_jsx_self_closing_element(tag_name, type_arguments, attributes),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsx_fragment(&self, opening_fragment: P<Node>, children: P<NodeList>, closing_fragment: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxFragment, JsxFragment {
-            opening_fragment,
-            children,
-            closing_fragment,
-        })
+    pub fn new_jsx_fragment(
+        &self,
+        opening_fragment: P<Node>,
+        children: P<NodeList>,
+        closing_fragment: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JsxFragment,
+            JsxFragment { opening_fragment, children, closing_fragment },
+        )
     }
 
-    pub fn update_jsx_fragment(&self, node: P<Node>, opening_fragment: P<Node>, children: P<NodeList>, closing_fragment: P<Node>) -> P<Node> {
+    pub fn update_jsx_fragment(
+        &self,
+        node: P<Node>,
+        opening_fragment: P<Node>,
+        children: P<NodeList>,
+        closing_fragment: P<Node>,
+    ) -> P<Node> {
         let data = node.as_jsx_fragment();
-        if opening_fragment != data.opening_fragment() || children != data.children() || closing_fragment != data.closing_fragment() {
-            return update_node(self.new_jsx_fragment(opening_fragment, children, closing_fragment), node, &self.hooks);
+        if opening_fragment != data.opening_fragment()
+            || children != data.children()
+            || closing_fragment != data.closing_fragment()
+        {
+            return update_node(
+                self.new_jsx_fragment(opening_fragment, children, closing_fragment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
@@ -11875,16 +15178,22 @@ impl NodeFactory {
     }
 
     pub fn new_jsx_attribute(&self, name: P<Node>, initializer: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::JsxAttribute, JsxAttribute {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::JsxAttribute,
+            JsxAttribute {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                name,
+                initializer,
             },
-            name,
-            initializer,
-        })
+        )
     }
 
-    pub fn update_jsx_attribute(&self, node: P<Node>, name: P<Node>, initializer: Option<P<Node>>) -> P<Node> {
+    pub fn update_jsx_attribute(
+        &self,
+        node: P<Node>,
+        name: P<Node>,
+        initializer: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_jsx_attribute();
         if name != data.name() || initializer != data.initializer() {
             return update_node(self.new_jsx_attribute(name, initializer), node, &self.hooks);
@@ -11893,12 +15202,13 @@ impl NodeFactory {
     }
 
     pub fn new_jsx_spread_attribute(&self, expression: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxSpreadAttribute, JsxSpreadAttribute {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+        self.new_node(
+            Kind::JsxSpreadAttribute,
+            JsxSpreadAttribute {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                expression,
             },
-            expression,
-        })
+        )
     }
 
     pub fn update_jsx_spread_attribute(&self, node: P<Node>, expression: P<Node>) -> P<Node> {
@@ -11910,9 +15220,7 @@ impl NodeFactory {
     }
 
     pub fn new_jsx_closing_element(&self, tag_name: P<Node>) -> P<Node> {
-        self.new_node(Kind::JsxClosingElement, JsxClosingElement {
-            tag_name,
-        })
+        self.new_node(Kind::JsxClosingElement, JsxClosingElement { tag_name })
     }
 
     pub fn update_jsx_closing_element(&self, node: P<Node>, tag_name: P<Node>) -> P<Node> {
@@ -11923,36 +15231,51 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsx_expression(&self, dot_dot_dot_token: Option<P<Node>>, expression: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::JsxExpression, JsxExpression {
-            dot_dot_dot_token,
-            expression,
-        })
+    pub fn new_jsx_expression(
+        &self,
+        dot_dot_dot_token: Option<P<Node>>,
+        expression: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(Kind::JsxExpression, JsxExpression { dot_dot_dot_token, expression })
     }
 
-    pub fn update_jsx_expression(&self, node: P<Node>, dot_dot_dot_token: Option<P<Node>>, expression: Option<P<Node>>) -> P<Node> {
+    pub fn update_jsx_expression(
+        &self,
+        node: P<Node>,
+        dot_dot_dot_token: Option<P<Node>>,
+        expression: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_jsx_expression();
         if dot_dot_dot_token != data.dot_dot_dot_token() || expression != data.expression() {
-            return update_node(self.new_jsx_expression(dot_dot_dot_token, expression), node, &self.hooks);
+            return update_node(
+                self.new_jsx_expression(dot_dot_dot_token, expression),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsx_text(&self, text: &'static str, contains_only_trivia_white_spaces: bool) -> P<Node> {
+    pub fn new_jsx_text(
+        &self,
+        text: &'static str,
+        contains_only_trivia_white_spaces: bool,
+    ) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::JsxText, JsxText {
-            literal_like_node_base: LiteralLikeNodeBase {
-                text: PackedStr::new(text),
-                token_flags: OwnedCell::new(TokenFlags::None),
+        self.new_node(
+            Kind::JsxText,
+            JsxText {
+                literal_like_node_base: LiteralLikeNodeBase {
+                    text: PackedStr::new(text),
+                    token_flags: OwnedCell::new(TokenFlags::None),
+                },
+                contains_only_trivia_white_spaces,
             },
-            contains_only_trivia_white_spaces,
-        })
+        )
     }
 
     pub fn new_syntax_list(&self, children: &'static [P<Node>]) -> P<Node> {
-        self.new_node(Kind::SyntaxList, SyntaxList {
-            children,
-        })
+        self.new_node(Kind::SyntaxList, SyntaxList { children })
     }
 
     pub fn update_syntax_list(&self, node: P<Node>, children: &'static [P<Node>]) -> P<Node> {
@@ -11964,13 +15287,15 @@ impl NodeFactory {
     }
 
     pub fn new_jsdoc(&self, comment: P<NodeList>, tags: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDoc, JSDoc {
-            comment,
-            tags,
-        })
+        self.new_node(Kind::JSDoc, JSDoc { comment, tags })
     }
 
-    pub fn update_jsdoc(&self, node: P<Node>, comment: P<NodeList>, tags: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc(
+        &self,
+        node: P<Node>,
+        comment: P<NodeList>,
+        tags: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc();
         if comment != data.comment() || tags != data.tags() {
             return update_node(self.new_jsdoc(comment, tags), node, &self.hooks);
@@ -11979,9 +15304,7 @@ impl NodeFactory {
     }
 
     pub fn new_jsdoc_type_expression(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::JSDocTypeExpression, JSDocTypeExpression {
-            type_: type_node,
-        })
+        self.new_node(Kind::JSDocTypeExpression, JSDocTypeExpression { type_: type_node })
     }
 
     pub fn update_jsdoc_type_expression(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -11993,9 +15316,7 @@ impl NodeFactory {
     }
 
     pub fn new_jsdoc_non_nullable_type(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::JSDocNonNullableType, JSDocNonNullableType {
-            type_: type_node,
-        })
+        self.new_node(Kind::JSDocNonNullableType, JSDocNonNullableType { type_: type_node })
     }
 
     pub fn update_jsdoc_non_nullable_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -12007,9 +15328,7 @@ impl NodeFactory {
     }
 
     pub fn new_jsdoc_nullable_type(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::JSDocNullableType, JSDocNullableType {
-            type_: type_node,
-        })
+        self.new_node(Kind::JSDocNullableType, JSDocNullableType { type_: type_node })
     }
 
     pub fn update_jsdoc_nullable_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -12025,9 +15344,7 @@ impl NodeFactory {
     }
 
     pub fn new_jsdoc_variadic_type(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::JSDocVariadicType, JSDocVariadicType {
-            type_: type_node,
-        })
+        self.new_node(Kind::JSDocVariadicType, JSDocVariadicType { type_: type_node })
     }
 
     pub fn update_jsdoc_variadic_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -12039,9 +15356,7 @@ impl NodeFactory {
     }
 
     pub fn new_jsdoc_optional_type(&self, type_node: P<Node>) -> P<Node> {
-        self.new_node(Kind::JSDocOptionalType, JSDocOptionalType {
-            type_: type_node,
-        })
+        self.new_node(Kind::JSDocOptionalType, JSDocOptionalType { type_: type_node })
     }
 
     pub fn update_jsdoc_optional_type(&self, node: P<Node>, type_node: P<Node>) -> P<Node> {
@@ -12052,34 +15367,56 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_type_tag(&self, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocTypeTag, JSDocTypeTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            type_expression,
-        })
+    pub fn new_jsdoc_type_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocTypeTag,
+            JSDocTypeTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, type_expression },
+        )
     }
 
-    pub fn update_jsdoc_type_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_type_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_type_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_type_tag(tag_name, type_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_type_tag(tag_name, type_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_unknown_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocUnknownTag, JSDocUnknownTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+    pub fn new_jsdoc_unknown_tag(
+        &self,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocUnknownTag,
+            JSDocUnknownTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_unknown_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_unknown_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_unknown_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
             return update_node(self.new_jsdoc_unknown_tag(tag_name, comment), node, &self.hooks);
@@ -12087,53 +15424,92 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_template_tag(&self, tag_name: P<Node>, constraint: Option<P<Node>>, type_parameters: P<NodeList>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocTemplateTag, JSDocTemplateTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_template_tag(
+        &self,
+        tag_name: P<Node>,
+        constraint: Option<P<Node>>,
+        type_parameters: P<NodeList>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocTemplateTag,
+            JSDocTemplateTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                constraint,
+                type_parameters,
             },
-            constraint,
-            type_parameters,
-        })
+        )
     }
 
-    pub fn update_jsdoc_template_tag(&self, node: P<Node>, tag_name: P<Node>, constraint: Option<P<Node>>, type_parameters: P<NodeList>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_template_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        constraint: Option<P<Node>>,
+        type_parameters: P<NodeList>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_template_tag();
-        if tag_name != data.tag_name() || constraint != data.constraint() || type_parameters != data.type_parameters() || comment != data.comment() {
-            return update_node(self.new_jsdoc_template_tag(tag_name, constraint, type_parameters, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || constraint != data.constraint()
+            || type_parameters != data.type_parameters()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_template_tag(tag_name, constraint, type_parameters, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_return_tag(&self, tag_name: P<Node>, type_expression: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocReturnTag, JSDocReturnTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            type_expression,
-        })
+    pub fn new_jsdoc_return_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocReturnTag,
+            JSDocReturnTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, type_expression },
+        )
     }
 
-    pub fn update_jsdoc_return_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_return_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_return_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_return_tag(tag_name, type_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_return_tag(tag_name, type_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_jsdoc_public_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocPublicTag, JSDocPublicTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+        self.new_node(
+            Kind::JSDocPublicTag,
+            JSDocPublicTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_public_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_public_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_public_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
             return update_node(self.new_jsdoc_public_tag(tag_name, comment), node, &self.hooks);
@@ -12141,16 +15517,23 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_private_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocPrivateTag, JSDocPrivateTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+    pub fn new_jsdoc_private_tag(
+        &self,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocPrivateTag,
+            JSDocPrivateTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_private_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_private_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_private_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
             return update_node(self.new_jsdoc_private_tag(tag_name, comment), node, &self.hooks);
@@ -12158,16 +15541,23 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_protected_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocProtectedTag, JSDocProtectedTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+    pub fn new_jsdoc_protected_tag(
+        &self,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocProtectedTag,
+            JSDocProtectedTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_protected_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_protected_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_protected_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
             return update_node(self.new_jsdoc_protected_tag(tag_name, comment), node, &self.hooks);
@@ -12175,16 +15565,23 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_readonly_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocReadonlyTag, JSDocReadonlyTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+    pub fn new_jsdoc_readonly_tag(
+        &self,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocReadonlyTag,
+            JSDocReadonlyTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_readonly_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_readonly_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_readonly_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
             return update_node(self.new_jsdoc_readonly_tag(tag_name, comment), node, &self.hooks);
@@ -12192,16 +15589,23 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_override_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocOverrideTag, JSDocOverrideTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+    pub fn new_jsdoc_override_tag(
+        &self,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocOverrideTag,
+            JSDocOverrideTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_override_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_override_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_override_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
             return update_node(self.new_jsdoc_override_tag(tag_name, comment), node, &self.hooks);
@@ -12209,237 +15613,448 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_deprecated_tag(&self, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocDeprecatedTag, JSDocDeprecatedTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-        })
+    pub fn new_jsdoc_deprecated_tag(
+        &self,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocDeprecatedTag,
+            JSDocDeprecatedTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment } },
+        )
     }
 
-    pub fn update_jsdoc_deprecated_tag(&self, node: P<Node>, tag_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_deprecated_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_deprecated_tag();
         if tag_name != data.tag_name() || comment != data.comment() {
-            return update_node(self.new_jsdoc_deprecated_tag(tag_name, comment), node, &self.hooks);
+            return update_node(
+                self.new_jsdoc_deprecated_tag(tag_name, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_see_tag(&self, tag_name: P<Node>, name_expression: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocSeeTag, JSDocSeeTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            name_expression,
-        })
+    pub fn new_jsdoc_see_tag(
+        &self,
+        tag_name: P<Node>,
+        name_expression: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocSeeTag,
+            JSDocSeeTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, name_expression },
+        )
     }
 
-    pub fn update_jsdoc_see_tag(&self, node: P<Node>, tag_name: P<Node>, name_expression: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_see_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        name_expression: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_see_tag();
-        if tag_name != data.tag_name() || name_expression != data.name_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_see_tag(tag_name, name_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || name_expression != data.name_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_see_tag(tag_name, name_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_implements_tag(&self, tag_name: P<Node>, class_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocImplementsTag, JSDocImplementsTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            class_name,
-        })
+    pub fn new_jsdoc_implements_tag(
+        &self,
+        tag_name: P<Node>,
+        class_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocImplementsTag,
+            JSDocImplementsTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, class_name },
+        )
     }
 
-    pub fn update_jsdoc_implements_tag(&self, node: P<Node>, tag_name: P<Node>, class_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_implements_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        class_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_implements_tag();
-        if tag_name != data.tag_name() || class_name != data.class_name() || comment != data.comment() {
-            return update_node(self.new_jsdoc_implements_tag(tag_name, class_name, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || class_name != data.class_name()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_implements_tag(tag_name, class_name, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_augments_tag(&self, tag_name: P<Node>, class_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocAugmentsTag, JSDocAugmentsTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            class_name,
-        })
+    pub fn new_jsdoc_augments_tag(
+        &self,
+        tag_name: P<Node>,
+        class_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocAugmentsTag,
+            JSDocAugmentsTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, class_name },
+        )
     }
 
-    pub fn update_jsdoc_augments_tag(&self, node: P<Node>, tag_name: P<Node>, class_name: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_augments_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        class_name: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_augments_tag();
-        if tag_name != data.tag_name() || class_name != data.class_name() || comment != data.comment() {
-            return update_node(self.new_jsdoc_augments_tag(tag_name, class_name, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || class_name != data.class_name()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_augments_tag(tag_name, class_name, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_satisfies_tag(&self, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocSatisfiesTag, JSDocSatisfiesTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_satisfies_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocSatisfiesTag,
+            JSDocSatisfiesTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                type_expression,
             },
-            type_expression,
-        })
+        )
     }
 
-    pub fn update_jsdoc_satisfies_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_satisfies_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_satisfies_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_satisfies_tag(tag_name, type_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_satisfies_tag(tag_name, type_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_throws_tag(&self, tag_name: P<Node>, type_expression: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocThrowsTag, JSDocThrowsTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            type_expression,
-        })
+    pub fn new_jsdoc_throws_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocThrowsTag,
+            JSDocThrowsTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, type_expression },
+        )
     }
 
-    pub fn update_jsdoc_throws_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_throws_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_throws_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_throws_tag(tag_name, type_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_throws_tag(tag_name, type_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_this_tag(&self, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocThisTag, JSDocThisTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
-            },
-            type_expression,
-        })
+    pub fn new_jsdoc_this_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocThisTag,
+            JSDocThisTag { jsdoc_tag_base: JSDocTagBase { tag_name, comment }, type_expression },
+        )
     }
 
-    pub fn update_jsdoc_this_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_this_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_this_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_this_tag(tag_name, type_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_this_tag(tag_name, type_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_import_tag(&self, tag_name: P<Node>, import_clause: Option<P<Node>>, module_specifier: P<Node>, attributes: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocImportTag, JSDocImportTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_import_tag(
+        &self,
+        tag_name: P<Node>,
+        import_clause: Option<P<Node>>,
+        module_specifier: P<Node>,
+        attributes: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocImportTag,
+            JSDocImportTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                import_clause,
+                module_specifier,
+                attributes,
             },
-            import_clause,
-            module_specifier,
-            attributes,
-        })
+        )
     }
 
-    pub fn update_jsdoc_import_tag(&self, node: P<Node>, tag_name: P<Node>, import_clause: Option<P<Node>>, module_specifier: P<Node>, attributes: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_import_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        import_clause: Option<P<Node>>,
+        module_specifier: P<Node>,
+        attributes: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_import_tag();
-        if tag_name != data.tag_name() || import_clause != data.import_clause() || module_specifier != data.module_specifier() || attributes != data.attributes() || comment != data.comment() {
-            return update_node(self.new_jsdoc_import_tag(tag_name, import_clause, module_specifier, attributes, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || import_clause != data.import_clause()
+            || module_specifier != data.module_specifier()
+            || attributes != data.attributes()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_import_tag(
+                    tag_name,
+                    import_clause,
+                    module_specifier,
+                    attributes,
+                    comment,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_callback_tag(&self, tag_name: P<Node>, type_expression: P<Node>, name: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocCallbackTag, JSDocCallbackTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_callback_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        name: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocCallbackTag,
+            JSDocCallbackTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                type_expression,
+                name,
             },
-            type_expression,
-            name,
-        })
+        )
     }
 
-    pub fn update_jsdoc_callback_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: P<Node>, name: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_callback_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        name: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_callback_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || name != data.name() || comment != data.comment() {
-            return update_node(self.new_jsdoc_callback_tag(tag_name, type_expression, name, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || name != data.name()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_callback_tag(tag_name, type_expression, name, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_overload_tag(&self, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocOverloadTag, JSDocOverloadTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_overload_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocOverloadTag,
+            JSDocOverloadTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                type_expression,
             },
-            type_expression,
-        })
+        )
     }
 
-    pub fn update_jsdoc_overload_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: P<Node>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_overload_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: P<Node>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_overload_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || comment != data.comment() {
-            return update_node(self.new_jsdoc_overload_tag(tag_name, type_expression, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_overload_tag(tag_name, type_expression, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_typedef_tag(&self, tag_name: P<Node>, type_expression: Option<P<Node>>, name: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::JSDocTypedefTag, JSDocTypedefTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_typedef_tag(
+        &self,
+        tag_name: P<Node>,
+        type_expression: Option<P<Node>>,
+        name: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocTypedefTag,
+            JSDocTypedefTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                type_expression,
+                name,
             },
-            type_expression,
-            name,
-        })
+        )
     }
 
-    pub fn update_jsdoc_typedef_tag(&self, node: P<Node>, tag_name: P<Node>, type_expression: Option<P<Node>>, name: Option<P<Node>>, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_typedef_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        type_expression: Option<P<Node>>,
+        name: Option<P<Node>>,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_typedef_tag();
-        if tag_name != data.tag_name() || type_expression != data.type_expression() || name != data.name() || comment != data.comment() {
-            return update_node(self.new_jsdoc_typedef_tag(tag_name, type_expression, name, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || type_expression != data.type_expression()
+            || name != data.name()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_typedef_tag(tag_name, type_expression, name, comment),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_signature(&self, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::JSDocSignature, JSDocSignature {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            function_like_base: FunctionLikeBase {
-                locals_container_base: LocalsContainerBase {
-                    locals: OwnedCell::new(None),
-                    next_container: OwnedCell::new(None),
+    pub fn new_jsdoc_signature(
+        &self,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocSignature,
+            JSDocSignature {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                function_like_base: FunctionLikeBase {
+                    locals_container_base: LocalsContainerBase {
+                        locals: OwnedCell::new(None),
+                        next_container: OwnedCell::new(None),
+                    },
+                    type_parameters: OwnedCell::new(type_parameters),
+                    parameters: OwnedCell::new(parameters),
+                    type_: OwnedCell::new(type_node),
+                    full_signature: OwnedCell::new(None),
                 },
-                type_parameters: OwnedCell::new(type_parameters),
-                parameters: OwnedCell::new(parameters),
-                type_: OwnedCell::new(type_node),
-                full_signature: OwnedCell::new(None),
             },
-        })
+        )
     }
 
-    pub fn update_jsdoc_signature(&self, node: P<Node>, type_parameters: Option<P<NodeList>>, parameters: Option<P<NodeList>>, type_node: Option<P<Node>>) -> P<Node> {
+    pub fn update_jsdoc_signature(
+        &self,
+        node: P<Node>,
+        type_parameters: Option<P<NodeList>>,
+        parameters: Option<P<NodeList>>,
+        type_node: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_signature();
-        if type_parameters != data.type_parameters() || parameters != data.parameters() || type_node != data.type_() {
-            return update_node(self.new_jsdoc_signature(type_parameters, parameters, type_node), node, &self.hooks);
+        if type_parameters != data.type_parameters()
+            || parameters != data.parameters()
+            || type_node != data.type_()
+        {
+            return update_node(
+                self.new_jsdoc_signature(type_parameters, parameters, type_node),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_jsdoc_name_reference(&self, name: P<Node>) -> P<Node> {
-        self.new_node(Kind::JSDocNameReference, JSDocNameReference {
-            name,
-        })
+        self.new_node(Kind::JSDocNameReference, JSDocNameReference { name })
     }
 
     pub fn update_jsdoc_name_reference(&self, node: P<Node>, name: P<Node>) -> P<Node> {
@@ -12450,195 +16065,319 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_module_declaration(&self, modifiers: Option<P<ModifierList>>, keyword: Kind, name: P<Node>, attributes: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ModuleDeclaration, ModuleDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_module_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        keyword: Kind,
+        name: P<Node>,
+        attributes: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ModuleDeclaration,
+            ModuleDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                body_base: BodyBase {
+                    asterisk_token: None,
+                    body,
+                    end_flow_node: OwnedCell::new(None),
+                },
+                keyword,
+                name,
+                attributes,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            locals_container_base: LocalsContainerBase {
-                locals: OwnedCell::new(None),
-                next_container: OwnedCell::new(None),
-            },
-            body_base: BodyBase {
-                asterisk_token: None,
-                body,
-                end_flow_node: OwnedCell::new(None),
-            },
-            keyword,
-            name,
-            attributes,
-        })
+        )
     }
 
-    pub fn update_module_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, keyword: Kind, name: P<Node>, attributes: Option<P<Node>>, body: Option<P<Node>>) -> P<Node> {
+    pub fn update_module_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        keyword: Kind,
+        name: P<Node>,
+        attributes: Option<P<Node>>,
+        body: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_module_declaration();
-        if modifiers != data.modifiers() || keyword != data.keyword() || name != data.name() || attributes != data.attributes() || body != data.body() {
-            return update_node(self.new_module_declaration(modifiers, keyword, name, attributes, body), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || keyword != data.keyword()
+            || name != data.name()
+            || attributes != data.attributes()
+            || body != data.body()
+        {
+            return update_node(
+                self.new_module_declaration(modifiers, keyword, name, attributes, body),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_import_equals_declaration(&self, modifiers: Option<P<ModifierList>>, is_type_only: bool, name: P<Node>, module_reference: P<Node>) -> P<Node> {
-        self.new_node(Kind::ImportEqualsDeclaration, ImportEqualsDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_import_equals_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        is_type_only: bool,
+        name: P<Node>,
+        module_reference: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ImportEqualsDeclaration,
+            ImportEqualsDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                is_type_only,
+                name,
+                module_reference,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            is_type_only,
-            name,
-            module_reference,
-        })
+        )
     }
 
-    pub fn update_import_equals_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, is_type_only: bool, name: P<Node>, module_reference: P<Node>) -> P<Node> {
+    pub fn update_import_equals_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        is_type_only: bool,
+        name: P<Node>,
+        module_reference: P<Node>,
+    ) -> P<Node> {
         let data = node.as_import_equals_declaration();
-        if modifiers != data.modifiers() || is_type_only != data.is_type_only() || name != data.name() || module_reference != data.module_reference() {
-            return update_node(self.new_import_equals_declaration(modifiers, is_type_only, name, module_reference), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || is_type_only != data.is_type_only()
+            || name != data.name()
+            || module_reference != data.module_reference()
+        {
+            return update_node(
+                self.new_import_equals_declaration(modifiers, is_type_only, name, module_reference),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_export_declaration(&self, modifiers: Option<P<ModifierList>>, is_type_only: bool, export_clause: Option<P<Node>>, module_specifier: Option<P<Node>>, attributes: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ExportDeclaration, ExportDeclaration {
-            flow_node_base: FlowNodeBase {
-                flow_node: OwnedCell::new(None),
+    pub fn new_export_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        is_type_only: bool,
+        export_clause: Option<P<Node>>,
+        module_specifier: Option<P<Node>>,
+        attributes: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ExportDeclaration,
+            ExportDeclaration {
+                flow_node_base: FlowNodeBase { flow_node: OwnedCell::new(None) },
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                is_type_only,
+                export_clause,
+                module_specifier,
+                attributes,
             },
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
-            },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            is_type_only,
-            export_clause,
-            module_specifier,
-            attributes,
-        })
+        )
     }
 
-    pub fn update_export_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, is_type_only: bool, export_clause: Option<P<Node>>, module_specifier: Option<P<Node>>, attributes: Option<P<Node>>) -> P<Node> {
+    pub fn update_export_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        is_type_only: bool,
+        export_clause: Option<P<Node>>,
+        module_specifier: Option<P<Node>>,
+        attributes: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_export_declaration();
-        if modifiers != data.modifiers() || is_type_only != data.is_type_only() || export_clause != data.export_clause() || module_specifier != data.module_specifier() || attributes != data.attributes() {
-            return update_node(self.new_export_declaration(modifiers, is_type_only, export_clause, module_specifier, attributes), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || is_type_only != data.is_type_only()
+            || export_clause != data.export_clause()
+            || module_specifier != data.module_specifier()
+            || attributes != data.attributes()
+        {
+            return update_node(
+                self.new_export_declaration(
+                    modifiers,
+                    is_type_only,
+                    export_clause,
+                    module_specifier,
+                    attributes,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_import_type_node(&self, is_type_of: bool, argument: P<Node>, attributes: Option<P<Node>>, qualifier: Option<P<Node>>, type_arguments: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(Kind::ImportType, ImportTypeNode {
-            node_with_type_arguments_base: NodeWithTypeArgumentsBase {
-                type_arguments,
+    pub fn new_import_type_node(
+        &self,
+        is_type_of: bool,
+        argument: P<Node>,
+        attributes: Option<P<Node>>,
+        qualifier: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ImportType,
+            ImportTypeNode {
+                node_with_type_arguments_base: NodeWithTypeArgumentsBase { type_arguments },
+                is_type_of,
+                argument,
+                attributes,
+                qualifier,
             },
-            is_type_of,
-            argument,
-            attributes,
-            qualifier,
-        })
+        )
     }
 
-    pub fn update_import_type_node(&self, node: P<Node>, is_type_of: bool, argument: P<Node>, attributes: Option<P<Node>>, qualifier: Option<P<Node>>, type_arguments: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_import_type_node(
+        &self,
+        node: P<Node>,
+        is_type_of: bool,
+        argument: P<Node>,
+        attributes: Option<P<Node>>,
+        qualifier: Option<P<Node>>,
+        type_arguments: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_import_type_node();
-        if is_type_of != data.is_type_of() || argument != data.argument() || attributes != data.attributes() || qualifier != data.qualifier() || type_arguments != data.type_arguments() {
-            return update_node(self.new_import_type_node(is_type_of, argument, attributes, qualifier, type_arguments), node, &self.hooks);
+        if is_type_of != data.is_type_of()
+            || argument != data.argument()
+            || attributes != data.attributes()
+            || qualifier != data.qualifier()
+            || type_arguments != data.type_arguments()
+        {
+            return update_node(
+                self.new_import_type_node(
+                    is_type_of,
+                    argument,
+                    attributes,
+                    qualifier,
+                    type_arguments,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_import_clause(&self, phase_modifier: Kind, name: Option<P<Node>>, named_bindings: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::ImportClause, ImportClause {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_import_clause(
+        &self,
+        phase_modifier: Kind,
+        name: Option<P<Node>>,
+        named_bindings: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::ImportClause,
+            ImportClause {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                phase_modifier: OwnedCell::new(phase_modifier),
+                name,
+                named_bindings,
             },
-            exportable_base: ExportableBase {
-                local_symbol: OwnedCell::new(None),
-            },
-            phase_modifier: OwnedCell::new(phase_modifier),
-            name,
-            named_bindings,
-        })
+        )
     }
 
-    pub fn update_import_clause(&self, node: P<Node>, phase_modifier: Kind, name: Option<P<Node>>, named_bindings: Option<P<Node>>) -> P<Node> {
+    pub fn update_import_clause(
+        &self,
+        node: P<Node>,
+        phase_modifier: Kind,
+        name: Option<P<Node>>,
+        named_bindings: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_import_clause();
-        if phase_modifier != data.phase_modifier() || name != data.name() || named_bindings != data.named_bindings() {
-            return update_node(self.new_import_clause(phase_modifier, name, named_bindings), node, &self.hooks);
+        if phase_modifier != data.phase_modifier()
+            || name != data.name()
+            || named_bindings != data.named_bindings()
+        {
+            return update_node(
+                self.new_import_clause(phase_modifier, name, named_bindings),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_import_specifier(&self, is_type_only: bool, property_name: Option<P<Node>>, name: P<Node>) -> P<Node> {
+    pub fn new_import_specifier(
+        &self,
+        is_type_only: bool,
+        property_name: Option<P<Node>>,
+        name: P<Node>,
+    ) -> P<Node> {
         if property_name.is_some() {
-            self.new_node_with_rare(Kind::ImportSpecifier, ImportSpecifier {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node_with_rare(
+                Kind::ImportSpecifier,
+                ImportSpecifier {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    is_type_only,
+                    name,
                 },
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                is_type_only,
-                name,
-            }, ImportSpecifierRare {
-                property_name,
-            })
+                ImportSpecifierRare { property_name },
+            )
         } else {
-            self.new_node(Kind::ImportSpecifier, ImportSpecifier {
-                declaration_base: DeclarationBase {
-                    symbol: OwnedCell::new(None),
+            self.new_node(
+                Kind::ImportSpecifier,
+                ImportSpecifier {
+                    declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                    exportable_base: ExportableBase { local_symbol: OwnedCell::new(None) },
+                    is_type_only,
+                    name,
                 },
-                exportable_base: ExportableBase {
-                    local_symbol: OwnedCell::new(None),
-                },
-                is_type_only,
-                name,
-            })
+            )
         }
     }
 
-    pub fn update_import_specifier(&self, node: P<Node>, is_type_only: bool, property_name: Option<P<Node>>, name: P<Node>) -> P<Node> {
+    pub fn update_import_specifier(
+        &self,
+        node: P<Node>,
+        is_type_only: bool,
+        property_name: Option<P<Node>>,
+        name: P<Node>,
+    ) -> P<Node> {
         let data = node.as_import_specifier();
-        if is_type_only != data.is_type_only() || property_name != data.property_name() || name != data.name() {
-            return update_node(self.new_import_specifier(is_type_only, property_name, name), node, &self.hooks);
+        if is_type_only != data.is_type_only()
+            || property_name != data.property_name()
+            || name != data.name()
+        {
+            return update_node(
+                self.new_import_specifier(is_type_only, property_name, name),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
     pub fn new_jsdoc_text(&self, text: &'static [&'static str]) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::JSDocText, JSDocText {
-            jsdoc_comment_base: JSDocCommentBase {
-                text,
-            },
-        })
+        self.new_node(Kind::JSDocText, JSDocText { jsdoc_comment_base: JSDocCommentBase { text } })
     }
 
     pub fn new_jsdoc_link(&self, name: Option<P<Node>>, text: &'static [&'static str]) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::JSDocLink, JSDocLink {
-            jsdoc_comment_base: JSDocCommentBase {
-                text,
-            },
-            name,
-        })
+        self.new_node(
+            Kind::JSDocLink,
+            JSDocLink { jsdoc_comment_base: JSDocCommentBase { text }, name },
+        )
     }
 
-    pub fn update_jsdoc_link(&self, node: P<Node>, name: Option<P<Node>>, text: &'static [&'static str]) -> P<Node> {
+    pub fn update_jsdoc_link(
+        &self,
+        node: P<Node>,
+        name: Option<P<Node>>,
+        text: &'static [&'static str],
+    ) -> P<Node> {
         let data = node.as_jsdoc_link();
         if name != data.name() || !same_slice(text, data.text()) {
             return update_node(self.new_jsdoc_link(name, text), node, &self.hooks);
@@ -12646,17 +16385,24 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_link_plain(&self, name: Option<P<Node>>, text: &'static [&'static str]) -> P<Node> {
+    pub fn new_jsdoc_link_plain(
+        &self,
+        name: Option<P<Node>>,
+        text: &'static [&'static str],
+    ) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::JSDocLinkPlain, JSDocLinkPlain {
-            jsdoc_comment_base: JSDocCommentBase {
-                text,
-            },
-            name,
-        })
+        self.new_node(
+            Kind::JSDocLinkPlain,
+            JSDocLinkPlain { jsdoc_comment_base: JSDocCommentBase { text }, name },
+        )
     }
 
-    pub fn update_jsdoc_link_plain(&self, node: P<Node>, name: Option<P<Node>>, text: &'static [&'static str]) -> P<Node> {
+    pub fn update_jsdoc_link_plain(
+        &self,
+        node: P<Node>,
+        name: Option<P<Node>>,
+        text: &'static [&'static str],
+    ) -> P<Node> {
         let data = node.as_jsdoc_link_plain();
         if name != data.name() || !same_slice(text, data.text()) {
             return update_node(self.new_jsdoc_link_plain(name, text), node, &self.hooks);
@@ -12664,17 +16410,24 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_jsdoc_link_code(&self, name: Option<P<Node>>, text: &'static [&'static str]) -> P<Node> {
+    pub fn new_jsdoc_link_code(
+        &self,
+        name: Option<P<Node>>,
+        text: &'static [&'static str],
+    ) -> P<Node> {
         self.text_count.set(self.text_count.get() + 1);
-        self.new_node(Kind::JSDocLinkCode, JSDocLinkCode {
-            jsdoc_comment_base: JSDocCommentBase {
-                text,
-            },
-            name,
-        })
+        self.new_node(
+            Kind::JSDocLinkCode,
+            JSDocLinkCode { jsdoc_comment_base: JSDocCommentBase { text }, name },
+        )
     }
 
-    pub fn update_jsdoc_link_code(&self, node: P<Node>, name: Option<P<Node>>, text: &'static [&'static str]) -> P<Node> {
+    pub fn update_jsdoc_link_code(
+        &self,
+        node: P<Node>,
+        name: Option<P<Node>>,
+        text: &'static [&'static str],
+    ) -> P<Node> {
         let data = node.as_jsdoc_link_code();
         if name != data.name() || !same_slice(text, data.text()) {
             return update_node(self.new_jsdoc_link_code(name, text), node, &self.hooks);
@@ -12682,87 +16435,183 @@ impl NodeFactory {
         node
     }
 
-    pub fn new_type_parameter_declaration(&self, modifiers: Option<P<ModifierList>>, name: P<Node>, constraint: Option<P<Node>>, expression: Option<P<Node>>, default_type: Option<P<Node>>) -> P<Node> {
-        self.new_node(Kind::TypeParameter, TypeParameterDeclaration {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_type_parameter_declaration(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        constraint: Option<P<Node>>,
+        expression: Option<P<Node>>,
+        default_type: Option<P<Node>>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::TypeParameter,
+            TypeParameterDeclaration {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                modifiers_base: ModifiersBase { modifiers: OwnedCell::new(modifiers) },
+                name,
+                constraint,
+                expression,
+                default_type,
             },
-            modifiers_base: ModifiersBase {
-                modifiers: OwnedCell::new(modifiers),
-            },
-            name,
-            constraint,
-            expression,
-            default_type,
-        })
+        )
     }
 
-    pub fn update_type_parameter_declaration(&self, node: P<Node>, modifiers: Option<P<ModifierList>>, name: P<Node>, constraint: Option<P<Node>>, expression: Option<P<Node>>, default_type: Option<P<Node>>) -> P<Node> {
+    pub fn update_type_parameter_declaration(
+        &self,
+        node: P<Node>,
+        modifiers: Option<P<ModifierList>>,
+        name: P<Node>,
+        constraint: Option<P<Node>>,
+        expression: Option<P<Node>>,
+        default_type: Option<P<Node>>,
+    ) -> P<Node> {
         let data = node.as_type_parameter_declaration();
-        if modifiers != data.modifiers() || name != data.name() || constraint != data.constraint() || expression != data.expression() || default_type != data.default_type() {
-            return update_node(self.new_type_parameter_declaration(modifiers, name, constraint, expression, default_type), node, &self.hooks);
+        if modifiers != data.modifiers()
+            || name != data.name()
+            || constraint != data.constraint()
+            || expression != data.expression()
+            || default_type != data.default_type()
+        {
+            return update_node(
+                self.new_type_parameter_declaration(
+                    modifiers,
+                    name,
+                    constraint,
+                    expression,
+                    default_type,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_synthetic_reference_expression(&self, expression: P<Node>, this_arg: P<Node>) -> P<Node> {
-        self.new_node(Kind::SyntheticReferenceExpression, SyntheticReferenceExpression {
-            expression,
-            this_arg,
-        })
+    pub fn new_synthetic_reference_expression(
+        &self,
+        expression: P<Node>,
+        this_arg: P<Node>,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::SyntheticReferenceExpression,
+            SyntheticReferenceExpression { expression, this_arg },
+        )
     }
 
-    pub fn update_synthetic_reference_expression(&self, node: P<Node>, expression: P<Node>, this_arg: P<Node>) -> P<Node> {
+    pub fn update_synthetic_reference_expression(
+        &self,
+        node: P<Node>,
+        expression: P<Node>,
+        this_arg: P<Node>,
+    ) -> P<Node> {
         let data = node.as_synthetic_reference_expression();
         if expression != data.expression() || this_arg != data.this_arg() {
-            return update_node(self.new_synthetic_reference_expression(expression, this_arg), node, &self.hooks);
+            return update_node(
+                self.new_synthetic_reference_expression(expression, this_arg),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_type_literal(&self, jsdoc_property_tags: &'static [P<Node>], is_array_type: bool) -> P<Node> {
-        self.new_node(Kind::JSDocTypeLiteral, JSDocTypeLiteral {
-            declaration_base: DeclarationBase {
-                symbol: OwnedCell::new(None),
+    pub fn new_jsdoc_type_literal(
+        &self,
+        jsdoc_property_tags: &'static [P<Node>],
+        is_array_type: bool,
+    ) -> P<Node> {
+        self.new_node(
+            Kind::JSDocTypeLiteral,
+            JSDocTypeLiteral {
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                jsdoc_property_tags,
+                is_array_type,
             },
-            jsdoc_property_tags,
-            is_array_type,
-        })
+        )
     }
 
-    pub fn update_jsdoc_type_literal(&self, node: P<Node>, jsdoc_property_tags: &'static [P<Node>], is_array_type: bool) -> P<Node> {
+    pub fn update_jsdoc_type_literal(
+        &self,
+        node: P<Node>,
+        jsdoc_property_tags: &'static [P<Node>],
+        is_array_type: bool,
+    ) -> P<Node> {
         let data = node.as_jsdoc_type_literal();
-        if !same_slice(jsdoc_property_tags, data.jsdoc_property_tags()) || is_array_type != data.is_array_type() {
-            return update_node(self.new_jsdoc_type_literal(jsdoc_property_tags, is_array_type), node, &self.hooks);
+        if !same_slice(jsdoc_property_tags, data.jsdoc_property_tags())
+            || is_array_type != data.is_array_type()
+        {
+            return update_node(
+                self.new_jsdoc_type_literal(jsdoc_property_tags, is_array_type),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
 
-    pub fn new_jsdoc_parameter_or_property_tag(&self, kind: Kind, tag_name: P<Node>, name: P<Node>, is_bracketed: bool, type_expression: Option<P<Node>>, is_name_first: bool, comment: Option<P<NodeList>>) -> P<Node> {
-        self.new_node(kind, JSDocParameterOrPropertyTag {
-            jsdoc_tag_base: JSDocTagBase {
-                tag_name,
-                comment,
+    pub fn new_jsdoc_parameter_or_property_tag(
+        &self,
+        kind: Kind,
+        tag_name: P<Node>,
+        name: P<Node>,
+        is_bracketed: bool,
+        type_expression: Option<P<Node>>,
+        is_name_first: bool,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
+        self.new_node(
+            kind,
+            JSDocParameterOrPropertyTag {
+                jsdoc_tag_base: JSDocTagBase { tag_name, comment },
+                name,
+                is_bracketed,
+                type_expression,
+                is_name_first,
             },
-            name,
-            is_bracketed,
-            type_expression,
-            is_name_first,
-        })
+        )
     }
 
-    pub fn update_jsdoc_parameter_or_property_tag(&self, node: P<Node>, tag_name: P<Node>, name: P<Node>, is_bracketed: bool, type_expression: Option<P<Node>>, is_name_first: bool, comment: Option<P<NodeList>>) -> P<Node> {
+    pub fn update_jsdoc_parameter_or_property_tag(
+        &self,
+        node: P<Node>,
+        tag_name: P<Node>,
+        name: P<Node>,
+        is_bracketed: bool,
+        type_expression: Option<P<Node>>,
+        is_name_first: bool,
+        comment: Option<P<NodeList>>,
+    ) -> P<Node> {
         let data = node.as_jsdoc_parameter_or_property_tag();
-        if tag_name != data.tag_name() || name != data.name() || is_bracketed != data.is_bracketed() || type_expression != data.type_expression() || is_name_first != data.is_name_first() || comment != data.comment() {
-            return update_node(self.new_jsdoc_parameter_or_property_tag(node.kind(), tag_name, name, is_bracketed, type_expression, is_name_first, comment), node, &self.hooks);
+        if tag_name != data.tag_name()
+            || name != data.name()
+            || is_bracketed != data.is_bracketed()
+            || type_expression != data.type_expression()
+            || is_name_first != data.is_name_first()
+            || comment != data.comment()
+        {
+            return update_node(
+                self.new_jsdoc_parameter_or_property_tag(
+                    node.kind(),
+                    tag_name,
+                    name,
+                    is_bracketed,
+                    type_expression,
+                    is_name_first,
+                    comment,
+                ),
+                node,
+                &self.hooks,
+            );
         }
         node
     }
-
 }
 
 impl Token {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_token(node.kind()), node, &f.hooks)
     }
@@ -12776,8 +16625,7 @@ impl PrivateIdentifier {
 
 impl QualifiedName {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.left())
-            || v(self.right())
+        v(self.left()) || v(self.right())
     }
 }
 
@@ -12803,7 +16651,8 @@ impl ComputedPropertyName {
 
 impl ComputedPropertyName {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_computed_property_name(node, expression_)
     }
 }
@@ -12822,7 +16671,8 @@ impl Decorator {
 
 impl Decorator {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_decorator(node, expression_)
     }
 }
@@ -12834,7 +16684,10 @@ impl Decorator {
 }
 
 impl EmptyStatement {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_empty_statement(), node, &f.hooks)
     }
@@ -12842,16 +16695,18 @@ impl EmptyStatement {
 
 impl IfStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.then_statement())
-            || visit(v, self.else_statement())
+        v(self.expression()) || v(self.then_statement()) || visit(v, self.else_statement())
     }
 }
 
 impl IfStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
-        let then_statement_ = required_child(v.visit_embedded_statement_hooked(Some(self.then_statement())), self.then_statement());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let then_statement_ = required_child(
+            v.visit_embedded_statement_hooked(Some(self.then_statement())),
+            self.then_statement(),
+        );
         let else_statement_ = v.visit_embedded_statement_hooked(self.else_statement());
         v.factory.update_if_statement(node, expression_, then_statement_, else_statement_)
     }
@@ -12859,21 +16714,26 @@ impl IfStatement {
 
 impl IfStatement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_if_statement(self.expression(), self.then_statement(), self.else_statement()), node, &f.hooks)
+        clone_node(
+            f.new_if_statement(self.expression(), self.then_statement(), self.else_statement()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl DoStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.statement())
-            || v(self.expression())
+        v(self.statement()) || v(self.expression())
     }
 }
 
 impl DoStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let statement_ = required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let statement_ =
+            required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_do_statement(node, statement_, expression_)
     }
 }
@@ -12886,15 +16746,16 @@ impl DoStatement {
 
 impl WhileStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.statement())
+        v(self.expression()) || v(self.statement())
     }
 }
 
 impl WhileStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
-        let statement_ = required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let statement_ =
+            required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
         v.factory.update_while_statement(node, expression_, statement_)
     }
 }
@@ -12919,14 +16780,24 @@ impl ForStatement {
         let initializer_ = v.visit_node_hooked(self.initializer());
         let condition_ = v.visit_node_hooked(self.condition());
         let incrementor_ = v.visit_node_hooked(self.incrementor());
-        let statement_ = required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
+        let statement_ =
+            required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
         v.factory.update_for_statement(node, initializer_, condition_, incrementor_, statement_)
     }
 }
 
 impl ForStatement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_for_statement(self.initializer(), self.condition(), self.incrementor(), self.statement()), node, &f.hooks)
+        clone_node(
+            f.new_for_statement(
+                self.initializer(),
+                self.condition(),
+                self.incrementor(),
+                self.statement(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -12942,16 +16813,35 @@ impl ForInOrOfStatement {
 impl ForInOrOfStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let await_modifier_ = v.visit_node_hooked(self.await_modifier());
-        let initializer_ = required_child(v.visit_node_hooked(Some(self.initializer())), self.initializer());
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
-        let statement_ = required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
-        v.factory.update_for_in_or_of_statement(node, await_modifier_, initializer_, expression_, statement_)
+        let initializer_ =
+            required_child(v.visit_node_hooked(Some(self.initializer())), self.initializer());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let statement_ =
+            required_child(v.visit_iteration_body_hooked(Some(self.statement())), self.statement());
+        v.factory.update_for_in_or_of_statement(
+            node,
+            await_modifier_,
+            initializer_,
+            expression_,
+            statement_,
+        )
     }
 }
 
 impl ForInOrOfStatement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_for_in_or_of_statement(node.kind(), self.await_modifier(), self.initializer(), self.expression(), self.statement()), node, &f.hooks)
+        clone_node(
+            f.new_for_in_or_of_statement(
+                node.kind(),
+                self.await_modifier(),
+                self.initializer(),
+                self.expression(),
+                self.statement(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13014,15 +16904,18 @@ impl ReturnStatement {
 
 impl WithStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.statement())
+        v(self.expression()) || v(self.statement())
     }
 }
 
 impl WithStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
-        let statement_ = required_child(v.visit_embedded_statement_hooked(Some(self.statement())), self.statement());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let statement_ = required_child(
+            v.visit_embedded_statement_hooked(Some(self.statement())),
+            self.statement(),
+        );
         v.factory.update_with_statement(node, expression_, statement_)
     }
 }
@@ -13035,15 +16928,16 @@ impl WithStatement {
 
 impl SwitchStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.case_block())
+        v(self.expression()) || v(self.case_block())
     }
 }
 
 impl SwitchStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
-        let case_block_ = required_child(v.visit_node_hooked(Some(self.case_block())), self.case_block());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let case_block_ =
+            required_child(v.visit_node_hooked(Some(self.case_block())), self.case_block());
         v.factory.update_switch_statement(node, expression_, case_block_)
     }
 }
@@ -13075,22 +16969,26 @@ impl CaseBlock {
 
 impl CaseOrDefaultClause {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.expression())
-            || visit_node_list(v, Some(self.statements()))
+        visit(v, self.expression()) || visit_node_list(v, Some(self.statements()))
     }
 }
 
 impl CaseOrDefaultClause {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let expression_ = v.visit_node_hooked(self.expression());
-        let statements_ = required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
+        let statements_ =
+            required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
         v.factory.update_case_or_default_clause(node, expression_, statements_)
     }
 }
 
 impl CaseOrDefaultClause {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_case_or_default_clause(node.kind(), self.expression(), self.statements()), node, &f.hooks)
+        clone_node(
+            f.new_case_or_default_clause(node.kind(), self.expression(), self.statements()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13102,7 +17000,8 @@ impl ThrowStatement {
 
 impl ThrowStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_throw_statement(node, expression_)
     }
 }
@@ -13115,15 +17014,14 @@ impl ThrowStatement {
 
 impl TryStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.try_block())
-            || visit(v, self.catch_clause())
-            || visit(v, self.finally_block())
+        v(self.try_block()) || visit(v, self.catch_clause()) || visit(v, self.finally_block())
     }
 }
 
 impl TryStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let try_block_ = required_child(v.visit_node_hooked(Some(self.try_block())), self.try_block());
+        let try_block_ =
+            required_child(v.visit_node_hooked(Some(self.try_block())), self.try_block());
         let catch_clause_ = v.visit_node_hooked(self.catch_clause());
         let finally_block_ = v.visit_node_hooked(self.finally_block());
         v.factory.update_try_statement(node, try_block_, catch_clause_, finally_block_)
@@ -13132,14 +17030,17 @@ impl TryStatement {
 
 impl TryStatement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_try_statement(self.try_block(), self.catch_clause(), self.finally_block()), node, &f.hooks)
+        clone_node(
+            f.new_try_statement(self.try_block(), self.catch_clause(), self.finally_block()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl CatchClause {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.variable_declaration())
-            || v(self.block())
+        visit(v, self.variable_declaration()) || v(self.block())
     }
 }
 
@@ -13158,7 +17059,10 @@ impl CatchClause {
 }
 
 impl DebuggerStatement {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_debugger_statement(), node, &f.hooks)
     }
@@ -13166,15 +17070,17 @@ impl DebuggerStatement {
 
 impl LabeledStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.label())
-            || v(self.statement())
+        v(self.label()) || v(self.statement())
     }
 }
 
 impl LabeledStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let label_ = required_child(v.visit_node_hooked(Some(self.label())), self.label());
-        let statement_ = required_child(v.visit_embedded_statement_hooked(Some(self.statement())), self.statement());
+        let statement_ = required_child(
+            v.visit_embedded_statement_hooked(Some(self.statement())),
+            self.statement(),
+        );
         v.factory.update_labeled_statement(node, label_, statement_)
     }
 }
@@ -13193,7 +17099,8 @@ impl ExpressionStatement {
 
 impl ExpressionStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_expression_statement(node, expression_)
     }
 }
@@ -13212,7 +17119,8 @@ impl Block {
 
 impl Block {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let statements_ = required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
+        let statements_ =
+            required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
         v.factory.update_block(node, statements_, self.multi_line())
     }
 }
@@ -13225,22 +17133,28 @@ impl Block {
 
 impl VariableStatement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit_modifiers(v, self.modifiers())
-            || v(self.declaration_list())
+        visit_modifiers(v, self.modifiers()) || v(self.declaration_list())
     }
 }
 
 impl VariableStatement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
-        let declaration_list_ = required_child(v.visit_node_hooked(Some(self.declaration_list())), self.declaration_list());
+        let declaration_list_ = required_child(
+            v.visit_node_hooked(Some(self.declaration_list())),
+            self.declaration_list(),
+        );
         v.factory.update_variable_statement(node, modifiers_, declaration_list_)
     }
 }
 
 impl VariableStatement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_variable_statement(self.modifiers(), self.declaration_list()), node, &f.hooks)
+        clone_node(
+            f.new_variable_statement(self.modifiers(), self.declaration_list()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13259,13 +17173,28 @@ impl VariableDeclaration {
         let exclamation_token_ = v.visit_node_hooked(self.exclamation_token());
         let type_node_ = v.visit_node_hooked(self.type_());
         let initializer_ = v.visit_node_hooked(self.initializer());
-        v.factory.update_variable_declaration(node, name_, exclamation_token_, type_node_, initializer_)
+        v.factory.update_variable_declaration(
+            node,
+            name_,
+            exclamation_token_,
+            type_node_,
+            initializer_,
+        )
     }
 }
 
 impl VariableDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_variable_declaration(self.name(), self.exclamation_token(), self.type_(), self.initializer()), node, &f.hooks)
+        clone_node(
+            f.new_variable_declaration(
+                self.name(),
+                self.exclamation_token(),
+                self.type_(),
+                self.initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13277,14 +17206,19 @@ impl VariableDeclarationList {
 
 impl VariableDeclarationList {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let declarations_ = required_child(v.visit_nodes_hooked(Some(self.declarations())), self.declarations());
+        let declarations_ =
+            required_child(v.visit_nodes_hooked(Some(self.declarations())), self.declarations());
         v.factory.update_variable_declaration_list(node, declarations_, node.flags.get())
     }
 }
 
 impl VariableDeclarationList {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_variable_declaration_list(self.declarations(), node.flags.get()), node, &f.hooks)
+        clone_node(
+            f.new_variable_declaration_list(self.declarations(), node.flags.get()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13296,7 +17230,8 @@ impl BindingPattern {
 
 impl BindingPattern {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let elements_ = required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
+        let elements_ =
+            required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_binding_pattern(node, elements_)
     }
 }
@@ -13326,13 +17261,32 @@ impl ParameterDeclaration {
         let question_token_ = v.visit_node_hooked(self.question_token());
         let type_node_ = v.visit_node_hooked(self.type_());
         let initializer_ = v.visit_node_hooked(self.initializer());
-        v.factory.update_parameter_declaration(node, modifiers_, dot_dot_dot_token_, name_, question_token_, type_node_, initializer_)
+        v.factory.update_parameter_declaration(
+            node,
+            modifiers_,
+            dot_dot_dot_token_,
+            name_,
+            question_token_,
+            type_node_,
+            initializer_,
+        )
     }
 }
 
 impl ParameterDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_parameter_declaration(self.modifiers(), self.dot_dot_dot_token(), self.name(), self.question_token(), self.type_(), self.initializer()), node, &f.hooks)
+        clone_node(
+            f.new_parameter_declaration(
+                self.modifiers(),
+                self.dot_dot_dot_token(),
+                self.name(),
+                self.question_token(),
+                self.type_(),
+                self.initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13351,13 +17305,28 @@ impl BindingElement {
         let property_name_ = v.visit_node_hooked(self.property_name());
         let name_ = v.visit_node_hooked(self.name());
         let initializer_ = v.visit_node_hooked(self.initializer());
-        v.factory.update_binding_element(node, dot_dot_dot_token_, property_name_, name_, initializer_)
+        v.factory.update_binding_element(
+            node,
+            dot_dot_dot_token_,
+            property_name_,
+            name_,
+            initializer_,
+        )
     }
 }
 
 impl BindingElement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_binding_element(self.dot_dot_dot_token(), self.property_name(), self.name(), self.initializer()), node, &f.hooks)
+        clone_node(
+            f.new_binding_element(
+                self.dot_dot_dot_token(),
+                self.property_name(),
+                self.name(),
+                self.initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13403,13 +17372,36 @@ impl FunctionDeclaration {
         let type_node_ = v.visit_node_hooked(self.type_());
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_function_declaration(node, modifiers_, asterisk_token_, name_, type_parameters_, parameters_, type_node_, full_signature_, body_)
+        v.factory.update_function_declaration(
+            node,
+            modifiers_,
+            asterisk_token_,
+            name_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            body_,
+        )
     }
 }
 
 impl FunctionDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_function_declaration(self.modifiers(), self.asterisk_token(), self.name(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_function_declaration(
+                self.modifiers(),
+                self.asterisk_token(),
+                self.name(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13430,13 +17422,30 @@ impl ClassDeclaration {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let heritage_clauses_ = v.visit_nodes_hooked(self.heritage_clauses());
         let members_ = required_child(v.visit_nodes_hooked(Some(self.members())), self.members());
-        v.factory.update_class_declaration(node, modifiers_, name_, type_parameters_, heritage_clauses_, members_)
+        v.factory.update_class_declaration(
+            node,
+            modifiers_,
+            name_,
+            type_parameters_,
+            heritage_clauses_,
+            members_,
+        )
     }
 }
 
 impl ClassDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_class_declaration(self.modifiers(), self.name(), self.type_parameters(), self.heritage_clauses(), self.members()), node, &f.hooks)
+        clone_node(
+            f.new_class_declaration(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.heritage_clauses(),
+                self.members(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13457,13 +17466,30 @@ impl ClassExpression {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let heritage_clauses_ = v.visit_nodes_hooked(self.heritage_clauses());
         let members_ = required_child(v.visit_nodes_hooked(Some(self.members())), self.members());
-        v.factory.update_class_expression(node, modifiers_, name_, type_parameters_, heritage_clauses_, members_)
+        v.factory.update_class_expression(
+            node,
+            modifiers_,
+            name_,
+            type_parameters_,
+            heritage_clauses_,
+            members_,
+        )
     }
 }
 
 impl ClassExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_class_expression(self.modifiers(), self.name(), self.type_parameters(), self.heritage_clauses(), self.members()), node, &f.hooks)
+        clone_node(
+            f.new_class_expression(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.heritage_clauses(),
+                self.members(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13503,13 +17529,30 @@ impl InterfaceDeclaration {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let heritage_clauses_ = v.visit_nodes_hooked(self.heritage_clauses());
         let members_ = required_child(v.visit_nodes_hooked(Some(self.members())), self.members());
-        v.factory.update_interface_declaration(node, modifiers_, name_, type_parameters_, heritage_clauses_, members_)
+        v.factory.update_interface_declaration(
+            node,
+            modifiers_,
+            name_,
+            type_parameters_,
+            heritage_clauses_,
+            members_,
+        )
     }
 }
 
 impl InterfaceDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_interface_declaration(self.modifiers(), self.name(), self.type_parameters(), self.heritage_clauses(), self.members()), node, &f.hooks)
+        clone_node(
+            f.new_interface_declaration(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.heritage_clauses(),
+                self.members(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13528,15 +17571,31 @@ impl TypeAliasDeclaration {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
-        v.factory.update_type_alias_declaration(node, modifiers_, name_, type_parameters_, type_node_)
+        v.factory.update_type_alias_declaration(
+            node,
+            modifiers_,
+            name_,
+            type_parameters_,
+            type_node_,
+        )
     }
 }
 
 impl TypeAliasDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         let updated = match node.kind() {
-            Kind::TypeAliasDeclaration => f.new_type_alias_declaration(self.modifiers(), self.name(), self.type_parameters(), self.type_()),
-            Kind::JSTypeAliasDeclaration => f.new_js_type_alias_declaration(self.modifiers(), self.name(), self.type_parameters(), self.type_()),
+            Kind::TypeAliasDeclaration => f.new_type_alias_declaration(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.type_(),
+            ),
+            Kind::JSTypeAliasDeclaration => f.new_js_type_alias_declaration(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.type_(),
+            ),
             _ => panic!("unexpected kind in TypeAliasDeclaration.clone_node: {:?}", node.kind()),
         };
         clone_node(updated, node, &f.hooks)
@@ -13545,8 +17604,7 @@ impl TypeAliasDeclaration {
 
 impl EnumMember {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.name())
-            || visit(v, self.initializer())
+        v(self.name()) || visit(v, self.initializer())
     }
 }
 
@@ -13583,7 +17641,11 @@ impl EnumDeclaration {
 
 impl EnumDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_enum_declaration(self.modifiers(), self.name(), self.members()), node, &f.hooks)
+        clone_node(
+            f.new_enum_declaration(self.modifiers(), self.name(), self.members()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13595,7 +17657,8 @@ impl ModuleBlock {
 
 impl ModuleBlock {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let statements_ = required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
+        let statements_ =
+            required_child(v.visit_nodes_hooked(Some(self.statements())), self.statements());
         v.factory.update_module_block(node, statements_)
     }
 }
@@ -13607,14 +17670,20 @@ impl ModuleBlock {
 }
 
 impl NotEmittedStatement {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_not_emitted_statement(), node, &f.hooks)
     }
 }
 
 impl NotEmittedTypeElement {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_not_emitted_type_element(), node, &f.hooks)
     }
@@ -13633,17 +17702,36 @@ impl ImportDeclaration {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let import_clause_ = v.visit_node_hooked(self.import_clause());
-        let module_specifier_ = required_child(v.visit_node_hooked(Some(self.module_specifier())), self.module_specifier());
+        let module_specifier_ = required_child(
+            v.visit_node_hooked(Some(self.module_specifier())),
+            self.module_specifier(),
+        );
         let attributes_ = v.visit_node_hooked(self.attributes());
-        v.factory.update_import_declaration(node, modifiers_, import_clause_, module_specifier_, attributes_)
+        v.factory.update_import_declaration(
+            node,
+            modifiers_,
+            import_clause_,
+            module_specifier_,
+            attributes_,
+        )
     }
 }
 
 impl ImportDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         let updated = match node.kind() {
-            Kind::ImportDeclaration => f.new_import_declaration(self.modifiers(), self.import_clause(), self.module_specifier(), self.attributes()),
-            Kind::JSImportDeclaration => f.new_js_import_declaration(self.modifiers(), self.import_clause(), self.module_specifier(), self.attributes()),
+            Kind::ImportDeclaration => f.new_import_declaration(
+                self.modifiers(),
+                self.import_clause(),
+                self.module_specifier(),
+                self.attributes(),
+            ),
+            Kind::JSImportDeclaration => f.new_js_import_declaration(
+                self.modifiers(),
+                self.import_clause(),
+                self.module_specifier(),
+                self.attributes(),
+            ),
             _ => panic!("unexpected kind in ImportDeclaration.clone_node: {:?}", node.kind()),
         };
         clone_node(updated, node, &f.hooks)
@@ -13658,7 +17746,8 @@ impl ExternalModuleReference {
 
 impl ExternalModuleReference {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_external_module_reference(node, expression_)
     }
 }
@@ -13696,7 +17785,8 @@ impl NamedImports {
 
 impl NamedImports {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let elements_ = required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
+        let elements_ =
+            required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_named_imports(node, elements_)
     }
 }
@@ -13709,9 +17799,7 @@ impl NamedImports {
 
 impl ExportAssignment {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit_modifiers(v, self.modifiers())
-            || visit(v, self.type_())
-            || v(self.expression())
+        visit_modifiers(v, self.modifiers()) || visit(v, self.type_()) || v(self.expression())
     }
 }
 
@@ -13719,21 +17807,36 @@ impl ExportAssignment {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let type_node_ = v.visit_node_hooked(self.type_());
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
-        v.factory.update_export_assignment(node, modifiers_, self.is_export_equals(), type_node_, expression_)
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        v.factory.update_export_assignment(
+            node,
+            modifiers_,
+            self.is_export_equals(),
+            type_node_,
+            expression_,
+        )
     }
 }
 
 impl ExportAssignment {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_export_assignment(self.modifiers(), self.is_export_equals(), self.type_(), self.expression()), node, &f.hooks)
+        clone_node(
+            f.new_export_assignment(
+                self.modifiers(),
+                self.is_export_equals(),
+                self.type_(),
+                self.expression(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl NamespaceExportDeclaration {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit_modifiers(v, self.modifiers())
-            || v(self.name())
+        visit_modifiers(v, self.modifiers()) || v(self.name())
     }
 }
 
@@ -13747,7 +17850,11 @@ impl NamespaceExportDeclaration {
 
 impl NamespaceExportDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_namespace_export_declaration(self.modifiers(), self.name()), node, &f.hooks)
+        clone_node(
+            f.new_namespace_export_declaration(self.modifiers(), self.name()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13778,7 +17885,8 @@ impl NamedExports {
 
 impl NamedExports {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let elements_ = required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
+        let elements_ =
+            required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_named_exports(node, elements_)
     }
 }
@@ -13791,8 +17899,7 @@ impl NamedExports {
 
 impl ExportSpecifier {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.property_name())
-            || v(self.name())
+        visit(v, self.property_name()) || v(self.name())
     }
 }
 
@@ -13806,7 +17913,11 @@ impl ExportSpecifier {
 
 impl ExportSpecifier {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_export_specifier(self.is_type_only(), self.property_name(), self.name()), node, &f.hooks)
+        clone_node(
+            f.new_export_specifier(self.is_type_only(), self.property_name(), self.name()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13829,7 +17940,15 @@ impl CallSignatureDeclaration {
 
 impl CallSignatureDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_call_signature_declaration(self.type_parameters(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_call_signature_declaration(
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13846,13 +17965,26 @@ impl ConstructSignatureDeclaration {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
-        v.factory.update_construct_signature_declaration(node, type_parameters_, parameters_, type_node_)
+        v.factory.update_construct_signature_declaration(
+            node,
+            type_parameters_,
+            parameters_,
+            type_node_,
+        )
     }
 }
 
 impl ConstructSignatureDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_construct_signature_declaration(self.type_parameters(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_construct_signature_declaration(
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13875,13 +18007,32 @@ impl ConstructorDeclaration {
         let type_node_ = v.visit_node_hooked(self.type_());
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_constructor_declaration(node, modifiers_, type_parameters_, parameters_, type_node_, full_signature_, body_)
+        v.factory.update_constructor_declaration(
+            node,
+            modifiers_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            body_,
+        )
     }
 }
 
 impl ConstructorDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_constructor_declaration(self.modifiers(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_constructor_declaration(
+                self.modifiers(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13906,13 +18057,34 @@ impl GetAccessorDeclaration {
         let type_node_ = v.visit_node_hooked(self.type_());
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_get_accessor_declaration(node, modifiers_, name_, type_parameters_, parameters_, type_node_, full_signature_, body_)
+        v.factory.update_get_accessor_declaration(
+            node,
+            modifiers_,
+            name_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            body_,
+        )
     }
 }
 
 impl GetAccessorDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_get_accessor_declaration(self.modifiers(), self.name(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_get_accessor_declaration(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13937,13 +18109,34 @@ impl SetAccessorDeclaration {
         let type_node_ = v.visit_node_hooked(self.type_());
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_set_accessor_declaration(node, modifiers_, name_, type_parameters_, parameters_, type_node_, full_signature_, body_)
+        v.factory.update_set_accessor_declaration(
+            node,
+            modifiers_,
+            name_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            body_,
+        )
     }
 }
 
 impl SetAccessorDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_set_accessor_declaration(self.modifiers(), self.name(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_set_accessor_declaration(
+                self.modifiers(),
+                self.name(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13966,7 +18159,11 @@ impl IndexSignatureDeclaration {
 
 impl IndexSignatureDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_index_signature_declaration(self.modifiers(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_index_signature_declaration(self.modifiers(), self.parameters(), self.type_()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -13989,13 +18186,32 @@ impl MethodSignatureDeclaration {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
-        v.factory.update_method_signature_declaration(node, modifiers_, name_, postfix_token_, type_parameters_, parameters_, type_node_)
+        v.factory.update_method_signature_declaration(
+            node,
+            modifiers_,
+            name_,
+            postfix_token_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+        )
     }
 }
 
 impl MethodSignatureDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_method_signature_declaration(self.modifiers(), self.name(), self.postfix_token(), self.type_parameters(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_method_signature_declaration(
+                self.modifiers(),
+                self.name(),
+                self.postfix_token(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14024,13 +18240,38 @@ impl MethodDeclaration {
         let type_node_ = v.visit_node_hooked(self.type_());
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_method_declaration(node, modifiers_, asterisk_token_, name_, postfix_token_, type_parameters_, parameters_, type_node_, full_signature_, body_)
+        v.factory.update_method_declaration(
+            node,
+            modifiers_,
+            asterisk_token_,
+            name_,
+            postfix_token_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            body_,
+        )
     }
 }
 
 impl MethodDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_method_declaration(self.modifiers(), self.asterisk_token(), self.name(), self.postfix_token(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_method_declaration(
+                self.modifiers(),
+                self.asterisk_token(),
+                self.name(),
+                self.postfix_token(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14051,13 +18292,30 @@ impl PropertySignatureDeclaration {
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
         let type_node_ = v.visit_node_hooked(self.type_());
         let initializer_ = v.visit_node_hooked(self.initializer());
-        v.factory.update_property_signature_declaration(node, modifiers_, name_, postfix_token_, type_node_, initializer_)
+        v.factory.update_property_signature_declaration(
+            node,
+            modifiers_,
+            name_,
+            postfix_token_,
+            type_node_,
+            initializer_,
+        )
     }
 }
 
 impl PropertySignatureDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_property_signature_declaration(self.modifiers(), self.name(), self.postfix_token(), self.type_(), self.initializer()), node, &f.hooks)
+        clone_node(
+            f.new_property_signature_declaration(
+                self.modifiers(),
+                self.name(),
+                self.postfix_token(),
+                self.type_(),
+                self.initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14078,18 +18336,38 @@ impl PropertyDeclaration {
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
         let type_node_ = v.visit_node_hooked(self.type_());
         let initializer_ = v.visit_node_hooked(self.initializer());
-        v.factory.update_property_declaration(node, modifiers_, name_, postfix_token_, type_node_, initializer_)
+        v.factory.update_property_declaration(
+            node,
+            modifiers_,
+            name_,
+            postfix_token_,
+            type_node_,
+            initializer_,
+        )
     }
 }
 
 impl PropertyDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_property_declaration(self.modifiers(), self.name(), self.postfix_token(), self.type_(), self.initializer()), node, &f.hooks)
+        clone_node(
+            f.new_property_declaration(
+                self.modifiers(),
+                self.name(),
+                self.postfix_token(),
+                self.type_(),
+                self.initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl SemicolonClassElement {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_semicolon_class_element(), node, &f.hooks)
     }
@@ -14097,8 +18375,7 @@ impl SemicolonClassElement {
 
 impl ClassStaticBlockDeclaration {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit_modifiers(v, self.modifiers())
-            || v(self.body())
+        visit_modifiers(v, self.modifiers()) || v(self.body())
     }
 }
 
@@ -14112,19 +18389,29 @@ impl ClassStaticBlockDeclaration {
 
 impl ClassStaticBlockDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_class_static_block_declaration(self.modifiers(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_class_static_block_declaration(self.modifiers(), self.body()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl OmittedExpression {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_omitted_expression(), node, &f.hooks)
     }
 }
 
 impl KeywordExpression {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_keyword_expression(node.kind()), node, &f.hooks)
     }
@@ -14150,13 +18437,21 @@ impl BigIntLiteral {
 
 impl RegularExpressionLiteral {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_regular_expression_literal(self.text(), self.token_flags()), node, &f.hooks)
+        clone_node(
+            f.new_regular_expression_literal(self.text(), self.token_flags()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl NoSubstitutionTemplateLiteral {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_no_substitution_template_literal(self.text(), self.template_flags()), node, &f.hooks)
+        clone_node(
+            f.new_no_substitution_template_literal(self.text(), self.template_flags()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14175,15 +18470,33 @@ impl BinaryExpression {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let left_ = required_child(v.visit_node_hooked(Some(self.left())), self.left());
         let type_node_ = v.visit_node_hooked(self.type_());
-        let operator_token_ = required_child(v.visit_node_hooked(Some(self.operator_token())), self.operator_token());
+        let operator_token_ =
+            required_child(v.visit_node_hooked(Some(self.operator_token())), self.operator_token());
         let right_ = required_child(v.visit_node_hooked(Some(self.right())), self.right());
-        v.factory.update_binary_expression(node, modifiers_, left_, type_node_, operator_token_, right_)
+        v.factory.update_binary_expression(
+            node,
+            modifiers_,
+            left_,
+            type_node_,
+            operator_token_,
+            right_,
+        )
     }
 }
 
 impl BinaryExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_binary_expression(self.modifiers(), self.left(), self.type_(), self.operator_token(), self.right()), node, &f.hooks)
+        clone_node(
+            f.new_binary_expression(
+                self.modifiers(),
+                self.left(),
+                self.type_(),
+                self.operator_token(),
+                self.right(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14227,8 +18540,7 @@ impl PostfixUnaryExpression {
 
 impl YieldExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.asterisk_token())
-            || visit(v, self.expression())
+        visit(v, self.asterisk_token()) || visit(v, self.expression())
     }
 }
 
@@ -14267,13 +18579,34 @@ impl ArrowFunction {
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let equals_greater_than_token_ = v.visit_node_hooked(self.equals_greater_than_token());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_arrow_function(node, modifiers_, type_parameters_, parameters_, type_node_, full_signature_, equals_greater_than_token_, body_)
+        v.factory.update_arrow_function(
+            node,
+            modifiers_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            equals_greater_than_token_,
+            body_,
+        )
     }
 }
 
 impl ArrowFunction {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_arrow_function(self.modifiers(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.equals_greater_than_token(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_arrow_function(
+                self.modifiers(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.equals_greater_than_token(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14300,26 +18633,49 @@ impl FunctionExpression {
         let type_node_ = v.visit_node_hooked(self.type_());
         let full_signature_ = v.visit_node_hooked(self.full_signature());
         let body_ = v.visit_function_body_hooked(self.body());
-        v.factory.update_function_expression(node, modifiers_, asterisk_token_, name_, type_parameters_, parameters_, type_node_, full_signature_, body_)
+        v.factory.update_function_expression(
+            node,
+            modifiers_,
+            asterisk_token_,
+            name_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+            full_signature_,
+            body_,
+        )
     }
 }
 
 impl FunctionExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_function_expression(self.modifiers(), self.asterisk_token(), self.name(), self.type_parameters(), self.parameters(), self.type_(), self.full_signature(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_function_expression(
+                self.modifiers(),
+                self.asterisk_token(),
+                self.name(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+                self.full_signature(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl AsExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.type_())
+        v(self.expression()) || v(self.type_())
     }
 }
 
 impl AsExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_as_expression(node, expression_, type_node_)
     }
@@ -14333,14 +18689,14 @@ impl AsExpression {
 
 impl SatisfiesExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.type_())
+        v(self.expression()) || v(self.type_())
     }
 }
 
 impl SatisfiesExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
         v.factory.update_satisfies_expression(node, expression_, type_node_)
     }
@@ -14364,64 +18720,117 @@ impl ConditionalExpression {
 
 impl ConditionalExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let condition_ = required_child(v.visit_node_hooked(Some(self.condition())), self.condition());
-        let question_token_ = required_child(v.visit_node_hooked(Some(self.question_token())), self.question_token());
-        let when_true_ = required_child(v.visit_node_hooked(Some(self.when_true())), self.when_true());
-        let colon_token_ = required_child(v.visit_node_hooked(Some(self.colon_token())), self.colon_token());
-        let when_false_ = required_child(v.visit_node_hooked(Some(self.when_false())), self.when_false());
-        v.factory.update_conditional_expression(node, condition_, question_token_, when_true_, colon_token_, when_false_)
+        let condition_ =
+            required_child(v.visit_node_hooked(Some(self.condition())), self.condition());
+        let question_token_ =
+            required_child(v.visit_node_hooked(Some(self.question_token())), self.question_token());
+        let when_true_ =
+            required_child(v.visit_node_hooked(Some(self.when_true())), self.when_true());
+        let colon_token_ =
+            required_child(v.visit_node_hooked(Some(self.colon_token())), self.colon_token());
+        let when_false_ =
+            required_child(v.visit_node_hooked(Some(self.when_false())), self.when_false());
+        v.factory.update_conditional_expression(
+            node,
+            condition_,
+            question_token_,
+            when_true_,
+            colon_token_,
+            when_false_,
+        )
     }
 }
 
 impl ConditionalExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_conditional_expression(self.condition(), self.question_token(), self.when_true(), self.colon_token(), self.when_false()), node, &f.hooks)
+        clone_node(
+            f.new_conditional_expression(
+                self.condition(),
+                self.question_token(),
+                self.when_true(),
+                self.colon_token(),
+                self.when_false(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl PropertyAccessExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || visit(v, self.question_dot_token())
-            || v(self.name())
+        v(self.expression()) || visit(v, self.question_dot_token()) || v(self.name())
     }
 }
 
 impl PropertyAccessExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
-        v.factory.update_property_access_expression(node, expression_, question_dot_token_, name_, node.flags.get())
+        v.factory.update_property_access_expression(
+            node,
+            expression_,
+            question_dot_token_,
+            name_,
+            node.flags.get(),
+        )
     }
 }
 
 impl PropertyAccessExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_property_access_expression(self.expression(), self.question_dot_token(), self.name(), node.flags.get()), node, &f.hooks)
+        clone_node(
+            f.new_property_access_expression(
+                self.expression(),
+                self.question_dot_token(),
+                self.name(),
+                node.flags.get(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl ElementAccessExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || visit(v, self.question_dot_token())
-            || v(self.argument_expression())
+        v(self.expression()) || visit(v, self.question_dot_token()) || v(self.argument_expression())
     }
 }
 
 impl ElementAccessExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
-        let argument_expression_ = required_child(v.visit_node_hooked(Some(self.argument_expression())), self.argument_expression());
-        v.factory.update_element_access_expression(node, expression_, question_dot_token_, argument_expression_, node.flags.get())
+        let argument_expression_ = required_child(
+            v.visit_node_hooked(Some(self.argument_expression())),
+            self.argument_expression(),
+        );
+        v.factory.update_element_access_expression(
+            node,
+            expression_,
+            question_dot_token_,
+            argument_expression_,
+            node.flags.get(),
+        )
     }
 }
 
 impl ElementAccessExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_element_access_expression(self.expression(), self.question_dot_token(), self.argument_expression(), node.flags.get()), node, &f.hooks)
+        clone_node(
+            f.new_element_access_expression(
+                self.expression(),
+                self.question_dot_token(),
+                self.argument_expression(),
+                node.flags.get(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14436,17 +18845,36 @@ impl CallExpression {
 
 impl CallExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
-        let arguments_ = required_child(v.visit_nodes_hooked(Some(self.arguments())), self.arguments());
-        v.factory.update_call_expression(node, expression_, question_dot_token_, type_arguments_, arguments_, node.flags.get())
+        let arguments_ =
+            required_child(v.visit_nodes_hooked(Some(self.arguments())), self.arguments());
+        v.factory.update_call_expression(
+            node,
+            expression_,
+            question_dot_token_,
+            type_arguments_,
+            arguments_,
+            node.flags.get(),
+        )
     }
 }
 
 impl CallExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_call_expression(self.expression(), self.question_dot_token(), self.type_arguments(), self.arguments(), node.flags.get()), node, &f.hooks)
+        clone_node(
+            f.new_call_expression(
+                self.expression(),
+                self.question_dot_token(),
+                self.type_arguments(),
+                self.arguments(),
+                node.flags.get(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14460,7 +18888,8 @@ impl NewExpression {
 
 impl NewExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         let arguments_ = v.visit_nodes_hooked(self.arguments());
         v.factory.update_new_expression(node, expression_, type_arguments_, arguments_)
@@ -14469,7 +18898,11 @@ impl NewExpression {
 
 impl NewExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_new_expression(self.expression(), self.type_arguments(), self.arguments()), node, &f.hooks)
+        clone_node(
+            f.new_new_expression(self.expression(), self.type_arguments(), self.arguments()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14500,7 +18933,8 @@ impl NonNullExpression {
 
 impl NonNullExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_non_null_expression(node, expression_, node.flags.get())
     }
 }
@@ -14519,7 +18953,8 @@ impl SpreadElement {
 
 impl SpreadElement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_spread_element(node, expression_)
     }
 }
@@ -14532,15 +18967,17 @@ impl SpreadElement {
 
 impl TemplateExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.head())
-            || visit_node_list(v, Some(self.template_spans()))
+        v(self.head()) || visit_node_list(v, Some(self.template_spans()))
     }
 }
 
 impl TemplateExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let head_ = required_child(v.visit_node_hooked(Some(self.head())), self.head());
-        let template_spans_ = required_child(v.visit_nodes_hooked(Some(self.template_spans())), self.template_spans());
+        let template_spans_ = required_child(
+            v.visit_nodes_hooked(Some(self.template_spans())),
+            self.template_spans(),
+        );
         v.factory.update_template_expression(node, head_, template_spans_)
     }
 }
@@ -14553,14 +18990,14 @@ impl TemplateExpression {
 
 impl TemplateSpan {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.literal())
+        v(self.expression()) || v(self.literal())
     }
 }
 
 impl TemplateSpan {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let literal_ = required_child(v.visit_node_hooked(Some(self.literal())), self.literal());
         v.factory.update_template_span(node, expression_, literal_)
     }
@@ -14587,13 +19024,30 @@ impl TaggedTemplateExpression {
         let question_dot_token_ = v.visit_node_hooked(self.question_dot_token());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         let template_ = required_child(v.visit_node_hooked(Some(self.template())), self.template());
-        v.factory.update_tagged_template_expression(node, tag_, question_dot_token_, type_arguments_, template_, node.flags.get())
+        v.factory.update_tagged_template_expression(
+            node,
+            tag_,
+            question_dot_token_,
+            type_arguments_,
+            template_,
+            node.flags.get(),
+        )
     }
 }
 
 impl TaggedTemplateExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_tagged_template_expression(self.tag(), self.question_dot_token(), self.type_arguments(), self.template(), node.flags.get()), node, &f.hooks)
+        clone_node(
+            f.new_tagged_template_expression(
+                self.tag(),
+                self.question_dot_token(),
+                self.type_arguments(),
+                self.template(),
+                node.flags.get(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14605,7 +19059,8 @@ impl ParenthesizedExpression {
 
 impl ParenthesizedExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_parenthesized_expression(node, expression_)
     }
 }
@@ -14624,14 +19079,19 @@ impl ArrayLiteralExpression {
 
 impl ArrayLiteralExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let elements_ = required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
+        let elements_ =
+            required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_array_literal_expression(node, elements_, self.multi_line())
     }
 }
 
 impl ArrayLiteralExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_array_literal_expression(self.elements(), self.multi_line()), node, &f.hooks)
+        clone_node(
+            f.new_array_literal_expression(self.elements(), self.multi_line()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14643,14 +19103,19 @@ impl ObjectLiteralExpression {
 
 impl ObjectLiteralExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let properties_ = required_child(v.visit_nodes_hooked(Some(self.properties())), self.properties());
+        let properties_ =
+            required_child(v.visit_nodes_hooked(Some(self.properties())), self.properties());
         v.factory.update_object_literal_expression(node, properties_, self.multi_line())
     }
 }
 
 impl ObjectLiteralExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_object_literal_expression(self.properties(), self.multi_line()), node, &f.hooks)
+        clone_node(
+            f.new_object_literal_expression(self.properties(), self.multi_line()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14662,7 +19127,8 @@ impl SpreadAssignment {
 
 impl SpreadAssignment {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_spread_assignment(node, expression_)
     }
 }
@@ -14689,14 +19155,32 @@ impl PropertyAssignment {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
         let type_node_ = v.visit_node_hooked(self.type_());
-        let initializer_ = required_child(v.visit_node_hooked(Some(self.initializer())), self.initializer());
-        v.factory.update_property_assignment(node, modifiers_, name_, postfix_token_, type_node_, initializer_)
+        let initializer_ =
+            required_child(v.visit_node_hooked(Some(self.initializer())), self.initializer());
+        v.factory.update_property_assignment(
+            node,
+            modifiers_,
+            name_,
+            postfix_token_,
+            type_node_,
+            initializer_,
+        )
     }
 }
 
 impl PropertyAssignment {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_property_assignment(self.modifiers(), self.name(), self.postfix_token(), self.type_(), self.initializer()), node, &f.hooks)
+        clone_node(
+            f.new_property_assignment(
+                self.modifiers(),
+                self.name(),
+                self.postfix_token(),
+                self.type_(),
+                self.initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14718,14 +19202,34 @@ impl ShorthandPropertyAssignment {
         let postfix_token_ = v.visit_node_hooked(self.postfix_token());
         let type_node_ = v.visit_node_hooked(self.type_());
         let equals_token_ = v.visit_node_hooked(self.equals_token());
-        let object_assignment_initializer_ = v.visit_node_hooked(self.object_assignment_initializer());
-        v.factory.update_shorthand_property_assignment(node, modifiers_, name_, postfix_token_, type_node_, equals_token_, object_assignment_initializer_)
+        let object_assignment_initializer_ =
+            v.visit_node_hooked(self.object_assignment_initializer());
+        v.factory.update_shorthand_property_assignment(
+            node,
+            modifiers_,
+            name_,
+            postfix_token_,
+            type_node_,
+            equals_token_,
+            object_assignment_initializer_,
+        )
     }
 }
 
 impl ShorthandPropertyAssignment {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_shorthand_property_assignment(self.modifiers(), self.name(), self.postfix_token(), self.type_(), self.equals_token(), self.object_assignment_initializer()), node, &f.hooks)
+        clone_node(
+            f.new_shorthand_property_assignment(
+                self.modifiers(),
+                self.name(),
+                self.postfix_token(),
+                self.type_(),
+                self.equals_token(),
+                self.object_assignment_initializer(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14737,7 +19241,8 @@ impl DeleteExpression {
 
 impl DeleteExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_delete_expression(node, expression_)
     }
 }
@@ -14756,7 +19261,8 @@ impl TypeOfExpression {
 
 impl TypeOfExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_type_of_expression(node, expression_)
     }
 }
@@ -14775,7 +19281,8 @@ impl VoidExpression {
 
 impl VoidExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_void_expression(node, expression_)
     }
 }
@@ -14794,7 +19301,8 @@ impl AwaitExpression {
 
 impl AwaitExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_await_expression(node, expression_)
     }
 }
@@ -14807,15 +19315,15 @@ impl AwaitExpression {
 
 impl TypeAssertion {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.type_())
-            || v(self.expression())
+        v(self.type_()) || v(self.expression())
     }
 }
 
 impl TypeAssertion {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_type_assertion(node, type_node_, expression_)
     }
 }
@@ -14827,7 +19335,10 @@ impl TypeAssertion {
 }
 
 impl KeywordTypeNode {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_keyword_type_node(node.kind()), node, &f.hooks)
     }
@@ -14882,17 +19393,36 @@ impl ConditionalTypeNode {
 
 impl ConditionalTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let check_type_ = required_child(v.visit_node_hooked(Some(self.check_type())), self.check_type());
-        let extends_type_ = required_child(v.visit_node_hooked(Some(self.extends_type())), self.extends_type());
-        let true_type_ = required_child(v.visit_node_hooked(Some(self.true_type())), self.true_type());
-        let false_type_ = required_child(v.visit_node_hooked(Some(self.false_type())), self.false_type());
-        v.factory.update_conditional_type_node(node, check_type_, extends_type_, true_type_, false_type_)
+        let check_type_ =
+            required_child(v.visit_node_hooked(Some(self.check_type())), self.check_type());
+        let extends_type_ =
+            required_child(v.visit_node_hooked(Some(self.extends_type())), self.extends_type());
+        let true_type_ =
+            required_child(v.visit_node_hooked(Some(self.true_type())), self.true_type());
+        let false_type_ =
+            required_child(v.visit_node_hooked(Some(self.false_type())), self.false_type());
+        v.factory.update_conditional_type_node(
+            node,
+            check_type_,
+            extends_type_,
+            true_type_,
+            false_type_,
+        )
     }
 }
 
 impl ConditionalTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_conditional_type_node(self.check_type(), self.extends_type(), self.true_type(), self.false_type()), node, &f.hooks)
+        clone_node(
+            f.new_conditional_type_node(
+                self.check_type(),
+                self.extends_type(),
+                self.true_type(),
+                self.false_type(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -14923,7 +19453,8 @@ impl InferTypeNode {
 
 impl InferTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let type_parameter_ = required_child(v.visit_node_hooked(Some(self.type_parameter())), self.type_parameter());
+        let type_parameter_ =
+            required_child(v.visit_node_hooked(Some(self.type_parameter())), self.type_parameter());
         v.factory.update_infer_type_node(node, type_parameter_)
     }
 }
@@ -14942,7 +19473,8 @@ impl ArrayTypeNode {
 
 impl ArrayTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let element_type_ = required_child(v.visit_node_hooked(Some(self.element_type())), self.element_type());
+        let element_type_ =
+            required_child(v.visit_node_hooked(Some(self.element_type())), self.element_type());
         v.factory.update_array_type_node(node, element_type_)
     }
 }
@@ -14955,35 +19487,40 @@ impl ArrayTypeNode {
 
 impl IndexedAccessTypeNode {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.object_type())
-            || v(self.index_type())
+        v(self.object_type()) || v(self.index_type())
     }
 }
 
 impl IndexedAccessTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let object_type_ = required_child(v.visit_node_hooked(Some(self.object_type())), self.object_type());
-        let index_type_ = required_child(v.visit_node_hooked(Some(self.index_type())), self.index_type());
+        let object_type_ =
+            required_child(v.visit_node_hooked(Some(self.object_type())), self.object_type());
+        let index_type_ =
+            required_child(v.visit_node_hooked(Some(self.index_type())), self.index_type());
         v.factory.update_indexed_access_type_node(node, object_type_, index_type_)
     }
 }
 
 impl IndexedAccessTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_indexed_access_type_node(self.object_type(), self.index_type()), node, &f.hooks)
+        clone_node(
+            f.new_indexed_access_type_node(self.object_type(), self.index_type()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TypeReferenceNode {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.type_name())
-            || visit_node_list(v, self.type_arguments())
+        v(self.type_name()) || visit_node_list(v, self.type_arguments())
     }
 }
 
 impl TypeReferenceNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let type_name_ = required_child(v.visit_node_hooked(Some(self.type_name())), self.type_name());
+        let type_name_ =
+            required_child(v.visit_node_hooked(Some(self.type_name())), self.type_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         v.factory.update_type_reference_node(node, type_name_, type_arguments_)
     }
@@ -14991,20 +19528,24 @@ impl TypeReferenceNode {
 
 impl TypeReferenceNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_type_reference_node(self.type_name(), self.type_arguments()), node, &f.hooks)
+        clone_node(
+            f.new_type_reference_node(self.type_name(), self.type_arguments()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl ExpressionWithTypeArguments {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || visit_node_list(v, self.type_arguments())
+        v(self.expression()) || visit_node_list(v, self.type_arguments())
     }
 }
 
 impl ExpressionWithTypeArguments {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         v.factory.update_expression_with_type_arguments(node, expression_, type_arguments_)
     }
@@ -15012,7 +19553,11 @@ impl ExpressionWithTypeArguments {
 
 impl ExpressionWithTypeArguments {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_expression_with_type_arguments(self.expression(), self.type_arguments()), node, &f.hooks)
+        clone_node(
+            f.new_expression_with_type_arguments(self.expression(), self.type_arguments()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15036,7 +19581,10 @@ impl LiteralTypeNode {
 }
 
 impl ThisTypeNode {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_this_type_node(), node, &f.hooks)
     }
@@ -15044,16 +19592,15 @@ impl ThisTypeNode {
 
 impl TypePredicateNode {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.asserts_modifier())
-            || v(self.parameter_name())
-            || visit(v, self.type_())
+        visit(v, self.asserts_modifier()) || v(self.parameter_name()) || visit(v, self.type_())
     }
 }
 
 impl TypePredicateNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let asserts_modifier_ = v.visit_node_hooked(self.asserts_modifier());
-        let parameter_name_ = required_child(v.visit_node_hooked(Some(self.parameter_name())), self.parameter_name());
+        let parameter_name_ =
+            required_child(v.visit_node_hooked(Some(self.parameter_name())), self.parameter_name());
         let type_node_ = v.visit_node_hooked(self.type_());
         v.factory.update_type_predicate_node(node, asserts_modifier_, parameter_name_, type_node_)
     }
@@ -15061,14 +19608,17 @@ impl TypePredicateNode {
 
 impl TypePredicateNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_type_predicate_node(self.asserts_modifier(), self.parameter_name(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_type_predicate_node(self.asserts_modifier(), self.parameter_name(), self.type_()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl ImportAttribute {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.name())
-            || v(self.value())
+        visit(v, self.name()) || v(self.value())
     }
 }
 
@@ -15094,27 +19644,32 @@ impl ImportAttributes {
 
 impl ImportAttributes {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let attributes_ = required_child(v.visit_nodes_hooked(Some(self.attributes())), self.attributes());
+        let attributes_ =
+            required_child(v.visit_nodes_hooked(Some(self.attributes())), self.attributes());
         v.factory.update_import_attributes(node, self.token(), attributes_, self.multi_line())
     }
 }
 
 impl ImportAttributes {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_import_attributes(self.token(), self.attributes(), self.multi_line()), node, &f.hooks)
+        clone_node(
+            f.new_import_attributes(self.token(), self.attributes(), self.multi_line()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TypeQueryNode {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expr_name())
-            || visit_node_list(v, self.type_arguments())
+        v(self.expr_name()) || visit_node_list(v, self.type_arguments())
     }
 }
 
 impl TypeQueryNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expr_name_ = required_child(v.visit_node_hooked(Some(self.expr_name())), self.expr_name());
+        let expr_name_ =
+            required_child(v.visit_node_hooked(Some(self.expr_name())), self.expr_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
         v.factory.update_type_query_node(node, expr_name_, type_arguments_)
     }
@@ -15140,18 +19695,38 @@ impl MappedTypeNode {
 impl MappedTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let readonly_token_ = v.visit_node_hooked(self.readonly_token());
-        let type_parameter_ = required_child(v.visit_node_hooked(Some(self.type_parameter())), self.type_parameter());
+        let type_parameter_ =
+            required_child(v.visit_node_hooked(Some(self.type_parameter())), self.type_parameter());
         let name_type_ = v.visit_node_hooked(self.name_type());
         let question_token_ = v.visit_node_hooked(self.question_token());
         let type_node_ = v.visit_node_hooked(self.type_());
         let members_ = v.visit_nodes_hooked(self.members());
-        v.factory.update_mapped_type_node(node, readonly_token_, type_parameter_, name_type_, question_token_, type_node_, members_)
+        v.factory.update_mapped_type_node(
+            node,
+            readonly_token_,
+            type_parameter_,
+            name_type_,
+            question_token_,
+            type_node_,
+            members_,
+        )
     }
 }
 
 impl MappedTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_mapped_type_node(self.readonly_token(), self.type_parameter(), self.name_type(), self.question_token(), self.type_(), self.members()), node, &f.hooks)
+        clone_node(
+            f.new_mapped_type_node(
+                self.readonly_token(),
+                self.type_parameter(),
+                self.name_type(),
+                self.question_token(),
+                self.type_(),
+                self.members(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15182,7 +19757,8 @@ impl TupleTypeNode {
 
 impl TupleTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let elements_ = required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
+        let elements_ =
+            required_child(v.visit_nodes_hooked(Some(self.elements())), self.elements());
         v.factory.update_tuple_type_node(node, elements_)
     }
 }
@@ -15208,13 +19784,28 @@ impl NamedTupleMember {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let question_token_ = v.visit_node_hooked(self.question_token());
         let type_node_ = required_child(v.visit_node_hooked(Some(self.type_())), self.type_());
-        v.factory.update_named_tuple_member(node, dot_dot_dot_token_, name_, question_token_, type_node_)
+        v.factory.update_named_tuple_member(
+            node,
+            dot_dot_dot_token_,
+            name_,
+            question_token_,
+            type_node_,
+        )
     }
 }
 
 impl NamedTupleMember {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_named_tuple_member(self.dot_dot_dot_token(), self.name(), self.question_token(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_named_tuple_member(
+                self.dot_dot_dot_token(),
+                self.name(),
+                self.question_token(),
+                self.type_(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15294,7 +19885,11 @@ impl FunctionTypeNode {
 
 impl FunctionTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_function_type_node(self.type_parameters(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_function_type_node(self.type_parameters(), self.parameters(), self.type_()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15313,59 +19908,91 @@ impl ConstructorTypeNode {
         let type_parameters_ = v.visit_nodes_hooked(self.type_parameters());
         let parameters_ = v.visit_nodes_hooked(self.parameters());
         let type_node_ = v.visit_node_hooked(self.type_());
-        v.factory.update_constructor_type_node(node, modifiers_, type_parameters_, parameters_, type_node_)
+        v.factory.update_constructor_type_node(
+            node,
+            modifiers_,
+            type_parameters_,
+            parameters_,
+            type_node_,
+        )
     }
 }
 
 impl ConstructorTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_constructor_type_node(self.modifiers(), self.type_parameters(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_constructor_type_node(
+                self.modifiers(),
+                self.type_parameters(),
+                self.parameters(),
+                self.type_(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TemplateHead {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_template_head(self.text(), self.raw_text(), self.template_flags()), node, &f.hooks)
+        clone_node(
+            f.new_template_head(self.text(), self.raw_text(), self.template_flags()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TemplateMiddle {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_template_middle(self.text(), self.raw_text(), self.template_flags()), node, &f.hooks)
+        clone_node(
+            f.new_template_middle(self.text(), self.raw_text(), self.template_flags()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TemplateTail {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_template_tail(self.text(), self.raw_text(), self.template_flags()), node, &f.hooks)
+        clone_node(
+            f.new_template_tail(self.text(), self.raw_text(), self.template_flags()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TemplateLiteralTypeNode {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.head())
-            || visit_node_list(v, Some(self.template_spans()))
+        v(self.head()) || visit_node_list(v, Some(self.template_spans()))
     }
 }
 
 impl TemplateLiteralTypeNode {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let head_ = required_child(v.visit_node_hooked(Some(self.head())), self.head());
-        let template_spans_ = required_child(v.visit_nodes_hooked(Some(self.template_spans())), self.template_spans());
+        let template_spans_ = required_child(
+            v.visit_nodes_hooked(Some(self.template_spans())),
+            self.template_spans(),
+        );
         v.factory.update_template_literal_type_node(node, head_, template_spans_)
     }
 }
 
 impl TemplateLiteralTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_template_literal_type_node(self.head(), self.template_spans()), node, &f.hooks)
+        clone_node(
+            f.new_template_literal_type_node(self.head(), self.template_spans()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl TemplateLiteralTypeSpan {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.type_())
-            || v(self.literal())
+        v(self.type_()) || v(self.literal())
     }
 }
 
@@ -15392,13 +20019,22 @@ impl SyntheticExpression {
 impl SyntheticExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tuple_name_source_ = v.visit_node_hooked(self.tuple_name_source());
-        v.factory.update_synthetic_expression(node, self.type_(), self.is_spread(), tuple_name_source_)
+        v.factory.update_synthetic_expression(
+            node,
+            self.type_(),
+            self.is_spread(),
+            tuple_name_source_,
+        )
     }
 }
 
 impl SyntheticExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_synthetic_expression(self.type_(), self.is_spread(), self.tuple_name_source()), node, &f.hooks)
+        clone_node(
+            f.new_synthetic_expression(self.type_(), self.is_spread(), self.tuple_name_source()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15410,7 +20046,8 @@ impl PartiallyEmittedExpression {
 
 impl PartiallyEmittedExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_partially_emitted_expression(node, expression_)
     }
 }
@@ -15431,16 +20068,27 @@ impl JsxElement {
 
 impl JsxElement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let opening_element_ = required_child(v.visit_node_hooked(Some(self.opening_element())), self.opening_element());
-        let children_ = required_child(v.visit_nodes_hooked(Some(self.children())), self.children());
-        let closing_element_ = required_child(v.visit_node_hooked(Some(self.closing_element())), self.closing_element());
+        let opening_element_ = required_child(
+            v.visit_node_hooked(Some(self.opening_element())),
+            self.opening_element(),
+        );
+        let children_ =
+            required_child(v.visit_nodes_hooked(Some(self.children())), self.children());
+        let closing_element_ = required_child(
+            v.visit_node_hooked(Some(self.closing_element())),
+            self.closing_element(),
+        );
         v.factory.update_jsx_element(node, opening_element_, children_, closing_element_)
     }
 }
 
 impl JsxElement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsx_element(self.opening_element(), self.children(), self.closing_element()), node, &f.hooks)
+        clone_node(
+            f.new_jsx_element(self.opening_element(), self.children(), self.closing_element()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15452,7 +20100,8 @@ impl JsxAttributes {
 
 impl JsxAttributes {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let properties_ = required_child(v.visit_nodes_hooked(Some(self.properties())), self.properties());
+        let properties_ =
+            required_child(v.visit_nodes_hooked(Some(self.properties())), self.properties());
         v.factory.update_jsx_attributes(node, properties_)
     }
 }
@@ -15465,14 +20114,14 @@ impl JsxAttributes {
 
 impl JsxNamespacedName {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.namespace())
-            || v(self.name())
+        v(self.namespace()) || v(self.name())
     }
 }
 
 impl JsxNamespacedName {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let namespace_ = required_child(v.visit_node_hooked(Some(self.namespace())), self.namespace());
+        let namespace_ =
+            required_child(v.visit_node_hooked(Some(self.namespace())), self.namespace());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         v.factory.update_jsx_namespaced_name(node, namespace_, name_)
     }
@@ -15486,9 +20135,7 @@ impl JsxNamespacedName {
 
 impl JsxOpeningElement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.type_arguments())
-            || v(self.attributes())
+        v(self.tag_name()) || visit_node_list(v, self.type_arguments()) || v(self.attributes())
     }
 }
 
@@ -15496,22 +20143,25 @@ impl JsxOpeningElement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
-        let attributes_ = required_child(v.visit_node_hooked(Some(self.attributes())), self.attributes());
+        let attributes_ =
+            required_child(v.visit_node_hooked(Some(self.attributes())), self.attributes());
         v.factory.update_jsx_opening_element(node, tag_name_, type_arguments_, attributes_)
     }
 }
 
 impl JsxOpeningElement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsx_opening_element(self.tag_name(), self.type_arguments(), self.attributes()), node, &f.hooks)
+        clone_node(
+            f.new_jsx_opening_element(self.tag_name(), self.type_arguments(), self.attributes()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JsxSelfClosingElement {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.type_arguments())
-            || v(self.attributes())
+        v(self.tag_name()) || visit_node_list(v, self.type_arguments()) || v(self.attributes())
     }
 }
 
@@ -15519,14 +20169,23 @@ impl JsxSelfClosingElement {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
-        let attributes_ = required_child(v.visit_node_hooked(Some(self.attributes())), self.attributes());
+        let attributes_ =
+            required_child(v.visit_node_hooked(Some(self.attributes())), self.attributes());
         v.factory.update_jsx_self_closing_element(node, tag_name_, type_arguments_, attributes_)
     }
 }
 
 impl JsxSelfClosingElement {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsx_self_closing_element(self.tag_name(), self.type_arguments(), self.attributes()), node, &f.hooks)
+        clone_node(
+            f.new_jsx_self_closing_element(
+                self.tag_name(),
+                self.type_arguments(),
+                self.attributes(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15540,28 +20199,45 @@ impl JsxFragment {
 
 impl JsxFragment {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let opening_fragment_ = required_child(v.visit_node_hooked(Some(self.opening_fragment())), self.opening_fragment());
-        let children_ = required_child(v.visit_nodes_hooked(Some(self.children())), self.children());
-        let closing_fragment_ = required_child(v.visit_node_hooked(Some(self.closing_fragment())), self.closing_fragment());
+        let opening_fragment_ = required_child(
+            v.visit_node_hooked(Some(self.opening_fragment())),
+            self.opening_fragment(),
+        );
+        let children_ =
+            required_child(v.visit_nodes_hooked(Some(self.children())), self.children());
+        let closing_fragment_ = required_child(
+            v.visit_node_hooked(Some(self.closing_fragment())),
+            self.closing_fragment(),
+        );
         v.factory.update_jsx_fragment(node, opening_fragment_, children_, closing_fragment_)
     }
 }
 
 impl JsxFragment {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsx_fragment(self.opening_fragment(), self.children(), self.closing_fragment()), node, &f.hooks)
+        clone_node(
+            f.new_jsx_fragment(self.opening_fragment(), self.children(), self.closing_fragment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JsxOpeningFragment {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_opening_fragment(), node, &f.hooks)
     }
 }
 
 impl JsxClosingFragment {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsx_closing_fragment(), node, &f.hooks)
     }
@@ -15569,8 +20245,7 @@ impl JsxClosingFragment {
 
 impl JsxAttribute {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.name())
-            || visit(v, self.initializer())
+        v(self.name()) || visit(v, self.initializer())
     }
 }
 
@@ -15596,7 +20271,8 @@ impl JsxSpreadAttribute {
 
 impl JsxSpreadAttribute {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         v.factory.update_jsx_spread_attribute(node, expression_)
     }
 }
@@ -15628,8 +20304,7 @@ impl JsxClosingElement {
 
 impl JsxExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.dot_dot_dot_token())
-            || visit(v, self.expression())
+        visit(v, self.dot_dot_dot_token()) || visit(v, self.expression())
     }
 }
 
@@ -15643,13 +20318,21 @@ impl JsxExpression {
 
 impl JsxExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsx_expression(self.dot_dot_dot_token(), self.expression()), node, &f.hooks)
+        clone_node(
+            f.new_jsx_expression(self.dot_dot_dot_token(), self.expression()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JsxText {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsx_text(self.text(), self.contains_only_trivia_white_spaces()), node, &f.hooks)
+        clone_node(
+            f.new_jsx_text(self.text(), self.contains_only_trivia_white_spaces()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -15661,7 +20344,9 @@ impl SyntaxList {
 
 impl SyntaxList {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let children = same_map_nodes(self.children(), |n| v.visit_node_hooked(Some(n)).expect("visitor removed a raw list element"));
+        let children = same_map_nodes(self.children(), |n| {
+            v.visit_node_hooked(Some(n)).expect("visitor removed a raw list element")
+        });
         v.factory.update_syntax_list(node, children)
     }
 }
@@ -15674,8 +20359,7 @@ impl SyntaxList {
 
 impl JSDoc {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit_node_list(v, Some(self.comment()))
-            || visit_node_list(v, self.tags())
+        visit_node_list(v, Some(self.comment())) || visit_node_list(v, self.tags())
     }
 }
 
@@ -15751,7 +20435,10 @@ impl JSDocNullableType {
 }
 
 impl JSDocAllType {
-    #[expect(clippy::unused_self, reason = "Empty node data uses the same cloning interface as nodes with stored fields.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Empty node data uses the same cloning interface as nodes with stored fields."
+    )]
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
         clone_node(f.new_jsdoc_all_type(), node, &f.hooks)
     }
@@ -15797,16 +20484,17 @@ impl JSDocOptionalType {
 
 impl JSDocTypeTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || v(self.type_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocTypeTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let type_expression_ = required_child(v.visit_node_hooked(Some(self.type_expression())), self.type_expression());
+        let type_expression_ = required_child(
+            v.visit_node_hooked(Some(self.type_expression())),
+            self.type_expression(),
+        );
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_type_tag(node, tag_name_, type_expression_, comment_)
     }
@@ -15814,14 +20502,17 @@ impl JSDocTypeTag {
 
 impl JSDocTypeTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_type_tag(self.tag_name(), self.type_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_type_tag(self.tag_name(), self.type_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocUnknownTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15852,23 +20543,39 @@ impl JSDocTemplateTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let constraint_ = v.visit_node_hooked(self.constraint());
-        let type_parameters_ = required_child(v.visit_nodes_hooked(Some(self.type_parameters())), self.type_parameters());
+        let type_parameters_ = required_child(
+            v.visit_nodes_hooked(Some(self.type_parameters())),
+            self.type_parameters(),
+        );
         let comment_ = v.visit_nodes_hooked(self.comment());
-        v.factory.update_jsdoc_template_tag(node, tag_name_, constraint_, type_parameters_, comment_)
+        v.factory.update_jsdoc_template_tag(
+            node,
+            tag_name_,
+            constraint_,
+            type_parameters_,
+            comment_,
+        )
     }
 }
 
 impl JSDocTemplateTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_template_tag(self.tag_name(), self.constraint(), self.type_parameters(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_template_tag(
+                self.tag_name(),
+                self.constraint(),
+                self.type_parameters(),
+                self.comment(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocReturnTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit(v, self.type_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit(v, self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15883,14 +20590,17 @@ impl JSDocReturnTag {
 
 impl JSDocReturnTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_return_tag(self.tag_name(), self.type_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_return_tag(self.tag_name(), self.type_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocPublicTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15910,8 +20620,7 @@ impl JSDocPublicTag {
 
 impl JSDocPrivateTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15931,8 +20640,7 @@ impl JSDocPrivateTag {
 
 impl JSDocProtectedTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15952,8 +20660,7 @@ impl JSDocProtectedTag {
 
 impl JSDocReadonlyTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15973,8 +20680,7 @@ impl JSDocReadonlyTag {
 
 impl JSDocOverrideTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -15994,8 +20700,7 @@ impl JSDocOverrideTag {
 
 impl JSDocDeprecatedTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -16015,9 +20720,7 @@ impl JSDocDeprecatedTag {
 
 impl JSDocSeeTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit(v, self.name_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit(v, self.name_expression()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -16032,22 +20735,25 @@ impl JSDocSeeTag {
 
 impl JSDocSeeTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_see_tag(self.tag_name(), self.name_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_see_tag(self.tag_name(), self.name_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocImplementsTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || v(self.class_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || v(self.class_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocImplementsTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let class_name_ = required_child(v.visit_node_hooked(Some(self.class_name())), self.class_name());
+        let class_name_ =
+            required_child(v.visit_node_hooked(Some(self.class_name())), self.class_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_implements_tag(node, tag_name_, class_name_, comment_)
     }
@@ -16055,22 +20761,25 @@ impl JSDocImplementsTag {
 
 impl JSDocImplementsTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_implements_tag(self.tag_name(), self.class_name(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_implements_tag(self.tag_name(), self.class_name(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocAugmentsTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || v(self.class_name())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || v(self.class_name()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocAugmentsTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let class_name_ = required_child(v.visit_node_hooked(Some(self.class_name())), self.class_name());
+        let class_name_ =
+            required_child(v.visit_node_hooked(Some(self.class_name())), self.class_name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_augments_tag(node, tag_name_, class_name_, comment_)
     }
@@ -16078,22 +20787,27 @@ impl JSDocAugmentsTag {
 
 impl JSDocAugmentsTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_augments_tag(self.tag_name(), self.class_name(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_augments_tag(self.tag_name(), self.class_name(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocSatisfiesTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || v(self.type_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocSatisfiesTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let type_expression_ = required_child(v.visit_node_hooked(Some(self.type_expression())), self.type_expression());
+        let type_expression_ = required_child(
+            v.visit_node_hooked(Some(self.type_expression())),
+            self.type_expression(),
+        );
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_satisfies_tag(node, tag_name_, type_expression_, comment_)
     }
@@ -16101,15 +20815,17 @@ impl JSDocSatisfiesTag {
 
 impl JSDocSatisfiesTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_satisfies_tag(self.tag_name(), self.type_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_satisfies_tag(self.tag_name(), self.type_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocThrowsTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || visit(v, self.type_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || visit(v, self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
@@ -16124,22 +20840,27 @@ impl JSDocThrowsTag {
 
 impl JSDocThrowsTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_throws_tag(self.tag_name(), self.type_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_throws_tag(self.tag_name(), self.type_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocThisTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || v(self.type_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocThisTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let type_expression_ = required_child(v.visit_node_hooked(Some(self.type_expression())), self.type_expression());
+        let type_expression_ = required_child(
+            v.visit_node_hooked(Some(self.type_expression())),
+            self.type_expression(),
+        );
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_this_tag(node, tag_name_, type_expression_, comment_)
     }
@@ -16147,7 +20868,11 @@ impl JSDocThisTag {
 
 impl JSDocThisTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_this_tag(self.tag_name(), self.type_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_this_tag(self.tag_name(), self.type_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16165,16 +20890,36 @@ impl JSDocImportTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
         let import_clause_ = v.visit_node_hooked(self.import_clause());
-        let module_specifier_ = required_child(v.visit_node_hooked(Some(self.module_specifier())), self.module_specifier());
+        let module_specifier_ = required_child(
+            v.visit_node_hooked(Some(self.module_specifier())),
+            self.module_specifier(),
+        );
         let attributes_ = v.visit_node_hooked(self.attributes());
         let comment_ = v.visit_nodes_hooked(self.comment());
-        v.factory.update_jsdoc_import_tag(node, tag_name_, import_clause_, module_specifier_, attributes_, comment_)
+        v.factory.update_jsdoc_import_tag(
+            node,
+            tag_name_,
+            import_clause_,
+            module_specifier_,
+            attributes_,
+            comment_,
+        )
     }
 }
 
 impl JSDocImportTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_import_tag(self.tag_name(), self.import_clause(), self.module_specifier(), self.attributes(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_import_tag(
+                self.tag_name(),
+                self.import_clause(),
+                self.module_specifier(),
+                self.attributes(),
+                self.comment(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16190,7 +20935,10 @@ impl JSDocCallbackTag {
 impl JSDocCallbackTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let type_expression_ = required_child(v.visit_node_hooked(Some(self.type_expression())), self.type_expression());
+        let type_expression_ = required_child(
+            v.visit_node_hooked(Some(self.type_expression())),
+            self.type_expression(),
+        );
         let name_ = v.visit_node_hooked(self.name());
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_callback_tag(node, tag_name_, type_expression_, name_, comment_)
@@ -16199,22 +20947,32 @@ impl JSDocCallbackTag {
 
 impl JSDocCallbackTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_callback_tag(self.tag_name(), self.type_expression(), self.name(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_callback_tag(
+                self.tag_name(),
+                self.type_expression(),
+                self.name(),
+                self.comment(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl JSDocOverloadTag {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.tag_name())
-            || v(self.type_expression())
-            || visit_node_list(v, self.comment())
+        v(self.tag_name()) || v(self.type_expression()) || visit_node_list(v, self.comment())
     }
 }
 
 impl JSDocOverloadTag {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let tag_name_ = required_child(v.visit_node_hooked(Some(self.tag_name())), self.tag_name());
-        let type_expression_ = required_child(v.visit_node_hooked(Some(self.type_expression())), self.type_expression());
+        let type_expression_ = required_child(
+            v.visit_node_hooked(Some(self.type_expression())),
+            self.type_expression(),
+        );
         let comment_ = v.visit_nodes_hooked(self.comment());
         v.factory.update_jsdoc_overload_tag(node, tag_name_, type_expression_, comment_)
     }
@@ -16222,7 +20980,11 @@ impl JSDocOverloadTag {
 
 impl JSDocOverloadTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_overload_tag(self.tag_name(), self.type_expression(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_overload_tag(self.tag_name(), self.type_expression(), self.comment()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16247,7 +21009,16 @@ impl JSDocTypedefTag {
 
 impl JSDocTypedefTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_typedef_tag(self.tag_name(), self.type_expression(), self.name(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_typedef_tag(
+                self.tag_name(),
+                self.type_expression(),
+                self.name(),
+                self.comment(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16270,7 +21041,11 @@ impl JSDocSignature {
 
 impl JSDocSignature {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_signature(self.type_parameters(), self.parameters(), self.type_()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_signature(self.type_parameters(), self.parameters(), self.type_()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16308,21 +21083,36 @@ impl ModuleDeclaration {
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
         let attributes_ = v.visit_node_hooked(self.attributes());
         let body_ = v.visit_node_hooked(self.body());
-        v.factory.update_module_declaration(node, modifiers_, self.keyword(), name_, attributes_, body_)
+        v.factory.update_module_declaration(
+            node,
+            modifiers_,
+            self.keyword(),
+            name_,
+            attributes_,
+            body_,
+        )
     }
 }
 
 impl ModuleDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_module_declaration(self.modifiers(), self.keyword(), self.name(), self.attributes(), self.body()), node, &f.hooks)
+        clone_node(
+            f.new_module_declaration(
+                self.modifiers(),
+                self.keyword(),
+                self.name(),
+                self.attributes(),
+                self.body(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl ImportEqualsDeclaration {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit_modifiers(v, self.modifiers())
-            || v(self.name())
-            || v(self.module_reference())
+        visit_modifiers(v, self.modifiers()) || v(self.name()) || v(self.module_reference())
     }
 }
 
@@ -16330,14 +21120,32 @@ impl ImportEqualsDeclaration {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
         let modifiers_ = v.visit_modifiers_hooked(self.modifiers());
         let name_ = required_child(v.visit_node_hooked(Some(self.name())), self.name());
-        let module_reference_ = required_child(v.visit_node_hooked(Some(self.module_reference())), self.module_reference());
-        v.factory.update_import_equals_declaration(node, modifiers_, self.is_type_only(), name_, module_reference_)
+        let module_reference_ = required_child(
+            v.visit_node_hooked(Some(self.module_reference())),
+            self.module_reference(),
+        );
+        v.factory.update_import_equals_declaration(
+            node,
+            modifiers_,
+            self.is_type_only(),
+            name_,
+            module_reference_,
+        )
     }
 }
 
 impl ImportEqualsDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_import_equals_declaration(self.modifiers(), self.is_type_only(), self.name(), self.module_reference()), node, &f.hooks)
+        clone_node(
+            f.new_import_equals_declaration(
+                self.modifiers(),
+                self.is_type_only(),
+                self.name(),
+                self.module_reference(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16356,13 +21164,30 @@ impl ExportDeclaration {
         let export_clause_ = v.visit_node_hooked(self.export_clause());
         let module_specifier_ = v.visit_node_hooked(self.module_specifier());
         let attributes_ = v.visit_node_hooked(self.attributes());
-        v.factory.update_export_declaration(node, modifiers_, self.is_type_only(), export_clause_, module_specifier_, attributes_)
+        v.factory.update_export_declaration(
+            node,
+            modifiers_,
+            self.is_type_only(),
+            export_clause_,
+            module_specifier_,
+            attributes_,
+        )
     }
 }
 
 impl ExportDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_export_declaration(self.modifiers(), self.is_type_only(), self.export_clause(), self.module_specifier(), self.attributes()), node, &f.hooks)
+        clone_node(
+            f.new_export_declaration(
+                self.modifiers(),
+                self.is_type_only(),
+                self.export_clause(),
+                self.module_specifier(),
+                self.attributes(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16381,20 +21206,36 @@ impl ImportTypeNode {
         let attributes_ = v.visit_node_hooked(self.attributes());
         let qualifier_ = v.visit_node_hooked(self.qualifier());
         let type_arguments_ = v.visit_nodes_hooked(self.type_arguments());
-        v.factory.update_import_type_node(node, self.is_type_of(), argument_, attributes_, qualifier_, type_arguments_)
+        v.factory.update_import_type_node(
+            node,
+            self.is_type_of(),
+            argument_,
+            attributes_,
+            qualifier_,
+            type_arguments_,
+        )
     }
 }
 
 impl ImportTypeNode {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_import_type_node(self.is_type_of(), self.argument(), self.attributes(), self.qualifier(), self.type_arguments()), node, &f.hooks)
+        clone_node(
+            f.new_import_type_node(
+                self.is_type_of(),
+                self.argument(),
+                self.attributes(),
+                self.qualifier(),
+                self.type_arguments(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl ImportClause {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.name())
-            || visit(v, self.named_bindings())
+        visit(v, self.name()) || visit(v, self.named_bindings())
     }
 }
 
@@ -16408,14 +21249,17 @@ impl ImportClause {
 
 impl ImportClause {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_import_clause(self.phase_modifier(), self.name(), self.named_bindings()), node, &f.hooks)
+        clone_node(
+            f.new_import_clause(self.phase_modifier(), self.name(), self.named_bindings()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl ImportSpecifier {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        visit(v, self.property_name())
-            || v(self.name())
+        visit(v, self.property_name()) || v(self.name())
     }
 }
 
@@ -16429,7 +21273,11 @@ impl ImportSpecifier {
 
 impl ImportSpecifier {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_import_specifier(self.is_type_only(), self.property_name(), self.name()), node, &f.hooks)
+        clone_node(
+            f.new_import_specifier(self.is_type_only(), self.property_name(), self.name()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16513,26 +21361,43 @@ impl TypeParameterDeclaration {
         let constraint_ = v.visit_node_hooked(self.constraint());
         let expression_ = v.visit_node_hooked(self.expression());
         let default_type_ = v.visit_node_hooked(self.default_type());
-        v.factory.update_type_parameter_declaration(node, modifiers_, name_, constraint_, expression_, default_type_)
+        v.factory.update_type_parameter_declaration(
+            node,
+            modifiers_,
+            name_,
+            constraint_,
+            expression_,
+            default_type_,
+        )
     }
 }
 
 impl TypeParameterDeclaration {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_type_parameter_declaration(self.modifiers(), self.name(), self.constraint(), self.expression(), self.default_type()), node, &f.hooks)
+        clone_node(
+            f.new_type_parameter_declaration(
+                self.modifiers(),
+                self.name(),
+                self.constraint(),
+                self.expression(),
+                self.default_type(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 impl SyntheticReferenceExpression {
     pub fn for_each_child<V: FnMut(P<Node>) -> bool + ?Sized>(&self, v: &mut V) -> bool {
-        v(self.expression())
-            || v(self.this_arg())
+        v(self.expression()) || v(self.this_arg())
     }
 }
 
 impl SyntheticReferenceExpression {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let expression_ = required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
+        let expression_ =
+            required_child(v.visit_node_hooked(Some(self.expression())), self.expression());
         let this_arg_ = required_child(v.visit_node_hooked(Some(self.this_arg())), self.this_arg());
         v.factory.update_synthetic_reference_expression(node, expression_, this_arg_)
     }
@@ -16540,7 +21405,11 @@ impl SyntheticReferenceExpression {
 
 impl SyntheticReferenceExpression {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_synthetic_reference_expression(self.expression(), self.this_arg()), node, &f.hooks)
+        clone_node(
+            f.new_synthetic_reference_expression(self.expression(), self.this_arg()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16552,14 +21421,20 @@ impl JSDocTypeLiteral {
 
 impl JSDocTypeLiteral {
     pub fn visit_each_child(&self, node: P<Node>, v: &mut NodeVisitor) -> P<Node> {
-        let jsdoc_property_tags = same_map_nodes(self.jsdoc_property_tags(), |n| v.visit_node_hooked(Some(n)).expect("visitor removed a raw list element"));
+        let jsdoc_property_tags = same_map_nodes(self.jsdoc_property_tags(), |n| {
+            v.visit_node_hooked(Some(n)).expect("visitor removed a raw list element")
+        });
         v.factory.update_jsdoc_type_literal(node, jsdoc_property_tags, self.is_array_type())
     }
 }
 
 impl JSDocTypeLiteral {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_type_literal(self.jsdoc_property_tags(), self.is_array_type()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_type_literal(self.jsdoc_property_tags(), self.is_array_type()),
+            node,
+            &f.hooks,
+        )
     }
 }
 
@@ -16577,14 +21452,195 @@ impl JSDocParameterOrPropertyTag {
 
 impl JSDocParameterOrPropertyTag {
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        clone_node(f.new_jsdoc_parameter_or_property_tag(node.kind(), self.tag_name(), self.name(), self.is_bracketed(), self.type_expression(), self.is_name_first(), self.comment()), node, &f.hooks)
+        clone_node(
+            f.new_jsdoc_parameter_or_property_tag(
+                node.kind(),
+                self.tag_name(),
+                self.name(),
+                self.is_bracketed(),
+                self.type_expression(),
+                self.is_name_first(),
+                self.comment(),
+            ),
+            node,
+            &f.hooks,
+        )
     }
 }
 
 // ── is_* predicates ──────────────────────────────────────────────────────
 
 pub fn is_token(node: P<Node>) -> bool {
-    matches!(node.kind(), Kind::Unknown | Kind::EndOfFile | Kind::SingleLineCommentTrivia | Kind::MultiLineCommentTrivia | Kind::NewLineTrivia | Kind::WhitespaceTrivia | Kind::ConflictMarkerTrivia | Kind::NonTextFileMarkerTrivia | Kind::NumericLiteral | Kind::BigIntLiteral | Kind::StringLiteral | Kind::JsxText | Kind::JsxTextAllWhiteSpaces | Kind::RegularExpressionLiteral | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateHead | Kind::TemplateMiddle | Kind::TemplateTail | Kind::OpenBraceToken | Kind::CloseBraceToken | Kind::OpenParenToken | Kind::CloseParenToken | Kind::OpenBracketToken | Kind::CloseBracketToken | Kind::DotToken | Kind::DotDotDotToken | Kind::SemicolonToken | Kind::CommaToken | Kind::QuestionDotToken | Kind::LessThanToken | Kind::LessThanSlashToken | Kind::GreaterThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanEqualsToken | Kind::EqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::EqualsGreaterThanToken | Kind::PlusToken | Kind::MinusToken | Kind::AsteriskToken | Kind::AsteriskAsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusPlusToken | Kind::MinusMinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken | Kind::ExclamationToken | Kind::TildeToken | Kind::AmpersandAmpersandToken | Kind::BarBarToken | Kind::QuestionToken | Kind::ColonToken | Kind::AtToken | Kind::QuestionQuestionToken | Kind::BacktickToken | Kind::HashToken | Kind::EqualsToken | Kind::PlusEqualsToken | Kind::MinusEqualsToken | Kind::AsteriskEqualsToken | Kind::AsteriskAsteriskEqualsToken | Kind::SlashEqualsToken | Kind::PercentEqualsToken | Kind::LessThanLessThanEqualsToken | Kind::GreaterThanGreaterThanEqualsToken | Kind::GreaterThanGreaterThanGreaterThanEqualsToken | Kind::AmpersandEqualsToken | Kind::BarEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::QuestionQuestionEqualsToken | Kind::CaretEqualsToken | Kind::Identifier | Kind::PrivateIdentifier | Kind::JSDocCommentTextToken | Kind::BreakKeyword | Kind::CaseKeyword | Kind::CatchKeyword | Kind::ClassKeyword | Kind::ConstKeyword | Kind::ContinueKeyword | Kind::DebuggerKeyword | Kind::DefaultKeyword | Kind::DeleteKeyword | Kind::DoKeyword | Kind::ElseKeyword | Kind::EnumKeyword | Kind::ExportKeyword | Kind::ExtendsKeyword | Kind::FalseKeyword | Kind::FinallyKeyword | Kind::ForKeyword | Kind::FunctionKeyword | Kind::IfKeyword | Kind::ImportKeyword | Kind::InKeyword | Kind::InstanceOfKeyword | Kind::NewKeyword | Kind::NullKeyword | Kind::ReturnKeyword | Kind::SuperKeyword | Kind::SwitchKeyword | Kind::ThisKeyword | Kind::ThrowKeyword | Kind::TrueKeyword | Kind::TryKeyword | Kind::TypeOfKeyword | Kind::VarKeyword | Kind::VoidKeyword | Kind::WhileKeyword | Kind::WithKeyword | Kind::ImplementsKeyword | Kind::InterfaceKeyword | Kind::LetKeyword | Kind::PackageKeyword | Kind::PrivateKeyword | Kind::ProtectedKeyword | Kind::PublicKeyword | Kind::StaticKeyword | Kind::YieldKeyword | Kind::AbstractKeyword | Kind::AccessorKeyword | Kind::AsKeyword | Kind::AssertsKeyword | Kind::AssertKeyword | Kind::AnyKeyword | Kind::AsyncKeyword | Kind::AwaitKeyword | Kind::BooleanKeyword | Kind::ConstructorKeyword | Kind::DeclareKeyword | Kind::GetKeyword | Kind::ImmediateKeyword | Kind::InferKeyword | Kind::IntrinsicKeyword | Kind::IsKeyword | Kind::KeyOfKeyword | Kind::ModuleKeyword | Kind::NamespaceKeyword | Kind::NeverKeyword | Kind::OutKeyword | Kind::ReadonlyKeyword | Kind::RequireKeyword | Kind::NumberKeyword | Kind::ObjectKeyword | Kind::SatisfiesKeyword | Kind::SetKeyword | Kind::StringKeyword | Kind::SymbolKeyword | Kind::TypeKeyword | Kind::UndefinedKeyword | Kind::UniqueKeyword | Kind::UnknownKeyword | Kind::UsingKeyword | Kind::FromKeyword | Kind::GlobalKeyword | Kind::BigIntKeyword | Kind::OverrideKeyword | Kind::OfKeyword | Kind::DeferKeyword)
+    matches!(
+        node.kind(),
+        Kind::Unknown
+            | Kind::EndOfFile
+            | Kind::SingleLineCommentTrivia
+            | Kind::MultiLineCommentTrivia
+            | Kind::NewLineTrivia
+            | Kind::WhitespaceTrivia
+            | Kind::ConflictMarkerTrivia
+            | Kind::NonTextFileMarkerTrivia
+            | Kind::NumericLiteral
+            | Kind::BigIntLiteral
+            | Kind::StringLiteral
+            | Kind::JsxText
+            | Kind::JsxTextAllWhiteSpaces
+            | Kind::RegularExpressionLiteral
+            | Kind::NoSubstitutionTemplateLiteral
+            | Kind::TemplateHead
+            | Kind::TemplateMiddle
+            | Kind::TemplateTail
+            | Kind::OpenBraceToken
+            | Kind::CloseBraceToken
+            | Kind::OpenParenToken
+            | Kind::CloseParenToken
+            | Kind::OpenBracketToken
+            | Kind::CloseBracketToken
+            | Kind::DotToken
+            | Kind::DotDotDotToken
+            | Kind::SemicolonToken
+            | Kind::CommaToken
+            | Kind::QuestionDotToken
+            | Kind::LessThanToken
+            | Kind::LessThanSlashToken
+            | Kind::GreaterThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::EqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::EqualsGreaterThanToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::AsteriskToken
+            | Kind::AsteriskAsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusPlusToken
+            | Kind::MinusMinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::AmpersandToken
+            | Kind::BarToken
+            | Kind::CaretToken
+            | Kind::ExclamationToken
+            | Kind::TildeToken
+            | Kind::AmpersandAmpersandToken
+            | Kind::BarBarToken
+            | Kind::QuestionToken
+            | Kind::ColonToken
+            | Kind::AtToken
+            | Kind::QuestionQuestionToken
+            | Kind::BacktickToken
+            | Kind::HashToken
+            | Kind::EqualsToken
+            | Kind::PlusEqualsToken
+            | Kind::MinusEqualsToken
+            | Kind::AsteriskEqualsToken
+            | Kind::AsteriskAsteriskEqualsToken
+            | Kind::SlashEqualsToken
+            | Kind::PercentEqualsToken
+            | Kind::LessThanLessThanEqualsToken
+            | Kind::GreaterThanGreaterThanEqualsToken
+            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
+            | Kind::AmpersandEqualsToken
+            | Kind::BarEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+            | Kind::CaretEqualsToken
+            | Kind::Identifier
+            | Kind::PrivateIdentifier
+            | Kind::JSDocCommentTextToken
+            | Kind::BreakKeyword
+            | Kind::CaseKeyword
+            | Kind::CatchKeyword
+            | Kind::ClassKeyword
+            | Kind::ConstKeyword
+            | Kind::ContinueKeyword
+            | Kind::DebuggerKeyword
+            | Kind::DefaultKeyword
+            | Kind::DeleteKeyword
+            | Kind::DoKeyword
+            | Kind::ElseKeyword
+            | Kind::EnumKeyword
+            | Kind::ExportKeyword
+            | Kind::ExtendsKeyword
+            | Kind::FalseKeyword
+            | Kind::FinallyKeyword
+            | Kind::ForKeyword
+            | Kind::FunctionKeyword
+            | Kind::IfKeyword
+            | Kind::ImportKeyword
+            | Kind::InKeyword
+            | Kind::InstanceOfKeyword
+            | Kind::NewKeyword
+            | Kind::NullKeyword
+            | Kind::ReturnKeyword
+            | Kind::SuperKeyword
+            | Kind::SwitchKeyword
+            | Kind::ThisKeyword
+            | Kind::ThrowKeyword
+            | Kind::TrueKeyword
+            | Kind::TryKeyword
+            | Kind::TypeOfKeyword
+            | Kind::VarKeyword
+            | Kind::VoidKeyword
+            | Kind::WhileKeyword
+            | Kind::WithKeyword
+            | Kind::ImplementsKeyword
+            | Kind::InterfaceKeyword
+            | Kind::LetKeyword
+            | Kind::PackageKeyword
+            | Kind::PrivateKeyword
+            | Kind::ProtectedKeyword
+            | Kind::PublicKeyword
+            | Kind::StaticKeyword
+            | Kind::YieldKeyword
+            | Kind::AbstractKeyword
+            | Kind::AccessorKeyword
+            | Kind::AsKeyword
+            | Kind::AssertsKeyword
+            | Kind::AssertKeyword
+            | Kind::AnyKeyword
+            | Kind::AsyncKeyword
+            | Kind::AwaitKeyword
+            | Kind::BooleanKeyword
+            | Kind::ConstructorKeyword
+            | Kind::DeclareKeyword
+            | Kind::GetKeyword
+            | Kind::ImmediateKeyword
+            | Kind::InferKeyword
+            | Kind::IntrinsicKeyword
+            | Kind::IsKeyword
+            | Kind::KeyOfKeyword
+            | Kind::ModuleKeyword
+            | Kind::NamespaceKeyword
+            | Kind::NeverKeyword
+            | Kind::OutKeyword
+            | Kind::ReadonlyKeyword
+            | Kind::RequireKeyword
+            | Kind::NumberKeyword
+            | Kind::ObjectKeyword
+            | Kind::SatisfiesKeyword
+            | Kind::SetKeyword
+            | Kind::StringKeyword
+            | Kind::SymbolKeyword
+            | Kind::TypeKeyword
+            | Kind::UndefinedKeyword
+            | Kind::UniqueKeyword
+            | Kind::UnknownKeyword
+            | Kind::UsingKeyword
+            | Kind::FromKeyword
+            | Kind::GlobalKeyword
+            | Kind::BigIntKeyword
+            | Kind::OverrideKeyword
+            | Kind::OfKeyword
+            | Kind::DeferKeyword
+    )
 }
 
 pub fn is_identifier(node: P<Node>) -> bool {
@@ -16868,7 +21924,15 @@ pub fn is_omitted_expression(node: P<Node>) -> bool {
 }
 
 pub fn is_keyword_expression(node: P<Node>) -> bool {
-    matches!(node.kind(), Kind::NullKeyword | Kind::TrueKeyword | Kind::FalseKeyword | Kind::ThisKeyword | Kind::SuperKeyword | Kind::ImportKeyword)
+    matches!(
+        node.kind(),
+        Kind::NullKeyword
+            | Kind::TrueKeyword
+            | Kind::FalseKeyword
+            | Kind::ThisKeyword
+            | Kind::SuperKeyword
+            | Kind::ImportKeyword
+    )
 }
 
 pub fn is_string_literal(node: P<Node>) -> bool {
@@ -17012,7 +22076,21 @@ pub fn is_type_assertion(node: P<Node>) -> bool {
 }
 
 pub fn is_keyword_type_node(node: P<Node>) -> bool {
-    matches!(node.kind(), Kind::AnyKeyword | Kind::BigIntKeyword | Kind::BooleanKeyword | Kind::IntrinsicKeyword | Kind::NeverKeyword | Kind::NumberKeyword | Kind::ObjectKeyword | Kind::StringKeyword | Kind::SymbolKeyword | Kind::UndefinedKeyword | Kind::UnknownKeyword | Kind::VoidKeyword)
+    matches!(
+        node.kind(),
+        Kind::AnyKeyword
+            | Kind::BigIntKeyword
+            | Kind::BooleanKeyword
+            | Kind::IntrinsicKeyword
+            | Kind::NeverKeyword
+            | Kind::NumberKeyword
+            | Kind::ObjectKeyword
+            | Kind::StringKeyword
+            | Kind::SymbolKeyword
+            | Kind::UndefinedKeyword
+            | Kind::UnknownKeyword
+            | Kind::VoidKeyword
+    )
 }
 
 pub fn is_union_type_node(node: P<Node>) -> bool {
@@ -17378,7 +22456,14 @@ pub fn is_jsdoc_property_tag(node: P<Node>) -> bool {
 // ── Kind alias guards ────────────────────────────────────────────────────
 
 pub fn is_trivia_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::SingleLineCommentTrivia | Kind::MultiLineCommentTrivia | Kind::NewLineTrivia | Kind::WhitespaceTrivia | Kind::ConflictMarkerTrivia)
+    matches!(
+        kind,
+        Kind::SingleLineCommentTrivia
+            | Kind::MultiLineCommentTrivia
+            | Kind::NewLineTrivia
+            | Kind::WhitespaceTrivia
+            | Kind::ConflictMarkerTrivia
+    )
 }
 
 pub fn is_literal_kind(kind: Kind) -> bool {
@@ -17398,15 +22483,54 @@ pub fn is_keyword_kind(kind: Kind) -> bool {
 }
 
 pub fn is_modifier_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::AbstractKeyword | Kind::AccessorKeyword | Kind::AsyncKeyword | Kind::ConstKeyword | Kind::DeclareKeyword | Kind::DefaultKeyword | Kind::ExportKeyword | Kind::InKeyword | Kind::PrivateKeyword | Kind::ProtectedKeyword | Kind::PublicKeyword | Kind::ReadonlyKeyword | Kind::OutKeyword | Kind::OverrideKeyword | Kind::StaticKeyword)
+    matches!(
+        kind,
+        Kind::AbstractKeyword
+            | Kind::AccessorKeyword
+            | Kind::AsyncKeyword
+            | Kind::ConstKeyword
+            | Kind::DeclareKeyword
+            | Kind::DefaultKeyword
+            | Kind::ExportKeyword
+            | Kind::InKeyword
+            | Kind::PrivateKeyword
+            | Kind::ProtectedKeyword
+            | Kind::PublicKeyword
+            | Kind::ReadonlyKeyword
+            | Kind::OutKeyword
+            | Kind::OverrideKeyword
+            | Kind::StaticKeyword
+    )
 }
 
 pub fn is_keyword_type_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::AnyKeyword | Kind::BigIntKeyword | Kind::BooleanKeyword | Kind::IntrinsicKeyword | Kind::NeverKeyword | Kind::NumberKeyword | Kind::ObjectKeyword | Kind::StringKeyword | Kind::SymbolKeyword | Kind::UndefinedKeyword | Kind::UnknownKeyword | Kind::VoidKeyword)
+    matches!(
+        kind,
+        Kind::AnyKeyword
+            | Kind::BigIntKeyword
+            | Kind::BooleanKeyword
+            | Kind::IntrinsicKeyword
+            | Kind::NeverKeyword
+            | Kind::NumberKeyword
+            | Kind::ObjectKeyword
+            | Kind::StringKeyword
+            | Kind::SymbolKeyword
+            | Kind::UndefinedKeyword
+            | Kind::UnknownKeyword
+            | Kind::VoidKeyword
+    )
 }
 
 pub fn is_keyword_expression_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::NullKeyword | Kind::TrueKeyword | Kind::FalseKeyword | Kind::ThisKeyword | Kind::SuperKeyword | Kind::ImportKeyword)
+    matches!(
+        kind,
+        Kind::NullKeyword
+            | Kind::TrueKeyword
+            | Kind::FalseKeyword
+            | Kind::ThisKeyword
+            | Kind::SuperKeyword
+            | Kind::ImportKeyword
+    )
 }
 
 pub fn is_token_kind(kind: Kind) -> bool {
@@ -17414,7 +22538,16 @@ pub fn is_token_kind(kind: Kind) -> bool {
 }
 
 pub fn is_jsx_token_kind(kind: Kind) -> bool {
-    matches!(kind, Kind::LessThanSlashToken | Kind::EndOfFile | Kind::ConflictMarkerTrivia | Kind::JsxText | Kind::JsxTextAllWhiteSpaces | Kind::OpenBraceToken | Kind::LessThanToken)
+    matches!(
+        kind,
+        Kind::LessThanSlashToken
+            | Kind::EndOfFile
+            | Kind::ConflictMarkerTrivia
+            | Kind::JsxText
+            | Kind::JsxTextAllWhiteSpaces
+            | Kind::OpenBraceToken
+            | Kind::LessThanToken
+    )
 }
 
 pub fn is_jsdoc_node_kind(kind: Kind) -> bool {
@@ -17430,15 +22563,85 @@ pub fn is_postfix_unary_operator(kind: Kind) -> bool {
 }
 
 pub fn is_prefix_unary_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::PlusToken | Kind::MinusToken | Kind::TildeToken | Kind::ExclamationToken | Kind::PlusPlusToken | Kind::MinusMinusToken)
+    matches!(
+        kind,
+        Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::TildeToken
+            | Kind::ExclamationToken
+            | Kind::PlusPlusToken
+            | Kind::MinusMinusToken
+    )
 }
 
 pub fn is_assignment_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::EqualsToken | Kind::PlusEqualsToken | Kind::MinusEqualsToken | Kind::AsteriskAsteriskEqualsToken | Kind::AsteriskEqualsToken | Kind::SlashEqualsToken | Kind::PercentEqualsToken | Kind::AmpersandEqualsToken | Kind::BarEqualsToken | Kind::CaretEqualsToken | Kind::LessThanLessThanEqualsToken | Kind::GreaterThanGreaterThanGreaterThanEqualsToken | Kind::GreaterThanGreaterThanEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::QuestionQuestionEqualsToken)
+    matches!(
+        kind,
+        Kind::EqualsToken
+            | Kind::PlusEqualsToken
+            | Kind::MinusEqualsToken
+            | Kind::AsteriskAsteriskEqualsToken
+            | Kind::AsteriskEqualsToken
+            | Kind::SlashEqualsToken
+            | Kind::PercentEqualsToken
+            | Kind::AmpersandEqualsToken
+            | Kind::BarEqualsToken
+            | Kind::CaretEqualsToken
+            | Kind::LessThanLessThanEqualsToken
+            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
+            | Kind::GreaterThanGreaterThanEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+    )
 }
 
 pub fn is_binary_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::QuestionQuestionToken | Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword | Kind::EqualsEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken | Kind::AmpersandAmpersandToken | Kind::BarBarToken | Kind::EqualsToken | Kind::PlusEqualsToken | Kind::MinusEqualsToken | Kind::AsteriskAsteriskEqualsToken | Kind::AsteriskEqualsToken | Kind::SlashEqualsToken | Kind::PercentEqualsToken | Kind::AmpersandEqualsToken | Kind::BarEqualsToken | Kind::CaretEqualsToken | Kind::LessThanLessThanEqualsToken | Kind::GreaterThanGreaterThanGreaterThanEqualsToken | Kind::GreaterThanGreaterThanEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::QuestionQuestionEqualsToken | Kind::CommaToken)
+    matches!(
+        kind,
+        Kind::QuestionQuestionToken
+            | Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+            | Kind::EqualsEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+            | Kind::AmpersandToken
+            | Kind::BarToken
+            | Kind::CaretToken
+            | Kind::AmpersandAmpersandToken
+            | Kind::BarBarToken
+            | Kind::EqualsToken
+            | Kind::PlusEqualsToken
+            | Kind::MinusEqualsToken
+            | Kind::AsteriskAsteriskEqualsToken
+            | Kind::AsteriskEqualsToken
+            | Kind::SlashEqualsToken
+            | Kind::PercentEqualsToken
+            | Kind::AmpersandEqualsToken
+            | Kind::BarEqualsToken
+            | Kind::CaretEqualsToken
+            | Kind::LessThanLessThanEqualsToken
+            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
+            | Kind::GreaterThanGreaterThanEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+            | Kind::CommaToken
+    )
 }
 
 pub fn is_exponentiation_operator(kind: Kind) -> bool {
@@ -17450,7 +22653,10 @@ pub fn is_multiplicative_operator(kind: Kind) -> bool {
 }
 
 pub fn is_multiplicative_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken
+    )
 }
 
 pub fn is_additive_operator(kind: Kind) -> bool {
@@ -17458,31 +22664,107 @@ pub fn is_additive_operator(kind: Kind) -> bool {
 }
 
 pub fn is_additive_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+    )
 }
 
 pub fn is_shift_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken)
+    matches!(
+        kind,
+        Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+    )
 }
 
 pub fn is_shift_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+    )
 }
 
 pub fn is_relational_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword)
+    matches!(
+        kind,
+        Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+    )
 }
 
 pub fn is_relational_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+    )
 }
 
 pub fn is_equality_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::EqualsEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::ExclamationEqualsToken)
+    matches!(
+        kind,
+        Kind::EqualsEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+    )
 }
 
 pub fn is_equality_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword | Kind::EqualsEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::ExclamationEqualsToken)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+            | Kind::EqualsEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+    )
 }
 
 pub fn is_bitwise_operator(kind: Kind) -> bool {
@@ -17490,7 +22772,31 @@ pub fn is_bitwise_operator(kind: Kind) -> bool {
 }
 
 pub fn is_bitwise_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword | Kind::EqualsEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+            | Kind::EqualsEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+            | Kind::AmpersandToken
+            | Kind::BarToken
+            | Kind::CaretToken
+    )
 }
 
 pub fn is_logical_operator(kind: Kind) -> bool {
@@ -17498,17 +22804,108 @@ pub fn is_logical_operator(kind: Kind) -> bool {
 }
 
 pub fn is_logical_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword | Kind::EqualsEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken | Kind::AmpersandAmpersandToken | Kind::BarBarToken)
+    matches!(
+        kind,
+        Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+            | Kind::EqualsEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+            | Kind::AmpersandToken
+            | Kind::BarToken
+            | Kind::CaretToken
+            | Kind::AmpersandAmpersandToken
+            | Kind::BarBarToken
+    )
 }
 
 pub fn is_compound_assignment_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::PlusEqualsToken | Kind::MinusEqualsToken | Kind::AsteriskAsteriskEqualsToken | Kind::AsteriskEqualsToken | Kind::SlashEqualsToken | Kind::PercentEqualsToken | Kind::AmpersandEqualsToken | Kind::BarEqualsToken | Kind::CaretEqualsToken | Kind::LessThanLessThanEqualsToken | Kind::GreaterThanGreaterThanGreaterThanEqualsToken | Kind::GreaterThanGreaterThanEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::QuestionQuestionEqualsToken)
+    matches!(
+        kind,
+        Kind::PlusEqualsToken
+            | Kind::MinusEqualsToken
+            | Kind::AsteriskAsteriskEqualsToken
+            | Kind::AsteriskEqualsToken
+            | Kind::SlashEqualsToken
+            | Kind::PercentEqualsToken
+            | Kind::AmpersandEqualsToken
+            | Kind::BarEqualsToken
+            | Kind::CaretEqualsToken
+            | Kind::LessThanLessThanEqualsToken
+            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
+            | Kind::GreaterThanGreaterThanEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+    )
 }
 
 pub fn is_assignment_operator_or_higher(kind: Kind) -> bool {
-    matches!(kind, Kind::QuestionQuestionToken | Kind::AsteriskAsteriskToken | Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusToken | Kind::MinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::LessThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanToken | Kind::GreaterThanEqualsToken | Kind::InstanceOfKeyword | Kind::InKeyword | Kind::EqualsEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken | Kind::AmpersandAmpersandToken | Kind::BarBarToken | Kind::EqualsToken | Kind::PlusEqualsToken | Kind::MinusEqualsToken | Kind::AsteriskAsteriskEqualsToken | Kind::AsteriskEqualsToken | Kind::SlashEqualsToken | Kind::PercentEqualsToken | Kind::AmpersandEqualsToken | Kind::BarEqualsToken | Kind::CaretEqualsToken | Kind::LessThanLessThanEqualsToken | Kind::GreaterThanGreaterThanGreaterThanEqualsToken | Kind::GreaterThanGreaterThanEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::QuestionQuestionEqualsToken)
+    matches!(
+        kind,
+        Kind::QuestionQuestionToken
+            | Kind::AsteriskAsteriskToken
+            | Kind::AsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::LessThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::InstanceOfKeyword
+            | Kind::InKeyword
+            | Kind::EqualsEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+            | Kind::AmpersandToken
+            | Kind::BarToken
+            | Kind::CaretToken
+            | Kind::AmpersandAmpersandToken
+            | Kind::BarBarToken
+            | Kind::EqualsToken
+            | Kind::PlusEqualsToken
+            | Kind::MinusEqualsToken
+            | Kind::AsteriskAsteriskEqualsToken
+            | Kind::AsteriskEqualsToken
+            | Kind::SlashEqualsToken
+            | Kind::PercentEqualsToken
+            | Kind::AmpersandEqualsToken
+            | Kind::BarEqualsToken
+            | Kind::CaretEqualsToken
+            | Kind::LessThanLessThanEqualsToken
+            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
+            | Kind::GreaterThanGreaterThanEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+    )
 }
 
 pub fn is_logical_or_coalescing_assignment_operator(kind: Kind) -> bool {
-    matches!(kind, Kind::AmpersandAmpersandEqualsToken | Kind::BarBarEqualsToken | Kind::QuestionQuestionEqualsToken)
+    matches!(
+        kind,
+        Kind::AmpersandAmpersandEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+    )
 }

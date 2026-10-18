@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use crate::stringutil::{decode_rune, push_rune, Rune};
+use crate::stringutil::{Rune, decode_rune, push_rune};
 
 // A Glob is an LSP-compliant glob pattern, as defined by the spec:
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentFilter
@@ -170,11 +170,11 @@ impl fmt::Display for Glob {
 // element holds a glob pattern element, as defined below.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) enum Element {
-    Slash,           // One or more '/' separators
-    Literal(String), // string literal, not containing /, *, ?, {}, or []
-    Star,            // *
-    AnyChar,         // ?
-    StarStar,        // **
+    Slash,            // One or more '/' separators
+    Literal(String),  // string literal, not containing /, *, ?, {}, or []
+    Star,             // *
+    AnyChar,          // ?
+    StarStar,         // **
     Group(Vec<Glob>), // {foo, bar, ...} grouping
     CharRange {
         // [a-z] character range
@@ -275,7 +275,11 @@ pub(crate) fn match_(mut elems: &[&Element], mut input: &[u8]) -> bool {
                 (seg_input, input) = split(input);
 
                 let mut elem_end = elems.len();
-                if let Some((i, _e)) = elems.iter().enumerate().find_map(|(i, e)| if **e == Element::Slash { Some((i, e)) } else { None }) {
+                if let Some((i, _e)) = elems
+                    .iter()
+                    .enumerate()
+                    .find_map(|(i, e)| if **e == Element::Slash { Some((i, e)) } else { None })
+                {
                     elem_end = i;
                 }
                 let seg_elems = &elems[..elem_end];

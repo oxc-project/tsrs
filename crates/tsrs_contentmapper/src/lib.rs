@@ -14,7 +14,9 @@ pub use host::*;
 pub use hostimpl::*;
 pub use process::*;
 pub use transform::*;
-pub use tsrs_tsoptions::{is_supported_virtual_extension, Definition, Manifest, Mapper, OptionPathSegment};
+pub use tsrs_tsoptions::{
+    Definition, Manifest, Mapper, OptionPathSegment, is_supported_virtual_extension,
+};
 
 #[cfg(test)]
 mod host_test;

@@ -64,7 +64,10 @@ impl Diagnostic {
     pub fn end(&self) -> Option<u32> {
         self.loc.get()?.source_end()
     }
-    #[expect(clippy::len_without_is_empty, reason = "This accessor reports a position or optional diagnostic length, not a container size.")]
+    #[expect(
+        clippy::len_without_is_empty,
+        reason = "This accessor reports a position or optional diagnostic length, not a container size."
+    )]
     pub fn len(&self) -> Option<u32> {
         self.loc.get()?.len()
     }
@@ -134,7 +137,10 @@ pub trait DiagnosticExt {
     fn set_message_chain(self, message_chain: &[P<Diagnostic>]) -> P<Diagnostic>;
     fn add_message_chain(self, message_chain: impl Into<Option<P<Diagnostic>>>) -> P<Diagnostic>;
     fn set_related_info(self, related_information: &[P<Diagnostic>]) -> P<Diagnostic>;
-    fn add_related_info(self, related_information: impl Into<Option<P<Diagnostic>>>) -> P<Diagnostic>;
+    fn add_related_info(
+        self,
+        related_information: impl Into<Option<P<Diagnostic>>>,
+    ) -> P<Diagnostic>;
     fn clone_diagnostic(self) -> P<Diagnostic>;
     fn copy_deep(self) -> P<Diagnostic>;
 }
@@ -173,7 +179,10 @@ impl DiagnosticExt for P<Diagnostic> {
         self
     }
 
-    fn add_related_info(self, related_information: impl Into<Option<P<Diagnostic>>>) -> P<Diagnostic> {
+    fn add_related_info(
+        self,
+        related_information: impl Into<Option<P<Diagnostic>>>,
+    ) -> P<Diagnostic> {
         // Diagnostics outlive a scratch region (one file's emit) they are reported in.
         let _outer = tsrs_core::arena::escape_for_diagnostic();
         if let Some(related_information) = related_information.into() {
@@ -210,8 +219,10 @@ impl DiagnosticExt for P<Diagnostic> {
     /// nothing of the original but the file, in the current allocation target: what a session keeps of
     /// diagnostics whose region it frees (`tsrs_incremental` `Program::copy_diagnostics`).
     fn copy_deep(self) -> P<Diagnostic> {
-        let message_chain: Vec<P<Diagnostic>> = self.message_chain.get().iter().map(|d| d.copy_deep()).collect();
-        let related_information: Vec<P<Diagnostic>> = self.related_information.get().iter().map(|d| d.copy_deep()).collect();
+        let message_chain: Vec<P<Diagnostic>> =
+            self.message_chain.get().iter().map(|d| d.copy_deep()).collect();
+        let related_information: Vec<P<Diagnostic>> =
+            self.related_information.get().iter().map(|d| d.copy_deep()).collect();
         P::new(Diagnostic {
             file: OwnedCell::new(self.file.get()),
             loc: OwnedCell::new(self.loc.get()),
@@ -227,7 +238,9 @@ impl DiagnosticExt for P<Diagnostic> {
             reports_unnecessary: self.reports_unnecessary,
             reports_deprecated: self.reports_deprecated,
             skipped_on_no_emit: OwnedCell::new(self.skipped_on_no_emit.get()),
-            repopulate_info: OwnedCell::new(self.repopulate_info.get().map(|info| tsrs_core::alloc(info.clone()))),
+            repopulate_info: OwnedCell::new(
+                self.repopulate_info.get().map(|info| tsrs_core::alloc(info.clone())),
+            ),
         })
     }
 }
@@ -267,8 +280,10 @@ impl Diagnostic {
         }
         // Go slices at byte offsets, which need not fall on character boundaries (the original name is then
         // converted lossily).
-        let virtual_name = &virtual_text.as_bytes()[segment.virtual_start as usize..segment.virtual_end as usize];
-        let original_name = &original_text.as_bytes()[segment.original_start as usize..segment.original_end as usize];
+        let virtual_name =
+            &virtual_text.as_bytes()[segment.virtual_start as usize..segment.virtual_end as usize];
+        let original_name = &original_text.as_bytes()
+            [segment.original_start as usize..segment.original_end as usize];
         let mut result: Option<Vec<String>> = None;
         for (i, arg) in self.message_args.iter().enumerate() {
             if arg.as_bytes() != virtual_name {
@@ -359,7 +374,11 @@ pub fn new_diagnostic_from_serialized(
     })
 }
 
-pub fn new_diagnostic_chain(chain: impl Into<Option<P<Diagnostic>>>, message: &'static Message, args: &[&dyn fmt::Display]) -> P<Diagnostic> {
+pub fn new_diagnostic_chain(
+    chain: impl Into<Option<P<Diagnostic>>>,
+    message: &'static Message,
+    args: &[&dyn fmt::Display],
+) -> P<Diagnostic> {
     if let Some(chain) = chain.into() {
         return new_diagnostic(chain.file.get(), chain.loc.get(), message, args)
             .add_message_chain(chain)
@@ -438,7 +457,9 @@ impl DiagnosticsCollection {
                     return existing;
                 }
                 let collisions = self.diagnostic_collisions.entry(e.key().clone()).or_default();
-                if let Some(result) = collisions.iter().find_map(|&collision| if equal_diagnostics(collision, diagnostic) { Some(collision) } else { None }) {
+                if let Some(result) = collisions.iter().find_map(|&collision| {
+                    if equal_diagnostics(collision, diagnostic) { Some(collision) } else { None }
+                }) {
                     return result;
                 }
                 collisions.push(diagnostic);
@@ -484,8 +505,7 @@ impl DiagnosticsCollection {
 
     fn get_global_diagnostics_locked(&mut self) -> Vec<P<Diagnostic>> {
         if !self.non_file_diagnostics_sorted {
-            self.non_file_diagnostics
-                .sort_by(|a, b| compare_diagnostics(*a, *b));
+            self.non_file_diagnostics.sort_by(|a, b| compare_diagnostics(*a, *b));
             self.non_file_diagnostics_sorted = true;
         }
         self.non_file_diagnostics.clone()
@@ -510,11 +530,7 @@ impl DiagnosticsCollection {
         let mut diagnostics = Vec::with_capacity(self.count);
         diagnostics.extend_from_slice(&self.non_file_diagnostics);
         // sorted by compare_diagnostics below, which orders by file first; the stable sort keeps each file's own order
-        diagnostics.extend(
-            self.file_diagnostics
-                .values()
-                .flat_map(|diags| diags.iter().copied()),
-        );
+        diagnostics.extend(self.file_diagnostics.values().flat_map(|diags| diags.iter().copied()));
         diagnostics.sort_by(|a, b| compare_diagnostics(*a, *b));
         diagnostics
     }
@@ -532,7 +548,9 @@ struct DiagnosticLocationKey {
 
 impl PartialEq for DiagnosticLocationKey {
     fn eq(&self, other: &Self) -> bool {
-        self.loc == other.loc && self.code == other.code && self.file.map(|f| f.get().path()) == other.file.map(|f| f.get().path())
+        self.loc == other.loc
+            && self.code == other.code
+            && self.file.map(|f| f.get().path()) == other.file.map(|f| f.get().path())
     }
 }
 
@@ -547,7 +565,11 @@ impl std::hash::Hash for DiagnosticLocationKey {
 }
 
 fn get_diagnostic_location_key(diagnostic: P<Diagnostic>) -> DiagnosticLocationKey {
-    DiagnosticLocationKey { file: diagnostic.file(), loc: diagnostic.loc(), code: diagnostic.code() }
+    DiagnosticLocationKey {
+        file: diagnostic.file(),
+        loc: diagnostic.loc(),
+        code: diagnostic.code(),
+    }
 }
 
 fn get_diagnostic_path(d: P<Diagnostic>) -> &'static str {
@@ -588,7 +610,8 @@ pub fn equal_diagnostics(d1: P<Diagnostic>, d2: P<Diagnostic>) -> bool {
     if d1 == d2 {
         return true;
     }
-    equal_diagnostics_no_related_info(d1, d2) && slices_equal_func(d1.related_information(), d2.related_information(), equal_diagnostics)
+    equal_diagnostics_no_related_info(d1, d2)
+        && slices_equal_func(d1.related_information(), d2.related_information(), equal_diagnostics)
 }
 
 pub fn equal_diagnostics_no_related_info(d1: P<Diagnostic>, d2: P<Diagnostic>) -> bool {
@@ -605,7 +628,11 @@ pub fn equal_diagnostics_no_related_info(d1: P<Diagnostic>, d2: P<Diagnostic>) -
         && slices_equal_func(d1.message_chain(), d2.message_chain(), equal_message_chain)
 }
 
-fn slices_equal_func(a: &[P<Diagnostic>], b: &[P<Diagnostic>], eq: fn(P<Diagnostic>, P<Diagnostic>) -> bool) -> bool {
+fn slices_equal_func(
+    a: &[P<Diagnostic>],
+    b: &[P<Diagnostic>],
+    eq: fn(P<Diagnostic>, P<Diagnostic>) -> bool,
+) -> bool {
     a.len() == b.len() && a.iter().zip(b.iter()).all(|(x, y)| eq(*x, *y))
 }
 
@@ -708,10 +735,7 @@ pub fn compare_diagnostics(d1: P<Diagnostic>, d2: P<Diagnostic>) -> Ordering {
     if c != Ordering::Equal {
         return c;
     }
-    c = compare_strings(
-        get_diagnostic_message_identity(d1),
-        get_diagnostic_message_identity(d2),
-    );
+    c = compare_strings(get_diagnostic_message_identity(d1), get_diagnostic_message_identity(d2));
     if c != Ordering::Equal {
         return c;
     }
@@ -769,19 +793,28 @@ mod tests {
     #[test]
     fn diagnostics_collection_deduplicates_exact_diagnostics_on_add() {
         let mut collection = DiagnosticsCollection::default();
-        let first = new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"])
-            .add_related_info(Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"first"])));
-        let second = new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"])
-            .add_related_info(Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"first"])));
-        let different = new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"])
-            .add_related_info(Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"second"])));
+        let first =
+            new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"]).add_related_info(
+                Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"first"])),
+            );
+        let second =
+            new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"]).add_related_info(
+                Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"first"])),
+            );
+        let different =
+            new_compiler_diagnostic(&diagnostics::Cannot_find_name_0, &[&"x"]).add_related_info(
+                Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"second"])),
+            );
 
         assert_eq!(collection.add(first), first);
         let canonical = collection.add(second);
         assert_eq!(canonical, first);
         assert_eq!(collection.add(different), different);
 
-        canonical.add_related_info(Some(new_compiler_diagnostic(&diagnostics::X_0_is_declared_here, &[&"third"])));
+        canonical.add_related_info(Some(new_compiler_diagnostic(
+            &diagnostics::X_0_is_declared_here,
+            &[&"third"],
+        )));
         let collected = collection.get_global_diagnostics();
         assert_eq!(collected.len(), 2);
         assert_eq!(first.related_information().len(), 2);
@@ -825,8 +858,10 @@ mod tests {
         let f = crate::NodeFactory::default();
         let statements = f.new_node_list(vec![]);
         let eof = f.new_token(crate::Kind::EndOfFile);
-        let opts = crate::SourceFileParseOptions { file_name: "/a.vue".to_string(), ..Default::default() };
-        let file = f.new_source_file(opts.clone(), "let __alias = 1;", statements, eof).as_source_file_p();
+        let opts =
+            crate::SourceFileParseOptions { file_name: "/a.vue".to_string(), ..Default::default() };
+        let file =
+            f.new_source_file(opts.clone(), "let __alias = 1;", statements, eof).as_source_file_p();
         let span_map = tsrs_spanmap::new(&[tsrs_spanmap::Segment {
             virtual_start: 4,
             virtual_end: 11,
@@ -843,13 +878,28 @@ mod tests {
             ..Default::default()
         });
 
-        let alias = new_diagnostic(Some(file), TextRange::new(4, 11), &diagnostics::Cannot_find_name_0, &[&"__alias"]);
+        let alias = new_diagnostic(
+            Some(file),
+            TextRange::new(4, 11),
+            &diagnostics::Cannot_find_name_0,
+            &[&"__alias"],
+        );
         assert_eq!(alias.localize(), "Cannot find name 'x'.");
         assert_eq!(alias.message_args(), ["__alias"]);
-        let partial = new_diagnostic(Some(file), TextRange::new(5, 11), &diagnostics::Cannot_find_name_0, &[&"__alias"]);
+        let partial = new_diagnostic(
+            Some(file),
+            TextRange::new(5, 11),
+            &diagnostics::Cannot_find_name_0,
+            &[&"__alias"],
+        );
         assert_eq!(partial.localize(), "Cannot find name '__alias'.");
-        let external = new_diagnostic(Some(file), TextRange::new(4, 11), &diagnostics::Cannot_find_name_0, &[&"__alias"])
-            .set_external_data("mapper", "");
+        let external = new_diagnostic(
+            Some(file),
+            TextRange::new(4, 11),
+            &diagnostics::Cannot_find_name_0,
+            &[&"__alias"],
+        )
+        .set_external_data("mapper", "");
         assert_eq!(external.localize(), "Cannot find name '__alias'.");
     }
 }

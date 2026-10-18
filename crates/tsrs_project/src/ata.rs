@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use tsrs_core::collections::Set;
-use tsrs_core::{CompilerOptions, TypeAcquisition, P};
+use tsrs_core::{CompilerOptions, P, TypeAcquisition};
 
 #[derive(Clone, Debug, Default)]
 pub struct TypingsInfo {
@@ -17,7 +17,8 @@ impl TypingsInfo {
     // ata.go:27
     pub fn equals(&self, other: &TypingsInfo) -> bool {
         TypeAcquisition::equals(self.type_acquisition.as_ref(), other.type_acquisition.as_ref())
-            && self.compiler_options.unwrap().get_allow_js() == other.compiler_options.unwrap().get_allow_js()
+            && self.compiler_options.unwrap().get_allow_js()
+                == other.compiler_options.unwrap().get_allow_js()
             && match (&self.unresolved_imports, &other.unresolved_imports) {
                 (None, None) => true,
                 (Some(a), Some(b)) => a.equals(b),

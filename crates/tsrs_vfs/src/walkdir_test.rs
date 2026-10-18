@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::time::SystemTime;
 
 use crate::vfstest;
-use crate::{walk_dir, Entries, FileInfo, FileMode, FsError, WalkDirError, FS};
+use crate::{Entries, FS, FileInfo, FileMode, FsError, WalkDirError, walk_dir};
 
 // A stand-in for wrapvfs.Wrap with Replacements: each replacement overrides one method.
 #[derive(Default)]
@@ -64,7 +64,15 @@ impl<T: FS> FS for Wrapped<T> {
 
 #[test]
 fn test_walk_dir() {
-    let base = vfstest::from_map([("/root/a.ts", ""), ("/root/dir/b.ts", ""), ("/root/link/hidden.ts", ""), ("/target/hidden.ts", "")], true);
+    let base = vfstest::from_map(
+        [
+            ("/root/a.ts", ""),
+            ("/root/dir/b.ts", ""),
+            ("/root/link/hidden.ts", ""),
+            ("/target/hidden.ts", ""),
+        ],
+        true,
+    );
     let file_system = Wrapped {
         fs: base,
         r: Replacements {
@@ -101,7 +109,10 @@ fn test_walk_dir() {
     });
     assert_eq!(err, Ok(()));
     assert_eq!(paths, vec!["/root", "/root/a.ts", "/root/dir", "/root/dir/b.ts", "/root/link"]);
-    assert_eq!(modes, vec![FileMode::Dir, FileMode::None, FileMode::Dir, FileMode::None, FileMode::Symlink]);
+    assert_eq!(
+        modes,
+        vec![FileMode::Dir, FileMode::None, FileMode::Dir, FileMode::None, FileMode::Symlink]
+    );
 }
 
 #[test]
@@ -115,7 +126,9 @@ fn test_walk_dir_does_not_follow_root_symlink() {
                 entries.symlinks = None;
                 entries
             })),
-            realpath: Some(Box::new(|_, path| if path == "/root/link" { "/target".to_string() } else { path.to_string() })),
+            realpath: Some(Box::new(|_, path| {
+                if path == "/root/link" { "/target".to_string() } else { path.to_string() }
+            })),
             ..Default::default()
         },
     };
@@ -137,8 +150,16 @@ fn test_walk_dir_reports_root_file_symlink() {
     let file_system = Wrapped {
         fs: base,
         r: Replacements {
-            stat: Some(Box::new(|base, path| if path == "/root/link.ts" { base.stat("/target/file.ts") } else { base.stat(path) })),
-            realpath: Some(Box::new(|_, path| if path == "/root/link.ts" { "/target/file.ts".to_string() } else { path.to_string() })),
+            stat: Some(Box::new(|base, path| {
+                if path == "/root/link.ts" { base.stat("/target/file.ts") } else { base.stat(path) }
+            })),
+            realpath: Some(Box::new(|_, path| {
+                if path == "/root/link.ts" {
+                    "/target/file.ts".to_string()
+                } else {
+                    path.to_string()
+                }
+            })),
             ..Default::default()
         },
     };

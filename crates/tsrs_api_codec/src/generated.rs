@@ -3,7 +3,7 @@
 // Rust counterpart of the pinned tsc/internal/api/encoder/{encoder,decoder}_generated.go.
 
 use tsrs_ast::*;
-use tsrs_core::{alloc_slice, P};
+use tsrs_core::{P, alloc_slice};
 
 use crate::decoder::*;
 use crate::encoder::*;
@@ -38,8 +38,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
     match node.kind() {
         Kind::QualifiedName => {
             let n = node.as_qualified_name();
-            (present(n.left()) as u8)
-                | ((present(n.right()) as u8) << 1)
+            (present(n.left()) as u8) | ((present(n.right()) as u8) << 1)
         }
         Kind::ComputedPropertyName => {
             let n = node.as_computed_property_name();
@@ -57,13 +56,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::DoStatement => {
             let n = node.as_do_statement();
-            (present(n.statement()) as u8)
-                | ((present(n.expression()) as u8) << 1)
+            (present(n.statement()) as u8) | ((present(n.expression()) as u8) << 1)
         }
         Kind::WhileStatement => {
             let n = node.as_while_statement();
-            (present(n.expression()) as u8)
-                | ((present(n.statement()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.statement()) as u8) << 1)
         }
         Kind::ForStatement => {
             let n = node.as_for_statement();
@@ -93,13 +90,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::WithStatement => {
             let n = node.as_with_statement();
-            (present(n.expression()) as u8)
-                | ((present(n.statement()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.statement()) as u8) << 1)
         }
         Kind::SwitchStatement => {
             let n = node.as_switch_statement();
-            (present(n.expression()) as u8)
-                | ((present(n.case_block()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.case_block()) as u8) << 1)
         }
         Kind::CaseBlock => {
             let n = node.as_case_block();
@@ -107,8 +102,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::CaseClause | Kind::DefaultClause => {
             let n = node.as_case_or_default_clause();
-            (present(n.expression()) as u8)
-                | ((present(n.statements()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.statements()) as u8) << 1)
         }
         Kind::ThrowStatement => {
             let n = node.as_throw_statement();
@@ -122,13 +116,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::CatchClause => {
             let n = node.as_catch_clause();
-            (present(n.variable_declaration()) as u8)
-                | ((present(n.block()) as u8) << 1)
+            (present(n.variable_declaration()) as u8) | ((present(n.block()) as u8) << 1)
         }
         Kind::LabeledStatement => {
             let n = node.as_labeled_statement();
-            (present(n.label()) as u8)
-                | ((present(n.statement()) as u8) << 1)
+            (present(n.label()) as u8) | ((present(n.statement()) as u8) << 1)
         }
         Kind::ExpressionStatement => {
             let n = node.as_expression_statement();
@@ -140,8 +132,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::VariableStatement => {
             let n = node.as_variable_statement();
-            (has_modifiers(n.modifiers()) as u8)
-                | ((present(n.declaration_list()) as u8) << 1)
+            (has_modifiers(n.modifiers()) as u8) | ((present(n.declaration_list()) as u8) << 1)
         }
         Kind::VariableDeclaration => {
             let n = node.as_variable_declaration();
@@ -225,8 +216,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::EnumMember => {
             let n = node.as_enum_member();
-            (present(n.name()) as u8)
-                | ((present(n.initializer()) as u8) << 1)
+            (present(n.name()) as u8) | ((present(n.initializer()) as u8) << 1)
         }
         Kind::EnumDeclaration => {
             let n = node.as_enum_declaration();
@@ -265,8 +255,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::NamespaceExportDeclaration => {
             let n = node.as_namespace_export_declaration();
-            (has_modifiers(n.modifiers()) as u8)
-                | ((present(n.name()) as u8) << 1)
+            (has_modifiers(n.modifiers()) as u8) | ((present(n.name()) as u8) << 1)
         }
         Kind::NamespaceExport => {
             let n = node.as_namespace_export();
@@ -278,8 +267,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::ExportSpecifier => {
             let n = node.as_export_specifier();
-            (present(n.property_name()) as u8)
-                | ((present(n.name()) as u8) << 1)
+            (present(n.property_name()) as u8) | ((present(n.name()) as u8) << 1)
         }
         Kind::CallSignature => {
             let n = node.as_call_signature_declaration();
@@ -363,8 +351,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::ClassStaticBlockDeclaration => {
             let n = node.as_class_static_block_declaration();
-            (has_modifiers(n.modifiers()) as u8)
-                | ((present(n.body()) as u8) << 1)
+            (has_modifiers(n.modifiers()) as u8) | ((present(n.body()) as u8) << 1)
         }
         Kind::BinaryExpression => {
             let n = node.as_binary_expression();
@@ -384,8 +371,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::YieldExpression => {
             let n = node.as_yield_expression();
-            (present(n.asterisk_token()) as u8)
-                | ((present(n.expression()) as u8) << 1)
+            (present(n.asterisk_token()) as u8) | ((present(n.expression()) as u8) << 1)
         }
         Kind::ArrowFunction => {
             let n = node.as_arrow_function();
@@ -408,13 +394,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::AsExpression => {
             let n = node.as_as_expression();
-            (present(n.expression()) as u8)
-                | ((present(n.type_()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.type_()) as u8) << 1)
         }
         Kind::SatisfiesExpression => {
             let n = node.as_satisfies_expression();
-            (present(n.expression()) as u8)
-                | ((present(n.type_()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.type_()) as u8) << 1)
         }
         Kind::ConditionalExpression => {
             let n = node.as_conditional_expression();
@@ -463,13 +447,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::TemplateExpression => {
             let n = node.as_template_expression();
-            (present(n.head()) as u8)
-                | ((present(n.template_spans()) as u8) << 1)
+            (present(n.head()) as u8) | ((present(n.template_spans()) as u8) << 1)
         }
         Kind::TemplateSpan => {
             let n = node.as_template_span();
-            (present(n.expression()) as u8)
-                | ((present(n.literal()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.literal()) as u8) << 1)
         }
         Kind::TaggedTemplateExpression => {
             let n = node.as_tagged_template_expression();
@@ -529,8 +511,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::TypeAssertionExpression => {
             let n = node.as_type_assertion();
-            (present(n.type_()) as u8)
-                | ((present(n.expression()) as u8) << 1)
+            (present(n.type_()) as u8) | ((present(n.expression()) as u8) << 1)
         }
         Kind::UnionType => {
             let n = node.as_union_type_node();
@@ -561,18 +542,15 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::IndexedAccessType => {
             let n = node.as_indexed_access_type_node();
-            (present(n.object_type()) as u8)
-                | ((present(n.index_type()) as u8) << 1)
+            (present(n.object_type()) as u8) | ((present(n.index_type()) as u8) << 1)
         }
         Kind::TypeReference => {
             let n = node.as_type_reference_node();
-            (present(n.type_name()) as u8)
-                | ((present(n.type_arguments()) as u8) << 1)
+            (present(n.type_name()) as u8) | ((present(n.type_arguments()) as u8) << 1)
         }
         Kind::ExpressionWithTypeArguments => {
             let n = node.as_expression_with_type_arguments();
-            (present(n.expression()) as u8)
-                | ((present(n.type_arguments()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.type_arguments()) as u8) << 1)
         }
         Kind::LiteralType => {
             let n = node.as_literal_type_node();
@@ -586,8 +564,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::ImportAttribute => {
             let n = node.as_import_attribute();
-            (present(n.name()) as u8)
-                | ((present(n.value()) as u8) << 1)
+            (present(n.name()) as u8) | ((present(n.value()) as u8) << 1)
         }
         Kind::ImportAttributes => {
             let n = node.as_import_attributes();
@@ -595,8 +572,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::TypeQuery => {
             let n = node.as_type_query_node();
-            (present(n.expr_name()) as u8)
-                | ((present(n.type_arguments()) as u8) << 1)
+            (present(n.expr_name()) as u8) | ((present(n.type_arguments()) as u8) << 1)
         }
         Kind::MappedType => {
             let n = node.as_mapped_type_node();
@@ -649,13 +625,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::TemplateLiteralType => {
             let n = node.as_template_literal_type_node();
-            (present(n.head()) as u8)
-                | ((present(n.template_spans()) as u8) << 1)
+            (present(n.head()) as u8) | ((present(n.template_spans()) as u8) << 1)
         }
         Kind::TemplateLiteralTypeSpan => {
             let n = node.as_template_literal_type_span();
-            (present(n.type_()) as u8)
-                | ((present(n.literal()) as u8) << 1)
+            (present(n.type_()) as u8) | ((present(n.literal()) as u8) << 1)
         }
         Kind::SyntheticExpression => {
             let n = node.as_synthetic_expression();
@@ -677,8 +651,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::JsxNamespacedName => {
             let n = node.as_jsx_namespaced_name();
-            (present(n.namespace()) as u8)
-                | ((present(n.name()) as u8) << 1)
+            (present(n.namespace()) as u8) | ((present(n.name()) as u8) << 1)
         }
         Kind::JsxOpeningElement => {
             let n = node.as_jsx_opening_element();
@@ -700,8 +673,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::JsxAttribute => {
             let n = node.as_jsx_attribute();
-            (present(n.name()) as u8)
-                | ((present(n.initializer()) as u8) << 1)
+            (present(n.name()) as u8) | ((present(n.initializer()) as u8) << 1)
         }
         Kind::JsxSpreadAttribute => {
             let n = node.as_jsx_spread_attribute();
@@ -713,8 +685,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::JsxExpression => {
             let n = node.as_jsx_expression();
-            (present(n.dot_dot_dot_token()) as u8)
-                | ((present(n.expression()) as u8) << 1)
+            (present(n.dot_dot_dot_token()) as u8) | ((present(n.expression()) as u8) << 1)
         }
         Kind::SyntaxList => {
             let n = node.as_syntax_list();
@@ -722,8 +693,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::JSDoc => {
             let n = node.as_jsdoc();
-            (present(n.comment()) as u8)
-                | ((present(n.tags()) as u8) << 1)
+            (present(n.comment()) as u8) | ((present(n.tags()) as u8) << 1)
         }
         Kind::JSDocTypeExpression => {
             let n = node.as_jsdoc_type_expression();
@@ -753,8 +723,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::JSDocUnknownTag => {
             let n = node.as_jsdoc_unknown_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocTemplateTag => {
             let n = node.as_jsdoc_template_tag();
@@ -771,33 +740,27 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::JSDocPublicTag => {
             let n = node.as_jsdoc_public_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocPrivateTag => {
             let n = node.as_jsdoc_private_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocProtectedTag => {
             let n = node.as_jsdoc_protected_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocReadonlyTag => {
             let n = node.as_jsdoc_readonly_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocOverrideTag => {
             let n = node.as_jsdoc_override_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocDeprecatedTag => {
             let n = node.as_jsdoc_deprecated_tag();
-            (present(n.tag_name()) as u8)
-                | ((present(n.comment()) as u8) << 1)
+            (present(n.tag_name()) as u8) | ((present(n.comment()) as u8) << 1)
         }
         Kind::JSDocSeeTag => {
             let n = node.as_jsdoc_see_tag();
@@ -902,13 +865,11 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::ImportClause => {
             let n = node.as_import_clause();
-            (present(n.name()) as u8)
-                | ((present(n.named_bindings()) as u8) << 1)
+            (present(n.name()) as u8) | ((present(n.named_bindings()) as u8) << 1)
         }
         Kind::ImportSpecifier => {
             let n = node.as_import_specifier();
-            (present(n.property_name()) as u8)
-                | ((present(n.name()) as u8) << 1)
+            (present(n.property_name()) as u8) | ((present(n.name()) as u8) << 1)
         }
         Kind::JSDocLink => {
             let n = node.as_jsdoc_link();
@@ -932,8 +893,7 @@ pub(crate) fn children_property_mask(node: P<Node>) -> u8 {
         }
         Kind::SyntheticReferenceExpression => {
             let n = node.as_synthetic_reference_expression();
-            (present(n.expression()) as u8)
-                | ((present(n.this_arg()) as u8) << 1)
+            (present(n.expression()) as u8) | ((present(n.this_arg()) as u8) << 1)
         }
         Kind::JSDocTypeLiteral => {
             let n = node.as_jsdoc_type_literal();
@@ -959,7 +919,10 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
         }
         Kind::HeritageClause => {
             let n = node.as_heritage_clause();
-            let token_idx: u32 = match n.token() { Kind::ImplementsKeyword => 1, _ => 0 };
+            let token_idx: u32 = match n.token() {
+                Kind::ImplementsKeyword => 1,
+                _ => 0,
+            };
             token_idx << 24
         }
         Kind::ExportAssignment => {
@@ -972,17 +935,30 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
         }
         Kind::PrefixUnaryExpression => {
             let n = node.as_prefix_unary_expression();
-            let operator_idx: u32 = match n.operator() { Kind::MinusToken => 1, Kind::TildeToken => 2, Kind::ExclamationToken => 3, Kind::PlusPlusToken => 4, Kind::MinusMinusToken => 5, _ => 0 };
+            let operator_idx: u32 = match n.operator() {
+                Kind::MinusToken => 1,
+                Kind::TildeToken => 2,
+                Kind::ExclamationToken => 3,
+                Kind::PlusPlusToken => 4,
+                Kind::MinusMinusToken => 5,
+                _ => 0,
+            };
             operator_idx << 24
         }
         Kind::PostfixUnaryExpression => {
             let n = node.as_postfix_unary_expression();
-            let operator_idx: u32 = match n.operator() { Kind::MinusMinusToken => 1, _ => 0 };
+            let operator_idx: u32 = match n.operator() {
+                Kind::MinusMinusToken => 1,
+                _ => 0,
+            };
             operator_idx << 24
         }
         Kind::MetaProperty => {
             let n = node.as_meta_property();
-            let keyword_token_idx: u32 = match n.keyword_token() { Kind::NewKeyword => 1, _ => 0 };
+            let keyword_token_idx: u32 = match n.keyword_token() {
+                Kind::NewKeyword => 1,
+                _ => 0,
+            };
             keyword_token_idx << 24
         }
         Kind::ArrayLiteralExpression => {
@@ -995,12 +971,19 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
         }
         Kind::TypeOperator => {
             let n = node.as_type_operator_node();
-            let operator_idx: u32 = match n.operator() { Kind::ReadonlyKeyword => 1, Kind::UniqueKeyword => 2, _ => 0 };
+            let operator_idx: u32 = match n.operator() {
+                Kind::ReadonlyKeyword => 1,
+                Kind::UniqueKeyword => 2,
+                _ => 0,
+            };
             operator_idx << 24
         }
         Kind::ImportAttributes => {
             let n = node.as_import_attributes();
-            let token_idx: u32 = match n.token() { Kind::AssertKeyword => 1, _ => 0 };
+            let token_idx: u32 = match n.token() {
+                Kind::AssertKeyword => 1,
+                _ => 0,
+            };
             ((n.multi_line() as u32) << 24) | (token_idx << 25)
         }
         Kind::SyntheticExpression => node_common_data_synthetic_expression(node)?,
@@ -1010,7 +993,10 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
         }
         Kind::ModuleDeclaration => {
             let n = node.as_module_declaration();
-            let keyword_idx: u32 = match n.keyword() { Kind::NamespaceKeyword => 1, _ => 0 };
+            let keyword_idx: u32 = match n.keyword() {
+                Kind::NamespaceKeyword => 1,
+                _ => 0,
+            };
             keyword_idx << 24
         }
         Kind::ImportEqualsDeclaration => {
@@ -1027,7 +1013,11 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
         }
         Kind::ImportClause => {
             let n = node.as_import_clause();
-            let phase_modifier_idx: u32 = match n.phase_modifier() { Kind::TypeKeyword => 1, Kind::DeferKeyword => 2, _ => 0 };
+            let phase_modifier_idx: u32 = match n.phase_modifier() {
+                Kind::TypeKeyword => 1,
+                Kind::DeferKeyword => 2,
+                _ => 0,
+            };
             phase_modifier_idx << 24
         }
         Kind::ImportSpecifier => {
@@ -1049,8 +1039,12 @@ pub(crate) fn node_common_data(node: P<Node>) -> Result<u32, EncodeError> {
 /// Go `recordNodeStrings`.
 pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 {
     match node.kind() {
-        Kind::Identifier => strs.add(node.as_identifier().text(), node.kind(), node.pos(), node.end()),
-        Kind::PrivateIdentifier => strs.add(node.as_private_identifier().text(), node.kind(), node.pos(), node.end()),
+        Kind::Identifier => {
+            strs.add(node.as_identifier().text(), node.kind(), node.pos(), node.end())
+        }
+        Kind::PrivateIdentifier => {
+            strs.add(node.as_private_identifier().text(), node.kind(), node.pos(), node.end())
+        }
         Kind::JsxText => strs.add(node.as_jsx_text().text(), node.kind(), node.pos(), node.end()),
         Kind::JSDocText => strs.add(node.text(), node.kind(), node.pos(), node.end()),
         Kind::JSDocLink => strs.add(node.text(), node.kind(), node.pos(), node.end()),
@@ -1061,18 +1055,39 @@ pub(crate) fn record_node_strings(node: P<Node>, strs: &mut StringTable) -> u32 
 }
 
 /// Go `recordExtendedData`: dispatches to the hand-written `record_extended_data_*` functions.
-pub(crate) fn record_extended_data(node: P<Node>, cx: &mut EncodeContext) -> Result<u32, EncodeError> {
+pub(crate) fn record_extended_data(
+    node: P<Node>,
+    cx: &mut EncodeContext,
+) -> Result<u32, EncodeError> {
     let offset = cx.extended_data.len() as u32;
     match node.kind() {
-        Kind::StringLiteral => record_extended_data_string_literal(node, cx)?,
-        Kind::NumericLiteral => record_extended_data_numeric_literal(node, cx)?,
-        Kind::BigIntLiteral => record_extended_data_big_int_literal(node, cx)?,
-        Kind::RegularExpressionLiteral => record_extended_data_regular_expression_literal(node, cx)?,
-        Kind::NoSubstitutionTemplateLiteral => record_extended_data_no_substitution_template_literal(node, cx)?,
-        Kind::TemplateHead => record_extended_data_template_head(node, cx)?,
-        Kind::TemplateMiddle => record_extended_data_template_middle(node, cx)?,
-        Kind::TemplateTail => record_extended_data_template_tail(node, cx)?,
-        Kind::SourceFile => record_extended_data_source_file(node, cx)?,
+        Kind::StringLiteral => {
+            record_extended_data_string_literal(node, cx)?;
+        }
+        Kind::NumericLiteral => {
+            record_extended_data_numeric_literal(node, cx)?;
+        }
+        Kind::BigIntLiteral => {
+            record_extended_data_big_int_literal(node, cx)?;
+        }
+        Kind::RegularExpressionLiteral => {
+            record_extended_data_regular_expression_literal(node, cx)?;
+        }
+        Kind::NoSubstitutionTemplateLiteral => {
+            record_extended_data_no_substitution_template_literal(node, cx)?;
+        }
+        Kind::TemplateHead => {
+            record_extended_data_template_head(node, cx)?;
+        }
+        Kind::TemplateMiddle => {
+            record_extended_data_template_middle(node, cx)?;
+        }
+        Kind::TemplateTail => {
+            record_extended_data_template_tail(node, cx)?;
+        }
+        Kind::SourceFile => {
+            record_extended_data_source_file(node, cx)?;
+        }
         k => unreachable!("record_extended_data: {k:?} is not an extended data node"),
     }
     Ok(offset)
@@ -1080,63 +1095,237 @@ pub(crate) fn record_extended_data(node: P<Node>, cx: &mut EncodeContext) -> Res
 
 impl Decoder<'_> {
     /// Go `createStringNode`.
-    pub(crate) fn create_string_node(&self, kind: Kind, data: u32, common_data: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn create_string_node(
+        &self,
+        kind: Kind,
+        data: u32,
+        common_data: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let text = self.get_string(data & NODE_DATA_STRING_INDEX_MASK)?;
         let f = &self.factory;
         let _ = common_data;
         Ok(match kind {
-            Kind::Identifier => {
-                f.new_identifier(text)
-            }
-            Kind::PrivateIdentifier => {
-                f.new_private_identifier(text)
-            }
+            Kind::Identifier => f.new_identifier(text),
+            Kind::PrivateIdentifier => f.new_private_identifier(text),
             Kind::JsxText => {
                 let contains_only_trivia_white_spaces = common_data & 1 != 0;
                 f.new_jsx_text(text, contains_only_trivia_white_spaces)
             }
-            Kind::JSDocText => {
-                f.new_jsdoc_text(alloc_slice(&[text]))
-            }
-            Kind::JSDocLink => {
-                f.new_jsdoc_link(absent()?, alloc_slice(&[text]))
-            }
-            Kind::JSDocLinkPlain => {
-                f.new_jsdoc_link_plain(absent()?, alloc_slice(&[text]))
-            }
-            Kind::JSDocLinkCode => {
-                f.new_jsdoc_link_code(absent()?, alloc_slice(&[text]))
-            }
+            Kind::JSDocText => f.new_jsdoc_text(alloc_slice(&[text])),
+            Kind::JSDocLink => f.new_jsdoc_link(absent()?, alloc_slice(&[text])),
+            Kind::JSDocLinkPlain => f.new_jsdoc_link_plain(absent()?, alloc_slice(&[text])),
+            Kind::JSDocLinkCode => f.new_jsdoc_link_code(absent()?, alloc_slice(&[text])),
             k => return Err(DecodeError::UnexpectedKind(k)),
         })
     }
 
     /// Go `createExtendedNode`: dispatches to the hand-written `decode_extended_data_*` functions.
-    pub(crate) fn create_extended_node(&self, kind: Kind, data: u32, child_indices: &[usize], common_data: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn create_extended_node(
+        &self,
+        kind: Kind,
+        data: u32,
+        child_indices: &[usize],
+        common_data: u32,
+    ) -> Result<P<Node>, DecodeError> {
         match kind {
-            Kind::StringLiteral => self.decode_extended_data_string_literal(data, child_indices, common_data),
-            Kind::NumericLiteral => self.decode_extended_data_numeric_literal(data, child_indices, common_data),
-            Kind::BigIntLiteral => self.decode_extended_data_big_int_literal(data, child_indices, common_data),
-            Kind::RegularExpressionLiteral => self.decode_extended_data_regular_expression_literal(data, child_indices, common_data),
-            Kind::NoSubstitutionTemplateLiteral => self.decode_extended_data_no_substitution_template_literal(data, child_indices, common_data),
-            Kind::TemplateHead => self.decode_extended_data_template_head(data, child_indices, common_data),
-            Kind::TemplateMiddle => self.decode_extended_data_template_middle(data, child_indices, common_data),
-            Kind::TemplateTail => self.decode_extended_data_template_tail(data, child_indices, common_data),
-            Kind::SourceFile => self.decode_extended_data_source_file(data, child_indices, common_data),
+            Kind::StringLiteral => {
+                self.decode_extended_data_string_literal(data, child_indices, common_data)
+            }
+            Kind::NumericLiteral => {
+                self.decode_extended_data_numeric_literal(data, child_indices, common_data)
+            }
+            Kind::BigIntLiteral => {
+                self.decode_extended_data_big_int_literal(data, child_indices, common_data)
+            }
+            Kind::RegularExpressionLiteral => self.decode_extended_data_regular_expression_literal(
+                data,
+                child_indices,
+                common_data,
+            ),
+            Kind::NoSubstitutionTemplateLiteral => self
+                .decode_extended_data_no_substitution_template_literal(
+                    data,
+                    child_indices,
+                    common_data,
+                ),
+            Kind::TemplateHead => {
+                self.decode_extended_data_template_head(data, child_indices, common_data)
+            }
+            Kind::TemplateMiddle => {
+                self.decode_extended_data_template_middle(data, child_indices, common_data)
+            }
+            Kind::TemplateTail => {
+                self.decode_extended_data_template_tail(data, child_indices, common_data)
+            }
+            Kind::SourceFile => {
+                self.decode_extended_data_source_file(data, child_indices, common_data)
+            }
             k => Err(DecodeError::UnexpectedKind(k)),
         }
     }
 
     /// Go `createChildrenNode`.
-    pub(crate) fn create_children_node(&self, kind: Kind, data: u32, child_indices: &[usize], common_data: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn create_children_node(
+        &self,
+        kind: Kind,
+        data: u32,
+        child_indices: &[usize],
+        common_data: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let mask = (data & NODE_DATA_CHILD_MASK) as u8;
         let _ = (mask, common_data);
         let f = self.factory.clone();
         let f = &f;
         Ok(match kind {
-            Kind::Unknown | Kind::EndOfFile | Kind::SingleLineCommentTrivia | Kind::MultiLineCommentTrivia | Kind::NewLineTrivia | Kind::WhitespaceTrivia | Kind::ConflictMarkerTrivia | Kind::NonTextFileMarkerTrivia | Kind::NumericLiteral | Kind::BigIntLiteral | Kind::StringLiteral | Kind::JsxText | Kind::JsxTextAllWhiteSpaces | Kind::RegularExpressionLiteral | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateHead | Kind::TemplateMiddle | Kind::TemplateTail | Kind::OpenBraceToken | Kind::CloseBraceToken | Kind::OpenParenToken | Kind::CloseParenToken | Kind::OpenBracketToken | Kind::CloseBracketToken | Kind::DotToken | Kind::DotDotDotToken | Kind::SemicolonToken | Kind::CommaToken | Kind::QuestionDotToken | Kind::LessThanToken | Kind::LessThanSlashToken | Kind::GreaterThanToken | Kind::LessThanEqualsToken | Kind::GreaterThanEqualsToken | Kind::EqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken | Kind::EqualsGreaterThanToken | Kind::PlusToken | Kind::MinusToken | Kind::AsteriskToken | Kind::AsteriskAsteriskToken | Kind::SlashToken | Kind::PercentToken | Kind::PlusPlusToken | Kind::MinusMinusToken | Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken | Kind::AmpersandToken | Kind::BarToken | Kind::CaretToken | Kind::ExclamationToken | Kind::TildeToken | Kind::AmpersandAmpersandToken | Kind::BarBarToken | Kind::QuestionToken | Kind::ColonToken | Kind::AtToken | Kind::QuestionQuestionToken | Kind::BacktickToken | Kind::HashToken | Kind::EqualsToken | Kind::PlusEqualsToken | Kind::MinusEqualsToken | Kind::AsteriskEqualsToken | Kind::AsteriskAsteriskEqualsToken | Kind::SlashEqualsToken | Kind::PercentEqualsToken | Kind::LessThanLessThanEqualsToken | Kind::GreaterThanGreaterThanEqualsToken | Kind::GreaterThanGreaterThanGreaterThanEqualsToken | Kind::AmpersandEqualsToken | Kind::BarEqualsToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::QuestionQuestionEqualsToken | Kind::CaretEqualsToken | Kind::Identifier | Kind::PrivateIdentifier | Kind::JSDocCommentTextToken | Kind::BreakKeyword | Kind::CaseKeyword | Kind::CatchKeyword | Kind::ClassKeyword | Kind::ConstKeyword | Kind::ContinueKeyword | Kind::DebuggerKeyword | Kind::DefaultKeyword | Kind::DeleteKeyword | Kind::DoKeyword | Kind::ElseKeyword | Kind::EnumKeyword | Kind::ExportKeyword | Kind::ExtendsKeyword | Kind::FinallyKeyword | Kind::ForKeyword | Kind::FunctionKeyword | Kind::IfKeyword | Kind::InKeyword | Kind::InstanceOfKeyword | Kind::NewKeyword | Kind::ReturnKeyword | Kind::SwitchKeyword | Kind::ThrowKeyword | Kind::TryKeyword | Kind::TypeOfKeyword | Kind::VarKeyword | Kind::WhileKeyword | Kind::WithKeyword | Kind::ImplementsKeyword | Kind::InterfaceKeyword | Kind::LetKeyword | Kind::PackageKeyword | Kind::PrivateKeyword | Kind::ProtectedKeyword | Kind::PublicKeyword | Kind::StaticKeyword | Kind::YieldKeyword | Kind::AbstractKeyword | Kind::AccessorKeyword | Kind::AsKeyword | Kind::AssertsKeyword | Kind::AssertKeyword | Kind::AsyncKeyword | Kind::AwaitKeyword | Kind::ConstructorKeyword | Kind::DeclareKeyword | Kind::GetKeyword | Kind::ImmediateKeyword | Kind::InferKeyword | Kind::IsKeyword | Kind::KeyOfKeyword | Kind::ModuleKeyword | Kind::NamespaceKeyword | Kind::OutKeyword | Kind::ReadonlyKeyword | Kind::RequireKeyword | Kind::SatisfiesKeyword | Kind::SetKeyword | Kind::TypeKeyword | Kind::UniqueKeyword | Kind::UsingKeyword | Kind::FromKeyword | Kind::GlobalKeyword | Kind::OverrideKeyword | Kind::OfKeyword | Kind::DeferKeyword => {
-                f.new_token(kind)
-            }
+            Kind::Unknown
+            | Kind::EndOfFile
+            | Kind::SingleLineCommentTrivia
+            | Kind::MultiLineCommentTrivia
+            | Kind::NewLineTrivia
+            | Kind::WhitespaceTrivia
+            | Kind::ConflictMarkerTrivia
+            | Kind::NonTextFileMarkerTrivia
+            | Kind::NumericLiteral
+            | Kind::BigIntLiteral
+            | Kind::StringLiteral
+            | Kind::JsxText
+            | Kind::JsxTextAllWhiteSpaces
+            | Kind::RegularExpressionLiteral
+            | Kind::NoSubstitutionTemplateLiteral
+            | Kind::TemplateHead
+            | Kind::TemplateMiddle
+            | Kind::TemplateTail
+            | Kind::OpenBraceToken
+            | Kind::CloseBraceToken
+            | Kind::OpenParenToken
+            | Kind::CloseParenToken
+            | Kind::OpenBracketToken
+            | Kind::CloseBracketToken
+            | Kind::DotToken
+            | Kind::DotDotDotToken
+            | Kind::SemicolonToken
+            | Kind::CommaToken
+            | Kind::QuestionDotToken
+            | Kind::LessThanToken
+            | Kind::LessThanSlashToken
+            | Kind::GreaterThanToken
+            | Kind::LessThanEqualsToken
+            | Kind::GreaterThanEqualsToken
+            | Kind::EqualsEqualsToken
+            | Kind::ExclamationEqualsToken
+            | Kind::EqualsEqualsEqualsToken
+            | Kind::ExclamationEqualsEqualsToken
+            | Kind::EqualsGreaterThanToken
+            | Kind::PlusToken
+            | Kind::MinusToken
+            | Kind::AsteriskToken
+            | Kind::AsteriskAsteriskToken
+            | Kind::SlashToken
+            | Kind::PercentToken
+            | Kind::PlusPlusToken
+            | Kind::MinusMinusToken
+            | Kind::LessThanLessThanToken
+            | Kind::GreaterThanGreaterThanToken
+            | Kind::GreaterThanGreaterThanGreaterThanToken
+            | Kind::AmpersandToken
+            | Kind::BarToken
+            | Kind::CaretToken
+            | Kind::ExclamationToken
+            | Kind::TildeToken
+            | Kind::AmpersandAmpersandToken
+            | Kind::BarBarToken
+            | Kind::QuestionToken
+            | Kind::ColonToken
+            | Kind::AtToken
+            | Kind::QuestionQuestionToken
+            | Kind::BacktickToken
+            | Kind::HashToken
+            | Kind::EqualsToken
+            | Kind::PlusEqualsToken
+            | Kind::MinusEqualsToken
+            | Kind::AsteriskEqualsToken
+            | Kind::AsteriskAsteriskEqualsToken
+            | Kind::SlashEqualsToken
+            | Kind::PercentEqualsToken
+            | Kind::LessThanLessThanEqualsToken
+            | Kind::GreaterThanGreaterThanEqualsToken
+            | Kind::GreaterThanGreaterThanGreaterThanEqualsToken
+            | Kind::AmpersandEqualsToken
+            | Kind::BarEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::QuestionQuestionEqualsToken
+            | Kind::CaretEqualsToken
+            | Kind::Identifier
+            | Kind::PrivateIdentifier
+            | Kind::JSDocCommentTextToken
+            | Kind::BreakKeyword
+            | Kind::CaseKeyword
+            | Kind::CatchKeyword
+            | Kind::ClassKeyword
+            | Kind::ConstKeyword
+            | Kind::ContinueKeyword
+            | Kind::DebuggerKeyword
+            | Kind::DefaultKeyword
+            | Kind::DeleteKeyword
+            | Kind::DoKeyword
+            | Kind::ElseKeyword
+            | Kind::EnumKeyword
+            | Kind::ExportKeyword
+            | Kind::ExtendsKeyword
+            | Kind::FinallyKeyword
+            | Kind::ForKeyword
+            | Kind::FunctionKeyword
+            | Kind::IfKeyword
+            | Kind::InKeyword
+            | Kind::InstanceOfKeyword
+            | Kind::NewKeyword
+            | Kind::ReturnKeyword
+            | Kind::SwitchKeyword
+            | Kind::ThrowKeyword
+            | Kind::TryKeyword
+            | Kind::TypeOfKeyword
+            | Kind::VarKeyword
+            | Kind::WhileKeyword
+            | Kind::WithKeyword
+            | Kind::ImplementsKeyword
+            | Kind::InterfaceKeyword
+            | Kind::LetKeyword
+            | Kind::PackageKeyword
+            | Kind::PrivateKeyword
+            | Kind::ProtectedKeyword
+            | Kind::PublicKeyword
+            | Kind::StaticKeyword
+            | Kind::YieldKeyword
+            | Kind::AbstractKeyword
+            | Kind::AccessorKeyword
+            | Kind::AsKeyword
+            | Kind::AssertsKeyword
+            | Kind::AssertKeyword
+            | Kind::AsyncKeyword
+            | Kind::AwaitKeyword
+            | Kind::ConstructorKeyword
+            | Kind::DeclareKeyword
+            | Kind::GetKeyword
+            | Kind::ImmediateKeyword
+            | Kind::InferKeyword
+            | Kind::IsKeyword
+            | Kind::KeyOfKeyword
+            | Kind::ModuleKeyword
+            | Kind::NamespaceKeyword
+            | Kind::OutKeyword
+            | Kind::ReadonlyKeyword
+            | Kind::RequireKeyword
+            | Kind::SatisfiesKeyword
+            | Kind::SetKeyword
+            | Kind::TypeKeyword
+            | Kind::UniqueKeyword
+            | Kind::UsingKeyword
+            | Kind::FromKeyword
+            | Kind::GlobalKeyword
+            | Kind::OverrideKeyword
+            | Kind::OfKeyword
+            | Kind::DeferKeyword => f.new_token(kind),
             Kind::QualifiedName => {
                 let mut it = ChildIter::new(child_indices);
                 let left = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
@@ -1151,9 +1340,7 @@ impl Decoder<'_> {
                 let expression = from_node(self.single_child(child_indices))?;
                 f.new_decorator(expression)
             }
-            Kind::EmptyStatement => {
-                f.new_empty_statement()
-            }
+            Kind::EmptyStatement => f.new_empty_statement(),
             Kind::IfStatement => {
                 let mut it = ChildIter::new(child_indices);
                 let expression = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
@@ -1187,7 +1374,13 @@ impl Decoder<'_> {
                 let initializer = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let expression = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let statement = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
-                f.new_for_in_or_of_statement(kind, await_modifier, initializer, expression, statement)
+                f.new_for_in_or_of_statement(
+                    kind,
+                    await_modifier,
+                    initializer,
+                    expression,
+                    statement,
+                )
             }
             Kind::BreakStatement => {
                 let label = from_node(self.single_child(child_indices))?;
@@ -1240,9 +1433,7 @@ impl Decoder<'_> {
                 let block = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 f.new_catch_clause(variable_declaration, block)
             }
-            Kind::DebuggerStatement => {
-                f.new_debugger_statement()
-            }
+            Kind::DebuggerStatement => f.new_debugger_statement(),
             Kind::LabeledStatement => {
                 let mut it = ChildIter::new(child_indices);
                 let label = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
@@ -1255,7 +1446,8 @@ impl Decoder<'_> {
             }
             Kind::Block => {
                 let multi_line = common_data & 1 != 0;
-                let statements = from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
+                let statements =
+                    from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
                 f.new_block(statements, multi_line)
             }
             Kind::VariableStatement => {
@@ -1288,7 +1480,14 @@ impl Decoder<'_> {
                 let question_token = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
                 let initializer = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
-                f.new_parameter_declaration(modifiers, dot_dot_dot_token, name, question_token, type_node, initializer)
+                f.new_parameter_declaration(
+                    modifiers,
+                    dot_dot_dot_token,
+                    name,
+                    question_token,
+                    type_node,
+                    initializer,
+                )
             }
             Kind::BindingElement => {
                 let mut it = ChildIter::new(child_indices);
@@ -1311,7 +1510,16 @@ impl Decoder<'_> {
                 let parameters = from_list(self.list_at(it.next_if(mask, 4)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 6)))?;
-                f.new_function_declaration(modifiers, asterisk_token, name, type_parameters, parameters, type_node, absent()?, body)
+                f.new_function_declaration(
+                    modifiers,
+                    asterisk_token,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    body,
+                )
             }
             Kind::ClassDeclaration => {
                 let mut it = ChildIter::new(child_indices);
@@ -1332,7 +1540,11 @@ impl Decoder<'_> {
                 f.new_class_expression(modifiers, name, type_parameters, heritage_clauses, members)
             }
             Kind::HeritageClause => {
-                let token = if common_data & 1 != 0 { Kind::ImplementsKeyword } else { Kind::ExtendsKeyword };
+                let token = if common_data & 1 != 0 {
+                    Kind::ImplementsKeyword
+                } else {
+                    Kind::ExtendsKeyword
+                };
                 let types = from_list(self.single_node_list_child(child_indices))?;
                 f.new_heritage_clause(token, types)
             }
@@ -1343,7 +1555,13 @@ impl Decoder<'_> {
                 let type_parameters = from_list(self.list_at(it.next_if(mask, 2)))?;
                 let heritage_clauses = from_list(self.list_at(it.next_if(mask, 3)))?;
                 let members = from_list(self.list_at(it.next_if(mask, 4)))?;
-                f.new_interface_declaration(modifiers, name, type_parameters, heritage_clauses, members)
+                f.new_interface_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    heritage_clauses,
+                    members,
+                )
             }
             Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => {
                 let mut it = ChildIter::new(child_indices);
@@ -1351,7 +1569,15 @@ impl Decoder<'_> {
                 let name = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let type_parameters = from_list(self.list_at(it.next_if(mask, 2)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
-                match kind { Kind::TypeAliasDeclaration => f.new_type_alias_declaration(modifiers, name, type_parameters, type_node), Kind::JSTypeAliasDeclaration => f.new_js_type_alias_declaration(modifiers, name, type_parameters, type_node), k => return Err(DecodeError::UnexpectedKind(k)) }
+                match kind {
+                    Kind::TypeAliasDeclaration => {
+                        f.new_type_alias_declaration(modifiers, name, type_parameters, type_node)
+                    }
+                    Kind::JSTypeAliasDeclaration => {
+                        f.new_js_type_alias_declaration(modifiers, name, type_parameters, type_node)
+                    }
+                    k => return Err(DecodeError::UnexpectedKind(k)),
+                }
             }
             Kind::EnumMember => {
                 let mut it = ChildIter::new(child_indices);
@@ -1370,19 +1596,29 @@ impl Decoder<'_> {
                 let statements = from_list(self.single_node_list_child(child_indices))?;
                 f.new_module_block(statements)
             }
-            Kind::NotEmittedStatement => {
-                f.new_not_emitted_statement()
-            }
-            Kind::NotEmittedTypeElement => {
-                f.new_not_emitted_type_element()
-            }
+            Kind::NotEmittedStatement => f.new_not_emitted_statement(),
+            Kind::NotEmittedTypeElement => f.new_not_emitted_type_element(),
             Kind::ImportDeclaration | Kind::JSImportDeclaration => {
                 let mut it = ChildIter::new(child_indices);
                 let modifiers = self.modifier_list_at(it.next_if(mask, 0));
                 let import_clause = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let module_specifier = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let attributes = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
-                match kind { Kind::ImportDeclaration => f.new_import_declaration(modifiers, import_clause, module_specifier, attributes), Kind::JSImportDeclaration => f.new_js_import_declaration(modifiers, import_clause, module_specifier, attributes), k => return Err(DecodeError::UnexpectedKind(k)) }
+                match kind {
+                    Kind::ImportDeclaration => f.new_import_declaration(
+                        modifiers,
+                        import_clause,
+                        module_specifier,
+                        attributes,
+                    ),
+                    Kind::JSImportDeclaration => f.new_js_import_declaration(
+                        modifiers,
+                        import_clause,
+                        module_specifier,
+                        attributes,
+                    ),
+                    k => return Err(DecodeError::UnexpectedKind(k)),
+                }
             }
             Kind::ExternalModuleReference => {
                 let expression = from_node(self.single_child(child_indices))?;
@@ -1446,7 +1682,14 @@ impl Decoder<'_> {
                 let parameters = from_list(self.list_at(it.next_if(mask, 2)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
-                f.new_constructor_declaration(modifiers, type_parameters, parameters, type_node, absent()?, body)
+                f.new_constructor_declaration(
+                    modifiers,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    body,
+                )
             }
             Kind::GetAccessor => {
                 let mut it = ChildIter::new(child_indices);
@@ -1456,7 +1699,15 @@ impl Decoder<'_> {
                 let parameters = from_list(self.list_at(it.next_if(mask, 3)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
-                f.new_get_accessor_declaration(modifiers, name, type_parameters, parameters, type_node, absent()?, body)
+                f.new_get_accessor_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    body,
+                )
             }
             Kind::SetAccessor => {
                 let mut it = ChildIter::new(child_indices);
@@ -1466,7 +1717,15 @@ impl Decoder<'_> {
                 let parameters = from_list(self.list_at(it.next_if(mask, 3)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
-                f.new_set_accessor_declaration(modifiers, name, type_parameters, parameters, type_node, absent()?, body)
+                f.new_set_accessor_declaration(
+                    modifiers,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    body,
+                )
             }
             Kind::IndexSignature => {
                 let mut it = ChildIter::new(child_indices);
@@ -1483,7 +1742,14 @@ impl Decoder<'_> {
                 let type_parameters = from_list(self.list_at(it.next_if(mask, 3)))?;
                 let parameters = from_list(self.list_at(it.next_if(mask, 4)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
-                f.new_method_signature_declaration(modifiers, name, postfix_token, type_parameters, parameters, type_node)
+                f.new_method_signature_declaration(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                )
             }
             Kind::MethodDeclaration => {
                 let mut it = ChildIter::new(child_indices);
@@ -1495,7 +1761,17 @@ impl Decoder<'_> {
                 let parameters = from_list(self.list_at(it.next_if(mask, 5)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 6)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 7)))?;
-                f.new_method_declaration(modifiers, asterisk_token, name, postfix_token, type_parameters, parameters, type_node, absent()?, body)
+                f.new_method_declaration(
+                    modifiers,
+                    asterisk_token,
+                    name,
+                    postfix_token,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    body,
+                )
             }
             Kind::PropertySignature => {
                 let mut it = ChildIter::new(child_indices);
@@ -1504,7 +1780,13 @@ impl Decoder<'_> {
                 let postfix_token = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let initializer = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
-                f.new_property_signature_declaration(modifiers, name, postfix_token, type_node, initializer)
+                f.new_property_signature_declaration(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_node,
+                    initializer,
+                )
             }
             Kind::PropertyDeclaration => {
                 let mut it = ChildIter::new(child_indices);
@@ -1515,21 +1797,20 @@ impl Decoder<'_> {
                 let initializer = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
                 f.new_property_declaration(modifiers, name, postfix_token, type_node, initializer)
             }
-            Kind::SemicolonClassElement => {
-                f.new_semicolon_class_element()
-            }
+            Kind::SemicolonClassElement => f.new_semicolon_class_element(),
             Kind::ClassStaticBlockDeclaration => {
                 let mut it = ChildIter::new(child_indices);
                 let modifiers = self.modifier_list_at(it.next_if(mask, 0));
                 let body = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 f.new_class_static_block_declaration(modifiers, body)
             }
-            Kind::OmittedExpression => {
-                f.new_omitted_expression()
-            }
-            Kind::FalseKeyword | Kind::ImportKeyword | Kind::NullKeyword | Kind::SuperKeyword | Kind::ThisKeyword | Kind::TrueKeyword => {
-                f.new_keyword_expression(kind)
-            }
+            Kind::OmittedExpression => f.new_omitted_expression(),
+            Kind::FalseKeyword
+            | Kind::ImportKeyword
+            | Kind::NullKeyword
+            | Kind::SuperKeyword
+            | Kind::ThisKeyword
+            | Kind::TrueKeyword => f.new_keyword_expression(kind),
             Kind::BinaryExpression => {
                 let mut it = ChildIter::new(child_indices);
                 let modifiers = self.modifier_list_at(it.next_if(mask, 0));
@@ -1540,12 +1821,21 @@ impl Decoder<'_> {
                 f.new_binary_expression(modifiers, left, type_node, operator_token, right)
             }
             Kind::PrefixUnaryExpression => {
-                let operator = match common_data & 7 { 0 => Kind::PlusToken, 1 => Kind::MinusToken, 2 => Kind::TildeToken, 3 => Kind::ExclamationToken, 4 => Kind::PlusPlusToken, 5 => Kind::MinusMinusToken, i => return Err(DecodeError::InvalidCommonData { kind, value: i }) };
+                let operator = match common_data & 7 {
+                    0 => Kind::PlusToken,
+                    1 => Kind::MinusToken,
+                    2 => Kind::TildeToken,
+                    3 => Kind::ExclamationToken,
+                    4 => Kind::PlusPlusToken,
+                    5 => Kind::MinusMinusToken,
+                    i => return Err(DecodeError::InvalidCommonData { kind, value: i }),
+                };
                 let operand = from_node(self.single_child(child_indices))?;
                 f.new_prefix_unary_expression(operator, operand)
             }
             Kind::PostfixUnaryExpression => {
-                let operator = if common_data & 1 != 0 { Kind::MinusMinusToken } else { Kind::PlusPlusToken };
+                let operator =
+                    if common_data & 1 != 0 { Kind::MinusMinusToken } else { Kind::PlusPlusToken };
                 let operand = from_node(self.single_child(child_indices))?;
                 f.new_postfix_unary_expression(operand, operator)
             }
@@ -1563,7 +1853,15 @@ impl Decoder<'_> {
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let equals_greater_than_token = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
-                f.new_arrow_function(modifiers, type_parameters, parameters, type_node, absent()?, equals_greater_than_token, body)
+                f.new_arrow_function(
+                    modifiers,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    equals_greater_than_token,
+                    body,
+                )
             }
             Kind::FunctionExpression => {
                 let mut it = ChildIter::new(child_indices);
@@ -1574,7 +1872,16 @@ impl Decoder<'_> {
                 let parameters = from_list(self.list_at(it.next_if(mask, 4)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
                 let body = from_node(self.node_at_opt(it.next_if(mask, 6)))?;
-                f.new_function_expression(modifiers, asterisk_token, name, type_parameters, parameters, type_node, absent()?, body)
+                f.new_function_expression(
+                    modifiers,
+                    asterisk_token,
+                    name,
+                    type_parameters,
+                    parameters,
+                    type_node,
+                    absent()?,
+                    body,
+                )
             }
             Kind::AsExpression => {
                 let mut it = ChildIter::new(child_indices);
@@ -1595,7 +1902,13 @@ impl Decoder<'_> {
                 let when_true = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let colon_token = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let when_false = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
-                f.new_conditional_expression(condition, question_token, when_true, colon_token, when_false)
+                f.new_conditional_expression(
+                    condition,
+                    question_token,
+                    when_true,
+                    colon_token,
+                    when_false,
+                )
             }
             Kind::PropertyAccessExpression => {
                 let mut it = ChildIter::new(child_indices);
@@ -1609,7 +1922,12 @@ impl Decoder<'_> {
                 let expression = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
                 let question_dot_token = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let argument_expression = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
-                f.new_element_access_expression(expression, question_dot_token, argument_expression, absent()?)
+                f.new_element_access_expression(
+                    expression,
+                    question_dot_token,
+                    argument_expression,
+                    absent()?,
+                )
             }
             Kind::CallExpression => {
                 let mut it = ChildIter::new(child_indices);
@@ -1617,7 +1935,13 @@ impl Decoder<'_> {
                 let question_dot_token = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let type_arguments = from_list(self.list_at(it.next_if(mask, 2)))?;
                 let arguments = from_list(self.list_at(it.next_if(mask, 3)))?;
-                f.new_call_expression(expression, question_dot_token, type_arguments, arguments, absent()?)
+                f.new_call_expression(
+                    expression,
+                    question_dot_token,
+                    type_arguments,
+                    arguments,
+                    absent()?,
+                )
             }
             Kind::NewExpression => {
                 let mut it = ChildIter::new(child_indices);
@@ -1627,7 +1951,8 @@ impl Decoder<'_> {
                 f.new_new_expression(expression, type_arguments, arguments)
             }
             Kind::MetaProperty => {
-                let keyword_token = if common_data & 1 != 0 { Kind::NewKeyword } else { Kind::ImportKeyword };
+                let keyword_token =
+                    if common_data & 1 != 0 { Kind::NewKeyword } else { Kind::ImportKeyword };
                 let name = from_node(self.single_child(child_indices))?;
                 f.new_meta_property(keyword_token, name)
             }
@@ -1657,7 +1982,13 @@ impl Decoder<'_> {
                 let question_dot_token = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let type_arguments = from_list(self.list_at(it.next_if(mask, 2)))?;
                 let template = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
-                f.new_tagged_template_expression(tag, question_dot_token, type_arguments, template, absent()?)
+                f.new_tagged_template_expression(
+                    tag,
+                    question_dot_token,
+                    type_arguments,
+                    template,
+                    absent()?,
+                )
             }
             Kind::ParenthesizedExpression => {
                 let expression = from_node(self.single_child(child_indices))?;
@@ -1665,12 +1996,14 @@ impl Decoder<'_> {
             }
             Kind::ArrayLiteralExpression => {
                 let multi_line = common_data & 1 != 0;
-                let elements = from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
+                let elements =
+                    from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
                 f.new_array_literal_expression(elements, multi_line)
             }
             Kind::ObjectLiteralExpression => {
                 let multi_line = common_data & 1 != 0;
-                let properties = from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
+                let properties =
+                    from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
                 f.new_object_literal_expression(properties, multi_line)
             }
             Kind::SpreadAssignment => {
@@ -1693,8 +2026,16 @@ impl Decoder<'_> {
                 let postfix_token = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let equals_token = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
-                let object_assignment_initializer = from_node(self.node_at_opt(it.next_if(mask, 5)))?;
-                f.new_shorthand_property_assignment(modifiers, name, postfix_token, type_node, equals_token, object_assignment_initializer)
+                let object_assignment_initializer =
+                    from_node(self.node_at_opt(it.next_if(mask, 5)))?;
+                f.new_shorthand_property_assignment(
+                    modifiers,
+                    name,
+                    postfix_token,
+                    type_node,
+                    equals_token,
+                    object_assignment_initializer,
+                )
             }
             Kind::DeleteExpression => {
                 let expression = from_node(self.single_child(child_indices))?;
@@ -1718,9 +2059,18 @@ impl Decoder<'_> {
                 let expression = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 f.new_type_assertion(type_node, expression)
             }
-            Kind::VoidKeyword | Kind::AnyKeyword | Kind::BooleanKeyword | Kind::IntrinsicKeyword | Kind::NeverKeyword | Kind::NumberKeyword | Kind::ObjectKeyword | Kind::StringKeyword | Kind::SymbolKeyword | Kind::UndefinedKeyword | Kind::UnknownKeyword | Kind::BigIntKeyword => {
-                f.new_keyword_type_node(kind)
-            }
+            Kind::VoidKeyword
+            | Kind::AnyKeyword
+            | Kind::BooleanKeyword
+            | Kind::IntrinsicKeyword
+            | Kind::NeverKeyword
+            | Kind::NumberKeyword
+            | Kind::ObjectKeyword
+            | Kind::StringKeyword
+            | Kind::SymbolKeyword
+            | Kind::UndefinedKeyword
+            | Kind::UnknownKeyword
+            | Kind::BigIntKeyword => f.new_keyword_type_node(kind),
             Kind::UnionType => {
                 let types = from_list(self.single_node_list_child(child_indices))?;
                 f.new_union_type_node(types)
@@ -1738,7 +2088,12 @@ impl Decoder<'_> {
                 f.new_conditional_type_node(check_type, extends_type, true_type, false_type)
             }
             Kind::TypeOperator => {
-                let operator = match common_data & 3 { 0 => Kind::KeyOfKeyword, 1 => Kind::ReadonlyKeyword, 2 => Kind::UniqueKeyword, i => return Err(DecodeError::InvalidCommonData { kind, value: i }) };
+                let operator = match common_data & 3 {
+                    0 => Kind::KeyOfKeyword,
+                    1 => Kind::ReadonlyKeyword,
+                    2 => Kind::UniqueKeyword,
+                    i => return Err(DecodeError::InvalidCommonData { kind, value: i }),
+                };
                 let type_node = from_node(self.single_child(child_indices))?;
                 f.new_type_operator_node(operator, type_node)
             }
@@ -1772,9 +2127,7 @@ impl Decoder<'_> {
                 let literal = from_node(self.single_child(child_indices))?;
                 f.new_literal_type_node(literal)
             }
-            Kind::ThisType => {
-                f.new_this_type_node()
-            }
+            Kind::ThisType => f.new_this_type_node(),
             Kind::TypePredicate => {
                 let mut it = ChildIter::new(child_indices);
                 let asserts_modifier = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
@@ -1790,8 +2143,13 @@ impl Decoder<'_> {
             }
             Kind::ImportAttributes => {
                 let multi_line = common_data & 1 != 0;
-                let token = if (common_data >> 1) & 1 != 0 { Kind::AssertKeyword } else { Kind::WithKeyword };
-                let attributes = from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
+                let token = if (common_data >> 1) & 1 != 0 {
+                    Kind::AssertKeyword
+                } else {
+                    Kind::WithKeyword
+                };
+                let attributes =
+                    from_list(self.list_at(child_indices.first().copied().unwrap_or(0)))?;
                 f.new_import_attributes(token, attributes, multi_line)
             }
             Kind::TypeQuery => {
@@ -1808,7 +2166,14 @@ impl Decoder<'_> {
                 let question_token = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let type_node = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
                 let members = from_list(self.list_at(it.next_if(mask, 5)))?;
-                f.new_mapped_type_node(readonly_token, type_parameter, name_type, question_token, type_node, members)
+                f.new_mapped_type_node(
+                    readonly_token,
+                    type_parameter,
+                    name_type,
+                    question_token,
+                    type_node,
+                    members,
+                )
             }
             Kind::TypeLiteral => {
                 let members = from_list(self.single_node_list_child(child_indices))?;
@@ -1866,7 +2231,8 @@ impl Decoder<'_> {
                 f.new_template_literal_type_span(type_node, literal)
             }
             Kind::SyntheticExpression => {
-                let (type_node, is_spread,) = decode_node_common_data_synthetic_expression(common_data)?;
+                let (type_node, is_spread) =
+                    decode_node_common_data_synthetic_expression(common_data)?;
                 let tuple_name_source = from_node(self.single_child(child_indices))?;
                 f.new_synthetic_expression(type_node, is_spread, tuple_name_source)
             }
@@ -1912,12 +2278,8 @@ impl Decoder<'_> {
                 let closing_fragment = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 f.new_jsx_fragment(opening_fragment, children, closing_fragment)
             }
-            Kind::JsxOpeningFragment => {
-                f.new_jsx_opening_fragment()
-            }
-            Kind::JsxClosingFragment => {
-                f.new_jsx_closing_fragment()
-            }
+            Kind::JsxOpeningFragment => f.new_jsx_opening_fragment(),
+            Kind::JsxClosingFragment => f.new_jsx_closing_fragment(),
             Kind::JsxAttribute => {
                 let mut it = ChildIter::new(child_indices);
                 let name = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
@@ -1939,7 +2301,11 @@ impl Decoder<'_> {
                 f.new_jsx_expression(dot_dot_dot_token, expression)
             }
             Kind::SyntaxList => {
-                if !child_indices.is_empty() { return Err(DecodeError::GoDecoderPanic("runtime error: index out of range [0] with length 0".to_string())); }
+                if !child_indices.is_empty() {
+                    return Err(DecodeError::GoDecoderPanic(
+                        "runtime error: index out of range [0] with length 0".to_string(),
+                    ));
+                }
                 let children: &'static [P<Node>] = &[];
                 f.new_syntax_list(children)
             }
@@ -1961,9 +2327,7 @@ impl Decoder<'_> {
                 let type_node = from_node(self.single_child(child_indices))?;
                 f.new_jsdoc_nullable_type(type_node)
             }
-            Kind::JSDocAllType => {
-                f.new_jsdoc_all_type()
-            }
+            Kind::JSDocAllType => f.new_jsdoc_all_type(),
             Kind::JSDocVariadicType => {
                 let type_node = from_node(self.single_child(child_indices))?;
                 f.new_jsdoc_variadic_type(type_node)
@@ -2085,7 +2449,13 @@ impl Decoder<'_> {
                 let module_specifier = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let attributes = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let comment = from_list(self.list_at(it.next_if(mask, 4)))?;
-                f.new_jsdoc_import_tag(tag_name, import_clause, module_specifier, attributes, comment)
+                f.new_jsdoc_import_tag(
+                    tag_name,
+                    import_clause,
+                    module_specifier,
+                    attributes,
+                    comment,
+                )
             }
             Kind::JSDocCallbackTag => {
                 let mut it = ChildIter::new(child_indices);
@@ -2122,7 +2492,8 @@ impl Decoder<'_> {
                 f.new_jsdoc_name_reference(name)
             }
             Kind::ModuleDeclaration => {
-                let keyword = if common_data & 1 != 0 { Kind::NamespaceKeyword } else { Kind::ModuleKeyword };
+                let keyword =
+                    if common_data & 1 != 0 { Kind::NamespaceKeyword } else { Kind::ModuleKeyword };
                 let mut it = ChildIter::new(child_indices);
                 let modifiers = self.modifier_list_at(it.next_if(mask, 0));
                 let name = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
@@ -2145,7 +2516,13 @@ impl Decoder<'_> {
                 let export_clause = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let module_specifier = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let attributes = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
-                f.new_export_declaration(modifiers, is_type_only, export_clause, module_specifier, attributes)
+                f.new_export_declaration(
+                    modifiers,
+                    is_type_only,
+                    export_clause,
+                    module_specifier,
+                    attributes,
+                )
             }
             Kind::ImportType => {
                 let is_type_of = common_data & 1 != 0;
@@ -2157,7 +2534,11 @@ impl Decoder<'_> {
                 f.new_import_type_node(is_type_of, argument, attributes, qualifier, type_arguments)
             }
             Kind::ImportClause => {
-                let phase_modifier = match common_data & 3 { 1 => Kind::TypeKeyword, 2 => Kind::DeferKeyword, _ => Kind::Unknown };
+                let phase_modifier = match common_data & 3 {
+                    1 => Kind::TypeKeyword,
+                    2 => Kind::DeferKeyword,
+                    _ => Kind::Unknown,
+                };
                 let mut it = ChildIter::new(child_indices);
                 let name = from_node(self.node_at_opt(it.next_if(mask, 0)))?;
                 let named_bindings = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
@@ -2177,7 +2558,13 @@ impl Decoder<'_> {
                 let constraint = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let expression = from_node(self.node_at_opt(it.next_if(mask, 3)))?;
                 let default_type = from_node(self.node_at_opt(it.next_if(mask, 4)))?;
-                f.new_type_parameter_declaration(modifiers, name, constraint, expression, default_type)
+                f.new_type_parameter_declaration(
+                    modifiers,
+                    name,
+                    constraint,
+                    expression,
+                    default_type,
+                )
             }
             Kind::SyntheticReferenceExpression => {
                 let mut it = ChildIter::new(child_indices);
@@ -2187,7 +2574,11 @@ impl Decoder<'_> {
             }
             Kind::JSDocTypeLiteral => {
                 let is_array_type = common_data & 1 != 0;
-                if !child_indices.is_empty() { return Err(DecodeError::GoDecoderPanic("runtime error: index out of range [0] with length 0".to_string())); }
+                if !child_indices.is_empty() {
+                    return Err(DecodeError::GoDecoderPanic(
+                        "runtime error: index out of range [0] with length 0".to_string(),
+                    ));
+                }
                 let jsdoc_property_tags: &'static [P<Node>] = &[];
                 f.new_jsdoc_type_literal(jsdoc_property_tags, is_array_type)
             }
@@ -2199,7 +2590,15 @@ impl Decoder<'_> {
                 let name = from_node(self.node_at_opt(it.next_if(mask, 1)))?;
                 let type_expression = from_node(self.node_at_opt(it.next_if(mask, 2)))?;
                 let comment = from_list(self.list_at(it.next_if(mask, 3)))?;
-                f.new_jsdoc_parameter_or_property_tag(kind, tag_name, name, is_bracketed, type_expression, is_name_first, comment)
+                f.new_jsdoc_parameter_or_property_tag(
+                    kind,
+                    tag_name,
+                    name,
+                    is_bracketed,
+                    type_expression,
+                    is_name_first,
+                    comment,
+                )
             }
             k => return Err(DecodeError::UnexpectedKind(k)),
         })

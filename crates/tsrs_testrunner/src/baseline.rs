@@ -17,7 +17,8 @@ pub enum Class {
 }
 
 impl Class {
-    pub const ALL: [Class; 6] = [Class::Pass, Class::Codes, Class::Fail, Class::Crash, Class::Timeout, Class::Skip];
+    pub const ALL: [Class; 6] =
+        [Class::Pass, Class::Codes, Class::Fail, Class::Crash, Class::Timeout, Class::Skip];
 
     pub fn as_str(self) -> &'static str {
         match self {
@@ -43,10 +44,16 @@ pub fn baseline_matches(expected: Option<&str>, actual: &str) -> bool {
     expected == actual && !(actual == NO_CONTENT && found_expected)
 }
 
-static HEADER_LINE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(?:(\S.*?)\(([0-9]+),([0-9]+)\): )?(error|warning|suggestion|message) TS([0-9]+): ").unwrap());
-static PRETTY_HEADER_LINE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(?:(\S.*?):([0-9]+):([0-9]+) - )?(error|warning|suggestion|message) TS([0-9]+): ").unwrap());
+static HEADER_LINE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"^(?:(\S.*?)\(([0-9]+),([0-9]+)\): )?(error|warning|suggestion|message) TS([0-9]+): ",
+    )
+    .unwrap()
+});
+static PRETTY_HEADER_LINE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^(?:(\S.*?):([0-9]+):([0-9]+) - )?(error|warning|suggestion|message) TS([0-9]+): ")
+        .unwrap()
+});
 static ANSI: LazyLock<Regex> = LazyLock::new(|| Regex::new("\u{1b}\\[[0-9;]*m").unwrap());
 
 // The multiset of (file, line, col, category, code) from the summary lines at the top of an error baseline.
@@ -55,24 +62,30 @@ pub fn diagnostic_keys(text: &str) -> Vec<String> {
     if text == NO_CONTENT {
         return keys;
     }
-    keys.extend(text.split("\r\n").take_while(|line| !line.starts_with("==== ")).filter_map(|line| {
-        if line.starts_with("==== ") {
-            return None;
-        }
-        let (re, line) = if line.contains('\u{1b}') { (&*PRETTY_HEADER_LINE, ANSI.replace_all(line, "")) } else { (&*HEADER_LINE, line.into()) };
-        if let Some(c) = re.captures(&line) {
-            return Some(format!(
-                "{}({},{}) {} TS{}",
-                c.get(1).map_or("", |m| m.as_str()),
-                c.get(2).map_or("", |m| m.as_str()),
-                c.get(3).map_or("", |m| m.as_str()),
-                &c[4],
-                &c[5]
-            ));
-        }
+    keys.extend(text.split("\r\n").take_while(|line| !line.starts_with("==== ")).filter_map(
+        |line| {
+            if line.starts_with("==== ") {
+                return None;
+            }
+            let (re, line) = if line.contains('\u{1b}') {
+                (&*PRETTY_HEADER_LINE, ANSI.replace_all(line, ""))
+            } else {
+                (&*HEADER_LINE, line.into())
+            };
+            if let Some(c) = re.captures(&line) {
+                return Some(format!(
+                    "{}({},{}) {} TS{}",
+                    c.get(1).map_or("", |m| m.as_str()),
+                    c.get(2).map_or("", |m| m.as_str()),
+                    c.get(3).map_or("", |m| m.as_str()),
+                    &c[4],
+                    &c[5]
+                ));
+            }
 
-        None
-    }));
+            None
+        },
+    ));
     keys.sort();
     keys
 }
@@ -125,7 +138,10 @@ pub fn unified_diff(expected: Option<&str>, actual: &str, name: &str) -> String 
     let exp = expected.replace("\r\n", "\n");
     let act = actual.replace("\r\n", "\n");
     let diff = similar::TextDiff::from_lines(&exp, &act);
-    diff.unified_diff().context_radius(3).header(&format!("expected/{name}"), &format!("actual/{name}")).to_string()
+    diff.unified_diff()
+        .context_radius(3)
+        .header(&format!("expected/{name}"), &format!("actual/{name}"))
+        .to_string()
 }
 
 // The file header and first `@@` hunk of a unified diff.
@@ -147,7 +163,9 @@ pub fn first_hunk(diff: &str) -> String {
 // baseline.go:31 (DiffText). Go uses a patience diff with 3 lines of context; `similar`'s patience algorithm and
 // unified format stand in for it (only the `!!!! File ... differs ... in noCheck emit` sections use this).
 pub fn diff_text(old_name: &str, new_name: &str, expected: &str, actual: &str) -> String {
-    let diff = similar::TextDiff::configure().algorithm(similar::Algorithm::Patience).diff_lines(expected, actual);
+    let diff = similar::TextDiff::configure()
+        .algorithm(similar::Algorithm::Patience)
+        .diff_lines(expected, actual);
     diff.unified_diff().context_radius(3).header(old_name, new_name).to_string()
 }
 
@@ -159,7 +177,10 @@ mod tests {
     fn keys_and_classes() {
         let exp = "a.ts(1,5): error TS2322: Type 'x' is not assignable.\r\n  chained line\r\nerror TS5023: Unknown.\r\n\r\n\r\n==== a.ts (1 errors) ====\r\n    let x";
         let act = "a.ts(1,5): error TS2322: Type 'y' is not assignable.\r\nerror TS5023: Unknown.\r\n\r\n\r\n==== a.ts (1 errors) ====\r\n    let x";
-        assert_eq!(diagnostic_keys(exp), vec!["(,) error TS5023".to_string(), "a.ts(1,5) error TS2322".to_string()]);
+        assert_eq!(
+            diagnostic_keys(exp),
+            vec!["(,) error TS5023".to_string(), "a.ts(1,5) error TS2322".to_string()]
+        );
         assert_eq!(classify(Some(exp), act), Class::Codes);
         assert_eq!(classify(Some(exp), exp), Class::Pass);
         assert_eq!(classify(None, NO_CONTENT), Class::Pass);

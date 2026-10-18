@@ -4,12 +4,19 @@
 use tsrs_compiler::{Context, Program as CompilerProgram};
 
 pub use tsrs_compiler::{
-    combine_emit_results, get_diagnostics_of_any_program_like as get_diagnostics_of_any_program, handle_no_emit_options, EmitOnly, EmitOptions,
-    EmitResult, ProgramLike, WriteFile, WriteFileData,
+    EmitOnly, EmitOptions, EmitResult, ProgramLike, WriteFile, WriteFileData, combine_emit_results,
+    get_diagnostics_of_any_program_like as get_diagnostics_of_any_program, handle_no_emit_options,
 };
 
 // Go `(*compiler.Program).Emit` (program.go:1875).
-#[expect(clippy::unnecessary_wraps, reason = "The incremental emit interface shares an optional result with paths that have no pending emit.")]
-pub fn compiler_program_emit(program: &'static CompilerProgram, ctx: &Context, options: &EmitOptions) -> Option<EmitResult> {
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "The incremental emit interface shares an optional result with paths that have no pending emit."
+)]
+pub fn compiler_program_emit(
+    program: &'static CompilerProgram,
+    ctx: &Context,
+    options: &EmitOptions,
+) -> Option<EmitResult> {
     Some(program.emit(ctx, options))
 }

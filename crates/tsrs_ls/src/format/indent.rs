@@ -1,6 +1,6 @@
 use tsrs_ast::{self as ast, CommentRange, Kind, Node, NodeList, SourceFile};
 use tsrs_core::stringutil::{decode_rune, is_white_space_like, is_white_space_single_line};
-use tsrs_core::{TextRange, P};
+use tsrs_core::{P, TextRange};
 use tsrs_scanner as scanner;
 
 use super::*;
@@ -14,8 +14,10 @@ pub fn get_indentation_for_node(
     source_file: P<SourceFile>,
     options: &FormatCodeSettings,
 ) -> i32 {
-    let (startline, startpos) =
-        scanner::get_ecma_line_and_byte_offset_of_position(source_file.get(), scanner::get_token_pos_of_node(n, source_file, false));
+    let (startline, startpos) = scanner::get_ecma_line_and_byte_offset_of_position(
+        source_file.get(),
+        scanner::get_token_pos_of_node(n, source_file, false),
+    );
     get_indentation_for_node_worker(
         n,
         startline,
@@ -47,9 +49,15 @@ pub fn get_indentation(
         return 0;
     }
 
-    let preceding_token = astnav::find_preceding_token_ex(source_file, position, None /*startNode*/, true /*excludeJSDoc*/);
+    let preceding_token = astnav::find_preceding_token_ex(
+        source_file,
+        position,
+        None, /*startNode*/
+        true, /*excludeJSDoc*/
+    );
 
-    let enclosing_comment_range = get_range_of_enclosing_comment(source_file, position, preceding_token);
+    let enclosing_comment_range =
+        get_range_of_enclosing_comment(source_file, position, preceding_token);
     if let Some(enclosing_comment_range) = enclosing_comment_range {
         if enclosing_comment_range.kind == Kind::MultiLineCommentTrivia {
             return get_comment_indent(source_file, position, options, &enclosing_comment_range);
@@ -64,10 +72,7 @@ pub fn get_indentation(
     if is_string_or_regular_expression_or_template_literal(preceding_token.kind()) {
         let token_start = scanner::get_token_pos_of_node(preceding_token, source_file, false);
         if token_start <= position
-            && position
-                < preceding_token
-                    .end()
-                    .expect_source("parsed tokens have source positions")
+            && position < preceding_token.end().expect_source("parsed tokens have source positions")
         {
             return 0;
         }
@@ -105,7 +110,9 @@ pub fn get_indentation(
         return get_block_indent(source_file, position, options);
     }
 
-    if preceding_token.kind() == Kind::CommaToken && preceding_token.parent().is_some_and(|p| p.kind() != Kind::BinaryExpression) {
+    if preceding_token.kind() == Kind::CommaToken
+        && preceding_token.parent().is_some_and(|p| p.kind() != Kind::BinaryExpression)
+    {
         // previous token is comma that separates items in list - find the previous item and try to derive indentation from it
         if let Some(actual_indentation) =
             get_actual_indentation_for_list_item_before_comma(preceding_token, source_file, options)
@@ -118,8 +125,9 @@ pub fn get_indentation(
     // use list position if the preceding token is before any list items
     if let Some(container_list) = container_list {
         if !preceding_token.loc().contained_by(container_list.loc.get()) {
-            let use_the_same_base_indentation =
-                current_token.parent().is_some_and(|p| p.kind() == Kind::FunctionExpression || p.kind() == Kind::ArrowFunction);
+            let use_the_same_base_indentation = current_token.parent().is_some_and(|p| {
+                p.kind() == Kind::FunctionExpression || p.kind() == Kind::ArrowFunction
+            });
             let mut indent_size = 0;
             if !use_the_same_base_indentation {
                 indent_size = options.indent_size;
@@ -135,7 +143,14 @@ pub fn get_indentation(
         }
     }
 
-    get_smart_indent(source_file, position, preceding_token, line_at_position, assume_new_line_before_close_brace, options)
+    get_smart_indent(
+        source_file,
+        position,
+        preceding_token,
+        line_at_position,
+        assume_new_line_before_close_brace,
+        options,
+    )
 }
 
 // indent.go:111
@@ -174,7 +189,8 @@ fn get_comment_indent(
         return column;
     }
 
-    let first_non_whitespace_character_code = source_file.text().as_bytes()[(start_position_of_line + character) as usize];
+    let first_non_whitespace_character_code =
+        source_file.text().as_bytes()[(start_position_of_line + character) as usize];
     if first_non_whitespace_character_code == b'*' {
         return column - 1;
     }
@@ -182,14 +198,16 @@ fn get_comment_indent(
 }
 
 // indent.go:137
-fn get_leading_comment_ranges_of_node(node: P<Node>, file: P<SourceFile>) -> Option<scanner::CommentRangeIter> {
+fn get_leading_comment_ranges_of_node(
+    node: P<Node>,
+    file: P<SourceFile>,
+) -> Option<scanner::CommentRangeIter> {
     if node.kind() == Kind::JsxText {
         return None;
     }
     Some(scanner::get_leading_comment_ranges(
         file.text(),
-        node.pos()
-            .expect_source("parsed nodes have source positions"),
+        node.pos().expect_source("parsed nodes have source positions"),
     ))
 }
 
@@ -207,10 +225,7 @@ fn get_range_of_enclosing_comment(
     let token_start =
         astnav::get_start_of_node(token_at_position, source_file, false /*includeJSDoc*/);
     if token_start <= position
-        && position
-            < token_at_position
-                .end()
-                .expect_source("parsed tokens have source positions")
+        && position < token_at_position.end().expect_source("parsed tokens have source positions")
     {
         return None;
     }
@@ -220,13 +235,15 @@ fn get_range_of_enclosing_comment(
     let trailing_ranges_of_previous_token = preceding_token.map(|token| {
         scanner::get_trailing_comment_ranges(
             source_file.text(),
-            token
-                .end()
-                .expect_source("parsed tokens have source positions"),
+            token.end().expect_source("parsed tokens have source positions"),
         )
-    } );
-    let leading_ranges_of_next_token = get_leading_comment_ranges_of_node(token_at_position, source_file);
-    let comment_ranges = trailing_ranges_of_previous_token.into_iter().flatten().chain(leading_ranges_of_next_token.into_iter().flatten());
+    });
+    let leading_ranges_of_next_token =
+        get_leading_comment_ranges_of_node(token_at_position, source_file);
+    let comment_ranges = trailing_ranges_of_previous_token
+        .into_iter()
+        .flatten()
+        .chain(leading_ranges_of_next_token.into_iter().flatten());
     if let Some(result) = comment_ranges.into_iter().find_map(|comment_range| {
         if comment_range.text_range.contains_exclusive(position.into())
             || position == comment_range.end()
@@ -273,10 +290,7 @@ fn get_actual_indentation_for_list_item_before_comma(
     // previous token is comma that separates items in list - find the previous item and try to derive indentation from it
     comma_token.parent()?;
     let containing_list = get_containing_list(comma_token, source_file)?;
-    let comma_index = containing_list
-        .nodes()
-        .iter()
-        .position(|&n| n == comma_token)?;
+    let comma_index = containing_list.nodes().iter().position(|&n| n == comma_token)?;
     if comma_index > 0 {
         return derive_actual_indentation_from_list(
             containing_list,
@@ -340,8 +354,14 @@ fn get_smart_indent(
         if lsutil::position_belongs_to_node(cur, position, source_file)
             && should_indent_child_node(options, cur, previous, Some(source_file), true)
         {
-            let (current_start_line, current_start_char) = get_start_line_and_character_for_node(cur, source_file);
-            let ntk = next_token_is_curly_brace_on_same_line_as_cursor(preceding_token, cur, line_at_position, source_file);
+            let (current_start_line, current_start_char) =
+                get_start_line_and_character_for_node(cur, source_file);
+            let ntk = next_token_is_curly_brace_on_same_line_as_cursor(
+                preceding_token,
+                cur,
+                line_at_position,
+                source_file,
+            );
             let mut indentation_delta = 0;
             if ntk != NextTokenKind::Unknown {
                 // handle cases when codefix is about to be inserted before the close brace
@@ -416,8 +436,14 @@ fn get_indentation_for_node_worker(
 
         let (containing_list_or_parent_start_line, containing_list_or_parent_start_character) =
             get_containing_list_or_parent_start(par, current, source_file);
-        let parent_and_child_share_line = containing_list_or_parent_start_line == current_start_line
-            || child_starts_on_the_same_line_with_else_in_if_statement(par, current, current_start_line, source_file);
+        let parent_and_child_share_line = containing_list_or_parent_start_line
+            == current_start_line
+            || child_starts_on_the_same_line_with_else_in_if_statement(
+                par,
+                current,
+                current_start_line,
+                source_file,
+            );
 
         if use_actual_indentation {
             // check if current node is a list item - if yes, take indentation from it
@@ -472,7 +498,9 @@ fn get_indentation_for_node_worker(
         }
 
         // increase indentation if parent node wants its content to be indented and parent and child nodes don't start on the same line
-        if should_indent_child_node(options, par, Some(current), Some(source_file), is_next_child) && !parent_and_child_share_line {
+        if should_indent_child_node(options, par, Some(current), Some(source_file), is_next_child)
+            && !parent_and_child_share_line
+        {
             indentation_delta += options.indent_size;
         }
 
@@ -485,16 +513,22 @@ fn get_indentation_for_node_worker(
         // Instead, when at an argument, we unspoof the starting position of the enclosing call expression
         // *after* applying indentation for the argument.
 
-        let use_true_start = is_argument_and_start_line_overlaps_expression_being_called(par, current, current_start_line, source_file);
+        let use_true_start = is_argument_and_start_line_overlaps_expression_being_called(
+            par,
+            current,
+            current_start_line,
+            source_file,
+        );
 
         current = par;
         parent = current.parent();
 
         if use_true_start {
-            (current_start_line, current_start_character) = scanner::get_ecma_line_and_byte_offset_of_position(
-                source_file.get(),
-                scanner::get_token_pos_of_node(current, source_file, false),
-            );
+            (current_start_line, current_start_character) =
+                scanner::get_ecma_line_and_byte_offset_of_position(
+                    source_file.get(),
+                    scanner::get_token_pos_of_node(current, source_file, false),
+                );
         } else {
             current_start_line = containing_list_or_parent_start_line;
             current_start_character = containing_list_or_parent_start_character;
@@ -517,7 +551,8 @@ fn get_actual_indentation_for_node(
     // actual indentation is used for statements\declarations if one of cases below is true:
     // - parent is SourceFile - by default immediate children of SourceFile are not indented except when user indents them manually
     // - parent and child are not on the same line
-    let use_actual_indentation = (ast::is_declaration(current) || ast::is_statement_but_not_declaration(current))
+    let use_actual_indentation = (ast::is_declaration(current)
+        || ast::is_statement_but_not_declaration(current))
         && (parent.kind() == Kind::SourceFile || !parent_and_child_share_line);
 
     if !use_actual_indentation {
@@ -559,20 +594,13 @@ fn get_actual_indentation_for_list_item(
     options: &FormatCodeSettings,
     list_indents_child: bool,
 ) -> Option<i32> {
-    if node
-        .parent()
-        .is_some_and(|p| p.kind() == Kind::VariableDeclarationList)
-    {
+    if node.parent().is_some_and(|p| p.kind() == Kind::VariableDeclarationList) {
         // VariableDeclarationList has no wrapping tokens
         return None;
     }
     let containing_list = get_containing_list(node, source_file);
     if let Some(containing_list) = containing_list {
-        if let Some(index) = containing_list
-            .nodes()
-            .iter()
-            .position(|&element| element == node)
-        {
+        if let Some(index) = containing_list.nodes().iter().position(|&element| element == node) {
             if let Some(result) =
                 derive_actual_indentation_from_list(containing_list, index, source_file, options)
             {
@@ -604,17 +632,9 @@ fn get_actual_indentation_for_list_start_line(
     let list = list?;
     let (line, char) = scanner::get_ecma_line_and_byte_offset_of_position(
         source_file.get(),
-        list.loc
-            .get()
-            .pos()
-            .expect_source("parsed lists have source positions"),
+        list.loc.get().pos().expect_source("parsed lists have source positions"),
     );
-    Some(find_column_for_first_non_whitespace_character_in_line(
-        line,
-        char,
-        source_file,
-        options,
-    ))
+    Some(find_column_for_first_non_whitespace_character_in_line(line, char, source_file, options))
 }
 
 // indent.go:435
@@ -640,9 +660,7 @@ fn derive_actual_indentation_from_list(
         // skip list items that ends on the same line with the current list element
         let prev_end_line = scanner::get_ecma_line_of_position(
             source_file.get(),
-            list.nodes()[i]
-                .end()
-                .expect_source("parsed nodes have source positions"),
+            list.nodes()[i].end().expect_source("parsed nodes have source positions"),
         );
         if prev_end_line != line {
             return Some(find_column_for_first_non_whitespace_character_in_line(
@@ -728,9 +746,7 @@ pub(crate) fn child_starts_on_the_same_line_with_else_in_if_statement(
     {
         let else_keyword = astnav::find_preceding_token(
             source_file,
-            child
-                .pos()
-                .expect_source("parsed nodes have source positions"),
+            child.pos().expect_source("parsed nodes have source positions"),
         );
         assert!(else_keyword.is_some());
         let else_keyword_start_line = get_start_line_for_node(else_keyword.unwrap(), source_file);
@@ -760,8 +776,7 @@ pub fn get_containing_list(node: P<Node>, source_file: P<SourceFile>) -> Option<
     let parent = node.parent()?;
     get_list_by_range(
         scanner::get_token_pos_of_node(node, source_file, false),
-        node.end()
-            .expect_source("parsed nodes have source positions"),
+        node.end().expect_source("parsed nodes have source positions"),
         parent,
         source_file,
     )
@@ -806,9 +821,11 @@ fn get_list_by_range(
             get_list(node.parameter_list(), r, node, source_file)
         }
         Kind::GetAccessor => get_list(node.parameter_list(), r, node, source_file),
-        Kind::ClassDeclaration | Kind::ClassExpression | Kind::InterfaceDeclaration | Kind::TypeAliasDeclaration | Kind::JSDocTemplateTag => {
-            get_list(node.type_parameter_list(), r, node, source_file)
-        }
+        Kind::ClassDeclaration
+        | Kind::ClassExpression
+        | Kind::InterfaceDeclaration
+        | Kind::TypeAliasDeclaration
+        | Kind::JSDocTemplateTag => get_list(node.type_parameter_list(), r, node, source_file),
         Kind::NewExpression | Kind::CallExpression => {
             let l = get_list(node.type_argument_list(), r, node, source_file);
             if l.is_some() {
@@ -816,16 +833,24 @@ fn get_list_by_range(
             }
             get_list(node.argument_list(), r, node, source_file)
         }
-        Kind::VariableDeclarationList => get_list(Some(node.as_variable_declaration_list().declarations), r, node, source_file),
-        Kind::ObjectBindingPattern | Kind::ArrayBindingPattern | Kind::NamedImports | Kind::NamedExports => {
-            get_list(Some(node.element_list()), r, node, source_file)
+        Kind::VariableDeclarationList => {
+            get_list(Some(node.as_variable_declaration_list().declarations), r, node, source_file)
         }
+        Kind::ObjectBindingPattern
+        | Kind::ArrayBindingPattern
+        | Kind::NamedImports
+        | Kind::NamedExports => get_list(Some(node.element_list()), r, node, source_file),
         _ => None, // TODO: should this be a panic? It isn't in strada.
     }
 }
 
 // indent.go:579
-fn get_list(list: Option<P<NodeList>>, r: TextRange, node: P<Node>, source_file: P<SourceFile>) -> Option<P<NodeList>> {
+fn get_list(
+    list: Option<P<NodeList>>,
+    r: TextRange,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+) -> Option<P<NodeList>> {
     let list = list?;
     if r.contained_by(get_visual_list_range(node, list.loc.get(), source_file)) {
         return Some(list);
@@ -840,26 +865,16 @@ fn get_visual_list_range(_node: P<Node>, list: TextRange, source_file: P<SourceF
     // previous (possibly token) child's end and its end to the token start of the following element" - basically
     // expanding the range to encompass all the neighboring non-token trivia
     // Now, we perform that logic with the scanner instead
-    let list_start = list
-        .pos()
-        .expect_source("parsed lists have source positions");
-    let list_end = list
-        .end()
-        .expect_source("parsed lists have source positions");
+    let list_start = list.pos().expect_source("parsed lists have source positions");
+    let list_end = list.end().expect_source("parsed lists have source positions");
     let prior = astnav::find_preceding_token(source_file, list_start);
     let prior_end = match prior {
         None => list_start,
-        Some(prior) => prior
-            .end()
-            .expect_source("parsed tokens have source positions"),
+        Some(prior) => prior.end().expect_source("parsed tokens have source positions"),
     };
     // Find the token that starts at or after list.End() using the scanner
     let scan = scanner::get_scanner_for_source_file(source_file, list_end);
-    let next_start = if scan.token() == Kind::EndOfFile {
-        list_end
-    } else {
-        scan.token_start()
-    };
+    let next_start = if scan.token() == Kind::EndOfFile { list_end } else { scan.token_start() };
     TextRange::new(prior_end, next_start)
 }
 
@@ -871,11 +886,9 @@ fn get_containing_list_or_parent_start(
 ) -> (usize, u32) {
     let containing_list = get_containing_list(child, source_file);
     let start_pos = match containing_list {
-        Some(containing_list) => containing_list
-            .loc
-            .get()
-            .pos()
-            .expect_source("parsed lists have source positions"),
+        Some(containing_list) => {
+            containing_list.loc.get().pos().expect_source("parsed lists have source positions")
+        }
         None => scanner::get_token_pos_of_node(parent, source_file, false),
     };
     scanner::get_ecma_line_and_byte_offset_of_position(source_file.get(), start_pos)
@@ -884,7 +897,10 @@ fn get_containing_list_or_parent_start(
 // indent.go:624
 fn is_control_flow_ending_statement(kind: Kind, parent_kind: Kind) -> bool {
     match kind {
-        Kind::ReturnStatement | Kind::ThrowStatement | Kind::ContinueStatement | Kind::BreakStatement => parent_kind != Kind::Block,
+        Kind::ReturnStatement
+        | Kind::ThrowStatement
+        | Kind::ContinueStatement
+        | Kind::BreakStatement => parent_kind != Kind::Block,
         _ => false,
     }
 }
@@ -902,7 +918,8 @@ pub fn should_indent_child_node(
     is_next_child: bool,
 ) -> bool {
     node_will_indent_child(settings, parent, child, source_file, false)
-        && !(is_next_child && child.is_some_and(|c| is_control_flow_ending_statement(c.kind(), parent.kind())))
+        && !(is_next_child
+            && child.is_some_and(|c| is_control_flow_ending_statement(c.kind(), parent.kind())))
 }
 
 // indent.go:646
@@ -964,30 +981,30 @@ pub fn node_will_indent_child(
         | Kind::DefaultClause => return true,
         Kind::CaseBlock => return settings.indent_switch_case.is_true_or_unknown(),
         Kind::VariableDeclaration | Kind::PropertyAssignment | Kind::BinaryExpression => {
-            if settings.indent_multi_line_object_literal_beginning_on_blank_line.is_false_or_unknown()
+            if settings
+                .indent_multi_line_object_literal_beginning_on_blank_line
+                .is_false_or_unknown()
                 && let Some(source_file) = source_file
                 && child_kind == Kind::ObjectLiteralExpression
             {
                 return range_is_on_one_line(child.unwrap().loc(), source_file);
             }
-            if parent.kind() == Kind::BinaryExpression && let Some(source_file) = source_file && child_kind == Kind::JsxElement {
+            if parent.kind() == Kind::BinaryExpression
+                && let Some(source_file) = source_file
+                && child_kind == Kind::JsxElement
+            {
                 let parent_start_line = scanner::get_ecma_line_of_position(
                     source_file.get(),
                     scanner::skip_trivia(
                         source_file.text(),
-                        parent
-                            .pos()
-                            .expect_source("parsed nodes have source positions"),
+                        parent.pos().expect_source("parsed nodes have source positions"),
                     ),
                 );
                 let child_start_line = scanner::get_ecma_line_of_position(
                     source_file.get(),
                     scanner::skip_trivia(
                         source_file.text(),
-                        child
-                            .unwrap()
-                            .pos()
-                            .expect_source("parsed nodes have source positions"),
+                        child.unwrap().pos().expect_source("parsed nodes have source positions"),
                     ),
                 );
                 return parent_start_line != child_start_line;
@@ -1010,7 +1027,9 @@ pub fn node_will_indent_child(
         | Kind::GetAccessor
         | Kind::SetAccessor => return child_kind != Kind::Block,
         Kind::ArrowFunction => {
-            if let Some(source_file) = source_file && child_kind == Kind::ParenthesizedExpression {
+            if let Some(source_file) = source_file
+                && child_kind == Kind::ParenthesizedExpression
+            {
                 return range_is_on_one_line(child.unwrap().loc(), source_file);
             }
             return child_kind != Kind::Block;
@@ -1018,12 +1037,19 @@ pub fn node_will_indent_child(
         Kind::ExportDeclaration => return child_kind != Kind::NamedExports,
         Kind::ImportDeclaration => {
             return child_kind != Kind::ImportClause
-                || child.unwrap().as_import_clause().named_bindings.is_some_and(|nb| nb.kind() != Kind::NamedImports);
+                || child
+                    .unwrap()
+                    .as_import_clause()
+                    .named_bindings
+                    .is_some_and(|nb| nb.kind() != Kind::NamedImports);
         }
         Kind::JsxElement => return child_kind != Kind::JsxClosingElement,
         Kind::JsxFragment => return child_kind != Kind::JsxClosingFragment,
         Kind::IntersectionType | Kind::UnionType | Kind::SatisfiesExpression => {
-            if child_kind == Kind::TypeLiteral || child_kind == Kind::TupleType || child_kind == Kind::MappedType {
+            if child_kind == Kind::TypeLiteral
+                || child_kind == Kind::TupleType
+                || child_kind == Kind::MappedType
+            {
                 return false;
             }
             return indent_by_default;
@@ -1074,7 +1100,8 @@ pub(crate) fn child_is_unindented_branch_of_conditional_expression(
     source_file: P<SourceFile>,
 ) -> bool {
     if parent.kind() == Kind::ConditionalExpression
-        && (child == parent.as_conditional_expression().when_true || child == parent.as_conditional_expression().when_false)
+        && (child == parent.as_conditional_expression().when_true
+            || child == parent.as_conditional_expression().when_false)
     {
         let condition_end_line = scanner::get_ecma_line_of_position(
             source_file.get(),
@@ -1120,10 +1147,7 @@ pub(crate) fn argument_starts_on_same_line_as_previous_argument(
         if parent.arguments().is_empty() {
             return false;
         }
-        let Some(current_index) = parent
-            .arguments()
-            .iter()
-            .position(|&argument| argument == child)
+        let Some(current_index) = parent.arguments().iter().position(|&argument| argument == child)
         else {
             // If it's not one of the arguments, don't look past this
             return false;
@@ -1135,9 +1159,7 @@ pub(crate) fn argument_starts_on_same_line_as_previous_argument(
         let previous_node = parent.arguments()[current_index - 1];
         let line_of_previous_node = scanner::get_ecma_line_of_position(
             source_file.get(),
-            previous_node
-                .end()
-                .expect_source("parsed nodes have source positions"),
+            previous_node.end().expect_source("parsed nodes have source positions"),
         );
         if child_start_line == line_of_previous_node {
             return true;

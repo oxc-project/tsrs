@@ -8,7 +8,7 @@ use tsrs_ast::Diagnostic;
 use tsrs_core::collections::Set;
 use tsrs_core::context::Context;
 use tsrs_core::tspath::Path;
-use tsrs_core::{CompilerOptions, ProjectReference, P};
+use tsrs_core::{CompilerOptions, P, ProjectReference};
 use tsrs_ls::autoimport::{self, ProjectID, RegistryCloneHost};
 use tsrs_ls::lsconv::{self, Converters, LSPLineMap};
 use tsrs_ls::lsutil::UserPreferences;
@@ -16,7 +16,7 @@ use tsrs_ls::sourcemap::ECMALineInfo;
 use tsrs_lsproto as lsproto;
 use tsrs_module::{Resolver, ResolverOptions};
 use tsrs_tsoptions::Mapper;
-use tsrs_vfs::{vfsmatch, FS};
+use tsrs_vfs::{FS, vfsmatch};
 
 use crate::ata;
 use crate::autoimport::new_auto_import_registry_clone_host;
@@ -24,14 +24,17 @@ use crate::client::Client;
 use crate::configfileregistry::ConfigFileRegistry;
 use crate::dirty::Shared;
 use crate::filechange::FileChangeSummary;
-use crate::logging::{new_log_tree, LogTree, Logger};
-use crate::overlayfs::{layer_overlay_file_system, FileHandle, FsRef, OverlayMap};
+use crate::logging::{LogTree, Logger, new_log_tree};
+use crate::overlayfs::{FileHandle, FsRef, OverlayMap, layer_overlay_file_system};
 use crate::parsecache::{parse_cache_key_for_duplicate, parse_cache_key_for_file};
-use crate::project::{Project, ProgramUpdateKind, SyntheticProjectID, ID};
-use crate::projectcollection::{new_project_collection, open_file_paths, ProjectCollection};
+use crate::project::{ID, ProgramUpdateKind, Project, SyntheticProjectID};
+use crate::projectcollection::{ProjectCollection, new_project_collection, open_file_paths};
 use crate::projectcollectionbuilder::new_project_collection_builder;
 use crate::session::{ContentMapperContributions, UpdateReason};
-use crate::snapshotfs::{new_snapshot_fs_builder_from_source, new_source_fs, snapshotFSBuilder, FileHandleSource, SnapshotFS};
+use crate::snapshotfs::{
+    FileHandleSource, SnapshotFS, new_snapshot_fs_builder_from_source, new_source_fs,
+    snapshotFSBuilder,
+};
 use crate::snapshothost::SnapshotHost;
 use crate::watch::WatchedFiles;
 
@@ -74,7 +77,8 @@ impl Snapshot {
             .get_or_init(|| {
                 let configured = self.config_file_registry.content_mappers();
                 let mut content_mapper_extensions = configured.extensions.clone();
-                content_mapper_extensions.extend(self.inferred_project_content_mapper_extensions.iter().cloned());
+                content_mapper_extensions
+                    .extend(self.inferred_project_content_mapper_extensions.iter().cloned());
                 content_mapper_extensions.sort();
                 content_mapper_extensions.dedup();
 
@@ -82,7 +86,9 @@ impl Snapshot {
                 for project in self.project_collection.projects() {
                     if let Some(watched) = &project.content_mapper_watched_files {
                         // pure set union; Go ranges the set too
-                        content_mapper_watched_files.m.extend(watched.keys().iter().map(std::clone::Clone::clone));
+                        content_mapper_watched_files
+                            .m
+                            .extend(watched.keys().iter().map(std::clone::Clone::clone));
                     }
                 }
                 (content_mapper_extensions, Arc::new(content_mapper_watched_files))
@@ -112,13 +118,19 @@ impl SnapshotHost {
             ref_count: AtomicU32::new(1),
             // Go passes the method value `s.LSPLineMap`; the closure holds the snapshot's file system rather than the
             // snapshot itself (which would form a reference cycle).
-            converters: lsconv::new_converters(self.options.position_encoding, move |file_name: &str| {
-                line_map_fs.get_file(file_name).map(|file| file.lsp_line_map())
-            }),
+            converters: lsconv::new_converters(
+                self.options.position_encoding,
+                move |file_name: &str| {
+                    line_map_fs.get_file(file_name).map(|file| file.lsp_line_map())
+                },
+            ),
 
             fs,
             config_file_registry,
-            project_collection: Arc::new(new_project_collection(Arc::clone(&self.to_path), open_file_paths(&overlays))),
+            project_collection: Arc::new(new_project_collection(
+                Arc::clone(&self.to_path),
+                open_file_paths(&overlays),
+            )),
             compiler_options_for_inferred_projects,
             user_preferences,
             auto_imports,
@@ -141,7 +153,11 @@ fn snapshot_overlays(fs: &SnapshotFS) -> OverlayMap {
 
 // Go `ModuleResolverFactory` (API programs only).
 pub trait ModuleResolverFactory: Send + Sync {
-    fn new_resolver(&self, ctx: &Context, options: ResolverOptions) -> (Box<dyn Resolver>, Box<dyn FnOnce() + Send>);
+    fn new_resolver(
+        &self,
+        ctx: &Context,
+        options: ResolverOptions,
+    ) -> (Box<dyn Resolver>, Box<dyn FnOnce() + Send>);
 }
 
 pub struct APICreateProgramRequest {
@@ -298,16 +314,25 @@ impl Snapshot {
     }
 
     // snapshot.go:123
-    pub(crate) fn resource_request_for_document(&self, uri: &lsproto::DocumentUri) -> ResourceRequest {
+    pub(crate) fn resource_request_for_document(
+        &self,
+        uri: &lsproto::DocumentUri,
+    ) -> ResourceRequest {
         let path = uri.path(self.use_case_sensitive_file_names());
         let mut request = ResourceRequest { documents: vec![uri.clone()], ..Default::default() };
-        request.projects.extend(self.project_collection.synthetic_projects().into_iter().filter_map(|project| {
-            if project.contains_file(&path) || project.host.as_ref().is_some_and(|host| host.source_fs.seen_file_or_missing_parent_directory(&path)) {
-                Some(project.id())
-            } else {
-                None
-            }
-        }));
+        request.projects.extend(
+            self.project_collection.synthetic_projects().into_iter().filter_map(|project| {
+                if project.contains_file(&path)
+                    || project.host.as_ref().is_some_and(|host| {
+                        host.source_fs.seen_file_or_missing_parent_directory(&path)
+                    })
+                {
+                    Some(project.id())
+                } else {
+                    None
+                }
+            }),
+        );
         request
     }
 
@@ -330,35 +355,61 @@ impl Snapshot {
             let invalidate_start = Instant::now();
             if file_changes.invalidate_all {
                 fs.invalidate_cache();
-                logger.logf(format_args!("InvalidateAll: invalidated file cache in {:?}", invalidate_start.elapsed()));
-            } else if !fs.watch_changes_overlap_cache(&file_changes, &previous_open_files, &open_files) {
+                logger.logf(format_args!(
+                    "InvalidateAll: invalidated file cache in {:?}",
+                    invalidate_start.elapsed()
+                ));
+            } else if !fs.watch_changes_overlap_cache(
+                &file_changes,
+                &previous_open_files,
+                &open_files,
+            ) {
                 // All watch changes/deletes are files we haven't seen; should be irrelevant to us (probably an external tool's build or something)
                 file_changes.changed = Set::default();
                 file_changes.deleted = Set::default();
             } else if file_changes.includes_watch_change_outside_node_modules {
                 fs.invalidate_cache();
-                logger.logf(format_args!("Excessive watch changes detected, invalidated file cache in {:?}", invalidate_start.elapsed()));
+                logger.logf(format_args!(
+                    "Excessive watch changes detected, invalidated file cache in {:?}",
+                    invalidate_start.elapsed()
+                ));
             } else {
                 fs.invalidate_node_modules_cache();
-                logger.logf(format_args!("npm install detected, invalidated node_modules cache in {:?}", invalidate_start.elapsed()));
+                logger.logf(format_args!(
+                    "npm install detected, invalidated node_modules cache in {:?}",
+                    invalidate_start.elapsed()
+                ));
             }
         } else {
             let content_mapper_extensions: Vec<String> = match content_mapper_contributions {
                 None => self.content_mapper_watch_state().0,
                 Some(contributions) => {
-                    let mut extensions = self.config_file_registry.content_mappers().extensions.clone();
+                    let mut extensions =
+                        self.config_file_registry.content_mappers().extensions.clone();
                     extensions.extend(contributions.extensions.iter().cloned());
                     extensions
                 }
             };
             let (_, content_mapper_watched_files) = self.content_mapper_watch_state();
-            file_changes =
-                fs.expand_and_filter_watch_events(file_changes, &content_mapper_extensions, Some(&content_mapper_watched_files), &previous_open_files, &open_files);
+            file_changes = fs.expand_and_filter_watch_events(
+                file_changes,
+                &content_mapper_extensions,
+                Some(&content_mapper_watched_files),
+                &previous_open_files,
+                &open_files,
+            );
             file_changes = self.fs.expand_realpath_aliases(file_changes);
             file_changes = fs.mark_dirty_files(file_changes);
-            file_changes = fs.convert_open_and_close_to_changes(file_changes, &previous_open_files, &open_files);
+            file_changes = fs.convert_open_and_close_to_changes(
+                file_changes,
+                &previous_open_files,
+                &open_files,
+            );
         }
-        #[expect(clippy::iter_over_hash_type, reason = "each open path's cache entry is only deleted; commutes; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "each open path's cache entry is only deleted; commutes; Go ranges the map too"
+        )]
         for path in open_files.keys() {
             if let Some(entry) = fs.cache_files.load(path) {
                 fs.delete_cache_entry(&entry);
@@ -375,7 +426,10 @@ impl Snapshot {
     // snapshot.go:207
     // GetLanguageServiceProjectsContainingFile does not consider synthetic projects
     // (ones created by API via createProgram).
-    pub fn get_language_service_projects_containing_file(&self, uri: &lsproto::DocumentUri) -> Vec<Arc<dyn tsrs_ls::Project>> {
+    pub fn get_language_service_projects_containing_file(
+        &self,
+        uri: &lsproto::DocumentUri,
+    ) -> Vec<Arc<dyn tsrs_ls::Project>> {
         let file_name = uri.file_name();
         let path = (self.host.to_path)(&file_name);
         // TODO!! sheetal may be change this to handle symlinks!!
@@ -436,7 +490,11 @@ impl Snapshot {
 
     // snapshot.go:309
     pub fn fs(&self) -> Arc<dyn FS> {
-        Arc::new(new_source_fs(false, Arc::<SnapshotFS>::clone(&self.fs), Arc::clone(&self.host.to_path)))
+        Arc::new(new_source_fs(
+            false,
+            Arc::<SnapshotFS>::clone(&self.fs),
+            Arc::clone(&self.host.to_path),
+        ))
     }
 
     // snapshot.go:313
@@ -468,52 +526,114 @@ impl Snapshot {
             logger = new_log_tree(&format!("Cloning snapshot {}", self.id));
         }
         // Print in-progress logs immediately if cloning fails
-        let _log_on_panic = logOnPanic { session_logger: if store.options.logging_enabled { session_logger } else { None }, logger: &logger };
+        let _log_on_panic = logOnPanic {
+            session_logger: if store.options.logging_enabled { session_logger } else { None },
+            logger: &logger,
+        };
 
         if !logger.is_nil() {
             let get_details = || {
                 let mut details = String::new();
                 if !change.resource_request.documents.is_empty() {
-                    let _ = write!(details, " Documents: {:?}", change.resource_request.documents.iter().map(|d| d.0.as_str()).collect::<Vec<_>>());
+                    let _ = write!(
+                        details,
+                        " Documents: {:?}",
+                        change
+                            .resource_request
+                            .documents
+                            .iter()
+                            .map(|d| d.0.as_str())
+                            .collect::<Vec<_>>()
+                    );
                 }
                 if !change.resource_request.configured_project_documents.is_empty() {
-                    let _ = write!(details,
+                    let _ = write!(
+                        details,
                         " ConfiguredProjectDocuments: {:?}",
-                        change.resource_request.configured_project_documents.iter().map(|d| d.0.as_str()).collect::<Vec<_>>()
+                        change
+                            .resource_request
+                            .configured_project_documents
+                            .iter()
+                            .map(|d| d.0.as_str())
+                            .collect::<Vec<_>>()
                     );
                 }
                 if !change.resource_request.projects.is_empty() {
-                    let _ = write!(details, " Projects: {:?}", change.resource_request.projects.iter().map(|p| p.0.as_str()).collect::<Vec<_>>());
+                    let _ = write!(
+                        details,
+                        " Projects: {:?}",
+                        change
+                            .resource_request
+                            .projects
+                            .iter()
+                            .map(|p| p.0.as_str())
+                            .collect::<Vec<_>>()
+                    );
                 }
                 if let Some(project_tree) = &change.resource_request.project_tree {
-                    let _ = write!(details, " ProjectTree: {:?}", project_tree.projects().iter().map(tsrs_core::tspath::Path::as_str).collect::<Vec<_>>());
+                    let _ = write!(
+                        details,
+                        " ProjectTree: {:?}",
+                        project_tree
+                            .projects()
+                            .iter()
+                            .map(tsrs_core::tspath::Path::as_str)
+                            .collect::<Vec<_>>()
+                    );
                 }
                 details
             };
             match change.reason {
-                UpdateReason::DidOpenFile => logger.logf(format_args!("Reason: DidOpenFile - {}", change.file_changes.opened.0)),
+                UpdateReason::DidOpenFile => logger
+                    .logf(format_args!("Reason: DidOpenFile - {}", change.file_changes.opened.0)),
                 UpdateReason::DidCloseFile => logger.logf(format_args!(
                     "Reason: DidCloseFile - {:?}",
-                    change.file_changes.closed.keys().iter().map(|u| u.0.as_str()).collect::<Vec<_>>()
+                    change
+                        .file_changes
+                        .closed
+                        .keys()
+                        .iter()
+                        .map(|u| u.0.as_str())
+                        .collect::<Vec<_>>()
                 )),
-                UpdateReason::DidChangeCompilerOptionsForInferredProjects => logger.log("Reason: DidChangeCompilerOptionsForInferredProjects"),
+                UpdateReason::DidChangeCompilerOptionsForInferredProjects => {
+                    logger.log("Reason: DidChangeCompilerOptionsForInferredProjects");
+                }
                 UpdateReason::RequestedLanguageServicePendingChanges => {
-                    logger.logf(format_args!("Reason: RequestedLanguageService (pending file changes) - {}", get_details()));
+                    logger.logf(format_args!(
+                        "Reason: RequestedLanguageService (pending file changes) - {}",
+                        get_details()
+                    ));
                 }
                 UpdateReason::RequestedLanguageServiceProjectNotLoaded => {
-                    logger.logf(format_args!("Reason: RequestedLanguageService (project not loaded) - {}", get_details()));
+                    logger.logf(format_args!(
+                        "Reason: RequestedLanguageService (project not loaded) - {}",
+                        get_details()
+                    ));
                 }
                 UpdateReason::RequestedLanguageServiceForFileNotOpen => {
-                    logger.logf(format_args!("Reason: RequestedLanguageService (file not open) - {}", get_details()));
+                    logger.logf(format_args!(
+                        "Reason: RequestedLanguageService (file not open) - {}",
+                        get_details()
+                    ));
                 }
                 UpdateReason::RequestedLanguageServiceProjectDirty => {
-                    logger.logf(format_args!("Reason: RequestedLanguageService (project dirty) - {}", get_details()));
+                    logger.logf(format_args!(
+                        "Reason: RequestedLanguageService (project dirty) - {}",
+                        get_details()
+                    ));
                 }
-                UpdateReason::RequestedLoadProjectTree => logger.logf(format_args!("Reason: RequestedLoadProjectTree - {}", get_details())),
+                UpdateReason::RequestedLoadProjectTree => logger
+                    .logf(format_args!("Reason: RequestedLoadProjectTree - {}", get_details())),
                 UpdateReason::IdleCleanDiskCache => logger.log("Reason: IdleCleanDiskCache"),
-                UpdateReason::DidChangeConfigFile => logger.logf(format_args!("Reason: DidChangeConfigFile - {}", get_details())),
+                UpdateReason::DidChangeConfigFile => {
+                    logger.logf(format_args!("Reason: DidChangeConfigFile - {}", get_details()));
+                }
                 UpdateReason::DidChangeContentMapperContributions => {
-                    logger.logf(format_args!("Reason: DidChangeContentMapperContributions - {}", get_details()));
+                    logger.logf(format_args!(
+                        "Reason: DidChangeContentMapperContributions - {}",
+                        get_details()
+                    ));
                 }
                 _ => {}
             }
@@ -521,7 +641,8 @@ impl Snapshot {
 
         let start = Instant::now();
         let mut inferred_content_mappers = self.inferred_project_content_mappers.clone();
-        let mut inferred_content_mapper_extensions = self.inferred_project_content_mapper_extensions.clone();
+        let mut inferred_content_mapper_extensions =
+            self.inferred_project_content_mapper_extensions.clone();
         if let Some(contributions) = &change.content_mapper_contributions {
             inferred_content_mappers.clone_from(&contributions.mappers);
             inferred_content_mapper_extensions.clone_from(&contributions.extensions);
@@ -536,7 +657,12 @@ impl Snapshot {
         if change.replace_file_system || self.file_system_override && !change.file_system_override {
             change.file_changes.invalidate_all = true;
         }
-        let layered_fs = layer_overlay_file_system(&base_fs, overlays, store.options.position_encoding, Arc::clone(&store.to_path));
+        let layered_fs = layer_overlay_file_system(
+            &base_fs,
+            overlays,
+            store.options.position_encoding,
+            Arc::clone(&store.to_path),
+        );
         let overlays = layered_fs.overlays();
         let fs = Arc::new(new_snapshot_fs_builder_from_source(
             layered_fs,
@@ -554,7 +680,8 @@ impl Snapshot {
             &overlays,
         );
 
-        let mut compiler_options_for_inferred_projects = self.compiler_options_for_inferred_projects;
+        let mut compiler_options_for_inferred_projects =
+            self.compiler_options_for_inferred_projects;
         if change.compiler_options_for_inferred_projects.is_some() {
             compiler_options_for_inferred_projects = change.compiler_options_for_inferred_projects;
         }
@@ -591,10 +718,12 @@ impl Snapshot {
         // projects (and their program owners) are dropped with the builder as the unwind continues.
         let built = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if !change.ata_changes.is_empty() {
-                project_collection_builder.did_update_ata_state(&change.ata_changes, &logger.fork("DidUpdateATAState"));
+                project_collection_builder
+                    .did_update_ata_state(&change.ata_changes, &logger.fork("DidUpdateATAState"));
             }
 
-            project_collection_builder.did_change_custom_config_file_name(&logger.fork("DidChangeCustomConfigFileName"));
+            project_collection_builder
+                .did_change_custom_config_file_name(&logger.fork("DidChangeCustomConfigFileName"));
             if let Some(options) = change.compiler_options_for_inferred_projects {
                 if let Some(inferred) = project_collection_builder.inferred_project_value() {
                     let command_line = inferred.command_line.unwrap();
@@ -609,37 +738,59 @@ impl Snapshot {
                 }
             }
             if change.content_mapper_contributions.is_some() {
-                project_collection_builder.did_change_content_mapper_contributions(&logger.fork("DidChangeContentMapperContributions"));
+                project_collection_builder.did_change_content_mapper_contributions(
+                    &logger.fork("DidChangeContentMapperContributions"),
+                );
             }
             if let Some(new_config) = &change.new_config {
-                project_collection_builder.did_change_user_preferences(&self.user_preferences, new_config, &logger.fork("DidChangeUserPreferences"));
+                project_collection_builder.did_change_user_preferences(
+                    &self.user_preferences,
+                    new_config,
+                    &logger.fork("DidChangeUserPreferences"),
+                );
             }
 
             if !change.file_changes.is_empty() {
-                project_collection_builder.did_change_files(&change.file_changes, &logger.fork("DidChangeFiles"));
+                project_collection_builder
+                    .did_change_files(&change.file_changes, &logger.fork("DidChangeFiles"));
             }
 
             let mut api_error = None;
             if let Some(api_request) = &change.api_request {
-                api_error = project_collection_builder.handle_api_request(api_request, &logger.fork("HandleAPIRequest")).err();
+                api_error = project_collection_builder
+                    .handle_api_request(api_request, &logger.fork("HandleAPIRequest"))
+                    .err();
             }
 
             for uri in &change.resource_request.documents {
-                project_collection_builder.did_request_file(uri, false /*configuredProjectsOnly*/, &logger.fork("DidRequestFile"));
+                project_collection_builder.did_request_file(
+                    uri,
+                    false, /*configuredProjectsOnly*/
+                    &logger.fork("DidRequestFile"),
+                );
             }
 
             for uri in &change.resource_request.configured_project_documents {
-                project_collection_builder.did_request_file(uri, true /*configuredProjectsOnly*/, &logger.fork("DidRequestFile (optional)"));
+                project_collection_builder.did_request_file(
+                    uri,
+                    true, /*configuredProjectsOnly*/
+                    &logger.fork("DidRequestFile (optional)"),
+                );
             }
 
             for project_id in &change.resource_request.projects {
-                project_collection_builder.did_request_project(project_id, &logger.fork("DidRequestProject"));
+                project_collection_builder
+                    .did_request_project(project_id, &logger.fork("DidRequestProject"));
             }
 
             if let Some(project_tree) = &change.resource_request.project_tree {
-                project_collection_builder.did_request_project_trees(project_tree, &logger.fork("DidRequestProjectTrees"));
+                project_collection_builder.did_request_project_trees(
+                    project_tree,
+                    &logger.fork("DidRequestProjectTrees"),
+                );
             }
-            let (project_collection, config_file_registry) = project_collection_builder.finalize(&logger);
+            let (project_collection, config_file_registry) =
+                project_collection_builder.finalize(&logger);
             (api_error, project_collection, config_file_registry)
         }));
         let (api_error, project_collection, config_file_registry) = match built {
@@ -650,14 +801,22 @@ impl Snapshot {
             }
         };
 
-        let mut projects_with_new_program_structure: FxHashMap<ProjectID, bool> = FxHashMap::default();
-        projects_with_new_program_structure.extend(project_collection.projects().into_iter().filter_map(|project| {
-            if project.program_last_update == new_snapshot_id && project.program_update_kind != ProgramUpdateKind::Cloned {
-                Some((ProjectID(project.id().0), project.program_update_kind == ProgramUpdateKind::NewFiles))
-            } else {
-                None
-            }
-        }));
+        let mut projects_with_new_program_structure: FxHashMap<ProjectID, bool> =
+            FxHashMap::default();
+        projects_with_new_program_structure.extend(
+            project_collection.projects().into_iter().filter_map(|project| {
+                if project.program_last_update == new_snapshot_id
+                    && project.program_update_kind != ProgramUpdateKind::Cloned
+                {
+                    Some((
+                        ProjectID(project.id().0),
+                        project.program_update_kind == ProgramUpdateKind::NewFiles,
+                    ))
+                } else {
+                    None
+                }
+            }),
+        );
 
         // Clean cached files not touched by any open project on file open, close, delete,
         // or when explicitly requested (e.g. by an idle timer).
@@ -674,14 +833,23 @@ impl Snapshot {
                 let mut removed_files = 0;
                 let projects = project_collection.projects();
                 fs.cache_files.range(|entry| {
-                    if projects.iter().any(|project| project.host.as_ref().is_some_and(|host| host.source_fs.seen_file(&entry.key()))) {
+                    if projects.iter().any(|project| {
+                        project
+                            .host
+                            .as_ref()
+                            .is_some_and(|host| host.source_fs.seen_file(&entry.key()))
+                    }) {
                         return true;
                     }
                     entry.delete();
                     removed_files += 1;
                     true
                 });
-                logger.logf(format_args!("Removed {} cached file(s) in {:?}", removed_files, clean_files_start.elapsed()));
+                logger.logf(format_args!(
+                    "Removed {} cached file(s) in {:?}",
+                    removed_files,
+                    clean_files_start.elapsed()
+                ));
             }
         }
 
@@ -691,18 +859,28 @@ impl Snapshot {
         }
 
         let project_collection = Arc::new(project_collection);
-        let auto_import_host =
-            new_auto_import_registry_clone_host(Arc::clone(&project_collection), Arc::clone(&store.parse_cache), Arc::clone(&fs), &store.options.current_directory, Arc::clone(&store.to_path));
+        let auto_import_host = new_auto_import_registry_clone_host(
+            Arc::clone(&project_collection),
+            Arc::clone(&store.parse_cache),
+            Arc::clone(&fs),
+            &store.options.current_directory,
+            Arc::clone(&store.to_path),
+        );
         let mut open_files: FxHashMap<Path, String> = FxHashMap::default();
         // pure map inserts; Go ranges the map too
-        open_files.extend(overlays.iter().map(|(path, overlay)| (path.clone(), overlay.base.file_name.clone())));
+        open_files.extend(
+            overlays.iter().map(|(path, overlay)| (path.clone(), overlay.base.file_name.clone())),
+        );
         let mut prepare_auto_imports = Path::default();
         if !change.resource_request.auto_imports.0.is_empty() {
-            prepare_auto_imports = change.resource_request.auto_imports.path(self.use_case_sensitive_file_names());
+            prepare_auto_imports =
+                change.resource_request.auto_imports.path(self.use_case_sensitive_file_names());
         }
         let old_auto_imports = match &self.auto_imports {
             Some(auto_imports) => Arc::clone(auto_imports),
-            None => autoimport::new_registry(Arc::clone(&store.to_path), self.user_preferences.clone()),
+            None => {
+                autoimport::new_registry(Arc::clone(&store.to_path), self.user_preferences.clone())
+            }
         };
         let auto_imports = old_auto_imports.clone_registry(
             ctx,
@@ -718,7 +896,10 @@ impl Snapshot {
             &auto_import_host,
             logger.fork("UpdateAutoImports"),
         );
-        let auto_imports_watch = self.auto_imports_watch.as_ref().map(|w| w.clone_with(auto_imports.node_modules_directories()));
+        let auto_imports_watch = self
+            .auto_imports_watch
+            .as_ref()
+            .map(|w| w.clone_with(auto_imports.node_modules_directories()));
 
         let (snapshot_fs, _) = fs.finalize();
         let snapshot_fs = Arc::new(snapshot_fs);
@@ -735,7 +916,8 @@ impl Snapshot {
         new_snapshot.project_collection = project_collection;
         new_snapshot.config_file_registry = config_file_registry;
         new_snapshot.inferred_project_content_mappers = inferred_content_mappers;
-        new_snapshot.inferred_project_content_mapper_extensions = inferred_content_mapper_extensions;
+        new_snapshot.inferred_project_content_mapper_extensions =
+            inferred_content_mapper_extensions;
         new_snapshot.builder_logs = logger.clone();
         new_snapshot.api_error = api_error;
         new_snapshot.file_system_override = change.file_system_override;
@@ -757,16 +939,24 @@ impl Snapshot {
                     // mutations don't happen afterwards. In the future, we might improve things by
                     // separating what it takes to build a program from what it takes to use a program,
                     // and only pass the former into NewProgram instead of retaining it indefinitely.
-                    project.host.as_ref().unwrap().freeze(Arc::clone(&snapshot_fs), Arc::clone(&new_snapshot.config_file_registry));
+                    project.host.as_ref().unwrap().freeze(
+                        Arc::clone(&snapshot_fs),
+                        Arc::clone(&new_snapshot.config_file_registry),
+                    );
                 }
             }
         }
-        #[expect(clippy::iter_over_hash_type, reason = "only adds this snapshot as an owner (a set insert); Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "only adds this snapshot as an owner (a set insert); Go ranges the map too"
+        )]
         for config in new_snapshot.config_file_registry.configs.values() {
             if let Some(command_line) = config.command_line {
                 if let Some(config_file) = command_line.config_file {
                     for file in config_file.extended_source_files.borrow().iter() {
-                        store.extended_config_cache.add_owner(&(store.to_path)(file), new_snapshot.id);
+                        store
+                            .extended_config_cache
+                            .add_owner(&(store.to_path)(file), new_snapshot.id);
                     }
                 }
             }
@@ -774,7 +964,12 @@ impl Snapshot {
 
         auto_import_host.dispose();
 
-        logger.logf(format_args!("Finished cloning snapshot {} into snapshot {} in {:?}", self.id, new_snapshot.id, start.elapsed()));
+        logger.logf(format_args!(
+            "Finished cloning snapshot {} into snapshot {} in {:?}",
+            self.id,
+            new_snapshot.id,
+            start.elapsed()
+        ));
         Arc::new(new_snapshot)
     }
 
@@ -790,10 +985,7 @@ impl Snapshot {
             })
             .is_err()
         {
-            panic!(
-                "snapshot {}: ref on disposed snapshot, parentId={}",
-                self.id, self.parent_id
-            );
+            panic!("snapshot {}: ref on disposed snapshot, parentId={}", self.id, self.parent_id);
         }
     }
 
@@ -815,14 +1007,9 @@ impl Snapshot {
     pub fn deref(&self) {
         let previous = self
             .ref_count
-            .try_update(Ordering::SeqCst, Ordering::SeqCst, |count| {
-                count.checked_sub(1)
-            })
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |count| count.checked_sub(1))
             .unwrap_or_else(|_| {
-                panic!(
-                    "snapshot {}: ref count below zero, parentId={}",
-                    self.id, self.parent_id
-                )
+                panic!("snapshot {}: ref count below zero, parentId={}", self.id, self.parent_id)
             });
         if previous == 1 {
             self.dispose();
@@ -853,7 +1040,10 @@ impl Snapshot {
                 }
             }
         }
-        #[expect(clippy::iter_over_hash_type, reason = "owner releases on distinct keys commute; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "owner releases on distinct keys commute; Go ranges the map too"
+        )]
         for config in self.config_file_registry.configs.values() {
             if let Some(command_line) = config.command_line {
                 for file in command_line.extended_source_files() {
@@ -871,9 +1061,12 @@ impl Snapshot {
 
 // snapshot.go:193
 fn overlay_file_handles(overlays: &OverlayMap) -> FxHashMap<Path, Arc<dyn FileHandle>> {
-    let mut files: FxHashMap<Path, Arc<dyn FileHandle>> = FxHashMap::with_capacity_and_hasher(overlays.len(), rustc_hash::FxBuildHasher);
+    let mut files: FxHashMap<Path, Arc<dyn FileHandle>> =
+        FxHashMap::with_capacity_and_hasher(overlays.len(), rustc_hash::FxBuildHasher);
     // pure map inserts; Go ranges the map too
-    files.extend(overlays.iter().map(|(path, overlay)| (path.clone(), Arc::<crate::overlayfs::Overlay>::clone(overlay) as Arc<dyn FileHandle>)));
+    files.extend(overlays.iter().map(|(path, overlay)| {
+        (path.clone(), Arc::<crate::overlayfs::Overlay>::clone(overlay) as Arc<dyn FileHandle>)
+    }));
     files
 }
 
@@ -911,8 +1104,24 @@ impl tsrs_ls::Host for Snapshot {
     }
 
     // snapshot.go:305
-    fn read_directory(&self, current_dir: &str, path: &str, extensions: &[String], excludes: &[String], includes: &[String], depth: usize) -> Vec<String> {
-        vfsmatch::read_directory(&*self.fs.fs, current_dir, path, extensions, excludes, includes, depth)
+    fn read_directory(
+        &self,
+        current_dir: &str,
+        path: &str,
+        extensions: &[String],
+        excludes: &[String],
+        includes: &[String],
+        depth: usize,
+    ) -> Vec<String> {
+        vfsmatch::read_directory(
+            &*self.fs.fs,
+            current_dir,
+            path,
+            extensions,
+            excludes,
+            includes,
+            depth,
+        )
     }
 
     // snapshot.go:301

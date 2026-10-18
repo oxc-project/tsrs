@@ -6,7 +6,7 @@ use std::fmt::Write;
 use tsrs_ast::{Diagnostic, SourceFile};
 use tsrs_core::json::{self, Value};
 use tsrs_core::tspath::{self, ComparePathsOptions};
-use tsrs_core::{BuildOptions, CompilerOptions, TypeAcquisition, P};
+use tsrs_core::{BuildOptions, CompilerOptions, P, TypeAcquisition};
 use tsrs_diagnostics::Category;
 
 use crate::commandlineoption::CompilerOptionsValue;
@@ -44,19 +44,13 @@ pub(crate) fn write_format_diagnostics(diagnostics: &[P<Diagnostic>], new_line: 
     let mut out = String::new();
     for d in diagnostics {
         if let Some(file) = d.file() {
-            let (line, character) = line_and_character(
-                file,
-                d.pos().expect("file diagnostics have source positions"),
+            let (line, character) =
+                line_and_character(file, d.pos().expect("file diagnostics have source positions"));
+            let relative_file_name = tspath::convert_to_relative_path(
+                file.file_name(),
+                &tsrs_core::tspath::ComparePathsOptions::default(),
             );
-            let relative_file_name =
-                tspath::convert_to_relative_path(file.file_name(), &tsrs_core::tspath::ComparePathsOptions::default());
-            let _ = write!(
-                out,
-                "{}({},{}): ",
-                relative_file_name,
-                line + 1,
-                character + 1
-            );
+            let _ = write!(out, "{}({},{}): ", relative_file_name, line + 1, character + 1);
         }
         let _ = write!(out, "{} TS{}: ", d.category().name(), d.code());
         flattened_message(*d, new_line, 0, &mut out);
@@ -80,22 +74,12 @@ fn line_starts(text: &str) -> Vec<u32> {
                     i += 1;
                 }
                 result.push(
-                    u32::try_from(if i < chars.len() {
-                        chars[i].0
-                    } else {
-                        bytes.len()
-                    })
-                    .unwrap(),
+                    u32::try_from(if i < chars.len() { chars[i].0 } else { bytes.len() }).unwrap(),
                 );
             }
             '\n' | '\u{2028}' | '\u{2029}' => {
                 result.push(
-                    u32::try_from(if i < chars.len() {
-                        chars[i].0
-                    } else {
-                        bytes.len()
-                    })
-                    .unwrap(),
+                    u32::try_from(if i < chars.len() { chars[i].0 } else { bytes.len() }).unwrap(),
                 );
             }
             _ => {}
@@ -250,15 +234,19 @@ pub(crate) fn format_diagnostics_with_color_and_context(
             write_location(
                 &mut out,
                 file,
-                diagnostic
-                    .pos()
-                    .expect("file diagnostics have source positions"),
+                diagnostic.pos().expect("file diagnostics have source positions"),
                 options,
             );
             out.push_str(" - ");
         }
         with_style(&mut out, diagnostic.category().name(), category_color(diagnostic.category()));
-        let _ = write!(out, "{} TS{}: {}", FOREGROUND_COLOR_ESCAPE_GREY, diagnostic.code(), RESET_ESCAPE_SEQUENCE);
+        let _ = write!(
+            out,
+            "{} TS{}: {}",
+            FOREGROUND_COLOR_ESCAPE_GREY,
+            diagnostic.code(),
+            RESET_ESCAPE_SEQUENCE
+        );
         flattened_message(*diagnostic, new_line, 0, &mut out);
 
         if let Some(file) = diagnostic.file() {
@@ -267,12 +255,8 @@ pub(crate) fn format_diagnostics_with_color_and_context(
                 write_code_snippet(
                     &mut out,
                     file,
-                    diagnostic
-                        .pos()
-                        .expect("file diagnostics have source positions"),
-                    diagnostic
-                        .len()
-                        .expect("file diagnostics have source positions"),
+                    diagnostic.pos().expect("file diagnostics have source positions"),
+                    diagnostic.len().expect("file diagnostics have source positions"),
                     category_color(diagnostic.category()),
                     "",
                     new_line,

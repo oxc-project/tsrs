@@ -5,10 +5,10 @@ use tsrs_core::arena::Region;
 
 use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_compiler::DuplicateSourceFile;
-use tsrs_core::{ensure_script_kind_from_file_name, ScriptKind, P};
+use tsrs_core::{P, ScriptKind, ensure_script_kind_from_file_name};
 
 use crate::overlayfs::{FileHandle, Hash128};
-use crate::refcountcache::{new_ref_count_cache, RefCountCache, RefCountCacheOptions};
+use crate::refcountcache::{RefCountCache, RefCountCacheOptions, new_ref_count_cache};
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Default)]
 pub struct ParseCacheKey {
@@ -19,7 +19,11 @@ pub struct ParseCacheKey {
 }
 
 // parsecache.go:22
-pub fn new_parse_cache_key(options: SourceFileParseOptions, hash: Hash128, mut script_kind: ScriptKind) -> ParseCacheKey {
+pub fn new_parse_cache_key(
+    options: SourceFileParseOptions,
+    hash: Hash128,
+    mut script_kind: ScriptKind,
+) -> ParseCacheKey {
     if script_kind == ScriptKind::Unknown {
         script_kind = ensure_script_kind_from_file_name(&options.file_name);
     }
@@ -58,26 +62,50 @@ pub type ParseCache = RefCountCache<ParseCacheKey, P<SourceFile>, Arc<dyn FileHa
 pub(crate) struct ParseCacheJournal(Mutex<FxHashMap<ParseCacheKey, i64>>);
 
 impl ParseCacheJournal {
-    pub(crate) fn acquire(&self, cache: &ParseCache, key: ParseCacheKey, fh: Arc<dyn FileHandle>) -> P<SourceFile> {
+    pub(crate) fn acquire(
+        &self,
+        cache: &ParseCache,
+        key: ParseCacheKey,
+        fh: Arc<dyn FileHandle>,
+    ) -> P<SourceFile> {
         let file = cache.acquire(&key, fh);
-        *self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner).entry(key).or_default() += 1;
+        *self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .entry(key)
+            .or_default() += 1;
         file
     }
 
     pub(crate) fn ref_(&self, cache: &ParseCache, key: ParseCacheKey) {
         cache.ref_(&key);
-        *self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner).entry(key).or_default() += 1;
+        *self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .entry(key)
+            .or_default() += 1;
     }
 
     pub(crate) fn deref(&self, cache: &ParseCache, key: &ParseCacheKey) {
         cache.deref(key);
-        *self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner).entry(key.clone()).or_default() -= 1;
+        *self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .entry(key.clone())
+            .or_default() -= 1;
     }
 
     /// Releases every reference this clone still holds (its programs never reached a snapshot).
     pub(crate) fn roll_back(&self, cache: &ParseCache) {
-        let held = std::mem::take(&mut *self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner));
-        #[expect(clippy::iter_over_hash_type, reason = "refcount decrements on distinct keys commute (no Go counterpart: Rust-only journal)")]
+        let held =
+            std::mem::take(&mut *self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner));
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "refcount decrements on distinct keys commute (no Go counterpart: Rust-only journal)"
+        )]
         for (key, count) in held {
             for _ in 0..count.max(0) {
                 cache.deref(&key);
@@ -95,22 +123,29 @@ impl ParseCacheJournal {
 pub fn new_parse_cache(options: RefCountCacheOptions) -> ParseCache {
     let regions: Arc<Mutex<FxHashMap<usize, Region>>> = Arc::default();
     let parse_regions = Arc::clone(&regions);
-    let mut cache = new_ref_count_cache(options, move |key: &ParseCacheKey, fh: Arc<dyn FileHandle>| {
-        let text = fh.content();
-        let region = Region::new(file_region_first_chunk(text.len()));
-        let file = {
-            let _scope = region.enter();
-            let file = tsrs_parser::parse_source_file(key.source_file_parse_options.clone(), text, key.script_kind);
-            file.hash.set(fh.hash());
-            tsrs_binder::bind_source_file(file);
+    let mut cache =
+        new_ref_count_cache(options, move |key: &ParseCacheKey, fh: Arc<dyn FileHandle>| {
+            let text = fh.content();
+            let region = Region::new(file_region_first_chunk(text.len()));
+            let file = {
+                let _scope = region.enter();
+                let file = tsrs_parser::parse_source_file(
+                    key.source_file_parse_options.clone(),
+                    text,
+                    key.script_kind,
+                );
+                file.hash.set(fh.hash());
+                tsrs_binder::bind_source_file(file);
+                file
+            };
+            region.trim();
+            let text_index = file.text_index.get();
+            region.on_free(Box::new(move || {
+                tsrs_ast::unregister_source_text(text_index);
+            }));
+            parse_regions.lock().unwrap().insert(file.addr(), region);
             file
-        };
-        region.trim();
-        let text_index = file.text_index.get();
-        region.on_free(Box::new(move || tsrs_ast::unregister_source_text(text_index)));
-        parse_regions.lock().unwrap().insert(file.addr(), region);
-        file
-    });
+        });
     let evict_regions = Arc::clone(&regions);
     cache.on_evict = Some(Box::new(move |file: &P<SourceFile>| {
         let region = evict_regions.lock().unwrap().remove(&file.addr());
@@ -143,8 +178,11 @@ pub struct ContentMappedParseCache {
 // parsecache.go:92
 pub fn new_content_mapped_parse_cache(options: RefCountCacheOptions) -> ContentMappedParseCache {
     ContentMappedParseCache {
-        ref_count_cache: new_ref_count_cache(options, |_: &ContentMappedParseCacheKey, (): ()| -> P<SourceFile> {
-            panic!("content-mapped source files must be produced with AcquireOrError")
-        }),
+        ref_count_cache: new_ref_count_cache(
+            options,
+            |_: &ContentMappedParseCacheKey, (): ()| -> P<SourceFile> {
+                panic!("content-mapped source files must be produced with AcquireOrError")
+            },
+        ),
     }
 }

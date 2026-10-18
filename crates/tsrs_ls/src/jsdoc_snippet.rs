@@ -1,7 +1,7 @@
 use std::fmt::Write as _;
 use tsrs_ast::{self as ast, Kind, Node, SourceFile};
 use tsrs_core::context::Context;
-use tsrs_core::{stringutil, P};
+use tsrs_core::{P, stringutil};
 use tsrs_diagnostics as diagnostics;
 use tsrs_lsproto as lsproto;
 use tsrs_parser as parser;
@@ -41,7 +41,12 @@ impl LanguageService {
         if new_line.is_empty() {
             new_line = "\n".to_string();
         }
-        let template = get_doc_comment_template_at_position(file, position, self.user_preferences().generate_return_in_doc_template.is_true(), &new_line)?;
+        let template = get_doc_comment_template_at_position(
+            file,
+            position,
+            self.user_preferences().generate_return_in_doc_template.is_true(),
+            &new_line,
+        )?;
 
         let mut insert_text = template.new_text;
         let mut insert_text_format: Option<lsproto::InsertTextFormat> = None;
@@ -118,11 +123,21 @@ impl LanguageService {
         }
         if client_supports_item_insert_replace(ctx) {
             return Some(lsproto::TextEditOrInsertReplaceEdit {
-                insert_replace_edit: Some(lsproto::InsertReplaceEdit { new_text: new_text.to_string(), insert: replacement_range, replace: replacement_range }),
+                insert_replace_edit: Some(lsproto::InsertReplaceEdit {
+                    new_text: new_text.to_string(),
+                    insert: replacement_range,
+                    replace: replacement_range,
+                }),
                 ..Default::default()
             });
         }
-        Some(lsproto::TextEditOrInsertReplaceEdit { text_edit: Some(lsproto::TextEdit { new_text: new_text.to_string(), range: replacement_range }), ..Default::default() })
+        Some(lsproto::TextEditOrInsertReplaceEdit {
+            text_edit: Some(lsproto::TextEdit {
+                new_text: new_text.to_string(),
+                range: replacement_range,
+            }),
+            ..Default::default()
+        })
     }
 }
 
@@ -137,20 +152,39 @@ fn get_doc_comment_template_at_position(
     let mut token_at_pos = astnav::get_token_at_position(source_file, position);
 
     let existing_doc_comment = ast::find_ancestor(token_at_pos, ast::is_jsdoc);
-    let (doc_comment_end, has_doc_comment_at_position, has_closing_doc_comment_at_position) = get_doc_comment_end_at_position(source_file, position);
+    let (doc_comment_end, has_doc_comment_at_position, has_closing_doc_comment_at_position) =
+        get_doc_comment_end_at_position(source_file, position);
     let is_in_empty_doc_comment = existing_doc_comment.is_some() || has_doc_comment_at_position;
-    if is_non_empty_jsdoc(existing_doc_comment) && has_doc_comment_at_position && !has_closing_doc_comment_at_position {
-        let reparse_text = source_file.text()[..position as usize].to_string() + " */" + &source_file.text()[position as usize..];
-        let reparse = parser::parse_source_file(source_file.parse_options().clone(), &reparse_text, source_file.script_kind());
-        return get_doc_comment_template_at_position(reparse, position, generate_return_in_doc_template, new_line);
+    if is_non_empty_jsdoc(existing_doc_comment)
+        && has_doc_comment_at_position
+        && !has_closing_doc_comment_at_position
+    {
+        let reparse_text = source_file.text()[..position as usize].to_string()
+            + " */"
+            + &source_file.text()[position as usize..];
+        let reparse = parser::parse_source_file(
+            source_file.parse_options().clone(),
+            &reparse_text,
+            source_file.script_kind(),
+        );
+        return get_doc_comment_template_at_position(
+            reparse,
+            position,
+            generate_return_in_doc_template,
+            new_line,
+        );
     }
     if is_non_empty_jsdoc(existing_doc_comment) {
         return None;
     }
     if existing_doc_comment.is_none() && has_doc_comment_at_position {
-        token_at_pos = astnav::get_token_at_position(source_file, skip_whitespace(source_file.text(), doc_comment_end));
+        token_at_pos = astnav::get_token_at_position(
+            source_file,
+            skip_whitespace(source_file.text(), doc_comment_end),
+        );
     }
-    let token_start = astnav::get_start_of_node(token_at_pos, source_file, false /*includeJSDoc*/);
+    let token_start =
+        astnav::get_start_of_node(token_at_pos, source_file, false /*includeJSDoc*/);
     if !is_in_empty_doc_comment && token_start < position {
         return None;
     }
@@ -159,13 +193,23 @@ fn get_doc_comment_template_at_position(
 
     let comment_owner = comment_owner_info.comment_owner;
     let last_js_doc = comment_owner.jsdoc(Some(source_file.get())).last().copied();
-    let comment_owner_start = astnav::get_start_of_node(comment_owner, source_file, false /*includeJSDoc*/);
-    if comment_owner_start < position || last_js_doc.is_some() && existing_doc_comment.is_some() && last_js_doc != existing_doc_comment {
+    let comment_owner_start =
+        astnav::get_start_of_node(comment_owner, source_file, false /*includeJSDoc*/);
+    if comment_owner_start < position
+        || last_js_doc.is_some()
+            && existing_doc_comment.is_some()
+            && last_js_doc != existing_doc_comment
+    {
         return None;
     }
 
     let indentation = get_indentation_string_at_position(source_file, position);
-    let mut tags = parameter_doc_comments(comment_owner_info.parameters, ast::is_source_file_js(source_file), &indentation, new_line);
+    let mut tags = parameter_doc_comments(
+        comment_owner_info.parameters,
+        ast::is_source_file_js(source_file),
+        &indentation,
+        new_line,
+    );
     if comment_owner_info.has_return {
         tags += &returns_doc_comment(&indentation, new_line);
     }
@@ -176,7 +220,9 @@ fn get_doc_comment_template_at_position(
         if token_start == position {
             end_line = format!("{new_line}{indentation}");
         }
-        return Some(docCommentTemplate { new_text: format!("{preamble}{new_line}{tags}{indentation} */{end_line}") });
+        return Some(docCommentTemplate {
+            new_text: format!("{preamble}{new_line}{tags}{indentation} */{end_line}"),
+        });
     }
     Some(docCommentTemplate { new_text: "/** */".to_string() })
 }
@@ -216,7 +262,10 @@ fn skip_whitespace(text: &str, position: u32) -> u32 {
 }
 
 // jsdoc_snippet.go:208
-fn get_comment_owner_info(token_at_pos: P<Node>, generate_return_in_doc_template: bool) -> Option<commentOwnerInfo> {
+fn get_comment_owner_info(
+    token_at_pos: P<Node>,
+    generate_return_in_doc_template: bool,
+) -> Option<commentOwnerInfo> {
     let mut node = Some(token_at_pos);
     while let Some(n) = node {
         let (info, quit) = get_comment_owner_info_worker(Some(n), generate_return_in_doc_template);
@@ -229,23 +278,50 @@ fn get_comment_owner_info(token_at_pos: P<Node>, generate_return_in_doc_template
 }
 
 // jsdoc_snippet.go:218
-fn get_comment_owner_info_worker(comment_owner: Option<P<Node>>, generate_return_in_doc_template: bool) -> (Option<commentOwnerInfo>, bool) {
+fn get_comment_owner_info_worker(
+    comment_owner: Option<P<Node>>,
+    generate_return_in_doc_template: bool,
+) -> (Option<commentOwnerInfo>, bool) {
     let Some(comment_owner) = comment_owner else {
         return (None, false);
     };
-    let plain = |comment_owner: P<Node>| commentOwnerInfo { comment_owner, parameters: &[], has_return: false };
+    let plain = |comment_owner: P<Node>| commentOwnerInfo {
+        comment_owner,
+        parameters: &[],
+        has_return: false,
+    };
     match comment_owner.kind() {
-        Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::MethodDeclaration | Kind::Constructor | Kind::MethodSignature | Kind::ArrowFunction => (
-            Some(commentOwnerInfo { comment_owner, parameters: comment_owner.parameters(), has_return: has_return(comment_owner, generate_return_in_doc_template) }),
+        Kind::FunctionDeclaration
+        | Kind::FunctionExpression
+        | Kind::MethodDeclaration
+        | Kind::Constructor
+        | Kind::MethodSignature
+        | Kind::ArrowFunction => (
+            Some(commentOwnerInfo {
+                comment_owner,
+                parameters: comment_owner.parameters(),
+                has_return: has_return(comment_owner, generate_return_in_doc_template),
+            }),
             false,
         ),
-        Kind::PropertyAssignment => get_comment_owner_info_worker(Some(comment_owner.as_property_assignment().initializer()), generate_return_in_doc_template),
-        Kind::ClassDeclaration | Kind::InterfaceDeclaration | Kind::EnumDeclaration | Kind::EnumMember | Kind::TypeAliasDeclaration => (Some(plain(comment_owner)), false),
+        Kind::PropertyAssignment => get_comment_owner_info_worker(
+            Some(comment_owner.as_property_assignment().initializer()),
+            generate_return_in_doc_template,
+        ),
+        Kind::ClassDeclaration
+        | Kind::InterfaceDeclaration
+        | Kind::EnumDeclaration
+        | Kind::EnumMember
+        | Kind::TypeAliasDeclaration => (Some(plain(comment_owner)), false),
         Kind::PropertySignature => {
             if let Some(type_node) = comment_owner.as_property_signature_declaration().type_() {
                 if ast::is_function_type_node(type_node) {
                     return (
-                        Some(commentOwnerInfo { comment_owner, parameters: type_node.parameters(), has_return: has_return(type_node, generate_return_in_doc_template) }),
+                        Some(commentOwnerInfo {
+                            comment_owner,
+                            parameters: type_node.parameters(),
+                            has_return: has_return(type_node, generate_return_in_doc_template),
+                        }),
                         false,
                     );
                 }
@@ -253,11 +329,23 @@ fn get_comment_owner_info_worker(comment_owner: Option<P<Node>>, generate_return
             (Some(plain(comment_owner)), false)
         }
         Kind::VariableStatement => {
-            let declarations = comment_owner.as_variable_statement().declaration_list.as_variable_declaration_list().declarations.nodes();
+            let declarations = comment_owner
+                .as_variable_statement()
+                .declaration_list
+                .as_variable_declaration_list()
+                .declarations
+                .nodes();
             if declarations.len() == 1 {
                 if let Some(initializer) = declarations[0].as_variable_declaration().initializer() {
                     if let Some(host) = get_right_hand_side_of_assignment(Some(initializer)) {
-                        return (Some(commentOwnerInfo { comment_owner, parameters: host.parameters(), has_return: has_return(host, generate_return_in_doc_template) }), false);
+                        return (
+                            Some(commentOwnerInfo {
+                                comment_owner,
+                                parameters: host.parameters(),
+                                has_return: has_return(host, generate_return_in_doc_template),
+                            }),
+                            false,
+                        );
                     }
                 }
             }
@@ -270,7 +358,10 @@ fn get_comment_owner_info_worker(comment_owner: Option<P<Node>>, generate_return
             }
             (Some(plain(comment_owner)), false)
         }
-        Kind::ExpressionStatement => get_comment_owner_info_worker(Some(comment_owner.as_expression_statement().expression), generate_return_in_doc_template),
+        Kind::ExpressionStatement => get_comment_owner_info_worker(
+            Some(comment_owner.as_expression_statement().expression),
+            generate_return_in_doc_template,
+        ),
         Kind::BinaryExpression => {
             let binary_expression = comment_owner.as_binary_expression();
             if ast::get_assignment_declaration_kind(comment_owner) == ast::JSDeclarationKind::None {
@@ -278,7 +369,14 @@ fn get_comment_owner_info_worker(comment_owner: Option<P<Node>>, generate_return
             }
             let right = binary_expression.right();
             if ast::is_function_like(right) {
-                return (Some(commentOwnerInfo { comment_owner, parameters: right.parameters(), has_return: has_return(right, generate_return_in_doc_template) }), false);
+                return (
+                    Some(commentOwnerInfo {
+                        comment_owner,
+                        parameters: right.parameters(),
+                        has_return: has_return(right, generate_return_in_doc_template),
+                    }),
+                    false,
+                );
             }
             (Some(plain(comment_owner)), false)
         }
@@ -286,7 +384,11 @@ fn get_comment_owner_info_worker(comment_owner: Option<P<Node>>, generate_return
             if let Some(initializer) = comment_owner.as_property_declaration().initializer() {
                 if ast::is_function_expression_or_arrow_function(initializer) {
                     return (
-                        Some(commentOwnerInfo { comment_owner, parameters: initializer.parameters(), has_return: has_return(initializer, generate_return_in_doc_template) }),
+                        Some(commentOwnerInfo {
+                            comment_owner,
+                            parameters: initializer.parameters(),
+                            has_return: has_return(initializer, generate_return_in_doc_template),
+                        }),
                         false,
                     );
                 }
@@ -312,7 +414,10 @@ fn has_return(node: P<Node>, generate_return_in_doc_template: bool) -> bool {
             }
         }
     }
-    ast::is_function_like_declaration(node) && node.body().is_some() && ast::is_block(node.body().unwrap()) && ast::for_each_return_statement(node.body().unwrap(), |_| true)
+    ast::is_function_like_declaration(node)
+        && node.body().is_some()
+        && ast::is_block(node.body().unwrap())
+        && ast::for_each_return_statement(node.body().unwrap(), |_| true)
 }
 
 // jsdoc_snippet.go:287
@@ -323,13 +428,20 @@ fn get_right_hand_side_of_assignment(right_hand_side: Option<P<Node>>) -> Option
     }
     match right_hand_side.kind() {
         Kind::FunctionExpression | Kind::ArrowFunction => Some(right_hand_side),
-        Kind::ClassExpression => right_hand_side.members().iter().copied().find(|&m| ast::is_constructor_declaration(m)),
+        Kind::ClassExpression => {
+            right_hand_side.members().iter().copied().find(|&m| ast::is_constructor_declaration(m))
+        }
         _ => None,
     }
 }
 
 // jsdoc_snippet.go:304
-fn parameter_doc_comments(parameters: &[P<Node>], is_java_script_file: bool, indentation: &str, new_line: &str) -> String {
+fn parameter_doc_comments(
+    parameters: &[P<Node>],
+    is_java_script_file: bool,
+    indentation: &str,
+    new_line: &str,
+) -> String {
     let mut b = String::new();
     for (i, &parameter) in parameters.iter().enumerate() {
         let mut param_name = format!("param{i}");
@@ -409,7 +521,8 @@ fn template_to_snippet(template: &str, new_line: &str) -> String {
 
 // jsdoc_snippet.go:377
 fn strip_jsdoc_template_indentation(template: &str, new_line: &str) -> String {
-    let mut lines: Vec<String> = template.split(new_line).map(std::string::ToString::to_string).collect();
+    let mut lines: Vec<String> =
+        template.split(new_line).map(std::string::ToString::to_string).collect();
     for line in &mut lines {
         let trimmed = line.trim_start_matches([' ', '\t']).to_string();
         if trimmed.starts_with('/') {
@@ -427,7 +540,8 @@ fn transform_jsdoc_template_lines(
     new_line: &str,
     snippet_index: &mut usize,
 ) -> String {
-    let mut lines: Vec<String> = template.split(new_line).map(std::string::ToString::to_string).collect();
+    let mut lines: Vec<String> =
+        template.split(new_line).map(std::string::ToString::to_string).collect();
     for i in 0..lines.len() {
         if i > 0 && lines[i - 1].starts_with("/**") && line_has_only_jsdoc_asterisk(&lines[i]) {
             lines[i] = format!("{}$0", lines[i]);
@@ -569,7 +683,8 @@ fn get_jsdoc_snippet_prefix_start(prefix: &str) -> Option<usize> {
 
 // jsdoc_snippet.go:525
 fn is_jsdoc_snippet_suffix(suffix: &str) -> bool {
-    let trimmed = trim_right_single_line_whitespace(&suffix[skip_single_line_whitespace(suffix, 0)..]);
+    let trimmed =
+        trim_right_single_line_whitespace(&suffix[skip_single_line_whitespace(suffix, 0)..]);
     if trimmed.is_empty() {
         return true;
     }

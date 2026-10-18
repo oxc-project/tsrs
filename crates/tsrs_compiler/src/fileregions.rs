@@ -22,7 +22,7 @@ use std::sync::{LazyLock, Mutex};
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::{self as ast, SourceFile, SourceFileParseOptions, SymbolFlags};
 use tsrs_core::arena::Region;
-use tsrs_core::{ScriptKind, P};
+use tsrs_core::{P, ScriptKind};
 
 use crate::program::Program;
 
@@ -55,7 +55,8 @@ static CURRENT_DIRECTORY: std::sync::OnceLock<String> = std::sync::OnceLock::new
 /// Whether a file is a leaf is still decided exactly (`classify`): a predicted file that is not one keeps its region,
 /// a leaf that was not predicted is not freed. A root file that nothing else imports cannot be told at parse time:
 /// the files that import it may not have been parsed yet.
-const PREDICTED_LEAF_PATTERNS: &[&str] = &[".test.", ".spec.", "/test/", "/tests/", "/__tests__/", ".stories.", "/__mocks__/"];
+const PREDICTED_LEAF_PATTERNS: &[&str] =
+    &[".test.", ".spec.", "/test/", "/tests/", "/__tests__/", ".stories.", "/__mocks__/"];
 
 thread_local! {
     /// The host is parsing a root file of the program (`parse_task`).
@@ -148,11 +149,13 @@ pub(crate) fn force_shared_lists(program: &crate::program::Program) {
     }
     let mut lists: Vec<P<tsrs_ast::lazylist::LazyNodeList>> = Vec::new();
     if std::env::var_os("TSRS_LAZY_DTS_SHARED").is_none_or(|v| v != "0") {
-        lists.extend(
-            global_library_files(program)
-                .into_iter()
-                .flat_map(|file| file.lazy_lists.get().iter().copied().filter(|l| l.state() == tsrs_ast::lazylist::DEFERRED)),
-        );
+        lists.extend(global_library_files(program).into_iter().flat_map(|file| {
+            file.lazy_lists
+                .get()
+                .iter()
+                .copied()
+                .filter(|l| l.state() == tsrs_ast::lazylist::DEFERRED)
+        }));
     }
     let mut by_name: FxHashMap<&'static str, Vec<P<tsrs_ast::Symbol>>> = FxHashMap::default();
     let mut add = |table: Option<P<tsrs_ast::SymbolTable>>| {
@@ -176,12 +179,23 @@ pub(crate) fn force_shared_lists(program: &crate::program::Program) {
         by_name
             .values()
             .filter_map(|symbols| {
-                if symbols.len() > 1 { Some(symbols.iter().filter_map(|s| s.lazy_list()).filter(|l| l.state() == tsrs_ast::lazylist::DEFERRED)) } else { None }
+                if symbols.len() > 1 {
+                    Some(
+                        symbols
+                            .iter()
+                            .filter_map(|s| s.lazy_list())
+                            .filter(|l| l.state() == tsrs_ast::lazylist::DEFERRED),
+                    )
+                } else {
+                    None
+                }
             })
             .flatten(),
     );
     use rayon::prelude::*;
-    tsrs_core::phases::time("Lazy lists: shared", || crate::program::worker_pool().install(|| lists.par_iter().for_each(|l| l.ensure())));
+    tsrs_core::phases::time("Lazy lists: shared", || {
+        crate::program::worker_pool().install(|| lists.par_iter().for_each(|l| l.ensure()));
+    });
 }
 
 /// The declaration files of the global libraries (`force_shared_lists`), in program order.
@@ -190,11 +204,17 @@ fn global_library_files(program: &crate::program::Program) -> Vec<P<SourceFile>>
     let reasons = &program.file_include_data.file_include_reasons;
     let mut global: FxHashSet<&str> = FxHashSet::default();
     let mut by_reference: Vec<(&str, &str)> = Vec::new(); // (referencing file's path, referenced file's path)
-    #[expect(clippy::iter_over_hash_type, reason = "builds a set and an edge list that is closed over below")]
+    #[expect(
+        clippy::iter_over_hash_type,
+        reason = "builds a set and an edge list that is closed over below"
+    )]
     for (path, rs) in reasons {
         for r in rs {
             match r.kind {
-                K::LibFile | K::LibReferenceDirective | K::AutomaticTypeDirectiveFile | K::TypeReferenceDirective => {
+                K::LibFile
+                | K::LibReferenceDirective
+                | K::AutomaticTypeDirectiveFile
+                | K::TypeReferenceDirective => {
                     global.insert(path);
                 }
                 K::ReferenceFile => by_reference.push((r.as_referenced_file_data().file, path)),
@@ -213,7 +233,12 @@ fn global_library_files(program: &crate::program::Program) -> Vec<P<SourceFile>>
             break;
         }
     }
-    program.files.iter().copied().filter(|f| f.is_declaration_file() && global.contains(&*f.path().0)).collect()
+    program
+        .files
+        .iter()
+        .copied()
+        .filter(|f| f.is_declaration_file() && global.contains(&*f.path().0))
+        .collect()
 }
 
 /// Reads the leaf-reclamation policy selected for CLI programs.
@@ -284,7 +309,9 @@ pub fn enable(settings: LeafSettings, current_directory: &str) {
 /// Whether `file_name` matches `PREDICTED_LEAF_PATTERNS` (relative to the current directory).
 fn predicted_leaf(file_name: &str) -> bool {
     let relative = match CURRENT_DIRECTORY.get() {
-        Some(dir) if !dir.is_empty() && file_name.starts_with(dir.as_str()) => &file_name[dir.len()..],
+        Some(dir) if !dir.is_empty() && file_name.starts_with(dir.as_str()) => {
+            &file_name[dir.len()..]
+        }
         _ => file_name,
     };
     PREDICTED_LEAF_PATTERNS.iter().any(|pattern| relative.contains(pattern))
@@ -340,7 +367,11 @@ fn first_chunk(text_len: usize) -> usize {
 /// file's region is then carved right after this one's last used byte instead of after an unused tail and its partly
 /// used page. Binding on the same thread right away (the parallel loader) grows the region into the space just given
 /// back.
-pub(crate) fn parse(opts: SourceFileParseOptions, text: String, script_kind: ScriptKind) -> P<SourceFile> {
+pub(crate) fn parse(
+    opts: SourceFileParseOptions,
+    text: String,
+    script_kind: ScriptKind,
+) -> P<SourceFile> {
     let region = Region::new_scratch_in_large_slabs(first_chunk(text.len()));
     let file = {
         let _scratch = region.enter_scratch();
@@ -429,7 +460,10 @@ pub(crate) fn classify(program: &Program) -> bool {
             leaf_nodes += file.node_count.get();
         }
     }
-    #[expect(clippy::iter_over_hash_type, reason = "independent per region; no output depends on the order")]
+    #[expect(
+        clippy::iter_over_hash_type,
+        reason = "independent per region; no output depends on the order"
+    )]
     for (file, region) in regions.iter() {
         // Never freed (also the regions of files parsed ahead and not used): their values live for the process, as
         // in a thread arena, so the list of the ones to drop (24 bytes per symbol table, the one heap-owning value
@@ -466,7 +500,8 @@ pub(crate) fn classify(program: &Program) -> bool {
 pub(crate) fn prepare(program: &Program) {
     if program.leaf_files != LeafMode::Off {
         // Not under the lock: binding (`bind`) takes it, and creating a checker may bind.
-        let with_region: FxHashSet<P<SourceFile>> = REGIONS.lock().unwrap().keys().copied().collect();
+        let with_region: FxHashSet<P<SourceFile>> =
+            REGIONS.lock().unwrap().keys().copied().collect();
         leaf_referred(program, |file| with_region.contains(&file));
     }
 }
@@ -474,8 +509,13 @@ pub(crate) fn prepare(program: &Program) {
 /// `referred_files` of the files that can be leaves (those with a region; every file with `stats`, which also counts
 /// the leaves the prediction missed), computed once per program. The program's files, include reasons and resolutions
 /// do not change once it is loaded, and the regions are all made while it loads.
-fn leaf_referred(program: &Program, has_region: impl Fn(P<SourceFile>) -> bool + Sync) -> &FxHashSet<P<SourceFile>> {
-    program.leaf_referred.get_or_init(|| referred_files(program, |file| stats() || has_region(file)))
+fn leaf_referred(
+    program: &Program,
+    has_region: impl Fn(P<SourceFile>) -> bool + Sync,
+) -> &FxHashSet<P<SourceFile>> {
+    program
+        .leaf_referred
+        .get_or_init(|| referred_files(program, |file| stats() || has_region(file)))
 }
 
 /// The files for which `wanted` holds that another file of the program refers to: every file with an include
@@ -489,35 +529,67 @@ fn leaf_referred(program: &Program, has_region: impl Fn(P<SourceFile>) -> bool +
 /// resolved name is looked up by the name itself first (`files_by_name`): normalizing every name
 /// (`get_source_file_for_resolved_module`) took 24 ms on one thread, and collecting every importer's names
 /// before that another 3-5 ms on one thread.
-fn referred_files(program: &Program, wanted: impl Fn(P<SourceFile>) -> bool + Sync) -> FxHashSet<P<SourceFile>> {
+fn referred_files(
+    program: &Program,
+    wanted: impl Fn(P<SourceFile>) -> bool + Sync,
+) -> FxHashSet<P<SourceFile>> {
     let mut referred = FxHashSet::default();
     // builds a set; the order of insertion cannot be seen
-    referred.extend(program.file_include_data.file_include_reasons.iter().filter_map(|(path, reasons)| {
-        if reasons.iter().any(|r| !r.is_root_file()) {
-            if let Some(&file) = program.files_by_path.get(path) { if wanted(file) { Some(file) } else { None } } else { None }
-        } else {
-            None
-        }
-    }));
+    referred.extend(program.file_include_data.file_include_reasons.iter().filter_map(
+        |(path, reasons)| {
+            if reasons.iter().any(|r| !r.is_root_file()) {
+                if let Some(&file) = program.files_by_path.get(path) {
+                    if wanted(file) { Some(file) } else { None }
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        },
+    ));
     let by_name = files_by_name(program);
     let target = |from: Option<P<SourceFile>>, name: &str| -> Option<P<SourceFile>> {
-        let file = by_name.get(name).copied().or_else(|| program.get_source_file_for_resolved_module(name))?;
+        let file = by_name
+            .get(name)
+            .copied()
+            .or_else(|| program.get_source_file_for_resolved_module(name))?;
         (Some(file) != from && wanted(file)).then_some(file)
     };
-    let modules = |(path, resolutions): (&tsrs_core::tspath::Path, &tsrs_module::ModeAwareCache<P<tsrs_module::ResolvedModule>>)| {
+    let modules = |(path, resolutions): (
+        &tsrs_core::tspath::Path,
+        &tsrs_module::ModeAwareCache<P<tsrs_module::ResolvedModule>>,
+    )| {
         let from = program.files_by_path.get(path).copied();
-        resolutions.values().filter(|r| r.is_resolved()).filter_map(|r| target(from, r.resolved_file_name)).collect::<Vec<_>>()
+        resolutions
+            .values()
+            .filter(|r| r.is_resolved())
+            .filter_map(|r| target(from, r.resolved_file_name))
+            .collect::<Vec<_>>()
     };
-    let types = |(path, resolutions): (&tsrs_core::tspath::Path, &tsrs_module::ModeAwareCache<P<tsrs_module::ResolvedTypeReferenceDirective>>)| {
+    let types = |(path, resolutions): (
+        &tsrs_core::tspath::Path,
+        &tsrs_module::ModeAwareCache<P<tsrs_module::ResolvedTypeReferenceDirective>>,
+    )| {
         let from = program.files_by_path.get(path).copied();
-        resolutions.values().filter(|r| r.is_resolved()).filter_map(|r| target(from, r.resolved_file_name)).collect::<Vec<_>>()
+        resolutions
+            .values()
+            .filter(|r| r.is_resolved())
+            .filter_map(|r| target(from, r.resolved_file_name))
+            .collect::<Vec<_>>()
     };
     let targets: Vec<Vec<P<SourceFile>>> = if program.single_threaded() {
-        program.resolved_modules.iter().map(modules).chain(program.type_resolutions_in_file.iter().map(types)).collect()
+        program
+            .resolved_modules
+            .iter()
+            .map(modules)
+            .chain(program.type_resolutions_in_file.iter().map(types))
+            .collect()
     } else {
         use rayon::prelude::*;
         crate::program::worker_pool().install(|| {
-            let mut targets: Vec<Vec<P<SourceFile>>> = program.resolved_modules.par_iter().map(modules).collect();
+            let mut targets: Vec<Vec<P<SourceFile>>> =
+                program.resolved_modules.par_iter().map(modules).collect();
             targets.par_extend(program.type_resolutions_in_file.par_iter().map(types));
             targets
         })
@@ -530,7 +602,12 @@ fn referred_files(program: &Program, wanted: impl Fn(P<SourceFile>) -> bool + Sy
 /// finding a resolved name here gives the file `get_source_file_for_resolved_module` would (it looks the normalized
 /// name up in `files_by_path`, and a file's path is its normalized name).
 fn files_by_name(program: &Program) -> FxHashMap<&str, P<SourceFile>> {
-    program.files.iter().filter(|&&file| program.files_by_path.get(file.path()) == Some(&file)).map(|file| (file.file_name(), *file)).collect()
+    program
+        .files
+        .iter()
+        .filter(|&&file| program.files_by_path.get(file.path()) == Some(&file))
+        .map(|file| (file.file_name(), *file))
+        .collect()
 }
 
 /// Whether nothing of `file` can be reached from another file that does not refer to it. It is a
@@ -555,8 +632,12 @@ fn adds_nothing(program: &Program, file: P<SourceFile>) -> bool {
     {
         return false;
     }
-    let Some(symbol) = file.symbol() else { return false };
-    let Some(exports) = symbol.exports() else { return true };
+    let Some(symbol) = file.symbol() else {
+        return false;
+    };
+    let Some(exports) = symbol.exports() else {
+        return true;
+    };
     exports.entries().iter().all(|&(name, s)| {
         name != ast::InternalSymbolNameExportEquals
             && name != ast::InternalSymbolNameExportStar
@@ -572,11 +653,16 @@ fn adds_nothing(program: &Program, file: P<SourceFile>) -> bool {
 /// Whether `file` was parsed into a region of its own: it may be freed once checked (the shared-graph seed must not
 /// check it, sharedgraph.rs).
 pub(crate) fn has_region(file: P<SourceFile>) -> bool {
-    region_candidate(file.file_name(), file.script_kind.get()) && REGIONS.lock().unwrap().contains_key(&file)
+    region_candidate(file.file_name(), file.script_kind.get())
+        && REGIONS.lock().unwrap().contains_key(&file)
 }
 
 pub(crate) fn assert_not_freed(file: P<SourceFile>) {
-    assert!(!file.is_check_leaf() || REGIONS.lock().unwrap().contains_key(&file), "fileregions: {} was freed after the type-check pass; its tree can no longer be read", file.file_name());
+    assert!(
+        !file.is_check_leaf() || REGIONS.lock().unwrap().contains_key(&file),
+        "fileregions: {} was freed after the type-check pass; its tree can no longer be read",
+        file.file_name()
+    );
 }
 
 /// After the type-check pass that freed leaves: gives back the pages of the last batch of freed regions.
@@ -587,7 +673,9 @@ pub(crate) fn pass_done() {
 /// Frees `file`'s region (a leaf whose diagnostics the pass has collected). Called on the checker thread that
 /// checked it; nothing reads the file's tree or binder output afterwards (`classify`).
 pub(crate) fn free(file: P<SourceFile>) {
-    let Some(region) = REGIONS.lock().unwrap().remove(&file) else { return };
+    let Some(region) = REGIONS.lock().unwrap().remove(&file) else {
+        return;
+    };
     if stats() {
         // Relaxed: counters read after the pass's threads joined.
         FREED.fetch_add(1, Ordering::Relaxed);
@@ -605,14 +693,17 @@ pub fn stats_report() -> Option<String> {
     let mb = |b: usize| b as f64 / (1 << 20) as f64;
     // Relaxed (all loads): read on the main thread after the pass's threads joined.
     let load = |c: &AtomicUsize| c.load(Ordering::Relaxed);
-    let reserve = tsrs_core::ptr::reserve_stats().map(|(_, high)| format!("; arena address space used {:.1} MB", mb(high))).unwrap_or_default();
+    let reserve = tsrs_core::ptr::reserve_stats()
+        .map(|(_, high)| format!("; arena address space used {:.1} MB", mb(high)))
+        .unwrap_or_default();
     let (calls, bytes) = tsrs_core::arena::retired_stats();
     Some(format!(
         "tsrs: leaf files: {} of {} checked files ({} more not predicted, {:.1}% of the leaves' nodes), {:.1} MB of the {:.1} MB used by {} file regions ({:.1} MB reserved); freed {} ({:.1} MB reserved, {:.1} MB of pages given back in {calls} calls){reserve}\n",
         load(&LEAVES),
         load(&CHECKED_FILES),
         load(&MISSED),
-        100.0 * load(&MISSED_NODES) as f64 / (load(&MISSED_NODES) + load(&LEAF_NODES)).max(1) as f64,
+        100.0 * load(&MISSED_NODES) as f64
+            / (load(&MISSED_NODES) + load(&LEAF_NODES)).max(1) as f64,
         mb(load(&LEAF_BYTES)),
         mb(load(&REGION_USED)),
         load(&REGION_FILES),

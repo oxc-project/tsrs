@@ -1,6 +1,6 @@
 // @generated from pinned tsc/internal/api/proto.go (microsoft/TypeScript b85298b6). One row per Method constant.
 // Lane: Checker = owned by the checker lane; Ls = language-service backed (unassigned, needs core decision); Other = owned by another lane.
-use super::coverage_types::{Lane::*, Status::*, Row};
+use super::coverage_types::{Lane::*, Row, Status::*};
 
 pub const PINNED_METHODS: &[Row] = &[
     Row { method: "release", lane: Other, status: NotOwned },
@@ -50,7 +50,11 @@ pub const PINNED_METHODS: &[Row] = &[
     Row { method: "getResolvedModule", lane: Other, status: NotOwned },
     Row { method: "getResolvedModuleFromModuleSpecifier", lane: Other, status: NotOwned },
     Row { method: "getResolvedTypeReferenceDirective", lane: Other, status: NotOwned },
-    Row { method: "getResolvedTypeReferenceDirectiveFromTypeReferenceDirective", lane: Other, status: NotOwned },
+    Row {
+        method: "getResolvedTypeReferenceDirectiveFromTypeReferenceDirective",
+        lane: Other,
+        status: NotOwned,
+    },
     Row { method: "getConfigFileNames", lane: Other, status: NotOwned },
     Row { method: "getConfigSourceFile", lane: Other, status: NotOwned },
     Row { method: "resolveName", lane: Checker, status: Tested },

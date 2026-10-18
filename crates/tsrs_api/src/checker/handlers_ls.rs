@@ -10,16 +10,16 @@ use std::sync::Arc;
 
 use tsrs_ast::Symbol;
 use tsrs_compiler::Program;
-use tsrs_core::context::{with_checker_lifetime, CheckerLifetime, Context};
-use tsrs_core::json::Value;
 use tsrs_core::P;
+use tsrs_core::context::{CheckerLifetime, Context, with_checker_lifetime};
+use tsrs_core::json::Value;
 use tsrs_ls::autoimport::ProjectID as LsProjectID;
 use tsrs_project::Snapshot;
 
 use super::host::{CheckerError, CheckerErrorKind, CheckerHost, CheckerResult};
 use super::json::obj;
 use super::params::{Params, SymbolReference};
-use super::setup::{resolve_symbol_for_program, SnapshotCtx};
+use super::setup::{SnapshotCtx, resolve_symbol_for_program};
 
 fn snapshot_ctx<'h>(host: &'h dyn CheckerHost, p: &Params) -> CheckerResult<SnapshotCtx<'h>> {
     SnapshotCtx::new(host, p.u64("snapshot")?, p.project()?)
@@ -34,7 +34,12 @@ fn program_of(snapshot: &Snapshot, project: &str) -> CheckerResult<&'static Prog
 }
 
 /// Go `setupLanguageService`.
-fn language_service(snapshot: &Arc<Snapshot>, program: &'static Program, project: &str, active_file: &str) -> CheckerResult<tsrs_ls::LanguageService> {
+fn language_service(
+    snapshot: &Arc<Snapshot>,
+    program: &'static Program,
+    project: &str,
+    active_file: &str,
+) -> CheckerResult<tsrs_ls::LanguageService> {
     if snapshot.project_collection.get_project(&tsrs_project::ID(project.to_string())).is_none() {
         return Err(CheckerError::client(format!("project {project} not found")));
     }
@@ -65,19 +70,29 @@ pub(crate) fn get_signature_usages(host: &dyn CheckerHost, p: &Params) -> Checke
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_referenced_symbols_for_node(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_referenced_symbols_for_node(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let sd = snapshot_ctx(host, p)?;
     let program = sd.program()?;
     let node = host.resolve_node_handle(program, p.string("node")?)?;
     let position = p.u32("position")?;
     let ls = language_service(&sd.scope.snapshot, program, &sd.project, "")?;
-    let entries = ls.get_referenced_symbols_for_node_exported(&host.context(), position, node, program.get_source_files());
+    let entries = ls.get_referenced_symbols_for_node_exported(
+        &host.context(),
+        position,
+        node,
+        program.get_source_files(),
+    );
     if entries.is_empty() {
         return Ok(Value::Array(Vec::new())); // Go nil slice: json/v2 encodes []
     }
     let mut out = Vec::new();
     for entry in &entries {
-        let Some(def) = entry.definition_node() else { continue };
+        let Some(def) = entry.definition_node() else {
+            continue;
+        };
         let mut refs = Vec::new();
         refs = entry.references().iter().try_fold(refs, |mut refs, r| {
             if let Some(n) = r.node() {
@@ -101,7 +116,10 @@ pub(crate) fn get_referenced_symbols_for_node(host: &dyn CheckerHost, p: &Params
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_completions_at_position(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let include_symbol = p.bool("includeSymbol")?;
     let mut ctx = host.context();
     if include_symbol {
@@ -114,9 +132,14 @@ pub(crate) fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) ->
     let trigger = match p.raw("triggerCharacter") {
         None => None,
         Some(Value::String(s)) => Some(s.as_str()),
-        Some(_) => return Err(CheckerError::invalid("field \"triggerCharacter\": expected a string")),
+        Some(_) => {
+            return Err(CheckerError::invalid("field \"triggerCharacter\": expected a string"));
+        }
     };
-    let run = |snapshot: &Arc<Snapshot>, program: &'static Program, ctx: &Context| -> CheckerResult<Result<Option<tsrs_ls::CompletionList>, tsrs_lsproto::Error>> {
+    let run = |snapshot: &Arc<Snapshot>,
+               program: &'static Program,
+               ctx: &Context|
+     -> CheckerResult<Result<Option<tsrs_ls::CompletionList>, tsrs_lsproto::Error>> {
         let Some(source_file) = program.get_source_file(&file_name) else {
             return Ok(Ok(None));
         };
@@ -132,7 +155,8 @@ pub(crate) fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) ->
     let mut result = run(&sd.scope.snapshot, program, &ctx)?;
     if matches!(&result, Err(e) if tsrs_ls::is_err_needs_auto_imports(e)) {
         let snapshot = host.clone_snapshot_with_auto_imports(&sd.scope.snapshot, &file_name)?;
-        let outcome = program_of(&snapshot, &sd.project).and_then(|program| run(&snapshot, program, &ctx));
+        let outcome =
+            program_of(&snapshot, &sd.project).and_then(|program| run(&snapshot, program, &ctx));
         prepared = Some(snapshot);
         result = match outcome {
             Ok(r) => r,
@@ -168,7 +192,12 @@ pub(crate) fn get_completions_at_position(host: &dyn CheckerHost, p: &Params) ->
         // encoding/json v2 `omitempty`: a uint32 0 is still emitted; `*string` pointing at "" and an
         // all-empty labelDetails object ({}) are omitted.
         o.num("kind", ci.kind.as_ref().map_or(0, |k| k.0) as f64);
-        for (key, value) in [("sortText", &ci.sort_text), ("insertText", &ci.insert_text), ("filterText", &ci.filter_text), ("detail", &ci.detail)] {
+        for (key, value) in [
+            ("sortText", &ci.sort_text),
+            ("insertText", &ci.insert_text),
+            ("filterText", &ci.filter_text),
+            ("detail", &ci.detail),
+        ] {
             if let Some(v) = value {
                 o.str_nonempty(key, v);
             }
@@ -209,7 +238,9 @@ pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> Chec
     let file = p.document("file")?;
     let file_name = file.to_file_name();
     let mut program = sd.program()?;
-    let mut source_file = program.get_source_file(&file_name).ok_or_else(|| CheckerError::client(format!("source file not found: {}", file.display())))?;
+    let mut source_file = program.get_source_file(&file_name).ok_or_else(|| {
+        CheckerError::client(format!("source file not found: {}", file.display()))
+    })?;
     let project_id = LsProjectID(sd.project.clone());
 
     // Decode actions like Go's unmarshalling of `[]ImportAdderAction` (before the handler runs, so a decode
@@ -231,7 +262,11 @@ pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> Chec
         let valid = match a.raw("isValidTypeOnlyUseSite") {
             None => true,
             Some(Value::Bool(b)) => *b,
-            Some(_) => return Err(CheckerError::invalid("field \"isValidTypeOnlyUseSite\": expected a boolean")),
+            Some(_) => {
+                return Err(CheckerError::invalid(
+                    "field \"isValidTypeOnlyUseSite\": expected a boolean",
+                ));
+            }
         };
         let symbol = match a.raw("symbol") {
             None => None,
@@ -243,33 +278,48 @@ pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> Chec
     })?;
     // Go `handleGetImportAdderEdits`: the per-action checks run inside the action loop, after the working
     // snapshot (possibly a fresh auto-import clone) exists.
-    let validate = |sd: &SnapshotCtx, program: &'static Program| -> CheckerResult<Vec<(P<Symbol>, bool)>> {
-        let mut out = Vec::with_capacity(actions.len());
-        out = actions.iter().enumerate().try_fold(out, |mut out, (i, action)| {
-            match action.kind.as_str() {
-                "importSymbol" => {
-                    let Some(r) = &action.symbol else {
-                        return Err(CheckerError::client(format!("import adder action {i} missing symbol")));
-                    };
-                    out.push((resolve_symbol_for_program(sd, program, r)?, action.valid));
+    let validate =
+        |sd: &SnapshotCtx, program: &'static Program| -> CheckerResult<Vec<(P<Symbol>, bool)>> {
+            let mut out = Vec::with_capacity(actions.len());
+            out = actions.iter().enumerate().try_fold(out, |mut out, (i, action)| {
+                match action.kind.as_str() {
+                    "importSymbol" => {
+                        let Some(r) = &action.symbol else {
+                            return Err(CheckerError::client(format!(
+                                "import adder action {i} missing symbol"
+                            )));
+                        };
+                        out.push((resolve_symbol_for_program(sd, program, r)?, action.valid));
+                    }
+                    kind => {
+                        return Err(CheckerError::client(format!(
+                            "unknown import adder action kind {kind:?}"
+                        )));
+                    }
                 }
-                kind => return Err(CheckerError::client(format!("unknown import adder action kind {kind:?}"))),
-            }
 
-            Ok::<_, CheckerError>(out)
-        })?;
-        Ok(out)
-    };
+                Ok::<_, CheckerError>(out)
+            })?;
+            Ok(out)
+        };
 
     let mut working = Arc::clone(&sd.scope.snapshot);
     let mut prepared: Option<Arc<Snapshot>> = None;
-    let prepared_for_file = working.auto_import_registry().is_some_and(|r| r.is_prepared_for_importing_file(source_file.file_name(), &project_id, working.user_preferences()));
+    let prepared_for_file = working.auto_import_registry().is_some_and(|r| {
+        r.is_prepared_for_importing_file(
+            source_file.file_name(),
+            &project_id,
+            working.user_preferences(),
+        )
+    });
     if !prepared_for_file {
         let snapshot = host.clone_snapshot_with_auto_imports(&working, &file_name)?;
         prepared = Some(Arc::clone(&snapshot));
         working = snapshot;
         let resolved = program_of(&working, &sd.project).and_then(|prog| {
-            let sf = prog.get_source_file(&file_name).ok_or_else(|| CheckerError::client(format!("source file not found: {}", file.display())))?;
+            let sf = prog.get_source_file(&file_name).ok_or_else(|| {
+                CheckerError::client(format!("source file not found: {}", file.display()))
+            })?;
             Ok((prog, sf))
         });
         match resolved {
@@ -314,9 +364,26 @@ fn import_adder_edits(
     let ctx = host.context();
     let mut checker = program.get_type_checker(&ctx);
     let preferences = working.user_preferences().clone();
-    let view = tsrs_ls::autoimport::new_view(Some(registry), source_file, project_id, program, &mut checker, preferences.module_specifier_preferences());
-    let format = tsrs_ls::Host::get_preferences(working.as_ref(), source_file.file_name()).format_code_settings;
-    let mut adder = tsrs_ls::autoimport::new_import_adder(&ctx, program, &mut checker, source_file, view, format, working.converters(), preferences);
+    let view = tsrs_ls::autoimport::new_view(
+        Some(registry),
+        source_file,
+        project_id,
+        program,
+        &mut checker,
+        preferences.module_specifier_preferences(),
+    );
+    let format = tsrs_ls::Host::get_preferences(working.as_ref(), source_file.file_name())
+        .format_code_settings;
+    let mut adder = tsrs_ls::autoimport::new_import_adder(
+        &ctx,
+        program,
+        &mut checker,
+        source_file,
+        view,
+        format,
+        working.converters(),
+        preferences,
+    );
     for (symbol, valid) in symbols {
         adder.add_import_from_exported_symbol(symbol, valid);
     }
@@ -330,7 +397,10 @@ fn import_adder_edits(
 }
 
 /// Go `toAPITextEdits` (+ `originalTextOffset`): LSP line/character → original-text offsets → UTF-16.
-fn to_api_text_edits(source_file: P<tsrs_ast::SourceFile>, edits: &[tsrs_lsproto::TextEdit]) -> Value {
+fn to_api_text_edits(
+    source_file: P<tsrs_ast::SourceFile>,
+    edits: &[tsrs_lsproto::TextEdit],
+) -> Value {
     let original = source_file.original_text();
     let line_map = tsrs_ls::lsconv::compute_lsp_line_starts(original);
     let position_map = tsrs_ast::compute_position_map(original);

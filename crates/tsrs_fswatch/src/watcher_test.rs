@@ -9,7 +9,10 @@ use crate::event::{Event, EventKind};
 use crate::pathcompare::pathComparer;
 use crate::pathkey::PathComparer;
 use crate::testutil_test::*;
-use crate::watcher::{all_watchers, default, dirWatch, is_in_directory_or_self, join_path_suffix, physical_dir_for, rebase_path, Error, ErrUnavailable, ErrWatchTerminated, WatchCallback};
+use crate::watcher::{
+    ErrUnavailable, ErrWatchTerminated, Error, WatchCallback, all_watchers, default, dirWatch,
+    is_in_directory_or_self, join_path_suffix, physical_dir_for, rebase_path,
+};
 
 const maxWaitTime: Duration = defaultMaxWaitTime;
 
@@ -66,7 +69,9 @@ fn path_comparer() {
                 failures.push(format!("suffix({root:?}, {path:?}), ignoreCase={ignore_case}: got {got:?}, want ({suffix:?}, {want})"));
             }
             if comparer.contains(root, path) != want {
-                failures.push(format!("contains({root:?}, {path:?}), ignoreCase={ignore_case}: want {want}"));
+                failures.push(format!(
+                    "contains({root:?}, {path:?}), ignoreCase={ignore_case}: want {want}"
+                ));
             }
             failures.extend((["/display", "/"]).into_iter().filter_map(|to| {
                 let rebased = comparer.rebase(path, root, to);
@@ -86,16 +91,28 @@ fn path_comparer() {
 fn file_callback_case_sensitivity() {
     for ignore_case in [false, true] {
         let got: Arc<Mutex<Vec<Event>>> = Arc::new(Mutex::new(Vec::new()));
-        let dw = dirWatch::new("/root".to_string(), "/root".to_string(), &debounce::new(), pathComparer { ignore_case }, None, true);
+        let dw = dirWatch::new(
+            "/root".to_string(),
+            "/root".to_string(),
+            &debounce::new(),
+            pathComparer { ignore_case },
+            None,
+            true,
+        );
         let sink = std::sync::Arc::clone(&got);
-        let cb: WatchCallback = Arc::new(move |events: Vec<Event>, _: Option<Error>| sink.lock().unwrap().extend(events));
+        let cb: WatchCallback = Arc::new(move |events: Vec<Event>, _: Option<Error>| {
+            sink.lock().unwrap().extend(events);
+        });
         dw.add_callback("/root", "/root", false, cb, None, "/root/file.ts");
         dw.events.update("/root/FILE.ts");
         dw.events.update("/root/other.ts");
         dw.trigger_callbacks_for_test();
         let got = got.lock().unwrap();
         if ignore_case {
-            assert!(got.len() == 1 && got[0].path == "/root/file.ts", "case-insensitive callback: got {got:?}");
+            assert!(
+                got.len() == 1 && got[0].path == "/root/file.ts",
+                "case-insensitive callback: got {got:?}"
+            );
         } else {
             assert!(got.is_empty(), "case-sensitive callback: got {got:?}");
         }
@@ -110,7 +127,10 @@ fn path_comparer_exact_keys() {
     for path in ["/A/File.ts", "/straße/İ.ts", "/cafe\u{0301}.ts"] {
         assert_eq!(c.key(path), path);
     }
-    assert!(c.rebase("/A/file.ts", "/a", "/target").is_none(), "zero comparer must use exact matching");
+    assert!(
+        c.rebase("/A/file.ts", "/a", "/target").is_none(),
+        "zero comparer must use exact matching"
+    );
     assert_eq!(c.rebase("/a/file.ts", "/a", "/target").as_deref(), Some("/target/file.ts"));
 }
 
@@ -157,7 +177,11 @@ fn is_in_directory_or_self_cases() {
         ("", "/parent/child", false),
     ];
     for (dir, path, want) in cases {
-        assert_eq!(is_in_directory_or_self(dir, path), want, "isInDirectoryOrSelf({dir:?}, {path:?})");
+        assert_eq!(
+            is_in_directory_or_self(dir, path),
+            want,
+            "isInDirectoryOrSelf({dir:?}, {path:?})"
+        );
     }
 }
 
@@ -344,7 +368,10 @@ fn subscribe_subdir_delete_with_files() {
         write(&child, "x")?;
         let (r, _) = subscribe_for(t, &dir, w)?;
         std::fs::remove_dir_all(&sub_dir).map_err(|e| e.to_string())?;
-        expect_event_set(&r, vec![want(EventKind::Delete, &sub_dir), want(EventKind::Delete, &child)])?;
+        expect_event_set(
+            &r,
+            vec![want(EventKind::Delete, &sub_dir), want(EventKind::Delete, &child)],
+        )?;
         Ok(())
     });
 }
@@ -362,7 +389,10 @@ fn subscribe_multiple_same_dir() {
         std::thread::sleep(Duration::from_millis(100));
         let f = sub_path(&dir);
         write(&f, "hi")?;
-        let res = assert_event_sequence(&r1.next(r1.deadline()), &[want(EventKind::Update, &f)]).and_then(|()| assert_event_sequence(&r2.next(r2.deadline()), &[want(EventKind::Update, &f)]));
+        let res = assert_event_sequence(&r1.next(r1.deadline()), &[want(EventKind::Update, &f)])
+            .and_then(|()| {
+                assert_event_sequence(&r2.next(r2.deadline()), &[want(EventKind::Update, &f)])
+            });
         let _ = s1.close();
         let _ = s2.close();
         res
@@ -434,7 +464,9 @@ fn subscribe_close_then_re_subscribe() {
         s1.close().map_err(|e| e.to_string())?;
 
         let r2 = new_recorder(t, Some(w));
-        let s2 = w.watch_directory(&dir, r2.callback(), vec![]).map_err(|e| format!("re-WatchDirectory after Close: {e}"))?;
+        let s2 = w
+            .watch_directory(&dir, r2.callback(), vec![])
+            .map_err(|e| format!("re-WatchDirectory after Close: {e}"))?;
         std::thread::sleep(settle_sleep(w));
 
         let f = sub_path(&dir);
@@ -491,8 +523,16 @@ fn unavailable_backend_returns_error() {
     };
     let mut t = TestT::new(1);
     let dir = new_tmp_dir(&mut t);
-    let err = unavailable.watch_directory(&dir, noop_callback(), vec![]).err().expect("expected an error");
-    assert!(err.is(ErrUnavailable), "expected ErrUnavailable from {}, got {}", unavailable.name(), err);
+    let err = unavailable
+        .watch_directory(&dir, noop_callback(), vec![])
+        .err()
+        .expect("expected an error");
+    assert!(
+        err.is(ErrUnavailable),
+        "expected ErrUnavailable from {}, got {}",
+        unavailable.name(),
+        err
+    );
 }
 
 // watcher_test.go:2420
@@ -591,10 +631,34 @@ fn atomic_save() {
 // callback is delivered without the index).
 #[test]
 fn indexed_delivery_matches_single_callback_delivery() {
-    let dirs = ["/root", "/root/a", "/root/A", "/root/a/b", "/root/x", "/root/\u{017f}", "/root/s", "/root/\u{00df}"];
+    let dirs = [
+        "/root",
+        "/root/a",
+        "/root/A",
+        "/root/a/b",
+        "/root/x",
+        "/root/\u{017f}",
+        "/root/s",
+        "/root/\u{00df}",
+    ];
     let paths = [
-        "/root", "/root/f.ts", "/root/F.ts", "/root/a", "/root/a/f.ts", "/root/A/G.ts", "/root/a/b/h.ts", "/root/a/b/c/i.ts", "/root/x/j.ts",
-        "/root/\u{017f}/k.ts", "/root/S/l.ts", "/root/s/m.ts", "/root/SS/n.ts", "/root/\u{00df}/o.ts", "/root/a/B", "/root/ab/p.ts", "/other/q.ts",
+        "/root",
+        "/root/f.ts",
+        "/root/F.ts",
+        "/root/a",
+        "/root/a/f.ts",
+        "/root/A/G.ts",
+        "/root/a/b/h.ts",
+        "/root/a/b/c/i.ts",
+        "/root/x/j.ts",
+        "/root/\u{017f}/k.ts",
+        "/root/S/l.ts",
+        "/root/s/m.ts",
+        "/root/SS/n.ts",
+        "/root/\u{00df}/o.ts",
+        "/root/a/B",
+        "/root/ab/p.ts",
+        "/other/q.ts",
     ];
     for ignore_case in [false, true] {
         for physical in ["/root", "/phys"] {
@@ -602,21 +666,49 @@ fn indexed_delivery_matches_single_callback_delivery() {
             let mut configs: Vec<(String, String, bool, String)> = Vec::new();
             for dir in dirs {
                 for recursive in [false, true] {
-                    configs.push((dir.to_string(), rebase_path(dir, "/root", physical), recursive, String::new()));
+                    configs.push((
+                        dir.to_string(),
+                        rebase_path(dir, "/root", physical),
+                        recursive,
+                        String::new(),
+                    ));
                 }
             }
-            configs.push(("/root/a".to_string(), rebase_path("/root/a", "/root", physical), false, "/root/a/f.ts".to_string()));
-            configs.push(("/root".to_string(), physical.to_string(), false, "/root/f.ts".to_string()));
+            configs.push((
+                "/root/a".to_string(),
+                rebase_path("/root/a", "/root", physical),
+                false,
+                "/root/a/f.ts".to_string(),
+            ));
+            configs.push((
+                "/root".to_string(),
+                physical.to_string(),
+                false,
+                "/root/f.ts".to_string(),
+            ));
             // A callback under another name for the same physical directory (a symlink to it).
             for (dir, sub) in [("/link/a", "/a"), ("/link", ""), ("/LINK/A/B", "/a/b")] {
                 configs.push((dir.to_string(), format!("{physical}{sub}"), false, String::new()));
             }
             let deliver = |configs: &[(String, String, bool, String)]| -> Vec<Vec<String>> {
-                let dw = dirWatch::new("/root".to_string(), physical.to_string(), &debounce::new(), pathComparer { ignore_case }, None, true);
-                let got: Vec<Arc<Mutex<Vec<String>>>> = configs.iter().map(|_| Arc::default()).collect();
+                let dw = dirWatch::new(
+                    "/root".to_string(),
+                    physical.to_string(),
+                    &debounce::new(),
+                    pathComparer { ignore_case },
+                    None,
+                    true,
+                );
+                let got: Vec<Arc<Mutex<Vec<String>>>> =
+                    configs.iter().map(|_| Arc::default()).collect();
                 for ((dir, physical_dir, recursive, file), sink) in configs.iter().zip(&got) {
                     let sink = Arc::clone(sink);
-                    let cb: WatchCallback = Arc::new(move |events: Vec<Event>, _: Option<Error>| sink.lock().unwrap().extend(events.into_iter().map(|e| format!("{} {}", e.kind, e.path))));
+                    let cb: WatchCallback =
+                        Arc::new(move |events: Vec<Event>, _: Option<Error>| {
+                            sink.lock().unwrap().extend(
+                                events.into_iter().map(|e| format!("{} {}", e.kind, e.path)),
+                            );
+                        });
                     dw.add_callback(dir, physical_dir, *recursive, cb, None, file);
                 }
                 for path in paths {
@@ -636,7 +728,10 @@ fn indexed_delivery_matches_single_callback_delivery() {
             let together = deliver(&configs);
             for (i, config) in configs.iter().enumerate() {
                 let alone = deliver(std::slice::from_ref(config));
-                assert_eq!(together[i], alone[0], "ignore_case={ignore_case} physical={physical} callback {config:?}");
+                assert_eq!(
+                    together[i], alone[0],
+                    "ignore_case={ignore_case} physical={physical} callback {config:?}"
+                );
             }
         }
     }

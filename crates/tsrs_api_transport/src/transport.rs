@@ -14,7 +14,7 @@ use crate::conn_async::AsyncConn;
 use crate::conn_sync::{ConnOptions, SyncConn};
 use crate::handler::{Caller, CancellationToken, Handler};
 use crate::jsonrpc::{FrameReader, FrameWriter};
-use crate::message::{TransportError, DEFAULT_MAX_FRAME_BYTES};
+use crate::message::{DEFAULT_MAX_FRAME_BYTES, TransportError};
 use crate::msgpack::{MessagePackReader, MessagePackWriter};
 use crate::protocol::WireProtocol;
 
@@ -29,7 +29,11 @@ pub struct Stream {
 impl Stream {
     /// `StdioTransport`. Stdout is the wire: nothing else in the process may write to it.
     pub fn stdio() -> Stream {
-        Stream { reader: Box::new(std::io::stdin()), writer: Box::new(std::io::stdout()), closer: None }
+        Stream {
+            reader: Box::new(std::io::stdin()),
+            writer: Box::new(std::io::stdout()),
+            closer: None,
+        }
     }
 }
 
@@ -52,7 +56,10 @@ impl PipeListener {
     pub fn bind(path: &Path) -> std::io::Result<PipeListener> {
         Err(std::io::Error::new(
             std::io::ErrorKind::Unsupported,
-            format!("--pipe {}: named pipe transport is not supported on this platform", path.display()),
+            format!(
+                "--pipe {}: named pipe transport is not supported on this platform",
+                path.display()
+            ),
         ))
     }
 
@@ -111,14 +118,18 @@ impl Caller for LateCaller {
     fn call(&self, method: &str, params: Option<&[u8]>) -> Result<Vec<u8>, TransportError> {
         match self.0.get() {
             Some(c) => c.call(method, params),
-            None => Err(TransportError::Closed(Some(format!("{method} called before connection set")))),
+            None => {
+                Err(TransportError::Closed(Some(format!("{method} called before connection set"))))
+            }
         }
     }
 
     fn notify(&self, method: &str, params: Option<&[u8]>) -> Result<(), TransportError> {
         match self.0.get() {
             Some(c) => c.notify(method, params),
-            None => Err(TransportError::Closed(Some(format!("{method} called before connection set")))),
+            None => {
+                Err(TransportError::Closed(Some(format!("{method} called before connection set"))))
+            }
         }
     }
 }
@@ -155,7 +166,12 @@ pub enum Connection {
 
 impl Connection {
     /// Builds the protocol + connection for `stream` (server.go Run), and points `late` at it.
-    pub fn new(stream: Stream, handler: Arc<dyn Handler>, options: ServeOptions, late: Option<&LateCaller>) -> Connection {
+    pub fn new(
+        stream: Stream,
+        handler: Arc<dyn Handler>,
+        options: ServeOptions,
+        late: Option<&LateCaller>,
+    ) -> Connection {
         let conn_options = ConnOptions {
             collect_timing: options.collect_timing,
             reentrancy_grace: options.reentrancy_grace,
@@ -216,11 +232,18 @@ pub fn serve(
     let handler = make_handler(Arc::<LateCaller>::clone(&late));
     let (_listener, stream) = match pipe_path {
         Some(path) => {
-            let listener = PipeListener::bind(path)
-                .map_err(|e| TransportError::Io(std::io::Error::new(e.kind(), format!("failed to create pipe transport: {e}"))))?;
-            let stream = listener
-                .accept()
-                .map_err(|e| TransportError::Io(std::io::Error::new(e.kind(), format!("failed to accept connection: {e}"))))?;
+            let listener = PipeListener::bind(path).map_err(|e| {
+                TransportError::Io(std::io::Error::new(
+                    e.kind(),
+                    format!("failed to create pipe transport: {e}"),
+                ))
+            })?;
+            let stream = listener.accept().map_err(|e| {
+                TransportError::Io(std::io::Error::new(
+                    e.kind(),
+                    format!("failed to accept connection: {e}"),
+                ))
+            })?;
             (Some(listener), stream)
         }
         None => (None, Stream::stdio()),

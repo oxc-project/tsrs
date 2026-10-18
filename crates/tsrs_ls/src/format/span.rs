@@ -1,9 +1,11 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
-use tsrs_ast::{self as ast, Diagnostic, Kind, Node, NodeFlags, NodeList, NodeVisitorHooks, SourceFile};
+use tsrs_ast::{
+    self as ast, Diagnostic, Kind, Node, NodeFlags, NodeList, NodeVisitorHooks, SourceFile,
+};
 use tsrs_core::stringutil::{decode_rune, is_white_space_single_line};
-use tsrs_core::{TextChange, TextRange, P};
+use tsrs_core::{P, TextChange, TextRange};
 use tsrs_scanner as scanner;
 
 use super::*;
@@ -54,30 +56,22 @@ pub(crate) fn get_scan_start_position(
     // exclude JSDoc so the scan never starts inside a JSDoc comment
     let preceding_token = astnav::find_preceding_token_ex(
         source_file,
-        original_range
-            .pos()
-            .expect_source("formatting ranges have source positions"),
+        original_range.pos().expect_source("formatting ranges have source positions"),
         None, /*startNode*/
         true, /*excludeJSDoc*/
     );
     let Some(preceding_token) = preceding_token else {
         // no preceding token found - start from the beginning of enclosing node
-        return enclosing_node
-            .pos()
-            .expect_source("parsed nodes have source positions");
+        return enclosing_node.pos().expect_source("parsed nodes have source positions");
     };
 
     // preceding token ends after the start of original range (i.e when originalRange.pos falls in the middle of literal)
     // start from the beginning of enclosingNode to handle the entire 'originalRange'
     if preceding_token.end() >= original_range.pos() {
-        return enclosing_node
-            .pos()
-            .expect_source("parsed nodes have source positions");
+        return enclosing_node.pos().expect_source("parsed nodes have source positions");
     }
 
-    preceding_token
-        .end()
-        .expect_source("parsed tokens have source positions")
+    preceding_token.end().expect_source("parsed tokens have source positions")
 }
 
 // span.go:89
@@ -134,7 +128,10 @@ fn range_has_no_errors(_: TextRange) -> bool {
 pub(crate) type RangeContainsError = Box<dyn FnMut(TextRange) -> bool>;
 
 // span.go:113
-pub(crate) fn prepare_range_contains_error_function(errors: &[P<Diagnostic>], original_range: TextRange) -> RangeContainsError {
+pub(crate) fn prepare_range_contains_error_function(
+    errors: &[P<Diagnostic>],
+    original_range: TextRange,
+) -> RangeContainsError {
     if errors.is_empty() {
         return Box::new(range_has_no_errors);
     }
@@ -143,11 +140,7 @@ pub(crate) fn prepare_range_contains_error_function(errors: &[P<Diagnostic>], or
     let mut sorted: Vec<(P<Diagnostic>, TextRange)> = errors
         .iter()
         .copied()
-        .filter_map(|d| {
-            d.loc()
-                .filter(|loc| original_range.overlaps(*loc))
-                .map(|loc| (d, loc))
-        })
+        .filter_map(|d| d.loc().filter(|loc| original_range.overlaps(*loc)).map(|loc| (d, loc)))
         .collect();
     if sorted.is_empty() {
         return Box::new(range_has_no_errors);
@@ -270,9 +263,7 @@ fn get_non_decorator_token_pos_of_node(node: P<Node>, file: Option<P<SourceFile>
     };
     scanner::skip_trivia(
         file.text(),
-        last_decorator
-            .end()
-            .expect_source("parsed nodes have source positions"),
+        last_decorator.end().expect_source("parsed nodes have source positions"),
     )
 }
 
@@ -296,12 +287,14 @@ fn collect_visited_children(node: P<Node>) -> Vec<VisitedChild> {
         })),
         None,
         NodeVisitorHooks {
-            visit_nodes: Some(Rc::new(move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
-                if let Some(list) = nodes {
-                    nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
-                }
-                nodes
-            })),
+            visit_nodes: Some(Rc::new(
+                move |nodes: Option<P<NodeList>>, _: &mut ast::NodeVisitor| {
+                    if let Some(list) = nodes {
+                        nodes_items.borrow_mut().push(VisitedChild::Nodes(list));
+                    }
+                    nodes
+                },
+            )),
             ..Default::default()
         },
     );
@@ -328,7 +321,8 @@ impl FormatSpanWorker {
         self.indentation_on_last_indented_line = None;
         self.last_indented_line = None;
         let opt = Rc::new(get_format_code_settings_from_context(&self.ctx));
-        self.formatting_context = Some(new_formatting_context(self.source_file, self.request_kind, Rc::clone(&opt)));
+        self.formatting_context =
+            Some(new_formatting_context(self.source_file, self.request_kind, Rc::clone(&opt)));
         // formatting context is used by rules provider
 
         self.fs().advance();
@@ -344,7 +338,10 @@ impl FormatSpanWorker {
             if ast::has_decorators(self.enclosing_node) {
                 undecorated_start_line = scanner::get_ecma_line_of_position(
                     self.source_file.get(),
-                    get_non_decorator_token_pos_of_node(self.enclosing_node, Some(self.source_file)),
+                    get_non_decorator_token_pos_of_node(
+                        self.enclosing_node,
+                        Some(self.source_file),
+                    ),
                 );
             }
 
@@ -364,7 +361,13 @@ impl FormatSpanWorker {
         let remaining_trivia = self.fs_ref().get_current_leading_trivia();
         if !remaining_trivia.is_empty() {
             let mut indentation = self.initial_indentation;
-            if node_will_indent_child(&self.fc().options, self.enclosing_node, None, Some(self.source_file), false) {
+            if node_will_indent_child(
+                &self.fc().options,
+                self.enclosing_node,
+                None,
+                Some(self.source_file),
+                false,
+            ) {
                 indentation += opt.indent_size; // !!! TODO: nil check???
             }
 
@@ -376,9 +379,7 @@ impl FormatSpanWorker {
                     let (start_line, start_char) =
                         scanner::get_ecma_line_and_byte_offset_of_position(
                             w.source_file.get(),
-                            item.loc
-                                .pos()
-                                .expect_source("formatting ranges have source positions"),
+                            item.loc.pos().expect_source("formatting ranges have source positions"),
                         );
                     w.process_range(
                         item,
@@ -389,9 +390,7 @@ impl FormatSpanWorker {
                         None,
                     );
                     w.insert_indentation(
-                        item.loc
-                            .pos()
-                            .expect_source("formatting ranges have source positions"),
+                        item.loc.pos().expect_source("formatting ranges have source positions"),
                         indentation,
                         false,
                     );
@@ -441,10 +440,7 @@ impl FormatSpanWorker {
                 // pair here, we're already done and we can ignore it.
                 let mut parent = astnav::find_preceding_token(
                     self.source_file,
-                    token_info
-                        .loc
-                        .end()
-                        .expect_source("formatting ranges have source positions"),
+                    token_info.loc.end().expect_source("formatting ranges have source positions"),
                 );
                 if let Some(p) = parent {
                     parent = p.parent();
@@ -454,10 +450,7 @@ impl FormatSpanWorker {
                 }
                 let line = scanner::get_ecma_line_of_position(
                     self.source_file.get(),
-                    token_info
-                        .loc
-                        .pos()
-                        .expect_source("formatting ranges have source positions"),
+                    token_info.loc.pos().expect_source("formatting ranges have source positions"),
                 );
                 self.process_pair(
                     token_info,
@@ -497,15 +490,19 @@ impl FormatSpanWorker {
             return inherited_indentation;
         }
         let child_start_pos = scanner::get_token_pos_of_node(child, self.source_file, false);
-        let child_start_line = scanner::get_ecma_line_of_position(self.source_file.get(), child_start_pos);
+        let child_start_line =
+            scanner::get_ecma_line_of_position(self.source_file.get(), child_start_pos);
 
         let mut undecorated_child_start_line = child_start_line;
         if ast::has_decorators(child) {
-            undecorated_child_start_line =
-                scanner::get_ecma_line_of_position(self.source_file.get(), get_non_decorator_token_pos_of_node(child, Some(self.source_file)));
+            undecorated_child_start_line = scanner::get_ecma_line_of_position(
+                self.source_file.get(),
+                get_non_decorator_token_pos_of_node(child, Some(self.source_file)),
+            );
         }
 
-        let is_error_member_list_element = child.flags().intersects(NodeFlags::ThisNodeHasError) && is_member_list_element(parent, child);
+        let is_error_member_list_element = child.flags().intersects(NodeFlags::ThisNodeHasError)
+            && is_member_list_element(parent, child);
         // if child is a list item - try to get its indentation, only if parent is within the original range.
         let mut child_indentation_amount = None;
 
@@ -515,9 +512,7 @@ impl FormatSpanWorker {
         {
             child_indentation_amount = self.try_compute_indentation_for_list_item(
                 child_start_pos,
-                child
-                    .end()
-                    .expect_source("parsed nodes have source positions"),
+                child.end().expect_source("parsed nodes have source positions"),
                 parent_start_line,
                 self.original_range,
                 inherited_indentation,
@@ -541,23 +536,14 @@ impl FormatSpanWorker {
 
         while self.fs_ref().is_on_token()
             && self.fs_ref().get_token_full_start()
-                < self
-                    .original_range
-                    .end()
-                    .expect_source("formatting ranges have source positions")
+                < self.original_range.end().expect_source("formatting ranges have source positions")
         {
             // proceed any parent tokens that are located prior to child.getStart()
             let token_info = self.fs().read_token_info(node);
             if token_info.token.loc.end() > self.original_range.end() {
                 return inherited_indentation;
             }
-            if token_info
-                .token
-                .loc
-                .end()
-                .source_offset()
-                .is_some_and(|end| end > child_start_pos)
-            {
+            if token_info.token.loc.end().source_offset().is_some_and(|end| end > child_start_pos) {
                 if token_info
                     .token
                     .loc
@@ -571,7 +557,13 @@ impl FormatSpanWorker {
                 break;
             }
 
-            self.consume_token_and_advance_scanner(&token_info, node, parent_dynamic_indentation, node, false);
+            self.consume_token_and_advance_scanner(
+                &token_info,
+                node,
+                parent_dynamic_indentation,
+                node,
+                false,
+            );
         }
 
         if !self.fs_ref().is_on_token()
@@ -590,7 +582,13 @@ impl FormatSpanWorker {
             // JSX text shouldn't affect indenting
             if child.kind() != Kind::JsxText {
                 assert!(token_info.token.loc.end() == child.loc().end(), "Token end is child end");
-                self.consume_token_and_advance_scanner(&token_info, node, parent_dynamic_indentation, child, false);
+                self.consume_token_and_advance_scanner(
+                    &token_info,
+                    node,
+                    parent_dynamic_indentation,
+                    child,
+                    false,
+                );
                 return inherited_indentation;
             }
         }
@@ -614,7 +612,14 @@ impl FormatSpanWorker {
             );
         }
 
-        self.process_node(child, self.child_context_node, child_start_line, undecorated_child_start_line, child_indentation, delta);
+        self.process_node(
+            child,
+            self.child_context_node,
+            child_start_line,
+            undecorated_child_start_line,
+            child_indentation,
+            delta,
+        );
 
         self.child_context_node = Some(node);
 
@@ -650,7 +655,10 @@ impl FormatSpanWorker {
 
         // node range is outside the target range - do not dive inside
         if !self.original_range.overlaps(nodes.loc.get()) {
-            if nodes.end() < self.original_range.pos() && (nodes.nodes().is_empty() || !nodes.nodes()[0].flags().intersects(NodeFlags::Reparsed)) {
+            if nodes.end() < self.original_range.pos()
+                && (nodes.nodes().is_empty()
+                    || !nodes.nodes()[0].flags().intersects(NodeFlags::Reparsed))
+            {
                 self.fs().skip_to_end_of(nodes.loc.get());
             }
             return;
@@ -712,7 +720,13 @@ impl FormatSpanWorker {
                     );
                 } else {
                     // consume any tokens that precede the list as child elements of 'node' using its indentation scope
-                    self.consume_token_and_advance_scanner(&token_info, parent, parent_dynamic_indentation, parent, false);
+                    self.consume_token_and_advance_scanner(
+                        &token_info,
+                        parent,
+                        parent_dynamic_indentation,
+                        parent,
+                        false,
+                    );
                 }
             }
         }
@@ -739,15 +753,18 @@ impl FormatSpanWorker {
         if list_end_token != Kind::Unknown
             && self.fs_ref().is_on_token()
             && self.fs_ref().get_token_full_start()
-                < self
-                    .original_range
-                    .end()
-                    .expect_source("formatting ranges have source positions")
+                < self.original_range.end().expect_source("formatting ranges have source positions")
         {
             let mut token_info = self.fs().read_token_info(parent);
             if token_info.token.kind == Kind::CommaToken {
                 // consume the comma
-                self.consume_token_and_advance_scanner(&token_info, parent, &list_dynamic_indentation, parent, false);
+                self.consume_token_and_advance_scanner(
+                    &token_info,
+                    parent,
+                    &list_dynamic_indentation,
+                    parent,
+                    false,
+                );
                 if self.fs_ref().is_on_token() {
                     token_info = self.fs().read_token_info(parent);
                 } else {
@@ -759,9 +776,17 @@ impl FormatSpanWorker {
             // there might be the case when current token matches end token but does not considered as one
             // function (x: function) <--
             // without this check close paren will be interpreted as list end token for function expression which is wrong
-            if token_info.token.kind == list_end_token && token_info.token.loc.contained_by(parent.loc()) {
+            if token_info.token.kind == list_end_token
+                && token_info.token.loc.contained_by(parent.loc())
+            {
                 // consume list end token
-                self.consume_token_and_advance_scanner(&token_info, parent, &list_dynamic_indentation, parent, true /*isListEndToken*/);
+                self.consume_token_and_advance_scanner(
+                    &token_info,
+                    parent,
+                    &list_dynamic_indentation,
+                    parent,
+                    true, /*isListEndToken*/
+                );
             }
         }
     }
@@ -825,7 +850,12 @@ impl FormatSpanWorker {
     // span.go:544
     fn get_current_indentation_at_position(&self, pos: u32) -> i32 {
         let start_line_position = get_line_start_position_for_position(pos, self.source_file);
-        find_first_non_whitespace_column(start_line_position, pos, self.source_file, &self.fc().options)
+        find_first_non_whitespace_column(
+            start_line_position,
+            pos,
+            self.source_file,
+            &self.fc().options,
+        )
     }
 
     // span.go:549
@@ -890,19 +920,16 @@ impl FormatSpanWorker {
             return (i + parent_dynamic_indentation.get_delta(Some(node)), delta);
         }
 
-        (
-            inherited_indentation.expect("known inherited indentation"),
-            delta,
-        )
+        (inherited_indentation.expect("known inherited indentation"), delta)
     }
 
     // span.go:593
     /* Tries to compute the indentation for a list element.
-    * If list element is not in range then
-    * function will pick its actual indentation
-    * so it can be pushed downstream as inherited indentation.
-    * If list element is in the range - its indentation will be equal
-    * to inherited indentation from its predecessors.
+     * If list element is not in range then
+     * function will pick its actual indentation
+     * so it can be pushed downstream as inherited indentation.
+     * If list element is in the range - its indentation will be equal
+     * to inherited indentation from its predecessors.
      */
     fn try_compute_indentation_for_list_item(
         &self,
@@ -948,7 +975,8 @@ impl FormatSpanWorker {
             return;
         }
 
-        let node_dynamic_indentation = self.get_dynamic_indentation(node, node_start_line, indentation, delta);
+        let node_dynamic_indentation =
+            self.get_dynamic_indentation(node, node_start_line, indentation, delta);
 
         // a useful observations when tracking context node
         //        /
@@ -966,21 +994,29 @@ impl FormatSpanWorker {
 
         // if there are any tokens that logically belong to node and interleave child nodes
         // such tokens will be consumed in processChildNode for the child that follows them
-        self.execute_process_node_visitor(node, Rc::clone(&node_dynamic_indentation), node_start_line, undecorated_node_start_line);
+        self.execute_process_node_visitor(
+            node,
+            Rc::clone(&node_dynamic_indentation),
+            node_start_line,
+            undecorated_node_start_line,
+        );
 
         // proceed any tokens in the node that are located after child nodes
         while self.fs_ref().is_on_token()
             && self.fs_ref().get_token_full_start()
-                < self
-                    .original_range
-                    .end()
-                    .expect_source("formatting ranges have source positions")
+                < self.original_range.end().expect_source("formatting ranges have source positions")
         {
             let token_info = self.fs().read_token_info(node);
             if token_info.token.loc.end() > node.end().min(self.original_range.end()) {
                 break;
             }
-            self.consume_token_and_advance_scanner(&token_info, node, &node_dynamic_indentation, node, false);
+            self.consume_token_and_advance_scanner(
+                &token_info,
+                node,
+                &node_dynamic_indentation,
+                node,
+                false,
+            );
         }
     }
 
@@ -996,7 +1032,13 @@ impl FormatSpanWorker {
         context_node: Option<P<Node>>,
         dynamic_indentation: Option<&DynamicIndenterRef>,
     ) -> LineAction {
-        self.formatting_context.as_mut().unwrap().update_context(previous_item, previous_parent, current_item, current_parent, context_node);
+        self.formatting_context.as_mut().unwrap().update_context(
+            previous_item,
+            previous_parent,
+            current_item,
+            current_parent,
+            context_node,
+        );
 
         let mut current_rules = std::mem::take(&mut self.current_rules);
         current_rules.clear();
@@ -1010,7 +1052,13 @@ impl FormatSpanWorker {
             // win in a conflict with lower priority rules.
             let rules = self.current_rules.clone();
             for &rule in rules.iter().rev() {
-                line_action = self.apply_rule_edits(rule, previous_item, previous_start_line, current_item, current_start_line);
+                line_action = self.apply_rule_edits(
+                    rule,
+                    previous_item,
+                    previous_start_line,
+                    current_item,
+                    current_start_line,
+                );
                 if let Some(dynamic_indentation) = dynamic_indentation {
                     match line_action {
                         LineAction::LineRemoved => {
@@ -1056,12 +1104,17 @@ impl FormatSpanWorker {
                     && rule.flags() != RuleFlags::CanDeleteNewLines;
             }
         } else {
-            trim_trailing_whitespaces = trim_trailing_whitespaces && current_item.kind != Kind::EndOfFile;
+            trim_trailing_whitespaces =
+                trim_trailing_whitespaces && current_item.kind != Kind::EndOfFile;
         }
 
         if current_start_line != previous_start_line && trim_trailing_whitespaces {
             // We need to trim trailing whitespace between the tokens if they were on different lines, and no rule was applied to put them on the same line
-            self.trim_trailing_whitespaces_for_lines(previous_start_line, current_start_line, previous_item);
+            self.trim_trailing_whitespaces_for_lines(
+                previous_start_line,
+                current_start_line,
+                previous_item,
+            );
         }
 
         line_action
@@ -1095,8 +1148,7 @@ impl FormatSpanWorker {
                         .expect_source("formatting ranges have source positions");
                     self.record_delete(
                         start,
-                        end.checked_sub(start)
-                            .expect("formatting ranges are ordered"),
+                        end.checked_sub(start).expect("formatting ranges are ordered"),
                     );
                     if on_later_line {
                         return LineAction::LineRemoved;
@@ -1110,17 +1162,16 @@ impl FormatSpanWorker {
                         .loc
                         .pos()
                         .expect_source("formatting ranges have source positions"),
-                    previous_range
-                        .loc
-                        .len()
-                        .expect("formatting ranges have source positions"),
+                    previous_range.loc.len().expect("formatting ranges have source positions"),
                 );
             }
             RuleAction::InsertNewLine => {
                 // exit early if we on different lines and rule cannot change number of newlines
                 // if line1 and line2 are on subsequent lines then no edits are required - ok to exit
                 // if line1 and line2 are separated with more than one newline - ok to exit since we cannot delete extra new lines
-                if rule.flags() != RuleFlags::CanDeleteNewLines && previous_start_line != current_start_line {
+                if rule.flags() != RuleFlags::CanDeleteNewLines
+                    && previous_start_line != current_start_line
+                {
                     return LineAction::None;
                 }
 
@@ -1138,8 +1189,7 @@ impl FormatSpanWorker {
                         .expect_source("formatting ranges have source positions");
                     self.record_replace(
                         start,
-                        end.checked_sub(start)
-                            .expect("formatting ranges are ordered"),
+                        end.checked_sub(start).expect("formatting ranges are ordered"),
                         &new_line,
                     );
                     if on_later_line {
@@ -1150,7 +1200,9 @@ impl FormatSpanWorker {
             }
             RuleAction::InsertSpace => {
                 // exit early if we on different lines and rule cannot change number of newlines
-                if rule.flags() != RuleFlags::CanDeleteNewLines && previous_start_line != current_start_line {
+                if rule.flags() != RuleFlags::CanDeleteNewLines
+                    && previous_start_line != current_start_line
+                {
                     return LineAction::None;
                 }
 
@@ -1162,9 +1214,8 @@ impl FormatSpanWorker {
                     .loc
                     .pos()
                     .expect_source("formatting ranges have source positions");
-                let pos_delta = current_pos
-                    .checked_sub(previous_end)
-                    .expect("formatting ranges are ordered");
+                let pos_delta =
+                    current_pos.checked_sub(previous_end).expect("formatting ranges are ordered");
                 if pos_delta != 1
                     || !self.source_file.text()[previous_end as usize..].starts_with(' ')
                 {
@@ -1240,10 +1291,8 @@ impl FormatSpanWorker {
         }
 
         self.previous_range = r;
-        self.previous_range_trivia_end = r
-            .loc
-            .end()
-            .expect_source("formatting ranges have source positions");
+        self.previous_range_trivia_end =
+            r.loc.end().expect_source("formatting ranges have source positions");
         self.previous_parent = parent;
         self.previous_range_start_line = range_start_line;
 
@@ -1282,14 +1331,12 @@ impl FormatSpanWorker {
 
     // span.go:796
     /*
-    * Trimming will be done for lines after the previous range.
-    * Exclude comments as they had been previously processed.
+     * Trimming will be done for lines after the previous range.
+     * Exclude comments as they had been previously processed.
      */
     fn trim_trailing_whitespaces_for_remaining_range(&mut self, trivias: &[TextRangeWithKind]) {
-        let mut start_pos = self
-            .original_range
-            .pos()
-            .expect_source("formatting ranges have source positions");
+        let mut start_pos =
+            self.original_range.pos().expect_source("formatting ranges have source positions");
         if self.previous_range != new_text_range_with_kind(0, 0, Kind::Unknown) {
             start_pos = self
                 .previous_range
@@ -1300,10 +1347,8 @@ impl FormatSpanWorker {
 
         for trivia in trivias {
             if is_comment(trivia.kind) {
-                let trivia_pos = trivia
-                    .loc
-                    .pos()
-                    .expect_source("formatting ranges have source positions");
+                let trivia_pos =
+                    trivia.loc.pos().expect_source("formatting ranges have source positions");
                 if start_pos < trivia_pos {
                     self.trim_trailing_witespaces_for_positions(
                         start_pos,
@@ -1326,10 +1371,8 @@ impl FormatSpanWorker {
             }
         }
 
-        let original_end = self
-            .original_range
-            .end()
-            .expect_source("formatting ranges have source positions");
+        let original_end =
+            self.original_range.end().expect_source("formatting ranges have source positions");
         if start_pos < original_end {
             self.trim_trailing_witespaces_for_positions(
                 start_pos,
@@ -1371,12 +1414,8 @@ impl FormatSpanWorker {
             if r != new_text_range_with_kind(0, 0, Kind::Unknown)
                 && (is_comment(r.kind)
                     || is_string_or_regular_expression_or_template_literal(r.kind))
-                && r.loc
-                    .source_pos()
-                    .is_some_and(|pos| pos <= line_end_position)
-                && r.loc
-                    .source_end()
-                    .is_some_and(|end| end > line_end_position)
+                && r.loc.source_pos().is_some_and(|pos| pos <= line_end_position)
+                && r.loc.source_end().is_some_and(|end| end > line_end_position)
             {
                 continue;
             }
@@ -1385,7 +1424,9 @@ impl FormatSpanWorker {
                 self.get_trailing_whitespace_start_position(line_start_position, line_end_position)
             {
                 if whitespace_start != line_start_position {
-                    let (r, _) = decode_rune(&self.source_file.text().as_bytes()[(whitespace_start - 1) as usize..]);
+                    let (r, _) = decode_rune(
+                        &self.source_file.text().as_bytes()[(whitespace_start - 1) as usize..],
+                    );
                     assert!(!is_white_space_single_line(r));
                 }
                 self.record_delete(whitespace_start, line_end_position + 1 - whitespace_start);
@@ -1395,8 +1436,8 @@ impl FormatSpanWorker {
 
     // span.go:850
     /*
-    * @param start The position of the first character in range
-    * @param end The position of the last character in range
+     * @param start The position of the first character in range
+     * @param end The position of the last character in range
      */
     fn get_trailing_whitespace_start_position(&self, start: u32, end: u32) -> Option<u32> {
         let mut pos = end;
@@ -1427,7 +1468,9 @@ impl FormatSpanWorker {
 
 // span.go:870
 pub(crate) fn is_string_or_regular_expression_or_template_literal(kind: Kind) -> bool {
-    kind == Kind::StringLiteral || kind == Kind::RegularExpressionLiteral || ast::is_template_literal_kind(kind)
+    kind == Kind::StringLiteral
+        || kind == Kind::RegularExpressionLiteral
+        || ast::is_template_literal_kind(kind)
 }
 
 // span.go:874
@@ -1451,7 +1494,11 @@ impl FormatSpanWorker {
             if indentation != self.character_to_column(start_line_position, token_start_character)
                 || self.indentation_is_different(&indentation_string, start_line_position)
             {
-                self.record_replace(start_line_position, token_start_character, &indentation_string);
+                self.record_replace(
+                    start_line_position,
+                    token_start_character,
+                    &indentation_string,
+                );
             }
         }
     }
@@ -1496,7 +1543,12 @@ impl FormatSpanWorker {
             match trivia_item.kind {
                 Kind::MultiLineCommentTrivia => {
                     if trivia_in_range {
-                        self.indent_multiline_comment(trivia_item.loc, comment_indentation, !indent_next_token_or_trivia, true);
+                        self.indent_multiline_comment(
+                            trivia_item.loc,
+                            comment_indentation,
+                            !indent_next_token_or_trivia,
+                            true,
+                        );
                     }
                     indent_next_token_or_trivia = false;
                 }
@@ -1516,28 +1568,28 @@ impl FormatSpanWorker {
     }
 
     // span.go:937
-    fn indent_multiline_comment(&mut self, comment_range: TextRange, indentation: i32, first_line_is_indented: bool, indent_final_line: bool) {
+    fn indent_multiline_comment(
+        &mut self,
+        comment_range: TextRange,
+        indentation: i32,
+        first_line_is_indented: bool,
+        indent_final_line: bool,
+    ) {
         // split comment in lines
         let mut start_line = scanner::get_ecma_line_of_position(
             self.source_file.get(),
-            comment_range
-                .pos()
-                .expect_source("comment ranges have source positions"),
+            comment_range.pos().expect_source("comment ranges have source positions"),
         );
         let end_line = scanner::get_ecma_line_of_position(
             self.source_file.get(),
-            comment_range
-                .end()
-                .expect_source("comment ranges have source positions"),
+            comment_range.end().expect_source("comment ranges have source positions"),
         );
 
         if start_line == end_line {
             if !first_line_is_indented {
                 // treat as single line comment
                 self.insert_indentation(
-                    comment_range
-                        .pos()
-                        .expect_source("comment ranges have source positions"),
+                    comment_range.pos().expect_source("comment ranges have source positions"),
                     indentation,
                     false,
                 );
@@ -1546,16 +1598,11 @@ impl FormatSpanWorker {
         }
 
         let text = self.source_file.text();
-        let comment_start = comment_range
-            .pos()
-            .expect_source("comment ranges have source positions");
-        let comment_end = comment_range
-            .end()
-            .expect_source("comment ranges have source positions");
+        let comment_start =
+            comment_range.pos().expect_source("comment ranges have source positions");
+        let comment_end = comment_range.end().expect_source("comment ranges have source positions");
         let mut parts: Vec<TextRange> = Vec::with_capacity(
-            text[comment_start as usize..comment_end as usize]
-                .matches('\n')
-                .count(),
+            text[comment_start as usize..comment_end as usize].matches('\n').count(),
         );
         let mut start_pos = comment_start;
         parts = (start_line..end_line).fold(parts, |mut parts, line| {
@@ -1580,9 +1627,7 @@ impl FormatSpanWorker {
         let (non_whitespace_in_first_part_character, non_whitespace_in_first_part_column) =
             find_first_non_whitespace_character_and_column(
                 start_line_pos,
-                parts[0]
-                    .pos()
-                    .expect_source("comment ranges have source positions"),
+                parts[0].pos().expect_source("comment ranges have source positions"),
                 self.source_file,
                 &self.fc().options,
             );
@@ -1603,12 +1648,8 @@ impl FormatSpanWorker {
             if i != 0 {
                 (non_whitespace_character, non_whitespace_column) =
                     find_first_non_whitespace_character_and_column(
-                        (*element)
-                            .pos()
-                            .expect_source("comment ranges have source positions"),
-                        (*element)
-                            .end()
-                            .expect_source("comment ranges have source positions"),
+                        (*element).pos().expect_source("comment ranges have source positions"),
+                        (*element).end().expect_source("comment ranges have source positions"),
                         self.source_file,
                         &self.fc().options,
                     );
@@ -1617,11 +1658,7 @@ impl FormatSpanWorker {
             if new_indentation > 0 {
                 let indentation_string =
                     get_indentation_string(new_indentation, &self.fc().options);
-                self.record_replace(
-                    start_line_pos,
-                    non_whitespace_character,
-                    &indentation_string,
-                );
+                self.record_replace(start_line_pos, non_whitespace_character, &indentation_string);
             } else {
                 self.record_delete(start_line_pos, non_whitespace_character);
             }
@@ -1657,9 +1694,7 @@ fn create_text_change_from_start_length(start: u32, length: u32, new_text: &str)
         new_text: new_text.to_string(),
         text_range: TextRange::new(
             start,
-            start
-                .checked_add(length)
-                .expect("text change range overflow"),
+            start.checked_add(length).expect("text change range overflow"),
         ),
     }
 }
@@ -1700,7 +1735,12 @@ impl FormatSpanWorker {
         let mut indent_token = false;
 
         if !current_token_info.leading_trivia.is_empty() {
-            self.process_trivia(&current_token_info.leading_trivia, Some(parent), self.child_context_node, Some(dynamic_indenation));
+            self.process_trivia(
+                &current_token_info.leading_trivia,
+                Some(parent),
+                self.child_context_node,
+                Some(dynamic_indenation),
+            );
         }
 
         let mut line_action = LineAction::None;
@@ -1765,17 +1805,18 @@ impl FormatSpanWorker {
             // processed by processTrivia (which skips comments not contained by originalRange).
             // Cap previousRangeTriviaEnd before such comments so the trailing edit contiguity
             // check in execute() won't pair across unprocessed comment content.
-            if let Some(trivia) = current_token_info
-                .trailing_trivia
-                .iter()
-                .find(|trivia| is_comment(trivia.kind) && !trivia.loc.contained_by(self.original_range))
-            {
-                self.previous_range_trivia_end = trivia
-                    .loc
-                    .pos()
-                    .expect_source("formatting ranges have source positions");
+            if let Some(trivia) = current_token_info.trailing_trivia.iter().find(|trivia| {
+                is_comment(trivia.kind) && !trivia.loc.contained_by(self.original_range)
+            }) {
+                self.previous_range_trivia_end =
+                    trivia.loc.pos().expect_source("formatting ranges have source positions");
             }
-            self.process_trivia(&current_token_info.trailing_trivia, Some(parent), self.child_context_node, Some(dynamic_indenation));
+            self.process_trivia(
+                &current_token_info.trailing_trivia,
+                Some(parent),
+                self.child_context_node,
+                Some(dynamic_indenation),
+            );
         }
 
         if indent_token {
@@ -1790,16 +1831,18 @@ impl FormatSpanWorker {
             }
             let mut indent_next_token_or_trivia = true;
             if !current_token_info.leading_trivia.is_empty() {
-                let comment_indentation = dynamic_indenation.get_indentation_for_comment(current_token_info.token.kind, token_indentation, container);
+                let comment_indentation = dynamic_indenation.get_indentation_for_comment(
+                    current_token_info.token.kind,
+                    token_indentation,
+                    container,
+                );
                 indent_next_token_or_trivia = self.indent_trivia_items(
                     &current_token_info.leading_trivia,
                     comment_indentation,
                     indent_next_token_or_trivia,
                     &mut |w: &mut FormatSpanWorker, item: TextRangeWithKind| {
                         w.insert_indentation(
-                            item.loc
-                                .pos()
-                                .expect_source("formatting ranges have source positions"),
+                            item.loc.pos().expect_source("formatting ranges have source positions"),
                             comment_indentation,
                             false,
                         );
@@ -1913,7 +1956,13 @@ impl DynamicIndenter {
 
     // span.go:1178
     fn recompute_indentation(&self, line_added: bool, parent: P<Node>) {
-        if should_indent_child_node(&self.options, parent, Some(self.node), Some(self.source_file), false) {
+        if should_indent_child_node(
+            &self.options,
+            parent,
+            Some(self.node),
+            Some(self.source_file),
+            false,
+        ) {
             if line_added {
                 self.indentation.set(self.indentation.get() + self.options.indent_size); // !!! no nil check???
             } else {
@@ -1938,14 +1987,18 @@ impl DynamicIndenter {
             | Kind::WhileKeyword
             | Kind::AtToken => return false,
             Kind::SlashToken | Kind::GreaterThanToken => {
-                if matches!(container.kind(), Kind::JsxOpeningElement | Kind::JsxClosingElement | Kind::JsxSelfClosingElement) {
+                if matches!(
+                    container.kind(),
+                    Kind::JsxOpeningElement | Kind::JsxClosingElement | Kind::JsxSelfClosingElement
+                ) {
                     return false;
                 }
             }
             Kind::OpenBracketToken | Kind::CloseBracketToken
-                if container.kind() != Kind::MappedType => {
-                    return false;
-                }
+                if container.kind() != Kind::MappedType =>
+            {
+                return false;
+            }
             _ => {}
         }
         // if token line equals to the line of containing node (this is a first token in the node) - use node indentation
@@ -1978,7 +2031,9 @@ fn get_first_non_decorator_token_of_node(node: P<Node>) -> Kind {
         Kind::GetAccessor => return Kind::GetKeyword,
         Kind::SetAccessor => return Kind::SetKeyword,
         Kind::MethodDeclaration | Kind::PropertyDeclaration | Kind::Parameter => {
-            if node.kind() == Kind::MethodDeclaration && node.as_method_declaration().asterisk_token().is_some() {
+            if node.kind() == Kind::MethodDeclaration
+                && node.as_method_declaration().asterisk_token().is_some()
+            {
                 return Kind::AsteriskToken;
             }
             let name = ast::get_name_of_declaration(node);

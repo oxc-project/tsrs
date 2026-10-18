@@ -28,9 +28,6 @@ pub fn from_utf8_lossy(bytes: &[u8]) -> Cow<'_, str> {
 /// Reads and validates UTF-8, preserving `std::fs::read_to_string`'s invalid-data error.
 pub fn read_to_string(path: impl AsRef<Path>) -> io::Result<String> {
     into_string(std::fs::read(path)?).map_err(|_| {
-        io::Error::new(
-            io::ErrorKind::InvalidData,
-            "stream did not contain valid UTF-8",
-        )
+        io::Error::new(io::ErrorKind::InvalidData, "stream did not contain valid UTF-8")
     })
 }

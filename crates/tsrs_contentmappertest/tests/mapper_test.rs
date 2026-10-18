@@ -6,9 +6,9 @@ use std::io::{self, Write};
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{Arc, Mutex, PoisonError};
 
-use tsrs_contentmapper::{new_host, Definition, Manifest, Mapper, ProjectSpec, Request, Spawner};
-use tsrs_contentmappertest::{serve, DECLARED_OPTIONS, PACKAGE_NAME, TRANSFORMING_MAPPER};
-use tsrs_core::{CompilerOptions, Locale, ScriptTarget, P};
+use tsrs_contentmapper::{Definition, Manifest, Mapper, ProjectSpec, Request, Spawner, new_host};
+use tsrs_contentmappertest::{DECLARED_OPTIONS, PACKAGE_NAME, TRANSFORMING_MAPPER, serve};
+use tsrs_core::{CompilerOptions, Locale, P, ScriptTarget};
 use tsrs_ipc::{Closer, ReadWriteCloser};
 
 // helperEnv, when set, makes the test binary act as the mapper subprocess instead of running tests. This
@@ -20,7 +20,11 @@ const HELPER_ENV: &str = "TSGO_CONTENT_MAPPER_HELPER";
 // mapper_test.go:23
 fn main() {
     if std::env::var(HELPER_ENV).as_deref() == Ok("1") {
-        let _ = serve(ReadWriteCloser { reader: Box::new(io::stdin()), writer: Box::new(io::stdout()), closer: Arc::new(stdio) });
+        let _ = serve(ReadWriteCloser {
+            reader: Box::new(io::stdin()),
+            writer: Box::new(io::stdout()),
+            closer: Arc::new(stdio),
+        });
         std::process::exit(0);
     }
     test_out_of_process();
@@ -41,12 +45,19 @@ impl Closer for stdio {
 // mapper_test.go:38
 fn test_mapper() -> &'static Mapper {
     Box::leak(Box::new(Mapper {
-        definition: Definition { package: PACKAGE_NAME.to_string(), extensions: vec![".box".to_string()], ..Default::default() },
+        definition: Definition {
+            package: PACKAGE_NAME.to_string(),
+            extensions: vec![".box".to_string()],
+            ..Default::default()
+        },
         manifest: Manifest {
             name: PACKAGE_NAME.to_string(),
             version: "1.0.0".to_string(),
             exec: vec![TRANSFORMING_MAPPER.to_string()],
-            compiler_options: DECLARED_OPTIONS.iter().map(std::string::ToString::to_string).collect(),
+            compiler_options: DECLARED_OPTIONS
+                .iter()
+                .map(std::string::ToString::to_string)
+                .collect(),
             ..Default::default()
         },
         package_directory: format!("/node_modules/{PACKAGE_NAME}"),
@@ -66,7 +77,8 @@ fn test_out_of_process() {
     let host = new_host(Arc::new(execSpawner), Locale::DEFAULT);
     let mapper = test_mapper();
     let request = transform_request();
-    let compiler_options = P::new(CompilerOptions { target: ScriptTarget::ES2020, ..Default::default() });
+    let compiler_options =
+        P::new(CompilerOptions { target: ScriptTarget::ES2020, ..Default::default() });
     let project = host
         .project(ProjectSpec {
             config_file_name: "/tsconfig.json".to_string(),
@@ -89,7 +101,12 @@ struct execSpawner;
 
 impl Spawner for execSpawner {
     // mapper_test.go:83
-    fn spawn(&self, _command: &[String], _dir: &str, stderr: Option<Box<dyn Write + Send>>) -> Result<ReadWriteCloser, String> {
+    fn spawn(
+        &self,
+        _command: &[String],
+        _dir: &str,
+        stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<ReadWriteCloser, String> {
         let mut cmd = Command::new(std::env::current_exe().map_err(|err| err.to_string())?);
         cmd.env(HELPER_ENV, "1");
         cmd.stdin(Stdio::piped());

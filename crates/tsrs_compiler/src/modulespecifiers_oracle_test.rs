@@ -7,12 +7,12 @@ use std::sync::Arc;
 
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::{self, Value};
-use tsrs_core::{CompilerOptions, ModuleKind, Tristate, P};
+use tsrs_core::{CompilerOptions, ModuleKind, P, Tristate};
 use tsrs_modulespecifiers as modulespecifiers;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{bundled, vfstest, FS};
+use tsrs_vfs::{FS, bundled, vfstest};
 
-use crate::{new_compiler_host, new_program, ProgramOptions};
+use crate::{ProgramOptions, new_compiler_host, new_program};
 
 struct parseConfigHost {
     fs: Arc<dyn FS>,
@@ -69,13 +69,24 @@ fn run(s: &Value) -> Value {
         }));
     }
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files, case_sensitive)));
-    let host = new_compiler_host(&cwd, std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
-    let parse_host: &'static parseConfigHost = Box::leak(Box::new(parseConfigHost { fs, cwd: cwd.clone() }));
-    let (config, errors) =
-        tsoptions::get_parsed_command_line_of_config_file(&str_field(s, "config"), Some(&CompilerOptions::default()), None, parse_host, None);
+    let host =
+        new_compiler_host(&cwd, std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
+    let parse_host: &'static parseConfigHost =
+        Box::leak(Box::new(parseConfigHost { fs, cwd: cwd.clone() }));
+    let (config, errors) = tsoptions::get_parsed_command_line_of_config_file(
+        &str_field(s, "config"),
+        Some(&CompilerOptions::default()),
+        None,
+        parse_host,
+        None,
+    );
     let name = Value::String(str_field(s, "name"));
     let Some(config) = config.filter(|_| errors.is_empty()) else {
-        return object(vec![("name", name), ("symlinks", strings(["config error".to_string()])), ("results", Value::Array(Vec::new()))]);
+        return object(vec![
+            ("name", name),
+            ("symlinks", strings(["config error".to_string()])),
+            ("results", Value::Array(Vec::new())),
+        ]);
     };
     let mut opts = ProgramOptions::new(P::new(config), host);
     opts.single_threaded = Tristate::True;
@@ -83,7 +94,8 @@ fn run(s: &Value) -> Value {
 
     let mut symlinks = Vec::new();
     program.get_symlink_cache().directories_by_realpath().range(|realpath, set| {
-        symlinks.extend(set.to_slice().into_iter().map(|k| format!("{} <- {}", realpath.as_str(), k)));
+        symlinks
+            .extend(set.to_slice().into_iter().map(|k| format!("{} <- {}", realpath.as_str(), k)));
         true
     });
     symlinks.sort();
@@ -107,12 +119,17 @@ fn run(s: &Value) -> Value {
                 ("pref", Value::String(pref.clone())),
             ];
             let Some(file) = program.get_source_file(&from) else {
-                entries.extend([("specifiers", Value::Array(Vec::new())), ("kind", Value::Number(0.0)), ("error", Value::String("no importing file".into()))]);
+                entries.extend([
+                    ("specifiers", Value::Array(Vec::new())),
+                    ("kind", Value::Number(0.0)),
+                    ("error", Value::String("no importing file".into())),
+                ]);
                 results.push(object(entries));
                 continue;
             };
             let mut prefs = modulespecifiers::UserPreferences {
-                import_module_specifier_preference: modulespecifiers::ImportModuleSpecifierPreference::ProjectRelative,
+                import_module_specifier_preference:
+                    modulespecifiers::ImportModuleSpecifierPreference::ProjectRelative,
                 ..Default::default()
             };
             prefs.import_module_specifier_preference = match pref.as_str() {
@@ -123,7 +140,8 @@ fn run(s: &Value) -> Value {
                 _ => panic!("unknown pref {pref}"),
             };
             if ending == "js" {
-                prefs.import_module_specifier_ending = modulespecifiers::ImportModuleSpecifierEndingPreference::Js;
+                prefs.import_module_specifier_ending =
+                    modulespecifiers::ImportModuleSpecifierEndingPreference::Js;
             }
             let override_import_mode = match mode {
                 0 => ModuleKind::None,
@@ -141,11 +159,18 @@ fn run(s: &Value) -> Value {
                 modulespecifiers::ModuleSpecifierOptions { override_import_mode },
                 false,
             );
-            entries.extend([("specifiers", strings(specifiers)), ("kind", Value::Number(kind as u8 as f64))]);
+            entries.extend([
+                ("specifiers", strings(specifiers)),
+                ("kind", Value::Number(kind as u8 as f64)),
+            ]);
             results.push(object(entries));
         }
     }
-    object(vec![("name", name), ("symlinks", strings(symlinks)), ("results", Value::Array(results))])
+    object(vec![
+        ("name", name),
+        ("symlinks", strings(symlinks)),
+        ("results", Value::Array(results)),
+    ])
 }
 
 #[test]
@@ -159,7 +184,9 @@ fn modulespecifiers_oracle() {
         let s = json::unmarshal(s).unwrap();
         let e = json::unmarshal(e).unwrap();
         let actual = run(&s);
-        let (Value::Array(actual_results), Value::Array(expected_results)) = (field(&actual, "results"), field(&e, "results")) else {
+        let (Value::Array(actual_results), Value::Array(expected_results)) =
+            (field(&actual, "results"), field(&e, "results"))
+        else {
             unreachable!()
         };
         if field(&actual, "symlinks") != field(&e, "symlinks") {
@@ -173,7 +200,10 @@ fn modulespecifiers_oracle() {
         assert_eq!(actual_results.len(), expected_results.len());
         for (a, x) in actual_results.iter().zip(expected_results) {
             count += 1;
-            if field(a, "specifiers") != field(x, "specifiers") || field(a, "kind") != field(x, "kind") || field(a, "error") != field(x, "error") {
+            if field(a, "specifiers") != field(x, "specifiers")
+                || field(a, "kind") != field(x, "kind")
+                || field(a, "error") != field(x, "error")
+            {
                 failures.push(format!(
                     "{}: {} -> {} (ending {:?}, mode {}, pref {:?})\n  actual:   {} kind {}\n  expected: {} kind {}",
                     str_field(&e, "name"),
@@ -190,5 +220,10 @@ fn modulespecifiers_oracle() {
             }
         }
     }
-    assert!(failures.is_empty(), "{} of {count} requests differ:\n{}", failures.len(), failures.join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} of {count} requests differ:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
 }

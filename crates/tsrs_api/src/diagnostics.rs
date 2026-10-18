@@ -3,11 +3,11 @@
 
 use tsrs_ast::{Diagnostic, SourceFile};
 use tsrs_core::json::Value;
-use tsrs_core::{TextRange, P};
+use tsrs_core::{P, TextRange};
 use tsrs_diagnostics::Category;
 
 use crate::handler::{ApiError, ApiResult};
-use crate::wire::{b, n, s, Obj, Params};
+use crate::wire::{Obj, Params, b, n, s};
 
 fn category_from(v: i64) -> Option<Category> {
     Some(match v {
@@ -42,16 +42,10 @@ fn source_lines(file: &SourceFile, first_line: usize, last_line: usize) -> Optio
     let mut result = Vec::with_capacity(lines.len());
     result.extend(lines.into_iter().map(|line| {
         let start = line_map[line] as usize;
-        let end = if (line + 1) < line_map.len() {
-            line_map[line + 1] as usize
-        } else {
-            text.len()
-        };
+        let end =
+            if (line + 1) < line_map.len() { line_map[line + 1] as usize } else { text.len() };
         Obj::new()
-            .set(
-                "line",
-                n(u32::try_from(line).expect("line number exceeds u32")),
-            )
+            .set("line", n(u32::try_from(line).expect("line number exceeds u32")))
             .set("text", s(&text[start..end]))
             .build()
     }));
@@ -78,40 +72,20 @@ pub fn diagnostic_response(d: &Diagnostic) -> Value {
             tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, end);
         positions = Some((
             Obj::new()
-                .set(
-                    "line",
-                    n(u32::try_from(start_line).expect("line number exceeds u32")),
-                )
-                .set(
-                    "character",
-                    n(start_char),
-                )
+                .set("line", n(u32::try_from(start_line).expect("line number exceeds u32")))
+                .set("character", n(start_char))
                 .build(),
             Obj::new()
-                .set(
-                    "line",
-                    n(u32::try_from(end_line).expect("line number exceeds u32")),
-                )
-                .set(
-                    "character",
-                    n(end_char),
-                )
+                .set("line", n(u32::try_from(end_line).expect("line number exceeds u32")))
+                .set("character", n(end_char))
                 .build(),
             source_lines(&file, start_line, end_line),
         ));
-        o = o
-            .set("pos", n(map.utf8_to_utf16(pos)))
-            .set("end", n(map.utf8_to_utf16(end)));
+        o = o.set("pos", n(map.utf8_to_utf16(pos))).set("end", n(map.utf8_to_utf16(end)));
     } else {
         o = o
-            .set(
-                "pos",
-                n(pos.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))),
-            )
-            .set(
-                "end",
-                n(end.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))),
-            );
+            .set("pos", n(pos.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))))
+            .set("end", n(end.map_or(-1, |value| i32::try_from(value).unwrap_or(i32::MAX))));
     }
     o = o.set_opt("fileName", file_name);
     if let Some((start, end, lines)) = positions {
@@ -130,11 +104,17 @@ pub fn diagnostic_response(d: &Diagnostic) -> Value {
     }
     let chain = d.message_chain();
     if !chain.is_empty() {
-        o = o.set("messageChain", Value::Array(chain.iter().map(|c| diagnostic_response(c)).collect()));
+        o = o.set(
+            "messageChain",
+            Value::Array(chain.iter().map(|c| diagnostic_response(c)).collect()),
+        );
     }
     let related = d.related_information();
     if !related.is_empty() {
-        o = o.set("relatedInformation", Value::Array(related.iter().map(|r| diagnostic_response(r)).collect()));
+        o = o.set(
+            "relatedInformation",
+            Value::Array(related.iter().map(|r| diagnostic_response(r)).collect()),
+        );
     }
     o.build()
 }

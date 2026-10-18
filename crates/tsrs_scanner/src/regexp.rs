@@ -3,15 +3,19 @@ use std::cmp::Ordering;
 use std::fmt::Display;
 
 use rustc_hash::FxHashSet;
-use tsrs_core::{stringutil, stringutil::Rune, ScriptTarget};
+use tsrs_core::{ScriptTarget, stringutil, stringutil::Rune};
 use tsrs_diagnostics as diagnostics;
 use tsrs_diagnostics::Message;
 
-use crate::scanner::{decode_rune, is_identifier_part, is_word_character, rune_string, EscapeSequenceScanningFlags, IdentifierVariant, Scanner, RUNE_ERROR};
+use crate::scanner::{
+    EscapeSequenceScanningFlags, IdentifierVariant, RUNE_ERROR, Scanner, decode_rune,
+    is_identifier_part, is_word_character, rune_string,
+};
 use crate::unicodeproperties::{
-    binary_unicode_properties, binary_unicode_properties_of_strings, general_category_values, non_binary_unicode_properties,
-    values_of_non_binary_unicode_properties, BINARY_UNICODE_PROPERTIES, BINARY_UNICODE_PROPERTIES_OF_STRINGS, GENERAL_CATEGORY_VALUES,
-    NON_BINARY_UNICODE_PROPERTIES,
+    BINARY_UNICODE_PROPERTIES, BINARY_UNICODE_PROPERTIES_OF_STRINGS, GENERAL_CATEGORY_VALUES,
+    NON_BINARY_UNICODE_PROPERTIES, binary_unicode_properties, binary_unicode_properties_of_strings,
+    general_category_values, non_binary_unicode_properties,
+    values_of_non_binary_unicode_properties,
 };
 
 bitflags::bitflags! {
@@ -46,7 +50,9 @@ pub(crate) fn char_code_to_reg_exp_flag(ch: Rune) -> Option<RegularExpressionFla
     })
 }
 
-fn reg_exp_flag_to_first_available_language_version(flag: RegularExpressionFlags) -> Option<ScriptTarget> {
+fn reg_exp_flag_to_first_available_language_version(
+    flag: RegularExpressionFlags,
+) -> Option<ScriptTarget> {
     if flag == RegularExpressionFlags::HasIndices {
         Some(ScriptTarget::ES2022)
     } else if flag == RegularExpressionFlags::DotAll {
@@ -151,7 +157,10 @@ fn add_unique(set: &mut Vec<&'static str>, name: &'static str) {
 }
 
 impl RegExpParser {
-    #[expect(clippy::fn_params_excessive_bools, reason = "The boolean parameters preserve the upstream Go function signature.")]
+    #[expect(
+        clippy::fn_params_excessive_bools,
+        reason = "The boolean parameters preserve the upstream Go function signature."
+    )]
     pub(crate) fn new(
         scanner: Scanner,
         end: u32,
@@ -472,7 +481,10 @@ impl RegExpParser {
         }
     }
 
-    fn scan_pattern_modifiers(&mut self, curr_flags: RegularExpressionFlags) -> RegularExpressionFlags {
+    fn scan_pattern_modifiers(
+        &mut self,
+        curr_flags: RegularExpressionFlags,
+    ) -> RegularExpressionFlags {
         let mut curr_flags = curr_flags;
         while self.pos() < self.end {
             let (ch, size) = decode_rune(&self.text().as_bytes()[self.pos() as usize..]);
@@ -481,9 +493,21 @@ impl RegExpParser {
                 break;
             }
             match char_code_to_reg_exp_flag(ch) {
-                None => self.error(&diagnostics::Unknown_regular_expression_flag, self.pos(), size, &[]),
+                None => {
+                    self.error(
+                        &diagnostics::Unknown_regular_expression_flag,
+                        self.pos(),
+                        size,
+                        &[],
+                    );
+                }
                 Some(flag) if curr_flags.intersects(flag) => {
-                    self.error(&diagnostics::Duplicate_regular_expression_flag, self.pos(), size, &[]);
+                    self.error(
+                        &diagnostics::Duplicate_regular_expression_flag,
+                        self.pos(),
+                        size,
+                        &[],
+                    );
                 }
                 Some(flag) if !flag.intersects(RegularExpressionFlags::Modifiers) => {
                     self.error(&diagnostics::This_regular_expression_flag_cannot_be_toggled_within_a_subpattern, self.pos(), size, &[]);
@@ -526,7 +550,12 @@ impl RegExpParser {
         }
         if ch == Some(b'q') && self.unicode_sets_mode {
             self.inc_pos(1);
-            self.error(&diagnostics::X_q_is_only_available_inside_character_class, self.pos() - 2, 2, &[]);
+            self.error(
+                &diagnostics::X_q_is_only_available_inside_character_class,
+                self.pos() - 2,
+                2,
+                &[],
+            );
             return;
         }
         if !self.scan_character_class_escape() && !self.scan_decimal_escape() {
@@ -544,7 +573,11 @@ impl RegExpParser {
             let start = self.pos();
             self.scan_digits();
             let val = self.scanner.state.token_value.parse::<i64>().unwrap_or(i64::MAX);
-            self.decimal_escapes.push(DecimalEscapeValue { pos: start, end: self.pos(), value: val });
+            self.decimal_escapes.push(DecimalEscapeValue {
+                pos: start,
+                end: self.pos(),
+                value: val,
+            });
             return true;
         }
         false
@@ -697,10 +730,20 @@ impl RegExpParser {
                 if min_character.is_empty() {
                     continue;
                 }
-                let (min_character_value, min_size) = stringutil::decode_js_string_rune(&min_character);
-                let (max_character_value, max_size) = stringutil::decode_js_string_rune(&max_character);
-                if min_character.len() == min_size && max_character.len() == max_size && min_character_value > max_character_value {
-                    self.error(&diagnostics::Range_out_of_order_in_character_class, min_start, self.pos() - min_start, &[]);
+                let (min_character_value, min_size) =
+                    stringutil::decode_js_string_rune(&min_character);
+                let (max_character_value, max_size) =
+                    stringutil::decode_js_string_rune(&max_character);
+                if min_character.len() == min_size
+                    && max_character.len() == max_size
+                    && min_character_value > max_character_value
+                {
+                    self.error(
+                        &diagnostics::Range_out_of_order_in_character_class,
+                        min_start,
+                        self.pos() - min_start,
+                        &[],
+                    );
                 }
             }
         }
@@ -799,7 +842,8 @@ impl RegExpParser {
                 self.inc_pos(1);
                 ch = self.char();
                 if self.is_class_content_exit(ch) {
-                    self.may_contain_strings = !is_character_complement && expression_may_contain_strings;
+                    self.may_contain_strings =
+                        !is_character_complement && expression_may_contain_strings;
                     return;
                 }
                 if ch == Some(b'-') {
@@ -832,7 +876,8 @@ impl RegExpParser {
                         &[],
                     );
                 }
-                expression_may_contain_strings = expression_may_contain_strings || self.may_contain_strings;
+                expression_may_contain_strings =
+                    expression_may_contain_strings || self.may_contain_strings;
                 if second_operand.is_empty() {
                     self.error(
                         &diagnostics::A_character_class_range_must_not_be_bounded_by_another_character_class,
@@ -841,10 +886,20 @@ impl RegExpParser {
                         &[],
                     );
                 } else if !operand.is_empty() {
-                    let (min_character_value, min_size) = stringutil::decode_js_string_rune(&operand);
-                    let (max_character_value, max_size) = stringutil::decode_js_string_rune(&second_operand);
-                    if operand.len() == min_size && second_operand.len() == max_size && min_character_value > max_character_value {
-                        self.error(&diagnostics::Range_out_of_order_in_character_class, start, self.pos() - start, &[]);
+                    let (min_character_value, min_size) =
+                        stringutil::decode_js_string_rune(&operand);
+                    let (max_character_value, max_size) =
+                        stringutil::decode_js_string_rune(&second_operand);
+                    if operand.len() == min_size
+                        && second_operand.len() == max_size
+                        && min_character_value > max_character_value
+                    {
+                        self.error(
+                            &diagnostics::Range_out_of_order_in_character_class,
+                            start,
+                            self.pos() - start,
+                            &[],
+                        );
                     }
                 }
             } else if ch == Some(b'&') {
@@ -900,7 +955,8 @@ impl RegExpParser {
                             &[],
                         );
                     }
-                    expression_may_contain_strings = expression_may_contain_strings || self.may_contain_strings;
+                    expression_may_contain_strings =
+                        expression_may_contain_strings || self.may_contain_strings;
                 }
             }
         }
@@ -974,7 +1030,8 @@ impl RegExpParser {
             }
             self.scan_class_set_operand();
             if expression_type == ClassSetExpressionType::ClassIntersection {
-                expression_may_contain_strings = expression_may_contain_strings && self.may_contain_strings;
+                expression_may_contain_strings =
+                    expression_may_contain_strings && self.may_contain_strings;
             }
         }
         self.may_contain_strings = expression_may_contain_strings;
@@ -1067,9 +1124,10 @@ impl RegExpParser {
             }
         } else if self.pos() + 1 < self.end && ch == self.char_at(self.pos() + 1) {
             if let Some(
-                    0x26 | 0x21 | 0x23 | 0x25 | 0x2A | 0x2B | 0x2C | 0x2E | 0x3A | 0x3B | 0x3C
-                    | 0x3D | 0x3E | 0x3F | 0x40 | 0x60 | 0x7E,
-                ) = ch {
+                0x26 | 0x21 | 0x23 | 0x25 | 0x2A | 0x2B | 0x2C | 0x2E | 0x3A | 0x3B | 0x3C | 0x3D
+                | 0x3E | 0x3F | 0x40 | 0x60 | 0x7E,
+            ) = ch
+            {
                 self.error(
                     &diagnostics::A_character_class_must_not_contain_a_reserved_double_punctuator_Did_you_mean_to_escape_it_with_backslash,
                     self.pos(),
@@ -1082,7 +1140,12 @@ impl RegExpParser {
         }
         if let Some(ch @ (0x2F | 0x28 | 0x29 | 0x5B | 0x5D | 0x7B | 0x7D | 0x2D | 0x7C)) = ch {
             let s = rune_string(u32::from(ch));
-            self.error(&diagnostics::Unexpected_0_Did_you_mean_to_escape_it_with_backslash, self.pos(), 1, &[&s]);
+            self.error(
+                &diagnostics::Unexpected_0_Did_you_mean_to_escape_it_with_backslash,
+                self.pos(),
+                1,
+                &[&s],
+            );
             self.inc_pos(1);
             return Cow::Owned(s);
         }
@@ -1260,20 +1323,36 @@ impl RegExpParser {
     }
 
     fn get_spelling_suggestion_for_unicode_property_name(name: &str) -> String {
-        tsrs_core::get_spelling_suggestion_for_strings(name, NON_BINARY_UNICODE_PROPERTIES.iter().map(|&(k, _)| k)).map(std::string::ToString::to_string).unwrap_or_default()
+        tsrs_core::get_spelling_suggestion_for_strings(
+            name,
+            NON_BINARY_UNICODE_PROPERTIES.iter().map(|&(k, _)| k),
+        )
+        .map(std::string::ToString::to_string)
+        .unwrap_or_default()
     }
 
-    fn get_spelling_suggestion_for_unicode_property_value(property_name: &str, value: &str) -> String {
-        let Some(values) = crate::unicodeproperties::values_list_of_non_binary_unicode_properties(property_name) else {
+    fn get_spelling_suggestion_for_unicode_property_value(
+        property_name: &str,
+        value: &str,
+    ) -> String {
+        let Some(values) =
+            crate::unicodeproperties::values_list_of_non_binary_unicode_properties(property_name)
+        else {
             return String::new();
         };
-        tsrs_core::get_spelling_suggestion_for_strings(value, values.iter().copied()).map(std::string::ToString::to_string).unwrap_or_default()
+        tsrs_core::get_spelling_suggestion_for_strings(value, values.iter().copied())
+            .map(std::string::ToString::to_string)
+            .unwrap_or_default()
     }
 
     fn get_spelling_suggestion_for_unicode_property_name_or_value(name: &str) -> String {
         tsrs_core::get_spelling_suggestion_for_strings(
             name,
-            GENERAL_CATEGORY_VALUES.iter().copied().chain(BINARY_UNICODE_PROPERTIES.iter().copied()).chain(BINARY_UNICODE_PROPERTIES_OF_STRINGS.iter().copied()),
+            GENERAL_CATEGORY_VALUES
+                .iter()
+                .copied()
+                .chain(BINARY_UNICODE_PROPERTIES.iter().copied())
+                .chain(BINARY_UNICODE_PROPERTIES_OF_STRINGS.iter().copied()),
         )
         .map(std::string::ToString::to_string)
         .unwrap_or_default()
@@ -1349,7 +1428,9 @@ impl RegExpParser {
 
     fn scan_digits(&mut self) {
         let start = self.pos();
-        while self.pos() < self.end && self.char().is_some_and(|ch| stringutil::is_digit(u32::from(ch))) {
+        while self.pos() < self.end
+            && self.char().is_some_and(|ch| stringutil::is_digit(u32::from(ch)))
+        {
             self.inc_pos(1);
         }
         self.scanner.state.token_value = &self.text()[start as usize..self.pos() as usize];
@@ -1372,12 +1453,19 @@ impl RegExpParser {
                     &[&reference.name],
                 );
                 if !self.group_specifiers.is_empty() {
-                    let suggestion =
-                        tsrs_core::get_spelling_suggestion_for_strings(reference.name, self.group_specifiers_order.iter().copied())
-                            .map(std::string::ToString::to_string)
-                            .unwrap_or_default();
+                    let suggestion = tsrs_core::get_spelling_suggestion_for_strings(
+                        reference.name,
+                        self.group_specifiers_order.iter().copied(),
+                    )
+                    .map(std::string::ToString::to_string)
+                    .unwrap_or_default();
                     if !suggestion.is_empty() {
-                        self.error(&diagnostics::Did_you_mean_0, reference.pos, reference.end - reference.pos, &[&suggestion]);
+                        self.error(
+                            &diagnostics::Did_you_mean_0,
+                            reference.pos,
+                            reference.end - reference.pos,
+                            &[&suggestion],
+                        );
                     }
                 }
             }

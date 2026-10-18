@@ -18,5 +18,8 @@ fn test_parse_compiler_option_no_missing_fields() {
         };
     }
     for_each_compiler_options_field!(check);
-    assert!(missing_keys.is_empty(), "The following keys are missing entries in the ParseCompilerOptions switch statement:\n{missing_keys:?}");
+    assert!(
+        missing_keys.is_empty(),
+        "The following keys are missing entries in the ParseCompilerOptions switch statement:\n{missing_keys:?}"
+    );
 }

@@ -1,5 +1,5 @@
-use crate::collections::{new_ordered_map_with_size_hint, OrderedMap, OrderedMapExt, SyncSet};
 use crate::P;
+use crate::collections::{OrderedMap, OrderedMapExt, SyncSet, new_ordered_map_with_size_hint};
 use std::hash::Hash;
 
 // The Go implementation visits each level in parallel but always picks the lowest-index result,
@@ -57,7 +57,13 @@ pub fn breadth_first_search_parallel<N: Clone + Hash + Eq + 'static>(
     neighbors: impl FnMut(&N) -> Vec<N>,
     visit: impl FnMut(&N) -> (bool, bool),
 ) -> BreadthFirstSearchResult<N> {
-    breadth_first_search_parallel_ex(start, neighbors, visit, BreadthFirstSearchOptions::default(), |n: &N| n.clone())
+    breadth_first_search_parallel_ex(
+        start,
+        neighbors,
+        visit,
+        BreadthFirstSearchOptions::default(),
+        |n: &N| n.clone(),
+    )
 }
 
 // BreadthFirstSearchParallelEx is an extension of BreadthFirstSearchParallel that allows
@@ -116,7 +122,10 @@ pub fn breadth_first_search_parallel_ex<K: Hash + Eq + Clone, N: Clone + 'static
             // Add the next level jobs
             let neighbor_nodes = neighbors(&j.node);
             if !neighbor_nodes.is_empty() {
-                next[i] = neighbor_nodes.into_iter().map(|child| P::new(BreadthFirstSearchJob { node: child, parent: Some(j) })).collect();
+                next[i] = neighbor_nodes
+                    .into_iter()
+                    .map(|child| P::new(BreadthFirstSearchJob { node: child, parent: Some(j) }))
+                    .collect();
             }
         }
 
@@ -132,7 +141,8 @@ pub fn breadth_first_search_parallel_ex<K: Hash + Eq + Clone, N: Clone + 'static
         }
 
         let count = next.iter().map(std::vec::Vec::len).sum();
-        let mut next_jobs: OrderedMap<K, P<BreadthFirstSearchJob<N>>> = new_ordered_map_with_size_hint(count);
+        let mut next_jobs: OrderedMap<K, P<BreadthFirstSearchJob<N>>> =
+            new_ordered_map_with_size_hint(count);
         for jobs in next {
             for j in jobs {
                 let key = get_key(&j.node);
@@ -149,7 +159,9 @@ mod tests {
     use super::*;
     use rustc_hash::FxHashMap;
 
-    fn graph(edges: &[(&'static str, &[&'static str])]) -> FxHashMap<&'static str, Vec<&'static str>> {
+    fn graph(
+        edges: &[(&'static str, &[&'static str])],
+    ) -> FxHashMap<&'static str, Vec<&'static str>> {
         edges.iter().map(|(k, v)| (*k, v.to_vec())).collect()
     }
 

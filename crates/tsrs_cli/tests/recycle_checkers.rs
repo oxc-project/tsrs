@@ -15,9 +15,24 @@ fn run(dir: &Path, checkers: &str, poison: bool, extended: bool) -> String {
 }
 
 // `relation_limit`: TSRS_RELATION_CACHE_LIMIT (Some(0): the relation caches are emptied after every file).
-fn run_with(dir: &Path, checkers: &str, poison: bool, extended: bool, relation_limit: Option<&str>) -> String {
+fn run_with(
+    dir: &Path,
+    checkers: &str,
+    poison: bool,
+    extended: bool,
+    relation_limit: Option<&str>,
+) -> String {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tsrs"));
-    cmd.current_dir(dir).args(["-p", ".", "--pretty", "false", "--checkers", checkers, "--maxMemory", "1M"]);
+    cmd.current_dir(dir).args([
+        "-p",
+        ".",
+        "--pretty",
+        "false",
+        "--checkers",
+        checkers,
+        "--maxMemory",
+        "1M",
+    ]);
     cmd.env("TSRS_RETIRE_MIN", "0");
     if extended {
         cmd.arg("--extendedDiagnostics");
@@ -35,7 +50,12 @@ fn run_with(dir: &Path, checkers: &str, poison: bool, extended: bool, relation_l
         cmd.env_remove("TSRS_ARENA_POISON");
     }
     let out = cmd.output().expect("run tsrs");
-    assert!(matches!(out.status.code(), Some(0 | 2)), "{}: {}", dir.display(), String::from_utf8_lossy(&out.stderr));
+    assert!(
+        matches!(out.status.code(), Some(0 | 2)),
+        "{}: {}",
+        dir.display(),
+        String::from_utf8_lossy(&out.stderr)
+    );
     // Resolution traces print absolute paths; expected.txt has <dir> for the case's directory (tools/regressions.sh).
     let here = std::fs::canonicalize(dir).unwrap();
     String::from_utf8_lossy(&out.stdout).replace(here.to_str().unwrap(), "<dir>")
@@ -44,12 +64,17 @@ fn run_with(dir: &Path, checkers: &str, poison: bool, extended: bool, relation_l
 #[test]
 fn retired_checkers_report_what_one_checker_reports() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/regressions");
-    let mut cases: Vec<_> = std::fs::read_dir(&root).unwrap().map(|e| e.unwrap().path()).filter(|p| p.join("expected.txt").is_file()).collect();
+    let mut cases: Vec<_> = std::fs::read_dir(&root)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.join("expected.txt").is_file())
+        .collect();
     cases.sort();
     // The cases are independent processes; run them on all cores (serially this test was most of `cargo test`).
     let next = AtomicUsize::new(0);
     let retired = AtomicUsize::new(0);
-    let threads = std::thread::available_parallelism().map_or(4, std::num::NonZero::get).min(cases.len());
+    let threads =
+        std::thread::available_parallelism().map_or(4, std::num::NonZero::get).min(cases.len());
     std::thread::scope(|s| {
         for _ in 0..threads {
             s.spawn(|| {
@@ -68,9 +93,22 @@ fn retired_checkers_report_what_one_checker_reports() {
 fn check_case(dir: &Path) -> usize {
     let expected = std::fs::read_to_string(dir.join("expected.txt")).unwrap();
     for (checkers, poison) in [("2", true), ("3", false)] {
-        assert_eq!(run(dir, checkers, poison, false), expected, "{} --checkers {checkers} poison={poison}", dir.display());
+        assert_eq!(
+            run(dir, checkers, poison, false),
+            expected,
+            "{} --checkers {checkers} poison={poison}",
+            dir.display()
+        );
     }
-    assert_eq!(run_with(dir, "2", false, false, Some("0")), expected, "{} relation caches emptied after every file", dir.display());
+    assert_eq!(
+        run_with(dir, "2", false, false, Some("0")),
+        expected,
+        "{} relation caches emptied after every file",
+        dir.display()
+    );
     let stats = run(dir, "2", false, true);
-    stats.lines().find_map(|l| l.strip_prefix("Checkers: retired:")).map_or(0, |n| n.trim().parse::<usize>().unwrap())
+    stats
+        .lines()
+        .find_map(|l| l.strip_prefix("Checkers: retired:"))
+        .map_or(0, |n| n.trim().parse::<usize>().unwrap())
 }

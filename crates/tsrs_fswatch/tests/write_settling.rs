@@ -27,7 +27,10 @@ impl Recorder {
     }
 }
 
-fn watch(dir: &std::path::Path, file: &std::path::Path) -> (Arc<Recorder>, Box<dyn tsrs_fswatch::Watch>) {
+fn watch(
+    dir: &std::path::Path,
+    file: &std::path::Path,
+) -> (Arc<Recorder>, Box<dyn tsrs_fswatch::Watch>) {
     let recorder = Arc::new(Recorder { seen: Mutex::new(Vec::new()), cv: Condvar::new() });
     let r = Arc::clone(&recorder);
     let file = file.to_path_buf();
@@ -49,7 +52,8 @@ fn watch(dir: &std::path::Path, file: &std::path::Path) -> (Arc<Recorder>, Box<d
 }
 
 fn temp_dir(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("tsrs-fswatch-settle-{}-{}", std::process::id(), name));
+    let dir =
+        std::env::temp_dir().join(format!("tsrs-fswatch-settle-{}-{}", std::process::id(), name));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     dir
@@ -74,7 +78,10 @@ fn callbacks_wait_for_the_close() {
     let mut f = std::fs::File::create(&file).unwrap();
     f.write_all(b"export const a = 1;\n").unwrap();
     f.flush().unwrap();
-    assert!(recorder.wait_for(1, Duration::from_millis(400)).is_empty(), "fired while the file was being written");
+    assert!(
+        recorder.wait_for(1, Duration::from_millis(400)).is_empty(),
+        "fired while the file was being written"
+    );
     f.write_all(b"export const b = 2;\n").unwrap();
     drop(f);
     let closed = Instant::now();
@@ -84,7 +91,11 @@ fn callbacks_wait_for_the_close() {
     let (at, content) = &seen[0];
     assert_eq!(content, "export const a = 1;\nexport const b = 2;\n");
     // At the close, not when the hold times out (`settleIdleTime`, 1 s).
-    assert!(at.duration_since(closed) < Duration::from_millis(500), "fired {:?} after the close", at.duration_since(closed));
+    assert!(
+        at.duration_since(closed) < Duration::from_millis(500),
+        "fired {:?} after the close",
+        at.duration_since(closed)
+    );
     let _ = watch.close();
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -102,7 +113,10 @@ fn an_unclosed_file_stops_holding_after_the_idle_time() {
     let seen = recorder.wait_for(1, Duration::from_secs(5));
     assert_eq!(seen.len(), 1, "a file left open must not hold the callbacks for good");
     let waited = seen[0].0.duration_since(written);
-    assert!(waited >= Duration::from_millis(900) && waited < Duration::from_millis(2500), "released after {waited:?}");
+    assert!(
+        waited >= Duration::from_millis(900) && waited < Duration::from_millis(2500),
+        "released after {waited:?}"
+    );
     drop(f);
     let _ = watch.close();
     let _ = std::fs::remove_dir_all(&dir);
@@ -138,9 +152,14 @@ fn a_file_kept_open_holds_once() {
     std::fs::write(&file, "export const a = 1;\n").unwrap();
     let saved = Instant::now();
     let seen = recorder.wait_for(before + 1, Duration::from_secs(5));
-    let (at, content) = seen.iter().rev().find(|(_, c)| c == "export const a = 1;\n").expect("the save was seen");
+    let (at, content) =
+        seen.iter().rev().find(|(_, c)| c == "export const a = 1;\n").expect("the save was seen");
     assert_eq!(content, "export const a = 1;\n");
-    assert!(at.duration_since(saved) < Duration::from_millis(700), "fired {:?} after the save", at.duration_since(saved));
+    assert!(
+        at.duration_since(saved) < Duration::from_millis(700),
+        "fired {:?} after the save",
+        at.duration_since(saved)
+    );
 
     stop.store(true, std::sync::atomic::Ordering::Relaxed);
     writer.join().unwrap();

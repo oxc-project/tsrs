@@ -4,18 +4,21 @@ use std::sync::Arc;
 
 use tsrs_ast::{Diagnostic, MappedDiagnosticDirective, MappedDiagnosticDirectivePolicy};
 use tsrs_contentmapper::{
-    self as contentmapper, Definition, Manifest, Mapper, MappedResult, OptionDiagnostic, ProjectError, ProjectErrorKind, Request,
-    TransformErrorKind, TransformResultFiles,
+    self as contentmapper, Definition, Manifest, MappedResult, Mapper, OptionDiagnostic,
+    ProjectError, ProjectErrorKind, Request, TransformErrorKind, TransformResultFiles,
 };
-use tsrs_core::{CompilerOptions, ModuleKind, ModuleResolutionKind, ResolutionMode, TextRange, Tristate, P};
+use tsrs_core::{
+    CompilerOptions, ModuleKind, ModuleResolutionKind, P, ResolutionMode, TextRange, Tristate,
+};
 use tsrs_diagnostics as diagnostics;
 use tsrs_spanmap::{Feature, Kind, Segment};
-use tsrs_tsoptions::{new_parsed_command_line, ParsedCommandLine};
-use tsrs_vfs::{bundled, vfstest, FS};
+use tsrs_tsoptions::{ParsedCommandLine, new_parsed_command_line};
+use tsrs_vfs::{FS, bundled, vfstest};
 
-use crate::{new_compiler_host, new_program, Context, Program, ProgramOptions};
+use crate::{Context, Program, ProgramOptions, new_compiler_host, new_program};
 
-type transformFn = dyn Fn(&str, &str) -> Result<TransformResultFiles, contentmapper::Error> + Send + Sync;
+type transformFn =
+    dyn Fn(&str, &str) -> Result<TransformResultFiles, contentmapper::Error> + Send + Sync;
 
 // contentmapper_test.go:22
 struct fakeContentMapperHost {
@@ -41,19 +44,31 @@ impl contentmapper::Project for fakeContentMapperHost {
     fn close(&self) -> Result<(), contentmapper::Error> {
         Ok(())
     }
-    fn transform(&self, _mapper: &Mapper, request: Request<'_>) -> Result<TransformResultFiles, contentmapper::Error> {
+    fn transform(
+        &self,
+        _mapper: &Mapper,
+        request: Request<'_>,
+    ) -> Result<TransformResultFiles, contentmapper::Error> {
         (self.transform)(request.file_name, request.content)
     }
 }
 
 fn fake_host(
-    transform: impl Fn(&str, &str) -> Result<TransformResultFiles, contentmapper::Error> + Send + Sync + 'static,
+    transform: impl Fn(&str, &str) -> Result<TransformResultFiles, contentmapper::Error>
+    + Send
+    + Sync
+    + 'static,
 ) -> Arc<dyn contentmapper::Project> {
     Arc::new(fakeContentMapperHost { transform: Arc::new(transform) })
 }
 
 fn options(module: ModuleKind, module_resolution: ModuleResolutionKind) -> CompilerOptions {
-    CompilerOptions { skip_lib_check: Tristate::True, module, module_resolution, ..Default::default() }
+    CompilerOptions {
+        skip_lib_check: Tristate::True,
+        module,
+        module_resolution,
+        ..Default::default()
+    }
 }
 
 // contentmapper_test.go:37
@@ -80,8 +95,10 @@ fn new_content_mapper_program_with_options(
     if !bundled::EMBEDDED {
         return None;
     }
-    let fs: Arc<dyn FS> =
-        Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|&(k, v)| (k, v)), false /*useCaseSensitiveFileNames*/)));
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|&(k, v)| (k, v)),
+        false, /*useCaseSensitiveFileNames*/
+    )));
 
     let mut config: ParsedCommandLine = new_parsed_command_line(
         P::new(options),
@@ -90,21 +107,40 @@ fn new_content_mapper_program_with_options(
         tsrs_core::tspath::ComparePathsOptions::default(),
     );
     config.parsed_config.content_mappers = vec![Mapper {
-        definition: Definition { package: "vue".to_string(), extensions: vec![".vue".to_string()], options: String::new() },
-        manifest: Manifest { name: "vue-mapper".to_string(), version: "1.0.0".to_string(), ..Default::default() },
+        definition: Definition {
+            package: "vue".to_string(),
+            extensions: vec![".vue".to_string()],
+            options: String::new(),
+        },
+        manifest: Manifest {
+            name: "vue-mapper".to_string(),
+            version: "1.0.0".to_string(),
+            ..Default::default()
+        },
         ..Default::default()
     }]
     .into();
     let mut opts = ProgramOptions::new(
         P::new(config),
-        new_compiler_host("/src", fs, &bundled::lib_path(), None, None, Some(content_mapper_project)),
+        new_compiler_host(
+            "/src",
+            fs,
+            &bundled::lib_path(),
+            None,
+            None,
+            Some(content_mapper_project),
+        ),
     );
     // Load files on the calling goroutine for deterministic diagnostics ordering.
     opts.single_threaded = Tristate::True;
     Some(new_program(opts))
 }
 
-fn result(text: &str, virtual_extension: &str, mappings: P<tsrs_spanmap::SpanMap>) -> TransformResultFiles {
+fn result(
+    text: &str,
+    virtual_extension: &str,
+    mappings: P<tsrs_spanmap::SpanMap>,
+) -> TransformResultFiles {
     TransformResultFiles {
         text: text.to_string(),
         virtual_extension: virtual_extension.to_string(),
@@ -127,7 +163,10 @@ fn test_content_mapper_virtual_extension_sets_implied_node_format() {
     };
 
     let file = program.get_source_file("/src/Component.vue").expect("mapped file");
-    assert_eq!(program.get_source_file_meta_data(file.path()).implied_node_format, ResolutionMode::ESM);
+    assert_eq!(
+        program.get_source_file_meta_data(file.path()).implied_node_format,
+        ResolutionMode::ESM
+    );
 }
 
 // contentmapper_test.go:95. A mapped diagnostic directive suppresses the file's diagnostics, but a missing global
@@ -135,7 +174,8 @@ fn test_content_mapper_virtual_extension_sets_implied_node_format() {
 // `expect` directive that suppressed nothing in the file reports the mapper's unused-directive diagnostic.
 #[test]
 fn test_content_mapper_directives_preserve_incremental_globals() {
-    for policy in [MappedDiagnosticDirectivePolicy::Ignore, MappedDiagnosticDirectivePolicy::Expect] {
+    for policy in [MappedDiagnosticDirectivePolicy::Ignore, MappedDiagnosticDirectivePolicy::Expect]
+    {
         const TEXT: &str = "export function values() { function* generator() { yield 1; } }";
         let Some(program) = new_content_mapper_program_with_options(
             fake_host(move |_, content| {
@@ -175,7 +215,8 @@ fn test_content_mapper_directives_preserve_incremental_globals() {
         let ctx = Context::default();
         assert_eq!(program.get_global_diagnostics(&ctx).len(), 0);
         let file = program.get_source_file("/src/Component.vue").unwrap();
-        let diags = program.get_semantic_diagnostics_for_incremental(&ctx, &[file]).remove(&file).unwrap();
+        let diags =
+            program.get_semantic_diagnostics_for_incremental(&ctx, &[file]).remove(&file).unwrap();
         let (mut globals, mut unused) = (0, 0);
         for diag in diags {
             if diag.file().is_none() {
@@ -190,7 +231,11 @@ fn test_content_mapper_directives_preserve_incremental_globals() {
             }
         }
         assert_eq!(globals, 1, "{policy:?}");
-        assert_eq!(unused, i32::from(policy == MappedDiagnosticDirectivePolicy::Expect), "{policy:?}");
+        assert_eq!(
+            unused,
+            i32::from(policy == MappedDiagnosticDirectivePolicy::Expect),
+            "{policy:?}"
+        );
     }
 }
 
@@ -209,7 +254,10 @@ fn supplemental_host() -> Arc<dyn contentmapper::Project> {
 }
 
 fn composite_options() -> CompilerOptions {
-    CompilerOptions { composite: Tristate::True, ..options(ModuleKind::ESNext, ModuleResolutionKind::Bundler) }
+    CompilerOptions {
+        composite: Tristate::True,
+        ..options(ModuleKind::ESNext, ModuleResolutionKind::Bundler)
+    }
 }
 
 fn is_unlisted_file_diagnostic(diagnostic: P<Diagnostic>) -> bool {
@@ -221,15 +269,22 @@ fn is_unlisted_file_diagnostic(diagnostic: P<Diagnostic>) -> bool {
 // supplemental output is part of that root and must not be reported as an unlisted file.
 #[test]
 fn test_composite_project_content_mapper_supplemental_roots_listed_canonical_root() {
-    let Some(program) =
-        new_content_mapper_program_with_options(supplemental_host(), &[("/src/Component.vue", "<template />")], &["/src/Component.vue"], composite_options())
-    else {
+    let Some(program) = new_content_mapper_program_with_options(
+        supplemental_host(),
+        &[("/src/Component.vue", "<template />")],
+        &["/src/Component.vue"],
+        composite_options(),
+    ) else {
         return;
     };
 
     let program_diagnostics = collect_content_mapper_diagnostics(program);
-    let has_unlisted_file_diagnostic = program_diagnostics.iter().copied().any(is_unlisted_file_diagnostic);
-    assert!(!has_unlisted_file_diagnostic, "supplemental output should be covered by its listed canonical root: {program_diagnostics:?}");
+    let has_unlisted_file_diagnostic =
+        program_diagnostics.iter().copied().any(is_unlisted_file_diagnostic);
+    assert!(
+        !has_unlisted_file_diagnostic,
+        "supplemental output should be covered by its listed canonical root: {program_diagnostics:?}"
+    );
 }
 
 // contentmapper_test.go:180 "imported canonical file". A canonical file reached only through an import is not
@@ -238,14 +293,20 @@ fn test_composite_project_content_mapper_supplemental_roots_listed_canonical_roo
 fn test_composite_project_content_mapper_supplemental_roots_imported_canonical_file() {
     let Some(program) = new_content_mapper_program_with_options(
         supplemental_host(),
-        &[("/src/index.ts", r#"import "./Component.vue";"#), ("/src/Component.vue", "<template />")],
+        &[
+            ("/src/index.ts", r#"import "./Component.vue";"#),
+            ("/src/Component.vue", "<template />"),
+        ],
         &["/src/index.ts"],
         composite_options(),
     ) else {
         return;
     };
 
-    let unlisted_file_diagnostic_count = collect_content_mapper_diagnostics(program).iter().filter(|d| is_unlisted_file_diagnostic(**d)).count();
+    let unlisted_file_diagnostic_count = collect_content_mapper_diagnostics(program)
+        .iter()
+        .filter(|d| is_unlisted_file_diagnostic(**d))
+        .count();
     assert_eq!(unlisted_file_diagnostic_count, 2);
 }
 
@@ -267,7 +328,14 @@ fn test_content_mapper_invalid_mappings() {
     let Some(program) = new_content_mapper_program(
         fake_host(|_, _| {
             let mappings = tsrs_spanmap::new(&[
-                Segment { virtual_start: 0, virtual_end: 10, original_start: 0, original_end: 0, kind: Kind::Atom, ..Default::default() },
+                Segment {
+                    virtual_start: 0,
+                    virtual_end: 10,
+                    original_start: 0,
+                    original_end: 0,
+                    kind: Kind::Atom,
+                    ..Default::default()
+                },
                 Segment {
                     virtual_start: 5,
                     virtual_end: u32::try_from(TRANSFORMED.len())
@@ -350,7 +418,10 @@ fn test_content_mapper_source_file_state_project_error_is_localized() {
             .iter()
             .any(|message| message.code() == diagnostics::The_content_mapper_returned_a_project_response_that_could_not_be_decoded.code())
     });
-    assert!(found, "expected a localized project response diagnostic, got: {program_diagnostics:?}");
+    assert!(
+        found,
+        "expected a localized project response diagnostic, got: {program_diagnostics:?}"
+    );
 }
 
 // contentmapper_test.go:288. Each invalid project response has its own message (code and text).

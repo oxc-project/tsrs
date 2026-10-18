@@ -29,7 +29,9 @@ use crate::*;
 
 pub(crate) fn enabled() -> bool {
     static ON: OnceLock<bool> = OnceLock::new();
-    *ON.get_or_init(|| std::env::var("TSRS_TRACE_UNION_REDUCTION").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *ON.get_or_init(|| {
+        std::env::var("TSRS_TRACE_UNION_REDUCTION").is_ok_and(|v| !v.is_empty() && v != "0")
+    })
 }
 
 /// The 100,000-comparison checkpoint of `remove_subtypes`: sources begun so far and the estimate taken there.
@@ -40,14 +42,33 @@ pub(crate) struct Checkpoint {
 
 /// One trace line for the reduction of `input` (in the union's order) that kept `kept`: everything the reduction
 /// returned, or what was left when it gave up with TS2590. `comparisons` is `None` for an answer from the cache.
-pub(crate) fn report(c: &Checker, input: &[P<Type>], kept: &[P<Type>], verdict: &str, comparisons: Option<i64>, checkpoint: Option<Checkpoint>) {
+pub(crate) fn report(
+    c: &Checker,
+    input: &[P<Type>],
+    kept: &[P<Type>],
+    verdict: &str,
+    comparisons: Option<i64>,
+    checkpoint: Option<Checkpoint>,
+) {
     let described: Vec<String> = input.iter().map(|&t| describe(t)).collect();
     let mut sorted = described.clone();
     sorted.sort_unstable();
     let kept: FxHashSet<P<Type>> = kept.iter().copied().collect();
-    let mut removed: Vec<&str> = input.iter().zip(&described).filter(|(t, _)| !kept.contains(t)).map(|(_, d)| d.as_str()).collect();
+    let mut removed: Vec<&str> = input
+        .iter()
+        .zip(&described)
+        .filter(|(t, _)| !kept.contains(t))
+        .map(|(_, d)| d.as_str())
+        .collect();
     removed.sort_unstable();
-    let mut line = format!("tsrs union reduction: checker {} at {} while checking {} | {} -> {} types, {verdict}", c.id, location(c.current_node), checking_file(c), input.len(), kept.len());
+    let mut line = format!(
+        "tsrs union reduction: checker {} at {} while checking {} | {} -> {} types, {verdict}",
+        c.id,
+        location(c.current_node),
+        checking_file(c),
+        input.len(),
+        kept.len()
+    );
     match comparisons {
         Some(n) => {
             let _ = write!(line, " | {n} comparisons");
@@ -57,7 +78,13 @@ pub(crate) fn report(c: &Checker, input: &[P<Type>], kept: &[P<Type>], verdict: 
     if let Some(cp) = checkpoint {
         let _ = write!(line, ", at 100000: {} sources begun, estimate {}", cp.sources, cp.estimate);
     }
-    let _ = write!(line, " | set {:016x} order {:016x} removed {:016x}", fingerprint(&sorted), fingerprint(&described), fingerprint(&removed));
+    let _ = write!(
+        line,
+        " | set {:016x} order {:016x} removed {:016x}",
+        fingerprint(&sorted),
+        fingerprint(&described),
+        fingerprint(&removed)
+    );
     let head: Vec<&str> = described.iter().take(3).map(String::as_str).collect();
     let tail: Vec<&str> = described.iter().rev().take(3).rev().map(String::as_str).collect();
     let _ = write!(line, " | first [{}] last [{}]", head.join("; "), tail.join("; "));
@@ -69,14 +96,26 @@ pub(crate) fn report(c: &Checker, input: &[P<Type>], kept: &[P<Type>], verdict: 
 pub(crate) fn report_cross_product(c: &Checker, types: &[P<Type>], size: usize) {
     // The limit of `check_cross_product_union`.
     let verdict = if size >= 100_000 { "too complex (TS2590)" } else { "allowed" };
-    let mut line = format!("tsrs cross product: checker {} at {} while checking {} | size {size}, {verdict}", c.id, location(c.current_node), checking_file(c));
+    let mut line = format!(
+        "tsrs cross product: checker {} at {} while checking {} | size {size}, {verdict}",
+        c.id,
+        location(c.current_node),
+        checking_file(c)
+    );
     for &t in types {
         if t.flags().intersects(TypeFlags::Union) {
             let described: Vec<String> = t.types().iter().map(|&m| describe(m)).collect();
             let mut sorted = described.clone();
             sorted.sort_unstable();
             let head: Vec<&str> = described.iter().take(2).map(String::as_str).collect();
-            let _ = write!(line, " | union {} set {:016x} order {:016x} first [{}]", described.len(), fingerprint(&sorted), fingerprint(&described), head.join("; "));
+            let _ = write!(
+                line,
+                " | union {} set {:016x} order {:016x} first [{}]",
+                described.len(),
+                fingerprint(&sorted),
+                fingerprint(&described),
+                head.join("; ")
+            );
         } else {
             let _ = write!(line, " | {}", describe(t));
         }
@@ -86,10 +125,22 @@ pub(crate) fn report_cross_product(c: &Checker, types: &[P<Type>], size: usize) 
 
 /// One trace line when checker `c` begins to check `file`, or the range of its statements `piece` when it checks a
 /// piece of a split declaration file (`check_source_file_piece`).
-pub(crate) fn report_check_file(c: &Checker, file: P<SourceFile>, piece: Option<&std::ops::Range<usize>>) {
+pub(crate) fn report_check_file(
+    c: &Checker,
+    file: P<SourceFile>,
+    piece: Option<&std::ops::Range<usize>>,
+) {
     match piece {
-        Some(statements) => eprintln!("tsrs check file: checker {} begins statements {}..{} of {}", c.id, statements.start, statements.end, relative(file.file_name())),
-        None => eprintln!("tsrs check file: checker {} begins {}", c.id, relative(file.file_name())),
+        Some(statements) => eprintln!(
+            "tsrs check file: checker {} begins statements {}..{} of {}",
+            c.id,
+            statements.start,
+            statements.end,
+            relative(file.file_name())
+        ),
+        None => {
+            eprintln!("tsrs check file: checker {} begins {}", c.id, relative(file.file_name()));
+        }
     }
 }
 
@@ -109,7 +160,9 @@ fn fingerprint<S: AsRef<str>>(items: &[S]) -> u64 {
 /// `name` relative to the current directory when it is below it, as diagnostics print it.
 fn relative(name: &str) -> &str {
     static CWD: OnceLock<String> = OnceLock::new();
-    let cwd = CWD.get_or_init(|| std::env::current_dir().map(|d| format!("{}/", d.display())).unwrap_or_default());
+    let cwd = CWD.get_or_init(|| {
+        std::env::current_dir().map(|d| format!("{}/", d.display())).unwrap_or_default()
+    });
     name.strip_prefix(cwd.as_str()).unwrap_or(name)
 }
 
@@ -121,7 +174,8 @@ fn location(node: Option<P<Node>>) -> String {
         return "-".to_string();
     };
     let start = tsrs_scanner::get_token_pos_of_node(node, file, false);
-    let (line, character) = tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, start);
+    let (line, character) =
+        tsrs_scanner::get_ecma_line_and_utf16_character_of_position(&*file, start);
     format!("{}({},{})", relative(file.file_name()), line + 1, character + 1)
 }
 
@@ -152,7 +206,9 @@ fn describe_into(t: P<Type>, depth: u32, out: &mut String) {
     if depth == 0 {
         return;
     }
-    let nested: Option<&[P<Type>]> = if t.flags().intersects(TypeFlags::Object) && t.object_flags().intersects(ObjectFlags::Reference) {
+    let nested: Option<&[P<Type>]> = if t.flags().intersects(TypeFlags::Object)
+        && t.object_flags().intersects(ObjectFlags::Reference)
+    {
         let reference = t.as_type_reference();
         if let Some(symbol) = reference.target.get().and_then(|target| target.symbol()) {
             out.push_str(" of ");
@@ -182,12 +238,8 @@ fn describe_symbol(symbol: P<Symbol>, out: &mut String) {
     if let Some(&declaration) = symbol.declarations().first() {
         if let Some(file) = ast::get_source_file_of_node(declaration) {
             let name = file.file_name();
-            let _ = write!(
-                out,
-                "@{}:{:?}",
-                name.rsplit('/').next().unwrap_or(name),
-                declaration.pos()
-            );
+            let _ =
+                write!(out, "@{}:{:?}", name.rsplit('/').next().unwrap_or(name), declaration.pos());
         }
     }
 }

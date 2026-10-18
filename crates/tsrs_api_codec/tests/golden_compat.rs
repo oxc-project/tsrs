@@ -4,8 +4,8 @@
 #[expect(dead_code, reason = "This target uses only part of the shared integration helper module.")]
 mod common;
 
-use std::fmt::Write as _;
 use common::*;
+use std::fmt::Write as _;
 use tsrs_api_codec::*;
 
 #[test]
@@ -69,7 +69,14 @@ fn goldens_cover_every_parser_node_kind() {
         seen.extend((nodes + NODE_SIZE..b.len()).step_by(NODE_SIZE).map(|i| rd(&b, i)));
     }
     // Kinds no parser output contains: checker-internal, emit-internal and the lexer-only JsxTextAllWhiteSpaces.
-    let not_parsed = ["SyntheticExpression", "SyntaxList", "NotEmittedStatement", "PartiallyEmittedExpression", "SyntheticReferenceExpression", "NotEmittedTypeElement"];
+    let not_parsed = [
+        "SyntheticExpression",
+        "SyntaxList",
+        "NotEmittedStatement",
+        "PartiallyEmittedExpression",
+        "SyntheticReferenceExpression",
+        "NotEmittedTypeElement",
+    ];
     let missing: Vec<String> = (tsrs_ast::Kind::FirstNode as u32..tsrs_ast::Kind::Count as u32)
         .filter(|k| !seen.contains(k))
         .map(|k| format!("{:?}", kind_from_u32(k).unwrap()))
@@ -86,7 +93,10 @@ fn generated_code_is_fresh() {
         eprintln!("SKIPPED: ts-ref checkout not present");
         return;
     }
-    let status = std::process::Command::new("node").arg(crate_dir().join("gen/gen-codec.ts")).arg("--check").status();
+    let status = std::process::Command::new("node")
+        .arg(crate_dir().join("gen/gen-codec.ts"))
+        .arg("--check")
+        .status();
     match status {
         Ok(s) => assert!(s.success(), "run node crates/tsrs_api_codec/gen/gen-codec.ts"),
         Err(_) => eprintln!("SKIPPED: node not available"),
@@ -95,7 +105,8 @@ fn generated_code_is_fresh() {
 
 #[test]
 fn node_handles_round_trip() {
-    let (_region, file) = parse_like_server("basic.ts", "export function foo(a: string) { return a; }");
+    let (_region, file) =
+        parse_like_server("basic.ts", "export function foo(a: string) { return a; }");
     let table = build_node_index_table(file.get());
     let mut n = 0;
     for i in 1..table.len() as u32 {
@@ -119,7 +130,9 @@ fn node_handles_round_trip() {
 #[test]
 #[ignore = "Manual encoding benchmark; run explicitly with --ignored."]
 fn bench_encode_large_file() {
-    let text = std::fs::read_to_string(crate_dir().join("tests/fixtures/more_syntax.ts")).unwrap().repeat(400);
+    let text = std::fs::read_to_string(crate_dir().join("tests/fixtures/more_syntax.ts"))
+        .unwrap()
+        .repeat(400);
     let (_region, file) = parse_like_server("large.ts", &text);
     let t = std::time::Instant::now();
     let (bytes, table) = encode_source_file(file.get()).unwrap();
@@ -130,9 +143,17 @@ fn bench_encode_large_file() {
     let t = std::time::Instant::now();
     let decoded = decode_source_file(&bytes).unwrap();
     let decode = t.elapsed();
-    eprintln!("{} bytes text, {} records, encoded {} bytes: encode {encode:?}, index {index:?}, decode {decode:?}", text.len(), table.len(), bytes.len());
+    eprintln!(
+        "{} bytes text, {} records, encoded {} bytes: encode {encode:?}, index {index:?}, decode {decode:?}",
+        text.len(),
+        table.len(),
+        bytes.len()
+    );
     assert_eq!(built.len(), table.len());
-    assert_eq!(decoded.root().as_source_file().statements.nodes().len(), file.statements.nodes().len());
+    assert_eq!(
+        decoded.root().as_source_file().statements.nodes().len(),
+        file.statements.nodes().len()
+    );
 }
 
 /// Go `NodeIndexTable.GetIndex` on freshly parsed+bound files (no prior node ids from a checker): for nodes
@@ -149,7 +170,11 @@ fn get_index_matches_pinned_go() {
         for i in 0..table.len() as u32 {
             if let Some(n) = table.node(i) {
                 let idx = table.get_index(n);
-                assert_eq!(table.node(idx), Some(n), "{name}: get_index({i}) resolves to another node");
+                assert_eq!(
+                    table.node(idx),
+                    Some(n),
+                    "{name}: get_index({i}) resolves to another node"
+                );
                 writeln!(actual, "{name} {i} {idx}").unwrap();
                 total += 1;
                 repeated += (idx != i) as usize;
@@ -167,7 +192,10 @@ fn get_index_matches_pinned_go() {
         }
     }
     eprintln!("get_index: {total} nodes, {repeated} resolved to another occurrence");
-    if let Some(d) = diff_lines(&expected.lines().map(String::from).collect::<Vec<_>>(), &actual.lines().map(String::from).collect::<Vec<_>>()) {
+    if let Some(d) = diff_lines(
+        &expected.lines().map(String::from).collect::<Vec<_>>(),
+        &actual.lines().map(String::from).collect::<Vec<_>>(),
+    ) {
         panic!("get_index differs from pinned Go: {d}");
     }
 }

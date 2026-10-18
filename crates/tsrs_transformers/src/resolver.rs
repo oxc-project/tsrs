@@ -35,7 +35,11 @@ impl Resolver {
         self.lock(|c| self.r.is_declaration_visible_exported(c, node))
     }
 
-    pub fn is_entity_name_visible(self, entity_name: P<Node>, enclosing_declaration: Option<P<Node>>) -> SymbolAccessibilityResult {
+    pub fn is_entity_name_visible(
+        self,
+        entity_name: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> SymbolAccessibilityResult {
         self.lock(|c| self.r.is_entity_name_visible_exported(c, entity_name, enclosing_declaration))
     }
 
@@ -71,8 +75,20 @@ impl Resolver {
         self.lock(|c| self.r.is_optional_parameter_exported(c, node))
     }
 
-    pub fn requires_adding_implicit_undefined(self, declaration: P<Node>, symbol: Option<P<Symbol>>, enclosing_declaration: Option<P<Node>>) -> bool {
-        self.lock(|c| self.r.requires_adding_implicit_undefined_exported(c, declaration, symbol, enclosing_declaration))
+    pub fn requires_adding_implicit_undefined(
+        self,
+        declaration: P<Node>,
+        symbol: Option<P<Symbol>>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> bool {
+        self.lock(|c| {
+            self.r.requires_adding_implicit_undefined_exported(
+                c,
+                declaration,
+                symbol,
+                enclosing_declaration,
+            )
+        })
     }
 
     pub fn get_enum_member_value(self, node: P<Node>) -> checker::evaluator::Result {
@@ -99,36 +115,153 @@ impl Resolver {
         self.lock(|c| self.r.is_this_property_assignment_declaration_redundant(c, node))
     }
 
-    pub fn get_effective_declaration_flags(self, node: P<Node>, flags: ModifierFlags) -> ModifierFlags {
+    pub fn get_effective_declaration_flags(
+        self,
+        node: P<Node>,
+        flags: ModifierFlags,
+    ) -> ModifierFlags {
         self.lock(|c| self.r.get_effective_declaration_flags(c, node, flags))
     }
 
-    pub fn create_return_type_of_signature_declaration(self, emit_context: P<EmitContext>, signature_declaration: P<Node>, enclosing_declaration: Option<P<Node>>, flags: nodebuilder::Flags, internal_flags: nodebuilder::InternalFlags, tracker: &'static dyn SymbolTracker) -> Option<P<Node>> {
-        self.lock(|c| self.r.create_return_type_of_signature_declaration(c, emit_context, signature_declaration, enclosing_declaration, flags, internal_flags, tracker))
+    pub fn create_return_type_of_signature_declaration(
+        self,
+        emit_context: P<EmitContext>,
+        signature_declaration: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: nodebuilder::Flags,
+        internal_flags: nodebuilder::InternalFlags,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Option<P<Node>> {
+        self.lock(|c| {
+            self.r.create_return_type_of_signature_declaration(
+                c,
+                emit_context,
+                signature_declaration,
+                enclosing_declaration,
+                flags,
+                internal_flags,
+                tracker,
+            )
+        })
     }
 
-    pub fn create_type_parameters_of_signature_declaration(self, emit_context: P<EmitContext>, signature_declaration: P<Node>, enclosing_declaration: Option<P<Node>>, flags: nodebuilder::Flags, internal_flags: nodebuilder::InternalFlags, tracker: &'static dyn SymbolTracker) -> Option<Vec<P<Node>>> {
-        self.lock(|c| self.r.create_type_parameters_of_signature_declaration(c, emit_context, signature_declaration, enclosing_declaration, flags, internal_flags, tracker))
+    pub fn create_type_parameters_of_signature_declaration(
+        self,
+        emit_context: P<EmitContext>,
+        signature_declaration: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: nodebuilder::Flags,
+        internal_flags: nodebuilder::InternalFlags,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Option<Vec<P<Node>>> {
+        self.lock(|c| {
+            self.r.create_type_parameters_of_signature_declaration(
+                c,
+                emit_context,
+                signature_declaration,
+                enclosing_declaration,
+                flags,
+                internal_flags,
+                tracker,
+            )
+        })
     }
 
-    pub fn create_type_of_declaration(self, emit_context: P<EmitContext>, declaration: P<Node>, enclosing_declaration: Option<P<Node>>, flags: nodebuilder::Flags, internal_flags: nodebuilder::InternalFlags, tracker: &'static dyn SymbolTracker) -> Option<P<Node>> {
-        self.lock(|c| self.r.create_type_of_declaration(c, emit_context, declaration, enclosing_declaration, flags, internal_flags, tracker))
+    pub fn create_type_of_declaration(
+        self,
+        emit_context: P<EmitContext>,
+        declaration: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: nodebuilder::Flags,
+        internal_flags: nodebuilder::InternalFlags,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Option<P<Node>> {
+        self.lock(|c| {
+            self.r.create_type_of_declaration(
+                c,
+                emit_context,
+                declaration,
+                enclosing_declaration,
+                flags,
+                internal_flags,
+                tracker,
+            )
+        })
     }
 
-    pub fn create_literal_const_value(self, emit_context: P<EmitContext>, node: P<Node>, tracker: &'static dyn SymbolTracker) -> Option<P<Node>> {
+    pub fn create_literal_const_value(
+        self,
+        emit_context: P<EmitContext>,
+        node: P<Node>,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Option<P<Node>> {
         self.lock(|c| self.r.create_literal_const_value(c, emit_context, node, tracker))
     }
 
-    pub fn create_type_of_expression(self, emit_context: P<EmitContext>, expression: P<Node>, enclosing_declaration: Option<P<Node>>, flags: nodebuilder::Flags, internal_flags: nodebuilder::InternalFlags, tracker: &'static dyn SymbolTracker) -> Option<P<Node>> {
-        self.lock(|c| self.r.create_type_of_expression(c, emit_context, expression, enclosing_declaration, flags, internal_flags, tracker))
+    pub fn create_type_of_expression(
+        self,
+        emit_context: P<EmitContext>,
+        expression: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: nodebuilder::Flags,
+        internal_flags: nodebuilder::InternalFlags,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Option<P<Node>> {
+        self.lock(|c| {
+            self.r.create_type_of_expression(
+                c,
+                emit_context,
+                expression,
+                enclosing_declaration,
+                flags,
+                internal_flags,
+                tracker,
+            )
+        })
     }
 
-    pub fn create_late_bound_index_signatures(self, emit_context: P<EmitContext>, container: P<Node>, enclosing_declaration: Option<P<Node>>, flags: nodebuilder::Flags, internal_flags: nodebuilder::InternalFlags, tracker: &'static dyn SymbolTracker) -> Vec<P<Node>> {
-        self.lock(|c| self.r.create_late_bound_index_signatures(c, emit_context, container, enclosing_declaration, flags, internal_flags, tracker))
+    pub fn create_late_bound_index_signatures(
+        self,
+        emit_context: P<EmitContext>,
+        container: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: nodebuilder::Flags,
+        internal_flags: nodebuilder::InternalFlags,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Vec<P<Node>> {
+        self.lock(|c| {
+            self.r.create_late_bound_index_signatures(
+                c,
+                emit_context,
+                container,
+                enclosing_declaration,
+                flags,
+                internal_flags,
+                tracker,
+            )
+        })
     }
 
-    pub fn try_js_type_node_to_type_node(self, emit_context: P<EmitContext>, type_node: P<Node>, enclosing_declaration: Option<P<Node>>, flags: nodebuilder::Flags, internal_flags: nodebuilder::InternalFlags, tracker: &'static dyn SymbolTracker) -> Option<P<Node>> {
-        self.lock(|c| self.r.try_js_type_node_to_type_node(c, emit_context, type_node, enclosing_declaration, flags, internal_flags, tracker))
+    pub fn try_js_type_node_to_type_node(
+        self,
+        emit_context: P<EmitContext>,
+        type_node: P<Node>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: nodebuilder::Flags,
+        internal_flags: nodebuilder::InternalFlags,
+        tracker: &'static dyn SymbolTracker,
+    ) -> Option<P<Node>> {
+        self.lock(|c| {
+            self.r.try_js_type_node_to_type_node(
+                c,
+                emit_context,
+                type_node,
+                enclosing_declaration,
+                flags,
+                internal_flags,
+                tracker,
+            )
+        })
     }
 
     // The rest of Go's `printer.EmitResolver` (used by the script transformers).
@@ -153,7 +286,11 @@ impl Resolver {
         self.lock(|c| self.r.get_external_module_file_from_declaration(c, node))
     }
 
-    pub fn get_type_reference_serialization_kind(self, name: P<Node>, serial_scope: Option<P<Node>>) -> checker::TypeReferenceSerializationKind {
+    pub fn get_type_reference_serialization_kind(
+        self,
+        name: P<Node>,
+        serial_scope: Option<P<Node>>,
+    ) -> checker::TypeReferenceSerializationKind {
         self.lock(|c| self.r.get_type_reference_serialization_kind(c, Some(name), serial_scope))
     }
 
@@ -175,7 +312,11 @@ impl Resolver {
 
     // binder.ReferenceResolver (embedded in Go's EmitResolver).
 
-    pub fn get_referenced_export_container(self, node: P<Node>, prefix_locals: bool) -> Option<P<Node>> {
+    pub fn get_referenced_export_container(
+        self,
+        node: P<Node>,
+        prefix_locals: bool,
+    ) -> Option<P<Node>> {
         self.lock(|c| self.r.get_referenced_export_container(c, node, prefix_locals))
     }
 
@@ -189,11 +330,28 @@ impl Resolver {
 
     // Non-locking methods (called with the checker already borrowed, from symbol tracker callbacks).
 
-    pub fn is_symbol_accessible(self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, should_compute_alias_to_mark_visible: bool) -> SymbolAccessibilityResult {
-        self.r.is_symbol_accessible(c, Some(symbol), enclosing_declaration, meaning, should_compute_alias_to_mark_visible)
+    pub fn is_symbol_accessible(
+        self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        should_compute_alias_to_mark_visible: bool,
+    ) -> SymbolAccessibilityResult {
+        self.r.is_symbol_accessible(
+            c,
+            Some(symbol),
+            enclosing_declaration,
+            meaning,
+            should_compute_alias_to_mark_visible,
+        )
     }
 
-    pub fn get_referenced_value_declaration_unsafe(self, c: &mut Checker, node: P<Node>) -> Option<P<Node>> {
+    pub fn get_referenced_value_declaration_unsafe(
+        self,
+        c: &mut Checker,
+        node: P<Node>,
+    ) -> Option<P<Node>> {
         self.r.get_referenced_value_declaration_unsafe(c, node)
     }
 
@@ -201,11 +359,26 @@ impl Resolver {
         self.r.is_expando_function_declaration_unsafe(c, node)
     }
 
-    pub fn requires_adding_implicit_undefined_unsafe(self, c: &mut Checker, declaration: P<Node>, symbol: Option<P<Symbol>>, enclosing_declaration: Option<P<Node>>) -> bool {
-        self.r.requires_adding_implicit_undefined_unsafe(c, declaration, symbol, enclosing_declaration)
+    pub fn requires_adding_implicit_undefined_unsafe(
+        self,
+        c: &mut Checker,
+        declaration: P<Node>,
+        symbol: Option<P<Symbol>>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> bool {
+        self.r.requires_adding_implicit_undefined_unsafe(
+            c,
+            declaration,
+            symbol,
+            enclosing_declaration,
+        )
     }
 
-    pub fn get_properties_of_container_function(self, c: &mut Checker, node: Option<P<Node>>) -> Vec<P<Symbol>> {
+    pub fn get_properties_of_container_function(
+        self,
+        c: &mut Checker,
+        node: Option<P<Node>>,
+    ) -> Vec<P<Symbol>> {
         self.r.get_properties_of_container_function(c, node)
     }
 }
@@ -219,10 +392,16 @@ pub enum ReferenceResolverRef {
 }
 
 impl ReferenceResolverRef {
-    pub fn get_referenced_export_container(self, node: P<Node>, prefix_locals: bool) -> Option<P<Node>> {
+    pub fn get_referenced_export_container(
+        self,
+        node: P<Node>,
+        prefix_locals: bool,
+    ) -> Option<P<Node>> {
         match self {
             ReferenceResolverRef::Emit(r) => r.get_referenced_export_container(node, prefix_locals),
-            ReferenceResolverRef::Plain(r) => r.get_referenced_export_container(&mut (), node, prefix_locals),
+            ReferenceResolverRef::Plain(r) => {
+                r.get_referenced_export_container(&mut (), node, prefix_locals)
+            }
         }
     }
 
@@ -250,14 +429,18 @@ impl ReferenceResolverRef {
     pub fn get_element_access_expression_name(self, expression: P<Node>) -> String {
         match self {
             ReferenceResolverRef::Emit(r) => r.get_element_access_expression_name(expression),
-            ReferenceResolverRef::Plain(r) => r.get_element_access_expression_name(&mut (), Some(expression)),
+            ReferenceResolverRef::Plain(r) => {
+                r.get_element_access_expression_name(&mut (), Some(expression))
+            }
         }
     }
 
     pub fn get_referenced_member_value_declaration(self, node: P<Node>) -> Option<P<Node>> {
         match self {
             ReferenceResolverRef::Emit(r) => r.get_referenced_member_value_declaration(node),
-            ReferenceResolverRef::Plain(r) => r.get_referenced_member_value_declaration(&mut (), node),
+            ReferenceResolverRef::Plain(r) => {
+                r.get_referenced_member_value_declaration(&mut (), node)
+            }
         }
     }
 }

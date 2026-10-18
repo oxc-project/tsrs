@@ -42,7 +42,10 @@ impl Search {
         if self.add(symbol.parent()) || self.add(symbol.export_symbol()) {
             return true;
         }
-        [symbol.members(), symbol.exports()].into_iter().flatten().any(|table| table.values().into_iter().any(|child| self.add(Some(child))))
+        [symbol.members(), symbol.exports()]
+            .into_iter()
+            .flatten()
+            .any(|table| table.values().into_iter().any(|child| self.add(Some(child))))
     }
 
     fn visit(&mut self, node: P<Node>) -> bool {
@@ -78,11 +81,19 @@ pub(crate) fn source_file_symbol(file: P<SourceFile>, id: u64) -> Option<P<Symbo
         return search.found;
     }
     if let Some(globals) = file.global_exports() {
-        if let Some(result) = globals.values().into_iter().find_map(|symbol| if search.add(Some(symbol)) { Some(search.found) } else { None }) {
+        if let Some(result) = globals
+            .values()
+            .into_iter()
+            .find_map(|symbol| if search.add(Some(symbol)) { Some(search.found) } else { None })
+        {
             return result;
         }
     }
-    if let Some(result) = file.pattern_ambient_modules().iter().find_map(|module| if search.add(Some(module.symbol)) { Some(search.found) } else { None }) {
+    if let Some(result) = file
+        .pattern_ambient_modules()
+        .iter()
+        .find_map(|module| if search.add(Some(module.symbol)) { Some(search.found) } else { None })
+    {
         return result;
     }
     search.found

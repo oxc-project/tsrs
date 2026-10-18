@@ -12,7 +12,8 @@ use std::path::Path;
 use std::process::Command;
 
 fn run(args: &[&str]) -> (bool, String) {
-    let case = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/regressions/union-too-complex-cross-product");
+    let case = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../testdata/regressions/union-too-complex-cross-product");
     let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
         .current_dir(case)
         .args(["-p", ".", "--pretty", "false"])
@@ -21,25 +22,42 @@ fn run(args: &[&str]) -> (bool, String) {
         .env_remove("TSRS_HISTORY")
         .output()
         .unwrap();
-    assert!(out.status.code().is_some_and(|c| c <= 2), "{args:?}: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.code().is_some_and(|c| c <= 2),
+        "{args:?}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     (out.status.success(), String::from_utf8(out.stdout).unwrap())
 }
 
 #[test]
 fn too_complex_union_reports_at_every_site_whatever_the_assignment() {
     let expected = std::fs::read_to_string(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/regressions/union-too-complex-cross-product/expected.txt"),
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../testdata/regressions/union-too-complex-cross-product/expected.txt"),
     )
     .unwrap();
     assert_eq!(run(&["--singleThreaded"]), (false, expected.clone()), "--singleThreaded");
     for checkers in ["1", "2", "3", "4"] {
-        assert_eq!(run(&["--checkers", checkers]), (false, expected.clone()), "--checkers {checkers}");
+        assert_eq!(
+            run(&["--checkers", checkers]),
+            (false, expected.clone()),
+            "--checkers {checkers}"
+        );
         for seed in 1..=8 {
             let assignment = format!("random:{seed}");
-            assert_eq!(run(&["--checkers", checkers, "--checkerAssignment", &assignment]), (false, expected.clone()), "--checkers {checkers} {assignment}");
+            assert_eq!(
+                run(&["--checkers", checkers, "--checkerAssignment", &assignment]),
+                (false, expected.clone()),
+                "--checkers {checkers} {assignment}"
+            );
         }
     }
     // Go's history: the checker that evaluated the type under x/a.ts's `@ts-ignore` reports nothing at x/zz.ts, as
     // tsgo-ref does with one checker.
-    assert_eq!(run(&["--checkers", "1", "--checkerAssignment", "go"]), (true, String::new()), "--checkerAssignment go");
+    assert_eq!(
+        run(&["--checkers", "1", "--checkerAssignment", "go"]),
+        (true, String::new()),
+        "--checkerAssignment go"
+    );
 }

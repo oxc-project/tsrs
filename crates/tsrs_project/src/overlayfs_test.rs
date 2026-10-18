@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
-use tsrs_core::tspath::Path;
 use tsrs_core::ScriptKind;
+use tsrs_core::tspath::Path;
 use tsrs_lsproto as lsproto;
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use super::*;
 use crate::filechange::{FileChange, FileChangeKind};
@@ -13,10 +13,19 @@ use crate::snapshotfs::FileHandleSource;
 // Helper to create test overlayFS
 fn create_overlay_fs() -> overlayFS {
     let test_fs = vfstest::from_map(
-        [("/test1.ts", "// existing content"), ("/test2.ts", "// existing content"), ("/script", "// extensionless content")],
+        [
+            ("/test1.ts", "// existing content"),
+            ("/test2.ts", "// existing content"),
+            ("/script", "// extensionless content"),
+        ],
         false, /* useCaseSensitiveFileNames */
     );
-    new_overlay_fs(FsRef::Host(Arc::new(test_fs)), Arc::default(), lsproto::PositionEncodingKind::UTF16, Arc::new(|file_name: &str| Path::from(file_name)))
+    new_overlay_fs(
+        FsRef::Host(Arc::new(test_fs)),
+        Arc::default(),
+        lsproto::PositionEncodingKind::UTF16,
+        Arc::new(|file_name: &str| Path::from(file_name)),
+    )
 }
 
 fn test_uri1() -> lsproto::DocumentUri {
@@ -27,8 +36,20 @@ fn test_uri2() -> lsproto::DocumentUri {
     lsproto::DocumentUri("file:///test2.ts".to_string())
 }
 
-fn open(uri: lsproto::DocumentUri, version: i32, content: &str, language_kind: lsproto::LanguageKind) -> FileChange {
-    FileChange { kind: FileChangeKind::Open, uri, version, content: content.to_string(), language_kind, changes: Vec::new() }
+fn open(
+    uri: lsproto::DocumentUri,
+    version: i32,
+    content: &str,
+    language_kind: lsproto::LanguageKind,
+) -> FileChange {
+    FileChange {
+        kind: FileChangeKind::Open,
+        uri,
+        version,
+        content: content.to_string(),
+        language_kind,
+        changes: Vec::new(),
+    }
 }
 
 fn change(kind: FileChangeKind, uri: lsproto::DocumentUri) -> FileChange {
@@ -56,7 +77,10 @@ fn process_changes_multiple_opens_should_panic() {
 #[test]
 fn process_changes_watch_create_then_delete_becomes_nothing() {
     let fs = create_overlay_fs();
-    let (result, _) = fs.process_changes(&[change(FileChangeKind::WatchCreate, test_uri1()), change(FileChangeKind::WatchDelete, test_uri1())]);
+    let (result, _) = fs.process_changes(&[
+        change(FileChangeKind::WatchCreate, test_uri1()),
+        change(FileChangeKind::WatchDelete, test_uri1()),
+    ]);
     assert!(result.is_empty());
 }
 
@@ -64,7 +88,10 @@ fn process_changes_watch_create_then_delete_becomes_nothing() {
 #[test]
 fn process_changes_watch_delete_then_create_becomes_change() {
     let fs = create_overlay_fs();
-    let (result, _) = fs.process_changes(&[change(FileChangeKind::WatchDelete, test_uri1()), change(FileChangeKind::WatchCreate, test_uri1())]);
+    let (result, _) = fs.process_changes(&[
+        change(FileChangeKind::WatchDelete, test_uri1()),
+        change(FileChangeKind::WatchCreate, test_uri1()),
+    ]);
 
     assert_eq!(result.created.len(), 0);
     assert_eq!(result.deleted.len(), 0);
@@ -109,7 +136,12 @@ fn process_changes_open_falls_back_to_file_extension_for_unknown_language_kind()
     let fs = create_overlay_fs();
     let uri = lsproto::DocumentUri("file:///test1.mts".to_string());
 
-    fs.process_changes(&[open(uri.clone(), 1, "export const x = 1;", lsproto::LanguageKind("mts"))]);
+    fs.process_changes(&[open(
+        uri.clone(),
+        1,
+        "export const x = 1;",
+        lsproto::LanguageKind("mts"),
+    )]);
 
     let fh = fs.get_file(&uri.file_name()).unwrap();
     assert_eq!(fh.kind(), ScriptKind::TS);
@@ -184,7 +216,9 @@ fn process_changes_close_and_change_without_overlay_should_not_panic() {
         uri: test_uri1(),
         version: 2,
         changes: vec![lsproto::TextDocumentContentChangePartialOrWholeDocument {
-            whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument { text: "const x = 1;".to_string() }),
+            whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument {
+                text: "const x = 1;".to_string(),
+            }),
             ..Default::default()
         }],
         ..Default::default()
@@ -204,13 +238,16 @@ fn process_changes_change_after_close_in_same_batch_is_dropped() {
         uri: test_uri1(),
         version: 2,
         changes: vec![lsproto::TextDocumentContentChangePartialOrWholeDocument {
-            whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument { text: "const x = 2;".to_string() }),
+            whole_document: Some(lsproto::TextDocumentContentChangeWholeDocument {
+                text: "const x = 2;".to_string(),
+            }),
             ..Default::default()
         }],
         ..Default::default()
     };
 
-    let (result, overlays) = fs.process_changes(&[change(FileChangeKind::Close, test_uri1()), edit]);
+    let (result, overlays) =
+        fs.process_changes(&[change(FileChangeKind::Close, test_uri1()), edit]);
 
     assert!(result.closed.has(&test_uri1()));
     assert!(!result.changed.has(&test_uri1()));
@@ -227,7 +264,10 @@ fn process_changes_close_then_open_in_same_batch_marks_as_changed() {
     fs.process_changes(&[open(test_uri1(), 1, "const x = 1;", lsproto::LanguageKind::TypeScript)]);
 
     // Now close and reopen in the same batch (like Neovim does for file reload)
-    let (result, _) = fs.process_changes(&[change(FileChangeKind::Close, test_uri1()), open(test_uri1(), 0, "const x = 2;", lsproto::LanguageKind::TypeScript)]);
+    let (result, _) = fs.process_changes(&[
+        change(FileChangeKind::Close, test_uri1()),
+        open(test_uri1(), 0, "const x = 2;", lsproto::LanguageKind::TypeScript),
+    ]);
 
     // Should not be marked as opened since it was already open
     assert!(result.opened.0.is_empty(), "close then open should not mark as opened");
@@ -241,14 +281,25 @@ fn process_changes_close_then_open_in_same_batch_marks_as_changed() {
 // overlayfs_test.go:357 TestOverlayFSFileSystem
 #[test]
 fn overlay_fs_file_system() {
-    let host = vfstest::from_map([("/virtual", "host file")], false /* useCaseSensitiveFileNames */);
+    let host =
+        vfstest::from_map([("/virtual", "host file")], false /* useCaseSensitiveFileNames */);
     let to_path: ToPath = Arc::new(|file_name: &str| Path::from(file_name));
     let mut overlays: FxHashMap<Path, Arc<Overlay>> = FxHashMap::default();
     overlays.insert(
         Path::from("/virtual/nested/file.ts"),
-        Arc::new(new_overlay("/virtual/nested/file.ts".to_string(), "overlay".to_string(), 1, ScriptKind::TS)),
+        Arc::new(new_overlay(
+            "/virtual/nested/file.ts".to_string(),
+            "overlay".to_string(),
+            1,
+            ScriptKind::TS,
+        )),
     );
-    let file_system = new_overlay_fs(FsRef::Host(Arc::new(host)), Arc::new(overlays), lsproto::PositionEncodingKind::UTF16, to_path);
+    let file_system = new_overlay_fs(
+        FsRef::Host(Arc::new(host)),
+        Arc::new(overlays),
+        lsproto::PositionEncodingKind::UTF16,
+        to_path,
+    );
 
     assert!(file_system.directory_exists("/virtual"));
     assert!(!file_system.file_exists("/virtual"));

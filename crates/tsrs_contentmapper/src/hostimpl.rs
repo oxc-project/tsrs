@@ -17,18 +17,19 @@ use tsrs_core::json::{self, Value};
 use tsrs_core::stringutil::equal_fold;
 use tsrs_core::{CompilerOptions, Locale, P, TextRange, alloc_str, goslices, tspath};
 use tsrs_diagnostics::Category;
-use tsrs_ipc::jsonrpc::{self, ResponseError, ID};
+use tsrs_ipc::jsonrpc::{self, ID, ResponseError};
 use tsrs_ipc::{self as ipc, Closer, Conn, Handler, Message, Protocol, ReadWriteCloser};
 use tsrs_spanmap::SpanMap;
 use tsrs_tsoptions::gojson::compiler_options_to_go_json;
-use tsrs_tsoptions::{is_supported_virtual_extension, Mapper, OptionPathSegment};
+use tsrs_tsoptions::{Mapper, OptionPathSegment, is_supported_virtual_extension};
 
-use crate::host::{
-    new_transform_error, quote, DiagnosticDirectiveError, DiagnosticDirectiveErrorKind, Error, Host, InitializeError,
-    InitializeErrorKind, InvalidVirtualExtensionError, MappedResult, OperationTiming, OptionDiagnostic, Project, ProjectError,
-    ProjectErrorKind, ProjectSpec, Request, Timings, TransformErrorKind, TransformResultFiles,
-};
 use crate::MapperTimings;
+use crate::host::{
+    DiagnosticDirectiveError, DiagnosticDirectiveErrorKind, Error, Host, InitializeError,
+    InitializeErrorKind, InvalidVirtualExtensionError, MappedResult, OperationTiming,
+    OptionDiagnostic, Project, ProjectError, ProjectErrorKind, ProjectSpec, Request, Timings,
+    TransformErrorKind, TransformResultFiles, new_transform_error, quote,
+};
 
 // hostimpl.go:30
 const INITIALIZE_TIMEOUT_SECONDS: i32 = 5;
@@ -80,21 +81,33 @@ impl ProtocolJson for InitializeParams {
         if !self.locale.is_empty() {
             o.insert("locale".to_string(), Value::String(self.locale.clone()));
         }
-        let encodings = self.position_encodings.iter().map(|encoding| Value::String(encoding.0.to_string())).collect();
+        let encodings = self
+            .position_encodings
+            .iter()
+            .map(|encoding| Value::String(encoding.0.to_string()))
+            .collect();
         o.insert("positionEncodings".to_string(), Value::Array(encodings));
         Value::Object(o)
     }
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = InitializeParams::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.InitializeParams", pointer)?.into_iter().flatten() {
+        for (name, member) in unmarshal_struct(value, "contentmapper.InitializeParams", pointer)?
+            .into_iter()
+            .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "locale" => v.locale = unmarshal_string(member, pointer)?,
                 "positionEncodings" => {
-                    v.position_encodings = unmarshal_slice(member, "[]contentmapper.PositionEncoding", pointer, |element, pointer| {
-                        Ok(PositionEncoding(Cow::Owned(unmarshal_string(element, pointer)?)))
-                    })?;
+                    v.position_encodings = unmarshal_slice(
+                        member,
+                        "[]contentmapper.PositionEncoding",
+                        pointer,
+                        |element, pointer| {
+                            Ok(PositionEncoding(Cow::Owned(unmarshal_string(element, pointer)?)))
+                        },
+                    )?;
                 }
                 _ => {}
             }
@@ -116,17 +129,26 @@ pub struct InitializeResult {
 impl ProtocolJson for InitializeResult {
     fn marshal_json(&self) -> Value {
         let mut o = OrderedMap::default();
-        o.insert("positionEncoding".to_string(), Value::String(self.position_encoding.0.to_string()));
+        o.insert(
+            "positionEncoding".to_string(),
+            Value::String(self.position_encoding.0.to_string()),
+        );
         o.insert("diagnosticSource".to_string(), Value::String(self.diagnostic_source.clone()));
         Value::Object(o)
     }
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = InitializeResult::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.InitializeResult", pointer)?.into_iter().flatten() {
+        for (name, member) in unmarshal_struct(value, "contentmapper.InitializeResult", pointer)?
+            .into_iter()
+            .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
-                "positionEncoding" => v.position_encoding = PositionEncoding(Cow::Owned(unmarshal_string(member, pointer)?)),
+                "positionEncoding" => {
+                    v.position_encoding =
+                        PositionEncoding(Cow::Owned(unmarshal_string(member, pointer)?));
+                }
                 "diagnosticSource" => v.diagnostic_source = unmarshal_string(member, pointer)?,
                 _ => {}
             }
@@ -163,7 +185,10 @@ impl ProtocolJson for OpenProjectParams {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = OpenProjectParams::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.OpenProjectParams", pointer)?.into_iter().flatten() {
+        for (name, member) in unmarshal_struct(value, "contentmapper.OpenProjectParams", pointer)?
+            .into_iter()
+            .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "configFileName" => v.config_file_name = unmarshal_string(member, pointer)?,
@@ -199,7 +224,8 @@ impl ProtocolJson for OpenProjectResult {
             o.insert("watchedFiles".to_string(), Value::Array(files));
         }
         if !self.option_diagnostics.is_empty() {
-            let diagnostics = self.option_diagnostics.iter().map(ProtocolJson::marshal_json).collect();
+            let diagnostics =
+                self.option_diagnostics.iter().map(ProtocolJson::marshal_json).collect();
             o.insert("optionDiagnostics".to_string(), Value::Array(diagnostics));
         }
         Value::Object(o)
@@ -207,14 +233,24 @@ impl ProtocolJson for OpenProjectResult {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = OpenProjectResult::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.OpenProjectResult", pointer)?.into_iter().flatten() {
+        for (name, member) in unmarshal_struct(value, "contentmapper.OpenProjectResult", pointer)?
+            .into_iter()
+            .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "configIdentity" => v.config_identity = unmarshal_string(member, pointer)?,
-                "watchedFiles" => v.watched_files = unmarshal_slice(member, "[]string", pointer, unmarshal_string)?,
+                "watchedFiles" => {
+                    v.watched_files =
+                        unmarshal_slice(member, "[]string", pointer, unmarshal_string)?;
+                }
                 "optionDiagnostics" => {
-                    v.option_diagnostics =
-                        unmarshal_slice(member, "[]contentmapper.OptionDiagnosticResult", pointer, OptionDiagnosticResult::unmarshal_json)?;
+                    v.option_diagnostics = unmarshal_slice(
+                        member,
+                        "[]contentmapper.OptionDiagnosticResult",
+                        pointer,
+                        OptionDiagnosticResult::unmarshal_json,
+                    )?;
                 }
                 _ => {}
             }
@@ -242,10 +278,18 @@ impl ProtocolJson for OptionDiagnosticResult {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = OptionDiagnosticResult::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.OptionDiagnosticResult", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.OptionDiagnosticResult", pointer)?
+                .into_iter()
+                .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
-                "path" => v.path = unmarshal_slice(member, "[]jsontext.Value", pointer, |element, _| Ok(element))?,
+                "path" => {
+                    v.path = unmarshal_slice(member, "[]jsontext.Value", pointer, |element, _| {
+                        Ok(element)
+                    })?;
+                }
                 "messageText" => v.message_text = unmarshal_string(member, pointer)?,
                 "code" => v.code = unmarshal_int32(&member, "int32", pointer)?,
                 _ => {}
@@ -271,7 +315,10 @@ impl ProtocolJson for CloseProjectParams {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = CloseProjectParams::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.CloseProjectParams", pointer)?.into_iter().flatten() {
+        for (name, member) in unmarshal_struct(value, "contentmapper.CloseProjectParams", pointer)?
+            .into_iter()
+            .flatten()
+        {
             if name == "projectHandle" {
                 v.project_handle = unmarshal_string(member, &member_pointer(pointer, &name))?;
             }
@@ -320,7 +367,9 @@ impl ProtocolJson for TransformParams {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = TransformParams::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.TransformParams", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.TransformParams", pointer)?.into_iter().flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "fileName" => v.file_name = unmarshal_string(member, pointer)?,
@@ -364,7 +413,12 @@ impl MappedOutput {
     }
 
     // Decodes `member` if it is one of MappedOutput's; gives it back otherwise.
-    fn unmarshal_member(&mut self, name: &str, member: Value, pointer: &str) -> Result<Option<Value>, String> {
+    fn unmarshal_member(
+        &mut self,
+        name: &str,
+        member: Value,
+        pointer: &str,
+    ) -> Result<Option<Value>, String> {
         match name {
             "text" => self.text = unmarshal_string(member, pointer)?,
             "extension" => self.extension = unmarshal_string(member, pointer)?,
@@ -390,7 +444,9 @@ impl ProtocolJson for MappedOutput {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = MappedOutput::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.MappedOutput", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.MappedOutput", pointer)?.into_iter().flatten()
+        {
             let member_pointer = member_pointer(pointer, &name);
             v.unmarshal_member(&name, member, &member_pointer)?;
         }
@@ -434,7 +490,11 @@ impl ProtocolJson for UnusedExpectDirectiveDiagnostic {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = UnusedExpectDirectiveDiagnostic::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.UnusedExpectDirectiveDiagnostic", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.UnusedExpectDirectiveDiagnostic", pointer)?
+                .into_iter()
+                .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "code" => v.code = unmarshal_int32(&member, "int32", pointer)?,
@@ -457,7 +517,11 @@ pub struct DiagnosticDirectives {
 impl ProtocolJson for DiagnosticDirectives {
     fn marshal_json(&self) -> Value {
         let mut o = OrderedMap::default();
-        let unused = self.unused_expect_directive_diagnostics.iter().map(ProtocolJson::marshal_json).collect();
+        let unused = self
+            .unused_expect_directive_diagnostics
+            .iter()
+            .map(ProtocolJson::marshal_json)
+            .collect();
         o.insert("unusedExpectDirectiveDiagnostics".to_string(), Value::Array(unused));
         let directives = self.directives.iter().map(ProtocolJson::marshal_json).collect();
         o.insert("directives".to_string(), Value::Array(directives));
@@ -466,7 +530,11 @@ impl ProtocolJson for DiagnosticDirectives {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = DiagnosticDirectives::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.DiagnosticDirectives", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.DiagnosticDirectives", pointer)?
+                .into_iter()
+                .flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "unusedExpectDirectiveDiagnostics" => {
@@ -478,8 +546,12 @@ impl ProtocolJson for DiagnosticDirectives {
                     )?;
                 }
                 "directives" => {
-                    v.directives =
-                        unmarshal_slice(member, "[]contentmapper.MappedDiagnosticDirective", pointer, MappedDiagnosticDirective::unmarshal_json)?;
+                    v.directives = unmarshal_slice(
+                        member,
+                        "[]contentmapper.MappedDiagnosticDirective",
+                        pointer,
+                        MappedDiagnosticDirective::unmarshal_json,
+                    )?;
                 }
                 _ => {}
             }
@@ -520,18 +592,29 @@ impl ProtocolJson for MappedDiagnosticDirective {
 
     // hostimpl.go:168 UnmarshalJSONFrom (json/v2 prefixes the method's error with the value it was decoding.)
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
-        let semantic_error = |err: String| format!("{}: {err}", type_error(json_kind(&value), "contentmapper.MappedDiagnosticDirective", pointer));
+        let semantic_error = |err: String| {
+            format!(
+                "{}: {err}",
+                type_error(json_kind(&value), "contentmapper.MappedDiagnosticDirective", pointer)
+            )
+        };
         let tuple: &[Value] = match &value {
             Value::Array(tuple) => tuple,
             Value::Null => &[],
-            value => return Err(semantic_error(type_error(json_kind(value), "[]jsontext.Value", ""))),
+            value => {
+                return Err(semantic_error(type_error(json_kind(value), "[]jsontext.Value", "")));
+            }
         };
         if tuple.len() != 5 && tuple.len() != 6 {
-            return Err(semantic_error(format!("diagnostic directive tuple must contain 5 or 6 elements, got {}", tuple.len())));
+            return Err(semantic_error(format!(
+                "diagnostic directive tuple must contain 5 or 6 elements, got {}",
+                tuple.len()
+            )));
         }
         let element = |i: usize| {
-            unmarshal_int(&tuple[i], "int", i64::MIN, i64::MAX, "")
-                .map_err(|err| semantic_error(format!("invalid diagnostic directive tuple element {i}: {err}")))
+            unmarshal_int(&tuple[i], "int", i64::MIN, i64::MAX, "").map_err(|err| {
+                semantic_error(format!("invalid diagnostic directive tuple element {i}: {err}"))
+            })
         };
         let mut d = MappedDiagnosticDirective {
             original_start: element(0)?,
@@ -541,8 +624,16 @@ impl ProtocolJson for MappedDiagnosticDirective {
             ..Default::default()
         };
         d.policy = DiagnosticDirectivePolicy(
-            unmarshal_int(&tuple[4], "contentmapper.DiagnosticDirectivePolicy", 0, i64::from(u8::MAX), "")
-                .map_err(|err| semantic_error(format!("invalid diagnostic directive tuple element 4: {err}")))? as u8,
+            unmarshal_int(
+                &tuple[4],
+                "contentmapper.DiagnosticDirectivePolicy",
+                0,
+                i64::from(u8::MAX),
+                "",
+            )
+            .map_err(|err| {
+                semantic_error(format!("invalid diagnostic directive tuple element 4: {err}"))
+            })? as u8,
         );
         if tuple.len() == 6 {
             d.unused_expect_directive_index = Some(element(5)?);
@@ -564,7 +655,10 @@ impl ProtocolJson for SupplementalOutput {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = SupplementalOutput::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.SupplementalOutput", pointer)?.into_iter().flatten() {
+        for (name, member) in unmarshal_struct(value, "contentmapper.SupplementalOutput", pointer)?
+            .into_iter()
+            .flatten()
+        {
             let member_pointer = member_pointer(pointer, &name);
             v.mapped_output.unmarshal_member(&name, member, &member_pointer)?;
         }
@@ -588,25 +682,45 @@ impl ProtocolJson for TransformResult {
         let mut o = OrderedMap::default();
         self.mapped_output.marshal_members(&mut o);
         if !self.diagnostics.is_empty() {
-            o.insert("diagnostics".to_string(), Value::Array(self.diagnostics.iter().map(ProtocolJson::marshal_json).collect()));
+            o.insert(
+                "diagnostics".to_string(),
+                Value::Array(self.diagnostics.iter().map(ProtocolJson::marshal_json).collect()),
+            );
         }
         if !self.supplemental.is_empty() {
-            o.insert("supplemental".to_string(), Value::Array(self.supplemental.iter().map(ProtocolJson::marshal_json).collect()));
+            o.insert(
+                "supplemental".to_string(),
+                Value::Array(self.supplemental.iter().map(ProtocolJson::marshal_json).collect()),
+            );
         }
         Value::Object(o)
     }
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = TransformResult::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.TransformResult", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.TransformResult", pointer)?.into_iter().flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             let Some(member) = v.mapped_output.unmarshal_member(&name, member, pointer)? else {
                 continue;
             };
             match name.as_str() {
-                "diagnostics" => v.diagnostics = unmarshal_slice(member, "[]contentmapper.Diagnostic", pointer, Diagnostic::unmarshal_json)?,
+                "diagnostics" => {
+                    v.diagnostics = unmarshal_slice(
+                        member,
+                        "[]contentmapper.Diagnostic",
+                        pointer,
+                        Diagnostic::unmarshal_json,
+                    )?;
+                }
                 "supplemental" => {
-                    v.supplemental = unmarshal_slice(member, "[]contentmapper.SupplementalOutput", pointer, SupplementalOutput::unmarshal_json)?;
+                    v.supplemental = unmarshal_slice(
+                        member,
+                        "[]contentmapper.SupplementalOutput",
+                        pointer,
+                        SupplementalOutput::unmarshal_json,
+                    )?;
                 }
                 _ => {}
             }
@@ -639,7 +753,9 @@ impl ProtocolJson for Diagnostic {
 
     fn unmarshal_json(value: Value, pointer: &str) -> Result<Self, String> {
         let mut v = Diagnostic::default();
-        for (name, member) in unmarshal_struct(value, "contentmapper.Diagnostic", pointer)?.into_iter().flatten() {
+        for (name, member) in
+            unmarshal_struct(value, "contentmapper.Diagnostic", pointer)?.into_iter().flatten()
+        {
             let pointer = &member_pointer(pointer, &name);
             match name.as_str() {
                 "messageText" => v.message_text = unmarshal_string(member, pointer)?,
@@ -656,7 +772,12 @@ impl ProtocolJson for Diagnostic {
 // dialFunc establishes a running connection to a mapper. In production it spawns the mapper's process;
 // tests substitute an in-memory connection. It returns the connection and a closer that tears it down.
 // hostimpl.go:218 (Go also passes the host's context, which the port does not have.)
-type dialFunc = dyn Fn(&Mapper, &Locale) -> Result<(Arc<dyn Conn>, Arc<dyn Closer>, PositionEncoding, String), Error> + Send + Sync;
+type dialFunc = dyn Fn(
+        &Mapper,
+        &Locale,
+    ) -> Result<(Arc<dyn Conn>, Arc<dyn Closer>, PositionEncoding, String), Error>
+    + Send
+    + Sync;
 
 // host manages one child process per mapper identity. It is the production implementation of Host.
 // hostimpl.go:221 (Go's ctx, cancel and stop are not ported: the port has no context. The owner closes the host, and
@@ -778,7 +899,8 @@ impl timingCollector {
         if let Some(timing) = t.mappers.get(identity) {
             return Arc::clone(timing);
         }
-        let timing = Arc::new(mapperTimingCollector { owner: Arc::downgrade(self), ..Default::default() });
+        let timing =
+            Arc::new(mapperTimingCollector { owner: Arc::downgrade(self), ..Default::default() });
         t.mappers.insert(identity.to_string(), Arc::clone(&timing));
         timing
     }
@@ -793,7 +915,10 @@ impl timingCollector {
             }
             (request_wait, t.mappers.clone())
         };
-        let mut result = Timings { mappers: OrderedMap::with_capacity_and_hasher(mappers.len(), rustc_hash::FxBuildHasher), request_wait };
+        let mut result = Timings {
+            mappers: OrderedMap::with_capacity_and_hasher(mappers.len(), rustc_hash::FxBuildHasher),
+            request_wait,
+        };
         result.mappers.extend(mappers.into_iter().map(|(identity, timing)| {
             (
                 identity,
@@ -844,7 +969,12 @@ impl mapperTimingCollector {
 // log; that is None here, so that a spawner can connect the child's stderr to the null device instead of copying it.
 // The error is the text Go's err.Error() gives.)
 pub trait Spawner: Send + Sync {
-    fn spawn(&self, command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>) -> Result<ReadWriteCloser, String>;
+    fn spawn(
+        &self,
+        command: &[String],
+        dir: &str,
+        stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<ReadWriteCloser, String>;
 }
 
 // hostimpl.go:353 processExitState is tsrs_ipc's `Closer::exit_code`, which every stream's closer answers (None for
@@ -856,10 +986,17 @@ pub struct SpawnerFunc<F>(pub F);
 
 impl<F> Spawner for SpawnerFunc<F>
 where
-    F: Fn(&[String], &str, Option<Box<dyn Write + Send>>) -> Result<ReadWriteCloser, String> + Send + Sync,
+    F: Fn(&[String], &str, Option<Box<dyn Write + Send>>) -> Result<ReadWriteCloser, String>
+        + Send
+        + Sync,
 {
     // hostimpl.go:360
-    fn spawn(&self, command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>) -> Result<ReadWriteCloser, String> {
+    fn spawn(
+        &self,
+        command: &[String],
+        dir: &str,
+        stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<ReadWriteCloser, String> {
         (self.0)(command, dir, stderr)
     }
 }
@@ -886,8 +1023,14 @@ impl loggingProtocol {
     // hostimpl.go:378 (Go marshals the message here; the callers pass the result of marshaling it.)
     fn log(&self, direction: &str, message: Result<String, ipc::Error>) {
         match message {
-            Err(err) => (self.logger)(&format!("[content mapper: {}] {direction}: <failed to serialize: {err}>", self.mapper_name)),
-            Ok(data) => (self.logger)(&format!("[content mapper: {}] {direction}: {data}", self.mapper_name)),
+            Err(err) => (self.logger)(&format!(
+                "[content mapper: {}] {direction}: <failed to serialize: {err}>",
+                self.mapper_name
+            )),
+            Ok(data) => (self.logger)(&format!(
+                "[content mapper: {}] {direction}: {data}",
+                self.mapper_name
+            )),
         }
     }
 }
@@ -903,7 +1046,12 @@ impl Protocol for loggingProtocol {
     }
 
     // hostimpl.go:395
-    fn write_request(&self, id: &ID, method: &str, params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn write_request(
+        &self,
+        id: &ID,
+        method: &str,
+        params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         self.log("send", jsonrpc::marshal_request_message(Some(id), method, params));
         self.protocol.write_request(id, method, params)
     }
@@ -937,7 +1085,10 @@ struct stderrLogger {
 
 impl stderrLogger {
     // hostimpl.go:426
-    #[expect(clippy::unnecessary_wraps, reason = "The logger adapter shares the fallible Write interface used by the content mapper host.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "The logger adapter shares the fallible Write interface used by the content mapper host."
+    )]
     fn write(&self, data: &[u8]) -> io::Result<usize> {
         let mut pending = lock(&self.mu);
         pending.extend_from_slice(data);
@@ -1005,7 +1156,9 @@ struct closeOnceReadWriteCloser {
 impl Closer for closeOnceReadWriteCloser {
     // hostimpl.go:471
     fn close(&self) -> io::Result<()> {
-        let err = self.once.get_or_init(|| self.closer.close().err().map(|err| (err.kind(), err.to_string())));
+        let err = self
+            .once
+            .get_or_init(|| self.closer.close().err().map(|err| (err.kind(), err.to_string())));
         match err {
             None => Ok(()),
             Some((kind, text)) => Err(io::Error::new(*kind, text.clone())),
@@ -1029,7 +1182,11 @@ pub fn new_host(spawner: Arc<dyn Spawner>, diagnostic_locale: Locale) -> Arc<dyn
 
 // NewHostWithOptions creates a Host with optional protocol and process logging.
 // hostimpl.go:492
-pub fn new_host_with_options(spawner: Arc<dyn Spawner>, diagnostic_locale: Locale, options: HostOptions) -> Arc<dyn Host> {
+pub fn new_host_with_options(
+    spawner: Arc<dyn Spawner>,
+    diagnostic_locale: Locale,
+    options: HostOptions,
+) -> Arc<dyn Host> {
     let logger = options.logger;
     let timing = timingCollector::new();
     let dial_timing = Arc::clone(&timing);
@@ -1046,7 +1203,11 @@ pub fn new_host_with_options(spawner: Arc<dyn Spawner>, diagnostic_locale: Local
         let mut stderr: Option<Box<dyn Write + Send>> = None;
         let mut stderr_log: Option<Arc<stderrLogger>> = None;
         if let Some(logger) = &logger {
-            let log = Arc::new(stderrLogger { mapper_name: diagnostic_name.clone(), logger: Arc::clone(logger), mu: Mutex::new(Vec::new()) });
+            let log = Arc::new(stderrLogger {
+                mapper_name: diagnostic_name.clone(),
+                logger: Arc::clone(logger),
+                mu: Mutex::new(Vec::new()),
+            });
             stderr = Some(Box::new(stderrLoggerWriter(Arc::clone(&log))));
             stderr_log = Some(log);
         }
@@ -1068,12 +1229,21 @@ pub fn new_host_with_options(spawner: Arc<dyn Spawner>, diagnostic_locale: Local
         if let Some(stderr_log) = stderr_log {
             closer = Arc::new(loggedProcess { closer, stderr: stderr_log });
         }
-        let rwc: Arc<dyn Closer> = Arc::new(closeOnceReadWriteCloser { closer, once: OnceLock::new() });
+        let rwc: Arc<dyn Closer> =
+            Arc::new(closeOnceReadWriteCloser { closer, once: OnceLock::new() });
         let mut protocol: Box<dyn Protocol> = Box::new(ipc::new_jsonrpc_protocol(reader, writer));
         if let Some(logger) = &logger {
-            protocol = Box::new(loggingProtocol { protocol, mapper_name: diagnostic_name.clone(), logger: Arc::clone(logger) });
+            protocol = Box::new(loggingProtocol {
+                protocol,
+                mapper_name: diagnostic_name.clone(),
+                logger: Arc::clone(logger),
+            });
         }
-        let conn = ipc::new_async_conn_with_protocol(Some(Arc::clone(&rwc)), protocol, Arc::new(rejectHandler));
+        let conn = ipc::new_async_conn_with_protocol(
+            Some(Arc::clone(&rwc)),
+            protocol,
+            Arc::new(rejectHandler),
+        );
         // Go's `go func() { _ = conn.Run(ctx); _ = rwc.Close() }()`. The thread is never joined: closing the stream
         // ends the read loop, except while a grandchild of the mapper keeps its stdout open (process.rs), and then
         // the thread waits for that grandchild instead of the host.
@@ -1145,7 +1315,11 @@ pub fn new_host_with_options(spawner: Arc<dyn Spawner>, diagnostic_locale: Local
 const CONN_THREAD: &str = "contentmapper-conn";
 
 // hostimpl.go:555
-fn new_with_dial(diagnostic_locale: Locale, timing: Arc<timingCollector>, dial: Box<dialFunc>) -> Arc<host> {
+fn new_with_dial(
+    diagnostic_locale: Locale,
+    timing: Arc<timingCollector>,
+    dial: Box<dialFunc>,
+) -> Arc<host> {
     Arc::new_cyclic(|this| host {
         this: Weak::clone(this),
         dial,
@@ -1203,14 +1377,16 @@ impl Host for host {
         let key = project_spec_key(&spec);
         let mut state = lock(&self.mu);
         let hostLocked { conns, projects, project_leases, next_project_id } = &mut *state;
-        let (Some(conns), Some(projects), Some(project_leases)) = (conns, projects, project_leases) else {
+        let (Some(conns), Some(projects), Some(project_leases)) = (conns, projects, project_leases)
+        else {
             return None;
         };
         let lease_entry = match project_leases.entry(key) {
             Entry::Occupied(entry) => return Some(entry.get().retain_locked()),
             Entry::Vacant(entry) => entry,
         };
-        let mut entries = OrderedMap::with_capacity_and_hasher(spec.mappers.len(), rustc_hash::FxBuildHasher);
+        let mut entries =
+            OrderedMap::with_capacity_and_hasher(spec.mappers.len(), rustc_hash::FxBuildHasher);
         for &mapper in &spec.mappers {
             let entry_key = format!("{}:{}", mapper.identity(), next_project_id);
             *next_project_id += 1;
@@ -1265,7 +1441,11 @@ impl Host for host {
     // Transform sends the file's content to the mapper's process and decodes the transformed result.
     // hostimpl.go:761 (Go allocates a fresh CompilerOptions, whose address keys the short-lived project; this one is
     // an arena object, so it stays allocated.)
-    fn transform(&self, mapper: &'static Mapper, request: Request<'_>) -> Result<TransformResultFiles, Error> {
+    fn transform(
+        &self,
+        mapper: &'static Mapper,
+        request: Request<'_>,
+    ) -> Result<TransformResultFiles, Error> {
         let project = self
             .project(ProjectSpec {
                 mappers: vec![mapper],
@@ -1286,13 +1466,22 @@ impl Host for host {
         let _lifecycle = write(&self.lifecycle_mu);
         let closers: Vec<Arc<dyn Closer>> = {
             let mut state = lock(&self.mu);
-            let closers = state.conns.iter().flat_map(|conns| conns.values()).filter_map(|mc| mc.closer.clone()).collect();
+            let closers = state
+                .conns
+                .iter()
+                .flat_map(|conns| conns.values())
+                .filter_map(|mc| mc.closer.clone())
+                .collect();
             state.conns = None;
             state.projects = None;
             state.project_leases = None;
             closers
         };
-        let errs: Vec<String> = closers.iter().filter_map(|closer| closer.close().err()).map(|err| err.to_string()).collect();
+        let errs: Vec<String> = closers
+            .iter()
+            .filter_map(|closer| closer.close().err())
+            .map(|err| err.to_string())
+            .collect();
         // Go's errors.Join.
         if errs.is_empty() {
             return Ok(());
@@ -1328,11 +1517,17 @@ fn project_spec_key(spec: &ProjectSpec) -> String {
 }
 
 // hostimpl.go:636 (`hex.EncodeToString(hash.Bytes())` of an xxh3.Uint128 is the u128's 32 hex digits.)
-fn combined_identity(mapper: &Mapper, config_identity: &str, compiler_options: Option<P<CompilerOptions>>) -> String {
+fn combined_identity(
+    mapper: &Mapper,
+    config_identity: &str,
+    compiler_options: Option<P<CompilerOptions>>,
+) -> String {
     let transform_identity = mapper.transform_identity(compiler_options.map(P::get)).to_be_bytes();
     let identity = mapper.identity();
     let options = mapper.definition.options.as_bytes();
-    let mut buf = Vec::with_capacity(identity.len() + options.len() + config_identity.len() + transform_identity.len() + 3);
+    let mut buf = Vec::with_capacity(
+        identity.len() + options.len() + config_identity.len() + transform_identity.len() + 3,
+    );
     buf.extend_from_slice(identity.as_bytes());
     buf.push(0);
     buf.extend_from_slice(options);
@@ -1361,7 +1556,8 @@ impl host {
         if entry.opened {
             return Ok(());
         }
-        let (conn, _, diagnostic_source) = self.conn_for_locked(conns, diagnostic_locale, entry.mapper)?;
+        let (conn, _, diagnostic_source) =
+            self.conn_for_locked(conns, diagnostic_locale, entry.mapper)?;
         let compiler_options = match entry.spec.compiler_options {
             Some(options) => compiler_options_to_go_json(&options),
             None => Value::Null,
@@ -1406,15 +1602,32 @@ impl host {
             path = diagnostic.path.iter().try_fold(path, |mut path, raw_segment| {
                 // Go switches on the raw segment's json.Kind: '"' a property, '0' an index, anything else malformed.
                 match raw_segment {
-                    Value::String(property) => path.push(OptionPathSegment { property: property.clone(), ..Default::default() }),
+                    Value::String(property) => path.push(OptionPathSegment {
+                        property: property.clone(),
+                        ..Default::default()
+                    }),
                     Value::Number(_) | Value::Integer(_) => {
-                        let index = match unmarshal_int(raw_segment, "int", i64::MIN, i64::MAX, "") {
+                        let index = match unmarshal_int(raw_segment, "int", i64::MIN, i64::MAX, "")
+                        {
                             Ok(index) if index >= 0 => index,
-                            _ => return Err(ProjectError { kind: ProjectErrorKind::MalformedResponse }.into()),
+                            _ => {
+                                return Err(ProjectError {
+                                    kind: ProjectErrorKind::MalformedResponse,
+                                }
+                                .into());
+                            }
                         };
-                        path.push(OptionPathSegment { index: index as usize, is_index: true, ..Default::default() });
+                        path.push(OptionPathSegment {
+                            index: index as usize,
+                            is_index: true,
+                            ..Default::default()
+                        });
                     }
-                    _ => return Err(ProjectError { kind: ProjectErrorKind::MalformedResponse }.into()),
+                    _ => {
+                        return Err(
+                            ProjectError { kind: ProjectErrorKind::MalformedResponse }.into()
+                        );
+                    }
                 }
                 Ok::<_, Error>(path)
             })?;
@@ -1431,7 +1644,12 @@ impl host {
     }
 
     // hostimpl.go:728
-    fn close_project(&self, mapper: &Mapper, conn: &dyn Conn, project_handle: &str) -> Result<(), ipc::Error> {
+    fn close_project(
+        &self,
+        mapper: &Mapper,
+        conn: &dyn Conn,
+        project_handle: &str,
+    ) -> Result<(), ipc::Error> {
         let mapper_timing = self.timing.mapper(&mapper.identity());
         let start = mapper_timing.start_request();
         let params = CloseProjectParams { project_handle: project_handle.to_string() };
@@ -1451,9 +1669,13 @@ impl host {
         if project_handle.is_empty() {
             return Err(Error::Other("content mapper project handle is required".to_string()));
         }
-        let (conn, position_encoding, diagnostic_source) = match self.conn_for(diagnostic_locale, mapper) {
+        let (conn, position_encoding, diagnostic_source) = match self
+            .conn_for(diagnostic_locale, mapper)
+        {
             Ok(conn) => conn,
-            Err(err) => return Err(new_transform_error(TransformErrorKind::Initialize, Some(err)).into()),
+            Err(err) => {
+                return Err(new_transform_error(TransformErrorKind::Initialize, Some(err)).into());
+            }
         };
         let mapper_timing = self.timing.mapper(&mapper.identity());
         let start = mapper_timing.start_request();
@@ -1474,7 +1696,8 @@ impl host {
                 .into());
             }
         };
-        match decode_transform_result(raw, request.content, &position_encoding, &diagnostic_source) {
+        match decode_transform_result(raw, request.content, &position_encoding, &diagnostic_source)
+        {
             Ok(decoded) => Ok(decoded),
             Err(err) => Err(new_transform_error(TransformErrorKind::Response, Some(err)).into()),
         }
@@ -1483,7 +1706,11 @@ impl host {
     // connFor returns the connection for a mapper's identity, spawning its process on first use. Mappers
     // sharing an identity share a single process.
     // hostimpl.go:825
-    fn conn_for(&self, diagnostic_locale: &Locale, mapper: &Mapper) -> Result<(Arc<dyn Conn>, PositionEncoding, String), Error> {
+    fn conn_for(
+        &self,
+        diagnostic_locale: &Locale,
+        mapper: &Mapper,
+    ) -> Result<(Arc<dyn Conn>, PositionEncoding, String), Error> {
         let mut state = lock(&self.mu);
         self.conn_for_locked(&mut state.conns, diagnostic_locale, mapper)
     }
@@ -1503,7 +1730,11 @@ impl host {
             return Err(err.clone());
         }
         if let Some(conn) = &entry.conn {
-            return Ok((Arc::clone(conn), entry.position_encoding.clone(), entry.diagnostic_source.clone()));
+            return Ok((
+                Arc::clone(conn),
+                entry.position_encoding.clone(),
+                entry.diagnostic_source.clone(),
+            ));
         }
         match (self.dial)(mapper, diagnostic_locale) {
             Ok((conn, closer, position_encoding, diagnostic_source)) => {
@@ -1535,7 +1766,9 @@ impl host {
                         .checked_sub(1)
                         .expect("content mapper connection reference count below zero");
                     if entry.refs == 0 {
-                        if let Some(closer) = conns.shift_remove(identity).and_then(|entry| entry.closer) {
+                        if let Some(closer) =
+                            conns.shift_remove(identity).and_then(|entry| entry.closer)
+                        {
                             closers.push(closer);
                         }
                     }
@@ -1587,9 +1820,7 @@ impl projectLease {
                 let mut state = lock(&self.host.mu);
                 let refs = self
                     .refs
-                    .try_update(Ordering::SeqCst, Ordering::SeqCst, |refs| {
-                        refs.checked_sub(1)
-                    })
+                    .try_update(Ordering::SeqCst, Ordering::SeqCst, |refs| refs.checked_sub(1))
                     .unwrap_or_else(|_| {
                         panic!("content mapper project reference count below zero")
                     })
@@ -1599,18 +1830,31 @@ impl projectLease {
                 }
                 let hostLocked { conns, projects, project_leases, .. } = &mut *state;
                 if let Some(project_leases) = project_leases {
-                    if project_leases.get(&self.key).is_some_and(|lease| std::ptr::eq(Arc::as_ptr(lease), self)) {
+                    if project_leases
+                        .get(&self.key)
+                        .is_some_and(|lease| std::ptr::eq(Arc::as_ptr(lease), self))
+                    {
                         project_leases.remove(&self.key);
                     }
                 }
                 for key in self.entries.values() {
-                    let Some(entry) = projects.as_mut().and_then(|projects| projects.shift_remove(key)) else {
+                    let Some(entry) =
+                        projects.as_mut().and_then(|projects| projects.shift_remove(key))
+                    else {
                         continue;
                     };
                     let identity = entry.mapper.identity();
                     if entry.opened {
-                        if let Some(conn) = conns.as_ref().and_then(|conns| conns.get(&identity)).and_then(|entry| entry.conn.as_ref()) {
-                            if let Err(err) = self.host.close_project(entry.mapper, &**conn, &entry.project_handle) {
+                        if let Some(conn) = conns
+                            .as_ref()
+                            .and_then(|conns| conns.get(&identity))
+                            .and_then(|entry| entry.conn.as_ref())
+                        {
+                            if let Err(err) = self.host.close_project(
+                                entry.mapper,
+                                &**conn,
+                                &entry.project_handle,
+                            ) {
                                 result = Some(join(result, err));
                             }
                         }
@@ -1641,8 +1885,14 @@ impl Project for projectLease {
             if !entry.opened {
                 continue;
             }
-            if let Some(conn) = conns.as_ref().and_then(|conns| conns.get(&entry.mapper.identity())).and_then(|entry| entry.conn.as_ref()) {
-                if let Err(err) = self.host.close_project(entry.mapper, &**conn, &entry.project_handle) {
+            if let Some(conn) = conns
+                .as_ref()
+                .and_then(|conns| conns.get(&entry.mapper.identity()))
+                .and_then(|entry| entry.conn.as_ref())
+            {
+                if let Err(err) =
+                    self.host.close_project(entry.mapper, &**conn, &entry.project_handle)
+                {
                     result = Some(join(result, err));
                 }
             }
@@ -1666,7 +1916,11 @@ impl Project for projectLease {
             };
             if mapper.manifest.dynamic_config {
                 self.host.open_project_locked(conns, &diagnostic_locale, entry)?;
-                identities.push(combined_identity(mapper, &entry.config_identity, entry.spec.compiler_options));
+                identities.push(combined_identity(
+                    mapper,
+                    &entry.config_identity,
+                    entry.spec.compiler_options,
+                ));
             } else {
                 let hash = mapper.transform_identity(entry.spec.compiler_options.map(P::get));
                 identities.push(format!("{}:{hash:032x}", mapper.identity()));
@@ -1691,7 +1945,11 @@ impl Project for projectLease {
         };
         if mapper.manifest.dynamic_config {
             self.host.open_project_locked(conns, &diagnostic_locale, entry)?;
-            return Ok(combined_identity(mapper, &entry.config_identity, entry.spec.compiler_options));
+            return Ok(combined_identity(
+                mapper,
+                &entry.config_identity,
+                entry.spec.compiler_options,
+            ));
         }
         let hash = mapper.transform_identity(entry.spec.compiler_options.map(P::get));
         Ok(format!("{}:{hash:032x}", mapper.identity()))
@@ -1744,17 +2002,25 @@ impl Project for projectLease {
     }
 
     // hostimpl.go:1000
-    fn transform(&self, mapper: &Mapper, request: Request<'_>) -> Result<TransformResultFiles, Error> {
+    fn transform(
+        &self,
+        mapper: &Mapper,
+        request: Request<'_>,
+    ) -> Result<TransformResultFiles, Error> {
         let diagnostic_locale = read(&self.host.lifecycle_mu);
         let handle = {
             let mut state = lock(&self.host.mu);
             let hostLocked { conns, projects, .. } = &mut *state;
-            let Some(entry) = projects.as_mut().and_then(|projects| projects.get_mut(self.entry_key(mapper))) else {
+            let Some(entry) =
+                projects.as_mut().and_then(|projects| projects.get_mut(self.entry_key(mapper)))
+            else {
                 return Err(Error::Other("content mapper project is closed".to_string()));
             };
             if let Err(err) = self.host.open_project_locked(conns, &diagnostic_locale, entry) {
                 if err.as_initialize_error().is_some() {
-                    return Err(new_transform_error(TransformErrorKind::Initialize, Some(err)).into());
+                    return Err(
+                        new_transform_error(TransformErrorKind::Initialize, Some(err)).into()
+                    );
                 }
                 return Err(new_transform_error(TransformErrorKind::Project, Some(err)).into());
             }
@@ -1792,7 +2058,11 @@ impl Project for retainedProject {
         self.lease.diagnostics()
     }
 
-    fn transform(&self, mapper: &Mapper, request: Request<'_>) -> Result<TransformResultFiles, Error> {
+    fn transform(
+        &self,
+        mapper: &Mapper,
+        request: Request<'_>,
+    ) -> Result<TransformResultFiles, Error> {
         self.lease.transform(mapper, request)
     }
 
@@ -1813,19 +2083,34 @@ fn join(result: Option<ipc::Error>, err: ipc::Error) -> ipc::Error {
 }
 
 // hostimpl.go:1091 (Go's ctx carries the initialize deadline; here the deadline is passed.)
-fn handshake(conn: &dyn Conn, deadline: Instant, diagnostic_locale: &Locale) -> Result<(PositionEncoding, String), Error> {
+fn handshake(
+    conn: &dyn Conn,
+    deadline: Instant,
+    diagnostic_locale: &Locale,
+) -> Result<(PositionEncoding, String), Error> {
     let params = InitializeParams {
         locale: diagnostic_locale.string(),
         position_encodings: vec![PositionEncoding::UTF8, PositionEncoding::UTF16],
     };
-    let raw = conn.call_with_timeout(METHOD_INITIALIZE, Some(&params.marshal_json()), deadline.saturating_duration_since(Instant::now()))?;
+    let raw = conn.call_with_timeout(
+        METHOD_INITIALIZE,
+        Some(&params.marshal_json()),
+        deadline.saturating_duration_since(Instant::now()),
+    )?;
     let res = match unmarshal::<InitializeResult>(raw) {
         Ok(res) => res,
         Err(err) => {
-            return Err(InitializeError { kind: InitializeErrorKind::InvalidResponse, detail: err, ..Default::default() }.into());
+            return Err(InitializeError {
+                kind: InitializeErrorKind::InvalidResponse,
+                detail: err,
+                ..Default::default()
+            }
+            .into());
         }
     };
-    if res.position_encoding != PositionEncoding::UTF8 && res.position_encoding != PositionEncoding::UTF16 {
+    if res.position_encoding != PositionEncoding::UTF8
+        && res.position_encoding != PositionEncoding::UTF16
+    {
         return Err(InitializeError {
             kind: InitializeErrorKind::PositionEncoding,
             position_encoding: res.position_encoding,
@@ -1834,14 +2119,20 @@ fn handshake(conn: &dyn Conn, deadline: Instant, diagnostic_locale: &Locale) -> 
         .into());
     }
     if res.diagnostic_source.trim().is_empty() {
-        return Err(InitializeError { kind: InitializeErrorKind::EmptyDiagnosticSource, ..Default::default() }.into());
+        return Err(InitializeError {
+            kind: InitializeErrorKind::EmptyDiagnosticSource,
+            ..Default::default()
+        }
+        .into());
     }
     let reserved = equal_fold(&res.diagnostic_source, "typescript")
         || equal_fold(&res.diagnostic_source, "tsc")
         || tspath::ALL_SUPPORTED_EXTENSIONS_WITH_JSON
             .iter()
             .flat_map(|extensions| extensions.iter())
-            .any(|extension| equal_fold(&res.diagnostic_source, extension.strip_prefix('.').unwrap_or(extension)));
+            .any(|extension| {
+                equal_fold(&res.diagnostic_source, extension.strip_prefix('.').unwrap_or(extension))
+            });
     if reserved {
         return Err(InitializeError {
             kind: InitializeErrorKind::ReservedDiagnosticSource,
@@ -1862,7 +2153,8 @@ fn decode_transform_result(
 ) -> Result<TransformResultFiles, Error> {
     let res: TransformResult = unmarshal(raw).map_err(Error::Other)?;
     let TransformResult { mapped_output, diagnostics, supplemental } = res;
-    let (mapped, original_positions) = decode_mapped_output(mapped_output, original_text, position_encoding, diagnostic_source)?;
+    let (mapped, original_positions) =
+        decode_mapped_output(mapped_output, original_text, position_encoding, diagnostic_source)?;
     let mut result = TransformResultFiles {
         text: mapped.text,
         virtual_extension: mapped.virtual_extension,
@@ -1873,13 +2165,20 @@ fn decode_transform_result(
     result.supplemental = supplemental
         .into_iter()
         .enumerate()
-        .map(|(supplemental_index, supplemental)| match decode_mapped_output(supplemental.mapped_output, original_text, position_encoding, diagnostic_source) {
-            Ok((mapped, _)) => Ok(mapped),
-            Err(mut err) => {
-                if let Error::DiagnosticDirective(directive_error) = &mut err {
-                    directive_error.supplemental_index = Some(supplemental_index);
+        .map(|(supplemental_index, supplemental)| {
+            match decode_mapped_output(
+                supplemental.mapped_output,
+                original_text,
+                position_encoding,
+                diagnostic_source,
+            ) {
+                Ok((mapped, _)) => Ok(mapped),
+                Err(mut err) => {
+                    if let Error::DiagnosticDirective(directive_error) = &mut err {
+                        directive_error.supplemental_index = Some(supplemental_index);
+                    }
+                    Err(err)
                 }
-                Err(err)
             }
         })
         .collect::<Result<_, _>>()?;
@@ -1891,9 +2190,9 @@ fn decode_transform_result(
                 d.start.wrapping_add(d.length)
             )));
         }
-        let start = original_positions
-            .normalize(d.start)
-            .map_err(|err| Error::Other(format!("invalid content mapper diagnostic start: {err}")))?;
+        let start = original_positions.normalize(d.start).map_err(|err| {
+            Error::Other(format!("invalid content mapper diagnostic start: {err}"))
+        })?;
         let end = original_positions
             .normalize(d.start + d.length)
             .map_err(|err| Error::Other(format!("invalid content mapper diagnostic end: {err}")))?;
@@ -1919,8 +2218,10 @@ fn decode_mapped_output<'a>(
     if !is_supported_virtual_extension(&output.extension) {
         return Err(InvalidVirtualExtensionError { extension: output.extension }.into());
     }
-    let virtual_positions = new_position_normalizer(&output.text, position_encoding).map_err(Error::Other)?;
-    let original_positions = new_position_normalizer(original_text, position_encoding).map_err(Error::Other)?;
+    let virtual_positions =
+        new_position_normalizer(&output.text, position_encoding).map_err(Error::Other)?;
+    let original_positions =
+        new_position_normalizer(original_text, position_encoding).map_err(Error::Other)?;
     // A successful transform always carries a span map. Absent or empty mappings describe fully
     // synthesized output (no segment corresponds to the original), so decode to an empty map rather than
     // nil, which would mean "not content-mapped".
@@ -1974,16 +2275,24 @@ fn normalize_diagnostic_directives(
         };
         let mut normalized = ast::MappedDiagnosticDirective { source, ..Default::default() };
         match directive.policy {
-            DiagnosticDirectivePolicy::Ignore => normalized.policy = ast::MappedDiagnosticDirectivePolicy::Ignore,
+            DiagnosticDirectivePolicy::Ignore => {
+                normalized.policy = ast::MappedDiagnosticDirectivePolicy::Ignore;
+            }
             DiagnosticDirectivePolicy::Expect => {
                 let mut unused_diagnostic_index = 0;
                 if let Some(index) = directive.unused_expect_directive_index {
                     unused_diagnostic_index = index;
                 } else if unused_diagnostics.len() != 1 {
-                    return Err(directive_error(DiagnosticDirectiveErrorKind::ExpectMissingUnusedDiagnostic));
+                    return Err(directive_error(
+                        DiagnosticDirectiveErrorKind::ExpectMissingUnusedDiagnostic,
+                    ));
                 }
-                if unused_diagnostic_index < 0 || unused_diagnostic_index >= unused_diagnostics.len() as i64 {
-                    return Err(directive_error(DiagnosticDirectiveErrorKind::InvalidUnusedDiagnosticIndex));
+                if unused_diagnostic_index < 0
+                    || unused_diagnostic_index >= unused_diagnostics.len() as i64
+                {
+                    return Err(directive_error(
+                        DiagnosticDirectiveErrorKind::InvalidUnusedDiagnosticIndex,
+                    ));
                 }
                 let unused_diagnostic = &unused_diagnostics[unused_diagnostic_index as usize];
                 normalized.policy = ast::MappedDiagnosticDirectivePolicy::Expect;
@@ -2015,24 +2324,36 @@ fn normalize_diagnostic_directives(
             && directive.original_start <= i64::MAX - directive.original_length;
         if valid_original_range {
             let original_start = original_positions.normalize(directive.original_start);
-            let original_end = original_positions.normalize(directive.original_start + directive.original_length);
+            let original_end =
+                original_positions.normalize(directive.original_start + directive.original_length);
             match (original_start, original_end) {
-                (Ok(original_start), Ok(original_end)) => normalized.original_range = TextRange::new(original_start, original_end),
+                (Ok(original_start), Ok(original_end)) => {
+                    normalized.original_range = TextRange::new(original_start, original_end);
+                }
                 _ => valid_original_range = false,
             }
         }
-        if normalized.policy == ast::MappedDiagnosticDirectivePolicy::Expect && !valid_original_range {
+        if normalized.policy == ast::MappedDiagnosticDirectivePolicy::Expect
+            && !valid_original_range
+        {
             return Err(directive_error(DiagnosticDirectiveErrorKind::InvalidRange));
         }
         result[i] = normalized;
     }
     // Go's indexedDirective, sorted with Go's (unstable) slices.SortFunc so that equal starts keep Go's order.
-    let mut sorted: Vec<(ast::MappedDiagnosticDirective, usize)> = result.iter().copied().zip(0..).collect();
-    goslices::sort_func(&mut sorted, |a, b| { a.0.virtual_range.pos().cmp(&b.0.virtual_range.pos()) });
-    if let Some(pair) = sorted.windows(2).find(|pair| pair[1].0.virtual_range.pos() < pair[0].0.virtual_range.end()) {
-        return Err(
-            DiagnosticDirectiveError { kind: DiagnosticDirectiveErrorKind::Overlap, index: pair[1].1, supplemental_index: None, ..Default::default() }.into()
-        );
+    let mut sorted: Vec<(ast::MappedDiagnosticDirective, usize)> =
+        result.iter().copied().zip(0..).collect();
+    goslices::sort_func(&mut sorted, |a, b| a.0.virtual_range.pos().cmp(&b.0.virtual_range.pos()));
+    if let Some(pair) =
+        sorted.windows(2).find(|pair| pair[1].0.virtual_range.pos() < pair[0].0.virtual_range.end())
+    {
+        return Err(DiagnosticDirectiveError {
+            kind: DiagnosticDirectiveErrorKind::Overlap,
+            index: pair[1].1,
+            supplemental_index: None,
+            ..Default::default()
+        }
+        .into());
     }
     Ok(result)
 }
@@ -2045,18 +2366,22 @@ fn normalize_mappings(
 ) -> Result<P<SpanMap>, Error> {
     let mut segments = mappings.segments();
     for (i, segment) in segments.iter_mut().enumerate() {
-        segment.virtual_start = virtual_positions
-            .normalize_text_pos(segment.virtual_start)
-            .map_err(|err| Error::Other(format!("invalid content mapper mapping {i} virtual start: {err}")))?;
-        segment.virtual_end = virtual_positions
-            .normalize_text_pos(segment.virtual_end)
-            .map_err(|err| Error::Other(format!("invalid content mapper mapping {i} virtual end: {err}")))?;
-        segment.original_start = original_positions
-            .normalize_text_pos(segment.original_start)
-            .map_err(|err| Error::Other(format!("invalid content mapper mapping {i} original start: {err}")))?;
-        segment.original_end = original_positions
-            .normalize_text_pos(segment.original_end)
-            .map_err(|err| Error::Other(format!("invalid content mapper mapping {i} original end: {err}")))?;
+        segment.virtual_start =
+            virtual_positions.normalize_text_pos(segment.virtual_start).map_err(|err| {
+                Error::Other(format!("invalid content mapper mapping {i} virtual start: {err}"))
+            })?;
+        segment.virtual_end =
+            virtual_positions.normalize_text_pos(segment.virtual_end).map_err(|err| {
+                Error::Other(format!("invalid content mapper mapping {i} virtual end: {err}"))
+            })?;
+        segment.original_start =
+            original_positions.normalize_text_pos(segment.original_start).map_err(|err| {
+                Error::Other(format!("invalid content mapper mapping {i} original start: {err}"))
+            })?;
+        segment.original_end =
+            original_positions.normalize_text_pos(segment.original_end).map_err(|err| {
+                Error::Other(format!("invalid content mapper mapping {i} original end: {err}"))
+            })?;
     }
     Ok(tsrs_spanmap::new(&segments))
 }
@@ -2070,8 +2395,12 @@ struct positionNormalizer<'a> {
 }
 
 // hostimpl.go:1323
-fn new_position_normalizer<'a>(text: &'a str, encoding: &PositionEncoding) -> Result<positionNormalizer<'a>, String> {
-    let mut normalizer = positionNormalizer { text, encoding: encoding.clone(), position_map: None, length: 0 };
+fn new_position_normalizer<'a>(
+    text: &'a str,
+    encoding: &PositionEncoding,
+) -> Result<positionNormalizer<'a>, String> {
+    let mut normalizer =
+        positionNormalizer { text, encoding: encoding.clone(), position_map: None, length: 0 };
     if *encoding == PositionEncoding::UTF8 {
         normalizer.length = text.len() as i64;
     } else if *encoding == PositionEncoding::UTF16 {
@@ -2099,7 +2428,10 @@ impl positionNormalizer<'_> {
             return Err(format!("position {position} is negative"));
         }
         if position > self.length {
-            return Err(format!("position {position} exceeds {} length {}", self.encoding, self.length));
+            return Err(format!(
+                "position {position} exceeds {} length {}",
+                self.encoding, self.length
+            ));
         }
         let normalized_position =
             u32::try_from(position).expect("validated source position exceeds u32");
@@ -2110,7 +2442,9 @@ impl positionNormalizer<'_> {
             None => normalized_position,
         };
         // utf8.RuneStart
-        if (byte_position as usize) < self.text.len() && self.text.as_bytes()[byte_position as usize] & 0xC0 == 0x80 {
+        if (byte_position as usize) < self.text.len()
+            && self.text.as_bytes()[byte_position as usize] & 0xC0 == 0x80
+        {
             return Err(format!("position {position} splits a Unicode code point"));
         }
         Ok(byte_position)
@@ -2129,7 +2463,11 @@ impl Handler for rejectHandler {
     }
 
     // hostimpl.go:1370
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         Ok(())
     }
 }
@@ -2195,7 +2533,11 @@ fn type_error(kind: &str, go_type: &str, pointer: &str) -> String {
 }
 
 // The members of an object to decode into a Go struct; None for null (the zero value).
-fn unmarshal_struct(value: Value, go_type: &str, pointer: &str) -> Result<Option<OrderedMap<String, Value>>, String> {
+fn unmarshal_struct(
+    value: Value,
+    go_type: &str,
+    pointer: &str,
+) -> Result<Option<OrderedMap<String, Value>>, String> {
     match value {
         Value::Object(members) => Ok(Some(members)),
         Value::Null => Ok(None),
@@ -2232,11 +2574,19 @@ fn unmarshal_string(value: Value, pointer: &str) -> Result<String, String> {
 
 // A Go integer of the given range; 0 for null. Go also rejects an integral number written with a fraction or an
 // exponent (1.0, 1e3), which the parsed value cannot tell apart from an integer literal.
-fn unmarshal_int(value: &Value, go_type: &str, min: i64, max: i64, pointer: &str) -> Result<i64, String> {
+fn unmarshal_int(
+    value: &Value,
+    go_type: &str,
+    min: i64,
+    max: i64,
+    pointer: &str,
+) -> Result<i64, String> {
     let n = match *value {
         Value::Null => return Ok(0),
         Value::Integer(n) => Some(n),
-        Value::Number(n) if n.fract() == 0.0 && n >= min as f64 && n <= max as f64 => Some(n as i64),
+        Value::Number(n) if n.fract() == 0.0 && n >= min as f64 && n <= max as f64 => {
+            Some(n as i64)
+        }
         Value::Number(_) => None,
         _ => return Err(type_error(json_kind(value), go_type, pointer)),
     };
@@ -2244,12 +2594,17 @@ fn unmarshal_int(value: &Value, go_type: &str, min: i64, max: i64, pointer: &str
         Some(n) if n >= min && n <= max => Ok(n),
         _ => {
             let text = json::marshal(value).unwrap_or_default();
-            let reason = if matches!(value, Value::Number(n) if n.fract() != 0.0) { "invalid syntax" } else { "value out of range" };
+            let reason = if matches!(value, Value::Number(n) if n.fract() != 0.0) {
+                "invalid syntax"
+            } else {
+                "value out of range"
+            };
             Err(format!("{}: {reason}", type_error(&format!("number {text}"), go_type, pointer)))
         }
     }
 }
 
 fn unmarshal_int32(value: &Value, go_type: &str, pointer: &str) -> Result<i32, String> {
-    unmarshal_int(value, go_type, i64::from(i32::MIN), i64::from(i32::MAX), pointer).map(|n| n as i32)
+    unmarshal_int(value, go_type, i64::from(i32::MIN), i64::from(i32::MAX), pointer)
+        .map(|n| n as i32)
 }

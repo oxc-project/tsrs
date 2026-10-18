@@ -13,8 +13,11 @@ use std::time::SystemTime;
 use rustc_hash::FxHashSet;
 use tsrs_core::json::Value;
 use tsrs_core::tspath::{self, Path};
-use tsrs_project::{FileChangeExpander, FileChangeSummary, FileHandle, FileHandleSource, FsRef, LayeredFileSystem, OverlayMap, RebasableFileSystem};
-use tsrs_vfs::{Entries, FileInfo, FileMode, FS};
+use tsrs_project::{
+    FileChangeExpander, FileChangeSummary, FileHandle, FileHandleSource, FsRef, LayeredFileSystem,
+    OverlayMap, RebasableFileSystem,
+};
+use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 
 use crate::wire::Params;
 
@@ -62,7 +65,12 @@ impl Entry {
 }
 
 fn dir_info(name: &str) -> FileInfo {
-    FileInfo { name: tspath::get_base_file_name(name), size: 0, mode: FileMode::Dir | FileMode::from_bits_retain(0o555), mod_time: None }
+    FileInfo {
+        name: tspath::get_base_file_name(name),
+        size: 0,
+        mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
+        mod_time: None,
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -124,7 +132,10 @@ impl Node {
         if !self.has_symlinks {
             return;
         }
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: callers OR a flag or collect an alias closure that ends up in sets; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: callers OR a flag or collect an alias closure that ends up in sets; Go ranges the map too"
+        )]
         for child in self.children.values() {
             if let Some(Entry::Symlink(s)) = child.entry.as_deref() {
                 visit(s);
@@ -135,16 +146,25 @@ impl Node {
 
     fn entries(node: Option<&Node>) -> Option<Entries> {
         let node = node?;
-        let Some(Entry::Directory { listing, .. }) = node.entry.as_deref() else { return None };
+        let Some(Entry::Directory { listing, .. }) = node.entry.as_deref() else {
+            return None;
+        };
         if let Some(l) = listing {
             return Some(l.clone());
         }
         let mut e = Entries::default();
-        #[expect(clippy::iter_over_hash_type, reason = "both lists are sorted right after the loop, as Go does")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "both lists are sorted right after the loop, as Go does"
+        )]
         for child in node.children.values() {
             match child.entry.as_deref() {
-                Some(Entry::File { file_name, .. }) => e.files.push(tspath::get_base_file_name(file_name)),
-                Some(Entry::Directory { directory_name, .. }) => e.directories.push(tspath::get_base_file_name(directory_name)),
+                Some(Entry::File { file_name, .. }) => {
+                    e.files.push(tspath::get_base_file_name(file_name));
+                }
+                Some(Entry::Directory { directory_name, .. }) => {
+                    e.directories.push(tspath::get_base_file_name(directory_name));
+                }
                 _ => {}
             }
         }
@@ -191,7 +211,8 @@ fn equal_names(a: &str, b: &str, cs: bool) -> bool {
 fn merge_entries(base: &Entries, overlay: &Entries, cs: bool) -> Entries {
     let mut r = base.clone();
     let mut symlinks = r.symlinks.take().unwrap_or_default();
-    let delete_symlink = |s: &mut FxHashSet<String>, name: &str| s.retain(|e| !equal_names(e, name, cs));
+    let delete_symlink =
+        |s: &mut FxHashSet<String>, name: &str| s.retain(|e| !equal_names(e, name, cs));
     for name in &overlay.files {
         r.directories.retain(|v| !equal_names(v, name, cs));
         if !r.files.iter().any(|v| equal_names(v, name, cs)) {
@@ -216,8 +237,15 @@ fn merge_entries(base: &Entries, overlay: &Entries, cs: bool) -> Entries {
 }
 
 /// Go `composeRequestPaths`.
-fn compose(base: Option<&Arc<Node>>, overlay: Option<&Arc<Node>>, mut fallback: Fallback, cs: bool) -> Option<Arc<Node>> {
-    let Some(overlay) = overlay else { return base.cloned() };
+fn compose(
+    base: Option<&Arc<Node>>,
+    overlay: Option<&Arc<Node>>,
+    mut fallback: Fallback,
+    cs: bool,
+) -> Option<Arc<Node>> {
+    let Some(overlay) = overlay else {
+        return base.cloned();
+    };
     let mut base = base;
     if overlay.fallback != Fallback::Inherit {
         fallback = overlay.fallback;
@@ -235,16 +263,24 @@ fn compose(base: Option<&Arc<Node>>, overlay: Option<&Arc<Node>>, mut fallback: 
         _ => None,
     };
     let overlay_dir = match overlay.entry.as_deref() {
-        Some(Entry::Directory { directory_name, listing }) => Some((directory_name.clone(), listing.clone())),
+        Some(Entry::Directory { directory_name, listing }) => {
+            Some((directory_name.clone(), listing.clone()))
+        }
         _ => None,
     };
     if let Some(entry) = &overlay.entry {
         result.entry = Some(Arc::clone(entry));
         if let (Some((name, None)), Some(prev)) = (&overlay_dir, &previous_listing) {
-            result.entry = Some(Arc::new(Entry::Directory { directory_name: name.clone(), listing: prev.clone() }));
+            result.entry = Some(Arc::new(Entry::Directory {
+                directory_name: name.clone(),
+                listing: prev.clone(),
+            }));
         }
     }
-    #[expect(clippy::iter_over_hash_type, reason = "composes each child into a map independently; Go ranges the map too")]
+    #[expect(
+        clippy::iter_over_hash_type,
+        reason = "composes each child into a map independently; Go ranges the map too"
+    )]
     for (path, child) in &overlay.children {
         let composed = compose(result.children.get(path), Some(child), fallback, cs);
         if let Some(c) = composed {
@@ -252,10 +288,15 @@ fn compose(base: Option<&Arc<Node>>, overlay: Option<&Arc<Node>>, mut fallback: 
         }
     }
     let overlay_has_listing = matches!(&overlay_dir, Some((_, Some(_))));
-    if let Some(Entry::Directory { directory_name, listing: Some(listing) }) = result.entry.as_deref() {
+    if let Some(Entry::Directory { directory_name, listing: Some(listing) }) =
+        result.entry.as_deref()
+    {
         if !overlay_has_listing {
             let mut entries = listing.clone();
-            #[expect(clippy::iter_over_hash_type, reason = "order-independent: one child per name, and merge_entries sorts the listing; Go ranges the map too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "order-independent: one child per name, and merge_entries sorts the listing; Go ranges the map too"
+            )]
             for (path, child) in &overlay.children {
                 let name = tspath::get_base_file_name(path);
                 if child.fallback == Fallback::Missing || child.replaces_subtree() {
@@ -267,19 +308,35 @@ fn compose(base: Option<&Arc<Node>>, overlay: Option<&Arc<Node>>, mut fallback: 
                 }
                 match child.entry.as_deref() {
                     Some(Entry::File { file_name, .. }) => {
-                        entries = merge_entries(&entries, &Entries { files: vec![tspath::get_base_file_name(file_name)], ..Default::default() }, cs);
+                        entries = merge_entries(
+                            &entries,
+                            &Entries {
+                                files: vec![tspath::get_base_file_name(file_name)],
+                                ..Default::default()
+                            },
+                            cs,
+                        );
                     }
                     Some(Entry::Directory { directory_name, .. }) => {
-                        entries = merge_entries(&entries, &Entries { directories: vec![tspath::get_base_file_name(directory_name)], ..Default::default() }, cs);
+                        entries = merge_entries(
+                            &entries,
+                            &Entries {
+                                directories: vec![tspath::get_base_file_name(directory_name)],
+                                ..Default::default()
+                            },
+                            cs,
+                        );
                     }
                     _ => {}
                 }
             }
             let name = directory_name.clone();
-            result.entry = Some(Arc::new(Entry::Directory { directory_name: name, listing: Some(entries) }));
+            result.entry =
+                Some(Arc::new(Entry::Directory { directory_name: name, listing: Some(entries) }));
         }
     }
-    result.has_symlinks = matches!(result.entry.as_deref(), Some(Entry::Symlink(_))) || result.children.values().any(|c| c.has_symlinks);
+    result.has_symlinks = matches!(result.entry.as_deref(), Some(Entry::Symlink(_)))
+        || result.children.values().any(|c| c.has_symlinks);
     Some(Arc::new(result))
 }
 
@@ -372,7 +429,13 @@ impl RequestParams {
             }
             _ => return Err("fileSystem.symlinks must be an object".to_string()),
         }
-        Ok(RequestParams { kind, files, directories, symlinks, removed_paths: str_list(p.get("removedPaths"), "removedPaths")? })
+        Ok(RequestParams {
+            kind,
+            files,
+            directories,
+            symlinks,
+            removed_paths: str_list(p.get("removedPaths"), "removedPaths")?,
+        })
     }
 }
 
@@ -421,7 +484,8 @@ pub fn new_for_update(
     let base_fs: Arc<dyn FS> = host;
     let mut fs = RequestFileSystem::new_worker(params, base_fs, current_directory)?;
     if let Some(b) = layered_base {
-        fs.paths = compose(Some(&b.paths), Some(&fs.paths), Fallback::Allowed, fs.cs).unwrap_or_default();
+        fs.paths =
+            compose(Some(&b.paths), Some(&fs.paths), Fallback::Allowed, fs.cs).unwrap_or_default();
         fs.kind = b.kind;
         fs.base = Arc::clone(&b.base);
         fs.base_ref = b.base_ref.clone();
@@ -433,7 +497,11 @@ pub fn new_for_update(
 }
 
 impl RequestFileSystem {
-    fn new_worker(params: &RequestParams, base: Arc<dyn FS>, current_directory: &str) -> Result<RequestFileSystem, String> {
+    fn new_worker(
+        params: &RequestParams,
+        base: Arc<dyn FS>,
+        current_directory: &str,
+    ) -> Result<RequestFileSystem, String> {
         let cs = base.use_case_sensitive_file_names();
         let mut r = RequestFileSystem {
             kind: params.kind,
@@ -452,9 +520,14 @@ impl RequestFileSystem {
             let path = r.to_path(&abs);
             let node = root.ensure(&path);
             if let Some(Entry::File { file_name: existing, .. }) = node.entry.as_deref() {
-                return Err(format!("duplicate request filesystem file path {existing:?} and {abs:?}"));
+                return Err(format!(
+                    "duplicate request filesystem file path {existing:?} and {abs:?}"
+                ));
             }
-            node.entry = Some(Arc::new(Entry::File { file_name: abs.clone(), content: Arc::from(content.as_str()) }));
+            node.entry = Some(Arc::new(Entry::File {
+                file_name: abs.clone(),
+                content: Arc::from(content.as_str()),
+            }));
             r.register_directory(&mut root, &tspath::get_directory_path(&abs));
         }
         let mut seen_dirs = FxHashSet::default();
@@ -469,11 +542,17 @@ impl RequestFileSystem {
             if !matches!(node.entry.as_deref(), Some(Entry::File { .. })) {
                 node.entry = Some(Arc::new(Entry::Directory {
                     directory_name: abs.clone(),
-                    listing: Some(Entries { files: entries.files.clone(), directories: entries.directories.clone(), symlinks: None }),
+                    listing: Some(Entries {
+                        files: entries.files.clone(),
+                        directories: entries.directories.clone(),
+                        symlinks: None,
+                    }),
                 }));
             }
             r.register_directory(&mut root, &tspath::get_directory_path(&abs));
-            listed.extend(entries.directories.iter().map(|child| tspath::combine_paths(&abs, &[child])));
+            listed.extend(
+                entries.directories.iter().map(|child| tspath::combine_paths(&abs, &[child])),
+            );
         }
         for (link, _, _) in &params.symlinks {
             let abs = r.to_absolute_path(link);
@@ -484,13 +563,20 @@ impl RequestFileSystem {
             let abs = r.to_absolute_path(link);
             let path = r.to_path(&abs);
             if let Some(existing) = seen_links.get(&path) {
-                return Err(format!("duplicate request filesystem symlink path {existing:?} and {abs:?}"));
+                return Err(format!(
+                    "duplicate request filesystem symlink path {existing:?} and {abs:?}"
+                ));
             }
             seen_links.insert(path.clone(), abs.clone());
-            let abs_target = RequestFileSystem::to_absolute_path_from(target, &tspath::get_directory_path(&abs));
+            let abs_target =
+                RequestFileSystem::to_absolute_path_from(target, &tspath::get_directory_path(&abs));
             let node = root.ensure(&path);
             if node.entry.is_none() {
-                node.entry = Some(Arc::new(Entry::Symlink(Symlink { link_name: abs, target: abs_target, host: *host })));
+                node.entry = Some(Arc::new(Entry::Symlink(Symlink {
+                    link_name: abs,
+                    target: abs_target,
+                    host: *host,
+                })));
             }
         }
         for d in listed {
@@ -532,7 +618,8 @@ impl RequestFileSystem {
             if node.entry.is_some() {
                 return;
             }
-            node.entry = Some(Arc::new(Entry::Directory { directory_name: name.clone(), listing: None }));
+            node.entry =
+                Some(Arc::new(Entry::Directory { directory_name: name.clone(), listing: None }));
             let parent = tspath::get_directory_path(&name);
             if parent == name {
                 return;
@@ -546,7 +633,8 @@ impl RequestFileSystem {
     }
 
     fn resolve_path(&self, path: &str) -> Option<Resolved> {
-        let mut r = Resolved { path: self.to_absolute_path(path), followed_symlink: false, host: false };
+        let mut r =
+            Resolved { path: self.to_absolute_path(path), followed_symlink: false, host: false };
         let mut seen = FxHashSet::default();
         loop {
             let canonical = self.to_path(&r.path);
@@ -562,7 +650,10 @@ impl RequestFileSystem {
             }
             r.followed_symlink = true;
             let suffix = tspath::trim_file_path_prefix(&r.path, &link.link_name, self.cs)?;
-            r.path = self.to_absolute_path(&tspath::combine_paths(&link.target, &[suffix.trim_start_matches('/')]));
+            r.path = self.to_absolute_path(&tspath::combine_paths(
+                &link.target,
+                &[suffix.trim_start_matches('/')],
+            ));
             if link.host {
                 r.host = true;
                 return Some(r);
@@ -590,11 +681,20 @@ impl RequestFileSystem {
         let mut aliases = Vec::new();
         while let Some(candidate) = queue.pop_front() {
             for s in &symlinks {
-                let Some(suffix) = tspath::trim_file_path_prefix(&candidate, &s.target, self.cs) else { continue };
-                if !suffix.is_empty() && !tspath::has_trailing_directory_separator(&s.target) && !suffix.starts_with('/') {
+                let Some(suffix) = tspath::trim_file_path_prefix(&candidate, &s.target, self.cs)
+                else {
+                    continue;
+                };
+                if !suffix.is_empty()
+                    && !tspath::has_trailing_directory_separator(&s.target)
+                    && !suffix.starts_with('/')
+                {
                     continue;
                 }
-                let alias = self.to_absolute_path(&tspath::combine_paths(&s.link_name, &[suffix.trim_start_matches('/')]));
+                let alias = self.to_absolute_path(&tspath::combine_paths(
+                    &s.link_name,
+                    &[suffix.trim_start_matches('/')],
+                ));
                 let alias_path = self.to_path(&alias);
                 if seen.contains(&alias_path) || self.resolve_path(&alias).is_none() {
                     continue;
@@ -609,7 +709,8 @@ impl RequestFileSystem {
 
     fn local(&self, path: &str) -> (Option<Arc<Entry>>, Fallback) {
         let (node, fallback) = self.paths.lookup(&self.to_path(path));
-        let entry = node.and_then(|n| n.entry.clone()).filter(|e| !matches!(**e, Entry::Symlink(_)));
+        let entry =
+            node.and_then(|n| n.entry.clone()).filter(|e| !matches!(**e, Entry::Symlink(_)));
         (entry, fallback)
     }
 
@@ -617,15 +718,29 @@ impl RequestFileSystem {
         let abs = self.to_absolute_path(path);
         let (entry, fb) = self.local(&abs);
         if let Some(e) = entry {
-            return Some(Lookup { path: abs, info: e.info(), entry: Some(e), use_base: false, followed_symlink: false });
+            return Some(Lookup {
+                path: abs,
+                info: e.info(),
+                entry: Some(e),
+                use_base: false,
+                followed_symlink: false,
+            });
         }
         if fb == Fallback::Missing {
             return None;
         }
         let resolved = self.resolve_path(path)?;
-        let mut result = Lookup { path: resolved.path.clone(), info: None, entry: None, use_base: false, followed_symlink: resolved.followed_symlink };
+        let mut result = Lookup {
+            path: resolved.path.clone(),
+            info: None,
+            entry: None,
+            use_base: false,
+            followed_symlink: resolved.followed_symlink,
+        };
         let (rentry, rfb) = self.local(&resolved.path);
-        if !resolved.host && let Some(e) = rentry {
+        if !resolved.host
+            && let Some(e) = rentry
+        {
             result.info = e.info();
             result.entry = Some(e);
         } else if resolved.host || self.kind == Kind::Layer {
@@ -646,7 +761,10 @@ impl RequestFileSystem {
 
     fn get_local_entries(&self, dir: &str) -> (Option<Entries>, bool) {
         let (node, _) = self.paths.lookup(&self.to_path(dir));
-        let explicit = matches!(node.and_then(|n| n.entry.as_deref()), Some(Entry::Directory { listing: Some(_), .. }));
+        let explicit = matches!(
+            node.and_then(|n| n.entry.as_deref()),
+            Some(Entry::Directory { listing: Some(_), .. })
+        );
         (Node::entries(node), explicit)
     }
 
@@ -683,7 +801,13 @@ impl RequestFileSystem {
         let mut links = Vec::new();
         if let (Some(node), _) = self.paths.lookup(&self.to_path(dir)) {
             // order-independent: one link per name, files and directories are sorted below and symlinks is a set; Go ranges the map too
-            links.extend(node.children.values().filter_map(|child| if let Some(Entry::Symlink(s)) = child.entry.as_deref() { Some(s.clone()) } else { None }));
+            links.extend(node.children.values().filter_map(|child| {
+                if let Some(Entry::Symlink(s)) = child.entry.as_deref() {
+                    Some(s.clone())
+                } else {
+                    None
+                }
+            }));
         }
         if links.is_empty() {
             r.symlinks = Some(symlinks);
@@ -714,7 +838,9 @@ impl FS for RequestFileSystem {
         self.cs
     }
     fn file_exists(&self, path: &str) -> bool {
-        let Some(l) = self.lookup_path(path) else { return false };
+        let Some(l) = self.lookup_path(path) else {
+            return false;
+        };
         if l.info.as_ref().is_some_and(|i| i.mode.is_dir()) {
             return false;
         }
@@ -750,7 +876,9 @@ impl FS for RequestFileSystem {
         self.base.chtimes(&p, a, m)
     }
     fn directory_exists(&self, path: &str) -> bool {
-        let Some(l) = self.lookup_path(path) else { return false };
+        let Some(l) = self.lookup_path(path) else {
+            return false;
+        };
         if l.info.as_ref().is_some_and(|i| !i.mode.is_dir()) {
             return false;
         }
@@ -758,7 +886,9 @@ impl FS for RequestFileSystem {
     }
     fn get_accessible_entries(&self, directory_name: &str) -> Entries {
         let empty = Entries { symlinks: Some(FxHashSet::default()), ..Default::default() };
-        let Some(l) = self.lookup_path(directory_name) else { return empty };
+        let Some(l) = self.lookup_path(directory_name) else {
+            return empty;
+        };
         if l.info.as_ref().is_some_and(|i| !i.mode.is_dir()) {
             return empty;
         }
@@ -768,7 +898,11 @@ impl FS for RequestFileSystem {
             let (local, explicit) = self.get_local_entries(&l.path);
             let local = local.unwrap_or_default();
             let mut result = local.clone();
-            if self.kind == Kind::Layer && !explicit && !self.blocks_fallback(directory_name) && !self.blocks_fallback(&l.path) {
+            if self.kind == Kind::Layer
+                && !explicit
+                && !self.blocks_fallback(directory_name)
+                && !self.blocks_fallback(&l.path)
+            {
                 result = self.remove_entries(&l.path, &self.base.get_accessible_entries(&l.path));
                 result = merge_entries(&result, &local, self.cs);
             }
@@ -786,14 +920,21 @@ impl FS for RequestFileSystem {
                 return Some(dir_info(&l.path));
             }
             if self.base.file_exists(&l.path) {
-                return Some(FileInfo { name: tspath::get_base_file_name(&l.path), size: 0, mode: FileMode::from_bits_retain(0o444), mod_time: None });
+                return Some(FileInfo {
+                    name: tspath::get_base_file_name(&l.path),
+                    size: 0,
+                    mode: FileMode::from_bits_retain(0o444),
+                    mod_time: None,
+                });
             }
             return None;
         }
         l.info
     }
     fn realpath(&self, path: &str) -> String {
-        let Some(l) = self.lookup_path(path) else { return path.to_string() };
+        let Some(l) = self.lookup_path(path) else {
+            return path.to_string();
+        };
         if l.use_base {
             return self.base.realpath(&l.path);
         }
@@ -805,7 +946,13 @@ impl FS for RequestFileSystem {
 }
 
 /// Go `addFileChanges`.
-fn add_file_changes(summary: &mut FileChangeSummary, request: &RequestParams, base_request: Option<&RequestFileSystem>, fs: &RequestFileSystem, cwd: &str) {
+fn add_file_changes(
+    summary: &mut FileChangeSummary,
+    request: &RequestParams,
+    base_request: Option<&RequestFileSystem>,
+    fs: &RequestFileSystem,
+    cwd: &str,
+) {
     // `baseFS` in Go is the base snapshot filesystem: the previous request filesystem or the host.
     let base_fs: &dyn FS = match base_request {
         Some(b) => b,
@@ -883,10 +1030,15 @@ impl FileHandleSource for RequestFileSystem {
             if let FsRef::Layered(layered) = &self.base_ref {
                 return layered.get_file(&l.path);
             }
-            return self.base.read_file(&l.path).map(|c| tsrs_project::new_cached_file_handle(file_name, &c));
+            return self
+                .base
+                .read_file(&l.path)
+                .map(|c| tsrs_project::new_cached_file_handle(file_name, &c));
         }
         match l.entry.as_deref() {
-            Some(Entry::File { content, .. }) => Some(tsrs_project::new_cached_file_handle(file_name, content)),
+            Some(Entry::File { content, .. }) => {
+                Some(tsrs_project::new_cached_file_handle(file_name, content))
+            }
             _ => None,
         }
     }
@@ -895,7 +1047,9 @@ impl FileHandleSource for RequestFileSystem {
 impl LayeredFileSystem for RequestFileSystem {
     // requestfilesystem.go Overlays: the base layer's overlays this request file system does not mask.
     fn overlays(&self) -> OverlayMap {
-        let FsRef::Layered(base) = &self.base_ref else { return OverlayMap::default() };
+        let FsRef::Layered(base) = &self.base_ref else {
+            return OverlayMap::default();
+        };
         let mut result = rustc_hash::FxHashMap::default();
         // builds a map keyed by path; Go ranges the overlay map too
         result.extend(base.overlays().iter().filter_map(|(path, overlay)| {
@@ -939,8 +1093,12 @@ impl FileChangeExpander for RequestFileSystem {
         let expand = |uris: &mut tsrs_core::collections::Set<tsrs_lsproto::DocumentUri>| {
             let mut additional = Vec::new();
             // the aliases are added to the same set; Go ranges the set too
-            additional
-                .extend(uris.keys().iter().flat_map(|uri| self.aliases_for_path(&uri.file_name())).map(|alias| tsrs_ls::lsconv::file_name_to_document_uri(&alias)));
+            additional.extend(
+                uris.keys()
+                    .iter()
+                    .flat_map(|uri| self.aliases_for_path(&uri.file_name()))
+                    .map(|alias| tsrs_ls::lsconv::file_name_to_document_uri(&alias)),
+            );
             uris.m.extend(additional);
         };
         expand(&mut summary.changed);

@@ -6,7 +6,7 @@ use std::panic::{self, AssertUnwindSafe};
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::{self, Value};
 
-use crate::test_parser::{parse_test_data, TestData};
+use crate::test_parser::{TestData, parse_test_data};
 use crate::testing::T;
 
 fn field<'a>(v: &'a Value, name: &str) -> &'a Value {
@@ -68,8 +68,12 @@ fn check_case(expected: &Value) -> Result<(), String> {
         return Err(format!("{test}: Go failed, Rust did not"));
     }
 
-    let files: Vec<(String, String)> = td.files.iter().map(|f| (f.file_name(), f.content.clone())).collect();
-    let want_files: Vec<(String, String)> = arr(field(expected, "files")).iter().map(|f| (s(field(f, "fileName")), s(field(f, "content")))).collect();
+    let files: Vec<(String, String)> =
+        td.files.iter().map(|f| (f.file_name(), f.content.clone())).collect();
+    let want_files: Vec<(String, String)> = arr(field(expected, "files"))
+        .iter()
+        .map(|f| (s(field(f, "fileName")), s(field(f, "content"))))
+        .collect();
     if files != want_files {
         return Err(format!("{test}: files differ:\n  rust {files:?}\n  go   {want_files:?}"));
     }
@@ -79,8 +83,12 @@ fn check_case(expected: &Value) -> Result<(), String> {
         return Err(format!("{test}: {} markers, Go has {}", td.markers.len(), want_markers.len()));
     }
     if let Some(result) = td.markers.iter().zip(want_markers).into_iter().find_map(|(m, w)| {
-        let got = (m.file_name(), i64::from( m.position .expect_source("parsed markers have source positions"),
-            ), (m.ls_position.line as i64, m.ls_position.character as i64), m.name.clone(), );
+        let got = (
+            m.file_name(),
+            i64::from(m.position.expect_source("parsed markers have source positions")),
+            (m.ls_position.line as i64, m.ls_position.character as i64),
+            m.name.clone(),
+        );
         let name = match field(w, "name") {
             Value::Null => None,
             v => Some(s(v)),
@@ -89,9 +97,16 @@ fn check_case(expected: &Value) -> Result<(), String> {
         if got != want {
             return Some(Err(format!("{test}: marker differs:\n  rust {got:?}\n  go   {want:?}")));
         }
-        let got_data = if m.data.is_empty() { Value::Null } else { Value::Object(m.data.iter().map(|(k, v)| (k.clone(), v.to_json())).collect()) };
+        let got_data = if m.data.is_empty() {
+            Value::Null
+        } else {
+            Value::Object(m.data.iter().map(|(k, v)| (k.clone(), v.to_json())).collect())
+        };
         if got_data != *field(w, "data") {
-            return Some(Err(format!("{test}: marker data differs:\n  rust {got_data:?}\n  go   {:?}", field(w, "data"))));
+            return Some(Err(format!(
+                "{test}: marker data differs:\n  rust {got_data:?}\n  go   {:?}",
+                field(w, "data")
+            )));
         }
 
         None
@@ -104,7 +119,9 @@ fn check_case(expected: &Value) -> Result<(), String> {
     names.sort();
     want_names.sort();
     if names != want_names {
-        return Err(format!("{test}: marker names differ:\n  rust {names:?}\n  go   {want_names:?}"));
+        return Err(format!(
+            "{test}: marker names differ:\n  rust {names:?}\n  go   {want_names:?}"
+        ));
     }
 
     let want_ranges = arr(field(expected, "ranges"));
@@ -114,28 +131,28 @@ fn check_case(expected: &Value) -> Result<(), String> {
     if let Some(result) = td.ranges.iter().zip(want_ranges).into_iter().find_map(|(r, w)| {
         let marker_index = match &r.marker {
             None => -1,
-            Some(m) => td.markers.iter().position(|x| std::sync::Arc::ptr_eq(x, m)).map_or(-2, |i| i as i64),
+            Some(m) => td
+                .markers
+                .iter()
+                .position(|x| std::sync::Arc::ptr_eq(x, m))
+                .map_or(-2, |i| i as i64),
         };
         let got = (
             r.file_name(),
-            i64::from(
-                r.range
-                    .pos()
-                    .expect_source("parsed ranges have source positions"),
-            ),
-            i64::from(
-                r.range
-                    .end()
-                    .expect_source("parsed ranges have source positions"),
-            ),
-            (
-                r.ls_range.start.line as i64,
-                r.ls_range.start.character as i64,
-            ),
+            i64::from(r.range.pos().expect_source("parsed ranges have source positions")),
+            i64::from(r.range.end().expect_source("parsed ranges have source positions")),
+            (r.ls_range.start.line as i64, r.ls_range.start.character as i64),
             (r.ls_range.end.line as i64, r.ls_range.end.character as i64),
             marker_index,
         );
-        let want = (s(field(w, "fileName")), n(field(w, "pos")), n(field(w, "end")), pos(field(w, "start")), pos(field(w, "stop")), n(field(w, "marker")));
+        let want = (
+            s(field(w, "fileName")),
+            n(field(w, "pos")),
+            n(field(w, "end")),
+            pos(field(w, "start")),
+            pos(field(w, "stop")),
+            n(field(w, "marker")),
+        );
         if got != want {
             return Some(Err(format!("{test}: range differs:\n  rust {got:?}\n  go   {want:?}")));
         }
@@ -146,10 +163,18 @@ fn check_case(expected: &Value) -> Result<(), String> {
     }
 
     if td.symlinks != string_map(field(expected, "symlinks")) {
-        return Err(format!("{test}: symlinks differ: {:?} vs {:?}", td.symlinks, field(expected, "symlinks")));
+        return Err(format!(
+            "{test}: symlinks differ: {:?} vs {:?}",
+            td.symlinks,
+            field(expected, "symlinks")
+        ));
     }
     if td.global_options != string_map(field(expected, "globalOptions")) {
-        return Err(format!("{test}: global options differ: {:?} vs {:?}", td.global_options, field(expected, "globalOptions")));
+        return Err(format!(
+            "{test}: global options differ: {:?} vs {:?}",
+            td.global_options,
+            field(expected, "globalOptions")
+        ));
     }
     Ok(())
 }
@@ -157,8 +182,9 @@ fn check_case(expected: &Value) -> Result<(), String> {
 #[test]
 fn test_parser_oracle() {
     crate::runner::install_panic_hook();
-    let path = std::env::var("TSRS_FOURSLASH_PARSER_ORACLE")
-        .unwrap_or_else(|_| concat!(env!("CARGO_MANIFEST_DIR"), "/testdata/parser_oracle_sample.jsonl").to_string());
+    let path = std::env::var("TSRS_FOURSLASH_PARSER_ORACLE").unwrap_or_else(|_| {
+        concat!(env!("CARGO_MANIFEST_DIR"), "/testdata/parser_oracle_sample.jsonl").to_string()
+    });
     let data = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
     let mut failures = Vec::new();
     let mut count = 0;
@@ -170,7 +196,13 @@ fn test_parser_oracle() {
         }
     }
     assert!(count > 0);
-    assert!(failures.is_empty(), "{} of {} parser cases differ from Go:\n{}", failures.len(), count, failures.iter().take(20).cloned().collect::<Vec<_>>().join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} of {} parser cases differ from Go:\n{}",
+        failures.len(),
+        count,
+        failures.iter().take(20).cloned().collect::<Vec<_>>().join("\n")
+    );
     eprintln!("{count} parser cases match Go");
 }
 
@@ -188,8 +220,5 @@ fn test_parser_markers_and_ranges() {
     assert_eq!(td.ranges.len(), 1);
     assert_eq!(td.ranges[0].range.source_pos(), Some(4));
     assert_eq!(td.ranges[0].range.source_end(), Some(5));
-    assert!(std::sync::Arc::ptr_eq(
-        td.ranges[0].marker.as_ref().unwrap(),
-        m
-    ));
+    assert!(std::sync::Arc::ptr_eq(td.ranges[0].marker.as_ref().unwrap(), m));
 }

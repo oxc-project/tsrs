@@ -36,7 +36,10 @@ struct PackedSlot<K, V> {
 }
 
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(std::mem::size_of::<PackedSlot<CacheHashKey, P<Type>>>() == if tsrs_core::COMPRESSED_PTRS { 20 } else { 24 });
+const _: () = assert!(
+    std::mem::size_of::<PackedSlot<CacheHashKey, P<Type>>>()
+        == if tsrs_core::COMPRESSED_PTRS { 20 } else { 24 }
+);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<PackedSlot<CacheHashKey, P<Type>>>() == 20);
 
@@ -82,7 +85,11 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
     /// Like `HashMap::insert`: returns the value the key had.
     #[inline]
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
-        match self.table.entry(key.packed_hash(), |slot| ({ slot.key }) == key, |slot| ({ slot.key }).packed_hash()) {
+        match self.table.entry(
+            key.packed_hash(),
+            |slot| ({ slot.key }) == key,
+            |slot| ({ slot.key }).packed_hash(),
+        ) {
             hashbrown::hash_table::Entry::Occupied(mut slot) => {
                 let old = slot.get().value;
                 slot.get_mut().value = value;
@@ -115,12 +122,13 @@ impl<K: PackedKey, V: Copy> PackedMap<K, V> {
     pub fn values(&self) -> impl Iterator<Item = V> + '_ {
         self.table.iter().map(|slot| slot.value)
     }
-
 }
 
 /// `GoMap` (a nil-able shared map in the arena) over a `PackedMap`, for the `CacheHashKey`-keyed instantiation maps
 /// of arena objects (conditional roots, type aliases). Same `make` / `get` / `set` behavior as `GoMap`.
-pub struct GoPackedMap<K: 'static, V: 'static>(tsrs_core::sharedgraph::OvExact<Option<P<RefCell<PackedMap<K, V>>>>>);
+pub struct GoPackedMap<K: 'static, V: 'static>(
+    tsrs_core::sharedgraph::OvExact<Option<P<RefCell<PackedMap<K, V>>>>>,
+);
 
 impl<K: 'static, V: 'static> Default for GoPackedMap<K, V> {
     fn default() -> Self {
@@ -172,7 +180,6 @@ impl<K: PackedKey + 'static, V: Copy + 'static> GoPackedMap<K, V> {
     pub fn is_empty(&self) -> bool {
         self.0.get().is_none_or(|m| tsrs_core::sharedgraph::with_ref(&m, PackedMap::is_empty))
     }
-
 }
 
 /// Go `c.stringLiteralTypes` (`map[string]*Type`): the literal types by their value.
@@ -207,7 +214,12 @@ impl StringLiteralTypes {
         let h = Self::hash(value);
         match self.table.find(h, |&t| Self::value_of(t) == value) {
             Some(&t) => Some(t),
-            None => self.base.filter(|_| tsrs_core::sharedgraph::COMPILED_IN)?.table.find(h, |&t| Self::value_of(t) == value).copied(),
+            None => self
+                .base
+                .filter(|_| tsrs_core::sharedgraph::COMPILED_IN)?
+                .table
+                .find(h, |&t| Self::value_of(t) == value)
+                .copied(),
         }
     }
 
@@ -231,5 +243,4 @@ impl StringLiteralTypes {
     pub fn is_empty(&self) -> bool {
         self.table.is_empty()
     }
-
 }

@@ -14,10 +14,11 @@ use std::time::{Duration, Instant};
 use tsrs_core::json::{self, Value};
 
 use crate::error::eof;
-use crate::jsonrpc::{self, new_id_int, new_id_string, ResponseError, ID};
+use crate::jsonrpc::{self, ID, ResponseError, new_id_int, new_id_string};
 use crate::{
-    new_async_conn, new_async_conn_with_protocol, new_jsonrpc_protocol, pipe, AsyncConn, Closer, Conn, Error, ErrorTag,
-    Handler, Message, Protocol, ReadWriteCloser, ERR_CONN_CLOSED, METHOD_GET_SERVER_TIMING, METHOD_RESET_SERVER_TIMING,
+    AsyncConn, Closer, Conn, ERR_CONN_CLOSED, Error, ErrorTag, Handler, METHOD_GET_SERVER_TIMING,
+    METHOD_RESET_SERVER_TIMING, Message, Protocol, ReadWriteCloser, new_async_conn,
+    new_async_conn_with_protocol, new_jsonrpc_protocol, pipe,
 };
 
 // How long a test waits for something that should happen promptly before it fails instead of hanging.
@@ -144,7 +145,11 @@ fn run_bounded(conn: &Arc<AsyncConn>) -> Result<(), Error> {
 }
 
 // `conn.call` on another thread, so that a test fails instead of hanging when no response comes.
-fn spawn_call(conn: &Arc<AsyncConn>, method: &str, params: Option<Value>) -> mpsc::Receiver<Result<Option<Value>, Error>> {
+fn spawn_call(
+    conn: &Arc<AsyncConn>,
+    method: &str,
+    params: Option<Value>,
+) -> mpsc::Receiver<Result<Option<Value>, Error>> {
     let (done, result) = mpsc::channel();
     let conn = Arc::clone(conn);
     let method = method.to_string();
@@ -154,16 +159,27 @@ fn spawn_call(conn: &Arc<AsyncConn>, method: &str, params: Option<Value>) -> mps
     result
 }
 
-fn call(conn: &Arc<AsyncConn>, method: &str, params: Option<Value>) -> Result<Option<Value>, Error> {
+fn call(
+    conn: &Arc<AsyncConn>,
+    method: &str,
+    params: Option<Value>,
+) -> Result<Option<Value>, Error> {
     spawn_call(conn, method, params).recv_timeout(PATIENCE).expect("the call did not return")
 }
 
 // conn_async_test.go:88
 #[test]
 fn test_async_conn_run_waits_for_handlers() {
-    let protocol = queuedProtocol::new(vec![request(new_id_string("1"), "request"), notification("notification")], None);
+    let protocol = queuedProtocol::new(
+        vec![request(new_id_string("1"), "request"), notification("notification")],
+        None,
+    );
     let (handler, started) = blockingHandler::new();
-    let conn = new_async_conn_with_protocol(None, Box::new(protocol), Arc::<blockingHandler>::clone(&handler));
+    let conn = new_async_conn_with_protocol(
+        None,
+        Box::new(protocol),
+        Arc::<blockingHandler>::clone(&handler),
+    );
 
     let run_done = run_in_background(&conn);
 
@@ -182,7 +198,8 @@ fn test_async_conn_run_waits_for_handlers() {
 #[test]
 fn test_async_conn_response_write_failure_with_nil_transport() {
     let response_err = Error::new("response write failed");
-    let protocol = queuedProtocol::new(vec![request(new_id_string("1"), "request")], Some(response_err));
+    let protocol =
+        queuedProtocol::new(vec![request(new_id_string("1"), "request")], Some(response_err));
     let conn = new_async_conn_with_protocol(None, Box::new(protocol), Arc::new(noOpHandler));
 
     let err = run_bounded(&conn).unwrap_err();
@@ -279,13 +296,20 @@ fn test_async_conn_terminal_error_includes_response_write_failure() {
     let response_err = Error::new("response write failed");
     let closed = Arc::new(gate::default());
     let rwc = Arc::new(closeSignal { closed: Arc::clone(&closed) });
-    let protocol = failingResponseProtocol { closed, request_read: AtomicBool::new(false), response_err };
+    let protocol =
+        failingResponseProtocol { closed, request_read: AtomicBool::new(false), response_err };
     let conn = new_async_conn_with_protocol(Some(rwc), Box::new(protocol), Arc::new(noOpHandler));
 
     let err = run_bounded(&conn).unwrap_err();
-    assert_eq!(err.to_string(), "io: read/write on closed pipe\nipc: failed to write response: response write failed");
+    assert_eq!(
+        err.to_string(),
+        "io: read/write on closed pipe\nipc: failed to write response: response write failed"
+    );
     let err = call(&conn, "transform", None).unwrap_err();
-    assert!(err.to_string().contains("response write failed"), "expected terminal response write error, got {err}");
+    assert!(
+        err.to_string().contains("response write failed"),
+        "expected terminal response write error, got {err}"
+    );
     assert_eq!(err.to_string().matches("response write failed").count(), 1);
     assert!(err.is(ErrorTag::ConnClosed));
 }
@@ -312,7 +336,10 @@ fn test_async_conn_run_waits_for_request_after_peer_closes() {
     }
 
     handler.release.open();
-    let err = run_done.recv_timeout(PATIENCE).expect("connection did not stop after request handler completed").unwrap_err();
+    let err = run_done
+        .recv_timeout(PATIENCE)
+        .expect("connection did not stop after request handler completed")
+        .unwrap_err();
     assert!(err.to_string().contains("ipc: failed to write response"), "{err}");
     let err = call(&conn, "transform", None).unwrap_err();
     assert!(err.to_string().contains("ipc: failed to write response"), "{err}");
@@ -384,7 +411,8 @@ fn start(rwc: ReadWriteCloser, handler: Arc<dyn Handler>) -> end {
 }
 
 // A connection to a test mapper: (host end, mapper end, the mapper, requests and notifications our handler got).
-fn connect() -> (end, end, Arc<testMapper>, mpsc::Receiver<()>, mpsc::Receiver<(String, Option<Value>)>) {
+fn connect()
+-> (end, end, Arc<testMapper>, mpsc::Receiver<()>, mpsc::Receiver<(String, Option<Value>)>) {
     let (host_rwc, mapper_rwc) = pipe().unwrap();
     let (started, started_rx) = mpsc::channel();
     let mapper_handler = Arc::new(testMapper { started, release: gate::default() });
@@ -439,7 +467,10 @@ fn responses_are_matched_by_id_not_by_order() {
     let fast = Value::String("fast".to_string());
     assert_eq!(call(&host.conn, "echo", Some(fast.clone())).unwrap(), Some(fast));
     mapper_handler.release.open();
-    assert_eq!(slow.recv_timeout(PATIENCE).unwrap().unwrap(), Some(Value::String("released".to_string())));
+    assert_eq!(
+        slow.recv_timeout(PATIENCE).unwrap().unwrap(),
+        Some(Value::String("released".to_string()))
+    );
     shut_down(&host, &mapper);
 }
 
@@ -448,15 +479,24 @@ fn responses_are_matched_by_id_not_by_order() {
 fn requests_from_the_peer_are_answered_by_the_handler() {
     let (host, mapper, _, _, handled) = connect();
     let params = value(r#"{"a":[1,"b"]}"#);
-    assert_eq!(call(&mapper.conn, "ping", Some(params.clone())).unwrap(), Some(value(r#"{"pong":true}"#)));
+    assert_eq!(
+        call(&mapper.conn, "ping", Some(params.clone())).unwrap(),
+        Some(value(r#"{"pong":true}"#))
+    );
     assert_eq!(handled.recv_timeout(PATIENCE).unwrap(), ("ping".to_string(), Some(params)));
 
     let err = call(&mapper.conn, "transform", None).unwrap_err();
-    assert_eq!(err.to_string(), "ipc: remote error [-32603]: content mapper sent an unexpected request: transform");
+    assert_eq!(
+        err.to_string(),
+        "ipc: remote error [-32603]: content mapper sent an unexpected request: transform"
+    );
     assert_eq!(handled.recv_timeout(PATIENCE).unwrap(), ("transform".to_string(), None));
 
     mapper.conn.notify("log", Some(&Value::String("hello".to_string()))).unwrap();
-    assert_eq!(handled.recv_timeout(PATIENCE).unwrap(), ("log".to_string(), Some(Value::String("hello".to_string()))));
+    assert_eq!(
+        handled.recv_timeout(PATIENCE).unwrap(),
+        ("log".to_string(), Some(Value::String("hello".to_string())))
+    );
     shut_down(&host, &mapper);
 }
 
@@ -479,7 +519,10 @@ fn a_handler_panic_is_a_remote_error_for_the_caller() {
     let err = call(&host.conn, "panic", None).unwrap_err();
     assert_eq!(err.to_string(), "ipc: remote error [-32603]: panic: mapper bug");
     assert_eq!(call(&host.conn, "echo", Some(Value::Bool(true))).unwrap(), Some(Value::Bool(true)));
-    assert!(mapper.run.try_recv().is_err(), "the mapper's connection stopped after its handler panicked");
+    assert!(
+        mapper.run.try_recv().is_err(),
+        "the mapper's connection stopped after its handler panicked"
+    );
     shut_down(&host, &mapper);
 }
 
@@ -488,7 +531,8 @@ fn a_handler_panic_is_a_remote_error_for_the_caller() {
 #[test]
 fn eof_fails_every_pending_call() {
     let (host, mapper, mapper_handler, started, _) = connect();
-    let calls: Vec<_> = std::iter::repeat_with(|| spawn_call(&host.conn, "wait", None)).take(3).collect();
+    let calls: Vec<_> =
+        std::iter::repeat_with(|| spawn_call(&host.conn, "wait", None)).take(3).collect();
     for _ in 0..3 {
         started.recv_timeout(PATIENCE).unwrap();
     }
@@ -503,7 +547,9 @@ fn eof_fails_every_pending_call() {
 
     let start = Instant::now();
     assert!(call(&host.conn, "echo", None).unwrap_err().is(ErrorTag::ConnClosed));
-    assert!(host.conn.call_with_timeout("echo", None, PATIENCE).unwrap_err().is(ErrorTag::ConnClosed));
+    assert!(
+        host.conn.call_with_timeout("echo", None, PATIENCE).unwrap_err().is(ErrorTag::ConnClosed)
+    );
     assert!(host.conn.notify("log", None).unwrap_err().is(ErrorTag::ConnClosed));
     assert!(start.elapsed() < PATIENCE);
 
@@ -555,9 +601,15 @@ fn call_with_timeout_gives_up_with_deadline_exceeded() {
     mapper_handler.release.open();
     let next = Value::String("next".to_string());
     assert_eq!(call(&host.conn, "echo", Some(next.clone())).unwrap(), Some(next.clone()));
-    assert_eq!(host.conn.call_with_timeout("echo", Some(&next), PATIENCE).unwrap(), Some(next.clone()));
+    assert_eq!(
+        host.conn.call_with_timeout("echo", Some(&next), PATIENCE).unwrap(),
+        Some(next.clone())
+    );
     // A timeout too large for a deadline is no deadline.
-    assert_eq!(host.conn.call_with_timeout("echo", Some(&next), Duration::MAX).unwrap(), Some(next));
+    assert_eq!(
+        host.conn.call_with_timeout("echo", Some(&next), Duration::MAX).unwrap(),
+        Some(next)
+    );
     shut_down(&host, &mapper);
 }
 
@@ -574,17 +626,27 @@ fn call_writes_api_ids_and_returns_what_the_response_carries() {
     let mut answer = |method: &str, params: Option<Value>, response: &str| {
         let result = spawn_call(&host.conn, method, params);
         let request = Message::unmarshal(&r.read().unwrap()).unwrap();
-        w.write(response.replace("$ID", &request.id.as_ref().unwrap().string()).as_bytes()).unwrap();
+        w.write(response.replace("$ID", &request.id.as_ref().unwrap().string()).as_bytes())
+            .unwrap();
         (request, result.recv_timeout(PATIENCE).expect("the call did not return"))
     };
 
-    let (request, result) = answer("initialize", Some(value(r#"{"locale":"en"}"#)), r#"{"jsonrpc":"2.0","id":"$ID"}"#);
-    assert_eq!(request.marshal().unwrap(), r#"{"jsonrpc":"2.0","id":"api1","method":"initialize","params":{"locale":"en"}}"#);
+    let (request, result) =
+        answer("initialize", Some(value(r#"{"locale":"en"}"#)), r#"{"jsonrpc":"2.0","id":"$ID"}"#);
+    assert_eq!(
+        request.marshal().unwrap(),
+        r#"{"jsonrpc":"2.0","id":"api1","method":"initialize","params":{"locale":"en"}}"#
+    );
     assert_eq!(result, Ok(None));
-    let (request, result) = answer("transform", None, r#"{"jsonrpc":"2.0","id":"$ID","result":null}"#);
+    let (request, result) =
+        answer("transform", None, r#"{"jsonrpc":"2.0","id":"$ID","result":null}"#);
     assert_eq!(request.marshal().unwrap(), r#"{"jsonrpc":"2.0","id":"api2","method":"transform"}"#);
     assert_eq!(result, Ok(Some(Value::Null)));
-    let (_, result) = answer("transform", None, r#"{"jsonrpc":"2.0","id":"$ID","error":{"code":7,"message":"bad","data":{"x":1}}}"#);
+    let (_, result) = answer(
+        "transform",
+        None,
+        r#"{"jsonrpc":"2.0","id":"$ID","error":{"code":7,"message":"bad","data":{"x":1}}}"#,
+    );
     assert_eq!(result.unwrap_err().to_string(), "ipc: remote error [7]: bad");
 
     closer.close().unwrap();
@@ -640,7 +702,11 @@ impl Protocol for panickingProtocol {
 // waiting calls (and still panics Run) instead of leaving them waiting forever.
 #[test]
 fn a_panic_in_the_read_loop_fails_the_waiting_calls() {
-    let conn = new_async_conn_with_protocol(None, Box::new(panickingProtocol { requested: gate::default() }), Arc::new(noOpHandler));
+    let conn = new_async_conn_with_protocol(
+        None,
+        Box::new(panickingProtocol { requested: gate::default() }),
+        Arc::new(noOpHandler),
+    );
     let run = {
         let conn = Arc::clone(&conn);
         thread::spawn(move || conn.run())

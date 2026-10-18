@@ -17,7 +17,14 @@ struct boxState<T> {
 
 // box.go:10
 pub fn new_box<T>(original: Option<Shared<T>>) -> Box<T> {
-    Box { st: Mutex::new(boxState { original: original.clone(), value: original, dirty: false, delete: false }) }
+    Box {
+        st: Mutex::new(boxState {
+            original: original.clone(),
+            value: original,
+            dirty: false,
+            delete: false,
+        }),
+    }
 }
 
 impl<T: Cloneable + Clone> Box<T> {

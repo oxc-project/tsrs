@@ -7,8 +7,10 @@ use std::sync::{Arc, Mutex};
 
 use tsrs_core::json::{self, Value};
 
-use crate::jsonrpc::{self, new_id_int, new_id_string, Message, ResponseError, CODE_INTERNAL_ERROR, ID};
-use crate::{new_jsonrpc_protocol, Protocol};
+use crate::jsonrpc::{
+    self, CODE_INTERNAL_ERROR, ID, Message, ResponseError, new_id_int, new_id_string,
+};
+use crate::{Protocol, new_jsonrpc_protocol};
 
 #[derive(Clone, Default)]
 struct sharedBuffer(Arc<Mutex<Vec<u8>>>);
@@ -45,8 +47,18 @@ fn protocol_writes_go_wire_bytes() {
     let out = sharedBuffer::default();
     let p = new_jsonrpc_protocol(io::empty(), out.clone());
 
-    p.write_request(&new_id_string("api1"), "initialize", Some(&value(r#"{ "locale" : "en", "positionEncodings": ["utf-8","utf-16"] }"#))).unwrap();
-    assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","id":"api1","method":"initialize","params":{"locale":"en","positionEncodings":["utf-8","utf-16"]}}"#));
+    p.write_request(
+        &new_id_string("api1"),
+        "initialize",
+        Some(&value(r#"{ "locale" : "en", "positionEncodings": ["utf-8","utf-16"] }"#)),
+    )
+    .unwrap();
+    assert_eq!(
+        out.take(),
+        frame(
+            r#"{"jsonrpc":"2.0","id":"api1","method":"initialize","params":{"locale":"en","positionEncodings":["utf-8","utf-16"]}}"#
+        )
+    );
     p.write_request(&new_id_string("api2"), "transform", None).unwrap();
     assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","id":"api2","method":"transform"}"#));
     p.write_request(&new_id_int(-7), "m", Some(&Value::Null)).unwrap();
@@ -63,7 +75,9 @@ fn protocol_writes_go_wire_bytes() {
     .unwrap();
     assert_eq!(
         out.take(),
-        frame("{\"jsonrpc\":\"2.0\",\"id\":\"a\\\"b\",\"method\":\"m\u{2028}<>&\",\"params\":{\"s\":\"\\u0000\\u001f\x7f\\b\\f\\n\\r\\t\\\\/é😀\u{2028}\",\"n\":[0,1.5,123456789012]}}")
+        frame(
+            "{\"jsonrpc\":\"2.0\",\"id\":\"a\\\"b\",\"method\":\"m\u{2028}<>&\",\"params\":{\"s\":\"\\u0000\\u001f\x7f\\b\\f\\n\\r\\t\\\\/é😀\u{2028}\",\"n\":[0,1.5,123456789012]}}"
+        )
     );
 
     p.write_notification("changed", Some(&value(r#"{"a":1}"#))).unwrap();
@@ -71,30 +85,57 @@ fn protocol_writes_go_wire_bytes() {
     p.write_notification("changed", None).unwrap();
     assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","method":"changed"}"#));
 
-    p.write_response(&new_id_string("api1"), &value(r#"{"positionEncoding":"utf-8","diagnosticSource":"vue"}"#)).unwrap();
-    assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","id":"api1","result":{"positionEncoding":"utf-8","diagnosticSource":"vue"}}"#));
+    p.write_response(
+        &new_id_string("api1"),
+        &value(r#"{"positionEncoding":"utf-8","diagnosticSource":"vue"}"#),
+    )
+    .unwrap();
+    assert_eq!(
+        out.take(),
+        frame(
+            r#"{"jsonrpc":"2.0","id":"api1","result":{"positionEncoding":"utf-8","diagnosticSource":"vue"}}"#
+        )
+    );
     // Go's nil result.
     p.write_response(&new_id_int(3), &Value::Null).unwrap();
     assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","id":3,"result":null}"#));
 
-    let err = ResponseError { code: CODE_INTERNAL_ERROR, message: "boom \"x\"".to_string(), data: None };
+    let err =
+        ResponseError { code: CODE_INTERNAL_ERROR, message: "boom \"x\"".to_string(), data: None };
     p.write_error(&new_id_int(3), &err).unwrap();
-    assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","id":3,"error":{"code":-32603,"message":"boom \"x\""}}"#));
-    let err = ResponseError { code: 1, message: "m".to_string(), data: Some(value(r#"{"k":[1,"v"]}"#)) };
+    assert_eq!(
+        out.take(),
+        frame(r#"{"jsonrpc":"2.0","id":3,"error":{"code":-32603,"message":"boom \"x\""}}"#)
+    );
+    let err =
+        ResponseError { code: 1, message: "m".to_string(), data: Some(value(r#"{"k":[1,"v"]}"#)) };
     p.write_error(&new_id_string("x"), &err).unwrap();
-    assert_eq!(out.take(), frame(r#"{"jsonrpc":"2.0","id":"x","error":{"code":1,"message":"m","data":{"k":[1,"v"]}}}"#));
+    assert_eq!(
+        out.take(),
+        frame(
+            r#"{"jsonrpc":"2.0","id":"x","error":{"code":1,"message":"m","data":{"k":[1,"v"]}}}"#
+        )
+    );
 }
 
 // The owned message types marshal like the borrowed-parts functions the protocol uses (the content mapper host logs
 // every message it sends with them).
 #[test]
 fn request_and_response_messages_marshal_like_the_protocol() {
-    let request = jsonrpc::RequestMessage { id: Some(new_id_string("api1")), method: "initialize".to_string(), params: Some(value("[1]")) };
-    assert_eq!(request.marshal().unwrap(), r#"{"jsonrpc":"2.0","id":"api1","method":"initialize","params":[1]}"#);
+    let request = jsonrpc::RequestMessage {
+        id: Some(new_id_string("api1")),
+        method: "initialize".to_string(),
+        params: Some(value("[1]")),
+    };
+    assert_eq!(
+        request.marshal().unwrap(),
+        r#"{"jsonrpc":"2.0","id":"api1","method":"initialize","params":[1]}"#
+    );
     let response = jsonrpc::ResponseMessage { id: Some(new_id_int(2)), result: None, error: None };
     assert_eq!(response.marshal().unwrap(), r#"{"jsonrpc":"2.0","id":2}"#);
     assert_eq!(
-        jsonrpc::marshal_response_message(Some(&new_id_int(2)), Some(&Value::Bool(true)), None).unwrap(),
+        jsonrpc::marshal_response_message(Some(&new_id_int(2)), Some(&Value::Bool(true)), None)
+            .unwrap(),
         r#"{"jsonrpc":"2.0","id":2,"result":true}"#
     );
     // A value json cannot encode fails the marshal instead of writing a broken frame.
@@ -105,7 +146,11 @@ fn request_and_response_messages_marshal_like_the_protocol() {
 fn response_error_string() {
     let err = ResponseError { code: -32603, message: "boom".to_string(), data: None };
     assert_eq!(err.to_string(), "[-32603]: boom");
-    let err = ResponseError { code: -32603, message: "boom".to_string(), data: Some(Value::Number(f64::NAN)) };
+    let err = ResponseError {
+        code: -32603,
+        message: "boom".to_string(),
+        data: Some(Value::Number(f64::NAN)),
+    };
     assert_eq!(err.to_string(), "[-32603]: boom\n[]");
 }
 
@@ -205,10 +250,17 @@ fn message_unmarshal_and_remarshal() {
             kind: (false, false, false),
             remarshal: r#"{"jsonrpc":"2.0"}"#,
         },
-        Test { input: "null", id: None, method: "", kind: (false, false, false), remarshal: r#"{"jsonrpc":"2.0"}"# },
+        Test {
+            input: "null",
+            id: None,
+            method: "",
+            kind: (false, false, false),
+            remarshal: r#"{"jsonrpc":"2.0"}"#,
+        },
     ];
     for tt in tests {
-        let m = Message::unmarshal(tt.input.as_bytes()).unwrap_or_else(|err| panic!("{}: {err}", tt.input));
+        let m = Message::unmarshal(tt.input.as_bytes())
+            .unwrap_or_else(|err| panic!("{}: {err}", tt.input));
         assert_eq!(m.id, tt.id, "{}", tt.input);
         assert_eq!(m.method, tt.method, "{}", tt.input);
         assert_eq!((m.is_request(), m.is_notification(), m.is_response()), tt.kind, "{}", tt.input);
@@ -226,21 +278,60 @@ fn message_unmarshal_and_remarshal() {
 #[test]
 fn message_unmarshal_errors() {
     let tests = [
-        (r#"{"jsonrpc":"1.0","id":1,"method":"m"}"#, r#"json: cannot unmarshal JSON string into Go jsonrpc.JSONRPCVersion within "/jsonrpc": invalid JSON-RPC version"#),
-        (r#"{"jsonrpc":null,"id":1,"method":"m"}"#, r#"json: cannot unmarshal JSON null into Go jsonrpc.JSONRPCVersion within "/jsonrpc": invalid JSON-RPC version"#),
-        (r#"{"jsonrpc":2,"id":1,"method":"m"}"#, r#"json: cannot unmarshal JSON number into Go jsonrpc.JSONRPCVersion within "/jsonrpc": invalid JSON-RPC version"#),
+        (
+            r#"{"jsonrpc":"1.0","id":1,"method":"m"}"#,
+            r#"json: cannot unmarshal JSON string into Go jsonrpc.JSONRPCVersion within "/jsonrpc": invalid JSON-RPC version"#,
+        ),
+        (
+            r#"{"jsonrpc":null,"id":1,"method":"m"}"#,
+            r#"json: cannot unmarshal JSON null into Go jsonrpc.JSONRPCVersion within "/jsonrpc": invalid JSON-RPC version"#,
+        ),
+        (
+            r#"{"jsonrpc":2,"id":1,"method":"m"}"#,
+            r#"json: cannot unmarshal JSON number into Go jsonrpc.JSONRPCVersion within "/jsonrpc": invalid JSON-RPC version"#,
+        ),
         (r#"{"id":true}"#, r#"json: cannot unmarshal JSON boolean into Go int32 within "/id""#),
-        (r#"{"id":1.5}"#, r#"json: cannot unmarshal JSON number 1.5 into Go int32 within "/id": invalid syntax"#),
-        (r#"{"id":-2147483649}"#, r#"json: cannot unmarshal JSON number -2147483649 into Go int32 within "/id": value out of range"#),
-        (r#"{"id":2147483648}"#, r#"json: cannot unmarshal JSON number 2147483648 into Go int32 within "/id": value out of range"#),
+        (
+            r#"{"id":1.5}"#,
+            r#"json: cannot unmarshal JSON number 1.5 into Go int32 within "/id": invalid syntax"#,
+        ),
+        (
+            r#"{"id":-2147483649}"#,
+            r#"json: cannot unmarshal JSON number -2147483649 into Go int32 within "/id": value out of range"#,
+        ),
+        (
+            r#"{"id":2147483648}"#,
+            r#"json: cannot unmarshal JSON number 2147483648 into Go int32 within "/id": value out of range"#,
+        ),
         (r#"{"id":{}}"#, r#"json: cannot unmarshal JSON object into Go int32 within "/id""#),
-        (r#"{"id":"x","method":5}"#, r#"json: cannot unmarshal JSON number into Go string within "/method""#),
-        (r#"{"id":"x","error":5}"#, r#"json: cannot unmarshal JSON number into Go jsonrpc.ResponseError within "/error""#),
-        (r#"{"id":"x","error":[]}"#, r#"json: cannot unmarshal JSON array into Go jsonrpc.ResponseError within "/error""#),
-        (r#"{"id":"x","error":{"code":"a"}}"#, r#"json: cannot unmarshal JSON string into Go int32 within "/error/code""#),
-        (r#"{"id":"x","error":{"code":1.5}}"#, r#"json: cannot unmarshal JSON number 1.5 into Go int32 within "/error/code": invalid syntax"#),
-        (r#"{"id":"x","error":{"code":3000000000}}"#, r#"json: cannot unmarshal JSON number 3000000000 into Go int32 within "/error/code": value out of range"#),
-        (r#"{"id":"x","error":{"message":7}}"#, r#"json: cannot unmarshal JSON number into Go string within "/error/message""#),
+        (
+            r#"{"id":"x","method":5}"#,
+            r#"json: cannot unmarshal JSON number into Go string within "/method""#,
+        ),
+        (
+            r#"{"id":"x","error":5}"#,
+            r#"json: cannot unmarshal JSON number into Go jsonrpc.ResponseError within "/error""#,
+        ),
+        (
+            r#"{"id":"x","error":[]}"#,
+            r#"json: cannot unmarshal JSON array into Go jsonrpc.ResponseError within "/error""#,
+        ),
+        (
+            r#"{"id":"x","error":{"code":"a"}}"#,
+            r#"json: cannot unmarshal JSON string into Go int32 within "/error/code""#,
+        ),
+        (
+            r#"{"id":"x","error":{"code":1.5}}"#,
+            r#"json: cannot unmarshal JSON number 1.5 into Go int32 within "/error/code": invalid syntax"#,
+        ),
+        (
+            r#"{"id":"x","error":{"code":3000000000}}"#,
+            r#"json: cannot unmarshal JSON number 3000000000 into Go int32 within "/error/code": value out of range"#,
+        ),
+        (
+            r#"{"id":"x","error":{"message":7}}"#,
+            r#"json: cannot unmarshal JSON number into Go string within "/error/message""#,
+        ),
         ("[1]", "json: cannot unmarshal JSON array into Go jsonrpc.Message"),
         (r#""s""#, "json: cannot unmarshal JSON string into Go jsonrpc.Message"),
         ("7", "json: cannot unmarshal JSON number into Go jsonrpc.Message"),

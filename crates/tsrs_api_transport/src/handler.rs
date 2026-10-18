@@ -1,8 +1,8 @@
 // Port of the ipc.Handler / ipc.Conn interfaces (tsc/internal/ipc/conn.go) as the contract between
 // this transport crate and the API session (owned by the integration lead).
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::message::{ApiError, Response, TransportError};
 
@@ -34,7 +34,8 @@ impl CancellationToken {
     }
 
     pub fn is_cancelled(&self) -> bool {
-        self.cancelled.load(Ordering::SeqCst) || self.parent.as_ref().is_some_and(|p| p.is_cancelled())
+        self.cancelled.load(Ordering::SeqCst)
+            || self.parent.as_ref().is_some_and(|p| p.is_cancelled())
     }
 }
 
@@ -60,14 +61,24 @@ pub trait Handler: Send + Sync + 'static {
     /// `params` is the raw request payload: JSON text, or empty when the client sent no params (JSON-RPC
     /// `params` omitted / `MessagePack` empty bin). Return `Response::Binary` only for raw binary results
     /// (source-file responses when binary responses are enabled, and `echo`).
-    fn handle_request(&self, cx: &RequestContext, method: &str, params: &[u8]) -> Result<Response, ApiError>;
+    fn handle_request(
+        &self,
+        cx: &RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<Response, ApiError>;
 
     /// Notifications are accepted and ignored by the pinned session (Session.HandleNotification).
     fn handle_notification(&self, _cx: &RequestContext, _method: &str, _params: &[u8]) {}
 }
 
 impl<T: Handler + ?Sized> Handler for Arc<T> {
-    fn handle_request(&self, cx: &RequestContext, method: &str, params: &[u8]) -> Result<Response, ApiError> {
+    fn handle_request(
+        &self,
+        cx: &RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<Response, ApiError> {
         (**self).handle_request(cx, method, params)
     }
 

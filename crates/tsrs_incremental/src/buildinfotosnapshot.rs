@@ -3,17 +3,24 @@
 use std::sync::Arc;
 use tsrs_ast::RepopulateDiagnosticInfo;
 use tsrs_compiler::CompilerHost;
+use tsrs_core::P;
 use tsrs_core::collections::new_set_with_size_hint;
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::P;
 use tsrs_tsoptions::ParsedCommandLine;
 
 use crate::buildinfo::*;
 use crate::referencemap::RefSet;
-use crate::snapshot::{buildInfoDiagnosticWithFileName, get_file_emit_kind, DiagnosticsOrBuildInfoDiagnosticsWithFileName, EmitSignature, Snapshot};
+use crate::snapshot::{
+    DiagnosticsOrBuildInfoDiagnosticsWithFileName, EmitSignature, Snapshot,
+    buildInfoDiagnosticWithFileName, get_file_emit_kind,
+};
 
 // buildinfotosnapshot.go:12
-pub(crate) fn build_info_to_snapshot(build_info: &BuildInfo, config: &ParsedCommandLine, host: &dyn CompilerHost) -> P<Snapshot> {
+pub(crate) fn build_info_to_snapshot(
+    build_info: &BuildInfo,
+    config: &ParsedCommandLine,
+    host: &dyn CompilerHost,
+) -> P<Snapshot> {
     let mut to = toSnapshot {
         build_info,
         build_info_directory: tspath::get_directory_path(&tspath::get_normalized_absolute_path(
@@ -35,7 +42,11 @@ pub(crate) fn build_info_to_snapshot(build_info: &BuildInfo, config: &ParsedComm
                     host.fs().use_case_sensitive_file_names(),
                 );
             }
-            tspath::to_path(file_name, &to.build_info_directory, config.use_case_sensitive_file_names())
+            tspath::to_path(
+                file_name,
+                &to.build_info_directory,
+                config.use_case_sensitive_file_names(),
+            )
         })
         .collect();
     to.file_path_set = build_info
@@ -51,7 +62,10 @@ pub(crate) fn build_info_to_snapshot(build_info: &BuildInfo, config: &ParsedComm
     to.set_file_info_and_emit_signatures();
     to.snapshot.file_order = to.file_paths[..build_info.file_infos.len()].to_vec();
     if !build_info.tsrs_canonical_check_signature.is_empty() {
-        let _ = to.snapshot.canonical_check_signature.set(build_info.tsrs_canonical_check_signature.clone());
+        let _ = to
+            .snapshot
+            .canonical_check_signature
+            .set(build_info.tsrs_canonical_check_signature.clone());
     }
     to.set_referenced_map();
     to.set_change_file_set();
@@ -59,9 +73,14 @@ pub(crate) fn build_info_to_snapshot(build_info: &BuildInfo, config: &ParsedComm
     to.set_emit_diagnostics();
     to.set_affected_files_pending_emit();
     if !build_info.latest_changed_dts_file.is_empty() {
-        *to.snapshot.latest_changed_dts_file.borrow_mut() = to.to_absolute_path(&build_info.latest_changed_dts_file);
+        *to.snapshot.latest_changed_dts_file.borrow_mut() =
+            to.to_absolute_path(&build_info.latest_changed_dts_file);
     }
-    to.snapshot.has_errors.set(if build_info.errors { tsrs_core::Tristate::True } else { tsrs_core::Tristate::False });
+    to.snapshot.has_errors.set(if build_info.errors {
+        tsrs_core::Tristate::True
+    } else {
+        tsrs_core::Tristate::False
+    });
     to.snapshot.has_semantic_errors.set(build_info.semantic_errors);
     to.snapshot.check_pending.set(build_info.check_pending);
     to.set_package_jsons();
@@ -94,7 +113,10 @@ impl toSnapshot<'_> {
     }
 
     // buildinfotosnapshot.go:74
-    fn to_build_info_diagnostics_with_file_name(&self, diagnostics: &[BuildInfoDiagnostic]) -> Vec<buildInfoDiagnosticWithFileName> {
+    fn to_build_info_diagnostics_with_file_name(
+        &self,
+        diagnostics: &[BuildInfoDiagnostic],
+    ) -> Vec<buildInfoDiagnosticWithFileName> {
         diagnostics
             .iter()
             .map(|d| {
@@ -111,7 +133,8 @@ impl toSnapshot<'_> {
                     message_key: d.message_key.clone(),
                     message_args: d.message_args.clone(),
                     message_chain: self.to_build_info_diagnostics_with_file_name(&d.message_chain),
-                    related_information: self.to_build_info_diagnostics_with_file_name(&d.related_information),
+                    related_information: self
+                        .to_build_info_diagnostics_with_file_name(&d.related_information),
                     reports_unnecessary: d.reports_unnecessary,
                     reports_deprecated: d.reports_deprecated,
                     skipped_on_no_emit: d.skipped_on_no_emit,
@@ -134,7 +157,9 @@ impl toSnapshot<'_> {
 
     // buildinfotosnapshot.go:120
     fn set_compiler_options(&self) {
-        self.snapshot.options.set(Some(P::new(self.build_info.get_compiler_options(&self.build_info_directory))));
+        self.snapshot
+            .options
+            .set(Some(P::new(self.build_info.get_compiler_options(&self.build_info_directory))));
     }
 
     // buildinfotosnapshot.go:124
@@ -145,7 +170,13 @@ impl toSnapshot<'_> {
             let info = build_info_file_info.get_file_info();
             // Add default emit signature as file's signature
             if !info.signature.is_empty() && is_composite {
-                self.snapshot.emit_signatures.store(path.clone(), EmitSignature { signature: info.signature.clone(), signature_with_different_options: None });
+                self.snapshot.emit_signatures.store(
+                    path.clone(),
+                    EmitSignature {
+                        signature: info.signature.clone(),
+                        signature_with_different_options: None,
+                    },
+                );
             }
             self.snapshot.file_infos.store(path, info);
         }
@@ -155,7 +186,8 @@ impl toSnapshot<'_> {
                 self.snapshot.emit_signatures.delete(&self.to_file_path(value.file_id));
             } else {
                 let path = self.to_file_path(value.file_id);
-                let emit_signature = value.to_emit_signature(&path, &self.snapshot.emit_signatures.to_map());
+                let emit_signature =
+                    value.to_emit_signature(&path, &self.snapshot.emit_signatures.to_map());
                 self.snapshot.emit_signatures.store(path, emit_signature);
             }
         }
@@ -164,7 +196,10 @@ impl toSnapshot<'_> {
     // buildinfotosnapshot.go:145
     fn set_referenced_map(&self) {
         for entry in &self.build_info.referenced_map {
-            self.snapshot.referenced_map.store_shared_references(self.to_file_path(entry.file_id), self.to_file_path_set(entry.file_id_list_id));
+            self.snapshot.referenced_map.store_shared_references(
+                self.to_file_path(entry.file_id),
+                self.to_file_path_set(entry.file_id_list_id),
+            );
         }
     }
 
@@ -181,7 +216,9 @@ impl toSnapshot<'_> {
         self.snapshot.file_infos.range(|path, _info| {
             // Initialize to have no diagnostics if its not changed file
             if !self.snapshot.changed_files_set.has(path) {
-                self.snapshot.semantic_diagnostics_per_file.store(path.clone(), std::sync::Arc::default());
+                self.snapshot
+                    .semantic_diagnostics_per_file
+                    .store(path.clone(), std::sync::Arc::default());
             }
             true
         });
@@ -192,9 +229,10 @@ impl toSnapshot<'_> {
             } else {
                 let diagnostics = diagnostic.diagnostics.as_ref().unwrap();
                 let file_path = self.to_file_path(diagnostics.file_id);
-                self.snapshot
-                    .semantic_diagnostics_per_file
-                    .store(file_path, self.to_diagnostics_or_build_info_diagnostics_with_file_name(diagnostics));
+                self.snapshot.semantic_diagnostics_per_file.store(
+                    file_path,
+                    self.to_diagnostics_or_build_info_diagnostics_with_file_name(diagnostics),
+                );
             }
         }
     }
@@ -203,7 +241,10 @@ impl toSnapshot<'_> {
     fn set_emit_diagnostics(&self) {
         for diagnostic in &self.build_info.emit_diagnostics_per_file {
             let file_path = self.to_file_path(diagnostic.file_id);
-            self.snapshot.emit_diagnostics_per_file.store(file_path, self.to_diagnostics_or_build_info_diagnostics_with_file_name(diagnostic));
+            self.snapshot.emit_diagnostics_per_file.store(
+                file_path,
+                self.to_diagnostics_or_build_info_diagnostics_with_file_name(diagnostic),
+            );
         }
     }
 
@@ -216,7 +257,11 @@ impl toSnapshot<'_> {
         for pending_emit in &self.build_info.affected_files_pending_emit {
             self.snapshot.affected_files_pending_emit.store(
                 self.to_file_path(pending_emit.file_id),
-                if pending_emit.emit_kind.is_empty() { own_options_emit_kind } else { pending_emit.emit_kind },
+                if pending_emit.emit_kind.is_empty() {
+                    own_options_emit_kind
+                } else {
+                    pending_emit.emit_kind
+                },
             );
         }
     }
@@ -227,15 +272,18 @@ impl toSnapshot<'_> {
             Some(package_jsons) => package_jsons.iter().map(|p| self.to_absolute_path(p)).collect(),
             None => Vec::new(),
         });
-        *self.snapshot.missing_package_jsons.borrow_mut() = Some(match &self.build_info.missing_package_jsons {
-            Some(missing) => missing.iter().map(|p| self.to_absolute_path(p)).collect(),
-            None => Vec::new(),
-        });
+        *self.snapshot.missing_package_jsons.borrow_mut() =
+            Some(match &self.build_info.missing_package_jsons {
+                Some(missing) => missing.iter().map(|p| self.to_absolute_path(p)).collect(),
+                None => Vec::new(),
+            });
     }
 }
 
 // buildinfotosnapshot.go:108
-fn from_build_info_repopulate_info(info: Option<&BuildInfoRepopulateInfo>) -> Option<RepopulateDiagnosticInfo> {
+fn from_build_info_repopulate_info(
+    info: Option<&BuildInfoRepopulateInfo>,
+) -> Option<RepopulateDiagnosticInfo> {
     let info = info?;
     Some(RepopulateDiagnosticInfo {
         kind: info.kind,

@@ -10,7 +10,7 @@ use crate::handler::{ApiError, ApiResult};
 use crate::module_resolution::{package_id_response, resolved_module_response};
 use crate::program::resolve_source_file;
 use crate::session::Session;
-use crate::wire::{b, s, Obj, Params};
+use crate::wire::{Obj, Params, b, s};
 
 fn mode_param(p: Params, key: &str) -> ApiResult<ResolutionMode> {
     Ok(match p.get(key) {
@@ -20,7 +20,8 @@ fn mode_param(p: Params, key: &str) -> ApiResult<ResolutionMode> {
             1 => ModuleKind::CommonJS,
             99 => ModuleKind::ESNext,
             // Go accepts any core.ModuleKind value here; other kinds simply find no resolution.
-            x => tsrs_tsoptions::gojson::GoJson::from_go_json(&Value::Number(x as f64), key).map_err(ApiError::invalid_request)?,
+            x => tsrs_tsoptions::gojson::GoJson::from_go_json(&Value::Number(x as f64), key)
+                .map_err(ApiError::invalid_request)?,
         },
         _ => return Err(ApiError::invalid_request(format!("{key} must be a number"))),
     })
@@ -32,7 +33,9 @@ fn mode_value(m: ResolutionMode) -> Value {
 
 /// Go `newResolvedTypeReferenceDirectiveResponse`.
 fn type_ref_response(r: Option<tsrs_core::P<ResolvedTypeReferenceDirective>>) -> Value {
-    let Some(r) = r.filter(|r| r.is_resolved()) else { return Value::Null };
+    let Some(r) = r.filter(|r| r.is_resolved()) else {
+        return Value::Null;
+    };
     Obj::new()
         .set("primary", b(r.primary))
         .set("resolvedFileName", s(r.resolved_file_name))
@@ -43,7 +46,11 @@ fn type_ref_response(r: Option<tsrs_core::P<ResolvedTypeReferenceDirective>>) ->
 }
 
 impl Session {
-    fn program_for(&self, p: Params) -> ApiResult<(std::sync::Arc<crate::session::SnapshotData>, &'static tsrs_compiler::Program)> {
+    fn program_for(
+        &self,
+        p: Params,
+    ) -> ApiResult<(std::sync::Arc<crate::session::SnapshotData>, &'static tsrs_compiler::Program)>
+    {
         let sd = self.snapshot_data(p.u64("snapshot")?)?;
         let program = sd.get_program(&ProjectID(p.str("project")?.to_string()))?;
         Ok((sd, program))
@@ -67,7 +74,12 @@ impl Session {
             Value::Null => 0,
             _ => return Err(ApiError::invalid_request("index must be an integer")),
         };
-        let count = file.imports().len() + file.module_augmentations().iter().filter(|a| a.kind() == tsrs_ast::Kind::StringLiteral).count();
+        let count = file.imports().len()
+            + file
+                .module_augmentations()
+                .iter()
+                .filter(|a| a.kind() == tsrs_ast::Kind::StringLiteral)
+                .count();
         if index < 0 || index as usize >= count {
             return Err(ApiError::client("invalid resolution index"));
         }
@@ -78,10 +90,15 @@ impl Session {
         let (_sd, program) = self.program_for(p)?;
         let file = resolve_source_file(program, &p.document("file")?)?;
         let mode = mode_param(p, "mode")?;
-        Ok(program.get_resolved_module(file, p.str("moduleName")?, mode).map_or(Value::Null, |r| resolved_module_response(&r)))
+        Ok(program
+            .get_resolved_module(file, p.str("moduleName")?, mode)
+            .map_or(Value::Null, |r| resolved_module_response(&r)))
     }
 
-    pub(crate) fn handle_get_resolved_module_from_module_specifier(&self, p: Params) -> ApiResult<Value> {
+    pub(crate) fn handle_get_resolved_module_from_module_specifier(
+        &self,
+        p: Params,
+    ) -> ApiResult<Value> {
         let (_sd, program) = self.program_for(p)?;
         let node = self.resolve_node_handle(program, p.str("moduleSpecifier")?)?;
         if !tsrs_ast::is_string_literal_like(node) {
@@ -91,25 +108,45 @@ impl Session {
         if p.has("sourceFile") {
             file = Some(resolve_source_file(program, &p.document("sourceFile")?)?);
         }
-        let file = file.ok_or_else(|| ApiError::client("moduleSpecifier must have a SourceFile ancestor or sourceFile must be provided"))?;
+        let file = file.ok_or_else(|| {
+            ApiError::client(
+                "moduleSpecifier must have a SourceFile ancestor or sourceFile must be provided",
+            )
+        })?;
         let mode = program.get_mode_for_usage_location(file, node);
-        Ok(program.get_resolved_module(file, node.text(), mode).map_or(Value::Null, |r| resolved_module_response(&r)))
+        Ok(program
+            .get_resolved_module(file, node.text(), mode)
+            .map_or(Value::Null, |r| resolved_module_response(&r)))
     }
 
-    pub(crate) fn handle_get_resolved_type_reference_directive(&self, p: Params) -> ApiResult<Value> {
+    pub(crate) fn handle_get_resolved_type_reference_directive(
+        &self,
+        p: Params,
+    ) -> ApiResult<Value> {
         let (_sd, program) = self.program_for(p)?;
         let file = resolve_source_file(program, &p.document("file")?)?;
         let mode = mode_param(p, "mode")?;
-        Ok(type_ref_response(program.get_resolved_type_reference_directive(file, p.str("typeDirectiveName")?, mode)))
+        Ok(type_ref_response(program.get_resolved_type_reference_directive(
+            file,
+            p.str("typeDirectiveName")?,
+            mode,
+        )))
     }
 
-    pub(crate) fn handle_get_resolved_type_reference_directive_from_reference(&self, p: Params) -> ApiResult<Value> {
+    pub(crate) fn handle_get_resolved_type_reference_directive_from_reference(
+        &self,
+        p: Params,
+    ) -> ApiResult<Value> {
         let (_sd, program) = self.program_for(p)?;
         let file = resolve_source_file(program, &p.document("sourceFile")?)?;
         let mut mode = mode_param(p, "resolutionMode")?;
         if mode == ModuleKind::None {
             mode = program.get_default_resolution_mode_for_file(file);
         }
-        Ok(type_ref_response(program.get_resolved_type_reference_directive(file, p.str("typeDirectiveName")?, mode)))
+        Ok(type_ref_response(program.get_resolved_type_reference_directive(
+            file,
+            p.str("typeDirectiveName")?,
+            mode,
+        )))
     }
 }

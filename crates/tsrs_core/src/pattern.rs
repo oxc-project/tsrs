@@ -15,14 +15,10 @@ pub struct Pattern {
 pub fn try_parse_pattern(pattern: &str) -> Pattern {
     let star_index = pattern.find('*');
     match star_index {
-        None => Pattern {
-            text: pattern.to_string(),
-            kind: PatternKind::Exact,
-        },
-        Some(i) if !pattern[i + 1..].contains('*') => Pattern {
-            text: pattern.to_string(),
-            kind: PatternKind::Wildcard(i),
-        },
+        None => Pattern { text: pattern.to_string(), kind: PatternKind::Exact },
+        Some(i) if !pattern[i + 1..].contains('*') => {
+            Pattern { text: pattern.to_string(), kind: PatternKind::Wildcard(i) }
+        }
         _ => Pattern::default(),
     }
 }
@@ -42,12 +38,8 @@ impl Pattern {
             PatternKind::Exact => self.text == candidate,
             PatternKind::Wildcard(star) => {
                 candidate.len() + 1 >= self.text.len()
-                    && candidate
-                        .as_bytes()
-                        .starts_with(&self.text.as_bytes()[..star])
-                    && candidate
-                        .as_bytes()
-                        .ends_with(&self.text.as_bytes()[star + 1..])
+                    && candidate.as_bytes().starts_with(&self.text.as_bytes()[..star])
+                    && candidate.as_bytes().ends_with(&self.text.as_bytes()[star + 1..])
             }
         }
     }
@@ -64,7 +56,11 @@ impl Pattern {
     }
 }
 
-pub fn find_best_pattern_match<T: Clone>(values: &[T], get_pattern: impl Fn(&T) -> &Pattern, candidate: &str) -> Option<T> {
+pub fn find_best_pattern_match<T: Clone>(
+    values: &[T],
+    get_pattern: impl Fn(&T) -> &Pattern,
+    candidate: &str,
+) -> Option<T> {
     let mut best_pattern = None;
     let mut longest_match_prefix_length: Option<usize> = None;
     for value in values {

@@ -46,7 +46,8 @@ fn request(cwd: &str, flags: u32, args: &[&str]) -> Vec<u8> {
 /// (status, reply, stdout)
 fn run_captured(cwd: &str, flags: u32, args: &[&str]) -> (i32, Vec<u8>, String) {
     let out = Arc::new(Mutex::new(Vec::new()));
-    let (status, reply) = run_with_output(&request(cwd, flags, args), Box::new(Capture(Arc::clone(&out))));
+    let (status, reply) =
+        run_with_output(&request(cwd, flags, args), Box::new(Capture(Arc::clone(&out))));
     let stdout = String::from_utf8(out.lock().unwrap().clone()).unwrap();
     (status, reply, stdout)
 }
@@ -60,18 +61,29 @@ const ERRORS: &str = "const s: string = 1;\n// é and 😀 move the UTF-16 offse
 fn json_reply_matches_the_api_encoder() {
     let _guard = setup(&[("/p/a.ts", ERRORS)]);
     let list = Arc::new(Mutex::new(Vec::<P<Diagnostic>>::new()));
-    let sys: &'static sys::WasmSys = Box::leak(Box::new(sys::WasmSys::new("/p", true, false, Some(Arc::clone(&list)), Box::new(std::io::sink()))));
-    let result = tsrs_execute::execute::command_line(sys, vec!["a.ts".into(), "--noEmit".into(), "--unknownOption".into()]);
+    let sys: &'static sys::WasmSys = Box::leak(Box::new(sys::WasmSys::new(
+        "/p",
+        true,
+        false,
+        Some(Arc::clone(&list)),
+        Box::new(std::io::sink()),
+    )));
+    let result = tsrs_execute::execute::command_line(
+        sys,
+        vec!["a.ts".into(), "--noEmit".into(), "--unknownOption".into()],
+    );
     sys.flush();
     let diagnostics = list.lock().unwrap().clone();
     assert!(!diagnostics.is_empty(), "the bad option is reported");
     let ours = json::encode(&diagnostics);
-    let api = tsrs_core::json::marshal(&tsrs_api::diagnostics::diagnostic_responses(&diagnostics)).unwrap();
+    let api = tsrs_core::json::marshal(&tsrs_api::diagnostics::diagnostic_responses(&diagnostics))
+        .unwrap();
     assert_eq!(String::from_utf8(ours).unwrap(), api);
     assert_eq!(result.status as i32, 1);
 
     reset(&[("/p/a.ts", ERRORS)]);
-    let (status, reply, stdout) = run_captured("/p", REQUEST_JSON_DIAGNOSTICS, &["a.ts", "--noEmit"]);
+    let (status, reply, stdout) =
+        run_captured("/p", REQUEST_JSON_DIAGNOSTICS, &["a.ts", "--noEmit"]);
     assert_eq!(status, 2);
     assert_eq!(stdout, "", "diagnostics go to the reply, not stdout");
     let reply = String::from_utf8(reply).unwrap();
@@ -132,23 +144,45 @@ fn emit_through_the_host_matches_native() {
             tsrs_contentmapper::spawn_process(command, dir, stderr)
         }
     }
-    let _guard = setup(&[(&format!("{root}/tsconfig.json"), config), (&format!("{root}/src/a.ts"), a), (&format!("{root}/src/b.ts"), b)]);
-    let native: &'static OsSys = Box::leak(Box::new(OsSys { fs: Arc::new(tsrs_vfs::bundled::wrap_fs(tsrs_vfs::osvfs::fs())), cwd: root.clone(), start: std::time::Instant::now() }));
-    let native_status = tsrs_execute::execute::command_line(native, vec!["-p".into(), ".".into()]).status as i32;
+    let _guard = setup(&[
+        (&format!("{root}/tsconfig.json"), config),
+        (&format!("{root}/src/a.ts"), a),
+        (&format!("{root}/src/b.ts"), b),
+    ]);
+    let native: &'static OsSys = Box::leak(Box::new(OsSys {
+        fs: Arc::new(tsrs_vfs::bundled::wrap_fs(tsrs_vfs::osvfs::fs())),
+        cwd: root.clone(),
+        start: std::time::Instant::now(),
+    }));
+    let native_status =
+        tsrs_execute::execute::command_line(native, vec!["-p".into(), ".".into()]).status as i32;
     let (status, _, stdout) = run_captured(&root, 0, &["-p", "."]);
-    let listing: Vec<_> = std::fs::read_dir(dir.join("out")).map(|r| r.map(|e| e.unwrap().file_name()).collect()).unwrap_or_default();
+    let listing: Vec<_> = std::fs::read_dir(dir.join("out"))
+        .map(|r| r.map(|e| e.unwrap().file_name()).collect())
+        .unwrap_or_default();
     assert_eq!((status, native_status), (0, 0), "{stdout} {listing:?}");
 
     let mut expected = Vec::new();
     expected.extend(
         (["a.js", "a.js.map", "a.d.ts", "a.d.ts.map", "b.js", "b.js.map", "b.d.ts", "b.d.ts.map"])
             .into_iter()
-            .map(|name| (format!("{root}/out/{name}"), std::fs::read(dir.join("out").join(name)).unwrap())),
+            .map(|name| {
+                (format!("{root}/out/{name}"), std::fs::read(dir.join("out").join(name)).unwrap())
+            }),
     );
     expected.sort();
     let files = host::test_host::FILES.lock().unwrap();
-    let written: Vec<(String, Vec<u8>)> = files.iter().filter(|(k, _)| k.contains("/out/")).map(|(k, v)| (k.clone(), v.clone())).collect();
-    assert!(written == expected, "{:?} != {:?}", written.iter().map(|w| &w.0).collect::<Vec<_>>(), expected.iter().map(|w| &w.0).collect::<Vec<_>>());
+    let written: Vec<(String, Vec<u8>)> = files
+        .iter()
+        .filter(|(k, _)| k.contains("/out/"))
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
+    assert!(
+        written == expected,
+        "{:?} != {:?}",
+        written.iter().map(|w| &w.0).collect::<Vec<_>>(),
+        expected.iter().map(|w| &w.0).collect::<Vec<_>>()
+    );
     assert!(written[0].1.starts_with(&[0xEF, 0xBB, 0xBF]), "--emitBOM keeps the BOM");
     drop(files);
     let _ = std::fs::remove_dir_all(&dir);
@@ -158,9 +192,16 @@ fn emit_through_the_host_matches_native() {
 #[test]
 fn host_write_error_reaches_ts5033() {
     let _guard = setup(&[("/p/a.ts", "export const a = 1;\n")]);
-    host::test_host::FAIL_WRITES.lock().unwrap().push(("/p/out".to_string(), "Permission denied (os error 13)".to_string()));
-    let (status, _, stdout) = run_captured("/p", 0, &["a.ts", "--outDir", "out", "--pretty", "false"]);
-    assert_eq!(stdout, "error TS5033: Could not write file '/p/out/a.js': Permission denied (os error 13).\n");
+    host::test_host::FAIL_WRITES
+        .lock()
+        .unwrap()
+        .push(("/p/out".to_string(), "Permission denied (os error 13)".to_string()));
+    let (status, _, stdout) =
+        run_captured("/p", 0, &["a.ts", "--outDir", "out", "--pretty", "false"]);
+    assert_eq!(
+        stdout,
+        "error TS5033: Could not write file '/p/out/a.js': Permission denied (os error 13).\n"
+    );
     assert_eq!(status, 2);
 }
 
@@ -169,6 +210,9 @@ fn host_write_error_reaches_ts5033() {
 fn build_with_json_is_refused() {
     let _guard = setup(&[("/p/tsconfig.json", "{}"), ("/p/a.ts", "export const a = 1;\n")]);
     let (status, reply, stdout) = run_captured("/p", REQUEST_JSON_DIAGNOSTICS, &["-b"]);
-    assert_eq!((status, stdout.as_str()), (1, "error: diagnostics as JSON are not supported with --build\n"));
+    assert_eq!(
+        (status, stdout.as_str()),
+        (1, "error: diagnostics as JSON are not supported with --build\n")
+    );
     assert_eq!(reply, b"[]");
 }

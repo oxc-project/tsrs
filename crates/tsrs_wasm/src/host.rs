@@ -19,7 +19,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use tsrs_core::tspath;
 use tsrs_vfs::internal::{self, Common, IoDirEntry, IoFS};
-use tsrs_vfs::{Entries, FileInfo, FileMode, FsError, FS};
+use tsrs_vfs::{Entries, FS, FileInfo, FileMode, FsError};
 
 pub const OP_READ: u32 = 0;
 pub const OP_STAT: u32 = 1;
@@ -76,9 +76,9 @@ pub fn call(op: u32, arg: &[u8]) -> Result<Vec<u8>, HostError> {
     unsafe { fs_take(out.as_mut_ptr()) };
     match status {
         HostCallResult::Data(_) => Ok(out),
-        HostCallResult::Error(_) => Err(HostError::Other(
-            tsrs_core::utf8::from_utf8_lossy(&out).into_owned(),
-        )),
+        HostCallResult::Error(_) => {
+            Err(HostError::Other(tsrs_core::utf8::from_utf8_lossy(&out).into_owned()))
+        }
         HostCallResult::NotFound => unreachable!(),
     }
 }
@@ -144,7 +144,9 @@ pub mod test_host {
             }
             OP_REALPATH => Ok(path.into_bytes()),
             OP_WRITE | OP_APPEND => {
-                if let Some((_, text)) = FAIL_WRITES.lock().unwrap().iter().find(|(p, _)| path.starts_with(p.as_str())) {
+                if let Some((_, text)) =
+                    FAIL_WRITES.lock().unwrap().iter().find(|(p, _)| path.starts_with(p.as_str()))
+                {
                     return Err(HostError::Other(text.clone()));
                 }
                 let entry = files.entry(path).or_default();
@@ -236,7 +238,12 @@ impl IoFS for HostRoot {
         };
         let size = fields.next().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
         let mtime = fields.next().and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
-        Ok(FileInfo { name: base(&full), size, mode, mod_time: Some(UNIX_EPOCH + Duration::from_nanos(mtime)) })
+        Ok(FileInfo {
+            name: base(&full),
+            size,
+            mode,
+            mod_time: Some(UNIX_EPOCH + Duration::from_nanos(mtime)),
+        })
     }
 
     fn read_dir(&self, name: &str) -> Result<Vec<IoDirEntry>, FsError> {
@@ -277,7 +284,9 @@ impl HostFs {
     pub fn new(case_sensitive: bool) -> HostFs {
         HostFs {
             common: Common {
-                root_for: Box::new(|root: &str| Some(Box::new(HostRoot { root: root.to_string() }) as Box<dyn IoFS>)),
+                root_for: Box::new(|root: &str| {
+                    Some(Box::new(HostRoot { root: root.to_string() }) as Box<dyn IoFS>)
+                }),
                 // Only consulted for `Irregular` entries; the host reports symlinks as `l`.
                 is_reparse_point: None,
             },
@@ -285,7 +294,10 @@ impl HostFs {
         }
     }
 
-    #[expect(clippy::unused_self, reason = "Host filesystem writes use the same instance interface on native and WebAssembly targets.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Host filesystem writes use the same instance interface on native and WebAssembly targets."
+    )]
     fn write(&self, op: u32, path: &str, content: &str) -> Result<(), String> {
         let _ = internal::root_length(path); // Assert path is rooted
         call(op, &path_and_data(path, content.as_bytes())).map(|_| ()).map_err(error_text)

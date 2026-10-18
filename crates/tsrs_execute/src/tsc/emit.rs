@@ -1,10 +1,13 @@
 use std::cell::Cell;
 
-use tsrs_compiler::{get_diagnostics_of_any_program, sort_and_deduplicate_diagnostics, Program};
+use tsrs_compiler::{Program, get_diagnostics_of_any_program, sort_and_deduplicate_diagnostics};
 use tsrs_core::P;
 use tsrs_tsoptions::ParsedCommandLine;
 
-use super::{statistics_from_program, CompileAndEmitResult, CompileTimes, DiagnosticReporter, DiagnosticsReporter, ExitStatus, Statistics, System};
+use super::{
+    CompileAndEmitResult, CompileTimes, DiagnosticReporter, DiagnosticsReporter, ExitStatus,
+    Statistics, System, statistics_from_program,
+};
 
 pub struct EmitInput<'a> {
     pub sys: &'a dyn System,
@@ -42,7 +45,8 @@ pub fn emit_and_report_statistics(input: &EmitInput) -> (CompileAndEmitResult, O
 
     let options = input.config.compiler_options().unwrap();
     if options.diagnostics.is_true() || options.extended_diagnostics.is_true() {
-        let stats = tsrs_core::phases::time("Statistics", || statistics_from_program(input, &result.times));
+        let stats =
+            tsrs_core::phases::time("Statistics", || statistics_from_program(input, &result.times));
         stats.report(&|t: &str| input.write(t), input.testing);
         if tsrs_compiler::Checker::census_enabled() {
             input.program.for_each_checker_parallel(|_, c| c.census_collect());
@@ -103,7 +107,12 @@ pub fn emit_files_and_report_errors(input: &EmitInput) -> CompileAndEmitResult {
     let mut emit_result = tsrs_compiler::EmitResult { emit_skipped: true, ..Default::default() };
     if !program.options().list_files_only.is_true() {
         let emit_start = input.sys.now();
-        emit_result = tsrs_core::phases::time("Emit", || program.emit(&ctx, &tsrs_compiler::EmitOptions { write_file: input.write_file, ..Default::default() }));
+        emit_result = tsrs_core::phases::time("Emit", || {
+            program.emit(
+                &ctx,
+                &tsrs_compiler::EmitOptions { write_file: input.write_file, ..Default::default() },
+            )
+        });
         times.emit_time += input.sys.now() - emit_start;
     }
     let emit_skipped = emit_result.emit_skipped;
@@ -112,7 +121,9 @@ pub fn emit_files_and_report_errors(input: &EmitInput) -> CompileAndEmitResult {
         testing.on_emitted_files(Some(&emit_result), input.testing_m_times_cache.as_ref());
     }
 
-    let all_diagnostics = tsrs_core::phases::time("Diagnostics: sort", || sort_and_deduplicate_diagnostics(&all_diagnostics));
+    let all_diagnostics = tsrs_core::phases::time("Diagnostics: sort", || {
+        sort_and_deduplicate_diagnostics(&all_diagnostics)
+    });
     tsrs_core::phases::time("Diagnostics: report", || {
         for &diagnostic in &all_diagnostics {
             (input.report_diagnostic)(diagnostic);
@@ -121,9 +132,17 @@ pub fn emit_files_and_report_errors(input: &EmitInput) -> CompileAndEmitResult {
 
     tsrs_core::phases::time("List files", || list_files(input, &emit_result));
 
-    tsrs_core::phases::time("Error summary", || (input.report_error_summary)(&all_diagnostics));
+    tsrs_core::phases::time("Error summary", || {
+        (input.report_error_summary)(&all_diagnostics);
+    });
     let emitted_files = emit_result.emitted_files.clone();
-    CompileAndEmitResult { diagnostics: all_diagnostics, emit_skipped, emitted_files, status: ExitStatus::Success, times }
+    CompileAndEmitResult {
+        diagnostics: all_diagnostics,
+        emit_skipped,
+        emitted_files,
+        status: ExitStatus::Success,
+        times,
+    }
 }
 
 // emit.go:142
@@ -143,7 +162,10 @@ fn list_files_worker(input: &EmitInput, emit_result: &tsrs_compiler::EmitResult)
         let mut out = String::new();
         for file in &emit_result.emitted_files {
             out.push_str("TSFILE: ");
-            out.push_str(&tsrs_core::tspath::get_normalized_absolute_path(file, input.program.get_current_directory()));
+            out.push_str(&tsrs_core::tspath::get_normalized_absolute_path(
+                file,
+                input.program.get_current_directory(),
+            ));
             out.push('\n');
         }
         input.write(&out);
@@ -154,15 +176,23 @@ fn list_files_worker(input: &EmitInput, emit_result: &tsrs_compiler::EmitResult)
         input.write(&tsrs_core::utf8::from_utf8_lossy(&out));
     } else if options.list_files.is_true() || options.list_files_only.is_true() {
         let mut out = String::new();
-        out.extend(input.program.get_source_files().iter().flat_map(|file| [file.file_name(), "\n"]));
+        out.extend(
+            input.program.get_source_files().iter().flat_map(|file| [file.file_name(), "\n"]),
+        );
         input.write(&out);
     }
 }
 
 // emit.go:72 EmitFilesAndReportErrors with an incremental program as the ProgramLike.
-fn emit_files_and_report_errors_incremental(input: &EmitInput, program_like: P<tsrs_incremental::Program>) -> CompileAndEmitResult {
+fn emit_files_and_report_errors_incremental(
+    input: &EmitInput,
+    program_like: P<tsrs_incremental::Program>,
+) -> CompileAndEmitResult {
     let program_like: &'static tsrs_incremental::Program = program_like.get();
-    use tsrs_incremental::emit::{get_diagnostics_of_any_program as get_diagnostics_of_any_program_like, EmitOptions, EmitResult, ProgramLike};
+    use tsrs_incremental::emit::{
+        EmitOptions, EmitResult, ProgramLike,
+        get_diagnostics_of_any_program as get_diagnostics_of_any_program_like,
+    };
     let mut times = input.compile_times.clone();
     let bind_time = Cell::new(times.bind_time);
     let check_time = Cell::new(times.check_time);
@@ -204,7 +234,8 @@ fn emit_files_and_report_errors_incremental(input: &EmitInput, program_like: P<t
     let mut emit_result = Some(EmitResult { emit_skipped: true, ..Default::default() });
     if !program_like.options().list_files_only.is_true() {
         let emit_start = input.sys.now();
-        emit_result = program_like.emit(&ctx, EmitOptions { write_file: input.write_file, ..Default::default() });
+        emit_result = program_like
+            .emit(&ctx, EmitOptions { write_file: input.write_file, ..Default::default() });
         times.emit_time += input.sys.now() - emit_start;
     }
     if let Some(emit_result) = &emit_result {
@@ -225,5 +256,11 @@ fn emit_files_and_report_errors_incremental(input: &EmitInput, program_like: P<t
     // Go reads EmitResult.EmitSkipped through a nil result here only when the incremental program was cancelled.
     let emitted_files = emit_result.as_ref().map(|r| r.emitted_files.clone()).unwrap_or_default();
     let emit_skipped = emit_result.is_some_and(|r| r.emit_skipped);
-    CompileAndEmitResult { diagnostics: all_diagnostics, emit_skipped, emitted_files, status: ExitStatus::Success, times }
+    CompileAndEmitResult {
+        diagnostics: all_diagnostics,
+        emit_skipped,
+        emitted_files,
+        status: ExitStatus::Success,
+        times,
+    }
 }

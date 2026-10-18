@@ -16,6 +16,9 @@ pub struct PseudoChecker {
     pub exact_optional_property_types: bool,
 }
 
-pub fn new_pseudo_checker(strict_null_checks: bool, exact_optional_property_types: bool) -> P<PseudoChecker> {
+pub fn new_pseudo_checker(
+    strict_null_checks: bool,
+    exact_optional_property_types: bool,
+) -> P<PseudoChecker> {
     P::new(PseudoChecker { strict_null_checks, exact_optional_property_types })
 }

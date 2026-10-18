@@ -8,18 +8,21 @@ use tsrs_core::context::{Context, Locale};
 use tsrs_core::tspath::{self, Path};
 use tsrs_diagnostics::Message;
 use tsrs_lsproto as lsproto;
-use tsrs_vfs::{bundled, vfstest, FS};
+use tsrs_vfs::{FS, bundled, vfstest};
 
 use crate::client::Client;
-use crate::logging::{new_test_logger, LogCollector, Logger};
-use crate::session::{new_session, Session, SessionInit, SessionOptions};
+use crate::logging::{LogCollector, Logger, new_test_logger};
+use crate::session::{Session, SessionInit, SessionOptions, new_session};
 use crate::watch::WatcherID;
 
 pub(crate) const TestTypingsLocation: &str = "/home/src/Library/Caches/typescript";
 
 #[derive(Clone)]
 pub(crate) struct WatchFilesCall {
-    #[expect(dead_code, reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field.")]
+    #[expect(
+        dead_code,
+        reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
+    )]
     pub(crate) id: WatcherID,
     pub(crate) watchers: Vec<lsproto::FileSystemWatcher>,
 }
@@ -36,28 +39,40 @@ pub(crate) struct ClientMock {
     pub(crate) locale: Mutex<String>,
     pub(crate) set_locale_calls: Mutex<Vec<String>>,
     pub(crate) refresh_code_lens_func: Mutex<Option<Box<dyn Fn(&Context) + Send + Sync>>>,
-    pub(crate) watch_files_func: Mutex<Option<Box<dyn Fn(&WatcherID) -> Result<(), lsproto::Error> + Send + Sync>>>,
+    pub(crate) watch_files_func:
+        Mutex<Option<Box<dyn Fn(&WatcherID) -> Result<(), lsproto::Error> + Send + Sync>>>,
 }
 
 impl ClientMock {
     pub(crate) fn watch_files_calls(&self) -> Vec<WatchFilesCall> {
         self.watch_files_calls.lock().unwrap().clone()
     }
-    #[expect(dead_code, reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor.")]
+    #[expect(
+        dead_code,
+        reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
+    )]
     pub(crate) fn unwatch_files_calls(&self) -> Vec<WatcherID> {
         self.unwatch_files_calls.lock().unwrap().clone()
     }
     pub(crate) fn refresh_diagnostics_calls(&self) -> usize {
         *self.refresh_diagnostics_calls.lock().unwrap()
     }
-    #[expect(dead_code, reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor.")]
+    #[expect(
+        dead_code,
+        reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
+    )]
     pub(crate) fn publish_diagnostics_calls(&self) -> Vec<lsproto::PublishDiagnosticsParams> {
         self.publish_diagnostics_calls.lock().unwrap().clone()
     }
 }
 
 impl Client for ClientMock {
-    fn watch_files(&self, _ctx: &Context, id: WatcherID, watchers: Vec<lsproto::FileSystemWatcher>) -> Result<(), lsproto::Error> {
+    fn watch_files(
+        &self,
+        _ctx: &Context,
+        id: WatcherID,
+        watchers: Vec<lsproto::FileSystemWatcher>,
+    ) -> Result<(), lsproto::Error> {
         self.watch_files_calls.lock().unwrap().push(WatchFilesCall { id: id.clone(), watchers });
         if let Some(f) = &*self.watch_files_func.lock().unwrap() {
             return f(&id);
@@ -68,14 +83,22 @@ impl Client for ClientMock {
         self.unwatch_files_calls.lock().unwrap().push(id);
         Ok(())
     }
-    fn register_content_mapper_extensions(&self, _ctx: &Context, _extensions: Vec<String>) -> Result<(), lsproto::Error> {
+    fn register_content_mapper_extensions(
+        &self,
+        _ctx: &Context,
+        _extensions: Vec<String>,
+    ) -> Result<(), lsproto::Error> {
         Ok(())
     }
     fn refresh_diagnostics(&self, _ctx: &Context) -> Result<(), lsproto::Error> {
         *self.refresh_diagnostics_calls.lock().unwrap() += 1;
         Ok(())
     }
-    fn publish_diagnostics(&self, _ctx: &Context, params: lsproto::PublishDiagnosticsParams) -> Result<(), lsproto::Error> {
+    fn publish_diagnostics(
+        &self,
+        _ctx: &Context,
+        params: lsproto::PublishDiagnosticsParams,
+    ) -> Result<(), lsproto::Error> {
         self.publish_diagnostics_calls.lock().unwrap().push(params);
         Ok(())
     }
@@ -92,7 +115,11 @@ impl Client for ClientMock {
     }
     fn progress_start(&self, _message: &'static Message, _args: &[&dyn Display]) {}
     fn progress_finish(&self, _message: &'static Message, _args: &[&dyn Display]) {}
-    fn send_telemetry(&self, _ctx: &Context, _telemetry: lsproto::TelemetryEvent) -> Result<(), lsproto::Error> {
+    fn send_telemetry(
+        &self,
+        _ctx: &Context,
+        _telemetry: lsproto::TelemetryEvent,
+    ) -> Result<(), lsproto::Error> {
         Ok(())
     }
     fn is_active(&self) -> bool {
@@ -107,12 +134,18 @@ impl Client for ClientMock {
 }
 
 pub(crate) struct SessionUtils {
-    #[expect(dead_code, reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field.")]
+    #[expect(
+        dead_code,
+        reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
+    )]
     current_directory: String,
     fs_from_file_map: Arc<tsrs_vfs::iovfs::IoVFS<vfstest::MapFS>>,
     fs: Arc<dyn FS>,
     client: Arc<ClientMock>,
-    #[expect(dead_code, reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field.")]
+    #[expect(
+        dead_code,
+        reason = "Retained with the Go test helper record; the currently ported tests do not inspect this field."
+    )]
     logger: Arc<dyn LogCollector>,
 }
 
@@ -139,7 +172,9 @@ impl SessionUtils {
                     let base_uri = rp.base_uri.uri.as_ref().unwrap().0.clone();
                     // Convert base URI (e.g. "file:///home/projects") to a directory path
                     // with trailing separator for proper prefix matching on path boundaries.
-                    let base_dir = tspath::ensure_trailing_directory_separator(&lsproto::DocumentUri(base_uri).file_name());
+                    let base_dir = tspath::ensure_trailing_directory_separator(
+                        &lsproto::DocumentUri(base_uri).file_name(),
+                    );
                     if let Some(relative_path) = file_path.strip_prefix(base_dir.as_str()) {
                         if let Ok(g) = tsrs_core::glob::parse(&rp.pattern) {
                             if g.match_(relative_path) {
@@ -161,7 +196,10 @@ impl SessionUtils {
         &self.client
     }
 
-    #[expect(dead_code, reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor.")]
+    #[expect(
+        dead_code,
+        reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
+    )]
     pub(crate) fn to_path(&self, file_name: &str) -> Path {
         tspath::to_path(file_name, &self.current_directory, self.fs.use_case_sensitive_file_names())
     }
@@ -170,7 +208,10 @@ impl SessionUtils {
         &self.fs
     }
 
-    #[expect(dead_code, reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor.")]
+    #[expect(
+        dead_code,
+        reason = "Part of the Go project-test helper API; the currently ported cases do not call this accessor."
+    )]
     pub(crate) fn logs(&self) -> String {
         self.logger.string()
     }
@@ -195,13 +236,19 @@ pub(crate) fn setup(files: &[(&str, &str)]) -> (Arc<Session>, SessionUtils) {
 }
 
 // projecttestutil.go:265
-pub(crate) fn setup_with_options(files: &[(&str, &str)], options: Option<SessionOptions>) -> (Arc<Session>, SessionUtils) {
+pub(crate) fn setup_with_options(
+    files: &[(&str, &str)],
+    options: Option<SessionOptions>,
+) -> (Arc<Session>, SessionUtils) {
     let (init, session_utils) = get_session_init_options(files, options);
     (new_session(&init), session_utils)
 }
 
 // projecttestutil.go:285
-pub(crate) fn get_session_init_options(files: &[(&str, &str)], options: Option<SessionOptions>) -> (SessionInit, SessionUtils) {
+pub(crate) fn get_session_init_options(
+    files: &[(&str, &str)],
+    options: Option<SessionOptions>,
+) -> (SessionInit, SessionUtils) {
     let fs_from_file_map = Arc::new(vfstest::from_map(
         files.iter().map(|(k, v)| match v.strip_prefix("symlink:") {
             Some(target) => (k.to_string(), vfstest::symlink(target)),
@@ -212,7 +259,13 @@ pub(crate) fn get_session_init_options(files: &[(&str, &str)], options: Option<S
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(std::sync::Arc::clone(&fs_from_file_map)));
     let client_mock = Arc::new(ClientMock::default());
     let logger = new_test_logger();
-    let session_utils = SessionUtils { fs_from_file_map, current_directory: "/".to_string(), fs: std::sync::Arc::clone(&fs), client: std::sync::Arc::clone(&client_mock), logger: std::sync::Arc::clone(&logger) };
+    let session_utils = SessionUtils {
+        fs_from_file_map,
+        current_directory: "/".to_string(),
+        fs: std::sync::Arc::clone(&fs),
+        client: std::sync::Arc::clone(&client_mock),
+        logger: std::sync::Arc::clone(&logger),
+    };
 
     // Use provided options or create default ones
     let options = options.unwrap_or_else(default_session_options);

@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::Deref;
 
-use tsrs_core::collections::{new_ordered_map_with_size_hint, OrderedMap};
+use tsrs_core::collections::{OrderedMap, new_ordered_map_with_size_hint};
 
 use super::json::Json;
 

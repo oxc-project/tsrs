@@ -3,23 +3,29 @@ use std::sync::{Arc, Mutex};
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_core::collections::Set;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{CompilerOptions, Tristate, P};
-use tsrs_tsoptions::{self as tsoptions, ExtendedConfigCache as ExtendedConfigCacheTrait, ParseConfigHost, ParsedCommandLine};
+use tsrs_core::{CompilerOptions, P, Tristate};
+use tsrs_tsoptions::{
+    self as tsoptions, ExtendedConfigCache as ExtendedConfigCacheTrait, ParseConfigHost,
+    ParsedCommandLine,
+};
 use tsrs_vfs::FS;
 
 use crate::configfileregistry::{
-    collect_configured_content_mappers, configFileEntry, configFileNames, configuredContentMappers, new_config_file_entry, new_extended_config_file_entry,
-    ConfigFileRegistry,
+    ConfigFileRegistry, collect_configured_content_mappers, configFileEntry, configFileNames,
+    configuredContentMappers, new_config_file_entry, new_extended_config_file_entry,
 };
 use crate::dirty::{self, Shared, SyncMapEntry};
-use crate::extendedconfigcache::{assume_static, ExtendedConfigCache, ExtendedConfigParseArgs};
+use crate::extendedconfigcache::{ExtendedConfigCache, ExtendedConfigParseArgs, assume_static};
 use crate::filechange::FileChangeSummary;
 use crate::logging::LogTree;
-use crate::project::{PendingReload, ID};
+use crate::project::{ID, PendingReload};
 use crate::projectcollectionbuilder::projectLoadKind;
 use crate::session::SessionOptions;
-use crate::snapshotfs::{new_source_fs, snapshotFSBuilder, sourceFS, FileHandleSource};
-use crate::watch::{get_path_components_for_watching, get_recursive_glob_pattern, minWatchLocationDepth, PatternsAndIgnored};
+use crate::snapshotfs::{FileHandleSource, new_source_fs, snapshotFSBuilder, sourceFS};
+use crate::watch::{
+    PatternsAndIgnored, get_path_components_for_watching, get_recursive_glob_pattern,
+    minWatchLocationDepth,
+};
 
 // configFileRegistryBuilder tracks changes made on top of a previous
 // configFileRegistry, producing a new clone with `finalize()` after
@@ -62,8 +68,11 @@ pub(crate) fn new_config_file_registry_builder(
         extended_config_cache,
         snapshot_id,
         custom_config_file_name: custom_config_file_name.to_string(),
-        custom_config_file_name_changed: custom_config_file_name != old_config_file_registry.custom_config_file_name,
-        all_configured_content_mappers: Mutex::new(Some(old_config_file_registry.content_mappers())),
+        custom_config_file_name_changed: custom_config_file_name
+            != old_config_file_registry.custom_config_file_name,
+        all_configured_content_mappers: Mutex::new(Some(
+            old_config_file_registry.content_mappers(),
+        )),
 
         configs: dirty::new_sync_map(Arc::clone(&old_config_file_registry.configs)),
         config_file_names: dirty::new_map(Arc::clone(&old_config_file_registry.config_file_names)),
@@ -79,7 +88,10 @@ pub(crate) struct changeFileResult {
 }
 
 // Go `core.CopyMapInto` over set-like maps.
-fn copy_set_into<T: std::hash::Hash + Eq + Clone>(dst: Option<FxHashSet<T>>, src: Option<&FxHashSet<T>>) -> FxHashSet<T> {
+fn copy_set_into<T: std::hash::Hash + Eq + Clone>(
+    dst: Option<FxHashSet<T>>,
+    src: Option<&FxHashSet<T>>,
+) -> FxHashSet<T> {
     let mut dst = dst.unwrap_or_default();
     if let Some(src) = src {
         dst.extend(src.iter().cloned());
@@ -154,7 +166,9 @@ impl configFileRegistryBuilder {
     ) -> Option<P<ParsedCommandLine>> {
         match load_kind {
             projectLoadKind::Find => self.configs.load(config_file_path)?.value()?.command_line,
-            projectLoadKind::Create => self.acquire_config_for_file(config_file_name, config_file_path, file_path, logger),
+            projectLoadKind::Create => {
+                self.acquire_config_for_file(config_file_name, config_file_path, file_path, logger)
+            }
         }
     }
 
@@ -162,19 +176,33 @@ impl configFileRegistryBuilder {
     // reloadIfNeeded updates the command line of the config file entry based on its
     // pending reload state. This function should only be called from within the
     // Change() method of a dirty map entry.
-    fn reload_if_needed(&self, entry: &mut configFileEntry, file_name: &str, path: &Path, logger: &LogTree) -> bool {
+    fn reload_if_needed(
+        &self,
+        entry: &mut configFileEntry,
+        file_name: &str,
+        path: &Path,
+        logger: &LogTree,
+    ) -> bool {
         let old_command_line = entry.command_line;
         match entry.pending_reload {
             PendingReload::FileNames => {
                 logger.log(&format!("Reloading file names for config: {file_name}"));
-                entry.command_line = Some(P::new(entry.command_line.unwrap().reload_file_names_of_parsed_command_line(&*self.fs)));
+                entry.command_line = Some(P::new(
+                    entry.command_line.unwrap().reload_file_names_of_parsed_command_line(&*self.fs),
+                ));
             }
             PendingReload::Full => {
                 logger.log(&format!("Loading config file: {file_name}"));
                 // When the workspace is trusted, enable external content mappers so a config's contentMappers pass
                 // the runExternalCode gate and register, as they would with the CLI flag.
-                let existing_options =
-                    if self.session_options.run_external_code { Some(CompilerOptions { run_external_code: Tristate::True, ..Default::default() }) } else { None };
+                let existing_options = if self.session_options.run_external_code {
+                    Some(CompilerOptions {
+                        run_external_code: Tristate::True,
+                        ..Default::default()
+                    })
+                } else {
+                    None
+                };
                 let (command_line, _) = tsoptions::get_parsed_command_line_of_config_file_path(
                     file_name,
                     path.clone(),
@@ -195,21 +223,38 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:173
-    fn update_extending_configs(&self, extending_config_path: &Path, new_command_line: Option<P<ParsedCommandLine>>, old_command_line: Option<P<ParsedCommandLine>>) {
+    fn update_extending_configs(
+        &self,
+        extending_config_path: &Path,
+        new_command_line: Option<P<ParsedCommandLine>>,
+        old_command_line: Option<P<ParsedCommandLine>>,
+    ) {
         let mut new_extended_config_paths: Set<Path> = Set::default();
         if let Some(new_command_line) = new_command_line {
             for extended_config in new_command_line.extended_source_files() {
                 let extended_config_path = self.to_path(&extended_config);
                 new_extended_config_paths.add(extended_config_path.clone());
-                let (entry, loaded) = self
-                    .configs
-                    .load_or_store(extended_config_path, Shared::new(new_extended_config_file_entry(&extended_config, extending_config_path.clone())));
+                let (entry, loaded) = self.configs.load_or_store(
+                    extended_config_path,
+                    Shared::new(new_extended_config_file_entry(
+                        &extended_config,
+                        extending_config_path.clone(),
+                    )),
+                );
                 if loaded {
                     if let Some(entry) = entry {
                         entry.change_if(
-                            |config| !config.retaining_configs.as_ref().is_some_and(|r| r.contains(extending_config_path)),
                             |config| {
-                                config.retaining_configs.get_or_insert_with(FxHashSet::default).insert(extending_config_path.clone());
+                                !config
+                                    .retaining_configs
+                                    .as_ref()
+                                    .is_some_and(|r| r.contains(extending_config_path))
+                            },
+                            |config| {
+                                config
+                                    .retaining_configs
+                                    .get_or_insert_with(FxHashSet::default)
+                                    .insert(extending_config_path.clone());
                             },
                         );
                     }
@@ -224,7 +269,12 @@ impl configFileRegistryBuilder {
                 }
                 if let Some(entry) = self.configs.load(&extended_config_path) {
                     entry.change_if(
-                        |config| config.retaining_configs.as_ref().is_some_and(|r| r.contains(extending_config_path)),
+                        |config| {
+                            config
+                                .retaining_configs
+                                .as_ref()
+                                .is_some_and(|r| r.contains(extending_config_path))
+                        },
                         |config| {
                             if let Some(r) = &mut config.retaining_configs {
                                 r.remove(extending_config_path);
@@ -250,11 +300,19 @@ impl configFileRegistryBuilder {
         let tsconfig_dir = tspath::get_directory_path(file_name);
         // (Go calls these methods on a possibly nil *ParsedCommandLine; they return nil for it.)
         let command_line = entry.command_line;
-        let compare_paths_options =
-            ComparePathsOptions { current_directory: self.session_options.current_directory.clone(), use_case_sensitive_file_names: self.fs.use_case_sensitive_file_names() };
-        if let Some(wildcard_directories) = command_line.as_ref().and_then(|c| c.wildcard_directories()) {
+        let compare_paths_options = ComparePathsOptions {
+            current_directory: self.session_options.current_directory.clone(),
+            use_case_sensitive_file_names: self.fs.use_case_sensitive_file_names(),
+        };
+        if let Some(wildcard_directories) =
+            command_line.as_ref().and_then(|c| c.wildcard_directories())
+        {
             for dir in wildcard_directories.keys() {
-                if tspath::contains_path(&self.session_options.current_directory, dir, &compare_paths_options) {
+                if tspath::contains_path(
+                    &self.session_options.current_directory,
+                    dir,
+                    &compare_paths_options,
+                ) {
                     include_workspace = true;
                 } else if tspath::contains_path(&tsconfig_dir, dir, &compare_paths_options) {
                     include_tsconfig_dir = true;
@@ -264,7 +322,11 @@ impl configFileRegistryBuilder {
             }
         }
         for file_name in command_line.as_ref().map(|c| c.literal_file_names()).unwrap_or_default() {
-            if tspath::contains_path(&self.session_options.current_directory, file_name, &compare_paths_options) {
+            if tspath::contains_path(
+                &self.session_options.current_directory,
+                file_name,
+                &compare_paths_options,
+            ) {
                 include_workspace = true;
             } else if tspath::contains_path(&tsconfig_dir, file_name, &compare_paths_options) {
                 include_tsconfig_dir = true;
@@ -279,21 +341,42 @@ impl configFileRegistryBuilder {
         if include_tsconfig_dir {
             globs.push(get_recursive_glob_pattern(&tsconfig_dir));
         }
-        globs.extend(command_line.as_ref().map(|c| c.extended_source_files()).unwrap_or_default().into_iter().filter_map(|file_name| {
-            if include_workspace && tspath::contains_path(&self.session_options.current_directory, &file_name, &compare_paths_options) {
-                return None;
-            }
-            Some(file_name)
-        }));
+        globs.extend(
+            command_line
+                .as_ref()
+                .map(|c| c.extended_source_files())
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|file_name| {
+                    if include_workspace
+                        && tspath::contains_path(
+                            &self.session_options.current_directory,
+                            &file_name,
+                            &compare_paths_options,
+                        )
+                    {
+                        return None;
+                    }
+                    Some(file_name)
+                }),
+        );
         if !external_directories.is_empty() {
-            let (common_parents, ignored_external_dirs) =
-                tspath::get_common_parents(&external_directories, minWatchLocationDepth, get_path_components_for_watching, &compare_paths_options);
+            let (common_parents, ignored_external_dirs) = tspath::get_common_parents(
+                &external_directories,
+                minWatchLocationDepth,
+                get_path_components_for_watching,
+                &compare_paths_options,
+            );
             globs.extend(common_parents.iter().map(|parent| get_recursive_glob_pattern(parent)));
             ignored = ignored_external_dirs;
         }
 
         globs.sort();
-        entry.root_files_watch = Some(root_files_watch.clone_with(PatternsAndIgnored { patterns_inside_workspace: globs, ignored, ..Default::default() }));
+        entry.root_files_watch = Some(root_files_watch.clone_with(PatternsAndIgnored {
+            patterns_inside_workspace: globs,
+            ignored,
+            ..Default::default()
+        }));
     }
 
     // configfileregistrybuilder.go:283
@@ -301,20 +384,33 @@ impl configFileRegistryBuilder {
     // cached, then adds the project (if provided) to `retainingProjects` to keep it alive
     // in the cache. Each `acquireConfigForProject` call that passes a `project` should be accompanied
     // by an eventual `releaseConfigForProject` call with the same project.
-    pub(crate) fn acquire_config_for_project(&self, file_name: &str, path: &Path, project: &ID, logger: &LogTree) -> Option<P<ParsedCommandLine>> {
-        let (entry, _) = self.configs.load_or_store(path.clone(), Shared::new(new_config_file_entry(self.has_relative_pattern_capability, file_name)));
+    pub(crate) fn acquire_config_for_project(
+        &self,
+        file_name: &str,
+        path: &Path,
+        project: &ID,
+        logger: &LogTree,
+    ) -> Option<P<ParsedCommandLine>> {
+        let (entry, _) = self.configs.load_or_store(
+            path.clone(),
+            Shared::new(new_config_file_entry(self.has_relative_pattern_capability, file_name)),
+        );
         let entry = entry?;
         let needs_retain_project = std::cell::Cell::new(false);
         let mut content_mappers_changed = false;
         entry.change_if(
             |config| {
-                let already_retaining = config.retaining_projects.as_ref().is_some_and(|r| r.contains(project));
+                let already_retaining =
+                    config.retaining_projects.as_ref().is_some_and(|r| r.contains(project));
                 needs_retain_project.set(!already_retaining);
                 needs_retain_project.get() || config.pending_reload != PendingReload::None
             },
             |config| {
                 if needs_retain_project.get() {
-                    config.retaining_projects.get_or_insert_with(FxHashSet::default).insert(project.clone());
+                    config
+                        .retaining_projects
+                        .get_or_insert_with(FxHashSet::default)
+                        .insert(project.clone());
                 }
                 content_mappers_changed = self.reload_if_needed(config, file_name, path, logger);
             },
@@ -330,25 +426,41 @@ impl configFileRegistryBuilder {
     // cached, then adds the open file to `retainingOpenFiles` to keep it alive in the cache.
     // Each `acquireConfigForFile` call that passes an `openFilePath`
     // should be accompanied by an eventual `releaseConfigForOpenFile` call with the same open file.
-    fn acquire_config_for_file(&self, config_file_name: &str, config_file_path: &Path, file_path: &Path, logger: &LogTree) -> Option<P<ParsedCommandLine>> {
-        let (entry, _) =
-            self.configs.load_or_store(config_file_path.clone(), Shared::new(new_config_file_entry(self.has_relative_pattern_capability, config_file_name)));
+    fn acquire_config_for_file(
+        &self,
+        config_file_name: &str,
+        config_file_path: &Path,
+        file_path: &Path,
+        logger: &LogTree,
+    ) -> Option<P<ParsedCommandLine>> {
+        let (entry, _) = self.configs.load_or_store(
+            config_file_path.clone(),
+            Shared::new(new_config_file_entry(
+                self.has_relative_pattern_capability,
+                config_file_name,
+            )),
+        );
         let entry = entry?;
         let needs_retain_open_file = std::cell::Cell::new(false);
         let mut content_mappers_changed = false;
         entry.change_if(
             |config| {
                 if (self.is_open_file)(file_path) {
-                    let already_retaining = config.retaining_open_files.as_ref().is_some_and(|r| r.contains(file_path));
+                    let already_retaining =
+                        config.retaining_open_files.as_ref().is_some_and(|r| r.contains(file_path));
                     needs_retain_open_file.set(!already_retaining);
                 }
                 needs_retain_open_file.get() || config.pending_reload != PendingReload::None
             },
             |config| {
                 if needs_retain_open_file.get() {
-                    config.retaining_open_files.get_or_insert_with(FxHashSet::default).insert(file_path.clone());
+                    config
+                        .retaining_open_files
+                        .get_or_insert_with(FxHashSet::default)
+                        .insert(file_path.clone());
                 }
-                content_mappers_changed = self.reload_if_needed(config, config_file_name, config_file_path, logger);
+                content_mappers_changed =
+                    self.reload_if_needed(config, config_file_name, config_file_path, logger);
             },
         );
         if content_mappers_changed {
@@ -418,11 +530,17 @@ impl configFileRegistryBuilder {
 
         self.configs.range(|entry| {
             entry.change(|entry| {
-                affected_projects = Some(copy_set_into(affected_projects.take(), entry.retaining_projects.as_ref()));
+                affected_projects = Some(copy_set_into(
+                    affected_projects.take(),
+                    entry.retaining_projects.as_ref(),
+                ));
                 if entry.pending_reload != PendingReload::Full {
                     let text = self.fs.read_file(&entry.file_name);
                     match (&text, entry.command_line) {
-                        (Some(text), Some(command_line)) if *text == command_line.config_file.unwrap().source_file.get().text() => {
+                        (Some(text), Some(command_line))
+                            if *text
+                                == command_line.config_file.unwrap().source_file.get().text() =>
+                        {
                             entry.pending_reload = PendingReload::FileNames;
                         }
                         _ => entry.pending_reload = PendingReload::Full,
@@ -437,11 +555,18 @@ impl configFileRegistryBuilder {
 
     // configfileregistrybuilder.go:448
     fn is_config_base_name(&self, base_name: &str) -> bool {
-        base_name == "tsconfig.json" || base_name == "jsconfig.json" || (!self.custom_config_file_name.is_empty() && base_name == self.custom_config_file_name)
+        base_name == "tsconfig.json"
+            || base_name == "jsconfig.json"
+            || (!self.custom_config_file_name.is_empty()
+                && base_name == self.custom_config_file_name)
     }
 
     // configfileregistrybuilder.go:453
-    pub(crate) fn did_change_files(&self, summary: &FileChangeSummary, logger: &LogTree) -> changeFileResult {
+    pub(crate) fn did_change_files(
+        &self,
+        summary: &FileChangeSummary,
+        logger: &LogTree,
+    ) -> changeFileResult {
         if summary.invalidate_all {
             return self.invalidate_cache(logger);
         }
@@ -450,13 +575,17 @@ impl configFileRegistryBuilder {
         let mut should_invalidate_cache = false;
 
         logger.log("Summarizing file changes");
-        let has_excessive_changes = summary.has_excessive_watch_events() && summary.includes_watch_change_outside_node_modules;
+        let has_excessive_changes = summary.has_excessive_watch_events()
+            && summary.includes_watch_change_outside_node_modules;
         let mut created_files: FxHashMap<Path, String> = FxHashMap::default();
         let mut deleted_files: FxHashMap<Path, String> = FxHashMap::default();
         let mut created_or_deleted_config_files: FxHashSet<Path> = FxHashSet::default();
         let mut created_or_changed_or_deleted_files: Vec<Path> = Vec::new();
         let mut seen_changed: FxHashSet<Path> = FxHashSet::default();
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills path sets and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills path sets and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too"
+        )]
         for uri in summary.changed.keys() {
             if tspath::contains_ignored_path(&uri.0) {
                 continue;
@@ -471,7 +600,10 @@ impl configFileRegistryBuilder {
                 created_or_changed_or_deleted_files.push(path);
             }
         }
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills path sets and maps and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills path sets and maps and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too"
+        )]
         for uri in summary.deleted.keys() {
             if tspath::contains_ignored_path(&uri.0) {
                 continue;
@@ -487,7 +619,10 @@ impl configFileRegistryBuilder {
                 created_or_changed_or_deleted_files.push(path);
             }
         }
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: fills path sets and maps and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: fills path sets and maps and a list (a map in Go) whose later uses commute apart from log lines; Go ranges the set too"
+        )]
         for uri in summary.created.keys() {
             if tspath::contains_ignored_path(&uri.0) {
                 continue;
@@ -507,7 +642,10 @@ impl configFileRegistryBuilder {
         // Handle closed files - this ranges over config entries and could be combined
         // with the file change handling, but a separate loop is simpler and a snapshot
         // change with both closing and watch changes seems rare.
-        #[expect(clippy::iter_over_hash_type, reason = "each path is only deleted from config_file_names and retaining sets; removals commute; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "each path is only deleted from config_file_names and retaining sets; removals commute; Go ranges the set too"
+        )]
         for uri in summary.closed.keys() {
             let file_name = uri.file_name();
             let path = self.to_path(&file_name);
@@ -523,16 +661,31 @@ impl configFileRegistryBuilder {
                         return self.invalidate_cache(logger);
                     }
 
-                    affected_projects = Some(copy_set_into(affected_projects, Self::handle_config_change(&entry, logger).as_ref()));
-                    let retaining_configs: Vec<Path> =
-                        entry.value().and_then(|v| v.retaining_configs.clone()).map(|r| r.into_iter().collect()).unwrap_or_default();
-                    affected_projects = retaining_configs.into_iter().fold(affected_projects, |mut affected_projects, extending_config_path| {
-                        if let Some(extending_config_entry) = self.configs.load(&extending_config_path) {
-                            affected_projects = Some(copy_set_into(affected_projects, Self::handle_config_change(&extending_config_entry, logger).as_ref()));
-                        }
+                    affected_projects = Some(copy_set_into(
+                        affected_projects,
+                        Self::handle_config_change(&entry, logger).as_ref(),
+                    ));
+                    let retaining_configs: Vec<Path> = entry
+                        .value()
+                        .and_then(|v| v.retaining_configs.clone())
+                        .map(|r| r.into_iter().collect())
+                        .unwrap_or_default();
+                    affected_projects = retaining_configs.into_iter().fold(
+                        affected_projects,
+                        |mut affected_projects, extending_config_path| {
+                            if let Some(extending_config_entry) =
+                                self.configs.load(&extending_config_path)
+                            {
+                                affected_projects = Some(copy_set_into(
+                                    affected_projects,
+                                    Self::handle_config_change(&extending_config_entry, logger)
+                                        .as_ref(),
+                                ));
+                            }
 
-                        affected_projects
-                    });
+                            affected_projects
+                        },
+                    );
                     // This was a config file, so assume it's not also a root file
                     created_files.remove(path);
                 }
@@ -540,8 +693,15 @@ impl configFileRegistryBuilder {
                     if tspath::get_base_file_name(path) == "package.json" {
                         let mut manifest_changed = false;
                         self.configs.range(|entry| {
-                            if content_mapper_manifest_path(entry.value().and_then(|v| v.command_line), |f| self.to_path(f), path) {
-                                affected_projects = Some(copy_set_into(affected_projects.take(), Self::handle_config_change(entry, logger).as_ref()));
+                            if content_mapper_manifest_path(
+                                entry.value().and_then(|v| v.command_line),
+                                |f| self.to_path(f),
+                                path,
+                            ) {
+                                affected_projects = Some(copy_set_into(
+                                    affected_projects.take(),
+                                    Self::handle_config_change(entry, logger).as_ref(),
+                                ));
                                 manifest_changed = true;
                             }
                             true
@@ -555,7 +715,10 @@ impl configFileRegistryBuilder {
         }
 
         // Handle created/deleted files named "tsconfig.json" or "jsconfig.json"
-        #[expect(clippy::iter_over_hash_type, reason = "the early return depends only on has_excessive_changes; otherwise deletes and set inserts; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "the early return depends only on has_excessive_changes; otherwise deletes and set inserts; Go ranges the map too"
+        )]
         for path in &created_or_deleted_config_files {
             if has_excessive_changes {
                 return self.invalidate_cache(logger);
@@ -571,7 +734,10 @@ impl configFileRegistryBuilder {
         }
 
         // Handle deletions of wildcard-included root files
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: marks configs for a file-name reload and unions affected projects; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: marks configs for a file-name reload and unions affected projects; Go ranges the map too"
+        )]
         for (path, file_name) in &deleted_files {
             self.configs.range(|entry| {
                 let key = entry.key();
@@ -594,7 +760,10 @@ impl configFileRegistryBuilder {
                     },
                     |config| {
                         config.pending_reload = PendingReload::FileNames;
-                        affected_projects = Some(copy_set_into(affected_projects.take(), config.retaining_projects.as_ref()));
+                        affected_projects = Some(copy_set_into(
+                            affected_projects.take(),
+                            config.retaining_projects.as_ref(),
+                        ));
                         logger.logf(format_args!("Root files for config {} changed", key.0));
                         should_invalidate_cache = has_excessive_changes;
                     },
@@ -615,16 +784,24 @@ impl configFileRegistryBuilder {
                         let Some(command_line) = config.command_line else {
                             return false;
                         };
-                        if config.root_files_watch.is_none() || config.pending_reload != PendingReload::None {
+                        if config.root_files_watch.is_none()
+                            || config.pending_reload != PendingReload::None
+                        {
                             return false;
                         }
-                        logger.logf(format_args!("Checking if any of {} created files match root files for config {}", created_files.len(), key.0));
+                        logger.logf(format_args!(
+                            "Checking if any of {} created files match root files for config {}",
+                            created_files.len(),
+                            key.0
+                        ));
                         // any-match predicate; the result does not depend on order; Go ranges the map too
                         if created_files.iter().any(|(path, file_name)| {
                             if command_line.possibly_matches_file_name(file_name) {
                                 return true;
                             }
-                            if command_line.possibly_matches_directory_name(path) && self.fs.directory_exists(file_name) {
+                            if command_line.possibly_matches_directory_name(path)
+                                && self.fs.directory_exists(file_name)
+                            {
                                 // If we got a creation event for a directory, it's probably a symlink. We don't need to
                                 // test realpath here; this is enough confidence to trigger a filename reload.
                                 return true;
@@ -638,7 +815,10 @@ impl configFileRegistryBuilder {
                     },
                     |config| {
                         config.pending_reload = PendingReload::FileNames;
-                        affected_projects = Some(copy_set_into(affected_projects.take(), config.retaining_projects.as_ref()));
+                        affected_projects = Some(copy_set_into(
+                            affected_projects.take(),
+                            config.retaining_projects.as_ref(),
+                        ));
                         logger.logf(format_args!("Root files for config {} changed", key.0));
                         should_invalidate_cache = has_excessive_changes;
                     },
@@ -654,9 +834,15 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:642
-    fn handle_config_change(entry: &Arc<SyncMapEntry<Path, configFileEntry>>, logger: &LogTree) -> Option<FxHashSet<ID>> {
+    fn handle_config_change(
+        entry: &Arc<SyncMapEntry<Path, configFileEntry>>,
+        logger: &LogTree,
+    ) -> Option<FxHashSet<ID>> {
         let mut affected_projects = None;
-        let changed = entry.change_if(|config| config.pending_reload != PendingReload::Full, |config| config.pending_reload = PendingReload::Full);
+        let changed = entry.change_if(
+            |config| config.pending_reload != PendingReload::Full,
+            |config| config.pending_reload = PendingReload::Full,
+        );
         if changed {
             logger.logf(format_args!("Config file {} changed", entry.key().0));
             affected_projects = entry.value().and_then(|v| v.retaining_projects.clone());
@@ -666,14 +852,20 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:669
-    pub(crate) fn compute_config_file_name(&self, file_name: &str, skip_search_in_directory_of_file: bool, logger: &LogTree) -> String {
+    pub(crate) fn compute_config_file_name(
+        &self,
+        file_name: &str,
+        skip_search_in_directory_of_file: bool,
+        logger: &LogTree,
+    ) -> String {
         let search_path = tspath::get_directory_path(file_name);
         // Prefer custom config file if provided; search ancestors with correct skip behavior.
         if !self.custom_config_file_name.is_empty() {
             let mut skip = skip_search_in_directory_of_file;
             let result = tspath::for_each_ancestor_directory(&search_path, |directory| {
                 if !skip {
-                    let custom_path = tspath::combine_paths(directory, &[&self.custom_config_file_name]);
+                    let custom_path =
+                        tspath::combine_paths(directory, &[&self.custom_config_file_name]);
                     if self.fs.file_exists(&custom_path) {
                         return Some(custom_path);
                     }
@@ -686,7 +878,9 @@ impl configFileRegistryBuilder {
             })
             .unwrap_or_default();
             if !result.is_empty() {
-                logger.logf(format_args!("computeConfigFileName:: File: {file_name}:: Result: {result}"));
+                logger.logf(format_args!(
+                    "computeConfigFileName:: File: {file_name}:: Result: {result}"
+                ));
                 return result;
             }
         }
@@ -696,7 +890,8 @@ impl configFileRegistryBuilder {
         // - For ancestor of tsconfig.json: skip tsconfig.json but still check jsconfig.json
         // - For ancestor of jsconfig.json: skip both tsconfig.json and jsconfig.json
         let mut skip_tsconfig = skip_search_in_directory_of_file;
-        let mut skip_jsconfig = skip_search_in_directory_of_file && !file_name.ends_with("/tsconfig.json");
+        let mut skip_jsconfig =
+            skip_search_in_directory_of_file && !file_name.ends_with("/tsconfig.json");
         let result = tspath::for_each_ancestor_directory(&search_path, |directory| {
             if !skip_tsconfig {
                 let tsconfig_path = tspath::combine_paths(directory, &["tsconfig.json"]);
@@ -723,7 +918,12 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:722
-    pub(crate) fn get_config_file_name_for_file(&self, file_name: &str, path: &Path, logger: &LogTree) -> String {
+    pub(crate) fn get_config_file_name_for_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+        logger: &LogTree,
+    ) -> String {
         if tspath::is_dynamic_file_name(file_name) {
             return String::new();
         }
@@ -734,7 +934,13 @@ impl configFileRegistryBuilder {
 
         let config_name = self.compute_config_file_name(file_name, false, logger);
         if (self.is_open_file)(path) {
-            self.config_file_names.add(path.clone(), Shared::new(configFileNames { nearest_config_file_name: config_name.clone(), ancestors: None }));
+            self.config_file_names.add(
+                path.clone(),
+                Shared::new(configFileNames {
+                    nearest_config_file_name: config_name.clone(),
+                    ancestors: None,
+                }),
+            );
         }
         config_name
     }
@@ -759,7 +965,13 @@ impl configFileRegistryBuilder {
     }
 
     // configfileregistrybuilder.go:758
-    pub(crate) fn get_ancestor_config_file_name(&self, file_name: &str, path: &Path, config_file_name: &str, logger: &LogTree) -> String {
+    pub(crate) fn get_ancestor_config_file_name(
+        &self,
+        file_name: &str,
+        path: &Path,
+        config_file_name: &str,
+        logger: &LogTree,
+    ) -> String {
         if tspath::is_dynamic_file_name(file_name) {
             return String::new();
         }
@@ -768,7 +980,9 @@ impl configFileRegistryBuilder {
             return String::new();
         };
 
-        if let Some(ancestor_config_name) = entry.value().unwrap().ancestors.as_ref().and_then(|a| a.get(config_file_name)) {
+        if let Some(ancestor_config_name) =
+            entry.value().unwrap().ancestors.as_ref().and_then(|a| a.get(config_file_name))
+        {
             return ancestor_config_name.clone();
         }
 
@@ -778,7 +992,10 @@ impl configFileRegistryBuilder {
         if (self.is_open_file)(path) {
             let r = result.clone();
             entry.change(|value| {
-                value.ancestors.get_or_insert_with(FxHashMap::default).insert(config_file_name.to_string(), r);
+                value
+                    .ancestors
+                    .get_or_insert_with(FxHashMap::default)
+                    .insert(config_file_name.to_string(), r);
             });
         }
         result
@@ -801,7 +1018,8 @@ impl configFileRegistryBuilder {
                     Some(configs) => configs.is_empty(),
                     None => true,
                 };
-                let should_delete = no_retaining_projects && no_retaining_open_files && no_retaining_configs;
+                let should_delete =
+                    no_retaining_projects && no_retaining_open_files && no_retaining_configs;
                 changed = changed || should_delete;
                 should_delete
             });
@@ -814,7 +1032,11 @@ impl configFileRegistryBuilder {
 }
 
 // configfileregistrybuilder.go:656
-fn content_mapper_manifest_path(command_line: Option<P<ParsedCommandLine>>, to_path: impl Fn(&str) -> Path, path: &Path) -> bool {
+fn content_mapper_manifest_path(
+    command_line: Option<P<ParsedCommandLine>>,
+    to_path: impl Fn(&str) -> Path,
+    path: &Path,
+) -> bool {
     let Some(command_line) = command_line else {
         return false;
     };
@@ -822,7 +1044,8 @@ fn content_mapper_manifest_path(command_line: Option<P<ParsedCommandLine>>, to_p
         !mapper.definition.package.is_empty()
             && mapper.contribution_id.is_empty()
             && !mapper.package_directory.is_empty()
-            && to_path(&tspath::combine_paths(&mapper.package_directory, &["package.json"])) == *path
+            && to_path(&tspath::combine_paths(&mapper.package_directory, &["package.json"]))
+                == *path
     })
 }
 

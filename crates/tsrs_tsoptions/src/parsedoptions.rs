@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tsrs_core::{CompilerOptions, ProjectReference, TypeAcquisition, WatchOptions, P};
+use tsrs_core::{CompilerOptions, P, ProjectReference, TypeAcquisition, WatchOptions};
 
 use crate::contentmappers::Mapper;
 

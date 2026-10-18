@@ -28,7 +28,9 @@ fn range_dependencies_stops_across_groups() {
         let expected: Vec<_> = expected
             .iter()
             .take(stop_after)
-            .map(|&(name, version, group)| (name.to_string(), version.to_string(), group.to_string()))
+            .map(|&(name, version, group)| {
+                (name.to_string(), version.to_string(), group.to_string())
+            })
             .collect();
         assert_eq!(visited, expected);
     }
@@ -169,7 +171,14 @@ fn test_parse() {
 			}"#,
     )
     .unwrap();
-    assert_eq!(got, Fields { name: expected_of("test-package".to_string()), version: expected_of("1.0.0".to_string()), ..Default::default() });
+    assert_eq!(
+        got,
+        Fields {
+            name: expected_of("test-package".to_string()),
+            version: expected_of("1.0.0".to_string()),
+            ..Default::default()
+        }
+    );
 
     let got = parse(
         r#"{

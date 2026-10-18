@@ -2,7 +2,7 @@
 
 use std::time::SystemTime;
 
-use crate::{Entries, FileInfo, FS};
+use crate::{Entries, FS, FileInfo};
 
 type Replacement<F> = Option<Box<F>>;
 
@@ -15,7 +15,8 @@ pub struct Replacements {
     pub write_file: Replacement<dyn Fn(&str, &str) -> Result<(), String> + Send + Sync>,
     pub append_file: Replacement<dyn Fn(&str, &str) -> Result<(), String> + Send + Sync>,
     pub remove: Replacement<dyn Fn(&str) -> Result<(), String> + Send + Sync>,
-    pub chtimes: Replacement<dyn Fn(&str, SystemTime, SystemTime) -> Result<(), String> + Send + Sync>,
+    pub chtimes:
+        Replacement<dyn Fn(&str, SystemTime, SystemTime) -> Result<(), String> + Send + Sync>,
     pub directory_exists: Replacement<dyn Fn(&str) -> bool + Send + Sync>,
     pub get_accessible_entries: Replacement<dyn Fn(&str) -> Entries + Send + Sync>,
     pub stat: Replacement<dyn Fn(&str) -> Option<FileInfo> + Send + Sync>,

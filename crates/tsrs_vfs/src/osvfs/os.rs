@@ -6,7 +6,7 @@ use std::time::SystemTime;
 use tsrs_core::{stringutil, tspath};
 
 use crate::internal::{self, Common, IoDirEntry, IoFS};
-use crate::{Entries, FileInfo, FileMode, FsError, FS};
+use crate::{Entries, FS, FileInfo, FileMode, FsError};
 
 // tsrs-only: file system calls made through this FS, printed as `--extendedDiagnostics` rows.
 static STAT_CALLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -55,7 +55,9 @@ pub fn fs() -> &'static dyn FS {
 
 static OS_VFS: LazyLock<OsFS> = LazyLock::new(|| OsFS {
     common: Common {
-        root_for: Box::new(|root: &str| Some(Box::new(DirFS { dir: root.to_string() }) as Box<dyn IoFS>)),
+        root_for: Box::new(|root: &str| {
+            Some(Box::new(DirFS { dir: root.to_string() }) as Box<dyn IoFS>)
+        }),
         is_reparse_point: Some(is_reparse_point),
     },
 });
@@ -154,8 +156,13 @@ impl FS for OsFS {
     }
 
     fn chtimes(&self, path: &str, a_time: SystemTime, m_time: SystemTime) -> Result<(), String> {
-        let file = fs::File::options().write(true).open(path).or_else(|_| fs::File::open(path)).map_err(|e| e.to_string())?;
-        file.set_times(fs::FileTimes::new().set_accessed(a_time).set_modified(m_time)).map_err(|e| e.to_string())
+        let file = fs::File::options()
+            .write(true)
+            .open(path)
+            .or_else(|_| fs::File::open(path))
+            .map_err(|e| e.to_string())?;
+        file.set_times(fs::FileTimes::new().set_accessed(a_time).set_modified(m_time))
+            .map_err(|e| e.to_string())
     }
 }
 
@@ -174,11 +181,7 @@ fn os_fs_realpath(path: &str) -> String {
 }
 
 fn from_slash(path: &str) -> String {
-    if cfg!(windows) {
-        path.replace('/', "\\")
-    } else {
-        path.to_string()
-    }
+    if cfg!(windows) { path.replace('/', "\\") } else { path.to_string() }
 }
 
 // nativepath.Realpath: on Linux the kernel-resolved path (Go reads /proc/self/fd
@@ -440,7 +443,8 @@ impl OsFS {
         if Self::write_file_with_flag(path, content, append).is_ok() {
             return Ok(());
         }
-        Self::ensure_directory_exists(&tspath::get_directory_path(&tspath::normalize_path(path))).map_err(|e| e.to_string())?;
+        Self::ensure_directory_exists(&tspath::get_directory_path(&tspath::normalize_path(path)))
+            .map_err(|e| e.to_string())?;
         Self::write_file_with_flag(path, content, append).map_err(|e| e.to_string())
     }
 }
@@ -474,7 +478,10 @@ impl DirFS {
     }
 }
 
-#[expect(clippy::needless_pass_by_value, reason = "passed as `map_err(io_error)`, which hands over the error by value")]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "passed as `map_err(io_error)`, which hands over the error by value"
+)]
 fn io_error(e: io::Error) -> FsError {
     match e.kind() {
         io::ErrorKind::NotFound => FsError::NotExist,
@@ -484,7 +491,10 @@ fn io_error(e: io::Error) -> FsError {
     }
 }
 
-#[expect(clippy::filetype_is_file, reason = "regular files must remain distinct from the special-file modes handled below")]
+#[expect(
+    clippy::filetype_is_file,
+    reason = "regular files must remain distinct from the special-file modes handled below"
+)]
 fn file_type_mode(ft: fs::FileType) -> FileMode {
     if ft.is_dir() {
         return FileMode::Dir;
@@ -581,10 +591,8 @@ impl IoFS for DirFS {
                 Err(e) if e.kind() == io::ErrorKind::NotFound => continue,
                 Err(e) => return Err(io_error(e)),
             };
-            entries.push(IoDirEntry {
-                name: entry.file_name().to_string_lossy().into_owned(),
-                type_,
-            });
+            entries
+                .push(IoDirEntry { name: entry.file_name().to_string_lossy().into_owned(), type_ });
         }
         entries.sort_by(|a, b| a.name.cmp(&b.name));
         Ok(entries)
@@ -606,7 +614,9 @@ fn metadata_file_type(path: &str) -> Result<FileMode, FsError> {
             let file_type = FileType::from_raw_mode(statx.stx_mode.into());
             Ok(if file_type.is_dir() { FileMode::Dir } else { FileMode::None })
         }
-        Err(rustix::io::Errno::NOSYS) => fs::metadata(path).map(|md| file_type_mode(md.file_type())).map_err(io_error),
+        Err(rustix::io::Errno::NOSYS) => {
+            fs::metadata(path).map(|md| file_type_mode(md.file_type())).map_err(io_error)
+        }
         Err(err) => Err(io_error(err.into())),
     }
 }

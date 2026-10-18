@@ -4,11 +4,13 @@
 
 use std::sync::{Arc, Mutex};
 
-use tsrs_compiler::{new_compiler_host, new_program, CompilerHost, Program as CompilerProgram, ProgramOptions};
-use tsrs_core::tspath::Path;
+use tsrs_compiler::{
+    CompilerHost, Program as CompilerProgram, ProgramOptions, new_compiler_host, new_program,
+};
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use crate::program::Program;
 
@@ -26,9 +28,15 @@ impl ParseConfigHost for configHost {
 }
 
 const FILES: [(&str, &str); 8] = [
-    ("/src/tsconfig.json", r#"{ "compilerOptions": { "noLib": true, "types": [], "checkers": 2 } }"#),
+    (
+        "/src/tsconfig.json",
+        r#"{ "compilerOptions": { "noLib": true, "types": [], "checkers": 2 } }"#,
+    ),
     ("/src/a.ts", "export const a = 1;\n"),
-    ("/src/b.ts", "/// <reference path=\"./g.ts\" />\nimport { a } from './a';\nexport const b = a;\n"),
+    (
+        "/src/b.ts",
+        "/// <reference path=\"./g.ts\" />\nimport { a } from './a';\nexport const b = a;\n",
+    ),
     // A script: it affects the global scope.
     ("/src/g.ts", "declare var g: number;\n"),
     // Ambient modules: every file references the files declaring them.
@@ -36,7 +44,10 @@ const FILES: [(&str, &str); 8] = [
     ("/src/c.ts", "import { x } from \"m\";\nexport const c = x;\n"),
     ("/src/d.ts", "import { b } from './b';\nexport const d = b;\n"),
     // A module augmentation: the importers of a.ts reference it.
-    ("/src/aug.ts", "import './a';\ndeclare module './a' { interface I { x: number } }\nexport {};\n"),
+    (
+        "/src/aug.ts",
+        "import './a';\ndeclare module './a' { interface I { x: number } }\nexport {};\n",
+    ),
 ];
 
 fn with(changes: &[(&'static str, Option<&'static str>)]) -> Vec<(&'static str, &'static str)> {
@@ -59,10 +70,19 @@ fn compiler_program(files: &[(&'static str, &'static str)]) -> &'static Compiler
     compiler_program_with(files, compiler_host(files))
 }
 
-fn compiler_program_with(files: &[(&'static str, &'static str)], host: Arc<dyn CompilerHost>) -> &'static CompilerProgram {
+fn compiler_program_with(
+    files: &[(&'static str, &'static str)],
+    host: Arc<dyn CompilerHost>,
+) -> &'static CompilerProgram {
     let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().copied(), true));
     let config_host: &'static configHost = Box::leak(Box::new(configHost { fs }));
-    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file("/src/tsconfig.json", None, None, config_host, None);
+    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
+        "/src/tsconfig.json",
+        None,
+        None,
+        config_host,
+        None,
+    );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
     new_program(ProgramOptions::new(P::new(config.unwrap()), host))
 }
@@ -86,7 +106,10 @@ impl CompilerHost for cachingHost {
     fn trace(&self, msg: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]) {
         self.inner.trace(msg, args);
     }
-    fn get_source_file(&self, opts: tsrs_ast::SourceFileParseOptions) -> Option<P<tsrs_ast::SourceFile>> {
+    fn get_source_file(
+        &self,
+        opts: tsrs_ast::SourceFileParseOptions,
+    ) -> Option<P<tsrs_ast::SourceFile>> {
         if let Some(&file) = self.cache.lock().unwrap().get(&opts.path) {
             return Some(file);
         }
@@ -105,7 +128,11 @@ impl CompilerHost for cachingHost {
     fn content_mapper_project(&self) -> Option<Arc<dyn tsrs_contentmapper::Project>> {
         self.inner.content_mapper_project()
     }
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<tsoptions::ParsedCommandLine>> {
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<tsoptions::ParsedCommandLine>> {
         self.inner.get_resolved_project_reference(file_name, path)
     }
 }
@@ -123,8 +150,11 @@ fn file_states(program: &Program) -> Vec<(Path, String, bool, Vec<String>)> {
         .into_iter()
         .map(|path| {
             let info = snapshot.file_infos.load(&path).unwrap();
-            let mut references: Vec<String> =
-                snapshot.referenced_map.get_references(&path).map(|refs| refs.iter().map(std::string::ToString::to_string).collect()).unwrap_or_default();
+            let mut references: Vec<String> = snapshot
+                .referenced_map
+                .get_references(&path)
+                .map(|refs| refs.iter().map(std::string::ToString::to_string).collect())
+                .unwrap_or_default();
             references.sort();
             (path, info.version, info.affects_global_scope, references)
         })
@@ -132,7 +162,13 @@ fn file_states(program: &Program) -> Vec<(Path, String, bool, Vec<String>)> {
 }
 
 fn changed_files(program: &Program) -> Vec<String> {
-    let mut changed: Vec<String> = program.snapshot.changed_files_set.keys().iter().map(std::string::ToString::to_string).collect();
+    let mut changed: Vec<String> = program
+        .snapshot
+        .changed_files_set
+        .keys()
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect();
     changed.sort();
     changed
 }
@@ -142,7 +178,8 @@ fn a_reused_program_has_the_snapshot_of_a_fresh_one() {
     let old_program = compiler_program(&FILES);
     let old = incremental(old_program, None);
     let edited = with(&[("/src/a.ts", Some("export const a = 1;\nconst local = 2;\n"))]);
-    let (reused, _, ok) = old_program.reuse_program(&Path::from("/src/a.ts"), compiler_host(&edited), None, None);
+    let (reused, _, ok) =
+        old_program.reuse_program(&Path::from("/src/a.ts"), compiler_host(&edited), None, None);
     assert!(ok);
     let reused = incremental(reused.unwrap(), Some(old));
 
@@ -164,17 +201,28 @@ fn a_reused_program_has_the_snapshot_of_a_fresh_one() {
 #[test]
 fn a_reused_program_keeps_the_references_of_the_other_files() {
     for (name, text) in [
-        ("/src/aug.ts", "import './a';\ndeclare module './a' { interface I { y: string } }\nexport {};\n"),
-        ("/src/m.d.ts", "declare module \"m\" { export const x: string; export const z: number; }\n"),
+        (
+            "/src/aug.ts",
+            "import './a';\ndeclare module './a' { interface I { y: string } }\nexport {};\n",
+        ),
+        (
+            "/src/m.d.ts",
+            "declare module \"m\" { export const x: string; export const z: number; }\n",
+        ),
         ("/src/g.ts", "declare var g: string;\n"),
     ] {
         let old_program = compiler_program(&FILES);
         let old = incremental(old_program, None);
         let edited = with(&[(name, Some(text))]);
-        let (reused, _, ok) = old_program.reuse_program(&Path::from(name), compiler_host(&edited), None, None);
+        let (reused, _, ok) =
+            old_program.reuse_program(&Path::from(name), compiler_host(&edited), None, None);
         assert!(ok, "{name}");
         let reused = incremental(reused.unwrap(), Some(old));
-        assert_eq!(file_states(&reused), file_states(&incremental(compiler_program(&edited), None)), "{name}");
+        assert_eq!(
+            file_states(&reused),
+            file_states(&incremental(compiler_program(&edited), None)),
+            "{name}"
+        );
         assert_eq!(changed_files(&reused), [name]);
     }
 }
@@ -183,7 +231,10 @@ fn a_reused_program_keeps_the_references_of_the_other_files() {
 fn deleting_a_global_file_changes_every_file() {
     let old = incremental(compiler_program(&FILES), None);
     let new = incremental(compiler_program(&with(&[("/src/g.ts", None)])), Some(old));
-    assert_eq!(changed_files(&new), ["/src/a.ts", "/src/aug.ts", "/src/b.ts", "/src/c.ts", "/src/d.ts", "/src/m.d.ts"]);
+    assert_eq!(
+        changed_files(&new),
+        ["/src/a.ts", "/src/aug.ts", "/src/b.ts", "/src/c.ts", "/src/d.ts", "/src/m.d.ts"]
+    );
 }
 
 #[test]
@@ -197,15 +248,32 @@ fn deleting_a_module_changes_its_importers_only() {
 #[test]
 fn a_file_that_stops_affecting_the_global_scope_changes_every_file() {
     let old = incremental(compiler_program(&FILES), None);
-    let new = incremental(compiler_program(&with(&[("/src/g.ts", Some("export {};\ndeclare var g: number;\n"))])), Some(old));
-    assert_eq!(changed_files(&new), ["/src/a.ts", "/src/aug.ts", "/src/b.ts", "/src/c.ts", "/src/d.ts", "/src/g.ts", "/src/m.d.ts"]);
+    let new = incremental(
+        compiler_program(&with(&[("/src/g.ts", Some("export {};\ndeclare var g: number;\n"))])),
+        Some(old),
+    );
+    assert_eq!(
+        changed_files(&new),
+        [
+            "/src/a.ts",
+            "/src/aug.ts",
+            "/src/b.ts",
+            "/src/c.ts",
+            "/src/d.ts",
+            "/src/g.ts",
+            "/src/m.d.ts"
+        ]
+    );
 }
 
 #[test]
 fn a_new_ambient_module_changes_the_shared_references() {
     let old_program = compiler_program(&FILES);
     let old = incremental(old_program, None);
-    let new_program = compiler_program(&with(&[("/src/n.d.ts", Some("declare module \"n\" { export const y: number; }\n"))]));
+    let new_program = compiler_program(&with(&[(
+        "/src/n.d.ts",
+        Some("declare module \"n\" { export const y: number; }\n"),
+    )]));
     let new = incremental(new_program, Some(old));
     assert_eq!(file_states(&new), file_states(&incremental(new_program, None)));
     let a = file_states(&new).into_iter().find(|(p, ..)| p.as_str() == "/src/a.ts").unwrap();
@@ -218,12 +286,25 @@ fn a_new_ambient_module_changes_the_shared_references() {
 fn a_full_rebuild_that_shares_files_looks_up_their_references_again() {
     let cache = Arc::new(Mutex::new(rustc_hash::FxHashMap::default()));
     let before = with(&[("/src/e.ts", Some("import { x } from './x';\nexport const e = x;\n"))]);
-    let after = with(&[("/src/e.ts", Some("import { x } from './x';\nexport const e = x;\n")), ("/src/x.ts", Some("export const x = 1;\n"))]);
-    let old_program = compiler_program_with(&before, Arc::new(cachingHost { inner: compiler_host(&before), cache: Arc::clone(&cache) }));
+    let after = with(&[
+        ("/src/e.ts", Some("import { x } from './x';\nexport const e = x;\n")),
+        ("/src/x.ts", Some("export const x = 1;\n")),
+    ]);
+    let old_program = compiler_program_with(
+        &before,
+        Arc::new(cachingHost { inner: compiler_host(&before), cache: Arc::clone(&cache) }),
+    );
     let old = incremental(old_program, None);
-    let new_program = compiler_program_with(&after, Arc::new(cachingHost { inner: compiler_host(&after), cache }));
+    let new_program = compiler_program_with(
+        &after,
+        Arc::new(cachingHost { inner: compiler_host(&after), cache }),
+    );
     let e = Path::from("/src/e.ts");
-    assert_eq!(old_program.get_source_file_by_path(&e), new_program.get_source_file_by_path(&e), "e.ts is shared");
+    assert_eq!(
+        old_program.get_source_file_by_path(&e),
+        new_program.get_source_file_by_path(&e),
+        "e.ts is shared"
+    );
     let new = incremental(new_program, Some(old));
     assert_eq!(file_states(&new), file_states(&incremental(new_program, None)));
     let e = file_states(&new).into_iter().find(|(p, ..)| p.as_str() == "/src/e.ts").unwrap();

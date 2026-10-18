@@ -1,7 +1,7 @@
 use crate::*;
+use tsrs_ast as ast;
 use tsrs_ast::*;
 use tsrs_core::*;
-use tsrs_ast as ast;
 
 impl PseudoChecker {
     // lookup.go:11
@@ -21,7 +21,10 @@ impl PseudoChecker {
             | Kind::FunctionExpression
             | Kind::ArrowFunction
             | Kind::JSDocSignature => self.create_return_from_signature(signature_node),
-            _ => debug::fail_bad_syntax_kind(&signature_node.kind_string(), &[&"Node needs to be an inferrable node"]),
+            _ => debug::fail_bad_syntax_kind(
+                &signature_node.kind_string(),
+                &[&"Node needs to be an inferrable node"],
+            ),
         }
     }
 
@@ -40,11 +43,19 @@ impl PseudoChecker {
         match node.kind() {
             Kind::Parameter => self.type_from_parameter(node),
             Kind::VariableDeclaration => Some(self.type_from_variable(node)),
-            Kind::PropertySignature | Kind::PropertyDeclaration | Kind::JSDocPropertyTag => Some(self.type_from_property(node)),
+            Kind::PropertySignature | Kind::PropertyDeclaration | Kind::JSDocPropertyTag => {
+                Some(self.type_from_property(node))
+            }
             Kind::BindingElement => Some(new_pseudo_type_no_result(node)),
-            Kind::ExportAssignment => self.type_from_expression(node.as_export_assignment().expression()),
-            Kind::PropertyAccessExpression | Kind::ElementAccessExpression | Kind::BinaryExpression => Some(Self::type_from_expando_property(node)),
-            Kind::PropertyAssignment | Kind::ShorthandPropertyAssignment => Some(self.type_from_property_assignment(node)),
+            Kind::ExportAssignment => {
+                self.type_from_expression(node.as_export_assignment().expression())
+            }
+            Kind::PropertyAccessExpression
+            | Kind::ElementAccessExpression
+            | Kind::BinaryExpression => Some(Self::type_from_expando_property(node)),
+            Kind::PropertyAssignment | Kind::ShorthandPropertyAssignment => {
+                Some(self.type_from_property_assignment(node))
+            }
             Kind::CallExpression => {
                 match ast::get_assignment_declaration_kind(node) {
                     // TODO: How much of the checker's getTypeFromPropertyDescriptor is worth trying to emulate over ASTs?
@@ -58,7 +69,10 @@ impl PseudoChecker {
                 }
                 Some(new_pseudo_type_no_result(node))
             }
-            _ => debug::fail_bad_syntax_kind(&node.kind_string(), &[&"node needs to be an inferrable node"]),
+            _ => debug::fail_bad_syntax_kind(
+                &node.kind_string(),
+                &[&"node needs to be an inferrable node"],
+            ),
         }
     }
 
@@ -73,7 +87,9 @@ impl PseudoChecker {
             if let Some(init) = init {
                 let expr = self.type_from_expression(init);
                 if let Some(expr) = expr {
-                    if expr.kind != PseudoTypeKind::Inferred || !expr.as_pseudo_type_inferred().error_nodes.is_empty() {
+                    if expr.kind != PseudoTypeKind::Inferred
+                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty()
+                    {
                         return expr;
                     }
                 }
@@ -111,9 +127,13 @@ impl PseudoChecker {
                     }
                     let expr = self.type_from_expression(init);
                     if let Some(expr) = expr {
-                        if expr.kind != PseudoTypeKind::Inferred || !expr.as_pseudo_type_inferred().error_nodes.is_empty() {
+                        if expr.kind != PseudoTypeKind::Inferred
+                            || !expr.as_pseudo_type_inferred().error_nodes.is_empty()
+                        {
                             let postfix_token = node.as_property_declaration().postfix_token();
-                            if expr.kind != PseudoTypeKind::Direct && postfix_token.is_some_and(|t| t.kind() == Kind::QuestionToken) {
+                            if expr.kind != PseudoTypeKind::Direct
+                                && postfix_token.is_some_and(|t| t.kind() == Kind::QuestionToken)
+                            {
                                 // type comes from the initializer expression on a property with a `?` - add `| undefined` to the type
                                 return add_undefined_if_definitely_required(expr);
                             }
@@ -147,7 +167,9 @@ impl PseudoChecker {
                 }
                 let expr = self.type_from_expression(init);
                 if let Some(expr) = expr {
-                    if expr.kind != PseudoTypeKind::Inferred || !expr.as_pseudo_type_inferred().error_nodes.is_empty() {
+                    if expr.kind != PseudoTypeKind::Inferred
+                        || !expr.as_pseudo_type_inferred().error_nodes.is_empty()
+                    {
                         return expr;
                     }
                 }
@@ -158,13 +180,19 @@ impl PseudoChecker {
     }
 
     // lookup.go:146
-    #[expect(clippy::unnecessary_wraps, reason = "The pseudo-checker accessor hook returns None to let the caller fall back to full checker inference.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "The pseudo-checker accessor hook returns None to let the caller fall back to full checker inference."
+    )]
     pub(crate) fn type_from_accessor(&self, accessor: P<Node>) -> Option<P<PseudoType>> {
         let accessor_declarations = {
             let decls = accessor.declaration_data().unwrap().symbol().unwrap().declarations();
             get_all_accessor_declarations_for_declaration(accessor, decls)
         };
-        let accessor_type = Self::get_type_annotation_from_all_accessor_declarations(accessor, accessor_declarations);
+        let accessor_type = Self::get_type_annotation_from_all_accessor_declarations(
+            accessor,
+            accessor_declarations,
+        );
         if let Some(accessor_type) = accessor_type {
             if !is_type_predicate_node(accessor_type) {
                 return Some(new_pseudo_type_direct(accessor_type));
@@ -172,12 +200,18 @@ impl PseudoChecker {
         }
         if let Some(get_accessor) = accessor_declarations.get_accessor {
             let mut res = self.create_return_from_signature(get_accessor).unwrap();
-            if res.kind == PseudoTypeKind::Inferred && res.as_pseudo_type_inferred().error_nodes.is_empty() {
+            if res.kind == PseudoTypeKind::Inferred
+                && res.as_pseudo_type_inferred().error_nodes.is_empty()
+            {
                 let mut error_nodes = vec![get_accessor];
                 if let Some(set_accessor) = accessor_declarations.set_accessor {
                     error_nodes.push(set_accessor);
                 }
-                res = new_pseudo_type_inferred_with_errors(res.as_pseudo_type_inferred().expression, res.as_pseudo_type_inferred().is_signature_return, &error_nodes); // Move error up to the accessor
+                res = new_pseudo_type_inferred_with_errors(
+                    res.as_pseudo_type_inferred().expression,
+                    res.as_pseudo_type_inferred().is_signature_return,
+                    &error_nodes,
+                ); // Move error up to the accessor
             }
             return Some(res);
         }
@@ -185,7 +219,10 @@ impl PseudoChecker {
     }
 
     // lookup.go:166
-    pub(crate) fn get_type_annotation_from_all_accessor_declarations(node: P<Node>, accessors: AllAccessorDeclarations) -> Option<P<Node>> {
+    pub(crate) fn get_type_annotation_from_all_accessor_declarations(
+        node: P<Node>,
+        accessors: AllAccessorDeclarations,
+    ) -> Option<P<Node>> {
         let mut accessor_type = Self::get_type_annotation_from_accessor(node);
         if accessor_type.is_none() && node != accessors.first_accessor {
             accessor_type = Self::get_type_annotation_from_accessor(accessors.first_accessor);
@@ -224,7 +261,12 @@ impl PseudoChecker {
 
 // lookup.go:196
 pub(crate) fn is_value_signature_declaration(node: P<Node>) -> bool {
-    is_function_expression(node) || is_arrow_function(node) || is_method_declaration(node) || is_accessor(node) || is_function_declaration(node) || is_constructor_declaration(node)
+    is_function_expression(node)
+        || is_arrow_function(node)
+        || is_method_declaration(node)
+        || is_accessor(node)
+        || is_function_declaration(node)
+        || is_constructor_declaration(node)
 }
 
 impl PseudoChecker {
@@ -246,7 +288,10 @@ impl PseudoChecker {
     }
 
     // lookup.go:216
-    pub(crate) fn type_from_single_return_expression(&self, fn_: Option<P<Node>>) -> Option<P<PseudoType>> {
+    pub(crate) fn type_from_single_return_expression(
+        &self,
+        fn_: Option<P<Node>>,
+    ) -> Option<P<PseudoType>> {
         let mut candidate_expr: Option<P<Node>> = None;
         if let Some(f) = fn_ {
             if !node_is_missing(f.body()) {
@@ -313,12 +358,20 @@ impl PseudoChecker {
                 }
             }
             Kind::NullKeyword => return Some(*PseudoTypeNull),
-            Kind::ArrowFunction | Kind::FunctionExpression => return Some(self.type_from_function_like_expression(node)),
+            Kind::ArrowFunction | Kind::FunctionExpression => {
+                return Some(self.type_from_function_like_expression(node));
+            }
             Kind::TypeAssertionExpression => {
-                return self.type_from_type_assertion(node.as_type_assertion().expression, node.as_type_assertion().type_);
+                return self.type_from_type_assertion(
+                    node.as_type_assertion().expression,
+                    node.as_type_assertion().type_,
+                );
             }
             Kind::AsExpression => {
-                return self.type_from_type_assertion(node.as_as_expression().expression, node.as_as_expression().type_);
+                return self.type_from_type_assertion(
+                    node.as_as_expression().expression,
+                    node.as_as_expression().type_,
+                );
             }
             Kind::PrefixUnaryExpression => {
                 if is_primitive_literal_value(node, true) {
@@ -327,20 +380,62 @@ impl PseudoChecker {
             }
             Kind::ArrayLiteralExpression => return Some(self.type_from_array_literal(node)),
             Kind::ObjectLiteralExpression => return Some(self.type_from_object_literal(node)),
-            Kind::ClassExpression => return Some(new_pseudo_type_inferred_with_errors(node, false, &[node])), // No possible annotation/directly mappable syntax
+            Kind::ClassExpression => {
+                return Some(new_pseudo_type_inferred_with_errors(node, false, &[node]));
+            } // No possible annotation/directly mappable syntax
             Kind::TemplateExpression => {
                 // templateLitWithHoles as const, not supported
                 if is_in_const_context(node) {
                     return Some(new_pseudo_type_inferred(node, false));
                 }
-                return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_inferred(node, false), *PseudoTypeString));
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    new_pseudo_type_inferred(node, false),
+                    *PseudoTypeString,
+                ));
             }
-            Kind::NumericLiteral => return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_numeric_literal(node), *PseudoTypeNumber)),
-            Kind::NoSubstitutionTemplateLiteral => return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_string_literal(node), *PseudoTypeString)),
-            Kind::StringLiteral => return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_string_literal(node), *PseudoTypeString)),
-            Kind::BigIntLiteral => return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_big_int_literal(node), *PseudoTypeBigInt)),
-            Kind::TrueKeyword => return Some(new_pseudo_type_maybe_const_location(node, *PseudoTypeTrue, *PseudoTypeBoolean)),
-            Kind::FalseKeyword => return Some(new_pseudo_type_maybe_const_location(node, *PseudoTypeFalse, *PseudoTypeBoolean)),
+            Kind::NumericLiteral => {
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    new_pseudo_type_numeric_literal(node),
+                    *PseudoTypeNumber,
+                ));
+            }
+            Kind::NoSubstitutionTemplateLiteral => {
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    new_pseudo_type_string_literal(node),
+                    *PseudoTypeString,
+                ));
+            }
+            Kind::StringLiteral => {
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    new_pseudo_type_string_literal(node),
+                    *PseudoTypeString,
+                ));
+            }
+            Kind::BigIntLiteral => {
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    new_pseudo_type_big_int_literal(node),
+                    *PseudoTypeBigInt,
+                ));
+            }
+            Kind::TrueKeyword => {
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    *PseudoTypeTrue,
+                    *PseudoTypeBoolean,
+                ));
+            }
+            Kind::FalseKeyword => {
+                return Some(new_pseudo_type_maybe_const_location(
+                    node,
+                    *PseudoTypeFalse,
+                    *PseudoTypeBoolean,
+                ));
+            }
             _ => {}
         }
         Some(new_pseudo_type_inferred(node, false))
@@ -358,53 +453,88 @@ impl PseudoChecker {
             return new_pseudo_type_object_literal(&[]);
         }
         let mut results: Vec<P<PseudoObjectElement>> = Vec::with_capacity(properties.len());
-        results.extend(properties.iter().filter_map(|&e| match e.kind() {
-            Kind::MethodDeclaration => {
-                let optional = e.as_method_declaration().postfix_token().is_some_and(|t| t.kind() == Kind::QuestionToken);
-                if let Some(full_signature) = e.function_like_data().unwrap().full_signature() {
-                    Some(new_pseudo_property_assignment(false, e.name().unwrap(), optional, new_pseudo_type_direct(full_signature)))
-                } else {
-                    Some(new_pseudo_object_method(
-                        e,
-                        e.name().unwrap(),
-                        optional,
-                        &Self::clone_type_parameters(e.as_method_declaration().type_parameters()),
-                        &self.clone_parameters(e.parameter_list()),
-                        self.create_return_from_signature(e).unwrap(),
-                    ))
+        results.extend(properties.iter().filter_map(|&e| {
+            match e.kind() {
+                Kind::MethodDeclaration => {
+                    let optional = e
+                        .as_method_declaration()
+                        .postfix_token()
+                        .is_some_and(|t| t.kind() == Kind::QuestionToken);
+                    if let Some(full_signature) = e.function_like_data().unwrap().full_signature() {
+                        Some(new_pseudo_property_assignment(
+                            false,
+                            e.name().unwrap(),
+                            optional,
+                            new_pseudo_type_direct(full_signature),
+                        ))
+                    } else {
+                        Some(new_pseudo_object_method(
+                            e,
+                            e.name().unwrap(),
+                            optional,
+                            &Self::clone_type_parameters(
+                                e.as_method_declaration().type_parameters(),
+                            ),
+                            &self.clone_parameters(e.parameter_list()),
+                            self.create_return_from_signature(e).unwrap(),
+                        ))
+                    }
                 }
+                Kind::PropertyAssignment => Some(new_pseudo_property_assignment(
+                    false,
+                    e.name().unwrap(),
+                    e.as_property_assignment()
+                        .postfix_token()
+                        .is_some_and(|t| t.kind() == Kind::QuestionToken),
+                    self.type_from_expression(e.initializer().unwrap()).unwrap(),
+                )),
+                Kind::SetAccessor | Kind::GetAccessor => {
+                    self.get_accessor_member(e, e.name().unwrap())
+                }
+                _ => None,
             }
-            Kind::PropertyAssignment => Some(new_pseudo_property_assignment(
-                false,
-                e.name().unwrap(),
-                e.as_property_assignment().postfix_token().is_some_and(|t| t.kind() == Kind::QuestionToken),
-                self.type_from_expression(e.initializer().unwrap()).unwrap(),
-            )),
-            Kind::SetAccessor | Kind::GetAccessor => self.get_accessor_member(e, e.name().unwrap()),
-            _ => None,
         }));
         new_pseudo_type_object_literal(&results)
     }
 
     // lookup.go:363
     // roughly analogous to typeFromObjectLiteralAccessor in strada
-    pub(crate) fn get_accessor_member(&self, accessor: P<Node>, name: P<Node>) -> Option<P<PseudoObjectElement>> {
+    pub(crate) fn get_accessor_member(
+        &self,
+        accessor: P<Node>,
+        name: P<Node>,
+    ) -> Option<P<PseudoObjectElement>> {
         let all_accessors = {
             let decls = accessor.symbol().unwrap().declarations();
             get_all_accessor_declarations_for_declaration(accessor, decls) // TODO: node preservation for late-bound accessor pairs?
         };
 
         // TODO: handle pseudo-annotations from get accessor return positions?
-        if let (Some(get_accessor), Some(set_accessor)) = (all_accessors.get_accessor, all_accessors.set_accessor) {
+        if let (Some(get_accessor), Some(set_accessor)) =
+            (all_accessors.get_accessor, all_accessors.set_accessor)
+        {
             if get_accessor.as_get_accessor_declaration().type_().is_some() {
                 let set_params = set_accessor.parameters();
-                if !set_params.is_empty() && set_params[0].as_parameter_declaration().type_().is_some() {
+                if !set_params.is_empty()
+                    && set_params[0].as_parameter_declaration().type_().is_some()
+                {
                     // We have possible types for both accessors, we can't know if they are the same type so we keep both accessors
 
                     if is_get_accessor_declaration(accessor) {
-                        return Some(new_pseudo_get_accessor(accessor, name, false, self.type_from_accessor(accessor).unwrap()));
+                        return Some(new_pseudo_get_accessor(
+                            accessor,
+                            name,
+                            false,
+                            self.type_from_accessor(accessor).unwrap(),
+                        ));
                     }
-                    return Some(new_pseudo_set_accessor(accessor, name, false, self.clone_parameters(accessor.as_set_accessor_declaration().parameters())[0]));
+                    return Some(new_pseudo_set_accessor(
+                        accessor,
+                        name,
+                        false,
+                        self.clone_parameters(accessor.as_set_accessor_declaration().parameters())
+                            [0],
+                    ));
                 }
             }
         }
@@ -413,8 +543,14 @@ impl PseudoChecker {
             // only one annotated accessor; output a property - `readonly` for a single `get` accessor
 
             let accessor_type = self.type_from_accessor(accessor);
-            let readonly = is_get_accessor_declaration(accessor) && all_accessors.second_accessor.is_none();
-            return Some(new_pseudo_property_assignment(readonly, name, false, accessor_type.unwrap()));
+            let readonly =
+                is_get_accessor_declaration(accessor) && all_accessors.second_accessor.is_none();
+            return Some(new_pseudo_property_assignment(
+                readonly,
+                name,
+                false,
+                accessor_type.unwrap(),
+            ));
         }
         None
     }
@@ -478,7 +614,11 @@ impl PseudoChecker {
         if !is_in_const_context(node) {
             return vec![node];
         }
-        if let Some(result) = node.elements().iter().find_map(|&e| if e.kind() == Kind::SpreadElement { Some(vec![e]) } else { None }) {
+        if let Some(result) = node
+            .elements()
+            .iter()
+            .find_map(|&e| if e.kind() == Kind::SpreadElement { Some(vec![e]) } else { None })
+        {
             return result;
         }
         Vec::new()
@@ -523,16 +663,28 @@ impl PseudoChecker {
         }
         let inner = p.operand;
         if inner.kind() == Kind::BigIntLiteral {
-            return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_big_int_literal(expr), *PseudoTypeBigInt));
+            return Some(new_pseudo_type_maybe_const_location(
+                node,
+                new_pseudo_type_big_int_literal(expr),
+                *PseudoTypeBigInt,
+            ));
         }
         if inner.kind() == Kind::NumericLiteral {
-            return Some(new_pseudo_type_maybe_const_location(node, new_pseudo_type_numeric_literal(expr), *PseudoTypeNumber));
+            return Some(new_pseudo_type_maybe_const_location(
+                node,
+                new_pseudo_type_numeric_literal(expr),
+                *PseudoTypeNumber,
+            ));
         }
         debug::fail_bad_syntax_kind(&inner.kind_string(), &[])
     }
 
     // lookup.go:510
-    pub(crate) fn type_from_type_assertion(&self, expression: P<Node>, type_node: P<Node>) -> Option<P<PseudoType>> {
+    pub(crate) fn type_from_type_assertion(
+        &self,
+        expression: P<Node>,
+        type_node: P<Node>,
+    ) -> Option<P<PseudoType>> {
         if is_const_type_reference(type_node) {
             return self.type_from_expression(expression);
         }
@@ -570,7 +722,9 @@ impl PseudoChecker {
 
 // lookup.go:546
 pub(crate) fn is_undefined_pseudo_type(t: P<PseudoType>) -> bool {
-    t.kind == PseudoTypeKind::Undefined || (t.kind == PseudoTypeKind::MaybeConstLocation && is_undefined_pseudo_type(t.as_pseudo_type_maybe_const_location().const_type))
+    t.kind == PseudoTypeKind::Undefined
+        || (t.kind == PseudoTypeKind::MaybeConstLocation
+            && is_undefined_pseudo_type(t.as_pseudo_type_maybe_const_location().const_type))
 }
 
 // lookup.go:550
@@ -581,16 +735,30 @@ pub(crate) fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
     }
     match node.kind() {
         // these types require symbolic/type resolution to know if they definitely do or do not refer to `undefined`, so might (or definitely do)
-        Kind::TypeReference | Kind::IndexedAccessType | Kind::TypeQuery | Kind::OptionalType | Kind::RestType | Kind::ImportType => true,
+        Kind::TypeReference
+        | Kind::IndexedAccessType
+        | Kind::TypeQuery
+        | Kind::OptionalType
+        | Kind::RestType
+        | Kind::ImportType => true,
         Kind::IntersectionType => {
             // TODO: why is this not `core.Every`? strada treated unions and intersections the same, but logically every intersection member needs to contain a possible `undefined`
             // for the result type to contain `undefined`. Likely a bug persisting from strada.
-            node.as_intersection_type_node().types().nodes().iter().any(|n| type_node_could_refer_to_undefined(*n))
+            node.as_intersection_type_node()
+                .types()
+                .nodes()
+                .iter()
+                .any(|n| type_node_could_refer_to_undefined(*n))
         }
-        Kind::UnionType => node.as_union_type_node().types().nodes().iter().any(|n| type_node_could_refer_to_undefined(*n)),
+        Kind::UnionType => node
+            .as_union_type_node()
+            .types()
+            .nodes()
+            .iter()
+            .any(|n| type_node_could_refer_to_undefined(*n)),
         Kind::ConditionalType => true, // suspect - should be treated as a union of both branches instead, likely a bug persisted from strada
-        Kind::TypeOperator => true,    // suspect - always refers to a subset of `string | number | symbol` for `keyof` or `symbol` for `unique`
-        Kind::TypePredicate => true,   // suspect - always refers to `never` or `boolean`, depending on kind - considered possibly-`undefined` referencing for strada compat
+        Kind::TypeOperator => true, // suspect - always refers to a subset of `string | number | symbol` for `keyof` or `symbol` for `unique`
+        Kind::TypePredicate => true, // suspect - always refers to `never` or `boolean`, depending on kind - considered possibly-`undefined` referencing for strada compat
         Kind::UndefinedKeyword => true,
         _ => false, // all other keywords, literal types, function-y types, array/tuple types, type literals, template types, this types
     }
@@ -599,7 +767,10 @@ pub(crate) fn type_node_could_refer_to_undefined(node: P<Node>) -> bool {
 // lookup.go:578
 // see this as the inverse of `canAddUndefined` in `expressionToTypeNode` in strada
 pub fn could_already_refer_to_undefined_type(t: P<PseudoType>) -> bool {
-    if t.kind == PseudoTypeKind::NoResult || t.kind == PseudoTypeKind::Inferred || is_undefined_pseudo_type(t) {
+    if t.kind == PseudoTypeKind::NoResult
+        || t.kind == PseudoTypeKind::Inferred
+        || is_undefined_pseudo_type(t)
+    {
         return true;
     }
     if t.kind == PseudoTypeKind::MaybeConstLocation {
@@ -612,7 +783,11 @@ pub fn could_already_refer_to_undefined_type(t: P<PseudoType>) -> bool {
         return type_node_could_refer_to_undefined(node);
     }
     if t.kind == PseudoTypeKind::Union {
-        return t.as_pseudo_type_union().types.iter().any(|t| could_already_refer_to_undefined_type(*t));
+        return t
+            .as_pseudo_type_union()
+            .types
+            .iter()
+            .any(|t| could_already_refer_to_undefined_type(*t));
     }
     false
 }
@@ -620,7 +795,8 @@ pub fn could_already_refer_to_undefined_type(t: P<PseudoType>) -> bool {
 // lookup.go:597
 pub(crate) fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
     let p = node.as_parameter_declaration();
-    if p.dot_dot_dot_token().is_some() || p.initializer().is_some() || p.question_token().is_some() {
+    if p.dot_dot_dot_token().is_some() || p.initializer().is_some() || p.question_token().is_some()
+    {
         return true;
     }
     false
@@ -633,19 +809,9 @@ pub(crate) fn is_optional_initialized_or_rest_parameter(node: P<Node>) -> bool {
 // determine "has required parameter after index i" with `i+1 < lastRequired`
 // (equivalently, `i < lastRequired-1`) in O(1).
 pub(crate) fn last_required_param_index(params: &[P<Node>]) -> usize {
-    if let Some(result) = params
-        .iter()
-        .enumerate()
-        .rev()
-        .into_iter()
-        .find_map(|(i, param)| {
-            if !is_optional_initialized_or_rest_parameter(*param) {
-                Some(i + 1)
-            } else {
-                None
-            }
-        })
-    {
+    if let Some(result) = params.iter().enumerate().rev().into_iter().find_map(|(i, param)| {
+        if !is_optional_initialized_or_rest_parameter(*param) { Some(i + 1) } else { None }
+    }) {
         return result;
     }
     0
@@ -716,8 +882,14 @@ impl PseudoChecker {
             if is_identifier(node.name().unwrap()) && !is_contextually_typed(node) {
                 let mut expr = self.type_from_expression(initializer);
                 if let Some(e) = expr {
-                    if e.kind == PseudoTypeKind::Inferred && e.as_pseudo_type_inferred().error_nodes.is_empty() {
-                        expr = Some(new_pseudo_type_inferred_with_errors(e.as_pseudo_type_inferred().expression, false, &[node])); // Move error up to the parameter
+                    if e.kind == PseudoTypeKind::Inferred
+                        && e.as_pseudo_type_inferred().error_nodes.is_empty()
+                    {
+                        expr = Some(new_pseudo_type_inferred_with_errors(
+                            e.as_pseudo_type_inferred().expression,
+                            false,
+                            &[node],
+                        )); // Move error up to the parameter
                     }
                 }
                 if !self.strict_null_checks {
@@ -760,8 +932,7 @@ impl PseudoChecker {
                 p.dot_dot_dot_token().is_some(),
                 e.name().unwrap(),
                 optional,
-                self.type_from_parameter_worker(e, i, last_required)
-                    .unwrap(),
+                self.type_from_parameter_worker(e, i, last_required).unwrap(),
             )
         }));
         result
@@ -778,7 +949,10 @@ pub(crate) fn is_contextually_typed(node: P<Node>) -> bool {
         if is_satisfies_expression(n) {
             return true;
         }
-        if (is_variable_parameter_or_property(n) || is_assertion_expression(n)) && n.type_node().is_some() && !is_const_assertion(n) {
+        if (is_variable_parameter_or_property(n) || is_assertion_expression(n))
+            && n.type_node().is_some()
+            && !is_const_assertion(n)
+        {
             return true;
         }
         is_jsx_element(n) || is_jsx_expression(n)

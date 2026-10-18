@@ -25,14 +25,26 @@ fn test_probably_uses_semicolons() {
             src: "let a = 1;\nlet b = 2;\nlet c = 3\nlet d = 4\nlet e = 5\n",
             want: true,
         },
-        Test { name: "consistent ASI with no semicolons", src: "let a = 1\nlet b = 2\nlet c = 3\n", want: false },
-        Test { name: "consistent semicolons", src: "let a = 1;\nlet b = 2;\nlet c = 3;\n", want: true },
+        Test {
+            name: "consistent ASI with no semicolons",
+            src: "let a = 1\nlet b = 2\nlet c = 3\n",
+            want: false,
+        },
+        Test {
+            name: "consistent semicolons",
+            src: "let a = 1;\nlet b = 2;\nlet c = 3;\n",
+            want: true,
+        },
     ];
 
     for tt in tests {
         let file = parse_ts(tt.src);
         let got = probably_uses_semicolons(file);
-        assert_eq!(got, tt.want, "{}: ProbablyUsesSemicolons() = {}, want {}", tt.name, got, tt.want);
+        assert_eq!(
+            got, tt.want,
+            "{}: ProbablyUsesSemicolons() = {}, want {}",
+            tt.name, got, tt.want
+        );
     }
 }
 
@@ -75,20 +87,33 @@ fn test_resolve_organize_imports_sort() {
         },
         Test {
             name: "unicode unknown case sensitivity stays auto for detection",
-            preferences: UserPreferences { organize_imports_collation: OrganizeImportsCollation::Unicode, ..Default::default() },
+            preferences: UserPreferences {
+                organize_imports_collation: OrganizeImportsCollation::Unicode,
+                ..Default::default()
+            },
             want: OrganizeImportsSort::Auto,
         },
         Test {
             name: "ordinal ignore case maps to ordinal ignore case",
-            preferences: UserPreferences { organize_imports_ignore_case: Tristate::True, ..Default::default() },
+            preferences: UserPreferences {
+                organize_imports_ignore_case: Tristate::True,
+                ..Default::default()
+            },
             want: OrganizeImportsSort::OrdinalIgnoreCase,
         },
         Test {
             name: "ordinal case sensitive maps to ordinal",
-            preferences: UserPreferences { organize_imports_ignore_case: Tristate::False, ..Default::default() },
+            preferences: UserPreferences {
+                organize_imports_ignore_case: Tristate::False,
+                ..Default::default()
+            },
             want: OrganizeImportsSort::Ordinal,
         },
-        Test { name: "unknown ordinal stays auto", preferences: UserPreferences::default(), want: OrganizeImportsSort::Auto },
+        Test {
+            name: "unknown ordinal stays auto",
+            preferences: UserPreferences::default(),
+            want: OrganizeImportsSort::Auto,
+        },
     ];
 
     for tt in tests {
@@ -100,7 +125,8 @@ fn test_resolve_organize_imports_sort() {
 // utilities_test.go:145
 #[test]
 fn test_compare_organize_imports_natural_strings() {
-    let comparer = get_organize_imports_preset_string_comparer(OrganizeImportsSort::NaturalIgnoreCase);
+    let comparer =
+        get_organize_imports_preset_string_comparer(OrganizeImportsSort::NaturalIgnoreCase);
     struct Test {
         name: &'static str,
         a: &'static str,
@@ -126,12 +152,7 @@ fn test_compare_organize_imports_natural_strings() {
             b: "B",
             want: Ordering::Less,
         },
-        Test {
-            name: "raw comparison breaks accent ties",
-            a: "A",
-            b: "À",
-            want: Ordering::Less,
-        },
+        Test { name: "raw comparison breaks accent ties", a: "A", b: "À", want: Ordering::Less },
         Test {
             name: "hyphen sorts before slash like Intl.Collator fallback",
             a: "app-init",
@@ -142,11 +163,7 @@ fn test_compare_organize_imports_natural_strings() {
 
     for tt in tests {
         let got = comparer(tt.a, tt.b);
-        assert_eq!(
-            got, tt.want,
-            "{}: comparer({:?}, {:?})",
-            tt.name, tt.a, tt.b
-        );
+        assert_eq!(got, tt.want, "{}: comparer({:?}, {:?})", tt.name, tt.a, tt.b);
     }
 }
 
@@ -156,5 +173,8 @@ fn test_compare_organize_imports_natural_strings() {
 fn test_module_specifier_to_valid_identifier_simple_uppercase() {
     assert_eq!(module_specifier_to_valid_identifier("./foo-\u{1FB3}bar", false), "foo\u{1FBC}bar");
     assert_eq!(module_specifier_to_valid_identifier("./\u{1F80}", true), "\u{1F88}");
-    assert_eq!(module_specifier_to_valid_identifier("./x-\u{1FA0}-\u{1FC3}", false), "x\u{1FA8}\u{1FCC}");
+    assert_eq!(
+        module_specifier_to_valid_identifier("./x-\u{1FA0}-\u{1FC3}", false),
+        "x\u{1FA8}\u{1FCC}"
+    );
 }

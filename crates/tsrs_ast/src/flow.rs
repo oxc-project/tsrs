@@ -1,8 +1,7 @@
-
 use bitflags::bitflags;
-use tsrs_core::{OwnedCell, PKey, P};
+use tsrs_core::{OwnedCell, P, PKey};
 
-use crate::ast::{new_node, Node, NodeFactoryHooks};
+use crate::ast::{Node, NodeFactoryHooks, new_node};
 use crate::kind::Kind;
 
 // FlowFlags
@@ -50,14 +49,28 @@ pub struct FlowNode {
 }
 
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(std::mem::size_of::<FlowNode>() == if tsrs_core::COMPRESSED_PTRS { 16 } else { 24 });
+const _: () =
+    assert!(std::mem::size_of::<FlowNode>() == if tsrs_core::COMPRESSED_PTRS { 16 } else { 24 });
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<FlowNode>() == 16);
 
 impl FlowNode {
-    pub fn new(flags: FlowFlags, node: Option<P<Node>>, antecedent: Option<P<FlowNode>>, text_index: u32) -> FlowNode {
-        assert!(antecedent.is_none() || !flags.intersects(FlowFlags::Label), "flow label created with an antecedent");
-        FlowNode { flags: OwnedCell::new(flags), text_index, node: OwnedCell::new(node), link: OwnedCell::new(P::key_opt(antecedent)) }
+    pub fn new(
+        flags: FlowFlags,
+        node: Option<P<Node>>,
+        antecedent: Option<P<FlowNode>>,
+        text_index: u32,
+    ) -> FlowNode {
+        assert!(
+            antecedent.is_none() || !flags.intersects(FlowFlags::Label),
+            "flow label created with an antecedent"
+        );
+        FlowNode {
+            flags: OwnedCell::new(flags),
+            text_index,
+            node: OwnedCell::new(node),
+            link: OwnedCell::new(P::key_opt(antecedent)),
+        }
     }
     pub fn flags(&self) -> FlowFlags {
         self.flags.get()
@@ -73,17 +86,26 @@ impl FlowNode {
     #[inline]
     pub fn antecedent(&self) -> Option<P<FlowNode>> {
         // SAFETY: a non-label's link is 0 or the antecedent stored by `new`.
-        (!self.flags.get().intersects(FlowFlags::Label)).then(|| unsafe { P::from_key_opt(self.link.get()) }).flatten()
+        (!self.flags.get().intersects(FlowFlags::Label))
+            .then(|| unsafe { P::from_key_opt(self.link.get()) })
+            .flatten()
     }
     /// Go `Antecedents` (linked list of antecedents for `FlowLabel`).
     #[inline]
     pub fn antecedents(&self) -> Option<P<FlowList>> {
         // SAFETY: a label's link is 0 or the list stored by `set_antecedents`.
-        self.flags.get().intersects(FlowFlags::Label).then(|| unsafe { P::from_key_opt(self.link.get()) }).flatten()
+        self.flags
+            .get()
+            .intersects(FlowFlags::Label)
+            .then(|| unsafe { P::from_key_opt(self.link.get()) })
+            .flatten()
     }
     /// Go `Antecedents = list`. Panics on a flow node that is not a label (Go gives antecedents only to labels).
     pub fn set_antecedents(&self, list: Option<P<FlowList>>) {
-        assert!(self.flags.get().intersects(FlowFlags::Label), "antecedents on a flow node that is not a label");
+        assert!(
+            self.flags.get().intersects(FlowFlags::Label),
+            "antecedents on a flow node that is not a label"
+        );
         self.link.set(P::key_opt(list));
     }
 }
@@ -108,11 +130,7 @@ pub fn new_flow_switch_clause_data(
     clause_start: usize,
     clause_end: usize,
 ) -> P<Node> {
-    let data = FlowSwitchClauseData {
-        switch_statement,
-        clause_start,
-        clause_end,
-    };
+    let data = FlowSwitchClauseData { switch_statement, clause_start, clause_end };
     new_node(Kind::Unknown, data, &NodeFactoryHooks::default())
 }
 
@@ -129,6 +147,13 @@ pub struct FlowReduceLabelData {
     pub antecedents: Option<P<FlowList>>, // Temporary antecedent list
 }
 
-pub fn new_flow_reduce_label_data(target: P<FlowLabel>, antecedents: Option<P<FlowList>>) -> P<Node> {
-    new_node(Kind::Unknown, FlowReduceLabelData { target, antecedents }, &NodeFactoryHooks::default())
+pub fn new_flow_reduce_label_data(
+    target: P<FlowLabel>,
+    antecedents: Option<P<FlowList>>,
+) -> P<Node> {
+    new_node(
+        Kind::Unknown,
+        FlowReduceLabelData { target, antecedents },
+        &NodeFactoryHooks::default(),
+    )
 }

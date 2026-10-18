@@ -12,17 +12,18 @@ use rustc_hash::FxHashMap;
 use tsrs_ast::{Diagnostic, SourceFile, SourceFileParseOptions};
 use tsrs_compiler::{self as compiler, CompilerHost};
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{CompilerOptions, ScriptKind, Tristate, P};
+use tsrs_core::{CompilerOptions, P, ScriptKind, Tristate};
 use tsrs_tsoptions::{self as tsoptions, ParsedCommandLine};
-use tsrs_vfs::{bundled::embed as bundled, vfstest, FS};
+use tsrs_vfs::{FS, bundled::embed as bundled, vfstest};
 
 use crate::compiler_runner::{self, Outcome, TestItem};
 use crate::diagnosticwriter::{Diag, FileLike};
-use crate::harnessutil::{HarnessOptions, OptionTable, TestConfiguration, TestFile, TEST_LIB_FOLDER};
+use crate::harnessutil::{
+    HarnessOptions, OptionTable, TEST_LIB_FOLDER, TestConfiguration, TestFile,
+};
+use crate::options::{parse_test_ts_config, test_compiler_options, unsupported_reason};
 use crate::test_case_parser;
 use crate::tsbaseline;
-use crate::options::{parse_test_ts_config, test_compiler_options, unsupported_reason};
-
 
 thread_local! {
     // harnessutil sourceFileCache: parsed files are shared across the tests a worker runs (lib files above all).
@@ -50,8 +51,18 @@ impl CompilerHost for CachedCompilerHost {
     fn get_source_file(&self, opts: SourceFileParseOptions) -> Option<P<SourceFile>> {
         let text = self.fs().read_file(&opts.file_name)?;
         let script_kind = tsrs_core::get_script_kind_from_file_name(&opts.file_name);
-        assert!(script_kind != ScriptKind::Unknown, "Unknown script kind for file  {}", opts.file_name);
-        let key = (opts.file_name.clone(), opts.path.as_str().to_string(), opts.external_module_indicator_options.jsx, opts.external_module_indicator_options.force, format!("{script_kind:?}{text}"));
+        assert!(
+            script_kind != ScriptKind::Unknown,
+            "Unknown script kind for file  {}",
+            opts.file_name
+        );
+        let key = (
+            opts.file_name.clone(),
+            opts.path.as_str().to_string(),
+            opts.external_module_indicator_options.jsx,
+            opts.external_module_indicator_options.force,
+            format!("{script_kind:?}{text}"),
+        );
         if let Some(cached) = SOURCE_FILE_CACHE.with(|c| c.borrow().get(&key).copied()) {
             return Some(cached);
         }
@@ -69,7 +80,11 @@ impl CompilerHost for CachedCompilerHost {
     fn content_mapper_project(&self) -> Option<Arc<dyn tsrs_contentmapper::Project>> {
         self.inner.content_mapper_project()
     }
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<ParsedCommandLine>> {
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<ParsedCommandLine>> {
         self.inner.get_resolved_project_reference(file_name, path)
     }
 }
@@ -78,14 +93,19 @@ fn test_lib_folder_map() -> Vec<(String, String)> {
     let root = compiler_runner::testdata_path().join("tests/lib");
     let mut out = Vec::new();
     fn walk(dir: &std::path::Path, root: &std::path::Path, out: &mut Vec<(String, String)>) {
-        let Ok(entries) = std::fs::read_dir(dir) else { return };
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
         for e in entries.flatten() {
             let p = e.path();
             if p.is_dir() {
                 walk(&p, root, out);
             } else if let Ok(b) = std::fs::read(&p) {
                 let rel = p.strip_prefix(root).unwrap().to_string_lossy().replace('\\', "/");
-                out.push((format!("{TEST_LIB_FOLDER}/{rel}"), tsrs_core::utf8::from_utf8_lossy(&b).into_owned()));
+                out.push((
+                    format!("{TEST_LIB_FOLDER}/{rel}"),
+                    tsrs_core::utf8::from_utf8_lossy(&b).into_owned(),
+                ));
             }
         }
     }
@@ -136,8 +156,22 @@ struct Recompiler<'a> {
 }
 
 impl crate::emit_harness::Recompile for Recompiler<'_> {
-    fn compile(&self, input_files: &[TestFile], other_files: &[TestFile], options: CompilerOptions, tsconfig: Option<P<ParsedCommandLine>>) -> CompilationResult {
-        compile_files_ex(input_files, other_files, self.harness_options, options, self.current_directory, self.symlinks, tsconfig)
+    fn compile(
+        &self,
+        input_files: &[TestFile],
+        other_files: &[TestFile],
+        options: CompilerOptions,
+        tsconfig: Option<P<ParsedCommandLine>>,
+    ) -> CompilationResult {
+        compile_files_ex(
+            input_files,
+            other_files,
+            self.harness_options,
+            options,
+            self.current_directory,
+            self.symlinks,
+            tsconfig,
+        )
     }
 }
 
@@ -149,7 +183,8 @@ fn compile_files(
     current_directory: &str,
     symlinks: &BTreeMap<String, String>,
 ) -> Result<Compiled, String> {
-    let (mut compiler_options, harness_options) = test_compiler_options(test_config, tsconfig, current_directory)?;
+    let (mut compiler_options, harness_options) =
+        test_compiler_options(test_config, tsconfig, current_directory)?;
     if dts_only_mode() && js_baselines() {
         if compiler_options.get_emit_declarations() {
             compiler_options.emit_declaration_only = Tristate::True;
@@ -161,7 +196,15 @@ fn compile_files(
         return Ok(Compiled::Unsupported(reason));
     }
 
-    let result = compile_files_ex(input_files, other_files, &harness_options, compiler_options, current_directory, symlinks, tsconfig);
+    let result = compile_files_ex(
+        input_files,
+        other_files,
+        &harness_options,
+        compiler_options,
+        current_directory,
+        symlinks,
+        tsconfig,
+    );
     Ok(Compiled::Result(Box::new(result)))
 }
 
@@ -177,7 +220,9 @@ fn compile_files_ex(
     let mut program_file_names = Vec::new();
     program_file_names.extend(input_files.iter().filter_map(|file| {
         let file_name = tspath::get_normalized_absolute_path(&file.unit_name, current_directory);
-        if !tspath::file_extension_is(&file_name, tspath::EXTENSION_JSON) && !tspath::file_extension_is(&file_name, tspath::EXTENSION_TS_BUILD_INFO) {
+        if !tspath::file_extension_is(&file_name, tspath::EXTENSION_JSON)
+            && !tspath::file_extension_is(&file_name, tspath::EXTENSION_TS_BUILD_INFO)
+        {
             Some(file_name)
         } else {
             None
@@ -185,7 +230,8 @@ fn compile_files_ex(
     }));
 
     // Performance optimization; avoid copying in the /.lib folder if the test doesn't need it.
-    let mut include_lib_dir = input_files.iter().any(|file| file.content.contains(&format!("{TEST_LIB_FOLDER}/")));
+    let mut include_lib_dir =
+        input_files.iter().any(|file| file.content.contains(&format!("{TEST_LIB_FOLDER}/")));
 
     // Files from testdata\lib that are requested by "@libFiles"
     for lib_file in &harness_options.lib_files {
@@ -221,22 +267,27 @@ fn compile_files_ex(
 
     // Create fake FS for testing
     let mut testfs: BTreeMap<String, vfstest::MapFile> = BTreeMap::new();
-    testfs.extend(
-        input_files
-            .iter()
-            .chain(other_files)
-            .map(|file| (tspath::get_normalized_absolute_path(&file.unit_name, current_directory), vfstest::MapFile::from(file.content.as_str()))),
-    );
+    testfs.extend(input_files.iter().chain(other_files).map(|file| {
+        (
+            tspath::get_normalized_absolute_path(&file.unit_name, current_directory),
+            vfstest::MapFile::from(file.content.as_str()),
+        )
+    }));
     testfs.extend(symlinks.iter().map(|(src, target)| {
-        (tspath::get_normalized_absolute_path(src, current_directory), vfstest::symlink(&tspath::get_normalized_absolute_path(target, current_directory)))
+        (
+            tspath::get_normalized_absolute_path(src, current_directory),
+            vfstest::symlink(&tspath::get_normalized_absolute_path(target, current_directory)),
+        )
     }));
     if include_lib_dir {
-        testfs.extend(test_lib_folder_map().into_iter().map(|(k, v)| (k, vfstest::MapFile::from(v))));
+        testfs
+            .extend(test_lib_folder_map().into_iter().map(|(k, v)| (k, vfstest::MapFile::from(v))));
     }
 
     let fs = vfstest::from_map(testfs, harness_options.use_case_sensitive_file_names);
     let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(fs));
-    let recorder = emit_baselines().then(|| crate::emit_harness::new_output_recorder_fs(Arc::clone(&fs)));
+    let recorder =
+        emit_baselines().then(|| crate::emit_harness::new_output_recorder_fs(Arc::clone(&fs)));
     let fs: Arc<dyn FS> = match &recorder {
         Some(r) => Arc::<crate::emit_harness::OutputRecorderFS>::clone(r),
         None => fs,
@@ -244,19 +295,38 @@ fn compile_files_ex(
 
     let config_file = tsconfig.and_then(|t| t.config_file);
     let errors = tsconfig.map(|t| t.errors.clone()).unwrap_or_default();
-    let mut config = tsoptions::new_parsed_command_line(P::new(compiler_options), program_file_names, Vec::new(), ComparePathsOptions::default());
+    let mut config = tsoptions::new_parsed_command_line(
+        P::new(compiler_options),
+        program_file_names,
+        Vec::new(),
+        ComparePathsOptions::default(),
+    );
     config.config_file = config_file;
     config.errors = errors;
     let config = P::new(config);
 
-    let inner = compiler::new_compiler_host(current_directory, fs, &bundled::lib_path(), None, None, None);
+    let inner =
+        compiler::new_compiler_host(current_directory, fs, &bundled::lib_path(), None, None, None);
     let host: Arc<dyn CompilerHost> = Arc::new(CachedCompilerHost { inner });
     if let Some(recorder) = recorder {
-        let (diagnostics, program, emit_result) =
-            crate::emit_harness::compile_files_with_host_emit(Arc::clone(&host), config, harness_options, &|host, config| create_program_like(host, config));
+        let (diagnostics, program, emit_result) = crate::emit_harness::compile_files_with_host_emit(
+            Arc::clone(&host),
+            config,
+            harness_options,
+            &|host, config| create_program_like(host, config),
+        );
         let options = program.options().get();
-        let emit = crate::emit_harness::new_emit_outputs(&recorder, program, options, &*host, emit_result);
-        return CompilationResult { diagnostics, options, program, harness_options: harness_options.clone(), host, tsconfig, emit: Some(emit) };
+        let emit =
+            crate::emit_harness::new_emit_outputs(&recorder, program, options, &*host, emit_result);
+        return CompilationResult {
+            diagnostics,
+            options,
+            program,
+            harness_options: harness_options.clone(),
+            host,
+            tsconfig,
+            emit: Some(emit),
+        };
     }
     compile_files_with_host(host, config, harness_options, tsconfig)
 }
@@ -276,19 +346,33 @@ impl tsrs_incremental::BuildInfoReader for testBuildInfoReader {
 
 // harnessutil.go:970 (createProgram), used by the emit harness (`--baselines js`): an `incremental` program is
 // wrapped in `incremental.NewProgram` like Go's. The default mode (no emit baselines) keeps the plain program below.
-fn create_program_like(host: Arc<dyn CompilerHost>, config: P<ParsedCommandLine>) -> &'static dyn compiler::ProgramLike {
+fn create_program_like(
+    host: Arc<dyn CompilerHost>,
+    config: P<ParsedCommandLine>,
+) -> &'static dyn compiler::ProgramLike {
     let program = create_program(Arc::clone(&host), config);
     if config.compiler_options().unwrap().incremental.is_true() {
-        let reader = testBuildInfoReader { inner: tsrs_incremental::new_build_info_reader(Arc::clone(&host)) };
+        let reader = testBuildInfoReader {
+            inner: tsrs_incremental::new_build_info_reader(Arc::clone(&host)),
+        };
         let old_program = tsrs_incremental::read_build_info_program(config, &reader, &*host);
-        let incremental_program = tsrs_incremental::new_program(program, old_program, tsrs_incremental::create_host(host), None, false);
+        let incremental_program = tsrs_incremental::new_program(
+            program,
+            old_program,
+            tsrs_incremental::create_host(host),
+            None,
+            false,
+        );
         return Box::leak(Box::new(incremental_program.get()));
     }
     Box::leak(Box::new(program))
 }
 
 // harnessutil.go:970 (createProgram) without the incremental wrapper: the default (type-check only) mode.
-fn create_program(host: Arc<dyn CompilerHost>, config: P<ParsedCommandLine>) -> &'static compiler::Program {
+fn create_program(
+    host: Arc<dyn CompilerHost>,
+    config: P<ParsedCommandLine>,
+) -> &'static compiler::Program {
     let mut opts = compiler::ProgramOptions::new(config, host);
     if test_program_is_single_threaded() {
         opts.single_threaded = Tristate::True;
@@ -296,7 +380,12 @@ fn create_program(host: Arc<dyn CompilerHost>, config: P<ParsedCommandLine>) -> 
     compiler::new_program(opts)
 }
 
-fn compile_files_with_host(host: Arc<dyn CompilerHost>, config: P<ParsedCommandLine>, harness_options: &HarnessOptions, tsconfig: Option<P<ParsedCommandLine>>) -> CompilationResult {
+fn compile_files_with_host(
+    host: Arc<dyn CompilerHost>,
+    config: P<ParsedCommandLine>,
+    harness_options: &HarnessOptions,
+    tsconfig: Option<P<ParsedCommandLine>>,
+) -> CompilationResult {
     let program = create_program(Arc::clone(&host), config);
     let harness_options = harness_options.clone();
     let ctx = &compiler::Context::default();
@@ -327,21 +416,39 @@ fn compile_files_with_host(host: Arc<dyn CompilerHost>, config: P<ParsedCommandL
 // newCompilerTest + verifyDiagnostics
 pub fn run(item: &TestItem, table: &OptionTable) -> Outcome {
     let content = compiler_runner::read_test_file(&item.path);
-    let named_configuration = match compiler_runner::find_configuration(&content, table, &item.config) {
-        Ok(c) => c,
-        Err(e) => return Outcome::Error(e),
-    };
+    let named_configuration =
+        match compiler_runner::find_configuration(&content, table, &item.config) {
+            Ok(c) => c,
+            Err(e) => return Outcome::Error(e),
+        };
     let payload = test_case_parser::make_units_from_test(&content, &item.path);
     if payload.global_options.get("runexternalcode").is_some_and(|v| v == "true") {
         return Outcome::Skip("content mappers (runExternalCode) are not supported".to_string());
     }
     let ts_config = parse_test_ts_config(&payload);
 
-    let mut harness_config: TestConfiguration = named_configuration.map(|c| c.config).unwrap_or_default();
-    let split = compiler_runner::split_units(&payload, &mut harness_config, ts_config.map(|t| t.get().parsed_config.file_names.as_slice()));
-    let compiler_runner::SplitUnits { current_directory, ts_config_files, to_be_compiled, other_files } = split;
+    let mut harness_config: TestConfiguration =
+        named_configuration.map(|c| c.config).unwrap_or_default();
+    let split = compiler_runner::split_units(
+        &payload,
+        &mut harness_config,
+        ts_config.map(|t| t.get().parsed_config.file_names.as_slice()),
+    );
+    let compiler_runner::SplitUnits {
+        current_directory,
+        ts_config_files,
+        to_be_compiled,
+        other_files,
+    } = split;
 
-    let result = match compile_files(&to_be_compiled, &other_files, Some(&harness_config), ts_config, &current_directory, &payload.symlinks) {
+    let result = match compile_files(
+        &to_be_compiled,
+        &other_files,
+        Some(&harness_config),
+        ts_config,
+        &current_directory,
+        &payload.symlinks,
+    ) {
         Ok(Compiled::Result(r)) => *r,
         // Go checks SkipUnsupportedCompilerOptions after compiling; checking first keeps crashes in
         // unsupported configurations (which have no reference baselines) out of the results.
@@ -353,9 +460,18 @@ pub fn run(item: &TestItem, table: &OptionTable) -> Outcome {
     };
 
     let diags = convert_diagnostics(&result.diagnostics);
-    let files: Vec<TestFile> = ts_config_files.iter().chain(&to_be_compiled).chain(&other_files).cloned().collect();
+    let files: Vec<TestFile> =
+        ts_config_files.iter().chain(&to_be_compiled).chain(&other_files).cloned().collect();
     let errors = tsbaseline::do_error_baseline(&files, &diags, result.options.pretty.is_true());
-    let js = verify_javascript_output(item, &result, &ts_config_files, &to_be_compiled, &other_files, &payload, &current_directory);
+    let js = verify_javascript_output(
+        item,
+        &result,
+        &ts_config_files,
+        &to_be_compiled,
+        &other_files,
+        &payload,
+        &current_directory,
+    );
     let maps = verify_source_maps(&result);
     let types_and_symbols = verify_types_and_symbols(item, &result, &to_be_compiled, &other_files);
     Outcome::Baseline(errors, types_and_symbols, js, maps)
@@ -388,7 +504,10 @@ fn verify_javascript_output(
         return None;
     }
     // compiler_runner.go:286
-    let has_non_dts_files = payload.test_unit_data.iter().any(|unit| !tspath::file_extension_is(&unit.name, tspath::EXTENSION_DTS));
+    let has_non_dts_files = payload
+        .test_unit_data
+        .iter()
+        .any(|unit| !tspath::file_extension_is(&unit.name, tspath::EXTENSION_DTS));
     if !has_non_dts_files {
         return None;
     }
@@ -401,15 +520,40 @@ fn verify_javascript_output(
         }
         let outputs = result.emit.as_ref().unwrap();
         let mut text = String::new();
-        text.extend(outputs.dts.values().map(|file| crate::emit_harness::file_output(file, &result.harness_options)));
-        return Some(Ok(if text.is_empty() { crate::baseline::NO_CONTENT.to_string() } else { text }));
+        text.extend(
+            outputs
+                .dts
+                .values()
+                .map(|file| crate::emit_harness::file_output(file, &result.harness_options)),
+        );
+        return Some(Ok(if text.is_empty() {
+            crate::baseline::NO_CONTENT.to_string()
+        } else {
+            text
+        }));
     }
-    let header_components =
-        tspath::get_path_components_relative_to(&compiler_runner::testdata_path().to_string_lossy(), &item.path, &ComparePathsOptions::default());
+    let header_components = tspath::get_path_components_relative_to(
+        &compiler_runner::testdata_path().to_string_lossy(),
+        &item.path,
+        &ComparePathsOptions::default(),
+    );
     let header = tspath::get_path_from_path_components(&header_components);
-    let recompiler = Recompiler { harness_options: &result.harness_options, current_directory, symlinks: &payload.symlinks };
+    let recompiler = Recompiler {
+        harness_options: &result.harness_options,
+        current_directory,
+        symlinks: &payload.symlinks,
+    };
     let run = std::panic::AssertUnwindSafe(|| {
-        crate::emit_harness::do_js_emit_baseline(&header, result.options, result, ts_config_files, to_be_compiled, other_files, &result.harness_options, &recompiler)
+        crate::emit_harness::do_js_emit_baseline(
+            &header,
+            result.options,
+            result,
+            ts_config_files,
+            to_be_compiled,
+            other_files,
+            &result.harness_options,
+            &recompiler,
+        )
     });
     match std::panic::catch_unwind(run) {
         Ok(r) => Some(r),
@@ -430,13 +574,24 @@ fn verify_types_and_symbols(
         return None;
     }
     let program = result.program;
-    let all_files: Vec<TestFile> =
-        to_be_compiled.iter().chain(other_files).filter(|f| program.get_source_file(&f.unit_name).is_some()).cloned().collect();
-    let header_components =
-        tspath::get_path_components_relative_to(&compiler_runner::testdata_path().to_string_lossy(), &item.path, &ComparePathsOptions::default());
+    let all_files: Vec<TestFile> = to_be_compiled
+        .iter()
+        .chain(other_files)
+        .filter(|f| program.get_source_file(&f.unit_name).is_some())
+        .cloned()
+        .collect();
+    let header_components = tspath::get_path_components_relative_to(
+        &compiler_runner::testdata_path().to_string_lossy(),
+        &item.path,
+        &ComparePathsOptions::default(),
+    );
     let header = tspath::get_path_from_path_components(&header_components);
-    let (types, symbols) =
-        crate::type_symbol_baseline::do_type_and_symbol_baseline(&header, program, &all_files, !result.diagnostics.is_empty());
+    let (types, symbols) = crate::type_symbol_baseline::do_type_and_symbol_baseline(
+        &header,
+        program,
+        &all_files,
+        !result.diagnostics.is_empty(),
+    );
     Some(compiler_runner::TypesAndSymbols { types, symbols })
 }
 
@@ -448,7 +603,8 @@ fn verify_source_maps(result: &CompilationResult) -> Option<compiler_runner::Sou
     }
     let outputs = result.emit.as_ref()?;
     let program = result.program;
-    let get_program_source_text = |name: &str| program.get_source_file(name).map(|f| f.original_text().to_string());
+    let get_program_source_text =
+        |name: &str| program.get_source_file(name).map(|f| f.original_text().to_string());
     let get_source_map_record = || {
         let source_maps: Vec<crate::sourcemap_recorder::SourceMapRecordInput> = outputs
             .emit_result
@@ -471,26 +627,44 @@ fn verify_source_maps(result: &CompilationResult) -> Option<compiler_runner::Sou
     let sm = crate::sourcemap_baseline::SourceMapCompilationResult {
         maps: &maps,
         dts_count: outputs.dts.len(),
-        number_of_js_files: outputs.js.values().filter(|f| !tspath::file_extension_is(&f.unit_name, tspath::EXTENSION_JSON)).count(),
+        number_of_js_files: outputs
+            .js
+            .values()
+            .filter(|f| !tspath::file_extension_is(&f.unit_name, tspath::EXTENSION_JSON))
+            .count(),
         diagnostics_count: result.diagnostics.len(),
         outputs: &outputs.outputs,
         inputs: &outputs.inputs,
         get_program_source_text: &get_program_source_text,
         get_source_map_record: &get_source_map_record,
     };
-    let catch = |f: &dyn Fn() -> Result<Option<String>, String>| match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
+    let catch = |f: &dyn Fn() -> Result<Option<String>, String>| match std::panic::catch_unwind(
+        std::panic::AssertUnwindSafe(f),
+    ) {
         Ok(Ok(Some(s))) => Some(Ok(s)),
         Ok(Ok(None)) => None,
         Ok(Err(fatal)) => Some(Err(fatal)),
         Err(_) => Some(Err(crate::worker::take_last_panic_message())),
     };
     let js_map = if want & crate::EXTRA_JSMAP != 0 {
-        catch(&|| crate::sourcemap_baseline::do_sourcemap_baseline("", result.options, &sm, &result.harness_options).map(|r| r.map(|(_, s)| s)))
+        catch(&|| {
+            crate::sourcemap_baseline::do_sourcemap_baseline(
+                "",
+                result.options,
+                &sm,
+                &result.harness_options,
+            )
+            .map(|r| r.map(|(_, s)| s))
+        })
     } else {
         None
     };
     let sourcemap = if want & crate::EXTRA_SOURCEMAP != 0 {
-        catch(&|| Ok(Some(crate::sourcemap_baseline::do_sourcemap_record_baseline("", result.options, &sm).1)))
+        catch(&|| {
+            Ok(Some(
+                crate::sourcemap_baseline::do_sourcemap_record_baseline("", result.options, &sm).1,
+            ))
+        })
     } else {
         None
     };
@@ -503,7 +677,13 @@ pub fn convert_diagnostics(diagnostics: &[P<Diagnostic>]) -> Vec<Diag> {
 }
 
 fn convert(d: P<Diagnostic>, files: &mut FxHashMap<P<SourceFile>, Rc<FileLike>>) -> Diag {
-    let file = d.file().map(|f| Rc::clone(files.entry(f).or_insert_with(|| FileLike::new(f.file_name().to_string(), f.text().to_string()))));
+    let file = d.file().map(|f| {
+        Rc::clone(
+            files
+                .entry(f)
+                .or_insert_with(|| FileLike::new(f.file_name().to_string(), f.text().to_string())),
+        )
+    });
     let identity = if !d.message_text().is_empty() {
         d.message_text().to_string()
     } else if let (Some(m), -1) = (d.message(), d.code()) {

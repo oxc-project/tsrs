@@ -4,8 +4,8 @@ use rustc_hash::FxHashMap;
 use tsrs_ast::SourceFile;
 use tsrs_checker::Checker;
 use tsrs_compiler::Program;
-use tsrs_core::tspath::{self, Path};
 use tsrs_core::P;
+use tsrs_core::tspath::{self, Path};
 use tsrs_lsproto as lsproto;
 use tsrs_vfs::vfsmatch;
 
@@ -29,7 +29,12 @@ pub struct LanguageService {
 }
 
 // languageservice.go:25
-pub fn new_language_service(project_id: ProjectID, program: &'static Program, host: Arc<dyn Host>, active_file: &str) -> LanguageService {
+pub fn new_language_service(
+    project_id: ProjectID,
+    program: &'static Program,
+    host: Arc<dyn Host>,
+    active_file: &str,
+) -> LanguageService {
     LanguageService {
         project_id,
         converters: host.converters(),
@@ -43,7 +48,11 @@ pub fn new_language_service(project_id: ProjectID, program: &'static Program, ho
 impl LanguageService {
     // languageservice.go:41
     pub(crate) fn to_path(&self, file_name: &str) -> Path {
-        tspath::to_path(file_name, self.program.get_current_directory(), self.use_case_sensitive_file_names())
+        tspath::to_path(
+            file_name,
+            self.program.get_current_directory(),
+            self.use_case_sensitive_file_names(),
+        )
     }
 
     // languageservice.go:45
@@ -62,14 +71,20 @@ impl LanguageService {
     }
 
     // languageservice.go:57
-    pub(crate) fn try_get_program_and_file(&self, file_name: &str) -> (&'static Program, Option<P<SourceFile>>) {
+    pub(crate) fn try_get_program_and_file(
+        &self,
+        file_name: &str,
+    ) -> (&'static Program, Option<P<SourceFile>>) {
         let program = self.get_program();
         let file = program.get_source_file(file_name);
         (program, file)
     }
 
     // languageservice.go:63
-    pub(crate) fn get_program_and_file(&self, document_uri: &lsproto::DocumentUri) -> (&'static Program, P<SourceFile>) {
+    pub(crate) fn get_program_and_file(
+        &self,
+        document_uri: &lsproto::DocumentUri,
+    ) -> (&'static Program, P<SourceFile>) {
         let file_name = document_uri.file_name();
         let (program, file) = self.try_get_program_and_file(&file_name);
         let Some(file) = file else {
@@ -79,7 +94,10 @@ impl LanguageService {
     }
 
     // languageservice.go:72
-    pub fn get_document_position_mapper(&self, file_name: &str) -> Option<Arc<DocumentPositionMapper>> {
+    pub fn get_document_position_mapper(
+        &self,
+        file_name: &str,
+    ) -> Option<Arc<DocumentPositionMapper>> {
         if let Some(d) = self.document_position_mappers.lock().unwrap().get(file_name) {
             return d.clone();
         }
@@ -106,13 +124,21 @@ impl LanguageService {
     // getPreparedAutoImportView returns an auto-import view for the given file if the registry is prepared
     // to provide up-to-date auto-imports for it. If not, it returns ErrNeedsAutoImports.
     // languageservice.go:95
-    pub(crate) fn get_prepared_auto_import_view(&self, from_file: P<SourceFile>, type_checker: &mut Checker) -> Result<autoimport::View, lsproto::Error> {
+    pub(crate) fn get_prepared_auto_import_view(
+        &self,
+        from_file: P<SourceFile>,
+        type_checker: &mut Checker,
+    ) -> Result<autoimport::View, lsproto::Error> {
         let registry = self.host.auto_import_registry();
         let mut registry_file = from_file;
         if let Some(canonical) = from_file.canonical_source_file() {
             registry_file = canonical;
         }
-        if !registry.is_prepared_for_importing_file(registry_file.file_name(), &self.project_id, self.user_preferences()) {
+        if !registry.is_prepared_for_importing_file(
+            registry_file.file_name(),
+            &self.project_id,
+            self.user_preferences(),
+        ) {
             return Err(err_needs_auto_imports());
         }
 
@@ -130,7 +156,11 @@ impl LanguageService {
     // getCurrentAutoImportView returns an auto-import view for the given file, based on the current state
     // of the auto-import registry, which may or may not be up-to-date.
     // languageservice.go:111
-    pub(crate) fn get_current_auto_import_view(&self, from_file: P<SourceFile>, type_checker: &mut Checker) -> autoimport::View {
+    pub(crate) fn get_current_auto_import_view(
+        &self,
+        from_file: P<SourceFile>,
+        type_checker: &mut Checker,
+    ) -> autoimport::View {
         autoimport::new_view(
             self.host.auto_import_registry(),
             from_file,
@@ -149,8 +179,20 @@ impl LanguageService {
 
     // Used for module specifier completions.
     // languageservice.go:128
-    pub fn read_directory(&self, path: &str, extensions: &[String], includes: &[String]) -> Vec<String> {
-        self.host.read_directory(self.program.get_current_directory(), path, extensions, &[] /*excludes*/, includes, vfsmatch::UNLIMITED_DEPTH)
+    pub fn read_directory(
+        &self,
+        path: &str,
+        extensions: &[String],
+        includes: &[String],
+    ) -> Vec<String> {
+        self.host.read_directory(
+            self.program.get_current_directory(),
+            path,
+            extensions,
+            &[], /*excludes*/
+            includes,
+            vfsmatch::UNLIMITED_DEPTH,
+        )
     }
 
     // languageservice.go:132

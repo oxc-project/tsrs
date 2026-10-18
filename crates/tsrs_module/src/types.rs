@@ -3,7 +3,7 @@ use std::fmt;
 use bitflags::bitflags;
 use tsrs_ast::Diagnostic;
 use tsrs_core::tspath;
-use tsrs_core::{CompilerOptions, ResolutionMode, P};
+use tsrs_core::{CompilerOptions, P, ResolutionMode};
 use tsrs_vfs::FS;
 
 use crate::cache::ResolutionData;

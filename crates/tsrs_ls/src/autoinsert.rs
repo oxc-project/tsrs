@@ -1,6 +1,6 @@
 use tsrs_ast::{self as ast, Kind, Node, NodeFlags};
-use tsrs_core::context::Context;
 use tsrs_core::P;
+use tsrs_core::context::Context;
 use tsrs_lsproto as lsproto;
 use tsrs_scanner as scanner;
 
@@ -11,8 +11,15 @@ use crate::spanmap::Feature;
 
 impl LanguageService {
     // autoinsert.go:13
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_on_auto_insert(&self, _ctx: &Context, params: &lsproto::VSOnAutoInsertParams) -> Result<lsproto::VSOnAutoInsertResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_on_auto_insert(
+        &self,
+        _ctx: &Context,
+        params: &lsproto::VSOnAutoInsertParams,
+    ) -> Result<lsproto::VSOnAutoInsertResponse, lsproto::Error> {
         if self.user_preferences().enable_auto_closing_tags.is_false() {
             return Ok(lsproto::VSOnAutoInsertResponse::default());
         }
@@ -21,7 +28,11 @@ impl LanguageService {
         }
 
         let (_, mut source_file) = self.get_program_and_file(&params.vs_text_document.uri);
-        let positions = self.converters.from_lsp_position_for_source_file(source_file, params.vs_position, Feature::AutoInsert);
+        let positions = self.converters.from_lsp_position_for_source_file(
+            source_file,
+            params.vs_position,
+            Feature::AutoInsert,
+        );
         if positions.len() != 1 || !positions[0].fidelity.is_exact() {
             return Ok(lsproto::VSOnAutoInsertResponse::default());
         }
@@ -34,19 +45,28 @@ impl LanguageService {
 
         let mut closing_text = String::new();
         let mut element: Option<P<Node>> = None;
-        if token.kind() == Kind::GreaterThanToken && ast::is_jsx_opening_element(token.parent().unwrap()) {
+        if token.kind() == Kind::GreaterThanToken
+            && ast::is_jsx_opening_element(token.parent().unwrap())
+        {
             element = token.parent().unwrap().parent();
         } else if ast::is_jsx_text(token) && ast::is_jsx_element(token.parent().unwrap()) {
             element = token.parent();
         }
 
-        if let Some(element) = element && is_unclosed_tag(element) {
+        if let Some(element) = element
+            && is_unclosed_tag(element)
+        {
             let tag_name_node = element.as_jsx_element().opening_element.tag_name();
             // Slight divergence from Strada - we don't use the verbatim text from the opening tag.
-            closing_text = format!("</{}>", ast::entity_name_to_string(tag_name_node, Some(&scanner::get_text_of_node)));
+            closing_text = format!(
+                "</{}>",
+                ast::entity_name_to_string(tag_name_node, Some(&scanner::get_text_of_node))
+            );
         } else {
             let mut fragment: Option<P<Node>> = None;
-            if token.kind() == Kind::GreaterThanToken && ast::is_jsx_opening_fragment(token.parent().unwrap()) {
+            if token.kind() == Kind::GreaterThanToken
+                && ast::is_jsx_opening_fragment(token.parent().unwrap())
+            {
                 fragment = token.parent().unwrap().parent();
             } else if ast::is_jsx_text(token) && ast::is_jsx_fragment(token.parent().unwrap()) {
                 fragment = token.parent();
@@ -86,7 +106,10 @@ fn is_unclosed_tag(node: P<Node>) -> bool {
 
     let parent = node.parent().unwrap();
     if ast::is_jsx_element(parent) {
-        return ast::tag_names_are_equivalent(opening_element.tag_name(), parent.as_jsx_element().opening_element.tag_name()) && is_unclosed_tag(parent);
+        return ast::tag_names_are_equivalent(
+            opening_element.tag_name(),
+            parent.as_jsx_element().opening_element.tag_name(),
+        ) && is_unclosed_tag(parent);
     }
 
     false

@@ -7,23 +7,45 @@
 
 use tsrs_ast::{ExternalModuleIndicatorOptions, SourceFileParseOptions};
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_printer::{new_printer, new_text_writer, EmitTextWriter, PrintHandlers, PrinterOptions};
+use tsrs_printer::{EmitTextWriter, PrintHandlers, PrinterOptions, new_printer, new_text_writer};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let (path, out_dir) = (&args[1], &args[2]);
     let text = tsrs_vfs::internal::decode_bytes(std::fs::read(path).unwrap());
-    let opts = SourceFileParseOptions { file_name: path.clone(), path: Path::new(path.clone()), external_module_indicator_options: ExternalModuleIndicatorOptions { jsx: false, force: false } };
-    let file = tsrs_parser::parse_source_file(opts, &text, tsrs_core::ensure_script_kind_from_file_name(path));
+    let opts = SourceFileParseOptions {
+        file_name: path.clone(),
+        path: Path::new(path.clone()),
+        external_module_indicator_options: ExternalModuleIndicatorOptions {
+            jsx: false,
+            force: false,
+        },
+    };
+    let file = tsrs_parser::parse_source_file(
+        opts,
+        &text,
+        tsrs_core::ensure_script_kind_from_file_name(path),
+    );
     let base = tspath::get_base_file_name(path);
     let js_file_path = tspath::combine_paths(out_dir, &[&base]);
     let mut generator = tsrs_sourcemap::new_generator(
         &tspath::get_base_file_name(&js_file_path),
         "",
         &tspath::get_directory_path(&tspath::normalize_path(&js_file_path)),
-        ComparePathsOptions { use_case_sensitive_file_names: true, current_directory: std::env::current_dir().unwrap().to_string_lossy().into_owned() },
+        ComparePathsOptions {
+            use_case_sensitive_file_names: true,
+            current_directory: std::env::current_dir().unwrap().to_string_lossy().into_owned(),
+        },
     );
-    let mut p = new_printer(PrinterOptions { source_map: true, target: tsrs_core::ScriptTarget::ESNext, ..Default::default() }, PrintHandlers::default(), None);
+    let mut p = new_printer(
+        PrinterOptions {
+            source_map: true,
+            target: tsrs_core::ScriptTarget::ESNext,
+            ..Default::default()
+        },
+        PrintHandlers::default(),
+        None,
+    );
     let mut writer: Box<dyn EmitTextWriter> = new_text_writer("\n", 0);
     p.write(file.as_node(), Some(file), &mut *writer, Some(&mut generator));
     if !writer.is_at_start_of_line() {

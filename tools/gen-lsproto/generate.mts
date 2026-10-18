@@ -2600,7 +2600,7 @@ function generateCode() {
                     writeLine("                }");
                 }
                 else {
-                    writeLine(`                ${rustStr(prop.name)} => s.${f.rust} = ${expr},`);
+                    writeLine(`                ${rustStr(prop.name)} => { s.${f.rust} = ${expr}; },`);
                 }
             }
             if (!singleField) {

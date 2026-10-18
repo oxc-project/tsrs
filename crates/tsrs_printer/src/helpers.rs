@@ -8,7 +8,7 @@ pub struct Priority {
 
 pub struct EmitHelper {
     pub name: &'static str, // A unique name for this helper.
-    pub scoped: bool, // Indicates whether the helper MUST be emitted in the current scope.
+    pub scoped: bool,       // Indicates whether the helper MUST be emitted in the current scope.
     pub text: &'static str, // ES3-compatible raw script text
     pub text_callback: Option<fn(make_unique_name: &mut dyn FnMut(&str) -> String) -> String>, // A function yielding an ES3-compatible raw script text.
     pub priority: Option<&'static Priority>, // Helpers with a higher priority are emitted earlier than other helpers on the node.

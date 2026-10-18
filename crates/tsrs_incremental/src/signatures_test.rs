@@ -7,11 +7,14 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use tsrs_ast::Diagnostic;
-use tsrs_compiler::{new_compiler_host, new_program, CompilerHost, Context, Program as CompilerProgram, ProgramOptions};
-use tsrs_core::tspath::Path;
+use tsrs_compiler::{
+    CompilerHost, Context, Program as CompilerProgram, ProgramOptions, new_compiler_host,
+    new_program,
+};
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
-use tsrs_vfs::{vfstest, FS};
+use tsrs_vfs::{FS, vfstest};
 
 use crate::emit::{EmitOptions, ProgramLike, WriteFileData};
 use crate::program::Program;
@@ -56,12 +59,33 @@ const VARIANTS: [(&str, &[&str]); 8] = [
             "import { f } from './a';\nexport const g: number = f();\n",
         ],
     ),
-    ("/src/c.ts", &["import { g } from './b';\nexport const h: number = g;\n", "import { g } from './b';\nexport const h: string = g;\n"]),
+    (
+        "/src/c.ts",
+        &[
+            "import { g } from './b';\nexport const h: number = g;\n",
+            "import { g } from './b';\nexport const h: string = g;\n",
+        ],
+    ),
     ("/src/d.ts", &["export * from './b';\n", "export * from './b';\nexport const dd = 1;\n"]),
-    ("/src/e.ts", &["import { g } from './d';\nexport const k = [g];\n", "import { g } from './d';\nexport const k: boolean = g;\n"]),
-    ("/src/f.ts", &["import { k } from './e';\nconst z: number[] = k;\n", "import { k } from './e';\nconst z: string[] = k;\n"]),
+    (
+        "/src/e.ts",
+        &[
+            "import { g } from './d';\nexport const k = [g];\n",
+            "import { g } from './d';\nexport const k: boolean = g;\n",
+        ],
+    ),
+    (
+        "/src/f.ts",
+        &[
+            "import { k } from './e';\nconst z: number[] = k;\n",
+            "import { k } from './e';\nconst z: string[] = k;\n",
+        ],
+    ),
     ("/src/glob.ts", &["declare var G: number;\n", "declare var G: string;\n"]),
-    ("/src/useglob.ts", &["export const u: number = G;\n", "export const u: number = G;\n// u comment\n"]),
+    (
+        "/src/useglob.ts",
+        &["export const u: number = G;\n", "export const u: number = G;\n// u comment\n"],
+    ),
 ];
 
 // The global types the checker needs (noLib): without them every program has global errors, and tsc's passes stop
@@ -69,20 +93,29 @@ const VARIANTS: [(&str, &[&str]); 8] = [
 const LIB: &str = "interface Array<T> { length: number; [n: number]: T; }\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number {}\ninterface Object {}\ninterface RegExp {}\ninterface String {}\n";
 
 fn files_of(config: &str, texts: &BTreeMap<&'static str, String>) -> Vec<(&'static str, String)> {
-    let mut files = vec![("/src/tsconfig.json", config.to_string()), ("/src/lib.d.ts", LIB.to_string())];
+    let mut files =
+        vec![("/src/tsconfig.json", config.to_string()), ("/src/lib.d.ts", LIB.to_string())];
     files.extend(texts.iter().map(|(&name, text)| (name, text.clone())));
     files
 }
 
 fn compiler_host(files: &[(&'static str, String)]) -> Arc<dyn CompilerHost> {
-    let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.as_str())), true));
+    let fs: Arc<dyn FS> =
+        Arc::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.as_str())), true));
     new_compiler_host("/", fs, "", None, None, None)
 }
 
 fn compiler_program(files: &[(&'static str, String)]) -> &'static CompilerProgram {
-    let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.as_str())), true));
+    let fs: Arc<dyn FS> =
+        Arc::new(vfstest::from_map(files.iter().map(|(k, v)| (*k, v.as_str())), true));
     let config_host: &'static configHost = Box::leak(Box::new(configHost { fs }));
-    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file("/src/tsconfig.json", None, None, config_host, None);
+    let (config, diagnostics) = tsoptions::get_parsed_command_line_of_config_file(
+        "/src/tsconfig.json",
+        None,
+        None,
+        config_host,
+        None,
+    );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
     new_program(ProgramOptions::new(P::new(config.unwrap()), compiler_host(files)))
 }
@@ -90,7 +123,15 @@ fn compiler_program(files: &[(&'static str, String)]) -> &'static CompilerProgra
 fn describe(diagnostics: &[P<Diagnostic>]) -> Vec<String> {
     let mut lines: Vec<String> = diagnostics
         .iter()
-        .map(|d| format!("{}:{:?} TS{} {}", d.file().map(|f| f.file_name().to_string()).unwrap_or_default(), d.pos(), d.code(), d.message_text()))
+        .map(|d| {
+            format!(
+                "{}:{:?} TS{} {}",
+                d.file().map(|f| f.file_name().to_string()).unwrap_or_default(),
+                d.pos(),
+                d.code(),
+                d.message_text()
+            )
+        })
         .collect();
     lines.sort();
     lines
@@ -107,7 +148,9 @@ fn incremental_diagnostics(ctx: &Context, program: &'static Program) -> Vec<Stri
         &mut |ctx, file| program.get_semantic_diagnostics(ctx, file),
     );
     let write_file = |_: &str, _: &str, _: &mut WriteFileData| -> Result<(), String> { Ok(()) };
-    if let Some(result) = program.emit(ctx, EmitOptions { write_file: Some(&write_file), ..Default::default() }) {
+    if let Some(result) =
+        program.emit(ctx, EmitOptions { write_file: Some(&write_file), ..Default::default() })
+    {
         diagnostics.extend(result.diagnostics.iter().copied());
     }
     describe(&diagnostics)
@@ -123,7 +166,16 @@ fn fresh_diagnostics(ctx: &Context, program: &'static CompilerProgram) -> Vec<St
         &mut |ctx, file| program.get_semantic_diagnostics(ctx, file),
     );
     let write_file = |_: &str, _: &str, _: &mut WriteFileData| -> Result<(), String> { Ok(()) };
-    diagnostics.extend(program.emit(ctx, &tsrs_compiler::EmitOptions { write_file: Some(&write_file), ..Default::default() }).diagnostics.iter().copied());
+    diagnostics.extend(
+        program
+            .emit(
+                ctx,
+                &tsrs_compiler::EmitOptions { write_file: Some(&write_file), ..Default::default() },
+            )
+            .diagnostics
+            .iter()
+            .copied(),
+    );
     describe(&diagnostics)
 }
 
@@ -139,11 +191,22 @@ fn splitmix(state: &mut u64) -> u64 {
 fn run(config: &str, seed: u64, steps: usize) -> (usize, usize) {
     let ctx = Context::default();
     let mut rng = seed;
-    let mut texts: BTreeMap<&'static str, String> = VARIANTS.iter().map(|&(name, variants)| (name, variants[0].to_string())).collect();
+    let mut texts: BTreeMap<&'static str, String> =
+        VARIANTS.iter().map(|&(name, variants)| (name, variants[0].to_string())).collect();
     let mut files = files_of(config, &texts);
     let mut compiler = compiler_program(&files);
-    let mut program: &'static Program = Box::leak(Box::new(crate::new_program(compiler, None, crate::create_host(compiler_host(&files)), None, false))).get();
-    assert_eq!(incremental_diagnostics(&ctx, program), fresh_diagnostics(&ctx, compiler_program(&files)));
+    let mut program: &'static Program = Box::leak(Box::new(crate::new_program(
+        compiler,
+        None,
+        crate::create_host(compiler_host(&files)),
+        None,
+        false,
+    )))
+    .get();
+    assert_eq!(
+        incremental_diagnostics(&ctx, program),
+        fresh_diagnostics(&ctx, compiler_program(&files))
+    );
     let mut stored = program.compute_placeholder_signatures(&ctx, 2);
     let mut type_errors = 0;
     for step in 0..steps {
@@ -160,10 +223,21 @@ fn run(config: &str, seed: u64, steps: usize) -> (usize, usize) {
             (Some(reused), _, true) => reused,
             _ => compiler_program(&files),
         };
-        program = Box::leak(Box::new(crate::new_program(compiler, Some(P::from_static(program)), crate::create_host(host), None, false))).get();
+        program = Box::leak(Box::new(crate::new_program(
+            compiler,
+            Some(P::from_static(program)),
+            crate::create_host(host),
+            None,
+            false,
+        )))
+        .get();
         let fresh = fresh_diagnostics(&ctx, compiler_program(&files));
         type_errors += usize::from(fresh.iter().any(|d| d.contains(" TS2322 ")));
-        assert_eq!(incremental_diagnostics(&ctx, program), fresh, "{config}\nseed {seed}, step {step}: {name}\n{texts:#?}");
+        assert_eq!(
+            incremental_diagnostics(&ctx, program),
+            fresh,
+            "{config}\nseed {seed}, step {step}: {name}\n{texts:#?}"
+        );
         // The watch computes the signatures while it waits for the next change, unless the change comes first.
         if !splitmix(&mut rng).is_multiple_of(3) {
             stored += program.compute_placeholder_signatures(&ctx, 2);
@@ -183,16 +257,26 @@ fn edits_invalidate_the_same_files_with_computed_signatures() {
         }
     }
     assert!(stored > 100, "the signatures were computed ({stored})");
-    assert!(type_errors > 300, "the semantic diagnostics were compared ({type_errors} steps with type errors)");
+    assert!(
+        type_errors > 300,
+        "the semantic diagnostics were compared ({type_errors} steps with type errors)"
+    );
 }
 
 #[test]
 fn computed_signatures_replace_only_stand_ins() {
     let ctx = Context::default();
-    let texts: BTreeMap<&'static str, String> = VARIANTS.iter().map(|&(name, variants)| (name, variants[0].to_string())).collect();
+    let texts: BTreeMap<&'static str, String> =
+        VARIANTS.iter().map(|&(name, variants)| (name, variants[0].to_string())).collect();
     let files = files_of(CONFIGS[0], &texts);
-    let program: &'static Program =
-        Box::leak(Box::new(crate::new_program(compiler_program(&files), None, crate::create_host(compiler_host(&files)), None, false))).get();
+    let program: &'static Program = Box::leak(Box::new(crate::new_program(
+        compiler_program(&files),
+        None,
+        crate::create_host(compiler_host(&files)),
+        None,
+        false,
+    )))
+    .get();
     let a = Path::from("/src/a.ts");
     let info = program.snapshot.file_infos.load(&a).unwrap();
     assert_eq!(info.signature, info.version, "the initial build stores the version");
@@ -207,14 +291,27 @@ fn computed_signatures_replace_only_stand_ins() {
 #[test]
 fn signatures_wait_for_pending_changes() {
     let ctx = Context::default();
-    let texts: BTreeMap<&'static str, String> = VARIANTS.iter().map(|&(name, variants)| (name, variants[0].to_string())).collect();
+    let texts: BTreeMap<&'static str, String> =
+        VARIANTS.iter().map(|&(name, variants)| (name, variants[0].to_string())).collect();
     let files = files_of(CONFIGS[0], &texts);
-    let old: &'static Program =
-        Box::leak(Box::new(crate::new_program(compiler_program(&files), None, crate::create_host(compiler_host(&files)), None, false))).get();
+    let old: &'static Program = Box::leak(Box::new(crate::new_program(
+        compiler_program(&files),
+        None,
+        crate::create_host(compiler_host(&files)),
+        None,
+        false,
+    )))
+    .get();
     let mut edited = texts.clone();
     edited.insert("/src/a.ts", VARIANTS[0].1[1].to_string());
     let edited = files_of(CONFIGS[0], &edited);
-    let new = crate::new_program(compiler_program(&edited), Some(P::from_static(old)), crate::create_host(compiler_host(&edited)), None, false);
+    let new = crate::new_program(
+        compiler_program(&edited),
+        Some(P::from_static(old)),
+        crate::create_host(compiler_host(&edited)),
+        None,
+        false,
+    );
     assert_eq!(new.snapshot.changed_files_set.size(), 1);
     assert_eq!(new.compute_placeholder_signatures(&ctx, 3), 0);
 }

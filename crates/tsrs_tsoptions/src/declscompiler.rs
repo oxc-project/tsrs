@@ -3,13 +3,16 @@ use std::sync::LazyLock;
 use tsrs_core::{ScriptTarget, Tristate};
 use tsrs_diagnostics as diagnostics;
 
-use crate::commandlineoption::{CommandLineOption, CommandLineOptionKind, DefaultValueDescription, ExtraValidation};
+use crate::commandlineoption::{
+    CommandLineOption, CommandLineOptionKind, DefaultValueDescription, ExtraValidation,
+};
 use crate::parsinghelpers::for_each_compiler_options_field;
 use crate::tsconfigparsing::COMMAND_LINE_COMPILER_OPTIONS_MAP;
 use tsrs_core::CompilerOptions;
 
-pub static OPTIONS_DECLARATIONS: LazyLock<Vec<&'static CommandLineOption>> =
-    LazyLock::new(|| COMMON_OPTIONS_WITH_BUILD.iter().chain(OPTIONS_FOR_COMPILER.iter()).copied().collect());
+pub static OPTIONS_DECLARATIONS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
+    COMMON_OPTIONS_WITH_BUILD.iter().chain(OPTIONS_FOR_COMPILER.iter()).copied().collect()
+});
 
 // BEGIN GENERATED
 static COMMON_OPTIONS_WITH_BUILD_ITEMS: [CommandLineOption; 29] = [
@@ -282,39 +285,40 @@ static COMMON_OPTIONS_WITH_BUILD_ITEMS: [CommandLineOption; 29] = [
     },
 ];
 
-pub(crate) static COMMON_OPTIONS_WITH_BUILD: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
-    vec![
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[0],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[1],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[2],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[3],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[4],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[5],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[6],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[7],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[8],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[9],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[10],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[11],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[12],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[13],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[14],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[15],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[16],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[17],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[18],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[19],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[20],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[21],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[22],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[23],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[24],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[25],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[26],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[27],
-        &COMMON_OPTIONS_WITH_BUILD_ITEMS[28],
-    ]
-});
+pub(crate) static COMMON_OPTIONS_WITH_BUILD: LazyLock<Vec<&'static CommandLineOption>> =
+    LazyLock::new(|| {
+        vec![
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[0],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[1],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[2],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[3],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[4],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[5],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[6],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[7],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[8],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[9],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[10],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[11],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[12],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[13],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[14],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[15],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[16],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[17],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[18],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[19],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[20],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[21],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[22],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[23],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[24],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[25],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[26],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[27],
+            &COMMON_OPTIONS_WITH_BUILD_ITEMS[28],
+        ]
+    });
 
 static OPTIONS_FOR_COMPILER_ITEMS: [CommandLineOption; 97] = [
     CommandLineOption {
@@ -1307,107 +1311,108 @@ static OPTIONS_FOR_COMPILER_ITEMS: [CommandLineOption; 97] = [
     },
 ];
 
-pub(crate) static OPTIONS_FOR_COMPILER: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
-    vec![
-        &OPTIONS_FOR_COMPILER_ITEMS[0],
-        &OPTIONS_FOR_COMPILER_ITEMS[1],
-        &OPTIONS_FOR_COMPILER_ITEMS[2],
-        &OPTIONS_FOR_COMPILER_ITEMS[3],
-        &OPTIONS_FOR_COMPILER_ITEMS[4],
-        &OPTIONS_FOR_COMPILER_ITEMS[5],
-        &OPTIONS_FOR_COMPILER_ITEMS[6],
-        &OPTIONS_FOR_COMPILER_ITEMS[7],
-        &OPTIONS_FOR_COMPILER_ITEMS[8],
-        &OPTIONS_FOR_COMPILER_ITEMS[9],
-        &OPTIONS_FOR_COMPILER_ITEMS[10],
-        &OPTIONS_FOR_COMPILER_ITEMS[11],
-        &OPTIONS_FOR_COMPILER_ITEMS[12],
-        &OPTIONS_FOR_COMPILER_ITEMS[13],
-        &OPTIONS_FOR_COMPILER_ITEMS[14],
-        &OPTIONS_FOR_COMPILER_ITEMS[15],
-        &OPTIONS_FOR_COMPILER_ITEMS[16],
-        &OPTIONS_FOR_COMPILER_ITEMS[17],
-        &OPTIONS_FOR_COMPILER_ITEMS[18],
-        &OPTIONS_FOR_COMPILER_ITEMS[19],
-        &OPTIONS_FOR_COMPILER_ITEMS[20],
-        &OPTIONS_FOR_COMPILER_ITEMS[21],
-        &OPTIONS_FOR_COMPILER_ITEMS[22],
-        &OPTIONS_FOR_COMPILER_ITEMS[23],
-        &OPTIONS_FOR_COMPILER_ITEMS[24],
-        &OPTIONS_FOR_COMPILER_ITEMS[25],
-        &OPTIONS_FOR_COMPILER_ITEMS[26],
-        &OPTIONS_FOR_COMPILER_ITEMS[27],
-        &OPTIONS_FOR_COMPILER_ITEMS[28],
-        &OPTIONS_FOR_COMPILER_ITEMS[29],
-        &OPTIONS_FOR_COMPILER_ITEMS[30],
-        &OPTIONS_FOR_COMPILER_ITEMS[31],
-        &OPTIONS_FOR_COMPILER_ITEMS[32],
-        &OPTIONS_FOR_COMPILER_ITEMS[33],
-        &OPTIONS_FOR_COMPILER_ITEMS[34],
-        &OPTIONS_FOR_COMPILER_ITEMS[35],
-        &OPTIONS_FOR_COMPILER_ITEMS[36],
-        &OPTIONS_FOR_COMPILER_ITEMS[37],
-        &OPTIONS_FOR_COMPILER_ITEMS[38],
-        &OPTIONS_FOR_COMPILER_ITEMS[39],
-        &OPTIONS_FOR_COMPILER_ITEMS[40],
-        &OPTIONS_FOR_COMPILER_ITEMS[41],
-        &OPTIONS_FOR_COMPILER_ITEMS[42],
-        &OPTIONS_FOR_COMPILER_ITEMS[43],
-        &OPTIONS_FOR_COMPILER_ITEMS[44],
-        &OPTIONS_FOR_COMPILER_ITEMS[45],
-        &OPTIONS_FOR_COMPILER_ITEMS[46],
-        &OPTIONS_FOR_COMPILER_ITEMS[47],
-        &OPTIONS_FOR_COMPILER_ITEMS[48],
-        &OPTIONS_FOR_COMPILER_ITEMS[49],
-        &OPTIONS_FOR_COMPILER_ITEMS[50],
-        &OPTIONS_FOR_COMPILER_ITEMS[51],
-        &OPTIONS_FOR_COMPILER_ITEMS[52],
-        &OPTIONS_FOR_COMPILER_ITEMS[53],
-        &OPTIONS_FOR_COMPILER_ITEMS[54],
-        &OPTIONS_FOR_COMPILER_ITEMS[55],
-        &OPTIONS_FOR_COMPILER_ITEMS[56],
-        &OPTIONS_FOR_COMPILER_ITEMS[57],
-        &OPTIONS_FOR_COMPILER_ITEMS[58],
-        &OPTIONS_FOR_COMPILER_ITEMS[59],
-        &OPTIONS_FOR_COMPILER_ITEMS[60],
-        &OPTIONS_FOR_COMPILER_ITEMS[61],
-        &OPTIONS_FOR_COMPILER_ITEMS[62],
-        &OPTIONS_FOR_COMPILER_ITEMS[63],
-        &OPTIONS_FOR_COMPILER_ITEMS[64],
-        &OPTIONS_FOR_COMPILER_ITEMS[65],
-        &OPTIONS_FOR_COMPILER_ITEMS[66],
-        &OPTIONS_FOR_COMPILER_ITEMS[67],
-        &OPTIONS_FOR_COMPILER_ITEMS[68],
-        &OPTIONS_FOR_COMPILER_ITEMS[69],
-        &OPTIONS_FOR_COMPILER_ITEMS[70],
-        &OPTIONS_FOR_COMPILER_ITEMS[71],
-        &OPTIONS_FOR_COMPILER_ITEMS[72],
-        &OPTIONS_FOR_COMPILER_ITEMS[73],
-        &OPTIONS_FOR_COMPILER_ITEMS[74],
-        &OPTIONS_FOR_COMPILER_ITEMS[75],
-        &OPTIONS_FOR_COMPILER_ITEMS[76],
-        &OPTIONS_FOR_COMPILER_ITEMS[77],
-        &OPTIONS_FOR_COMPILER_ITEMS[78],
-        &OPTIONS_FOR_COMPILER_ITEMS[79],
-        &OPTIONS_FOR_COMPILER_ITEMS[80],
-        &OPTIONS_FOR_COMPILER_ITEMS[81],
-        &OPTIONS_FOR_COMPILER_ITEMS[82],
-        &OPTIONS_FOR_COMPILER_ITEMS[83],
-        &OPTIONS_FOR_COMPILER_ITEMS[84],
-        &OPTIONS_FOR_COMPILER_ITEMS[85],
-        &OPTIONS_FOR_COMPILER_ITEMS[86],
-        &OPTIONS_FOR_COMPILER_ITEMS[87],
-        &OPTIONS_FOR_COMPILER_ITEMS[88],
-        &OPTIONS_FOR_COMPILER_ITEMS[89],
-        &OPTIONS_FOR_COMPILER_ITEMS[90],
-        &OPTIONS_FOR_COMPILER_ITEMS[91],
-        &OPTIONS_FOR_COMPILER_ITEMS[92],
-        &OPTIONS_FOR_COMPILER_ITEMS[93],
-        &OPTIONS_FOR_COMPILER_ITEMS[94],
-        &OPTIONS_FOR_COMPILER_ITEMS[95],
-        &OPTIONS_FOR_COMPILER_ITEMS[96],
-    ]
-});
+pub(crate) static OPTIONS_FOR_COMPILER: LazyLock<Vec<&'static CommandLineOption>> =
+    LazyLock::new(|| {
+        vec![
+            &OPTIONS_FOR_COMPILER_ITEMS[0],
+            &OPTIONS_FOR_COMPILER_ITEMS[1],
+            &OPTIONS_FOR_COMPILER_ITEMS[2],
+            &OPTIONS_FOR_COMPILER_ITEMS[3],
+            &OPTIONS_FOR_COMPILER_ITEMS[4],
+            &OPTIONS_FOR_COMPILER_ITEMS[5],
+            &OPTIONS_FOR_COMPILER_ITEMS[6],
+            &OPTIONS_FOR_COMPILER_ITEMS[7],
+            &OPTIONS_FOR_COMPILER_ITEMS[8],
+            &OPTIONS_FOR_COMPILER_ITEMS[9],
+            &OPTIONS_FOR_COMPILER_ITEMS[10],
+            &OPTIONS_FOR_COMPILER_ITEMS[11],
+            &OPTIONS_FOR_COMPILER_ITEMS[12],
+            &OPTIONS_FOR_COMPILER_ITEMS[13],
+            &OPTIONS_FOR_COMPILER_ITEMS[14],
+            &OPTIONS_FOR_COMPILER_ITEMS[15],
+            &OPTIONS_FOR_COMPILER_ITEMS[16],
+            &OPTIONS_FOR_COMPILER_ITEMS[17],
+            &OPTIONS_FOR_COMPILER_ITEMS[18],
+            &OPTIONS_FOR_COMPILER_ITEMS[19],
+            &OPTIONS_FOR_COMPILER_ITEMS[20],
+            &OPTIONS_FOR_COMPILER_ITEMS[21],
+            &OPTIONS_FOR_COMPILER_ITEMS[22],
+            &OPTIONS_FOR_COMPILER_ITEMS[23],
+            &OPTIONS_FOR_COMPILER_ITEMS[24],
+            &OPTIONS_FOR_COMPILER_ITEMS[25],
+            &OPTIONS_FOR_COMPILER_ITEMS[26],
+            &OPTIONS_FOR_COMPILER_ITEMS[27],
+            &OPTIONS_FOR_COMPILER_ITEMS[28],
+            &OPTIONS_FOR_COMPILER_ITEMS[29],
+            &OPTIONS_FOR_COMPILER_ITEMS[30],
+            &OPTIONS_FOR_COMPILER_ITEMS[31],
+            &OPTIONS_FOR_COMPILER_ITEMS[32],
+            &OPTIONS_FOR_COMPILER_ITEMS[33],
+            &OPTIONS_FOR_COMPILER_ITEMS[34],
+            &OPTIONS_FOR_COMPILER_ITEMS[35],
+            &OPTIONS_FOR_COMPILER_ITEMS[36],
+            &OPTIONS_FOR_COMPILER_ITEMS[37],
+            &OPTIONS_FOR_COMPILER_ITEMS[38],
+            &OPTIONS_FOR_COMPILER_ITEMS[39],
+            &OPTIONS_FOR_COMPILER_ITEMS[40],
+            &OPTIONS_FOR_COMPILER_ITEMS[41],
+            &OPTIONS_FOR_COMPILER_ITEMS[42],
+            &OPTIONS_FOR_COMPILER_ITEMS[43],
+            &OPTIONS_FOR_COMPILER_ITEMS[44],
+            &OPTIONS_FOR_COMPILER_ITEMS[45],
+            &OPTIONS_FOR_COMPILER_ITEMS[46],
+            &OPTIONS_FOR_COMPILER_ITEMS[47],
+            &OPTIONS_FOR_COMPILER_ITEMS[48],
+            &OPTIONS_FOR_COMPILER_ITEMS[49],
+            &OPTIONS_FOR_COMPILER_ITEMS[50],
+            &OPTIONS_FOR_COMPILER_ITEMS[51],
+            &OPTIONS_FOR_COMPILER_ITEMS[52],
+            &OPTIONS_FOR_COMPILER_ITEMS[53],
+            &OPTIONS_FOR_COMPILER_ITEMS[54],
+            &OPTIONS_FOR_COMPILER_ITEMS[55],
+            &OPTIONS_FOR_COMPILER_ITEMS[56],
+            &OPTIONS_FOR_COMPILER_ITEMS[57],
+            &OPTIONS_FOR_COMPILER_ITEMS[58],
+            &OPTIONS_FOR_COMPILER_ITEMS[59],
+            &OPTIONS_FOR_COMPILER_ITEMS[60],
+            &OPTIONS_FOR_COMPILER_ITEMS[61],
+            &OPTIONS_FOR_COMPILER_ITEMS[62],
+            &OPTIONS_FOR_COMPILER_ITEMS[63],
+            &OPTIONS_FOR_COMPILER_ITEMS[64],
+            &OPTIONS_FOR_COMPILER_ITEMS[65],
+            &OPTIONS_FOR_COMPILER_ITEMS[66],
+            &OPTIONS_FOR_COMPILER_ITEMS[67],
+            &OPTIONS_FOR_COMPILER_ITEMS[68],
+            &OPTIONS_FOR_COMPILER_ITEMS[69],
+            &OPTIONS_FOR_COMPILER_ITEMS[70],
+            &OPTIONS_FOR_COMPILER_ITEMS[71],
+            &OPTIONS_FOR_COMPILER_ITEMS[72],
+            &OPTIONS_FOR_COMPILER_ITEMS[73],
+            &OPTIONS_FOR_COMPILER_ITEMS[74],
+            &OPTIONS_FOR_COMPILER_ITEMS[75],
+            &OPTIONS_FOR_COMPILER_ITEMS[76],
+            &OPTIONS_FOR_COMPILER_ITEMS[77],
+            &OPTIONS_FOR_COMPILER_ITEMS[78],
+            &OPTIONS_FOR_COMPILER_ITEMS[79],
+            &OPTIONS_FOR_COMPILER_ITEMS[80],
+            &OPTIONS_FOR_COMPILER_ITEMS[81],
+            &OPTIONS_FOR_COMPILER_ITEMS[82],
+            &OPTIONS_FOR_COMPILER_ITEMS[83],
+            &OPTIONS_FOR_COMPILER_ITEMS[84],
+            &OPTIONS_FOR_COMPILER_ITEMS[85],
+            &OPTIONS_FOR_COMPILER_ITEMS[86],
+            &OPTIONS_FOR_COMPILER_ITEMS[87],
+            &OPTIONS_FOR_COMPILER_ITEMS[88],
+            &OPTIONS_FOR_COMPILER_ITEMS[89],
+            &OPTIONS_FOR_COMPILER_ITEMS[90],
+            &OPTIONS_FOR_COMPILER_ITEMS[91],
+            &OPTIONS_FOR_COMPILER_ITEMS[92],
+            &OPTIONS_FOR_COMPILER_ITEMS[93],
+            &OPTIONS_FOR_COMPILER_ITEMS[94],
+            &OPTIONS_FOR_COMPILER_ITEMS[95],
+            &OPTIONS_FOR_COMPILER_ITEMS[96],
+        ]
+    });
 // END GENERATED
 
 fn options_have_changes(
@@ -1446,20 +1451,34 @@ fn options_have_changes(
     false
 }
 
-fn compare_strict<T: std::any::Any>(old_options: &CompilerOptions, new_options: &CompilerOptions, old_value: &T, new_value: &T) -> bool {
+fn compare_strict<T: std::any::Any>(
+    old_options: &CompilerOptions,
+    new_options: &CompilerOptions,
+    old_value: &T,
+    new_value: &T,
+) -> bool {
     let old_value = (old_value as &dyn std::any::Any).downcast_ref::<Tristate>().copied().unwrap();
     let new_value = (new_value as &dyn std::any::Any).downcast_ref::<Tristate>().copied().unwrap();
     old_options.get_strict_option_value(old_value) != new_options.get_strict_option_value(new_value)
 }
 
-pub fn compiler_options_affect_semantic_diagnostics(old_options: Option<&CompilerOptions>, new_options: Option<&CompilerOptions>) -> bool {
+pub fn compiler_options_affect_semantic_diagnostics(
+    old_options: Option<&CompilerOptions>,
+    new_options: Option<&CompilerOptions>,
+) -> bool {
     options_have_changes(old_options, new_options, |option| option.affects_semantic_diagnostics)
 }
 
-pub fn compiler_options_affect_declaration_path(old_options: Option<&CompilerOptions>, new_options: Option<&CompilerOptions>) -> bool {
+pub fn compiler_options_affect_declaration_path(
+    old_options: Option<&CompilerOptions>,
+    new_options: Option<&CompilerOptions>,
+) -> bool {
     options_have_changes(old_options, new_options, |option| option.affects_declaration_path)
 }
 
-pub fn compiler_options_affect_emit(old_options: Option<&CompilerOptions>, new_options: Option<&CompilerOptions>) -> bool {
+pub fn compiler_options_affect_emit(
+    old_options: Option<&CompilerOptions>,
+    new_options: Option<&CompilerOptions>,
+) -> bool {
     options_have_changes(old_options, new_options, |option| option.affects_emit)
 }

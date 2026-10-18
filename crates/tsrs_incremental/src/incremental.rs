@@ -6,7 +6,7 @@ use tsrs_compiler::CompilerHost;
 use tsrs_core::P;
 use tsrs_tsoptions::ParsedCommandLine;
 
-use crate::buildinfo::{content_mapper_identities, BuildInfo};
+use crate::buildinfo::{BuildInfo, content_mapper_identities};
 use crate::buildinfotosnapshot::build_info_to_snapshot;
 use crate::program::Program;
 
@@ -28,15 +28,21 @@ impl BuildInfoReader for buildInfoReader {
         }
 
         // Read build info file
-        let data = tsrs_core::phases::time("BuildInfo read: read file", || self.host.fs().read_file(&build_info_file_name))?;
-        tsrs_core::phases::time("BuildInfo read: unmarshal", || BuildInfo::unmarshal_with_canonical_diagnostics(&data, self.canonical_diagnostics).ok())
+        let data = tsrs_core::phases::time("BuildInfo read: read file", || {
+            self.host.fs().read_file(&build_info_file_name)
+        })?;
+        tsrs_core::phases::time("BuildInfo read: unmarshal", || {
+            BuildInfo::unmarshal_with_canonical_diagnostics(&data, self.canonical_diagnostics).ok()
+        })
     }
 }
 
 /// Adds the `BuildInfo read: ...` phase rows (at zero) so that they print in the same place when the read runs
 /// concurrently with program construction.
 pub fn register_build_info_read_phases() {
-    for name in ["BuildInfo read: read file", "BuildInfo read: unmarshal", "BuildInfo read: to snapshot"] {
+    for name in
+        ["BuildInfo read: read file", "BuildInfo read: unmarshal", "BuildInfo read: to snapshot"]
+    {
         tsrs_core::phases::record(name, std::time::Duration::ZERO);
     }
 }
@@ -45,12 +51,19 @@ pub fn new_build_info_reader(host: Arc<dyn CompilerHost>) -> Box<dyn BuildInfoRe
     new_build_info_reader_with_canonical_diagnostics(host, true)
 }
 
-pub fn new_build_info_reader_with_canonical_diagnostics(host: Arc<dyn CompilerHost>, canonical_diagnostics: bool) -> Box<dyn BuildInfoReader> {
+pub fn new_build_info_reader_with_canonical_diagnostics(
+    host: Arc<dyn CompilerHost>,
+    canonical_diagnostics: bool,
+) -> Box<dyn BuildInfoReader> {
     Box::new(buildInfoReader { host, canonical_diagnostics })
 }
 
 // incremental.go:44
-pub fn read_build_info_program(config: P<ParsedCommandLine>, reader: &dyn BuildInfoReader, host: &dyn CompilerHost) -> Option<P<Program>> {
+pub fn read_build_info_program(
+    config: P<ParsedCommandLine>,
+    reader: &dyn BuildInfoReader,
+    host: &dyn CompilerHost,
+) -> Option<P<Program>> {
     // Read buildInfo file
     let build_info = reader.read_build_info(&config)?;
     if !build_info.is_valid_version() || !build_info.is_incremental() {
@@ -64,5 +77,7 @@ pub fn read_build_info_program(config: P<ParsedCommandLine>, reader: &dyn BuildI
     }
 
     // Convert to information that can be used to create incremental program
-    Some(Program::new_from_snapshot(tsrs_core::phases::time("BuildInfo read: to snapshot", || build_info_to_snapshot(&build_info, &config, host))))
+    Some(Program::new_from_snapshot(tsrs_core::phases::time("BuildInfo read: to snapshot", || {
+        build_info_to_snapshot(&build_info, &config, host)
+    })))
 }

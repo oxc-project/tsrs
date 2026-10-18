@@ -1,7 +1,7 @@
 use bitflags::bitflags;
 use tsrs_core::P;
 
-use crate::{is_optional_chain, Kind, Node};
+use crate::{Kind, Node, is_optional_chain};
 
 #[repr(u32)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -104,7 +104,11 @@ bitflags! {
 }
 
 // Gets the precedence of an operator
-pub fn get_operator_precedence(node_kind: Kind, operator_kind: Kind, flags: OperatorPrecedenceFlags) -> OperatorPrecedence {
+pub fn get_operator_precedence(
+    node_kind: Kind,
+    operator_kind: Kind,
+    flags: OperatorPrecedenceFlags,
+) -> OperatorPrecedence {
     match node_kind {
         Kind::SpreadElement => OperatorPrecedence::Spread,
         Kind::YieldExpression => OperatorPrecedence::Yield,
@@ -161,7 +165,9 @@ pub fn get_operator_precedence(node_kind: Kind, operator_kind: Kind, flags: Oper
             OperatorPrecedence::Member
         }
         // !!! By necessity, this differs from the old compiler to better align with ParenthesizerRules. consider backporting
-        Kind::TaggedTemplateExpression | Kind::MetaProperty | Kind::ExpressionWithTypeArguments => OperatorPrecedence::Member,
+        Kind::TaggedTemplateExpression | Kind::MetaProperty | Kind::ExpressionWithTypeArguments => {
+            OperatorPrecedence::Member
+        }
         Kind::AsExpression | Kind::SatisfiesExpression => OperatorPrecedence::Relational,
         Kind::ThisKeyword
         | Kind::SuperKeyword
@@ -201,9 +207,10 @@ pub fn get_binary_operator_precedence(operator_kind: Kind) -> OperatorPrecedence
         Kind::BarToken => OperatorPrecedence::BitwiseOR,
         Kind::CaretToken => OperatorPrecedence::BitwiseXOR,
         Kind::AmpersandToken => OperatorPrecedence::BitwiseAND,
-        Kind::EqualsEqualsToken | Kind::ExclamationEqualsToken | Kind::EqualsEqualsEqualsToken | Kind::ExclamationEqualsEqualsToken => {
-            OperatorPrecedence::Equality
-        }
+        Kind::EqualsEqualsToken
+        | Kind::ExclamationEqualsToken
+        | Kind::EqualsEqualsEqualsToken
+        | Kind::ExclamationEqualsEqualsToken => OperatorPrecedence::Equality,
         Kind::LessThanToken
         | Kind::GreaterThanToken
         | Kind::LessThanEqualsToken
@@ -212,11 +219,13 @@ pub fn get_binary_operator_precedence(operator_kind: Kind) -> OperatorPrecedence
         | Kind::InKeyword
         | Kind::AsKeyword
         | Kind::SatisfiesKeyword => OperatorPrecedence::Relational,
-        Kind::LessThanLessThanToken | Kind::GreaterThanGreaterThanToken | Kind::GreaterThanGreaterThanGreaterThanToken => {
-            OperatorPrecedence::Shift
-        }
+        Kind::LessThanLessThanToken
+        | Kind::GreaterThanGreaterThanToken
+        | Kind::GreaterThanGreaterThanGreaterThanToken => OperatorPrecedence::Shift,
         Kind::PlusToken | Kind::MinusToken => OperatorPrecedence::Additive,
-        Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken => OperatorPrecedence::Multiplicative,
+        Kind::AsteriskToken | Kind::SlashToken | Kind::PercentToken => {
+            OperatorPrecedence::Multiplicative
+        }
         Kind::AsteriskAsteriskToken => OperatorPrecedence::Exponentiation,
         // -1 is lower than all other precedences.  Returning it will cause binary expression
         // parsing to stop.

@@ -14,10 +14,16 @@ static LIB_PATH: LazyLock<String> = LazyLock::new(|| {
     if cfg!(test) {
         return super::testing_lib_path();
     }
-    let exe = std::env::current_exe().and_then(std::fs::canonicalize).expect("bundled: failed to get executable path");
+    let exe = std::env::current_exe()
+        .and_then(std::fs::canonicalize)
+        .expect("bundled: failed to get executable path");
     let dir = exe.parent().expect("bundled: executable has no directory");
     let libdts = dir.join("lib.d.ts");
-    assert!(libdts.exists(), "bundled: {} does not exist; this executable may be misplaced", libdts.display());
+    assert!(
+        libdts.exists(),
+        "bundled: {} does not exist; this executable may be misplaced",
+        libdts.display()
+    );
     tspath::normalize_slashes(&dir.to_string_lossy())
 });
 

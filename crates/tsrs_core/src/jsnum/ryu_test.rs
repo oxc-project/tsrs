@@ -1,5 +1,5 @@
 use super::jsnum_test::number_from_bits;
-use super::string_test::{st, StringTest};
+use super::string_test::{StringTest, st};
 use super::*;
 
 // Copyright 2018 Ulf Adams

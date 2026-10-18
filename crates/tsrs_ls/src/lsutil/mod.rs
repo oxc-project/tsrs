@@ -1,19 +1,19 @@
 mod asi;
 mod children;
-mod utilities;
 mod completednode;
-mod userpreferences;
-mod organizeimports;
 mod formatcodeoptions;
+mod organizeimports;
 mod symbol_display;
+mod userpreferences;
+mod utilities;
 pub use asi::*;
 pub use children::*;
-pub use utilities::*;
 pub use completednode::*;
-pub use userpreferences::*;
-pub use organizeimports::*;
 pub use formatcodeoptions::*;
+pub use organizeimports::*;
 pub use symbol_display::*;
+pub use userpreferences::*;
+pub use utilities::*;
 
 #[cfg(test)]
 mod utilities_test;

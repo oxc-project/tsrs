@@ -6,9 +6,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use tsrs_ast::Diagnostic;
-use tsrs_core::{tspath, P};
+use tsrs_core::{P, tspath};
 use tsrs_execute::tsc::System;
-use tsrs_vfs::{bundled, FS};
+use tsrs_vfs::{FS, bundled};
 
 use crate::host::HostFs;
 
@@ -27,7 +27,13 @@ pub struct WasmSys {
 impl WasmSys {
     /// `diagnostics`: collect diagnostics there (the JSON reply) instead of printing them.
     /// `out`: where tsc's text goes (stdout, which is WASI fd 1 in the module).
-    pub fn new(cwd: &str, case_sensitive: bool, tty: bool, diagnostics: Option<Arc<Mutex<Vec<P<Diagnostic>>>>>, out: Box<dyn Write + Send>) -> WasmSys {
+    pub fn new(
+        cwd: &str,
+        case_sensitive: bool,
+        tty: bool,
+        diagnostics: Option<Arc<Mutex<Vec<P<Diagnostic>>>>>,
+        out: Box<dyn Write + Send>,
+    ) -> WasmSys {
         WasmSys {
             writer: Mutex::new(out),
             fs: Arc::new(bundled::wrap_fs(HostFs::new(case_sensitive))),
@@ -78,7 +84,12 @@ impl System for WasmSys {
     }
 
     // Go's osSys.Spawn (cmd/tsc/sys.go:68), which WASI cannot carry out: the mapper's initialization then fails.
-    fn spawn(&self, command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>) -> Result<tsrs_execute::tsc::ReadWriteCloser, String> {
+    fn spawn(
+        &self,
+        command: &[String],
+        dir: &str,
+        stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<tsrs_execute::tsc::ReadWriteCloser, String> {
         tsrs_contentmapper::spawn_process(command, dir, stderr)
     }
 

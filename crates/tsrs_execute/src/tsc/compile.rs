@@ -17,7 +17,12 @@ pub trait System: Sync {
     fn get_environment_variable(&self, name: &str) -> Option<String>;
     // compile.go:31: starts a content mapper process (the production system's is
     // `tsrs_contentmapper::spawn_process`, Go's cmd/tsc/sys.go spawnProcess). A `None` stderr is Go's io.Discard.
-    fn spawn(&self, command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>) -> Result<super::ReadWriteCloser, String>;
+    fn spawn(
+        &self,
+        command: &[String],
+        dir: &str,
+        stderr: Option<Box<dyn Write + Send>>,
+    ) -> Result<super::ReadWriteCloser, String>;
     // Go `sys.ErrorWriter()`, which only the content mapper logger writes to here.
     fn write_error(&self, text: &str) {
         eprint!("{text}");
@@ -62,14 +67,24 @@ fn new_content_mapper_logger(sys: &'static dyn System) -> Option<contentmapper::
 // Close it when the compilation session ends.
 // compile.go:89 (Go binds the host to the command's context, which closes it when the process ends; the callers
 // close it explicitly instead. The locale is the option's text: tsrs does not canonicalize BCP 47 tags.)
-pub fn new_content_mapper_host(sys: &'static dyn System, options: &CompilerOptions) -> Option<Arc<dyn contentmapper::Host>> {
+pub fn new_content_mapper_host(
+    sys: &'static dyn System,
+    options: &CompilerOptions,
+) -> Option<Arc<dyn contentmapper::Host>> {
     if !options.run_external_code.is_true() {
         return None;
     }
     let diagnostic_locale = Locale(options.locale.clone());
-    let spawner: Arc<dyn contentmapper::Spawner> =
-        Arc::new(contentmapper::SpawnerFunc(move |command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| sys.spawn(command, dir, stderr)));
-    Some(contentmapper::new_host_with_options(spawner, diagnostic_locale, contentmapper::HostOptions { logger: new_content_mapper_logger(sys) }))
+    let spawner: Arc<dyn contentmapper::Spawner> = Arc::new(contentmapper::SpawnerFunc(
+        move |command: &[String], dir: &str, stderr: Option<Box<dyn Write + Send>>| {
+            sys.spawn(command, dir, stderr)
+        },
+    ));
+    Some(contentmapper::new_host_with_options(
+        spawner,
+        diagnostic_locale,
+        contentmapper::HostOptions { logger: new_content_mapper_logger(sys) },
+    ))
 }
 
 // Go's `defer contentMapperProject.Close()` (tsc.go:300, 358) and the close of the host, which Go leaves to the
@@ -102,7 +117,13 @@ pub fn format_local_time_03_04_05_pm(t: std::time::SystemTime) -> String {
         0 => 12,
         h => h,
     };
-    format!("{:02}:{:02}:{:02} {}", hour12, tm.tm_min, tm.tm_sec, if tm.tm_hour < 12 { "AM" } else { "PM" })
+    format!(
+        "{:02}:{:02}:{:02} {}",
+        hour12,
+        tm.tm_min,
+        tm.tm_sec,
+        if tm.tm_hour < 12 { "AM" } else { "PM" }
+    )
 }
 
 /// Targets without `localtime_r` (WASI has no time zone): UTC, as Go's js/wasm reports it.
@@ -143,7 +164,12 @@ pub trait CommandLineTesting: Sync {
     fn watch_backend(&self) -> Option<std::sync::Arc<dyn crate::watchmanager::WatchBackend>> {
         None
     }
-    fn on_emitted_files(&self, _result: Option<&tsrs_compiler::EmitResult>, _m_times_cache: Option<&MTimesCache>) {}
+    fn on_emitted_files(
+        &self,
+        _result: Option<&tsrs_compiler::EmitResult>,
+        _m_times_cache: Option<&MTimesCache>,
+    ) {
+    }
     fn on_program(&self, _program: P<tsrs_incremental::Program>) {}
     // tsrs-only: the watch computes placeholder signatures after each cycle (watcher.rs `start_signature_job`), on the
     // cycle's thread, before the next edit. Off by default, as Go has no such step.
@@ -157,14 +183,22 @@ pub trait CommandLineTesting: Sync {
 pub type SyncWriter = std::sync::Arc<dyn Fn(&str) + Send + Sync>;
 
 // The build host's mtime cache (Go `*collections.SyncMap[tspath.Path, time.Time]`, zero time = None).
-pub type MTimesCache = std::sync::Arc<std::sync::Mutex<rustc_hash::FxHashMap<tsrs_core::tspath::Path, Option<std::time::SystemTime>>>>;
+pub type MTimesCache = std::sync::Arc<
+    std::sync::Mutex<rustc_hash::FxHashMap<tsrs_core::tspath::Path, Option<std::time::SystemTime>>>,
+>;
 
 // emit.go:21 GetTraceWithWriterFromSys
-pub fn get_trace_with_writer_from_sys(w: SyncWriter, is_sys_writer: bool, testing: Option<&'static dyn CommandLineTesting>) -> Box<tsrs_compiler::TraceFn> {
+pub fn get_trace_with_writer_from_sys(
+    w: SyncWriter,
+    is_sys_writer: bool,
+    testing: Option<&'static dyn CommandLineTesting>,
+) -> Box<tsrs_compiler::TraceFn> {
     match testing {
-        None => Box::new(move |msg: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]| {
-            w(&format!("{}\n", msg.localize(args)));
-        }),
+        None => Box::new(
+            move |msg: &'static tsrs_diagnostics::Message, args: &[&dyn std::fmt::Display]| {
+                w(&format!("{}\n", msg.localize(args)));
+            },
+        ),
         Some(testing) => testing.get_trace(w, is_sys_writer),
     }
 }

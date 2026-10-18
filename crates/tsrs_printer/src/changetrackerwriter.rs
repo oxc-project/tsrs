@@ -7,7 +7,7 @@ use tsrs_core::stringutil;
 use tsrs_core::*;
 use tsrs_scanner as scanner;
 
-use crate::textwriter::{textWriter, get_default_indent_size};
+use crate::textwriter::{get_default_indent_size, textWriter};
 use crate::{EmitTextWriter, PrintHandlers};
 
 // changetrackerwriter.go:19 (Go interface `*ast.Node | *ast.NodeList`, compared by pointer)
@@ -118,21 +118,41 @@ impl ChangeTrackerWriter {
         let p_modifiers = Rc::clone(&positions);
         let modifiers_factory = factory.clone();
         let mut visitor = new_node_visitor(
-            Some(Rc::new(move |v: &mut NodeVisitor, n: P<Node>| assign_positions_to_node_worker(&p_visit, Some(n), v))),
+            Some(Rc::new(move |v: &mut NodeVisitor, n: P<Node>| {
+                assign_positions_to_node_worker(&p_visit, Some(n), v)
+            })),
             Some(factory.clone()),
             NodeVisitorHooks {
-                visit_node: Some(Rc::new(move |n: Option<P<Node>>, v: &mut NodeVisitor| assign_positions_to_node_worker(&p_node, n, v))),
-                visit_nodes: Some(Rc::new(move |nodes: Option<P<NodeList>>, v: &mut NodeVisitor| assign_positions_to_node_array(&p_nodes, nodes, v))),
-                visit_token: Some(Rc::new(move |n: Option<P<Node>>, v: &mut NodeVisitor| assign_positions_to_node_worker(&p_token, n, v))),
-                visit_modifiers: Some(Rc::new(move |modifiers: Option<P<ModifierList>>, v: &mut NodeVisitor| {
-                    if let Some(modifiers) = modifiers {
-                        let new_node_list = assign_positions_to_node_array(&p_modifiers, Some(P::from_static(&modifiers.get().list)), v).unwrap();
-                        // Return a new ModifierList so that VisitEachChild/Update detects the
-                        // change and creates a new node with reassigned child positions.
-                        return Some(modifiers_factory.new_modifier_list_from_slice(new_node_list.nodes()));
-                    }
-                    modifiers
+                visit_node: Some(Rc::new(move |n: Option<P<Node>>, v: &mut NodeVisitor| {
+                    assign_positions_to_node_worker(&p_node, n, v)
                 })),
+                visit_nodes: Some(Rc::new(
+                    move |nodes: Option<P<NodeList>>, v: &mut NodeVisitor| {
+                        assign_positions_to_node_array(&p_nodes, nodes, v)
+                    },
+                )),
+                visit_token: Some(Rc::new(move |n: Option<P<Node>>, v: &mut NodeVisitor| {
+                    assign_positions_to_node_worker(&p_token, n, v)
+                })),
+                visit_modifiers: Some(Rc::new(
+                    move |modifiers: Option<P<ModifierList>>, v: &mut NodeVisitor| {
+                        if let Some(modifiers) = modifiers {
+                            let new_node_list = assign_positions_to_node_array(
+                                &p_modifiers,
+                                Some(P::from_static(&modifiers.get().list)),
+                                v,
+                            )
+                            .unwrap();
+                            // Return a new ModifierList so that VisitEachChild/Update detects the
+                            // change and creates a new node with reassigned child positions.
+                            return Some(
+                                modifiers_factory
+                                    .new_modifier_list_from_slice(new_node_list.nodes()),
+                            );
+                        }
+                        modifiers
+                    },
+                )),
                 ..Default::default()
             },
         );
@@ -165,7 +185,11 @@ fn get_end(positions: &Rc<RefCell<changeTrackerPositions>>, node: triviaPosition
 }
 
 // changetrackerwriter.go:130
-fn assign_positions_to_node_worker(positions: &Rc<RefCell<changeTrackerPositions>>, node: Option<P<Node>>, v: &mut NodeVisitor) -> Option<P<Node>> {
+fn assign_positions_to_node_worker(
+    positions: &Rc<RefCell<changeTrackerPositions>>,
+    node: Option<P<Node>>,
+    v: &mut NodeVisitor,
+) -> Option<P<Node>> {
     let node = node?;
     let visited = node.visit_each_child(v);
     // Assigning positions must not mutate the caller's node: it may be printed again (a change in a
@@ -181,12 +205,19 @@ fn assign_positions_to_node_worker(positions: &Rc<RefCell<changeTrackerPositions
         child.set_parent(Some(new_node));
         true
     });
-    new_node.set_loc(TextRange::new(get_pos(positions, triviaPositionKey::Node(node)), get_end(positions, triviaPositionKey::Node(node))));
+    new_node.set_loc(TextRange::new(
+        get_pos(positions, triviaPositionKey::Node(node)),
+        get_end(positions, triviaPositionKey::Node(node)),
+    ));
     Some(new_node)
 }
 
 // changetrackerwriter.go:154
-fn assign_positions_to_node_array(positions: &Rc<RefCell<changeTrackerPositions>>, nodes: Option<P<NodeList>>, v: &mut NodeVisitor) -> Option<P<NodeList>> {
+fn assign_positions_to_node_array(
+    positions: &Rc<RefCell<changeTrackerPositions>>,
+    nodes: Option<P<NodeList>>,
+    v: &mut NodeVisitor,
+) -> Option<P<NodeList>> {
     let visited = v.visit_nodes(nodes)?;
     let Some(nodes) = nodes else {
         // Debug.assert(nodes);
@@ -198,7 +229,10 @@ fn assign_positions_to_node_array(positions: &Rc<RefCell<changeTrackerPositions>
         node_array = visited.clone_list(&v.factory);
     }
 
-    node_array.loc.set(TextRange::new(get_pos(positions, triviaPositionKey::NodeList(nodes)), get_end(positions, triviaPositionKey::NodeList(nodes))));
+    node_array.loc.set(TextRange::new(
+        get_pos(positions, triviaPositionKey::NodeList(nodes)),
+        get_end(positions, triviaPositionKey::NodeList(nodes)),
+    ));
     Some(node_array)
 }
 

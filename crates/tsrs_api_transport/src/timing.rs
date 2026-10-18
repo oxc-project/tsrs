@@ -48,11 +48,16 @@ pub struct TimingCollector {
 impl TimingCollector {
     pub fn record(&self, method: &str, d: Duration) {
         let processing_ms = d.as_nanos() as f64 / 1_000_000.0;
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as i64);
+        let timestamp =
+            SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as i64);
         let mut s = self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         s.totals.request_count += 1;
         s.totals.total_processing_time_ms += processing_ms;
-        let entry = ServerRequestTiming { method: method.to_string(), processing_time_ms: processing_ms, timestamp };
+        let entry = ServerRequestTiming {
+            method: method.to_string(),
+            processing_time_ms: processing_ms,
+            timestamp,
+        };
         if s.ring.len() < SERVER_RECENT_REQUEST_CAPACITY {
             s.ring.push(entry);
         } else {
@@ -78,6 +83,10 @@ impl TimingCollector {
 pub fn server_timing_snapshot(c: Option<&TimingCollector>) -> ServerTimingInfo {
     match c {
         Some(c) => c.snapshot(),
-        None => ServerTimingInfo { enabled: false, totals: ServerTimingTotals::default(), recent_requests: Vec::new() },
+        None => ServerTimingInfo {
+            enabled: false,
+            totals: ServerTimingTotals::default(),
+            recent_requests: Vec::new(),
+        },
     }
 }

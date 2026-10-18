@@ -5,8 +5,8 @@
 // Follow-up candidates (notes/mem-lazy.md) each have their own switch below. A candidate only takes effect when the
 // master switch is on too, so `TSRS_LAZY_MEMBERS=0` stays reference-identical whatever the candidate switches say.
 
-use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 // 0: not given on the command line, 1: `--lazyMembers`, 2: `--noLazyMembers`.
 static CLI: AtomicU8 = AtomicU8::new(0);

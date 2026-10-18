@@ -4,12 +4,14 @@
 use std::cmp::Ordering;
 
 use tsrs_ast::{Symbol, SymbolFlags};
-use tsrs_core::json::Value;
 use tsrs_core::P;
+use tsrs_core::json::Value;
 
 use super::host::{CachedFileScope, CheckerError, CheckerHost, CheckerResult};
-use super::params::{Params, SymbolReference, SYMBOL_OWNER_KIND_FILE, SYMBOL_OWNER_KIND_SNAPSHOT};
-use super::setup::{file_symbol_response, symbol_owner_file, touching_property_name_at_utf16, Setup, SnapshotCtx};
+use super::params::{Params, SYMBOL_OWNER_KIND_FILE, SYMBOL_OWNER_KIND_SNAPSHOT, SymbolReference};
+use super::setup::{
+    Setup, SnapshotCtx, file_symbol_response, symbol_owner_file, touching_property_name_at_utf16,
+};
 use super::symbol_index::source_file_symbol;
 
 fn setup<'h>(host: &'h dyn CheckerHost, p: &Params) -> CheckerResult<Setup<'h>> {
@@ -60,14 +62,20 @@ pub(crate) fn get_symbols_at_locations(host: &dyn CheckerHost, p: &Params) -> Ch
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_symbol_of_source_file(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_symbol_of_source_file(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let file = s.source_file(&p.document("file")?)?;
     let symbol = s.c().get_symbol_at_location_exported(file.as_node());
     s.opt_symbol_response(symbol)
 }
 
-pub(crate) fn get_symbols_of_source_files(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_symbols_of_source_files(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let files = p.documents("files")?;
     let mut out = Vec::with_capacity(files.len());
@@ -88,7 +96,11 @@ pub(crate) enum SymbolTypeQuery {
     NonMissingType,
 }
 
-pub(crate) fn get_type_of_symbol(host: &dyn CheckerHost, p: &Params, query: SymbolTypeQuery) -> CheckerResult<Value> {
+pub(crate) fn get_type_of_symbol(
+    host: &dyn CheckerHost,
+    p: &Params,
+    query: SymbolTypeQuery,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let symbol = s.resolve_symbol(&p.symbol_ref("symbol")?)?;
     let t = match query {
@@ -116,7 +128,8 @@ pub(crate) fn get_types_of_symbols(host: &dyn CheckerHost, p: &Params) -> Checke
 pub(crate) fn resolve_name(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let file = p.opt_document("file")?;
-    let location = s.resolve_location(p.string("location")?, file.as_ref(), p.opt_u32("position")?)?;
+    let location =
+        s.resolve_location(p.string("location")?, file.as_ref(), p.opt_u32("position")?)?;
     let meaning = SymbolFlags::from_bits_retain(p.u32("meaning")?);
     let name = p.string("name")?;
     let exclude_globals = p.bool("excludeGlobals")?;
@@ -128,7 +141,8 @@ pub(crate) fn resolve_name(host: &dyn CheckerHost, p: &Params) -> CheckerResult<
 pub(crate) fn get_symbols_in_scope(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let file = p.opt_document("file")?;
-    let location = s.resolve_location(p.string("location")?, file.as_ref(), p.opt_u32("position")?)?;
+    let location =
+        s.resolve_location(p.string("location")?, file.as_ref(), p.opt_u32("position")?)?;
     let Some(location) = location else {
         return Err(CheckerError::client("getSymbolsInScope requires a location"));
     };
@@ -137,14 +151,20 @@ pub(crate) fn get_symbols_in_scope(host: &dyn CheckerHost, p: &Params) -> Checke
     s.symbols_response(&symbols)
 }
 
-pub(crate) fn get_shorthand_assignment_value_symbol(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_shorthand_assignment_value_symbol(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let symbol = s.c().get_shorthand_assignment_value_symbol(Some(node));
     s.opt_symbol_response(symbol)
 }
 
-pub(crate) fn get_export_specifier_local_target_symbol(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_export_specifier_local_target_symbol(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let node = s.resolve_node(p.string("location")?)?;
     let symbol = s.c().get_export_specifier_local_target_symbol(node);
@@ -159,7 +179,11 @@ pub(crate) enum AliasQuery {
     ExportSymbol,
 }
 
-pub(crate) fn alias_query(host: &dyn CheckerHost, p: &Params, query: AliasQuery) -> CheckerResult<Value> {
+pub(crate) fn alias_query(
+    host: &dyn CheckerHost,
+    p: &Params,
+    query: AliasQuery,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let symbol = s.resolve_symbol(&p.symbol_ref("symbol")?)?;
     let result = match query {
@@ -188,7 +212,10 @@ pub(crate) fn get_exports_of_module(host: &dyn CheckerHost, p: &Params) -> Check
     s.symbols_response(&exports)
 }
 
-pub(crate) fn get_member_in_module_exports(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_member_in_module_exports(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let symbol = s.resolve_symbol(&p.symbol_ref("symbol")?)?;
     let member = s.c().try_get_member_in_module_exports(p.string("name")?, symbol);
@@ -212,7 +239,10 @@ pub(crate) fn get_jsdoc_tags(host: &dyn CheckerHost, p: &Params) -> CheckerResul
     Ok(Value::Array(out))
 }
 
-pub(crate) fn get_documentation_comment(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_documentation_comment(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let symbol = s.resolve_symbol(&p.symbol_ref("symbol")?)?;
     Ok(Value::String(tsrs_ls::get_symbol_documentation_comment(s.c(), Some(symbol))))
@@ -225,12 +255,19 @@ pub(crate) fn is_readonly_symbol(host: &dyn CheckerHost, p: &Params) -> CheckerR
 }
 
 /// Go `handleGetReferencesToSymbolInFile`.
-pub(crate) fn get_references_to_symbol_in_file(host: &dyn CheckerHost, p: &Params) -> CheckerResult<Value> {
+pub(crate) fn get_references_to_symbol_in_file(
+    host: &dyn CheckerHost,
+    p: &Params,
+) -> CheckerResult<Value> {
     let mut s = setup(host, p)?;
     let file = s.source_file(&p.document("file")?)?;
     let symbol = s.resolve_symbol(&p.symbol_ref("symbol")?)?;
     let refs = s.c().get_references_to_symbol_in_file(file, symbol);
-    Ok(Value::Array(refs.into_iter().map(|n| host.node_handle(n).map(Value::String)).collect::<CheckerResult<_>>()?))
+    Ok(Value::Array(
+        refs.into_iter()
+            .map(|n| host.node_handle(n).map(Value::String))
+            .collect::<CheckerResult<_>>()?,
+    ))
 }
 
 /// `slices.SortFunc(symbols, checker.CompareSymbols)`.
@@ -243,7 +280,13 @@ fn sort_by_checker(s: &mut Setup, symbols: &mut [P<Symbol>]) {
 
 /// The owner a context-free symbol reference resolved through (Go `resolveSymbolReference`).
 enum Owner<'h> {
-    File(#[expect(dead_code, reason = "held for its Drop: the lease keeps the cached file retained while the symbol is used")] CachedFileScope),
+    File(
+        #[expect(
+            dead_code,
+            reason = "held for its Drop: the lease keeps the cached file retained while the symbol is used"
+        )]
+        CachedFileScope,
+    ),
     Snapshot(SnapshotCtx<'h>),
 }
 
@@ -258,19 +301,28 @@ impl Owner<'_> {
 
 fn file_owned_response(host: &dyn CheckerHost, symbol: P<Symbol>) -> CheckerResult<Value> {
     if symbol_owner_file(symbol).is_none() {
-        return Err(CheckerError::client("symbol related to a file-owned symbol is not file-owned"));
+        return Err(CheckerError::client(
+            "symbol related to a file-owned symbol is not file-owned",
+        ));
     }
     file_symbol_response(host, symbol)
 }
 
-fn resolve_symbol_reference<'h>(host: &'h dyn CheckerHost, r: &SymbolReference) -> CheckerResult<(P<Symbol>, Owner<'h>)> {
+fn resolve_symbol_reference<'h>(
+    host: &'h dyn CheckerHost,
+    r: &SymbolReference,
+) -> CheckerResult<(P<Symbol>, Owner<'h>)> {
     match r.kind {
         SYMBOL_OWNER_KIND_FILE => {
-            let Some(descriptor) = r.file.as_ref().filter(|_| r.snapshot == 0 && r.project.is_empty()) else {
+            let Some(descriptor) =
+                r.file.as_ref().filter(|_| r.snapshot == 0 && r.project.is_empty())
+            else {
                 return Err(CheckerError::client("invalid file symbol reference"));
             };
             let lease = host.acquire_cached_source_file(descriptor)?;
-            let symbol = source_file_symbol(lease.file, r.id).ok_or_else(|| CheckerError::client(format!("symbol {} not found in source file", r.id)))?;
+            let symbol = source_file_symbol(lease.file, r.id).ok_or_else(|| {
+                CheckerError::client(format!("symbol {} not found in source file", r.id))
+            })?;
             Ok((symbol, Owner::File(lease)))
         }
         SYMBOL_OWNER_KIND_SNAPSHOT => {
@@ -292,7 +344,11 @@ pub(crate) enum SymbolProperty {
 }
 
 /// Go `resolveSymbolPropertyOfSymbol`.
-pub(crate) fn symbol_property(host: &dyn CheckerHost, p: &Params, property: SymbolProperty) -> CheckerResult<Value> {
+pub(crate) fn symbol_property(
+    host: &dyn CheckerHost,
+    p: &Params,
+    property: SymbolProperty,
+) -> CheckerResult<Value> {
     let (symbol, owner) = resolve_symbol_reference(host, &p.symbol_ref("symbol")?)?;
     let result = match property {
         SymbolProperty::Parent => symbol.parent(),
@@ -311,7 +367,11 @@ pub(crate) enum SymbolTableProperty {
 }
 
 /// Go `resolveSymbolTablePropertyOfSymbol`.
-pub(crate) fn symbol_table_property(host: &dyn CheckerHost, p: &Params, property: SymbolTableProperty) -> CheckerResult<Value> {
+pub(crate) fn symbol_table_property(
+    host: &dyn CheckerHost,
+    p: &Params,
+    property: SymbolTableProperty,
+) -> CheckerResult<Value> {
     let r = p.symbol_ref("symbol")?;
     let (symbol, owner) = resolve_symbol_reference(host, &r)?;
     let table = match property {
@@ -330,7 +390,12 @@ pub(crate) fn symbol_table_property(host: &dyn CheckerHost, p: &Params, property
             // Binder tables of a file-owned symbol only contain symbols from the same file, so they can
             // be ordered by declaration position without a checker.
             symbols.sort_by(compare_file_symbols);
-            Ok(Value::Array(symbols.into_iter().map(|s| file_owned_response(host, s)).collect::<CheckerResult<_>>()?))
+            Ok(Value::Array(
+                symbols
+                    .into_iter()
+                    .map(|s| file_owned_response(host, s))
+                    .collect::<CheckerResult<_>>()?,
+            ))
         }
         Owner::Snapshot(sd) => {
             drop(sd);
@@ -342,7 +407,10 @@ pub(crate) fn symbol_table_property(host: &dyn CheckerHost, p: &Params, property
     }
 }
 
-#[expect(clippy::trivially_copy_pass_by_ref, reason = "passed to sort_by, which hands the comparator references")]
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "passed to sort_by, which hands the comparator references"
+)]
 fn compare_file_symbols(left: &P<Symbol>, right: &P<Symbol>) -> Ordering {
     let (ld, rd) = (left.declarations(), right.declarations());
     if ld.is_empty() != rd.is_empty() {
@@ -355,5 +423,7 @@ fn compare_file_symbols(left: &P<Symbol>, right: &P<Symbol>) -> Ordering {
         }
     }
     // Go compares the (escaped-name) strings bytewise.
-    left.name().cmp(right.name()).then_with(|| tsrs_ast::get_symbol_id(*left).0.cmp(&tsrs_ast::get_symbol_id(*right).0))
+    left.name()
+        .cmp(right.name())
+        .then_with(|| tsrs_ast::get_symbol_id(*left).0.cmp(&tsrs_ast::get_symbol_id(*right).0))
 }

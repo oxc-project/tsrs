@@ -13,7 +13,8 @@ use std::time::{Duration, Instant};
 fn sigterm_cancels_the_language_server() {
     let mut child = spawn(&["--lsp", "-stdio"]);
     signal(&child, libc::SIGTERM);
-    let status = wait(&mut child, Duration::from_secs(10)).expect("the language server did not exit");
+    let status =
+        wait(&mut child, Duration::from_secs(10)).expect("the language server did not exit");
     let mut stderr = String::new();
     child.stderr.take().unwrap().read_to_string(&mut stderr).unwrap();
     assert_eq!(status.code(), Some(1), "{status:?}");
@@ -24,7 +25,10 @@ fn sigterm_cancels_the_language_server() {
 fn sigterm_stops_the_api_server_after_the_next_message() {
     let mut child = spawn(&["--api"]);
     signal(&child, libc::SIGTERM);
-    assert!(wait(&mut child, Duration::from_millis(500)).is_none(), "the API server exited before the next message");
+    assert!(
+        wait(&mut child, Duration::from_millis(500)).is_none(),
+        "the API server exited before the next message"
+    );
 
     // A sync (MessagePack) request: [Request, method, payload].
     let (method, payload) = (b"bogusMethod", b"{}");
@@ -36,7 +40,8 @@ fn sigterm_stops_the_api_server_after_the_next_message() {
     stdin.write_all(&request).unwrap();
     stdin.flush().unwrap();
 
-    let status = wait(&mut child, Duration::from_secs(10)).expect("the API server kept running after the next message");
+    let status = wait(&mut child, Duration::from_secs(10))
+        .expect("the API server kept running after the next message");
     drop(stdin);
     let mut stdout = Vec::new();
     child.stdout.take().unwrap().read_to_end(&mut stdout).unwrap();
@@ -49,9 +54,13 @@ fn sigterm_stops_the_api_server_after_the_next_message() {
 fn sigint_stops_the_async_api_server_at_eof() {
     let mut child = spawn(&["--api", "--async"]);
     signal(&child, libc::SIGINT);
-    assert!(wait(&mut child, Duration::from_millis(500)).is_none(), "the API server exited before EOF");
+    assert!(
+        wait(&mut child, Duration::from_millis(500)).is_none(),
+        "the API server exited before EOF"
+    );
     drop(child.stdin.take());
-    let status = wait(&mut child, Duration::from_secs(10)).expect("the API server did not exit at EOF");
+    let status =
+        wait(&mut child, Duration::from_secs(10)).expect("the API server did not exit at EOF");
     assert_eq!(status.code(), Some(0), "{status:?}");
 }
 

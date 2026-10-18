@@ -10,7 +10,10 @@ use tsrs_ls as ls;
 pub use super::util_gen::*;
 
 // util.go:18
-#[expect(clippy::unnecessary_wraps, reason = "Matches the Go pointer result used directly in optional completion edit fields by generated fixtures.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Matches the Go pointer result used directly in optional completion edit fields by generated fixtures."
+)]
 pub fn insert_replace_text_edit(
     new_text: &str,
     edit_range: lsproto::Range,
@@ -87,9 +90,7 @@ pub fn completion_global_types_plus(items: &[Any]) -> Vec<Any> {
     sort_completion_items(
         &[
             &COMPLETION_GLOBAL_TYPE_DECLS[..],
-            &[Any::CompletionItem(
-                COMPLETION_GLOBAL_THIS_ITEM.clone().unwrap(),
-            )],
+            &[Any::CompletionItem(COMPLETION_GLOBAL_THIS_ITEM.clone().unwrap())],
             &COMPLETION_TYPE_KEYWORDS[..],
             items,
         ]

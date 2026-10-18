@@ -74,9 +74,5 @@ impl std::fmt::Display for Tristate {
 
 #[inline]
 pub fn bool_to_tristate(b: bool) -> Tristate {
-    if b {
-        Tristate::True
-    } else {
-        Tristate::False
-    }
+    if b { Tristate::True } else { Tristate::False }
 }

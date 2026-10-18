@@ -16,22 +16,39 @@ pub(crate) fn create_printer_with_defaults(emit_context: P<EmitContext>) -> Prin
 
 // printer.go:17
 pub(crate) fn create_printer_with_remove_comments(emit_context: P<EmitContext>) -> Printer {
-    new_printer(PrinterOptions { remove_comments: true, ..Default::default() }, PrintHandlers::default(), Some(emit_context))
+    new_printer(
+        PrinterOptions { remove_comments: true, ..Default::default() },
+        PrintHandlers::default(),
+        Some(emit_context),
+    )
 }
 
 // printer.go:21
-pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon(emit_context: P<EmitContext>) -> Printer {
+pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon(
+    emit_context: P<EmitContext>,
+) -> Printer {
     new_printer(
-        PrinterOptions { remove_comments: true, omit_trailing_semicolon: true, ..Default::default() },
+        PrinterOptions {
+            remove_comments: true,
+            omit_trailing_semicolon: true,
+            ..Default::default()
+        },
         PrintHandlers::default(),
         Some(emit_context),
     )
 }
 
 // printer.go:28
-pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(emit_context: P<EmitContext>) -> Printer {
+pub(crate) fn create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
+    emit_context: P<EmitContext>,
+) -> Printer {
     new_printer(
-        PrinterOptions { remove_comments: true, omit_trailing_semicolon: true, never_ascii_escape: true, ..Default::default() },
+        PrinterOptions {
+            remove_comments: true,
+            omit_trailing_semicolon: true,
+            never_ascii_escape: true,
+            ..Default::default()
+        },
         PrintHandlers::default(),
         Some(emit_context),
     )
@@ -44,11 +61,16 @@ impl Checker {
     }
 
     // printer.go:47
-    pub(crate) fn type_to_string(&mut self, t: P<Type>, enclosing_declaration: Option<P<Node>>) -> String {
+    pub(crate) fn type_to_string(
+        &mut self,
+        t: P<Type>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> String {
         self.type_to_string_ex(
             t,
             enclosing_declaration,
-            TypeFormatFlags::AllowUniqueESSymbolType | TypeFormatFlags::UseAliasDefinedOutsideCurrentScope,
+            TypeFormatFlags::AllowUniqueESSymbolType
+                | TypeFormatFlags::UseAliasDefinedOutsideCurrentScope,
             None,
         )
     }
@@ -61,12 +83,24 @@ pub(crate) fn to_node_builder_flags(flags: TypeFormatFlags) -> Flags {
 
 impl Checker {
     // printer.go:55
-    pub fn type_to_string_ex_exported(&mut self, t: P<Type>, enclosing_declaration: Option<P<Node>>, flags: TypeFormatFlags, vc: Option<P<VerbosityContext>>) -> String {
+    pub fn type_to_string_ex_exported(
+        &mut self,
+        t: P<Type>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: TypeFormatFlags,
+        vc: Option<P<VerbosityContext>>,
+    ) -> String {
         self.type_to_string_ex(t, enclosing_declaration, flags, vc)
     }
 
     // printer.go:59
-    pub fn type_to_string_ex(&mut self, t: P<Type>, enclosing_declaration: Option<P<Node>>, flags: TypeFormatFlags, vc: Option<P<VerbosityContext>>) -> String {
+    pub fn type_to_string_ex(
+        &mut self,
+        t: P<Type>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: TypeFormatFlags,
+        vc: Option<P<VerbosityContext>>,
+    ) -> String {
         // Serialization of types can lead to (lazy) resolution of members, which can cause diagnostics that again require
         // serialization of types. This can potentially result in infinite recursion and stack overflows. To prevent that,
         // after a certain number of recursive invocations the function simply returns "?".
@@ -89,7 +123,14 @@ impl Checker {
         let old_verbosity = node_builder.verbosity.get();
         node_builder.verbosity.set(vc);
         self.serialization_level += 1;
-        let type_node = node_builder.type_to_type_node(self, t, enclosing_declaration, combined_flags, InternalFlags::None, None);
+        let type_node = node_builder.type_to_type_node(
+            self,
+            t,
+            enclosing_declaration,
+            combined_flags,
+            InternalFlags::None,
+            None,
+        );
         self.serialization_level -= 1;
         let Some(type_node) = type_node else {
             panic!("should always get typenode");
@@ -138,16 +179,33 @@ impl Checker {
 
     // printer.go:124
     pub(crate) fn symbol_to_string(&mut self, symbol: P<Symbol>) -> String {
-        self.symbol_to_string_ex(symbol, None, SymbolFlags::All, SymbolFormatFlags::AllowAnyNodeKind)
+        self.symbol_to_string_ex(
+            symbol,
+            None,
+            SymbolFlags::All,
+            SymbolFormatFlags::AllowAnyNodeKind,
+        )
     }
 
     // printer.go:128
-    pub fn symbol_to_string_ex_exported(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, flags: SymbolFormatFlags) -> String {
+    pub fn symbol_to_string_ex_exported(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        flags: SymbolFormatFlags,
+    ) -> String {
         self.symbol_to_string_ex(symbol, enclosing_declaration, meaning, flags)
     }
 
     // printer.go:132
-    pub fn symbol_to_string_ex(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, flags: SymbolFormatFlags) -> String {
+    pub fn symbol_to_string_ex(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        flags: SymbolFormatFlags,
+    ) -> String {
         let (mut writer, put_writer) = get_single_line_string_writer();
 
         let mut node_flags = Flags::IgnoreErrors;
@@ -175,15 +233,33 @@ impl Checker {
         }
         // add neverAsciiEscape for GH#39027
         let mut printer_ = if enclosing_declaration.is_some_and(|e| e.kind() == Kind::SourceFile) {
-            create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(node_builder.emit_context())
+            create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
+                node_builder.emit_context(),
+            )
         } else {
             create_printer_with_remove_comments_omit_trailing_semicolon(node_builder.emit_context())
         };
 
         let entity = if flags.intersects(SymbolFormatFlags::AllowAnyNodeKind) {
-            node_builder.symbol_to_node(self, symbol, meaning, enclosing_declaration, node_flags, internal_node_flags, None) // TODO: GH#18217
+            node_builder.symbol_to_node(
+                self,
+                symbol,
+                meaning,
+                enclosing_declaration,
+                node_flags,
+                internal_node_flags,
+                None,
+            ) // TODO: GH#18217
         } else {
-            node_builder.symbol_to_entity_name(self, symbol, meaning, enclosing_declaration, node_flags, internal_node_flags, None) // TODO: GH#18217
+            node_builder.symbol_to_entity_name(
+                self,
+                symbol,
+                meaning,
+                enclosing_declaration,
+                node_flags,
+                internal_node_flags,
+                None,
+            ) // TODO: GH#18217
         };
         printer_.write(entity.unwrap() /*sourceFile*/, source_file, &mut *writer, None); // TODO: GH#18217
         let result = writer.string();
@@ -198,19 +274,28 @@ impl Checker {
     }
 
     // printer.go:183
-    pub fn signature_to_string_ex_exported(&mut self, signature: P<Signature>, enclosing_declaration: Option<P<Node>>, flags: TypeFormatFlags, vc: Option<P<VerbosityContext>>) -> String {
+    pub fn signature_to_string_ex_exported(
+        &mut self,
+        signature: P<Signature>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: TypeFormatFlags,
+        vc: Option<P<VerbosityContext>>,
+    ) -> String {
         self.signature_to_string_ex(signature, enclosing_declaration, flags, vc)
     }
 
     // printer.go:187
-    pub fn signature_to_string_ex(&mut self, signature: P<Signature>, enclosing_declaration: Option<P<Node>>, flags: TypeFormatFlags, vc: Option<P<VerbosityContext>>) -> String {
-        let is_constructor = signature.flags.get().intersects(SignatureFlags::Construct) && !flags.intersects(TypeFormatFlags::WriteCallStyleSignature);
+    pub fn signature_to_string_ex(
+        &mut self,
+        signature: P<Signature>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: TypeFormatFlags,
+        vc: Option<P<VerbosityContext>>,
+    ) -> String {
+        let is_constructor = signature.flags.get().intersects(SignatureFlags::Construct)
+            && !flags.intersects(TypeFormatFlags::WriteCallStyleSignature);
         let sig_output = if flags.intersects(TypeFormatFlags::WriteArrowStyleSignature) {
-            if is_constructor {
-                Kind::ConstructorType
-            } else {
-                Kind::FunctionType
-            }
+            if is_constructor { Kind::ConstructorType } else { Kind::FunctionType }
         } else if is_constructor {
             Kind::ConstructSignature
         } else {
@@ -220,9 +305,21 @@ impl Checker {
         let (node_builder, mut release) = self.get_node_builder();
         let old_verbosity = node_builder.verbosity.get();
         node_builder.verbosity.set(vc);
-        let combined_flags = to_node_builder_flags(flags) | Flags::IgnoreErrors | Flags::WriteTypeParametersInQualifiedName;
-        let sig = node_builder.signature_to_signature_declaration(self, signature, sig_output, enclosing_declaration, combined_flags, InternalFlags::None, None);
-        let mut p = create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(node_builder.emit_context());
+        let combined_flags = to_node_builder_flags(flags)
+            | Flags::IgnoreErrors
+            | Flags::WriteTypeParametersInQualifiedName;
+        let sig = node_builder.signature_to_signature_declaration(
+            self,
+            signature,
+            sig_output,
+            enclosing_declaration,
+            combined_flags,
+            InternalFlags::None,
+            None,
+        );
+        let mut p = create_printer_with_remove_comments_omit_trailing_semicolon_never_ascii_escape(
+            node_builder.emit_context(),
+        );
         let mut source_file = None;
         if let Some(enclosing_declaration) = enclosing_declaration {
             source_file = ast::get_source_file_of_node(enclosing_declaration);
@@ -245,15 +342,33 @@ impl Checker {
 
     // printer.go:229
     pub(crate) fn type_predicate_to_string(&mut self, type_predicate: P<TypePredicate>) -> String {
-        self.type_predicate_to_string_ex(type_predicate, None, TypeFormatFlags::UseAliasDefinedOutsideCurrentScope)
+        self.type_predicate_to_string_ex(
+            type_predicate,
+            None,
+            TypeFormatFlags::UseAliasDefinedOutsideCurrentScope,
+        )
     }
 
     // printer.go:233
-    pub(crate) fn type_predicate_to_string_ex(&mut self, type_predicate: P<TypePredicate>, enclosing_declaration: Option<P<Node>>, flags: TypeFormatFlags) -> String {
+    pub(crate) fn type_predicate_to_string_ex(
+        &mut self,
+        type_predicate: P<TypePredicate>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: TypeFormatFlags,
+    ) -> String {
         let (mut writer, put_writer) = get_single_line_string_writer();
         let (node_builder, mut release) = self.get_node_builder();
-        let combined_flags = to_node_builder_flags(flags) | Flags::IgnoreErrors | Flags::WriteTypeParametersInQualifiedName;
-        let predicate = node_builder.type_predicate_to_type_predicate_node(self, type_predicate, enclosing_declaration, combined_flags, InternalFlags::None, None); // TODO: GH#18217
+        let combined_flags = to_node_builder_flags(flags)
+            | Flags::IgnoreErrors
+            | Flags::WriteTypeParametersInQualifiedName;
+        let predicate = node_builder.type_predicate_to_type_predicate_node(
+            self,
+            type_predicate,
+            enclosing_declaration,
+            combined_flags,
+            InternalFlags::None,
+            None,
+        ); // TODO: GH#18217
         let mut printer_ = create_printer_with_remove_comments(node_builder.emit_context());
         let mut source_file = None;
         if let Some(enclosing_declaration) = enclosing_declaration {
@@ -272,7 +387,11 @@ impl Checker {
     }
 
     // printer.go:253
-    pub(crate) fn format_union_types(&mut self, types: &[P<Type>], expanding_enum: bool) -> Vec<P<Type>> {
+    pub(crate) fn format_union_types(
+        &mut self,
+        types: &[P<Type>],
+        expanding_enum: bool,
+    ) -> Vec<P<Type>> {
         let mut result = Vec::new();
         let mut flags = TypeFlags::None;
         let mut i = 0;
@@ -280,7 +399,9 @@ impl Checker {
             let t = types[i];
             flags |= t.flags();
             if !t.flags().intersects(TypeFlags::Nullable) {
-                if t.flags().intersects(TypeFlags::BooleanLiteral) || (!expanding_enum && t.flags().intersects(TypeFlags::EnumLike)) {
+                if t.flags().intersects(TypeFlags::BooleanLiteral)
+                    || (!expanding_enum && t.flags().intersects(TypeFlags::EnumLike))
+                {
                     let base_type = if t.flags().intersects(TypeFlags::BooleanLiteral) {
                         self.boolean_type
                     } else {
@@ -290,7 +411,8 @@ impl Checker {
                         let base_types = base_type.as_union_type().types.get();
                         let count = base_types.len();
                         if i + count <= types.len()
-                            && self.get_regular_type_of_literal_type(types[i + count - 1]) == self.get_regular_type_of_literal_type(base_types[count - 1])
+                            && self.get_regular_type_of_literal_type(types[i + count - 1])
+                                == self.get_regular_type_of_literal_type(base_types[count - 1])
                         {
                             result.push(base_type);
                             i += count - 1;
@@ -313,22 +435,54 @@ impl Checker {
     }
 
     // printer.go:288
-    pub fn type_to_type_node(&mut self, t: P<Type>, enclosing_declaration: Option<P<Node>>, flags: Flags, id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>) -> Option<P<Node>> {
+    pub fn type_to_type_node(
+        &mut self,
+        t: P<Type>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: Flags,
+        id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>,
+    ) -> Option<P<Node>> {
         let node_builder = self.get_node_builder_ex(id_to_symbol);
-        node_builder.type_to_type_node(self, t, enclosing_declaration, flags, InternalFlags::None, None)
+        node_builder.type_to_type_node(
+            self,
+            t,
+            enclosing_declaration,
+            flags,
+            InternalFlags::None,
+            None,
+        )
     }
 
     // printer.go:293
-    pub fn signature_to_signature_declaration(&mut self, signature: P<Signature>, kind: Kind, enclosing_declaration: Option<P<Node>>, flags: Flags) -> Option<P<Node>> {
+    pub fn signature_to_signature_declaration(
+        &mut self,
+        signature: P<Signature>,
+        kind: Kind,
+        enclosing_declaration: Option<P<Node>>,
+        flags: Flags,
+    ) -> Option<P<Node>> {
         let (node_builder, mut release) = self.get_node_builder();
-        let result = node_builder.signature_to_signature_declaration(self, signature, kind, enclosing_declaration, flags, InternalFlags::None, None);
+        let result = node_builder.signature_to_signature_declaration(
+            self,
+            signature,
+            kind,
+            enclosing_declaration,
+            flags,
+            InternalFlags::None,
+            None,
+        );
         release(self);
         result
     }
 
     // ExpandSymbolForHover produces declaration strings for a symbol with verbosity support for expandable hover.
     // printer.go:300
-    pub fn expand_symbol_for_hover(&mut self, symbol: P<Symbol>, meaning: SymbolFlags, vc: Option<P<VerbosityContext>>) -> String {
+    pub fn expand_symbol_for_hover(
+        &mut self,
+        symbol: P<Symbol>,
+        meaning: SymbolFlags,
+        vc: Option<P<VerbosityContext>>,
+    ) -> String {
         let (node_builder, mut release) = self.get_node_builder();
         let old_verbosity = node_builder.verbosity.get();
         node_builder.verbosity.set(vc);
@@ -357,11 +511,23 @@ impl Checker {
 
     // TypeParameterToStringEx renders a type parameter declaration (e.g. "T extends Foo") with optional verbosity support.
     // printer.go:328
-    pub fn type_parameter_to_string_ex(&mut self, t: P<Type>, enclosing_declaration: Option<P<Node>>, vc: Option<P<VerbosityContext>>) -> String {
+    pub fn type_parameter_to_string_ex(
+        &mut self,
+        t: P<Type>,
+        enclosing_declaration: Option<P<Node>>,
+        vc: Option<P<VerbosityContext>>,
+    ) -> String {
         let (node_builder, mut release) = self.get_node_builder();
         let old_verbosity = node_builder.verbosity.get();
         node_builder.verbosity.set(vc);
-        let type_param_node = node_builder.type_parameter_to_declaration(self, t, enclosing_declaration, Flags::IgnoreErrors, InternalFlags::None, None);
+        let type_param_node = node_builder.type_parameter_to_declaration(
+            self,
+            t,
+            enclosing_declaration,
+            Flags::IgnoreErrors,
+            InternalFlags::None,
+            None,
+        );
         let result = match type_param_node {
             None => self.type_to_string_exported(t),
             Some(type_param_node) => {
@@ -379,15 +545,35 @@ impl Checker {
     }
 
     // printer.go:348
-    pub fn type_to_type_node_ex(&mut self, t: P<Type>, enclosing_declaration: Option<P<Node>>, flags: Flags, internal_flags: InternalFlags, id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>) -> Option<P<Node>> {
+    pub fn type_to_type_node_ex(
+        &mut self,
+        t: P<Type>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: Flags,
+        internal_flags: InternalFlags,
+        id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>,
+    ) -> Option<P<Node>> {
         let node_builder = self.get_node_builder_ex(id_to_symbol);
         node_builder.type_to_type_node(self, t, enclosing_declaration, flags, internal_flags, None)
     }
 
     // printer.go:353
-    pub fn type_predicate_to_type_predicate_node(&mut self, t: P<TypePredicate>, enclosing_declaration: Option<P<Node>>, flags: Flags, id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>) -> Option<P<Node>> {
+    pub fn type_predicate_to_type_predicate_node(
+        &mut self,
+        t: P<TypePredicate>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: Flags,
+        id_to_symbol: Option<P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>>,
+    ) -> Option<P<Node>> {
         let node_builder = self.get_node_builder_ex(id_to_symbol);
-        node_builder.type_predicate_to_type_predicate_node(self, t, enclosing_declaration, flags, InternalFlags::None, None)
+        node_builder.type_predicate_to_type_predicate_node(
+            self,
+            t,
+            enclosing_declaration,
+            flags,
+            InternalFlags::None,
+            None,
+        )
     }
 }
 
@@ -395,25 +581,64 @@ impl Checker {
 
 impl Checker {
     // symbolaccessibility.go:11
-    pub fn is_type_symbol_accessible(&mut self, type_symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>) -> bool {
-        let access = self.is_symbol_accessible_worker(Some(type_symbol), enclosing_declaration, SymbolFlags::Type /*shouldComputeAliasesToMakeVisible*/, false /*allowModules*/, true);
+    pub fn is_type_symbol_accessible(
+        &mut self,
+        type_symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> bool {
+        let access = self.is_symbol_accessible_worker(
+            Some(type_symbol),
+            enclosing_declaration,
+            SymbolFlags::Type, /*shouldComputeAliasesToMakeVisible*/
+            false,             /*allowModules*/
+            true,
+        );
         access.accessibility == SymbolAccessibility::Accessible
     }
 
     // symbolaccessibility.go:16
-    pub fn is_value_symbol_accessible(&mut self, symbol: Option<P<Symbol>>, enclosing_declaration: Option<P<Node>>) -> bool {
-        let access = self.is_symbol_accessible_worker(symbol, enclosing_declaration, SymbolFlags::Value, false /*shouldComputeAliasesToMakeVisible*/, true /*allowModules*/);
+    pub fn is_value_symbol_accessible(
+        &mut self,
+        symbol: Option<P<Symbol>>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> bool {
+        let access = self.is_symbol_accessible_worker(
+            symbol,
+            enclosing_declaration,
+            SymbolFlags::Value,
+            false, /*shouldComputeAliasesToMakeVisible*/
+            true,  /*allowModules*/
+        );
         access.accessibility == SymbolAccessibility::Accessible
     }
 
     // symbolaccessibility.go:21
-    pub fn is_symbol_accessible_by_flags(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, flags: SymbolFlags) -> bool {
-        let access = self.is_symbol_accessible_worker(Some(symbol), enclosing_declaration, flags /*shouldComputeAliasesToMakeVisible*/, false /*allowModules*/, false); // TODO: Strada bug? Why is this allowModules: false?
+    pub fn is_symbol_accessible_by_flags(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        flags: SymbolFlags,
+    ) -> bool {
+        let access = self.is_symbol_accessible_worker(
+            Some(symbol),
+            enclosing_declaration,
+            flags, /*shouldComputeAliasesToMakeVisible*/
+            false, /*allowModules*/
+            false,
+        ); // TODO: Strada bug? Why is this allowModules: false?
         access.accessibility == SymbolAccessibility::Accessible
     }
 
     // symbolaccessibility.go:26
-    pub fn is_any_symbol_accessible(&mut self, symbols: &[P<Symbol>], enclosing_declaration: Option<P<Node>>, initial_symbol: P<Symbol>, meaning: SymbolFlags, should_compute_aliases_to_make_visible: bool, allow_modules: bool) -> Option<P<SymbolAccessibilityResult>> {
+    pub fn is_any_symbol_accessible(
+        &mut self,
+        symbols: &[P<Symbol>],
+        enclosing_declaration: Option<P<Node>>,
+        initial_symbol: P<Symbol>,
+        meaning: SymbolFlags,
+        should_compute_aliases_to_make_visible: bool,
+        allow_modules: bool,
+    ) -> Option<P<SymbolAccessibilityResult>> {
         if symbols.is_empty() {
             return None;
         }
@@ -422,18 +647,30 @@ impl Checker {
         let mut early_module_bail = false;
         for &symbol in symbols {
             // Symbol is accessible if it by itself is accessible
-            let accessible_symbol_chain = self.get_accessible_symbol_chain(symbol, enclosing_declaration, meaning /*useOnlyExternalAliasing*/, false);
+            let accessible_symbol_chain = self.get_accessible_symbol_chain(
+                symbol,
+                enclosing_declaration,
+                meaning, /*useOnlyExternalAliasing*/
+                false,
+            );
             if !accessible_symbol_chain.is_empty() {
                 had_accessible_chain = Some(symbol);
                 // TODO: going through emit resolver here is weird. Relayer these APIs.
                 let r = self.get_emit_resolver();
-                let has_accessible_declarations = r.has_visible_declarations(self, accessible_symbol_chain[0], should_compute_aliases_to_make_visible);
+                let has_accessible_declarations = r.has_visible_declarations(
+                    self,
+                    accessible_symbol_chain[0],
+                    should_compute_aliases_to_make_visible,
+                );
                 if has_accessible_declarations.is_some() {
                     return has_accessible_declarations;
                 }
             }
             if allow_modules {
-                let has_module_declaration = symbol.declarations().iter().any(|&d| has_non_global_augmentation_external_module_symbol(d));
+                let has_module_declaration = symbol
+                    .declarations()
+                    .iter()
+                    .any(|&d| has_non_global_augmentation_external_module_symbol(d));
                 if has_module_declaration {
                     if should_compute_aliases_to_make_visible {
                         early_module_bail = true;
@@ -444,7 +681,10 @@ impl Checker {
                         continue;
                     }
                     // Any meaning of a module symbol is always accessible via an `import` type
-                    return Some(P::new_scratch(SymbolAccessibilityResult { accessibility: SymbolAccessibility::Accessible, ..Default::default() }));
+                    return Some(P::new_scratch(SymbolAccessibilityResult {
+                        accessibility: SymbolAccessibility::Accessible,
+                        ..Default::default()
+                    }));
                 }
             }
 
@@ -466,24 +706,44 @@ impl Checker {
             if initial_symbol == symbol {
                 next_meaning = get_qualified_left_meaning(meaning);
             }
-            let parent_result = self.is_any_symbol_accessible(&containers, enclosing_declaration, initial_symbol, next_meaning, should_compute_aliases_to_make_visible, allow_modules);
+            let parent_result = self.is_any_symbol_accessible(
+                &containers,
+                enclosing_declaration,
+                initial_symbol,
+                next_meaning,
+                should_compute_aliases_to_make_visible,
+                allow_modules,
+            );
             if parent_result.is_some() {
                 return parent_result;
             }
         }
 
         if early_module_bail {
-            return Some(P::new_scratch(SymbolAccessibilityResult { accessibility: SymbolAccessibility::Accessible, ..Default::default() }));
+            return Some(P::new_scratch(SymbolAccessibilityResult {
+                accessibility: SymbolAccessibility::Accessible,
+                ..Default::default()
+            }));
         }
 
         if let Some(had_accessible_chain) = had_accessible_chain {
             let mut module_name = String::new();
             if had_accessible_chain != initial_symbol {
-                module_name = self.symbol_to_string_ex(had_accessible_chain, enclosing_declaration, SymbolFlags::Namespace, SymbolFormatFlags::AllowAnyNodeKind);
+                module_name = self.symbol_to_string_ex(
+                    had_accessible_chain,
+                    enclosing_declaration,
+                    SymbolFlags::Namespace,
+                    SymbolFormatFlags::AllowAnyNodeKind,
+                );
             }
             return Some(P::new_scratch(SymbolAccessibilityResult {
                 accessibility: SymbolAccessibility::NotAccessible,
-                error_symbol_name: self.symbol_to_string_ex(initial_symbol, enclosing_declaration, meaning, SymbolFormatFlags::AllowAnyNodeKind),
+                error_symbol_name: self.symbol_to_string_ex(
+                    initial_symbol,
+                    enclosing_declaration,
+                    meaning,
+                    SymbolFormatFlags::AllowAnyNodeKind,
+                ),
                 error_module_name: module_name,
                 ..Default::default()
             }));
@@ -494,7 +754,9 @@ impl Checker {
 
 // symbolaccessibility.go:105
 pub(crate) fn has_non_global_augmentation_external_module_symbol(declaration: P<Node>) -> bool {
-    ast::is_module_with_string_literal_name(declaration) || (declaration.kind() == Kind::SourceFile && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
+    ast::is_module_with_string_literal_name(declaration)
+        || (declaration.kind() == Kind::SourceFile
+            && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
 }
 
 // symbolaccessibility.go:109
@@ -508,23 +770,36 @@ pub(crate) fn get_qualified_left_meaning(right_meaning: SymbolFlags) -> SymbolFl
 
 impl Checker {
     // symbolaccessibility.go:117
-    pub(crate) fn get_with_alternative_containers(&mut self, container: P<Symbol>, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> Vec<P<Symbol>> {
+    pub(crate) fn get_with_alternative_containers(
+        &mut self,
+        container: P<Symbol>,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> Vec<P<Symbol>> {
         let container_declarations = container.declarations().to_vec();
         let mut additional_containers = Vec::new();
-        additional_containers.extend(
-            container_declarations
-                .iter()
-                .filter_map(|&d| self.get_file_symbol_if_file_symbol_export_equals_container(d, container)),
-        );
+        additional_containers.extend(container_declarations.iter().filter_map(|&d| {
+            self.get_file_symbol_if_file_symbol_export_equals_container(d, container)
+        }));
         let mut reexport_containers = Vec::new();
         if enclosing_declaration.is_some() {
-            reexport_containers = self.get_alternative_containing_modules(symbol, enclosing_declaration);
+            reexport_containers =
+                self.get_alternative_containing_modules(symbol, enclosing_declaration);
         }
-        let object_literal_container = self.get_variable_declaration_of_object_literal(container, meaning);
+        let object_literal_container =
+            self.get_variable_declaration_of_object_literal(container, meaning);
         let left_meaning = get_qualified_left_meaning(meaning);
         if enclosing_declaration.is_some()
             && container.flags().intersects(left_meaning)
-            && !self.get_accessible_symbol_chain(container, enclosing_declaration, SymbolFlags::Namespace /*useOnlyExternalAliasing*/, false).is_empty()
+            && !self
+                .get_accessible_symbol_chain(
+                    container,
+                    enclosing_declaration,
+                    SymbolFlags::Namespace, /*useOnlyExternalAliasing*/
+                    false,
+                )
+                .is_empty()
         {
             // This order expresses a preference for the real container if it is in scope
             let mut res = vec![container];
@@ -546,7 +821,9 @@ impl Checker {
                 let mut found = false;
                 if let Some(t) = t {
                     for s in t.values() {
-                        if s.flags().intersects(left_meaning) && c.get_type_of_symbol(s) == c.get_declared_type_of_symbol(container) {
+                        if s.flags().intersects(left_meaning)
+                            && c.get_type_of_symbol(s) == c.get_declared_type_of_symbol(container)
+                        {
                             variable_matches.push(s);
                             found = true;
                         }
@@ -569,7 +846,11 @@ impl Checker {
     }
 
     // symbolaccessibility.go:168
-    pub(crate) fn get_alternative_containing_modules(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>) -> Vec<P<Symbol>> {
+    pub(crate) fn get_alternative_containing_modules(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+    ) -> Vec<P<Symbol>> {
         let Some(enclosing_declaration) = enclosing_declaration else {
             return Vec::new();
         };
@@ -588,8 +869,14 @@ impl Checker {
                     // Synthetic names can't be resolved by `resolveExternalModuleName` - they'll cause a debug assert if they error
                     return None;
                 }
-                let import_attributes_type = self.get_import_attributes_type_for_module_specifier(import_ref);
-                let resolved_module = self.resolve_external_module_name(enclosing_declaration, import_ref /*ignoreErrors*/, true, import_attributes_type);
+                let import_attributes_type =
+                    self.get_import_attributes_type_for_module_specifier(import_ref);
+                let resolved_module = self.resolve_external_module_name(
+                    enclosing_declaration,
+                    import_ref, /*ignoreErrors*/
+                    true,
+                    import_attributes_type,
+                );
                 let resolved_module = resolved_module?;
                 let ref_ = self.get_alias_for_symbol_in_container(resolved_module, symbol);
                 ref_?;
@@ -605,7 +892,9 @@ impl Checker {
             return extended_containers.to_vec();
         }
         // No results from files already being imported by this file - expand search (expensive, but not location-specific, so cached)
-        if let Some(found) = self.modules_exporting(symbol) { results = found } else {
+        if let Some(found) = self.modules_exporting(symbol) {
+            results = found;
+        } else {
             let other_files = self.program.source_files();
             results.extend(other_files.iter().filter_map(|&file| {
                 if !ast::is_external_module(file) {
@@ -629,7 +918,11 @@ impl Checker {
     }
 
     // symbolaccessibility.go:226
-    pub(crate) fn get_variable_declaration_of_object_literal(&mut self, symbol: P<Symbol>, meaning: SymbolFlags) -> Option<P<Symbol>> {
+    pub(crate) fn get_variable_declaration_of_object_literal(
+        &mut self,
+        symbol: P<Symbol>,
+        meaning: SymbolFlags,
+    ) -> Option<P<Symbol>> {
         // If we're trying to reference some object literal in, eg `var a = { x: 1 }`, the symbol for the literal, `__object`, is distinct
         // from the symbol of the declaration it is being assigned to. Since we can use the declaration to refer to the literal, however,
         // we'd like to make that connection here - potentially causing us to paint the declaration's visibility, and therefore the literal.
@@ -658,18 +951,27 @@ impl Checker {
 
 // symbolaccessibility.go:249
 pub(crate) fn has_external_module_symbol(declaration: P<Node>) -> bool {
-    ast::is_ambient_module(declaration) || (declaration.kind() == Kind::SourceFile && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
+    ast::is_ambient_module(declaration)
+        || (declaration.kind() == Kind::SourceFile
+            && ast::is_external_or_common_js_module(declaration.as_source_file_p()))
 }
 
 impl Checker {
     // symbolaccessibility.go:253
-    pub(crate) fn get_external_module_container(&mut self, declaration: P<Node>) -> Option<P<Symbol>> {
+    pub(crate) fn get_external_module_container(
+        &mut self,
+        declaration: P<Node>,
+    ) -> Option<P<Symbol>> {
         let node = ast::find_ancestor(Some(declaration), has_external_module_symbol)?;
         self.get_symbol_of_declaration(node)
     }
 
     // symbolaccessibility.go:261
-    pub(crate) fn get_file_symbol_if_file_symbol_export_equals_container(&mut self, d: P<Node>, container: P<Symbol>) -> Option<P<Symbol>> {
+    pub(crate) fn get_file_symbol_if_file_symbol_export_equals_container(
+        &mut self,
+        d: P<Node>,
+        container: P<Symbol>,
+    ) -> Option<P<Symbol>> {
         let file_symbol = self.get_external_module_container(d)?;
         let exports = file_symbol.exports()?;
         let exported = exports.lookup(InternalSymbolNameExportEquals)?;
@@ -680,16 +982,26 @@ impl Checker {
     }
 
     /**
-    * Attempts to find the symbol corresponding to the container a symbol is in - usually this
-    * is just its' `.parent`, but for locals, this value is `undefined`
+     * Attempts to find the symbol corresponding to the container a symbol is in - usually this
+     * is just its' `.parent`, but for locals, this value is `undefined`
      */
     // symbolaccessibility.go:280
-    pub(crate) fn get_containers_of_symbol(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> Vec<P<Symbol>> {
+    pub(crate) fn get_containers_of_symbol(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> Vec<P<Symbol>> {
         let container = self.get_parent_of_symbol(symbol);
         // Type parameters end up in the `members` lists but are not externally visible
         if let Some(container) = container {
             if !symbol.flags().intersects(SymbolFlags::TypeParameter) {
-                return self.get_with_alternative_containers(container, symbol, enclosing_declaration, meaning);
+                return self.get_with_alternative_containers(
+                    container,
+                    symbol,
+                    enclosing_declaration,
+                    meaning,
+                );
             }
         }
         let mut candidates: Vec<P<Symbol>> = Vec::new();
@@ -709,8 +1021,11 @@ impl Checker {
                     }
                     // export ='d member of an ambient module
                     if ast::is_module_block(parent) && parent.parent().is_some() && {
-                        let module_symbol = self.get_symbol_of_declaration(parent.parent().unwrap());
-                        module_symbol.is_some_and(|m| self.resolve_external_module_symbol(m, false) == symbol)
+                        let module_symbol =
+                            self.get_symbol_of_declaration(parent.parent().unwrap());
+                        module_symbol.is_some_and(|m| {
+                            self.resolve_external_module_symbol(m, false) == symbol
+                        })
                     } {
                         let sym = self.get_symbol_of_declaration(parent.parent().unwrap());
                         if let Some(sym) = sym {
@@ -725,11 +1040,17 @@ impl Checker {
             if ast::is_class_expression(d) && ast::is_binary_expression(d.parent().unwrap()) && {
                 let binary = d.parent().unwrap();
                 let binary = binary.as_binary_expression();
-                binary.operator_token().kind() == Kind::EqualsToken && ast::is_access_expression(binary.left()) && ast::is_entity_name_expression(binary.left().expression().unwrap())
+                binary.operator_token().kind() == Kind::EqualsToken
+                    && ast::is_access_expression(binary.left())
+                    && ast::is_entity_name_expression(binary.left().expression().unwrap())
             } {
                 let left = d.parent().unwrap().as_binary_expression().left();
-                if ast::is_module_exports_access_expression(left) || ast::is_exports_identifier(left.expression().unwrap()) {
-                    let sym = self.get_symbol_of_declaration(ast::get_source_file_of_node(d).unwrap().as_node());
+                if ast::is_module_exports_access_expression(left)
+                    || ast::is_exports_identifier(left.expression().unwrap())
+                {
+                    let sym = self.get_symbol_of_declaration(
+                        ast::get_source_file_of_node(d).unwrap().as_node(),
+                    );
                     if let Some(sym) = sym {
                         if !candidates.contains(&sym) {
                             candidates.push(sym);
@@ -738,7 +1059,8 @@ impl Checker {
                     continue;
                 }
                 self.check_expression_cached(left.expression().unwrap());
-                let sym = self.symbol_node_links.get(left.expression().unwrap()).resolved_symbol.get();
+                let sym =
+                    self.symbol_node_links.get(left.expression().unwrap()).resolved_symbol.get();
                 if let Some(sym) = sym {
                     if !candidates.contains(&sym) {
                         candidates.push(sym);
@@ -756,7 +1078,12 @@ impl Checker {
             if self.get_alias_for_symbol_in_container(container, symbol).is_none() {
                 continue;
             }
-            let all_alts = self.get_with_alternative_containers(container, symbol, enclosing_declaration, meaning);
+            let all_alts = self.get_with_alternative_containers(
+                container,
+                symbol,
+                enclosing_declaration,
+                meaning,
+            );
             if all_alts.is_empty() {
                 continue;
             }
@@ -768,7 +1095,11 @@ impl Checker {
     }
 
     // symbolaccessibility.go:342
-    pub(crate) fn get_alias_for_symbol_in_container(&mut self, container: P<Symbol>, symbol: P<Symbol>) -> Option<P<Symbol>> {
+    pub(crate) fn get_alias_for_symbol_in_container(
+        &mut self,
+        container: P<Symbol>,
+        symbol: P<Symbol>,
+    ) -> Option<P<Symbol>> {
         if Some(container) == self.get_parent_of_symbol(symbol) {
             // fast path, `symbol` is either already the alias or isn't aliased
             return Some(symbol);
@@ -792,12 +1123,9 @@ impl Checker {
         let mut candidates: Vec<P<Symbol>> = Vec::new();
         if let Some(exports) = exports {
             if !self.exports_by_target(exports, symbol, &mut candidates) {
-                candidates.extend(
-                    exports
-                        .values()
-                        .into_iter()
-                        .filter(|&exported| self.get_symbol_if_same_reference(exported, symbol).is_some()),
-                );
+                candidates.extend(exports.values().into_iter().filter(|&exported| {
+                    self.get_symbol_if_same_reference(exported, symbol).is_some()
+                }));
             }
         }
         if !candidates.is_empty() {
@@ -826,14 +1154,18 @@ impl Checker {
             return None;
         }
         let merged = self.get_merged_symbol(symbol);
-        if merged.flags().intersects(SymbolFlags::Alias) && self.alias_symbol_links.get(merged).alias_target.get().is_none() {
+        if merged.flags().intersects(SymbolFlags::Alias)
+            && self.alias_symbol_links.get(merged).alias_target.get().is_none()
+        {
             return None;
         }
         let target = self.get_symbol_target_for_alias_lookup(symbol);
         let files = self.program.source_files();
         if !self.module_export_index.started {
             self.module_export_index.started = true;
-            self.module_export_index.pending = (0..files.len() as u32).filter(|&i| ast::is_external_module(files[i as usize])).collect();
+            self.module_export_index.pending = (0..files.len() as u32)
+                .filter(|&i| ast::is_external_module(files[i as usize]))
+                .collect();
         }
         let mut found: Vec<u32> = Vec::new();
         let pending = std::mem::take(&mut self.module_export_index.pending);
@@ -869,7 +1201,12 @@ impl Checker {
         }
         found.sort_unstable();
         found.dedup();
-        Some(found.into_iter().map(|i| self.get_symbol_of_declaration(files[i as usize].as_node()).unwrap()).collect())
+        Some(
+            found
+                .into_iter()
+                .map(|i| self.get_symbol_of_declaration(files[i as usize].as_node()).unwrap())
+                .collect(),
+        )
     }
 
     // tsrs-only (notes/mem-free-leaf-files.md): whether the whole-program loops of getAlternativeContainingModules
@@ -891,18 +1228,29 @@ impl Checker {
 
     // See modules_exporting; true when module `i` (symbol `sym`) is summarized.
     fn summarize_module_exports(&mut self, i: u32, sym: P<Symbol>) -> bool {
-        if self.alias_cache_blockers != 0 || !sym.flags().intersects(SymbolFlags::Module) || sym.flags().intersects(SymbolFlags::LateBindingContainer) {
+        if self.alias_cache_blockers != 0
+            || !sym.flags().intersects(SymbolFlags::Module)
+            || sym.flags().intersects(SymbolFlags::LateBindingContainer)
+        {
             return false;
         }
-        let Some(table) = self.module_symbol_links.get(sym).resolved_exports.get() else { return false };
-        let Some(index) = self.exports_by_target_index.get(&table) else { return false };
+        let Some(table) = self.module_symbol_links.get(sym).resolved_exports.get() else {
+            return false;
+        };
+        let Some(index) = self.exports_by_target_index.get(&table) else {
+            return false;
+        };
         if index.len != table.len() {
             return false;
         }
         let mut targets: Vec<P<Symbol>> = index.targets().collect();
-        if let Some(export_equals) = sym.exports().and_then(|exports| exports.lookup(InternalSymbolNameExportEquals)) {
+        if let Some(export_equals) =
+            sym.exports().and_then(|exports| exports.lookup(InternalSymbolNameExportEquals))
+        {
             let merged = self.get_merged_symbol(export_equals);
-            if merged.flags().intersects(SymbolFlags::Alias) && self.alias_symbol_links.get(merged).alias_target.get().is_none() {
+            if merged.flags().intersects(SymbolFlags::Alias)
+                && self.alias_symbol_links.get(merged).alias_target.get().is_none()
+            {
                 return false;
             }
             targets.push(self.get_symbol_target_for_alias_lookup(export_equals));
@@ -925,12 +1273,18 @@ impl Checker {
     //   grown, when their resolution finishes; the size check is a guard).
     // The first indexing resolves the entries in the loop's order (first entry, `symbol`, the rest); repeats only
     // read alias targets that are cached by then, as the loop's repeats do.
-    fn exports_by_target(&mut self, exports: P<SymbolTable>, symbol: P<Symbol>, candidates: &mut Vec<P<Symbol>>) -> bool {
+    fn exports_by_target(
+        &mut self,
+        exports: P<SymbolTable>,
+        symbol: P<Symbol>,
+        candidates: &mut Vec<P<Symbol>>,
+    ) -> bool {
         if self.alias_cache_blockers != 0 {
             return false;
         }
         let len = exports.len();
-        let indexed = self.exports_by_target_index.get(&exports).is_some_and(|index| index.len == len);
+        let indexed =
+            self.exports_by_target_index.get(&exports).is_some_and(|index| index.len == len);
         let target = if indexed {
             if len == 0 {
                 return true;
@@ -967,7 +1321,13 @@ impl Checker {
     }
 
     // symbolaccessibility.go:373
-    pub fn get_accessible_symbol_chain(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, use_only_external_aliasing: bool) -> Vec<P<Symbol>> {
+    pub fn get_accessible_symbol_chain(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        use_only_external_aliasing: bool,
+    ) -> Vec<P<Symbol>> {
         self.get_accessible_symbol_chain_ex(&accessibleSymbolChainContext {
             symbol: Some(symbol),
             enclosing_declaration,
@@ -978,8 +1338,19 @@ impl Checker {
     }
 
     // symbolaccessibility.go:382
-    pub fn get_accessible_symbol_chain_exported(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, use_only_external_aliasing: bool) -> Vec<P<Symbol>> {
-        self.get_accessible_symbol_chain(symbol, enclosing_declaration, meaning, use_only_external_aliasing)
+    pub fn get_accessible_symbol_chain_exported(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        use_only_external_aliasing: bool,
+    ) -> Vec<P<Symbol>> {
+        self.get_accessible_symbol_chain(
+            symbol,
+            enclosing_declaration,
+            meaning,
+            use_only_external_aliasing,
+        )
     }
 }
 
@@ -1029,7 +1400,10 @@ pub(crate) fn symbol_table_id_from_globals() -> symbolTableID {
 
 impl Checker {
     // symbolaccessibility.go:441
-    pub(crate) fn get_accessible_symbol_chain_ex(&mut self, ctx: &accessibleSymbolChainContext) -> Vec<P<Symbol>> {
+    pub(crate) fn get_accessible_symbol_chain_ex(
+        &mut self,
+        ctx: &accessibleSymbolChainContext,
+    ) -> Vec<P<Symbol>> {
         let Some(symbol) = ctx.symbol else {
             return Vec::new();
         };
@@ -1055,19 +1429,30 @@ impl Checker {
 
         let mut result: Vec<P<Symbol>> = Vec::new();
 
-        self.some_symbol_table_in_scope(ctx.enclosing_declaration, |c, t, table_id, ignore_qualification, is_local_name_lookup, _| {
-            let res = c.get_accessible_symbol_chain_from_symbol_table(ctx, t, table_id, ignore_qualification, is_local_name_lookup);
-            if !res.is_empty() {
-                result = res;
-                return true;
-            }
-            false
-        });
+        self.some_symbol_table_in_scope(
+            ctx.enclosing_declaration,
+            |c, t, table_id, ignore_qualification, is_local_name_lookup, _| {
+                let res = c.get_accessible_symbol_chain_from_symbol_table(
+                    ctx,
+                    t,
+                    table_id,
+                    ignore_qualification,
+                    is_local_name_lookup,
+                );
+                if !res.is_empty() {
+                    result = res;
+                    return true;
+                }
+                false
+            },
+        );
         links.accessible_chain_cache.borrow_mut().insert(link_key, alloc_slice(&result));
         // A location in a file's emit scratch region (a synthesized node) dies with it; its handle may then name a
         // new node, so the entry is forgotten when the file's transform ends (`forget_scratch_keyed_caches`).
         if let Some(location) = first_relevant_location {
-            if !ast::is_parse_tree_node(location) && tsrs_core::arena::scratch_contains(location.addr()) {
+            if !ast::is_parse_tree_node(location)
+                && tsrs_core::arena::scratch_contains(location.addr())
+            {
                 self.scratch_keyed_chain_cache.push((symbol, link_key));
             }
         }
@@ -1075,10 +1460,17 @@ impl Checker {
     }
 
     /**
-    * @param {ignoreQualification} boolean Set when a symbol is being looked for through the exports of another symbol (meaning we have a route to qualify it already)
+     * @param {ignoreQualification} boolean Set when a symbol is being looked for through the exports of another symbol (meaning we have a route to qualify it already)
      */
     // symbolaccessibility.go:481
-    pub(crate) fn get_accessible_symbol_chain_from_symbol_table(&mut self, ctx: &accessibleSymbolChainContext, t: Option<P<SymbolTable>>, table_id: symbolTableID, ignore_qualification: bool, is_local_name_lookup: bool) -> Vec<P<Symbol>> {
+    pub(crate) fn get_accessible_symbol_chain_from_symbol_table(
+        &mut self,
+        ctx: &accessibleSymbolChainContext,
+        t: Option<P<SymbolTable>>,
+        table_id: symbolTableID,
+        ignore_qualification: bool,
+        is_local_name_lookup: bool,
+    ) -> Vec<P<Symbol>> {
         let sym_id = ast::get_symbol_id(ctx.symbol.unwrap());
         {
             let mut visited_symbol_tables_map = ctx.visited_symbol_tables_map.borrow_mut();
@@ -1089,7 +1481,8 @@ impl Checker {
             }
         }
 
-        let res = self.try_symbol_table(ctx, t, table_id, ignore_qualification, is_local_name_lookup);
+        let res =
+            self.try_symbol_table(ctx, t, table_id, ignore_qualification, is_local_name_lookup);
 
         ctx.visited_symbol_tables_map.borrow_mut().get_mut(&sym_id).unwrap().remove(&table_id);
         res
@@ -1100,7 +1493,11 @@ impl Checker {
     // Members tables are skipped entirely since someSymbolTableInScope filters them
     // to SymbolFlagsType & ^SymbolFlagsAssignment, which never includes aliases.
     // symbolaccessibility.go:505
-    pub(crate) fn get_symbol_table_aliases(&mut self, symbols: Option<P<SymbolTable>>, table_id: symbolTableID) -> Vec<P<Symbol>> {
+    pub(crate) fn get_symbol_table_aliases(
+        &mut self,
+        symbols: Option<P<SymbolTable>>,
+        table_id: symbolTableID,
+    ) -> Vec<P<Symbol>> {
         let kind = table_id & stKindMask;
         // Members tables never contain alias symbols; skip entirely.
         if kind == stKindMembers {
@@ -1115,7 +1512,12 @@ impl Checker {
         }
         let mut aliases: Vec<P<Symbol>> = Vec::new();
         if let Some(symbols) = symbols {
-            aliases.extend(symbols.values().into_iter().filter(|sym| sym.flags().intersects(SymbolFlags::Alias)));
+            aliases.extend(
+                symbols
+                    .values()
+                    .into_iter()
+                    .filter(|sym| sym.flags().intersects(SymbolFlags::Alias)),
+            );
         }
         if kind == stKindGlobals || kind == stKindExports || kind == stKindResolvedExports {
             self.symbol_table_alias_cache.insert(table_id, alloc_slice(&aliases));
@@ -1124,7 +1526,14 @@ impl Checker {
     }
 
     // symbolaccessibility.go:535
-    pub(crate) fn try_symbol_table(&mut self, ctx: &accessibleSymbolChainContext, symbols: Option<P<SymbolTable>>, table_id: symbolTableID, ignore_qualification: bool, is_local_name_lookup: bool) -> Vec<P<Symbol>> {
+    pub(crate) fn try_symbol_table(
+        &mut self,
+        ctx: &accessibleSymbolChainContext,
+        symbols: Option<P<SymbolTable>>,
+        table_id: symbolTableID,
+        ignore_qualification: bool,
+        is_local_name_lookup: bool,
+    ) -> Vec<P<Symbol>> {
         let ctx_symbol = ctx.symbol.unwrap();
         let is_globals = table_id == stKindGlobals;
         // If symbol is directly available by its name in the symbol table
@@ -1142,7 +1551,12 @@ impl Checker {
         // symbols are iterated).
         if let Some(export_symbol) = res.and_then(|res| res.export_symbol()) {
             let merged = self.get_merged_symbol(export_symbol);
-            if self.is_accessible(ctx, merged /*resolvedAliasSymbol*/, None, ignore_qualification) {
+            if self.is_accessible(
+                ctx,
+                merged, /*resolvedAliasSymbol*/
+                None,
+                ignore_qualification,
+            ) {
                 candidate_chains.push(vec![ctx_symbol]);
             }
         }
@@ -1182,7 +1596,12 @@ impl Checker {
         // If there's no result and we're looking at the global symbol table, treat `globalThis` like an alias and try to lookup thru that
         if is_globals {
             let global_this_symbol = self.global_this_symbol;
-            return self.get_candidate_list_for_symbol(ctx, global_this_symbol, global_this_symbol, ignore_qualification);
+            return self.get_candidate_list_for_symbol(
+                ctx,
+                global_this_symbol,
+                global_this_symbol,
+                ignore_qualification,
+            );
         }
         Vec::new()
     }
@@ -1225,8 +1644,19 @@ pub(crate) fn is_namespace_reexport_declaration(node: P<Node>) -> bool {
 
 impl Checker {
     // symbolaccessibility.go:620
-    pub(crate) fn get_candidate_list_for_symbol(&mut self, ctx: &accessibleSymbolChainContext, symbol_from_symbol_table: P<Symbol>, resolved_imported_symbol: P<Symbol>, ignore_qualification: bool) -> Vec<P<Symbol>> {
-        if self.is_accessible(ctx, symbol_from_symbol_table, Some(resolved_imported_symbol), ignore_qualification) {
+    pub(crate) fn get_candidate_list_for_symbol(
+        &mut self,
+        ctx: &accessibleSymbolChainContext,
+        symbol_from_symbol_table: P<Symbol>,
+        resolved_imported_symbol: P<Symbol>,
+        ignore_qualification: bool,
+    ) -> Vec<P<Symbol>> {
+        if self.is_accessible(
+            ctx,
+            symbol_from_symbol_table,
+            Some(resolved_imported_symbol),
+            ignore_qualification,
+        ) {
             return vec![symbol_from_symbol_table];
         }
 
@@ -1236,11 +1666,21 @@ impl Checker {
             return Vec::new();
         };
         let candidate_table_id = symbol_table_id_from_resolved_exports(resolved_imported_symbol);
-        let accessible_symbols_from_exports = self.get_accessible_symbol_chain_from_symbol_table(ctx, Some(candidate_table), candidate_table_id /*ignoreQualification*/, true, false);
+        let accessible_symbols_from_exports = self.get_accessible_symbol_chain_from_symbol_table(
+            ctx,
+            Some(candidate_table),
+            candidate_table_id, /*ignoreQualification*/
+            true,
+            false,
+        );
         if accessible_symbols_from_exports.is_empty() {
             return Vec::new();
         }
-        if !self.can_qualify_symbol(ctx, symbol_from_symbol_table, get_qualified_left_meaning(ctx.meaning)) {
+        if !self.can_qualify_symbol(
+            ctx,
+            symbol_from_symbol_table,
+            get_qualified_left_meaning(ctx.meaning),
+        ) {
             return Vec::new();
         }
         let mut result = vec![symbol_from_symbol_table];
@@ -1249,7 +1689,13 @@ impl Checker {
     }
 
     // symbolaccessibility.go:647
-    pub(crate) fn is_accessible(&mut self, ctx: &accessibleSymbolChainContext, symbol_from_symbol_table: P<Symbol>, resolved_alias_symbol: Option<P<Symbol>>, ignore_qualification: bool) -> bool {
+    pub(crate) fn is_accessible(
+        &mut self,
+        ctx: &accessibleSymbolChainContext,
+        symbol_from_symbol_table: P<Symbol>,
+        resolved_alias_symbol: Option<P<Symbol>>,
+        ignore_qualification: bool,
+    ) -> bool {
         let mut like_symbols = false;
         if ctx.symbol == resolved_alias_symbol {
             like_symbols = true;
@@ -1270,15 +1716,24 @@ impl Checker {
         // if the symbolFromSymbolTable is not external module (it could be if it was determined as ambient external module and would be in globals table)
         // and if symbolFromSymbolTable or alias resolution matches the symbol,
         // check the symbol can be qualified, it is only then this symbol is accessible
-        let has_module_declaration = symbol_from_symbol_table.declarations().iter().any(|&d| has_non_global_augmentation_external_module_symbol(d));
-        !has_module_declaration && (ignore_qualification || {
-            let merged = self.get_merged_symbol(symbol_from_symbol_table);
-            self.can_qualify_symbol(ctx, merged, ctx.meaning)
-        })
+        let has_module_declaration = symbol_from_symbol_table
+            .declarations()
+            .iter()
+            .any(|&d| has_non_global_augmentation_external_module_symbol(d));
+        !has_module_declaration
+            && (ignore_qualification || {
+                let merged = self.get_merged_symbol(symbol_from_symbol_table);
+                self.can_qualify_symbol(ctx, merged, ctx.meaning)
+            })
     }
 
     // symbolaccessibility.go:677
-    pub(crate) fn can_qualify_symbol(&mut self, ctx: &accessibleSymbolChainContext, symbol_from_symbol_table: P<Symbol>, meaning: SymbolFlags) -> bool {
+    pub(crate) fn can_qualify_symbol(
+        &mut self,
+        ctx: &accessibleSymbolChainContext,
+        symbol_from_symbol_table: P<Symbol>,
+        meaning: SymbolFlags,
+    ) -> bool {
         // If the symbol is equivalent and doesn't need further qualification, this symbol is accessible
         !self.needs_qualification(symbol_from_symbol_table, ctx.enclosing_declaration, meaning) ||
             // If symbol needs qualification, make sure that parent is accessible, if it is then this symbol is accessible too
@@ -1294,11 +1749,18 @@ impl Checker {
     }
 
     // symbolaccessibility.go:688
-    pub(crate) fn needs_qualification(&mut self, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool {
+    pub(crate) fn needs_qualification(
+        &mut self,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool {
         let mut qualify = false;
         self.some_symbol_table_in_scope(enclosing_declaration, |c, symbol_table, _, _, _, _| {
             // If symbol of this name is not available in the symbol table we are ok
-            let Some(res) = symbol_table.and_then(|symbol_table| symbol_table.lookup(symbol.name())) else {
+            let Some(res) =
+                symbol_table.and_then(|symbol_table| symbol_table.lookup(symbol.name()))
+            else {
                 return false;
             };
             let mut symbol_from_symbol_table = c.get_merged_symbol(res);
@@ -1309,8 +1771,11 @@ impl Checker {
             }
 
             // Qualify if the symbol from symbol table has same meaning as expected
-            let should_resolve_alias = symbol_from_symbol_table.flags().intersects(SymbolFlags::Alias)
-                && ast::get_declaration_of_kind(symbol_from_symbol_table, Kind::ExportSpecifier).is_none();
+            let should_resolve_alias = symbol_from_symbol_table
+                .flags()
+                .intersects(SymbolFlags::Alias)
+                && ast::get_declaration_of_kind(symbol_from_symbol_table, Kind::ExportSpecifier)
+                    .is_none();
             if should_resolve_alias {
                 symbol_from_symbol_table = c.resolve_alias(symbol_from_symbol_table);
             }
@@ -1335,10 +1800,15 @@ impl Checker {
 pub(crate) fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> bool {
     let declarations = symbol.declarations();
     if !declarations.is_empty() {
-        if declarations
-            .iter()
-            .any(|declaration| !matches!(declaration.kind(), Kind::PropertyDeclaration | Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor))
-        {
+        if declarations.iter().any(|declaration| {
+            !matches!(
+                declaration.kind(),
+                Kind::PropertyDeclaration
+                    | Kind::MethodDeclaration
+                    | Kind::GetAccessor
+                    | Kind::SetAccessor
+            )
+        }) {
             return false;
         }
         return true;
@@ -1348,20 +1818,51 @@ pub(crate) fn is_property_or_method_declaration_symbol(symbol: P<Symbol>) -> boo
 
 impl Checker {
     // symbolaccessibility.go:746
-    pub(crate) fn some_symbol_table_in_scope(&mut self, enclosing_declaration: Option<P<Node>>, mut callback: impl FnMut(&mut Checker, Option<P<SymbolTable>>, symbolTableID, bool, bool, Option<P<Node>>) -> bool) -> bool {
+    pub(crate) fn some_symbol_table_in_scope(
+        &mut self,
+        enclosing_declaration: Option<P<Node>>,
+        mut callback: impl FnMut(
+            &mut Checker,
+            Option<P<SymbolTable>>,
+            symbolTableID,
+            bool,
+            bool,
+            Option<P<Node>>,
+        ) -> bool,
+    ) -> bool {
         let mut location = enclosing_declaration;
         while let Some(loc) = location {
             // Locals of a source file are not in scope (because they get merged into the global symbol table)
             if can_have_locals(loc) && loc.locals().is_some() && !ast::is_global_source_file(loc) {
-                if callback(self, loc.locals(), symbol_table_id_from_locals(loc), false, true, Some(loc)) {
+                if callback(
+                    self,
+                    loc.locals(),
+                    symbol_table_id_from_locals(loc),
+                    false,
+                    true,
+                    Some(loc),
+                ) {
                     return true;
                 }
             }
             match loc.kind() {
                 Kind::SourceFile | Kind::ModuleDeclaration => {
-                    if !ast::is_source_file(loc) || ast::is_external_or_common_js_module(loc.as_source_file_p()) {
-                        let sym = self.get_symbol_of_declaration(ast::get_reparsed_node_for_node(loc).unwrap()).unwrap();
-                        if callback(self, sym.exports(), symbol_table_id_from_exports(sym), false, true, Some(loc)) {
+                    if !ast::is_source_file(loc)
+                        || ast::is_external_or_common_js_module(loc.as_source_file_p())
+                    {
+                        let sym = self
+                            .get_symbol_of_declaration(
+                                ast::get_reparsed_node_for_node(loc).unwrap(),
+                            )
+                            .unwrap();
+                        if callback(
+                            self,
+                            sym.exports(),
+                            symbol_table_id_from_exports(sym),
+                            false,
+                            true,
+                            Some(loc),
+                        ) {
                             return true;
                         }
                     }
@@ -1379,7 +1880,10 @@ impl Checker {
                     // TODO: Should this filtered table be cached in some way?
                     if let Some(members) = sym.members() {
                         for (key, member_symbol) in members.entries() {
-                            if member_symbol.flags().intersects(SymbolFlags::Type & !SymbolFlags::Assignment) {
+                            if member_symbol
+                                .flags()
+                                .intersects(SymbolFlags::Type & !SymbolFlags::Assignment)
+                            {
                                 if table.is_none() {
                                     table = Some(SymbolTable::new());
                                 }
@@ -1387,7 +1891,16 @@ impl Checker {
                             }
                         }
                     }
-                    if table.is_some() && callback(self, table, symbol_table_id_from_members(sym), false, false, Some(loc)) {
+                    if table.is_some()
+                        && callback(
+                            self,
+                            table,
+                            symbol_table_id_from_members(sym),
+                            false,
+                            false,
+                            Some(loc),
+                        )
+                    {
                         return true;
                     }
                     // Class expression names (e.g., `B` in `class B {}`) are not stored in any
@@ -1398,7 +1911,16 @@ impl Checker {
                     // (e.g., via class-local type aliases), both sites should be updated.
                     if ast::is_class_expression(loc) && loc.as_class_expression().name().is_some() {
                         let name_table = self.get_class_expression_name_table(loc);
-                        if name_table.is_some() && callback(self, name_table, symbol_table_id_from_locals(loc), false, true, Some(loc)) {
+                        if name_table.is_some()
+                            && callback(
+                                self,
+                                name_table,
+                                symbol_table_id_from_locals(loc),
+                                false,
+                                true,
+                                Some(loc),
+                            )
+                        {
                             return true;
                         }
                     }
@@ -1417,7 +1939,10 @@ impl Checker {
     // bindAnonymousDeclaration and aren't stored in any container's locals, so this
     // synthesized table lets someSymbolTableInScope expose them during accessibility checks.
     // symbolaccessibility.go:810
-    pub(crate) fn get_class_expression_name_table(&mut self, location: P<Node>) -> Option<P<SymbolTable>> {
+    pub(crate) fn get_class_expression_name_table(
+        &mut self,
+        location: P<Node>,
+    ) -> Option<P<SymbolTable>> {
         let node_id = ast::get_node_id(location);
         if let Some(&table) = self.class_expression_name_tables.get(&node_id) {
             return Some(table);
@@ -1442,14 +1967,40 @@ impl Checker {
      * @param shouldComputeAliasToMakeVisible a boolean value to indicate whether to return aliases to be mark visible in case the symbol is accessible
      */
     // symbolaccessibility.go:839
-    pub fn is_symbol_accessible(&mut self, symbol: Option<P<Symbol>>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, should_compute_aliases_to_make_visible: bool) -> SymbolAccessibilityResult {
-        self.is_symbol_accessible_worker(symbol, enclosing_declaration, meaning, should_compute_aliases_to_make_visible, true /*allowModules*/)
+    pub fn is_symbol_accessible(
+        &mut self,
+        symbol: Option<P<Symbol>>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        should_compute_aliases_to_make_visible: bool,
+    ) -> SymbolAccessibilityResult {
+        self.is_symbol_accessible_worker(
+            symbol,
+            enclosing_declaration,
+            meaning,
+            should_compute_aliases_to_make_visible,
+            true, /*allowModules*/
+        )
     }
 
     // symbolaccessibility.go:843
-    pub(crate) fn is_symbol_accessible_worker(&mut self, symbol: Option<P<Symbol>>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags, should_compute_aliases_to_make_visible: bool, allow_modules: bool) -> SymbolAccessibilityResult {
+    pub(crate) fn is_symbol_accessible_worker(
+        &mut self,
+        symbol: Option<P<Symbol>>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+        should_compute_aliases_to_make_visible: bool,
+        allow_modules: bool,
+    ) -> SymbolAccessibilityResult {
         if let (Some(symbol), Some(enclosing)) = (symbol, enclosing_declaration) {
-            let result = self.is_any_symbol_accessible(&[symbol], enclosing_declaration, symbol, meaning, should_compute_aliases_to_make_visible, allow_modules);
+            let result = self.is_any_symbol_accessible(
+                &[symbol],
+                enclosing_declaration,
+                symbol,
+                meaning,
+                should_compute_aliases_to_make_visible,
+                allow_modules,
+            );
             if let Some(result) = result {
                 return (*result).clone();
             }
@@ -1457,16 +2008,26 @@ impl Checker {
             // This could be a symbol that is not exported in the external module
             // or it could be a symbol from different external module that is not aliased and hence cannot be named
             let declarations = symbol.declarations().to_vec();
-            let symbol_external_module = first_non_nil(&declarations, |&d| self.get_external_module_container(d));
+            let symbol_external_module =
+                first_non_nil(&declarations, |&d| self.get_external_module_container(d));
             if let Some(symbol_external_module) = symbol_external_module {
                 let enclosing_external_module = self.get_external_module_container(enclosing);
                 if Some(symbol_external_module) != enclosing_external_module {
                     // name from different external module that is not visible
                     return SymbolAccessibilityResult {
                         accessibility: SymbolAccessibility::CannotBeNamed,
-                        error_symbol_name: self.symbol_to_string_ex(symbol, enclosing_declaration, meaning, SymbolFormatFlags::AllowAnyNodeKind),
+                        error_symbol_name: self.symbol_to_string_ex(
+                            symbol,
+                            enclosing_declaration,
+                            meaning,
+                            SymbolFormatFlags::AllowAnyNodeKind,
+                        ),
                         error_module_name: self.symbol_to_string(symbol_external_module),
-                        error_node: if ast::is_in_js_file(enclosing) { Some(enclosing) } else { None },
+                        error_node: if ast::is_in_js_file(enclosing) {
+                            Some(enclosing)
+                        } else {
+                            None
+                        },
                         ..Default::default()
                     };
                 }
@@ -1475,12 +2036,20 @@ impl Checker {
             // Just a local name that is not accessible
             return SymbolAccessibilityResult {
                 accessibility: SymbolAccessibility::NotAccessible,
-                error_symbol_name: self.symbol_to_string_ex(symbol, enclosing_declaration, meaning, SymbolFormatFlags::AllowAnyNodeKind),
+                error_symbol_name: self.symbol_to_string_ex(
+                    symbol,
+                    enclosing_declaration,
+                    meaning,
+                    SymbolFormatFlags::AllowAnyNodeKind,
+                ),
                 ..Default::default()
             };
         }
 
-        SymbolAccessibilityResult { accessibility: SymbolAccessibility::Accessible, ..Default::default() }
+        SymbolAccessibilityResult {
+            accessibility: SymbolAccessibility::Accessible,
+            ..Default::default()
+        }
     }
 }
 
@@ -1490,26 +2059,46 @@ impl Checker {
 //   type SymbolTrackerImpl (symboltracker.go:8)
 
 // symboltracker.go:14
-pub fn new_symbol_tracker_impl(context: P<NodeBuilderContext>, tracker: Option<&'static dyn SymbolTracker>) -> P<SymbolTrackerImpl> {
+pub fn new_symbol_tracker_impl(
+    context: P<NodeBuilderContext>,
+    tracker: Option<&'static dyn SymbolTracker>,
+) -> P<SymbolTrackerImpl> {
     let mut tracker = tracker;
     while let Some(t) = tracker.and_then(|t| t.as_symbol_tracker_impl()) {
         tracker = t.inner;
     }
 
-    P::new_scratch(SymbolTrackerImpl { context, inner: tracker, disable_track_symbol: Cell::new(false) })
+    P::new_scratch(SymbolTrackerImpl {
+        context,
+        inner: tracker,
+        disable_track_symbol: Cell::new(false),
+    })
 }
 
 impl SymbolTrackerImpl {
     // symboltracker.go:28
-    pub fn track_symbol(&self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool {
+    pub fn track_symbol(
+        &self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool {
         if !self.disable_track_symbol.get() {
-            if self.inner.is_some_and(|inner| inner.track_symbol(c, symbol, enclosing_declaration, meaning)) {
+            if self
+                .inner
+                .is_some_and(|inner| inner.track_symbol(c, symbol, enclosing_declaration, meaning))
+            {
                 self.on_diagnostic_reported();
                 return true;
             }
             // Skip recording type parameters as they dont contribute to late painted statements
             if !symbol.flags().intersects(SymbolFlags::TypeParameter) {
-                self.context.tracked_symbols.borrow_mut().push(TrackedSymbolArgs { symbol, enclosing_declaration, meaning });
+                self.context.tracked_symbols.borrow_mut().push(TrackedSymbolArgs {
+                    symbol,
+                    enclosing_declaration,
+                    meaning,
+                });
             }
         }
         false
@@ -1570,7 +2159,12 @@ impl SymbolTrackerImpl {
     }
 
     // symboltracker.go:90
-    pub fn report_nonlocal_augmentation(&self, containing_file: P<SourceFile>, parent_symbol: P<Symbol>, augmenting_symbol: P<Symbol>) {
+    pub fn report_nonlocal_augmentation(
+        &self,
+        containing_file: P<SourceFile>,
+        parent_symbol: P<Symbol>,
+        augmenting_symbol: P<Symbol>,
+    ) {
         self.on_diagnostic_reported();
         let Some(inner) = self.inner else {
             return;
@@ -1683,11 +2277,18 @@ impl ExportsByTarget {
     fn candidates(&self, target: P<Symbol>) -> impl Iterator<Item = P<Symbol>> + '_ {
         let key = target.key();
         let start = self.entries.partition_point(|&(t, _)| t.key() < key);
-        self.entries[start..].iter().take_while(move |&&(t, _)| t == target).map(|&(_, exported)| exported)
+        self.entries[start..]
+            .iter()
+            .take_while(move |&&(t, _)| t == target)
+            .map(|&(_, exported)| exported)
     }
 
     /// Every distinct target once.
     fn targets(&self) -> impl Iterator<Item = P<Symbol>> + '_ {
-        self.entries.iter().enumerate().filter(|&(i, &(t, _))| i == 0 || self.entries[i - 1].0 != t).map(|(_, &(t, _))| t)
+        self.entries
+            .iter()
+            .enumerate()
+            .filter(|&(i, &(t, _))| i == 0 || self.entries[i - 1].0 != t)
+            .map(|(_, &(t, _))| t)
     }
 }

@@ -1,7 +1,7 @@
 use crate::*;
 use printer::EmitFlags;
-use tsrs_core::collections::OrderedMap;
 use tsrs_core::TextRange;
+use tsrs_core::collections::OrderedMap;
 use tsrs_core::stringutil;
 use tsrs_core::{JsxEmit, LanguageVariant};
 
@@ -19,7 +19,10 @@ pub struct JSXTransformer {
 }
 
 // jsx.go:32
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_jsx_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let compiler_options = opts.compiler_options;
     let emit_context = opts.context;
@@ -33,7 +36,10 @@ pub fn new_jsx_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
         in_jsx_child: Cell::new(false),
         current_source_file: Cell::new(None),
     });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(Some(n))), Some(emit_context)))
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(Some(n))),
+        Some(emit_context),
+    ))
 }
 
 impl JSXTransformer {
@@ -60,10 +66,20 @@ impl JSXTransformer {
         }
         let f = self.factory();
         let d = f.new_variable_declaration(
-            f.new_unique_name_ex("_jsxFileName", printer::AutoGenerateOptions { flags: printer::GeneratedIdentifierFlags::Optimistic | printer::GeneratedIdentifierFlags::FileLevel, ..Default::default() }),
+            f.new_unique_name_ex(
+                "_jsxFileName",
+                printer::AutoGenerateOptions {
+                    flags: printer::GeneratedIdentifierFlags::Optimistic
+                        | printer::GeneratedIdentifierFlags::FileLevel,
+                    ..Default::default()
+                },
+            ),
             None,
             None,
-            Some(f.new_string_literal(alloc_str(self.current_source_file().file_name()), TokenFlags::None)),
+            Some(f.new_string_literal(
+                alloc_str(self.current_source_file().file_name()),
+                TokenFlags::None,
+            )),
         );
         self.filename_declaration.set(Some(d));
         d.as_variable_declaration().name()
@@ -106,20 +122,28 @@ impl JSXTransformer {
             }
         }
         if !self.utilized_implicit_runtime_imports.borrow().contains_key(&import_source) {
-            self.utilized_implicit_runtime_imports.borrow_mut().insert(import_source.clone(), FxHashMap::default());
+            self.utilized_implicit_runtime_imports
+                .borrow_mut()
+                .insert(import_source.clone(), FxHashMap::default());
         }
 
         let f = self.factory();
         let generated_name = f.new_unique_name_ex(
             &format!("_{name}"),
             printer::AutoGenerateOptions {
-                flags: printer::GeneratedIdentifierFlags::Optimistic | printer::GeneratedIdentifierFlags::FileLevel | printer::GeneratedIdentifierFlags::AllowNameSubstitution,
+                flags: printer::GeneratedIdentifierFlags::Optimistic
+                    | printer::GeneratedIdentifierFlags::FileLevel
+                    | printer::GeneratedIdentifierFlags::AllowNameSubstitution,
                 ..Default::default()
             },
         );
         let specifier = f.new_import_specifier(false, Some(f.new_identifier(name)), generated_name);
         self.emit_resolver.set_referenced_import_declaration(generated_name, specifier);
-        self.utilized_implicit_runtime_imports.borrow_mut().get_mut(&import_source).unwrap().insert(name.to_string(), specifier);
+        self.utilized_implicit_runtime_imports
+            .borrow_mut()
+            .get_mut(&import_source)
+            .unwrap()
+            .insert(name.to_string(), specifier);
         specifier.as_import_specifier().name()
     }
 
@@ -142,8 +166,12 @@ impl JSXTransformer {
             Kind::JsxElement => return Some(self.visit_jsx_element(node)),
             Kind::JsxSelfClosingElement => return Some(self.visit_jsx_self_closing_element(node)),
             Kind::JsxFragment => return Some(self.visit_jsx_fragment(node)),
-            Kind::JsxOpeningElement => panic!("JsxOpeningElement should not be visited, handled in visitJsxElement"),
-            Kind::JsxOpeningFragment => panic!("JsxOpeningFragment should not be visited, handled in visitJsxFragment"),
+            Kind::JsxOpeningElement => {
+                panic!("JsxOpeningElement should not be visited, handled in visitJsxElement")
+            }
+            Kind::JsxOpeningFragment => {
+                panic!("JsxOpeningFragment should not be visited, handled in visitJsxFragment")
+            }
             Kind::JsxText => {
                 self.set_in_child(false);
                 return self.visit_jsx_text(node);
@@ -171,9 +199,21 @@ fn has_key_after_props_spread(node: P<Node>) -> bool {
     } // otherwise self-closing
     for elem in opener.attributes().unwrap().properties() {
         let elem = *elem;
-        if ast::is_jsx_spread_attribute(elem) && (!ast::is_object_literal_expression(elem.expression().unwrap()) || elem.expression().unwrap().properties().iter().any(|p| ast::is_spread_assignment(*p))) {
+        if ast::is_jsx_spread_attribute(elem)
+            && (!ast::is_object_literal_expression(elem.expression().unwrap())
+                || elem
+                    .expression()
+                    .unwrap()
+                    .properties()
+                    .iter()
+                    .any(|p| ast::is_spread_assignment(*p)))
+        {
             spread = true;
-        } else if spread && ast::is_jsx_attribute(elem) && ast::is_identifier(elem.name().unwrap()) && elem.name().unwrap().text() == "key" {
+        } else if spread
+            && ast::is_jsx_attribute(elem)
+            && ast::is_identifier(elem.name().unwrap())
+            && elem.name().unwrap().text() == "key"
+        {
             return true;
         }
     }
@@ -188,7 +228,12 @@ impl JSXTransformer {
 }
 
 // jsx.go:161
-fn insert_statement_after_prologue<T: Copy>(to: &mut Vec<P<Node>>, statement: Option<P<Node>>, is_prologue_directive: fn(T, P<Node>) -> bool, callee: T) {
+fn insert_statement_after_prologue<T: Copy>(
+    to: &mut Vec<P<Node>>,
+    statement: Option<P<Node>>,
+    is_prologue_directive: fn(T, P<Node>) -> bool,
+    callee: T,
+) {
     let Some(statement) = statement else {
         return;
     };
@@ -206,12 +251,22 @@ fn insert_statement_after_prologue<T: Copy>(to: &mut Vec<P<Node>>, statement: Op
 impl JSXTransformer {
     // jsx.go:175
     fn is_any_prologue_directive(&self, node: P<Node>) -> bool {
-        ast::is_prologue_directive(node) || self.emit_context().emit_flags(node).intersects(EmitFlags::CustomPrologue)
+        ast::is_prologue_directive(node)
+            || self.emit_context().emit_flags(node).intersects(EmitFlags::CustomPrologue)
     }
 
     // jsx.go:179
-    fn insert_statement_after_custom_prologue(&self, to: &mut Vec<P<Node>>, statement: Option<P<Node>>) {
-        insert_statement_after_prologue(to, statement, |tx: &JSXTransformer, n| tx.is_any_prologue_directive(n), self);
+    fn insert_statement_after_custom_prologue(
+        &self,
+        to: &mut Vec<P<Node>>,
+        statement: Option<P<Node>>,
+    ) {
+        insert_statement_after_prologue(
+            to,
+            statement,
+            |tx: &JSXTransformer, n| tx.is_any_prologue_directive(n),
+            self,
+        );
     }
 }
 
@@ -224,7 +279,10 @@ fn sort_import_specifiers(a: P<Node>, b: P<Node>) -> std::cmp::Ordering {
     if res != std::cmp::Ordering::Equal {
         return res;
     }
-    stringutil::compare_strings_case_sensitive(a.as_import_specifier().name().text(), b.as_import_specifier().name().text())
+    stringutil::compare_strings_case_sensitive(
+        a.as_import_specifier().name().text(),
+        b.as_import_specifier().name().text(),
+    )
 }
 
 // jsx.go:191
@@ -242,7 +300,8 @@ impl JSXTransformer {
         }
 
         self.current_source_file.set(Some(file));
-        *self.import_specifier.borrow_mut() = ast::get_jsx_implicit_import_base(&self.compiler_options, Some(file));
+        *self.import_specifier.borrow_mut() =
+            ast::get_jsx_implicit_import_base(&self.compiler_options, Some(file));
         self.filename_declaration.set(None);
         self.utilized_implicit_runtime_imports.borrow_mut().clear();
 
@@ -252,26 +311,45 @@ impl JSXTransformer {
         let mut statements: Vec<P<Node>> = visited.statements().to_vec();
         let mut statements_updated = false;
         if let Some(filename_declaration) = self.filename_declaration.get() {
-            let s = f.new_variable_statement(None, f.new_variable_declaration_list(f.new_node_list(vec![filename_declaration]), NodeFlags::Const));
+            let s = f.new_variable_statement(
+                None,
+                f.new_variable_declaration_list(
+                    f.new_node_list(vec![filename_declaration]),
+                    NodeFlags::Const,
+                ),
+            );
             self.insert_statement_after_custom_prologue(&mut statements, Some(s));
             statements_updated = true;
         }
 
-        let imports: Vec<(String, FxHashMap<String, P<Node>>)> = self.utilized_implicit_runtime_imports.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        let imports: Vec<(String, FxHashMap<String, P<Node>>)> = self
+            .utilized_implicit_runtime_imports
+            .borrow()
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
         if !imports.is_empty() {
             if ast::is_external_module(file) {
                 statements_updated = true;
                 let mut new_statements: Vec<P<Node>> = Vec::with_capacity(imports.len());
-                new_statements.extend(imports.iter().map(|(import_source, import_specifiers_map)| {
-                    let s = f.new_import_declaration(
-                        None,
-                        Some(f.new_import_clause(Kind::Unknown, None, Some(f.new_named_imports(f.new_node_list(get_sorted_specifiers(import_specifiers_map)))))),
-                        f.new_string_literal(alloc_str(import_source), TokenFlags::None),
-                        None,
-                    );
-                    ast::set_parent_in_children(s);
-                    s
-                }));
+                new_statements.extend(imports.iter().map(
+                    |(import_source, import_specifiers_map)| {
+                        let s = f.new_import_declaration(
+                            None,
+                            Some(f.new_import_clause(
+                                Kind::Unknown,
+                                None,
+                                Some(f.new_named_imports(
+                                    f.new_node_list(get_sorted_specifiers(import_specifiers_map)),
+                                )),
+                            )),
+                            f.new_string_literal(alloc_str(import_source), TokenFlags::None),
+                            None,
+                        );
+                        ast::set_parent_in_children(s);
+                        s
+                    },
+                ));
                 for e in new_statements {
                     self.insert_statement_after_custom_prologue(&mut statements, Some(e));
                 }
@@ -281,17 +359,34 @@ impl JSXTransformer {
                 for (import_source, import_specifiers_map) in &imports {
                     let sorted = get_sorted_specifiers(import_specifiers_map);
                     let mut as_binding_elems: Vec<P<Node>> = Vec::with_capacity(sorted.len());
-                    as_binding_elems.extend(
-                        sorted.into_iter().map(|elem| f.new_binding_element(None, elem.property_name(), Some(elem.as_import_specifier().name()), None)),
-                    );
+                    as_binding_elems.extend(sorted.into_iter().map(|elem| {
+                        f.new_binding_element(
+                            None,
+                            elem.property_name(),
+                            Some(elem.as_import_specifier().name()),
+                            None,
+                        )
+                    }));
                     let s = f.new_variable_statement(
                         None,
                         f.new_variable_declaration_list(
                             f.new_node_list(vec![f.new_variable_declaration(
-                                f.new_binding_pattern(Kind::ObjectBindingPattern, f.new_node_list(as_binding_elems)),
+                                f.new_binding_pattern(
+                                    Kind::ObjectBindingPattern,
+                                    f.new_node_list(as_binding_elems),
+                                ),
                                 None,
                                 None,
-                                Some(f.new_call_expression(f.new_identifier("require"), None, None, f.new_node_list(vec![f.new_string_literal(alloc_str(import_source), TokenFlags::None)]), NodeFlags::None)),
+                                Some(f.new_call_expression(
+                                    f.new_identifier("require"),
+                                    None,
+                                    None,
+                                    f.new_node_list(vec![f.new_string_literal(
+                                        alloc_str(import_source),
+                                        TokenFlags::None,
+                                    )]),
+                                    NodeFlags::None,
+                                )),
                             )]),
                             NodeFlags::Const,
                         ),
@@ -308,7 +403,11 @@ impl JSXTransformer {
         }
 
         if statements_updated {
-            visited = f.update_source_file(file.as_node(), f.new_node_list(statements), file.end_of_file_token);
+            visited = f.update_source_file(
+                file.as_node(),
+                f.new_node_list(statements),
+                file.end_of_file_token,
+            );
         }
 
         self.current_source_file.set(None);
@@ -324,17 +423,17 @@ impl JSXTransformer {
         let location = TextRange::new(
             scanner::skip_trivia(
                 self.current_source_file().text(),
-                element
-                    .pos()
-                    .expect_source("parsed nodes have source positions"),
+                element.pos().expect_source("parsed nodes have source positions"),
             ),
-            element
-                .end()
-                .expect_source("parsed nodes have source positions"),
+            element.end().expect_source("parsed nodes have source positions"),
         );
         let e = element.as_jsx_element();
         if self.should_use_create_element(element) {
-            return self.visit_jsx_opening_like_element_create_element(e.opening_element, Some(e.children), location);
+            return self.visit_jsx_opening_like_element_create_element(
+                e.opening_element,
+                Some(e.children),
+                location,
+            );
         }
         self.visit_jsx_opening_like_element_jsx(e.opening_element, Some(e.children), location)
     }
@@ -344,13 +443,9 @@ impl JSXTransformer {
         let location = TextRange::new(
             scanner::skip_trivia(
                 self.current_source_file().text(),
-                element
-                    .pos()
-                    .expect_source("parsed nodes have source positions"),
+                element.pos().expect_source("parsed nodes have source positions"),
             ),
-            element
-                .end()
-                .expect_source("parsed nodes have source positions"),
+            element.end().expect_source("parsed nodes have source positions"),
         );
         if self.should_use_create_element(element) {
             return self.visit_jsx_opening_like_element_create_element(element, None, location);
@@ -363,25 +458,31 @@ impl JSXTransformer {
         let location = TextRange::new(
             scanner::skip_trivia(
                 self.current_source_file().text(),
-                fragment
-                    .pos()
-                    .expect_source("parsed nodes have source positions"),
+                fragment.pos().expect_source("parsed nodes have source positions"),
             ),
-            fragment
-                .end()
-                .expect_source("parsed nodes have source positions"),
+            fragment.end().expect_source("parsed nodes have source positions"),
         );
         let fr = fragment.as_jsx_fragment();
         if self.import_specifier.borrow().is_empty() {
-            return self.visit_jsx_opening_fragment_create_element(fr.opening_fragment, Some(fr.children), location);
+            return self.visit_jsx_opening_fragment_create_element(
+                fr.opening_fragment,
+                Some(fr.children),
+                location,
+            );
         }
         self.visit_jsx_opening_fragment_jsx(fr.opening_fragment, Some(fr.children), location)
     }
 
     // jsx.go:307
-    fn convert_jsx_children_to_children_prop_object(&self, children: &[P<Node>]) -> Option<P<Node>> {
+    fn convert_jsx_children_to_children_prop_object(
+        &self,
+        children: &[P<Node>],
+    ) -> Option<P<Node>> {
         let prop = self.convert_jsx_children_to_children_prop_assignment(children)?;
-        Some(self.factory().new_object_literal_expression(self.factory().new_node_list(vec![prop]), false))
+        Some(
+            self.factory()
+                .new_object_literal_expression(self.factory().new_node_list(vec![prop]), false),
+        )
     }
 
     // jsx.go:315
@@ -395,25 +496,46 @@ impl JSXTransformer {
     }
 
     // jsx.go:322
-    fn convert_jsx_children_to_children_prop_assignment(&self, children: &[P<Node>]) -> Option<P<Node>> {
+    fn convert_jsx_children_to_children_prop_assignment(
+        &self,
+        children: &[P<Node>],
+    ) -> Option<P<Node>> {
         let f = self.factory();
         let non_whitespce_children = ast::get_semantic_jsx_children(children);
-        if non_whitespce_children.len() == 1 && (non_whitespce_children[0].kind() != Kind::JsxExpression || non_whitespce_children[0].as_jsx_expression().dot_dot_dot_token.is_none()) {
+        if non_whitespce_children.len() == 1
+            && (non_whitespce_children[0].kind() != Kind::JsxExpression
+                || non_whitespce_children[0].as_jsx_expression().dot_dot_dot_token.is_none())
+        {
             let result = self.transform_jsx_child_to_expression(non_whitespce_children[0])?;
-            return Some(f.new_property_assignment(None, f.new_identifier("children"), None, None, result));
+            return Some(f.new_property_assignment(
+                None,
+                f.new_identifier("children"),
+                None,
+                None,
+                result,
+            ));
         }
         // For multiple children in the children property array, don't set StartOnNewLine
         // on child elements — the array literal is single-line.
         let mut results: Vec<P<Node>> = Vec::with_capacity(non_whitespce_children.len());
         results.extend(non_whitespce_children.into_iter().filter_map(|child| {
             let res = self.transform_jsx_child_to_expression(child)?;
-            self.emit_context().set_emit_flags(res, self.emit_context().emit_flags(res) & !EmitFlags::StartOnNewLine);
+            self.emit_context().set_emit_flags(
+                res,
+                self.emit_context().emit_flags(res) & !EmitFlags::StartOnNewLine,
+            );
             Some(res)
         }));
         if results.is_empty() {
             return None;
         }
-        Some(f.new_property_assignment(None, f.new_identifier("children"), None, None, f.new_array_literal_expression(f.new_node_list(results), false)))
+        Some(f.new_property_assignment(
+            None,
+            f.new_identifier("children"),
+            None,
+            None,
+            f.new_array_literal_expression(f.new_node_list(results), false),
+        ))
     }
 
     // jsx.go:348
@@ -427,7 +549,10 @@ impl JSXTransformer {
                 f.new_string_literal(tag_name.text(), TokenFlags::None)
             } else if ast::is_jsx_namespaced_name(tag_name) {
                 let nn = tag_name.as_jsx_namespaced_name();
-                f.new_string_literal(alloc_str(&format!("{}:{}", nn.namespace.text(), nn.name.text())), TokenFlags::None)
+                f.new_string_literal(
+                    alloc_str(&format!("{}:{}", nn.namespace.text(), nn.name.text())),
+                    TokenFlags::None,
+                )
             } else {
                 f.create_expression_from_entity_name(tag_name)
             }
@@ -437,20 +562,29 @@ impl JSXTransformer {
     }
 
     // jsx.go:367
-    fn visit_jsx_opening_like_element_jsx(&self, element: P<Node>, children: Option<P<NodeList>>, location: TextRange) -> P<Node> {
+    fn visit_jsx_opening_like_element_jsx(
+        &self,
+        element: P<Node>,
+        children: Option<P<NodeList>>,
+        location: TextRange,
+    ) -> P<Node> {
         let f = self.factory();
         let tag_name = self.get_tag_name(element);
         let mut children_prop: Option<P<Node>> = None;
         if let Some(children) = children {
             if !children.nodes().is_empty() {
-                children_prop = self.convert_jsx_children_to_children_prop_assignment(children.nodes());
+                children_prop =
+                    self.convert_jsx_children_to_children_prop_assignment(children.nodes());
             }
         }
         let mut key_attr: Option<P<Node>> = None;
         let mut attrs: Vec<P<Node>> = element.attributes().unwrap().properties().to_vec();
         for (i, p) in attrs.iter().enumerate() {
             let p = *p;
-            if p.kind() == Kind::JsxAttribute && ast::is_identifier(p.as_jsx_attribute().name()) && p.as_jsx_attribute().name().text() == "key" {
+            if p.kind() == Kind::JsxAttribute
+                && ast::is_identifier(p.as_jsx_attribute().name())
+                && p.as_jsx_attribute().name().text() == "key"
+            {
                 key_attr = Some(p);
                 attrs.remove(i);
                 break;
@@ -465,21 +599,35 @@ impl JSXTransformer {
             }
             f.new_object_literal_expression(f.new_node_list(object_children), false) // When there are no attributes, React wants {}
         };
-        self.visit_jsx_opening_like_element_or_fragment_jsx(tag_name, object, key_attr, children, location)
+        self.visit_jsx_opening_like_element_or_fragment_jsx(
+            tag_name, object, key_attr, children, location,
+        )
     }
 
     // jsx.go:402
-    fn transform_jsx_attributes_to_object_props(&self, attrs: &[P<Node>], children_prop: Option<P<Node>>) -> P<Node> {
+    fn transform_jsx_attributes_to_object_props(
+        &self,
+        attrs: &[P<Node>],
+        children_prop: Option<P<Node>>,
+    ) -> P<Node> {
         let target = self.compiler_options.get_emit_script_target();
         if target >= ScriptTarget::ES2018 {
             // target has object spreads, can keep as-is
-            return self.factory().new_object_literal_expression(self.factory().new_node_list(self.transform_jsx_attributes_to_props(attrs, children_prop)), false);
+            return self.factory().new_object_literal_expression(
+                self.factory()
+                    .new_node_list(self.transform_jsx_attributes_to_props(attrs, children_prop)),
+                false,
+            );
         }
         self.transform_jsx_attributes_to_expression(attrs, children_prop)
     }
 
     // jsx.go:411
-    fn transform_jsx_attributes_to_expression(&self, attrs: &[P<Node>], children_prop: Option<P<Node>>) -> P<Node> {
+    fn transform_jsx_attributes_to_expression(
+        &self,
+        attrs: &[P<Node>],
+        children_prop: Option<P<Node>>,
+    ) -> P<Node> {
         let f = self.factory();
         let mut expressions: Vec<P<Node>> = Vec::with_capacity(2);
         let mut properties: Vec<P<Node>> = Vec::with_capacity(attrs.len());
@@ -494,7 +642,10 @@ impl JSXTransformer {
                     for prop in expr.properties() {
                         let prop = *prop;
                         if ast::is_spread_assignment(prop) {
-                            self.combine_properties_into_new_expression(&mut expressions, &mut properties);
+                            self.combine_properties_into_new_expression(
+                                &mut expressions,
+                                &mut properties,
+                            );
                             expressions.extend(self.visit(prop.expression()));
                             continue;
                         }
@@ -529,16 +680,27 @@ impl JSXTransformer {
     }
 
     // jsx.go:456
-    fn combine_properties_into_new_expression(&self, expressions: &mut Vec<P<Node>>, props: &mut Vec<P<Node>>) {
+    fn combine_properties_into_new_expression(
+        &self,
+        expressions: &mut Vec<P<Node>>,
+        props: &mut Vec<P<Node>>,
+    ) {
         if props.is_empty() {
             return;
         }
-        let new_obj = self.factory().new_object_literal_expression(self.factory().new_node_list(std::mem::take(props)), false);
+        let new_obj = self.factory().new_object_literal_expression(
+            self.factory().new_node_list(std::mem::take(props)),
+            false,
+        );
         expressions.push(new_obj);
     }
 
     // jsx.go:465
-    fn transform_jsx_attributes_to_props(&self, attrs: &[P<Node>], children_prop: Option<P<Node>>) -> Vec<P<Node>> {
+    fn transform_jsx_attributes_to_props(
+        &self,
+        attrs: &[P<Node>],
+        children_prop: Option<P<Node>>,
+    ) -> Vec<P<Node>> {
         let mut props: Vec<P<Node>> = Vec::with_capacity(attrs.len());
         props = attrs.iter().fold(props, |mut props, attr| {
             let attr = *attr;
@@ -586,7 +748,8 @@ impl JSXTransformer {
     // jsx.go:498
     fn transform_jsx_attribute_to_object_literal_element(&self, node: P<Node>) -> P<Node> {
         let name = self.get_attribute_name(node);
-        let expression = self.transform_jsx_attribute_initializer(node.as_jsx_attribute().initializer);
+        let expression =
+            self.transform_jsx_attribute_initializer(node.as_jsx_attribute().initializer);
         self.factory().new_property_assignment(None, name, None, None, expression)
     }
 
@@ -607,7 +770,10 @@ impl JSXTransformer {
         }
         // must be jsx namespace
         let nn = name.as_jsx_namespaced_name();
-        self.factory().new_string_literal(alloc_str(&format!("{}:{}", nn.namespace.text(), nn.name.text())), TokenFlags::None)
+        self.factory().new_string_literal(
+            alloc_str(&format!("{}:{}", nn.namespace.text(), nn.name.text())),
+            TokenFlags::None,
+        )
     }
 
     // jsx.go:524
@@ -632,7 +798,10 @@ impl JSXTransformer {
             };
             return self.visit(Some(expression)).unwrap();
         }
-        if ast::is_jsx_element(node) || ast::is_jsx_self_closing_element(node) || ast::is_jsx_fragment(node) {
+        if ast::is_jsx_element(node)
+            || ast::is_jsx_self_closing_element(node)
+            || ast::is_jsx_fragment(node)
+        {
             self.set_in_child(false);
             return self.visit(Some(node)).unwrap();
         }
@@ -640,13 +809,23 @@ impl JSXTransformer {
     }
 
     // jsx.go:550
-    fn visit_jsx_opening_like_element_or_fragment_jsx(&self, tag_name: P<Node>, object: P<Node>, key_attr: Option<P<Node>>, children: Option<P<NodeList>>, location: TextRange) -> P<Node> {
+    fn visit_jsx_opening_like_element_or_fragment_jsx(
+        &self,
+        tag_name: P<Node>,
+        object: P<Node>,
+        key_attr: Option<P<Node>>,
+        children: Option<P<NodeList>>,
+        location: TextRange,
+    ) -> P<Node> {
         let f = self.factory();
         let mut non_whitespace_children: Vec<P<Node>> = Vec::new();
         if let Some(children) = children {
             non_whitespace_children = ast::get_semantic_jsx_children(children.nodes());
         }
-        let is_static_children = non_whitespace_children.len() > 1 || (non_whitespace_children.len() == 1 && ast::is_jsx_expression(non_whitespace_children[0]) && non_whitespace_children[0].as_jsx_expression().dot_dot_dot_token.is_some());
+        let is_static_children = non_whitespace_children.len() > 1
+            || (non_whitespace_children.len() == 1
+                && ast::is_jsx_expression(non_whitespace_children[0])
+                && non_whitespace_children[0].as_jsx_expression().dot_dot_dot_token.is_some());
         let mut args: Vec<P<Node>> = Vec::with_capacity(3);
         args.push(tag_name);
         args.push(object);
@@ -657,7 +836,8 @@ impl JSXTransformer {
         }
 
         if self.compiler_options.jsx == JsxEmit::ReactJSXDev {
-            let original_file = self.emit_context().most_original(Some(self.current_source_file().as_node()));
+            let original_file =
+                self.emit_context().most_original(Some(self.current_source_file().as_node()));
             if let Some(original_file) = original_file.filter(|n| ast::is_source_file(*n)) {
                 // "maybeKey" has to be replaced with "void 0" to not break the jsxDEV signature
                 if key_attr.is_none() {
@@ -672,15 +852,37 @@ impl JSXTransformer {
                 // __source development flag
                 let (line, col) = scanner::get_ecma_line_and_utf16_character_of_position(
                     original_file.as_source_file(),
-                    location
-                        .pos()
-                        .expect_source("JSX source map ranges have source positions"),
+                    location.pos().expect_source("JSX source map ranges have source positions"),
                 );
                 args.push(f.new_object_literal_expression(
                     f.new_node_list(vec![
-                        f.new_property_assignment(None, f.new_identifier("fileName"), None, None, self.get_current_file_name_expression()),
-                        f.new_property_assignment(None, f.new_identifier("lineNumber"), None, None, f.new_numeric_literal(alloc_str(&(line as i64 + 1).to_string()), TokenFlags::None)),
-                        f.new_property_assignment(None, f.new_identifier("columnNumber"), None, None, f.new_numeric_literal(alloc_str(&(col as i64 + 1).to_string()), TokenFlags::None)),
+                        f.new_property_assignment(
+                            None,
+                            f.new_identifier("fileName"),
+                            None,
+                            None,
+                            self.get_current_file_name_expression(),
+                        ),
+                        f.new_property_assignment(
+                            None,
+                            f.new_identifier("lineNumber"),
+                            None,
+                            None,
+                            f.new_numeric_literal(
+                                alloc_str(&(line as i64 + 1).to_string()),
+                                TokenFlags::None,
+                            ),
+                        ),
+                        f.new_property_assignment(
+                            None,
+                            f.new_identifier("columnNumber"),
+                            None,
+                            None,
+                            f.new_numeric_literal(
+                                alloc_str(&(col as i64 + 1).to_string()),
+                                TokenFlags::None,
+                            ),
+                        ),
                     ]),
                     false,
                 ));
@@ -689,7 +891,13 @@ impl JSXTransformer {
             }
         }
 
-        let element = f.new_call_expression(self.get_jsx_factory_callee(is_static_children), None, None, f.new_node_list(args), NodeFlags::None);
+        let element = f.new_call_expression(
+            self.get_jsx_factory_callee(is_static_children),
+            None,
+            None,
+            f.new_node_list(args),
+            NodeFlags::None,
+        );
         element.set_loc(location);
 
         if self.in_jsx_child.get() {
@@ -700,20 +908,35 @@ impl JSXTransformer {
     }
 
     // jsx.go:605
-    fn visit_jsx_opening_fragment_jsx(&self, _fragment: P<Node>, children: Option<P<NodeList>>, location: TextRange) -> P<Node> {
+    fn visit_jsx_opening_fragment_jsx(
+        &self,
+        _fragment: P<Node>,
+        children: Option<P<NodeList>>,
+        location: TextRange,
+    ) -> P<Node> {
         let mut children_props: Option<P<Node>> = None;
         if let Some(children) = children {
             if !children.nodes().is_empty() {
-                if let Some(result) = self.convert_jsx_children_to_children_prop_object(children.nodes()) {
+                if let Some(result) =
+                    self.convert_jsx_children_to_children_prop_object(children.nodes())
+                {
                     children_props = Some(result);
                 }
             }
         }
         let children_props = match children_props {
             Some(c) => c,
-            None => self.factory().new_object_literal_expression(self.factory().new_node_list(vec![]), false),
+            None => self
+                .factory()
+                .new_object_literal_expression(self.factory().new_node_list(vec![]), false),
         };
-        self.visit_jsx_opening_like_element_or_fragment_jsx(self.get_implicit_jsx_fragment_reference(), children_props, None, children, location)
+        self.visit_jsx_opening_like_element_or_fragment_jsx(
+            self.get_implicit_jsx_fragment_reference(),
+            children_props,
+            None,
+            children,
+            location,
+        )
     }
 
     // jsx.go:625
@@ -734,10 +957,17 @@ impl JSXTransformer {
         // If the identifier refers to an exported member of a namespace, substitute with
         // a qualified namespace property access (e.g., `React` -> `M.React`).
         // See also: RuntimeSyntaxTransformer.visitExpressionIdentifier in runtimesyntax.go
-        if let Some(container) = self.emit_resolver.get_referenced_export_container(react, false /*prefixLocals*/) {
+        if let Some(container) =
+            self.emit_resolver.get_referenced_export_container(react, false /*prefixLocals*/)
+        {
             if ast::is_module_declaration(container) {
                 let container_name = f.new_generated_name_for_node(container);
-                return f.new_property_access_expression(container_name, None, react, NodeFlags::None);
+                return f.new_property_access_expression(
+                    container_name,
+                    None,
+                    react,
+                    NodeFlags::None,
+                );
             }
         }
 
@@ -745,21 +975,41 @@ impl JSXTransformer {
     }
 
     // jsx.go:651
-    fn create_jsx_factory_expression_from_entity_name(&self, e: P<Node>, parent: P<Node>) -> P<Node> {
+    fn create_jsx_factory_expression_from_entity_name(
+        &self,
+        e: P<Node>,
+        parent: P<Node>,
+    ) -> P<Node> {
         if ast::is_qualified_name(e) {
-            let left = self.create_jsx_factory_expression_from_entity_name(e.as_qualified_name().left, parent);
+            let left = self
+                .create_jsx_factory_expression_from_entity_name(e.as_qualified_name().left, parent);
             let right = self.factory().new_identifier(e.as_qualified_name().right.text());
-            return self.factory().new_property_access_expression(left, None, right, NodeFlags::None);
+            return self.factory().new_property_access_expression(
+                left,
+                None,
+                right,
+                NodeFlags::None,
+            );
         }
         self.create_react_namespace(e.text(), parent)
     }
 
     // jsx.go:660
-    fn create_jsx_pseudo_factory_expression(&self, parent: P<Node>, e: Option<P<Node>>, target: &'static str) -> P<Node> {
+    fn create_jsx_pseudo_factory_expression(
+        &self,
+        parent: P<Node>,
+        e: Option<P<Node>>,
+        target: &'static str,
+    ) -> P<Node> {
         if let Some(e) = e {
             return self.create_jsx_factory_expression_from_entity_name(e, parent);
         }
-        self.factory().new_property_access_expression(self.create_react_namespace(&self.compiler_options.react_namespace, parent), None, self.factory().new_identifier(target), NodeFlags::None)
+        self.factory().new_property_access_expression(
+            self.create_react_namespace(&self.compiler_options.react_namespace, parent),
+            None,
+            self.factory().new_identifier(target),
+            NodeFlags::None,
+        )
     }
 
     // jsx.go:672
@@ -770,12 +1020,19 @@ impl JSXTransformer {
 
     // jsx.go:677
     fn create_jsx_fragment_factory_expression(&self, parent: P<Node>) -> P<Node> {
-        let e = self.emit_resolver.get_jsx_fragment_factory_entity(self.current_source_file().as_node());
+        let e = self
+            .emit_resolver
+            .get_jsx_fragment_factory_entity(self.current_source_file().as_node());
         self.create_jsx_pseudo_factory_expression(parent, e, "Fragment")
     }
 
     // jsx.go:682
-    fn visit_jsx_opening_like_element_create_element(&self, element: P<Node>, children: Option<P<NodeList>>, location: TextRange) -> P<Node> {
+    fn visit_jsx_opening_like_element_create_element(
+        &self,
+        element: P<Node>,
+        children: Option<P<NodeList>>,
+        location: TextRange,
+    ) -> P<Node> {
         let f = self.factory();
         let tag_name = self.get_tag_name(element);
         let attrs = element.attributes().unwrap().properties();
@@ -793,7 +1050,9 @@ impl JSXTransformer {
 
         let mut new_children: Vec<P<Node>> = Vec::new();
         if let Some(children) = children {
-            new_children.extend(children.nodes().iter().filter_map(|&c| self.transform_jsx_child_to_expression(c)));
+            new_children.extend(
+                children.nodes().iter().filter_map(|&c| self.transform_jsx_child_to_expression(c)),
+            );
         }
 
         // Add StartOnNewLine flag only if there are multiple actual children (after filtering)
@@ -808,7 +1067,8 @@ impl JSXTransformer {
         args.push(object_properties);
         args.extend(new_children);
 
-        let result = f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::None);
+        let result =
+            f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::None);
         result.set_loc(location);
 
         if self.in_jsx_child.get() {
@@ -818,14 +1078,21 @@ impl JSXTransformer {
     }
 
     // jsx.go:736
-    fn visit_jsx_opening_fragment_create_element(&self, fragment: P<Node>, children: Option<P<NodeList>>, location: TextRange) -> P<Node> {
+    fn visit_jsx_opening_fragment_create_element(
+        &self,
+        fragment: P<Node>,
+        children: Option<P<NodeList>>,
+        location: TextRange,
+    ) -> P<Node> {
         let f = self.factory();
         let tag_name = self.create_jsx_fragment_factory_expression(fragment);
         let callee = self.create_jsx_factory_expression(fragment);
 
         let mut new_children: Vec<P<Node>> = Vec::new();
         if let Some(children) = children {
-            new_children.extend(children.nodes().iter().filter_map(|&c| self.transform_jsx_child_to_expression(c)));
+            new_children.extend(
+                children.nodes().iter().filter_map(|&c| self.transform_jsx_child_to_expression(c)),
+            );
         }
 
         // Add StartOnNewLine flag only if there are multiple actual children (after filtering)
@@ -840,7 +1107,8 @@ impl JSXTransformer {
         args.push(f.new_keyword_expression(Kind::NullKeyword));
         args.extend(new_children);
 
-        let result = f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::None);
+        let result =
+            f.new_call_expression(callee, None, None, f.new_node_list(args), NodeFlags::None);
         result.set_loc(location);
 
         if self.in_jsx_child.get() {

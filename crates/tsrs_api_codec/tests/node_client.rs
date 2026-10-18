@@ -12,7 +12,7 @@ use common::*;
 use tsrs_api_codec::*;
 use tsrs_ast::*;
 use tsrs_core::stringutil::{decode_js_string_rune_bytes, encode_js_string_rune};
-use tsrs_core::{alloc_str, P};
+use tsrs_core::{P, alloc_str};
 
 fn json_quote(s: &str) -> String {
     let b = s.as_bytes();
@@ -40,8 +40,15 @@ fn json_quote(s: &str) -> String {
 fn expected_lines(node: P<Node>, depth: usize, out: &mut Vec<String>) {
     let k = node.kind();
     let text = match k {
-        Kind::NumericLiteral | Kind::BigIntLiteral | Kind::StringLiteral | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateHead
-        | Kind::TemplateMiddle | Kind::TemplateTail | Kind::Identifier | Kind::PrivateIdentifier => format!(" text={}", json_quote(node.text())),
+        Kind::NumericLiteral
+        | Kind::BigIntLiteral
+        | Kind::StringLiteral
+        | Kind::NoSubstitutionTemplateLiteral
+        | Kind::TemplateHead
+        | Kind::TemplateMiddle
+        | Kind::TemplateTail
+        | Kind::Identifier
+        | Kind::PrivateIdentifier => format!(" text={}", json_quote(node.text())),
         _ => String::new(),
     };
     out.push(format!("{}{} {} {}{text}", " ".repeat(depth), k as u32, node.pos(), node.end()));
@@ -55,9 +62,26 @@ fn expected_lines(node: P<Node>, depth: usize, out: &mut Vec<String>) {
 fn synthesized(f: &NodeFactory) -> P<Node> {
     let lone = alloc_str(&format!("a{}b", encode_js_string_rune(0xD800)));
     let str_lit = f.new_literal_type_node(f.new_string_literal(lone, TokenFlags::None));
-    let reference = f.new_type_reference_node(f.new_identifier("Map"), Some(f.new_node_list(vec![f.new_keyword_type_node(Kind::StringKeyword), str_lit])));
-    let param = f.new_parameter_declaration(None, None, f.new_identifier("x"), Some(f.new_token(Kind::QuestionToken)), Some(f.new_keyword_type_node(Kind::NumberKeyword)), None);
-    let fn_type = f.new_function_type_node(None, Some(f.new_node_list(vec![param])), Some(f.new_type_operator_node(Kind::ReadonlyKeyword, f.new_array_type_node(f.new_keyword_type_node(Kind::BooleanKeyword)))));
+    let reference = f.new_type_reference_node(
+        f.new_identifier("Map"),
+        Some(f.new_node_list(vec![f.new_keyword_type_node(Kind::StringKeyword), str_lit])),
+    );
+    let param = f.new_parameter_declaration(
+        None,
+        None,
+        f.new_identifier("x"),
+        Some(f.new_token(Kind::QuestionToken)),
+        Some(f.new_keyword_type_node(Kind::NumberKeyword)),
+        None,
+    );
+    let fn_type = f.new_function_type_node(
+        None,
+        Some(f.new_node_list(vec![param])),
+        Some(f.new_type_operator_node(
+            Kind::ReadonlyKeyword,
+            f.new_array_type_node(f.new_keyword_type_node(Kind::BooleanKeyword)),
+        )),
+    );
     let num = f.new_literal_type_node(f.new_numeric_literal("42", TokenFlags::None));
     f.new_union_type_node(f.new_node_list(vec![reference, fn_type, num]))
 }
@@ -65,7 +89,9 @@ fn synthesized(f: &NodeFactory) -> P<Node> {
 #[test]
 fn rust_encodings_decode_in_the_pinned_js_client() {
     let Ok(oracle) = std::env::var("TSRS_CODEC_ORACLE") else {
-        eprintln!("SKIPPED: set TSRS_CODEC_ORACLE to an installed typescript@7.1.0-dev.20260930.4 package directory");
+        eprintln!(
+            "SKIPPED: set TSRS_CODEC_ORACLE to an installed typescript@7.1.0-dev.20260930.4 package directory"
+        );
         return;
     };
     let out_dir = std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("codec_node_client");
@@ -84,13 +110,19 @@ fn rust_encodings_decode_in_the_pinned_js_client() {
         std::fs::write(out_dir.join("synthetic.union.rust.bin"), &bytes).unwrap();
         let mut lines = Vec::new();
         expected_lines(root, 0, &mut lines);
-        std::fs::write(out_dir.join("synthetic.union.expected.txt"), lines.join("\n") + "\n").unwrap();
+        std::fs::write(out_dir.join("synthetic.union.expected.txt"), lines.join("\n") + "\n")
+            .unwrap();
         // What a Rust printNode (decode + tsrs_printer) prints for these bytes; node_client.mjs compares it with the
         // pinned server's printNode when TSRS_CODEC_TSC is set.
         let decoded = decode_nodes(&bytes).unwrap();
         let text = {
             let _scope = decoded.region().enter();
-            tsrs_printer::new_printer(tsrs_printer::PrinterOptions::default(), tsrs_printer::PrintHandlers::default(), None).emit(decoded.root(), None)
+            tsrs_printer::new_printer(
+                tsrs_printer::PrinterOptions::default(),
+                tsrs_printer::PrintHandlers::default(),
+                None,
+            )
+            .emit(decoded.root(), None)
         };
         std::fs::write(out_dir.join("synthetic.union.rust.print.txt"), text).unwrap();
     }
@@ -100,14 +132,21 @@ fn rust_encodings_decode_in_the_pinned_js_client() {
     let mut reencoded = 0;
     for e in std::fs::read_dir(&print_dir).unwrap() {
         let f = e.unwrap().file_name().into_string().unwrap();
-        let Some(case) = f.strip_suffix(".client.bin") else { continue };
+        let Some(case) = f.strip_suffix(".client.bin") else {
+            continue;
+        };
         let go = crate_dir().join(format!("tests/golden/reencode/{case}.client.goreencoded.bin"));
         let bytes = std::fs::read(print_dir.join(&f)).unwrap();
         let decoded = decode_nodes(&bytes).unwrap();
         let (re, _) = {
             let _scope = decoded.region().enter();
             let root = decoded.root();
-            if root.kind() == Kind::SourceFile { encode_source_file(root.as_source_file()) } else { encode_node(root, None) }.unwrap()
+            if root.kind() == Kind::SourceFile {
+                encode_source_file(root.as_source_file())
+            } else {
+                encode_node(root, None)
+            }
+            .unwrap()
         };
         std::fs::copy(&go, out_dir.join(format!("print_{case}.orig.bin"))).unwrap();
         std::fs::write(out_dir.join(format!("print_{case}.rust.bin")), &re).unwrap();
@@ -115,7 +154,13 @@ fn rust_encodings_decode_in_the_pinned_js_client() {
     }
     assert!(reencoded >= 6);
     let script = crate_dir().join("tests/node_client.mjs");
-    let output = Command::new("node").arg(script).arg(&oracle).arg(&out_dir).arg(crate_dir().join("tests/golden")).output().expect("run node");
+    let output = Command::new("node")
+        .arg(script)
+        .arg(&oracle)
+        .arg(&out_dir)
+        .arg(crate_dir().join("tests/golden"))
+        .output()
+        .expect("run node");
     let stdout = String::from_utf8_lossy(&output.stdout);
     eprintln!("{stdout}{}", String::from_utf8_lossy(&output.stderr));
     assert!(output.status.success(), "node client comparison failed");

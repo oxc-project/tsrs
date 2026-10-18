@@ -112,7 +112,9 @@ impl Response {
     }
 
     pub fn json<T: serde::Serialize + ?Sized>(value: &T) -> Result<Response, ApiError> {
-        serde_json::to_vec(value).map(Response::Json).map_err(|e| ApiError::internal(format!("failed to marshal result: {e}")))
+        serde_json::to_vec(value)
+            .map(Response::Json)
+            .map_err(|e| ApiError::internal(format!("failed to marshal result: {e}")))
     }
 }
 
@@ -152,7 +154,10 @@ pub enum TransportError {
     /// Malformed frame or message (api.ErrInvalidRequest / jsonrpc header errors / JSON errors).
     Protocol(String),
     /// A declared frame length above the configured limit.
-    FrameTooLarge { declared: u64, limit: u64 },
+    FrameTooLarge {
+        declared: u64,
+        limit: u64,
+    },
     /// The connection is closed (ipc.ErrConnClosed), optionally with its terminal cause.
     Closed(Option<String>),
     /// The remote side answered a call with an error (ipc: remote error [code]: message).

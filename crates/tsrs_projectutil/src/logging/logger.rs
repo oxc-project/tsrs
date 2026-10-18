@@ -50,7 +50,12 @@ struct loggerState {
 
 impl logger {
     pub(crate) fn new(writer: Writer, prefix: Box<dyn Fn() -> String + Send + Sync>) -> logger {
-        logger { inner: Some(loggerInner { mu: Mutex::new(loggerState { verbose: false, writer }), prefix }) }
+        logger {
+            inner: Some(loggerInner {
+                mu: Mutex::new(loggerState { verbose: false, writer }),
+                prefix,
+            }),
+        }
     }
 }
 

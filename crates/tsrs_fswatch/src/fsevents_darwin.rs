@@ -22,9 +22,16 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use crate::fsevents_darwin_ffi::{create_and_start_stream, fs_events_get_current_event_id, fsEventStream, fsEventsCallbackPayload, new_stream_callback, streamCallback, streamStartError, teardown_stream};
+use crate::fsevents_darwin_ffi::{
+    create_and_start_stream, fs_events_get_current_event_id, fsEventStream,
+    fsEventsCallbackPayload, new_stream_callback, streamCallback, streamStartError,
+    teardown_stream,
+};
 use crate::pathcompare::comparisonPath;
-use crate::watcher::{dirWatch, dwKey, err_watched_directory_removed, watcher, watcherBase, watcherImpl, Error, ErrOverflow};
+use crate::watcher::{
+    ErrOverflow, Error, dirWatch, dwKey, err_watched_directory_removed, watcher, watcherBase,
+    watcherImpl,
+};
 
 // ----- FSEvents flag bits (from FSEvents.h) ------------------------------
 
@@ -43,7 +50,12 @@ const flagItemIsHardlink: u32 = 0x0010_0000;
 const flagItemIsLastHardlink: u32 = 0x0020_0000;
 const flagItemCloned: u32 = 0x0040_0000;
 
-const ignoredFlags: u32 = flagItemIsHardlink | flagItemIsLastHardlink | flagItemIsSymlink | flagItemIsDir | flagItemIsFile | flagItemCloned;
+const ignoredFlags: u32 = flagItemIsHardlink
+    | flagItemIsLastHardlink
+    | flagItemIsSymlink
+    | flagItemIsDir
+    | flagItemIsFile
+    | flagItemCloned;
 
 #[derive(Default)]
 pub(crate) struct fseventsState {
@@ -87,7 +99,8 @@ fn new_fs_events_backend() -> fsEventsBackend {
 // fsevents_darwin.go:179
 // checkWatcher mirrors the helper of the same name.
 fn check_watcher(w: &Arc<dirWatch>) -> Result<(), Error> {
-    let md = std::fs::metadata(&w.physical_dir).map_err(|e| Error::path_error("stat", &w.physical_dir, e.raw_os_error().unwrap_or(0)))?;
+    let md = std::fs::metadata(&w.physical_dir)
+        .map_err(|e| Error::path_error("stat", &w.physical_dir, e.raw_os_error().unwrap_or(0)))?;
     if !md.is_dir() {
         return Err(Error::from_errno(libc::ENOTDIR));
     }
@@ -95,10 +108,16 @@ fn check_watcher(w: &Arc<dirWatch>) -> Result<(), Error> {
 }
 
 fn err_fsevents_user_dropped() -> Error {
-    Error::wrap(format!("events were dropped by the FSEvents client: {}", ErrOverflow.0), &ErrOverflow.into())
+    Error::wrap(
+        format!("events were dropped by the FSEvents client: {}", ErrOverflow.0),
+        &ErrOverflow.into(),
+    )
 }
 fn err_fsevents_kernel_dropped() -> Error {
-    Error::wrap(format!("events were dropped by the kernel: {}", ErrOverflow.0), &ErrOverflow.into())
+    Error::wrap(
+        format!("events were dropped by the kernel: {}", ErrOverflow.0),
+        &ErrOverflow.into(),
+    )
 }
 fn err_fsevents_too_many() -> Error {
     Error::wrap(format!("too many events: {}", ErrOverflow.0), &ErrOverflow.into())
@@ -169,7 +188,8 @@ impl fsEventsBackend {
 
         let mut sorted_roots: Vec<&String> = roots.iter().collect();
         sorted_roots.sort();
-        let mut started: Vec<(String, Option<Arc<fseventsStream>>)> = Vec::with_capacity(sorted_roots.len());
+        let mut started: Vec<(String, Option<Arc<fseventsStream>>)> =
+            Vec::with_capacity(sorted_roots.len());
         let stop_started = |started: &[(String, Option<Arc<fseventsStream>>)]| {
             for (_, stream) in started {
                 if let Some(stream) = stream {
@@ -208,7 +228,11 @@ impl fsEventsBackend {
             }
         }
         let shared_streams = if shared_changed {
-            let shared_watches: Vec<fseventsWatchSnapshot> = watches.iter().filter(|watch| shared_roots.contains(&watch.w.physical_dir)).cloned().collect();
+            let shared_watches: Vec<fseventsWatchSnapshot> = watches
+                .iter()
+                .filter(|watch| shared_roots.contains(&watch.w.physical_dir))
+                .cloned()
+                .collect();
             match Self::start_streams(&shared_watches) {
                 Ok(streams) => Some(streams),
                 Err(err) => {
@@ -239,7 +263,10 @@ impl fsEventsBackend {
 
     // fsevents_darwin.go:278
     // startStream creates and starts one FSEventStream watching all supplied paths.
-    fn start_stream(paths: &[String], watches: &[fseventsWatchSnapshot]) -> Result<Option<Arc<fseventsStream>>, Error> {
+    fn start_stream(
+        paths: &[String],
+        watches: &[fseventsWatchSnapshot],
+    ) -> Result<Option<Arc<fseventsStream>>, Error> {
         if paths.is_empty() {
             return Ok(None);
         }
@@ -247,14 +274,20 @@ impl fsEventsBackend {
             return Err(stream_start_error(streamStartError::StreamCreateNull));
         };
         let stream = create_and_start_stream(paths, &mut cb).map_err(stream_start_error)?;
-        Ok(Some(Arc::new(fseventsStream { stream: Mutex::new(Some(stream)), cb: Mutex::new(Some(cb)) })))
+        Ok(Some(Arc::new(fseventsStream {
+            stream: Mutex::new(Some(stream)),
+            cb: Mutex::new(Some(cb)),
+        })))
     }
 }
 
 // fsevents_darwin.go:230
 fn start_fs_events_streams(
     watches: &[fseventsWatchSnapshot],
-    start_stream: &dyn Fn(&[String], &[fseventsWatchSnapshot]) -> Result<Option<Arc<fseventsStream>>, Error>,
+    start_stream: &dyn Fn(
+        &[String],
+        &[fseventsWatchSnapshot],
+    ) -> Result<Option<Arc<fseventsStream>>, Error>,
 ) -> Result<Vec<Arc<fseventsStream>>, Error> {
     if watches.is_empty() {
         return Ok(Vec::new());
@@ -292,11 +325,18 @@ fn start_fs_events_streams(
 }
 
 // fsevents_darwin.go:265
-fn watches_for_fs_events_paths(watches: &[fseventsWatchSnapshot], paths: &[String]) -> Vec<fseventsWatchSnapshot> {
+fn watches_for_fs_events_paths(
+    watches: &[fseventsWatchSnapshot],
+    paths: &[String],
+) -> Vec<fseventsWatchSnapshot> {
     if paths.is_empty() {
         return Vec::new();
     }
-    watches.iter().filter(|watch| paths.binary_search(&watch.w.physical_dir).is_ok()).cloned().collect()
+    watches
+        .iter()
+        .filter(|watch| paths.binary_search(&watch.w.physical_dir).is_ok())
+        .cloned()
+        .collect()
 }
 
 // fsevents_darwin.go:367
@@ -339,7 +379,8 @@ impl watcherImpl for fsEventsBackend {
         if watches_to_add.is_empty() {
             return Some(Ok(()));
         }
-        let mut states: Vec<(Arc<dirWatch>, Arc<fseventsState>)> = Vec::with_capacity(watches_to_add.len());
+        let mut states: Vec<(Arc<dirWatch>, Arc<fseventsState>)> =
+            Vec::with_capacity(watches_to_add.len());
         states = match watches_to_add.iter().try_fold(states, |mut states, w| {
             check_watcher(w)?;
             states.push((Arc::clone(w), Arc::new(fseventsState::default())));
@@ -459,8 +500,17 @@ pub(crate) fn fs_events_callback(cb: &streamCallback, payload: &fsEventsCallback
         // arrives (FSEvents delivers about 12 ms after the write). An empty file holds the callbacks like an
         // unclosed one on inotify, until an event shows it non-empty or removed, or the hold times out. A save that
         // is not empty when its event arrives is not delayed.
-        let file_len = (crate::watcher::write_settling() && flag & flagItemIsFile != 0)
-            .then(|| if is_removed && !is_created { None } else { std::fs::metadata(raw_path).ok().filter(std::fs::Metadata::is_file).map(|m| m.len()) });
+        let file_len =
+            (crate::watcher::write_settling() && flag & flagItemIsFile != 0).then(|| {
+                if is_removed && !is_created {
+                    None
+                } else {
+                    std::fs::metadata(raw_path)
+                        .ok()
+                        .filter(std::fs::Metadata::is_file)
+                        .map(|m| m.len())
+                }
+            });
         let being_written = file_len.map(|len| len == Some(0));
         // tsrs-only (`set_write_settling`): a batch that changed two files that still exist is a tool writing many
         // files (a formatter, a checkout, a code generator), and the rest of its writes are still on the way.
@@ -506,7 +556,11 @@ pub(crate) fn fs_events_callback(cb: &streamCallback, payload: &fsEventsCallback
                 } else {
                     w.events.remove_at(&display_path, event_id);
                 }
-                if w.terminate_callbacks_for_deleted_root(&display_path, event_id, &err_watched_directory_removed()) {
+                if w.terminate_callbacks_for_deleted_root(
+                    &display_path,
+                    event_id,
+                    &err_watched_directory_removed(),
+                ) {
                     touch(w);
                 }
                 if display_path == w.dir {
@@ -530,7 +584,11 @@ pub(crate) fn fs_events_callback(cb: &streamCallback, payload: &fsEventsCallback
                     } else {
                         w.events.remove_at(&display_path, event_id);
                     }
-                    if w.terminate_callbacks_for_deleted_root(&display_path, event_id, &err_watched_directory_removed()) {
+                    if w.terminate_callbacks_for_deleted_root(
+                        &display_path,
+                        event_id,
+                        &err_watched_directory_removed(),
+                    ) {
                         touch(w);
                     }
                     if display_path == w.dir {
@@ -556,7 +614,10 @@ pub(crate) fn fs_events_callback(cb: &streamCallback, payload: &fsEventsCallback
 }
 
 // fsevents_darwin.go:609
-#[expect(dead_code, reason = "only Go tests call it (fsevents_darwin_shared_test.go), and those are not ported")]
+#[expect(
+    dead_code,
+    reason = "only Go tests call it (fsevents_darwin_shared_test.go), and those are not ported"
+)]
 fn fsevents_display_path(w: &dirWatch, raw_path: &str) -> Option<String> {
     let mut path = comparisonPath::new(raw_path);
     fsevents_display_path_prepared(w, &mut path)
@@ -564,19 +625,32 @@ fn fsevents_display_path(w: &dirWatch, raw_path: &str) -> Option<String> {
 
 // fsevents_darwin.go:614
 fn fsevents_display_path_prepared(w: &dirWatch, raw_path: &mut comparisonPath) -> Option<String> {
-    let physical = comparisonPath { path: w.physical_dir.clone(), folded: w.physical_dir_fold.clone(), ready: !w.physical_dir_fold.is_empty(), cache: None };
+    let physical = comparisonPath {
+        path: w.physical_dir.clone(),
+        folded: w.physical_dir_fold.clone(),
+        ready: !w.physical_dir_fold.is_empty(),
+        cache: None,
+    };
     if let Some(path) = w.comparer.rebase_prepared(raw_path, &physical, &w.dir) {
         return Some(path);
     }
     if w.physical_dir != w.dir {
-        let logical = comparisonPath { path: w.dir.clone(), folded: w.dir_fold.clone(), ready: !w.dir_fold.is_empty(), cache: None };
+        let logical = comparisonPath {
+            path: w.dir.clone(),
+            folded: w.dir_fold.clone(),
+            ready: !w.dir_fold.is_empty(),
+            cache: None,
+        };
         return w.comparer.rebase_prepared(raw_path, &logical, &w.dir);
     }
     None
 }
 
 // fsevents_darwin.go:626
-#[expect(dead_code, reason = "only Go tests call it (fsevents_darwin_shared_test.go), and those are not ported")]
+#[expect(
+    dead_code,
+    reason = "only Go tests call it (fsevents_darwin_shared_test.go), and those are not ported"
+)]
 fn fsevents_overflow_matches(w: &dirWatch, raw_path: &str) -> bool {
     let mut path = comparisonPath::new(raw_path);
     fsevents_overflow_matches_prepared(w, &mut path)
@@ -584,7 +658,12 @@ fn fsevents_overflow_matches(w: &dirWatch, raw_path: &str) -> bool {
 
 // fsevents_darwin.go:631
 fn fsevents_overflow_matches_prepared(w: &dirWatch, raw_path: &mut comparisonPath) -> bool {
-    let mut physical = comparisonPath { path: w.physical_dir.clone(), folded: w.physical_dir_fold.clone(), ready: !w.physical_dir_fold.is_empty(), cache: None };
+    let mut physical = comparisonPath {
+        path: w.physical_dir.clone(),
+        folded: w.physical_dir_fold.clone(),
+        ready: !w.physical_dir_fold.is_empty(),
+        cache: None,
+    };
     if w.comparer.suffix_prepared(&physical, raw_path).is_some() {
         return true;
     }
@@ -592,7 +671,12 @@ fn fsevents_overflow_matches_prepared(w: &dirWatch, raw_path: &mut comparisonPat
         return true;
     }
     if w.physical_dir != w.dir {
-        let mut logical = comparisonPath { path: w.dir.clone(), folded: w.dir_fold.clone(), ready: !w.dir_fold.is_empty(), cache: None };
+        let mut logical = comparisonPath {
+            path: w.dir.clone(),
+            folded: w.dir_fold.clone(),
+            ready: !w.dir_fold.is_empty(),
+            cache: None,
+        };
         if w.comparer.suffix_prepared(&logical, raw_path).is_some() {
             return true;
         }

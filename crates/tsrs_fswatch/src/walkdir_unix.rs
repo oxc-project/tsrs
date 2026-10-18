@@ -11,7 +11,11 @@ use crate::watcher::Error;
 
 // walkdir_unix.go:21
 // walkDir walks dir, optionally recursively, invoking fn for each entry.
-pub(crate) fn walk_dir(dir: &str, recursive: bool, f: &mut dyn FnMut(&str, bool) -> Result<(), Error>) -> Result<(), Error> {
+pub(crate) fn walk_dir(
+    dir: &str,
+    recursive: bool,
+    f: &mut dyn FnMut(&str, bool) -> Result<(), Error>,
+) -> Result<(), Error> {
     let md = fs::symlink_metadata(dir).map_err(Error::from_io)?;
     if md.file_type().is_symlink() {
         // open(O_NOFOLLOW) on a symlink.
@@ -27,7 +31,12 @@ pub(crate) fn walk_dir(dir: &str, recursive: bool, f: &mut dyn FnMut(&str, bool)
 // walkdir_unix.go:44
 // iterateDir reads the entries of an open directory, invokes fn for the dir and each entry, and recurses into
 // subdirectories.
-fn iterate_dir(rd: fs::ReadDir, dirname: &str, recursive: bool, f: &mut dyn FnMut(&str, bool) -> Result<(), Error>) -> Result<(), Error> {
+fn iterate_dir(
+    rd: fs::ReadDir,
+    dirname: &str,
+    recursive: bool,
+    f: &mut dyn FnMut(&str, bool) -> Result<(), Error>,
+) -> Result<(), Error> {
     f(dirname, true)?;
     let mut entries = Vec::new();
     entries = rd.into_iter().try_fold(entries, |mut entries, ent| {
@@ -55,7 +64,9 @@ fn iterate_dir(rd: fs::ReadDir, dirname: &str, recursive: bool, f: &mut dyn FnMu
         let child = match fs::read_dir(&full_path) {
             Ok(child) => child,
             Err(err) => {
-                if matches!(err.kind(), ErrorKind::PermissionDenied | ErrorKind::NotFound) || err.raw_os_error() == Some(libc::ENOTDIR) {
+                if matches!(err.kind(), ErrorKind::PermissionDenied | ErrorKind::NotFound)
+                    || err.raw_os_error() == Some(libc::ENOTDIR)
+                {
                     continue;
                 }
                 return Err(Error::from_io(err));

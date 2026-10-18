@@ -18,7 +18,9 @@ fn merged_interface_diagnostics_finish_and_report_in_each_declaring_file() {
         let mut declaring_files = Vec::new();
         for i in 0..48 {
             let text = if i % 4 == 0 {
-                format!("interface Merged extends Left, Right {{ p{i}: number }}\ninterface Bad extends Base {{ tag: number }}\ninterface IndexTest extends Indexed {{ item{i}: string }}\n")
+                format!(
+                    "interface Merged extends Left, Right {{ p{i}: number }}\ninterface Bad extends Base {{ tag: number }}\ninterface IndexTest extends Indexed {{ item{i}: string }}\n"
+                )
             } else {
                 format!("export const v{i}: number = {i};\n")
             };
@@ -30,33 +32,62 @@ fn merged_interface_diagnostics_finish_and_report_in_each_declaring_file() {
         }
         let s = session(&dir.dir(), false);
         for round in 0..12 {
-            let r = call(&s, "createSnapshot", &format!("{{\"createPrograms\":[{{\"rootFiles\":[{}],\"compilerOptions\":{{\"skipLibCheck\":true}}}}]}}", roots.join(",")));
+            let r = call(
+                &s,
+                "createSnapshot",
+                &format!(
+                    "{{\"createPrograms\":[{{\"rootFiles\":[{}],\"compilerOptions\":{{\"skipLibCheck\":true}}}}]}}",
+                    roots.join(",")
+                ),
+            );
             let snapshot = match get(&r, "snapshot") {
                 Value::Number(n) => *n as u64,
                 v => panic!("{v:?}"),
             };
-            let sp = format!("\"snapshot\":{snapshot},\"project\":{}", quote(str_of(get(&r, "operation.createdPrograms.0"))));
+            let sp = format!(
+                "\"snapshot\":{snapshot},\"project\":{}",
+                quote(str_of(get(&r, "operation.createdPrograms.0")))
+            );
             if round % 3 == 0 {
-                assert_eq!(call(&s, "getGlobalDiagnostics", &format!("{{{sp}}}")), Value::Array(vec![]));
+                assert_eq!(
+                    call(&s, "getGlobalDiagnostics", &format!("{{{sp}}}")),
+                    Value::Array(vec![])
+                );
             } else if round % 3 == 1 {
                 let last = declaring_files.last().unwrap();
-                let selected = call(&s, "getSemanticDiagnostics", &format!("{{{sp},\"files\":[{}]}}", quote(last)));
+                let selected = call(
+                    &s,
+                    "getSemanticDiagnostics",
+                    &format!("{{{sp},\"files\":[{}]}}", quote(last)),
+                );
                 assert_eq!(diagnostic_sites(&selected), expected_sites(std::slice::from_ref(last)));
             }
             let all = call(&s, "getSemanticDiagnostics", &format!("{{{sp}}}"));
             assert_eq!(diagnostic_sites(&all), expected_sites(&declaring_files), "round {round}");
             for file in declaring_files.iter().rev() {
-                let selected = call(&s, "getSemanticDiagnostics", &format!("{{{sp},\"files\":[{}]}}", quote(file)));
+                let selected = call(
+                    &s,
+                    "getSemanticDiagnostics",
+                    &format!("{{{sp},\"files\":[{}]}}", quote(file)),
+                );
                 assert_eq!(diagnostic_sites(&selected), expected_sites(std::slice::from_ref(file)));
             }
-            assert_eq!(call(&s, "getGlobalDiagnostics", &format!("{{{sp}}}")), Value::Array(vec![]));
-            assert_eq!(call(&s, "release", &format!("{{\"snapshot\":{snapshot}}}")), Value::Bool(true));
+            assert_eq!(
+                call(&s, "getGlobalDiagnostics", &format!("{{{sp}}}")),
+                Value::Array(vec![])
+            );
+            assert_eq!(
+                call(&s, "release", &format!("{{\"snapshot\":{snapshot}}}")),
+                Value::Bool(true)
+            );
         }
         done.send(()).unwrap();
     });
     match rx.recv_timeout(std::time::Duration::from_secs(30)) {
         Ok(()) | Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => worker.join().unwrap(),
-        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => panic!("merged-interface API diagnostics did not finish within 30 seconds"),
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+            panic!("merged-interface API diagnostics did not finish within 30 seconds")
+        }
     }
 }
 
@@ -74,7 +105,8 @@ fn diagnostic_sites(diagnostics: &Value) -> Vec<(u32, String)> {
 }
 
 fn expected_sites(files: &[String]) -> Vec<(u32, String)> {
-    let mut sites: Vec<_> = files.iter().flat_map(|file| [2320, 2430, 2411].map(|code| (code, file.clone()))).collect();
+    let mut sites: Vec<_> =
+        files.iter().flat_map(|file| [2320, 2430, 2411].map(|code| (code, file.clone()))).collect();
     sites.sort();
     sites
 }

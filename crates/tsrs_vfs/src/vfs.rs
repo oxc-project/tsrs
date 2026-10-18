@@ -61,7 +61,12 @@ macro_rules! forward_fs {
         fn remove(&self, path: &str) -> Result<(), String> {
             (**self).remove(path)
         }
-        fn chtimes(&self, path: &str, a_time: SystemTime, m_time: SystemTime) -> Result<(), String> {
+        fn chtimes(
+            &self,
+            path: &str,
+            a_time: SystemTime,
+            m_time: SystemTime,
+        ) -> Result<(), String> {
             (**self).chtimes(path, a_time, m_time)
         }
         fn directory_exists(&self, path: &str) -> bool {

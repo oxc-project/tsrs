@@ -11,7 +11,12 @@ use tsrs_ast::NodeFactory;
 fn parse_type_script(text: &str, jsx: bool) -> P<SourceFile> {
     let file_name = if jsx { "/main.tsx" } else { "/main.ts" };
     tsrs_parser::parse_source_file(
-        SourceFileParseOptions { file_name: file_name.to_string(), path: Path::new(file_name.to_string()), external_module_indicator_options: tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default() },
+        SourceFileParseOptions {
+            file_name: file_name.to_string(),
+            path: Path::new(file_name.to_string()),
+            external_module_indicator_options:
+                tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+        },
         text,
         get_script_kind_from_file_name(file_name),
     )
@@ -19,8 +24,16 @@ fn parse_type_script(text: &str, jsx: bool) -> P<SourceFile> {
 
 // Go emittestutil.CheckEmit: prints with LF newlines, trims the trailing newline, and checks that the output reparses
 // without diagnostics.
-fn check_emit(emit_context: Option<P<EmitContext>>, file: P<SourceFile>, expected: &str) -> Result<(), String> {
-    let mut printer = new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, PrintHandlers::default(), emit_context);
+fn check_emit(
+    emit_context: Option<P<EmitContext>>,
+    file: P<SourceFile>,
+    expected: &str,
+) -> Result<(), String> {
+    let mut printer = new_printer(
+        PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+        PrintHandlers::default(),
+        emit_context,
+    );
     let text = printer.emit_source_file(file);
     let actual = text.strip_suffix('\n').unwrap_or(&text);
     if actual != expected {
@@ -36,8 +49,18 @@ fn check_emit(emit_context: Option<P<EmitContext>>, file: P<SourceFile>, expecte
 fn synthetic_source_file(f: &NodeFactory, statements: Vec<P<Node>>) -> P<SourceFile> {
     let statements = f.new_node_list(statements);
     let eof = f.new_token(Kind::EndOfFile);
-    f.new_source_file(SourceFileParseOptions { file_name: "/file.ts".to_string(), path: Path::new("/file.ts".to_string()), external_module_indicator_options: tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default() }, "", statements, eof)
-        .as_source_file_p()
+    f.new_source_file(
+        SourceFileParseOptions {
+            file_name: "/file.ts".to_string(),
+            path: Path::new("/file.ts".to_string()),
+            external_module_indicator_options:
+                tsrs_ast::parseoptions::ExternalModuleIndicatorOptions::default(),
+        },
+        "",
+        statements,
+        eof,
+    )
+    .as_source_file_p()
 }
 
 #[rustfmt::skip]
@@ -610,7 +633,13 @@ fn test_emit() {
             failures.push(format!("{title}: {e}"));
         }
     }
-    assert!(failures.is_empty(), "{} of {} cases failed:\n{}", failures.len(), EMIT_CASES.len(), failures.join("\n"));
+    assert!(
+        failures.is_empty(),
+        "{} of {} cases failed:\n{}",
+        failures.len(),
+        EMIT_CASES.len(),
+        failures.join("\n")
+    );
 }
 
 #[test]
@@ -665,17 +694,65 @@ fn test_parenthesize_array_literal() {
 fn test_parenthesize_binary_expression_mixing_nullish_coalescing() {
     let tests: &[(&str, Kind, Kind, &str, &str)] = &[
         // inner ?? on left side of || or &&
-        ("BarBarWithLeftQuestionQuestion", Kind::QuestionQuestionToken, Kind::BarBarToken, "left", "(a ?? b) || c;"),
-        ("AmpersandAmpersandWithLeftQuestionQuestion", Kind::QuestionQuestionToken, Kind::AmpersandAmpersandToken, "left", "(a ?? b) && c;"),
+        (
+            "BarBarWithLeftQuestionQuestion",
+            Kind::QuestionQuestionToken,
+            Kind::BarBarToken,
+            "left",
+            "(a ?? b) || c;",
+        ),
+        (
+            "AmpersandAmpersandWithLeftQuestionQuestion",
+            Kind::QuestionQuestionToken,
+            Kind::AmpersandAmpersandToken,
+            "left",
+            "(a ?? b) && c;",
+        ),
         // inner ?? on right side of || or &&
-        ("BarBarWithRightQuestionQuestion", Kind::QuestionQuestionToken, Kind::BarBarToken, "right", "a || (b ?? c);"),
-        ("AmpersandAmpersandWithRightQuestionQuestion", Kind::QuestionQuestionToken, Kind::AmpersandAmpersandToken, "right", "a && (b ?? c);"),
+        (
+            "BarBarWithRightQuestionQuestion",
+            Kind::QuestionQuestionToken,
+            Kind::BarBarToken,
+            "right",
+            "a || (b ?? c);",
+        ),
+        (
+            "AmpersandAmpersandWithRightQuestionQuestion",
+            Kind::QuestionQuestionToken,
+            Kind::AmpersandAmpersandToken,
+            "right",
+            "a && (b ?? c);",
+        ),
         // inner || or && on left side of ??
-        ("QuestionQuestionWithLeftBarBar", Kind::BarBarToken, Kind::QuestionQuestionToken, "left", "(a || b) ?? c;"),
-        ("QuestionQuestionWithLeftAmpersandAmpersand", Kind::AmpersandAmpersandToken, Kind::QuestionQuestionToken, "left", "(a && b) ?? c;"),
+        (
+            "QuestionQuestionWithLeftBarBar",
+            Kind::BarBarToken,
+            Kind::QuestionQuestionToken,
+            "left",
+            "(a || b) ?? c;",
+        ),
+        (
+            "QuestionQuestionWithLeftAmpersandAmpersand",
+            Kind::AmpersandAmpersandToken,
+            Kind::QuestionQuestionToken,
+            "left",
+            "(a && b) ?? c;",
+        ),
         // inner || or && on right side of ??
-        ("QuestionQuestionWithRightBarBar", Kind::BarBarToken, Kind::QuestionQuestionToken, "right", "a ?? (b || c);"),
-        ("QuestionQuestionWithRightAmpersandAmpersand", Kind::AmpersandAmpersandToken, Kind::QuestionQuestionToken, "right", "a ?? (b && c);"),
+        (
+            "QuestionQuestionWithRightBarBar",
+            Kind::BarBarToken,
+            Kind::QuestionQuestionToken,
+            "right",
+            "a ?? (b || c);",
+        ),
+        (
+            "QuestionQuestionWithRightAmpersandAmpersand",
+            Kind::AmpersandAmpersandToken,
+            Kind::QuestionQuestionToken,
+            "right",
+            "a ?? (b && c);",
+        ),
     ];
     for &(title, inner_op, outer_op, side, output) in tests {
         let f = NodeFactory::default();
@@ -686,7 +763,13 @@ fn test_parenthesize_binary_expression_mixing_nullish_coalescing() {
             let inner_expr = f.new_binary_expression(None, a, None, inner_token, b);
             let outer_token = f.new_token(outer_op);
             let c = f.new_identifier("c");
-            f.new_binary_expression(None, inner_expr /*left: (a innerOp b)*/, None, outer_token, c)
+            f.new_binary_expression(
+                None,
+                inner_expr, /*left: (a innerOp b)*/
+                None,
+                outer_token,
+                c,
+            )
         } else {
             // Go builds the inner expression over `a`/`b` and then replaces its operands with `b`/`c`.
             let b = f.new_identifier("b");
@@ -695,7 +778,13 @@ fn test_parenthesize_binary_expression_mixing_nullish_coalescing() {
             let inner_expr = f.new_binary_expression(None, b, None, inner_token, c);
             let a = f.new_identifier("a");
             let outer_token = f.new_token(outer_op);
-            f.new_binary_expression(None, a, None, outer_token, inner_expr /*right: (b innerOp c)*/)
+            f.new_binary_expression(
+                None,
+                a,
+                None,
+                outer_token,
+                inner_expr, /*right: (b innerOp c)*/
+            )
         };
         let statement = f.new_expression_statement(outer_expr);
         let file = synthetic_source_file(&f, vec![statement]);
@@ -724,7 +813,16 @@ fn test_name_generation() {
         let body = f.new_block(body_statements, true);
         let name = f.new_identifier("f");
         let parameters = f.new_node_list(vec![]);
-        let function = f.new_function_declaration(None, None, Some(name), None, Some(parameters), None, None, Some(body));
+        let function = f.new_function_declaration(
+            None,
+            None,
+            Some(name),
+            None,
+            Some(parameters),
+            None,
+            None,
+            Some(body),
+        );
         synthetic_source_file(f.as_node_factory(), vec![statement1, function])
     };
     check_emit(Some(ec), file, "var _a;\nfunction f() {\n    var _a;\n}").unwrap();
@@ -736,13 +834,26 @@ fn test_omit_trailing_semicolon() {
     let name = f.new_identifier("m");
     let parameters = f.new_node_list(vec![]);
     let void = f.new_keyword_type_node(Kind::VoidKeyword);
-    let method_signature = f.new_method_signature_declaration(None, name, None, None, Some(parameters), Some(void));
+    let method_signature =
+        f.new_method_signature_declaration(None, name, None, None, Some(parameters), Some(void));
     let file = parse_type_script("interface I {}", false);
 
-    let mut default_printer = new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, PrintHandlers::default(), None);
+    let mut default_printer = new_printer(
+        PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+        PrintHandlers::default(),
+        None,
+    );
     assert_eq!(default_printer.emit(method_signature, Some(file)), "m(): void;");
 
-    let mut omit_printer = new_printer(PrinterOptions { new_line: NewLineKind::LF, omit_trailing_semicolon: true, ..Default::default() }, PrintHandlers::default(), None);
+    let mut omit_printer = new_printer(
+        PrinterOptions {
+            new_line: NewLineKind::LF,
+            omit_trailing_semicolon: true,
+            ..Default::default()
+        },
+        PrintHandlers::default(),
+        None,
+    );
     assert_eq!(omit_printer.emit(method_signature, Some(file)), "m(): void");
 
     let for_file = parse_type_script("for (;;) {}", false);
@@ -761,7 +872,11 @@ fn test_writers_used_by_checker() {
         let types = f.new_node_list(vec![a, b]);
         f.new_union_type_node(types)
     };
-    let mut p = new_printer(PrinterOptions { remove_comments: true, ..Default::default() }, PrintHandlers::default(), Some(ec));
+    let mut p = new_printer(
+        PrinterOptions { remove_comments: true, ..Default::default() },
+        PrintHandlers::default(),
+        Some(ec),
+    );
     let mut writer = new_text_writer("", 0);
     p.write(node, None, &mut writer, None);
     assert_eq!(writer.string(), "string | number");
@@ -781,7 +896,12 @@ fn test_synthetic_comments_with_source_file() {
         let f = &ec.factory;
         f.new_keyword_type_node(Kind::AnyKeyword)
     };
-    ec.add_synthetic_leading_comment(any, Kind::MultiLineCommentTrivia, "unresolved", false /*hasTrailingNewLine*/);
+    ec.add_synthetic_leading_comment(
+        any,
+        Kind::MultiLineCommentTrivia,
+        "unresolved",
+        false, /*hasTrailingNewLine*/
+    );
     let mut p = new_printer(PrinterOptions::default(), PrintHandlers::default(), Some(ec));
     let mut writer = new_text_writer("", 0);
     p.write(any, Some(file), &mut writer, None);
@@ -798,7 +918,12 @@ fn test_synthetic_comments_with_source_file() {
         f.new_type_literal_node(members)
     };
     let member = literal.as_type_literal_node().members.nodes()[0];
-    ec.add_synthetic_trailing_comment(member, Kind::MultiLineCommentTrivia, "elided", false /*hasTrailingNewLine*/);
+    ec.add_synthetic_trailing_comment(
+        member,
+        Kind::MultiLineCommentTrivia,
+        "elided",
+        false, /*hasTrailingNewLine*/
+    );
     ec.set_emit_flags(literal, EmitFlags::SingleLine);
     p.write(literal, Some(file), &mut writer, None);
     assert_eq!(writer.string(), "{ a: string; /*elided*/ }");
@@ -820,7 +945,14 @@ fn test_node_visitor_environment_hooks() {
     });
     let mut visitor = ec.new_node_visitor(visit);
     let visited = visitor.visit_source_file(file.as_node());
-    let mut printer = new_printer(PrinterOptions { new_line: NewLineKind::LF, ..Default::default() }, PrintHandlers::default(), Some(ec));
+    let mut printer = new_printer(
+        PrinterOptions { new_line: NewLineKind::LF, ..Default::default() },
+        PrintHandlers::default(),
+        Some(ec),
+    );
     let text = printer.emit_source_file(visited.as_source_file_p());
-    assert_eq!(text, "function f(a, _a) {\n    var _b;\n    if (a === void 0) { a = 1; }\n    var { b } = _a === void 0 ? {} : _a;\n    return a;\n}\n");
+    assert_eq!(
+        text,
+        "function f(a, _a) {\n    var _b;\n    if (a === void 0) { a = 1; }\n    var { b } = _a === void 0 ? {} : _a;\n    return a;\n}\n"
+    );
 }

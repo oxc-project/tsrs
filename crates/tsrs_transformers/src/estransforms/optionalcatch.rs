@@ -31,15 +31,24 @@ impl optionalCatchTransformer {
         if c.variable_declaration.is_none() {
             let f = self.factory();
             // Go: ch.Visitor().Visit(node.Block), the visitor's raw visit callback.
-            return f.new_catch_clause(Some(f.new_variable_declaration(f.new_temp_variable(), None, None, None)), self.visit(c.block).unwrap());
+            return f.new_catch_clause(
+                Some(f.new_variable_declaration(f.new_temp_variable(), None, None, None)),
+                self.visit(c.block).unwrap(),
+            );
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }
 }
 
 // optionalcatch.go:34
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_optional_catch_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(optionalCatchTransformer { base: Transformer::default() });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(opt.context)))
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(opt.context),
+    ))
 }

@@ -9,9 +9,13 @@ use tsrs_lsproto::DocumentUri;
 
 use super::host::{CheckerError, CheckerResult};
 
-static EMPTY_OBJECT: std::sync::LazyLock<tsrs_core::collections::OrderedMap<String, Value>> = std::sync::LazyLock::new(Default::default);
+static EMPTY_OBJECT: std::sync::LazyLock<tsrs_core::collections::OrderedMap<String, Value>> =
+    std::sync::LazyLock::new(Default::default);
 
-pub(crate) fn object<'a>(params: &'a Value, method: &str) -> CheckerResult<&'a tsrs_core::collections::OrderedMap<String, Value>> {
+pub(crate) fn object<'a>(
+    params: &'a Value,
+    method: &str,
+) -> CheckerResult<&'a tsrs_core::collections::OrderedMap<String, Value>> {
     match params {
         Value::Object(map) => Ok(map),
         // encoding/json v2 decodes `null` into a struct as its zero value.
@@ -20,7 +24,10 @@ pub(crate) fn object<'a>(params: &'a Value, method: &str) -> CheckerResult<&'a t
     }
 }
 
-fn get<'a>(obj: &'a tsrs_core::collections::OrderedMap<String, Value>, name: &str) -> Option<&'a Value> {
+fn get<'a>(
+    obj: &'a tsrs_core::collections::OrderedMap<String, Value>,
+    name: &str,
+) -> Option<&'a Value> {
     match obj.get(name) {
         None | Some(Value::Null) => None,
         Some(v) => Some(v),
@@ -56,19 +63,32 @@ fn json_kind(v: &Value) -> &'static str {
 /// own exact value, at any depth (symbol references, import-adder actions). Range and integer-syntax errors
 /// are reported by core's pre-decode before dispatch, nested api structs included; this only rejects what
 /// cannot be a uint64 at all. A value outside the dispatched tree falls back to the parsed f64.
-fn unsigned64(v: &Value, object: &Value, key: &str, pointer: &str, go_type: &str) -> CheckerResult<u64> {
+fn unsigned64(
+    v: &Value,
+    object: &Value,
+    key: &str,
+    pointer: &str,
+    go_type: &str,
+) -> CheckerResult<u64> {
     match v {
         Value::Number(n) if n.fract() == 0.0 && *n >= 0.0 && *n <= u64::MAX as f64 => {
             Ok(crate::predecode::exact_u64(object, key).unwrap_or(*n as u64))
         }
-        Value::Number(_) => Err(CheckerError::invalid(format!("cannot unmarshal JSON number into Go {go_type} within \"{pointer}\""))),
-        other => Err(CheckerError::invalid(format!("cannot unmarshal JSON {} into Go {go_type} within \"{pointer}\"", json_kind(other)))),
+        Value::Number(_) => Err(CheckerError::invalid(format!(
+            "cannot unmarshal JSON number into Go {go_type} within \"{pointer}\""
+        ))),
+        other => Err(CheckerError::invalid(format!(
+            "cannot unmarshal JSON {} into Go {go_type} within \"{pointer}\"",
+            json_kind(other)
+        ))),
     }
 }
 
 fn signed32(v: &Value, name: &str) -> CheckerResult<i32> {
     match v {
-        Value::Number(n) if n.fract() == 0.0 && *n >= i32::MIN as f64 && *n <= i32::MAX as f64 => Ok(*n as i32),
+        Value::Number(n) if n.fract() == 0.0 && *n >= i32::MIN as f64 && *n <= i32::MAX as f64 => {
+            Ok(*n as i32)
+        }
         _ => Err(wrong_type(name, "a 32-bit integer")),
     }
 }
@@ -101,7 +121,9 @@ impl<'a> Params<'a> {
     }
 
     pub(crate) fn u64_typed(&self, name: &str, go_type: &str) -> CheckerResult<u64> {
-        self.raw(name).map_or(Ok(0), |v| unsigned64(v, self.value, name, &format!("{}/{name}", self.pointer), go_type))
+        self.raw(name).map_or(Ok(0), |v| {
+            unsigned64(v, self.value, name, &format!("{}/{name}", self.pointer), go_type)
+        })
     }
 
     /// Go `uint32` (type ids, positions, symbol flags). Missing → 0.
@@ -143,7 +165,10 @@ impl<'a> Params<'a> {
     }
 
     pub(crate) fn u32_array(&self, name: &str) -> CheckerResult<Vec<u32>> {
-        self.array(name)?.iter().map(|v| unsigned(v, name, u32::MAX as f64).map(|n| n as u32)).collect()
+        self.array(name)?
+            .iter()
+            .map(|v| unsigned(v, name, u32::MAX as f64).map(|n| n as u32))
+            .collect()
     }
 
     pub(crate) fn string_array(&self, name: &str) -> CheckerResult<Vec<&'a str>> {
@@ -178,7 +203,11 @@ impl<'a> Params<'a> {
 
     /// Go `[]DocumentIdentifier`: `null` is a nil slice; a `null` element is an invalid request.
     pub(crate) fn documents(&self, name: &str) -> CheckerResult<Vec<DocumentIdentifier>> {
-        self.array(name)?.iter().enumerate().map(|(i, v)| DocumentIdentifier::decode(v, &format!("/{name}/{i}"))).collect()
+        self.array(name)?
+            .iter()
+            .enumerate()
+            .map(|(i, v)| DocumentIdentifier::decode(v, &format!("/{name}/{i}")))
+            .collect()
     }
 
     pub(crate) fn symbol_ref(&self, name: &str) -> CheckerResult<SymbolReference> {
@@ -193,7 +222,13 @@ impl<'a> Params<'a> {
         self.array(name)?
             .iter()
             .enumerate()
-            .map(|(i, v)| if matches!(v, Value::Null) { Ok(SymbolReference::default()) } else { SymbolReference::decode(v, format!("{}/{name}/{i}", self.pointer)) })
+            .map(|(i, v)| {
+                if matches!(v, Value::Null) {
+                    Ok(SymbolReference::default())
+                } else {
+                    SymbolReference::decode(v, format!("{}/{name}/{i}", self.pointer))
+                }
+            })
             .collect()
     }
 }
@@ -210,17 +245,30 @@ impl DocumentIdentifier {
     /// text after core's `failed to unmarshal *api.<T>: json: ` prefix is Go's.
     fn decode(v: &Value, pointer: &str) -> CheckerResult<DocumentIdentifier> {
         let got = match v {
-            Value::String(s) => return Ok(DocumentIdentifier { file_name: s.clone(), uri: String::new() }),
+            Value::String(s) => {
+                return Ok(DocumentIdentifier { file_name: s.clone(), uri: String::new() });
+            }
             Value::Object(map) => {
                 // Go reads `uri` with `ReadToken().String()`: a scalar is taken as its literal text
                 // (`null` becomes the URI "null", which later fails as an invalid URI, as in Go).
                 return match map.get("uri") {
                     None => Ok(DocumentIdentifier::default()),
-                    Some(Value::String(uri)) => Ok(DocumentIdentifier { file_name: String::new(), uri: uri.clone() }),
-                    Some(Value::Null) => Ok(DocumentIdentifier { file_name: String::new(), uri: "null".to_string() }),
-                    Some(Value::Bool(b)) => Ok(DocumentIdentifier { file_name: String::new(), uri: b.to_string() }),
-                    Some(n @ Value::Number(_)) => Ok(DocumentIdentifier { file_name: String::new(), uri: tsrs_core::json::marshal(n).unwrap_or_default() }),
-                    Some(_) => Err(CheckerError::invalid(format!("cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: unsupported uri value"))),
+                    Some(Value::String(uri)) => {
+                        Ok(DocumentIdentifier { file_name: String::new(), uri: uri.clone() })
+                    }
+                    Some(Value::Null) => {
+                        Ok(DocumentIdentifier { file_name: String::new(), uri: "null".to_string() })
+                    }
+                    Some(Value::Bool(b)) => {
+                        Ok(DocumentIdentifier { file_name: String::new(), uri: b.to_string() })
+                    }
+                    Some(n @ Value::Number(_)) => Ok(DocumentIdentifier {
+                        file_name: String::new(),
+                        uri: tsrs_core::json::marshal(n).unwrap_or_default(),
+                    }),
+                    Some(_) => Err(CheckerError::invalid(format!(
+                        "cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: unsupported uri value"
+                    ))),
                 };
             }
             Value::Null => "null",
@@ -229,7 +277,9 @@ impl DocumentIdentifier {
             Value::Bool(false) => "false",
             Value::Array(_) => "[",
         };
-        Err(CheckerError::invalid(format!("cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: expected string or object, got {got}")))
+        Err(CheckerError::invalid(format!(
+            "cannot unmarshal into Go api.DocumentIdentifier within \"{pointer}\": DocumentIdentifier: expected string or object, got {got}"
+        )))
     }
 
     /// Go `DocumentIdentifier.ToFileName`.
@@ -242,11 +292,7 @@ impl DocumentIdentifier {
 
     /// Go `DocumentIdentifier.String` (used in error messages).
     pub(crate) fn display(&self) -> &str {
-        if !self.uri.is_empty() {
-            &self.uri
-        } else {
-            &self.file_name
-        }
+        if !self.uri.is_empty() { &self.uri } else { &self.file_name }
     }
 }
 
@@ -269,7 +315,10 @@ impl SymbolReference {
     /// integer literals and Go-style error locations.
     fn decode(v: &Value, pointer: String) -> CheckerResult<SymbolReference> {
         let Value::Object(_) = v else {
-            return Err(CheckerError::invalid(format!("cannot unmarshal JSON {} into Go api.SymbolReference within \"{pointer}\"", json_kind(v))));
+            return Err(CheckerError::invalid(format!(
+                "cannot unmarshal JSON {} into Go api.SymbolReference within \"{pointer}\"",
+                json_kind(v)
+            )));
         };
         let p = Params::nested(v, pointer)?;
         let file = match p.raw("file") {

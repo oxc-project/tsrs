@@ -4,7 +4,9 @@ use std::cell::RefCell;
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Kind, Node, SourceFile, Symbol, SymbolFlags};
-use tsrs_checker::{self as checker, Checker, ElementFlags, Flags, Signature, Type, TypeFlags, TypePredicate};
+use tsrs_checker::{
+    self as checker, Checker, ElementFlags, Flags, Signature, Type, TypeFlags, TypePredicate,
+};
 use tsrs_core::context::Context;
 use tsrs_core::stringutil;
 use tsrs_core::{P, TextRange};
@@ -21,8 +23,15 @@ use crate::utilities::get_leading_comment_ranges_of_node;
 
 impl LanguageService {
     // inlay_hints.go:25
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_inlay_hint(&self, ctx: &Context, params: &lsproto::InlayHintParams) -> Result<lsproto::InlayHintResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_inlay_hint(
+        &self,
+        ctx: &Context,
+        params: &lsproto::InlayHintParams,
+    ) -> Result<lsproto::InlayHintResponse, lsproto::Error> {
         let user_preferences = self.user_preferences();
         let inlay_hint_preferences = &user_preferences.inlay_hints;
         if !is_any_inlay_hint_enabled(inlay_hint_preferences) {
@@ -32,7 +41,11 @@ impl LanguageService {
         let (program, file) = self.get_program_and_file(&params.text_document.uri);
         let quote_preference = lsutil::get_quote_preference(file, user_preferences);
 
-        let mapped_ranges = self.converters.from_lsp_range_intersecting_for_source_file(file, params.range, Feature::InlayHints);
+        let mapped_ranges = self.converters.from_lsp_range_intersecting_for_source_file(
+            file,
+            params.range,
+            Feature::InlayHints,
+        );
         let mut result = Vec::with_capacity(mapped_ranges.len());
         result.extend(mapped_ranges.iter().flat_map(|mapped| {
             let projection = mapped.script;
@@ -82,9 +95,10 @@ impl InlayHintState<'_> {
             | Kind::FunctionExpression
             | Kind::MethodDeclaration
             | Kind::ArrowFunction
-                if self.ctx.err().is_some() => {
-                    return true;
-                }
+                if self.ctx.err().is_some() =>
+            {
+                return true;
+            }
             _ => {}
         }
 
@@ -96,11 +110,19 @@ impl InlayHintState<'_> {
             return false;
         }
 
-        if (self.preferences.include_inlay_variable_type_hints.is_true() && ast::is_variable_declaration(node)) || (self.preferences.include_inlay_property_declaration_type_hints.is_true() && ast::is_property_declaration(node)) {
+        if (self.preferences.include_inlay_variable_type_hints.is_true()
+            && ast::is_variable_declaration(node))
+            || (self.preferences.include_inlay_property_declaration_type_hints.is_true()
+                && ast::is_property_declaration(node))
+        {
             self.visit_variable_like_declaration(node);
-        } else if self.preferences.include_inlay_enum_member_value_hints.is_true() && ast::is_enum_member(node) {
+        } else if self.preferences.include_inlay_enum_member_value_hints.is_true()
+            && ast::is_enum_member(node)
+        {
             self.visit_enum_member(node);
-        } else if should_show_parameter_name_hints(self.preferences) && (ast::is_call_expression(node) || ast::is_new_expression(node)) {
+        } else if should_show_parameter_name_hints(self.preferences)
+            && (ast::is_call_expression(node) || ast::is_new_expression(node))
+        {
             self.visit_call_or_new_expression(node);
         } else {
             if self.preferences.include_inlay_function_parameter_type_hints.is_true()
@@ -109,7 +131,9 @@ impl InlayHintState<'_> {
             {
                 self.visit_function_like_for_parameter_type(node);
             }
-            if self.preferences.include_inlay_function_like_return_type_hints.is_true() && is_signature_supporting_return_annotation(node) {
+            if self.preferences.include_inlay_function_like_return_type_hints.is_true()
+                && is_signature_supporting_return_annotation(node)
+            {
                 self.visit_function_declaration_like_for_return_type(node);
             }
         }
@@ -119,7 +143,9 @@ impl InlayHintState<'_> {
     // FunctionDeclaration | MethodDeclaration | GetAccessor | FunctionExpression | ArrowFunction
     // inlay_hints.go:117
     fn visit_function_declaration_like_for_return_type(&mut self, decl: P<Node>) {
-        if ast::is_arrow_function(decl) && astnav::find_child_of_kind(decl, Kind::OpenParenToken, self.file).is_none() {
+        if ast::is_arrow_function(decl)
+            && astnav::find_child_of_kind(decl, Kind::OpenParenToken, self.file).is_none()
+        {
             return;
         }
 
@@ -161,7 +187,9 @@ impl InlayHintState<'_> {
         let mut signature_param_pos: usize = 0;
         for &original_arg in args {
             let arg = ast::skip_parentheses(original_arg);
-            if should_show_literal_parameter_name_hints_only(self.preferences) && !is_hintable_literal(arg) {
+            if should_show_literal_parameter_name_hints_only(self.preferences)
+                && !is_hintable_literal(arg)
+            {
                 signature_param_pos += 1;
                 continue;
             }
@@ -186,7 +214,8 @@ impl InlayHintState<'_> {
                 }
             }
 
-            let identifier_info = self.get_parameter_identifier_info_at_position(signature, signature_param_pos);
+            let identifier_info =
+                self.get_parameter_identifier_info_at_position(signature, signature_param_pos);
             signature_param_pos += if spread_args > 0 { spread_args } else { 1 };
             let Some(identifier_info) = identifier_info else {
                 return;
@@ -195,8 +224,14 @@ impl InlayHintState<'_> {
             let parameter = identifier_info.parameter;
             let parameter_name = identifier_info.name;
             let is_first_variadic_argument = identifier_info.is_rest_parameter;
-            let parameter_name_not_same_as_argument = self.preferences.include_inlay_parameter_name_hints_when_argument_matches_name.is_true()
-                || !identifier_or_access_expression_postfix_matches_parameter_name(arg, &parameter_name);
+            let parameter_name_not_same_as_argument = self
+                .preferences
+                .include_inlay_parameter_name_hints_when_argument_matches_name
+                .is_true()
+                || !identifier_or_access_expression_postfix_matches_parameter_name(
+                    arg,
+                    &parameter_name,
+                );
             if !parameter_name_not_same_as_argument && !is_first_variadic_argument {
                 continue;
             }
@@ -223,9 +258,7 @@ impl InlayHintState<'_> {
         if let Some(enum_value) = self.checker.get_constant_value(member) {
             self.add_enum_member_value_hints(
                 &checker::evaluator::any_to_string(enum_value),
-                member
-                    .end()
-                    .expect_source("enum members have source positions"),
+                member.end().expect_source("enum members have source positions"),
             );
         }
     }
@@ -233,7 +266,8 @@ impl InlayHintState<'_> {
     // inlay_hints.go:228
     fn visit_variable_like_declaration(&mut self, decl: P<Node>) {
         let missing_initializer_without_specific_property_type = decl.initializer().is_none()
-            && (!ast::is_property_declaration(decl) || self.checker.get_type_at_location(decl).flags().intersects(TypeFlags::Any));
+            && (!ast::is_property_declaration(decl)
+                || self.checker.get_type_at_location(decl).flags().intersects(TypeFlags::Any));
         if missing_initializer_without_specific_property_type
             || ast::is_binding_pattern(decl.name().unwrap())
             || (ast::is_variable_declaration(decl) && !is_hintable_declaration(decl))
@@ -267,8 +301,7 @@ impl InlayHintState<'_> {
         }
         self.add_type_hints(
             hint_parts,
-            name.end()
-                .expect_source("declaration names have source positions"),
+            name.end().expect_source("declaration names have source positions"),
         );
     }
 
@@ -279,7 +312,11 @@ impl InlayHintState<'_> {
         let mut pos = 0;
         for &param in node.parameters() {
             if is_hintable_declaration(param) {
-                let symbol = if ast::is_this_parameter(param) { signature.this_parameter() } else { Some(signature.parameters()[pos]) };
+                let symbol = if ast::is_this_parameter(param) {
+                    signature.this_parameter()
+                } else {
+                    Some(signature.parameters()[pos])
+                };
                 self.add_parameter_type_hint(param, symbol);
             }
             if ast::is_this_parameter(param) {
@@ -299,23 +336,26 @@ impl InlayHintState<'_> {
             return;
         };
         let pos = match node.question_token() {
-            Some(question_token) => question_token
-                .end()
-                .expect_source("parameter tokens have source positions"),
-            None => node
-                .name()
-                .unwrap()
-                .end()
-                .expect_source("parameter names have source positions"),
+            Some(question_token) => {
+                question_token.end().expect_source("parameter tokens have source positions")
+            }
+            None => {
+                node.name().unwrap().end().expect_source("parameter names have source positions")
+            }
         };
         self.add_type_hints(type_hints, pos);
     }
 
     // inlay_hints.go:306
-    fn get_parameter_declaration_type_hints(&mut self, symbol: P<Symbol>) -> Option<lsproto::StringOrInlayHintLabelParts> {
-        let value_declaration = symbol.value_declaration().filter(|d| ast::is_parameter_declaration(*d))?;
+    fn get_parameter_declaration_type_hints(
+        &mut self,
+        symbol: P<Symbol>,
+    ) -> Option<lsproto::StringOrInlayHintLabelParts> {
+        let value_declaration =
+            symbol.value_declaration().filter(|d| ast::is_parameter_declaration(*d))?;
 
-        let signature_param_type = self.checker.get_type_of_symbol_at_location(symbol, Some(value_declaration)).unwrap();
+        let signature_param_type =
+            self.checker.get_type_of_symbol_at_location(symbol, Some(value_declaration)).unwrap();
         if is_module_reference_type(signature_param_type) {
             return None;
         }
@@ -325,24 +365,49 @@ impl InlayHintState<'_> {
 
     // inlay_hints.go:320
     fn type_to_inlay_hint_parts(&mut self, t: P<Type>) -> lsproto::StringOrInlayHintLabelParts {
-        let flags = Flags::IgnoreErrors | Flags::AllowUniqueESSymbolType | Flags::UseAliasDefinedOutsideCurrentScope;
-        let id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>> = P::new(RefCell::new(FxHashMap::default()));
+        let flags = Flags::IgnoreErrors
+            | Flags::AllowUniqueESSymbolType
+            | Flags::UseAliasDefinedOutsideCurrentScope;
+        let id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>> =
+            P::new(RefCell::new(FxHashMap::default()));
         // !!! Avoid type node reuse so we collect identifier symbols.
-        let type_node = self.checker.type_to_type_node(t, None /*enclosingDeclaration*/, flags, Some(id_to_symbol));
+        let type_node = self.checker.type_to_type_node(
+            t,
+            None, /*enclosingDeclaration*/
+            flags,
+            Some(id_to_symbol),
+        );
         let type_node = type_node.expect("should always get typenode");
         let id_to_symbol = id_to_symbol.borrow();
-        lsproto::StringOrInlayHintLabelParts { inlay_hint_label_parts: Some(self.get_inlay_hint_label_parts(type_node, &id_to_symbol)), ..Default::default() }
+        lsproto::StringOrInlayHintLabelParts {
+            inlay_hint_label_parts: Some(self.get_inlay_hint_label_parts(type_node, &id_to_symbol)),
+            ..Default::default()
+        }
     }
 
     // inlay_hints.go:332
-    fn type_predicate_to_inlay_hint_parts(&mut self, type_predicate: P<TypePredicate>) -> lsproto::StringOrInlayHintLabelParts {
-        let flags = Flags::IgnoreErrors | Flags::AllowUniqueESSymbolType | Flags::UseAliasDefinedOutsideCurrentScope;
-        let id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>> = P::new(RefCell::new(FxHashMap::default()));
+    fn type_predicate_to_inlay_hint_parts(
+        &mut self,
+        type_predicate: P<TypePredicate>,
+    ) -> lsproto::StringOrInlayHintLabelParts {
+        let flags = Flags::IgnoreErrors
+            | Flags::AllowUniqueESSymbolType
+            | Flags::UseAliasDefinedOutsideCurrentScope;
+        let id_to_symbol: P<RefCell<FxHashMap<P<Node>, P<Symbol>>>> =
+            P::new(RefCell::new(FxHashMap::default()));
         // !!! Avoid type node reuse so we collect identifier symbols.
-        let type_node = self.checker.type_predicate_to_type_predicate_node(type_predicate, None /*enclosingDeclaration*/, flags, Some(id_to_symbol));
+        let type_node = self.checker.type_predicate_to_type_predicate_node(
+            type_predicate,
+            None, /*enclosingDeclaration*/
+            flags,
+            Some(id_to_symbol),
+        );
         let type_node = type_node.expect("should always get typePredicateNode");
         let id_to_symbol = id_to_symbol.borrow();
-        lsproto::StringOrInlayHintLabelParts { inlay_hint_label_parts: Some(self.get_inlay_hint_label_parts(type_node, &id_to_symbol)), ..Default::default() }
+        lsproto::StringOrInlayHintLabelParts {
+            inlay_hint_label_parts: Some(self.get_inlay_hint_label_parts(type_node, &id_to_symbol)),
+            ..Default::default()
+        }
     }
 
     // inlay_hints.go:344
@@ -358,7 +423,8 @@ impl InlayHintState<'_> {
         if let Some(s) = &hint.string {
             hint.string = Some(format!(": {s}"));
         } else {
-            let mut parts = vec![lsproto::InlayHintLabelPart { value: ": ".to_string(), ..Default::default() }];
+            let mut parts =
+                vec![lsproto::InlayHintLabelPart { value: ": ".to_string(), ..Default::default() }];
             parts.extend(hint.inlay_hint_label_parts.take().unwrap());
             hint.inlay_hint_label_parts = Some(parts);
         }
@@ -382,7 +448,10 @@ impl InlayHintState<'_> {
             return;
         }
         self.result.push(lsproto::InlayHint {
-            label: lsproto::StringOrInlayHintLabelParts { string: Some(format!("= {text}")), ..Default::default() },
+            label: lsproto::StringOrInlayHintLabelParts {
+                string: Some(format!("= {text}")),
+                ..Default::default()
+            },
             position: lsp_position,
             padding_left: Some(true),
             ..Default::default()
@@ -406,8 +475,14 @@ impl InlayHintState<'_> {
             return;
         }
         let hint_text = format!("{}{}", if is_first_variadic_argument { "..." } else { "" }, text);
-        let display_parts = vec![self.get_node_display_part(&hint_text, parameter), lsproto::InlayHintLabelPart { value: ":".to_string(), ..Default::default() }];
-        let label_parts = lsproto::StringOrInlayHintLabelParts { inlay_hint_label_parts: Some(display_parts), ..Default::default() };
+        let display_parts = vec![
+            self.get_node_display_part(&hint_text, parameter),
+            lsproto::InlayHintLabelPart { value: ":".to_string(), ..Default::default() },
+        ];
+        let label_parts = lsproto::StringOrInlayHintLabelParts {
+            inlay_hint_label_parts: Some(display_parts),
+            ..Default::default()
+        };
 
         self.result.push(lsproto::InlayHint {
             label: label_parts,
@@ -442,7 +517,10 @@ fn is_signature_supporting_return_annotation(node: P<Node>) -> bool {
 
 // inlay_hints.go:413
 fn is_hintable_declaration(node: P<Node>) -> bool {
-    if (ast::is_part_of_parameter_declaration(node) || ast::is_variable_declaration(node) && ast::is_var_const(node)) && node.initializer().is_some() {
+    if (ast::is_part_of_parameter_declaration(node)
+        || ast::is_variable_declaration(node) && ast::is_var_const(node))
+        && node.initializer().is_some()
+    {
         let initializer = ast::skip_parentheses(node.initializer().unwrap());
         return !(is_hintable_literal(initializer)
             || ast::is_new_expression(initializer)
@@ -457,9 +535,14 @@ fn is_hintable_literal(node: P<Node>) -> bool {
     match node.kind() {
         Kind::PrefixUnaryExpression => {
             let operand = node.as_prefix_unary_expression().operand;
-            return ast::is_literal_expression(operand) || ast::is_identifier(operand) && ast::is_infinity_or_nan_string(operand.text());
+            return ast::is_literal_expression(operand)
+                || ast::is_identifier(operand) && ast::is_infinity_or_nan_string(operand.text());
         }
-        Kind::TrueKeyword | Kind::FalseKeyword | Kind::NullKeyword | Kind::NoSubstitutionTemplateLiteral | Kind::TemplateExpression => {
+        Kind::TrueKeyword
+        | Kind::FalseKeyword
+        | Kind::NullKeyword
+        | Kind::NoSubstitutionTemplateLiteral
+        | Kind::TemplateExpression => {
             return true;
         }
         Kind::Identifier => {
@@ -628,7 +711,10 @@ impl LabelPartsBuilder<'_, '_> {
                 self.visit_display_part_list(node.as_union_type_node().types().nodes(), " | ");
             }
             Kind::IntersectionType => {
-                self.visit_display_part_list(node.as_intersection_type_node().types().nodes(), " & ");
+                self.visit_display_part_list(
+                    node.as_intersection_type_node().types().nodes(),
+                    " & ",
+                );
             }
             Kind::ConditionalType => {
                 let conditional = node.as_conditional_type_node();
@@ -650,7 +736,8 @@ impl LabelPartsBuilder<'_, '_> {
                 self.parts.push(part(")"));
             }
             Kind::TypeOperator => {
-                self.parts.push(part(scanner::token_to_string(node.as_type_operator_node().operator)));
+                self.parts
+                    .push(part(scanner::token_to_string(node.as_type_operator_node().operator)));
                 self.visit_for_display_parts(node.type_node());
             }
             Kind::IndexedAccessType => {
@@ -788,7 +875,9 @@ impl LabelPartsBuilder<'_, '_> {
                 self.visit_for_display_parts(node.name());
             }
             Kind::PrefixUnaryExpression => {
-                self.parts.push(part(scanner::token_to_string(node.as_prefix_unary_expression().operator)));
+                self.parts.push(part(scanner::token_to_string(
+                    node.as_prefix_unary_expression().operator,
+                )));
                 self.visit_for_display_parts(Some(node.as_prefix_unary_expression().operand));
             }
             Kind::TemplateLiteralType => {
@@ -824,7 +913,9 @@ impl LabelPartsBuilder<'_, '_> {
             Kind::ElementAccessExpression => {
                 self.visit_for_display_parts(node.expression());
                 self.parts.push(part("["));
-                self.visit_for_display_parts(Some(node.as_element_access_expression().argument_expression));
+                self.visit_for_display_parts(Some(
+                    node.as_element_access_expression().argument_expression,
+                ));
                 self.parts.push(part("]"));
             }
             k => panic!("Debug Failure. Unexpected node: {k:?}"),
@@ -854,7 +945,11 @@ impl LabelPartsBuilder<'_, '_> {
 
 impl InlayHintState<'_> {
     // inlay_hints.go:443
-    fn get_inlay_hint_label_parts(&self, node: P<Node>, id_to_symbol: &FxHashMap<P<Node>, P<Symbol>>) -> Vec<lsproto::InlayHintLabelPart> {
+    fn get_inlay_hint_label_parts(
+        &self,
+        node: P<Node>,
+        id_to_symbol: &FxHashMap<P<Node>, P<Symbol>>,
+    ) -> Vec<lsproto::InlayHintLabelPart> {
         let mut b = LabelPartsBuilder { state: self, id_to_symbol, parts: Vec::new() };
         b.visit_for_display_parts(Some(node));
         b.parts
@@ -864,16 +959,21 @@ impl InlayHintState<'_> {
     fn get_node_display_part(&self, text: &str, node: P<Node>) -> lsproto::InlayHintLabelPart {
         let file = ast::get_source_file_of_node(node).unwrap();
         let pos = astnav::get_start_of_node(node, file, false /*includeJSDoc*/);
-        let end = node
-            .end()
-            .expect_source("inlay-hint targets have source positions");
+        let end = node.end().expect_source("inlay-hint targets have source positions");
         let mut part = part(text);
         // The location is an optional go-to target for the name. Only attach it when the name maps back to a
         // single concrete span in the original text; an approximate or synthesized mapping would point the
         // user somewhere wrong, so it is better to omit the target than to fabricate one.
-        let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(&file, TextRange::new(pos, end), Feature::InlayHints);
+        let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
+            &file,
+            TextRange::new(pos, end),
+            Feature::InlayHints,
+        );
         if fidelity.is_single_segment() {
-            part.location = Some(lsproto::Location { uri: lsconv::file_name_to_document_uri(file.original_file_name()), range: lsp_range });
+            part.location = Some(lsproto::Location {
+                uri: lsconv::file_name_to_document_uri(file.original_file_name()),
+                range: lsp_range,
+            });
         }
         part
     }
@@ -883,9 +983,15 @@ impl InlayHintState<'_> {
         match node.kind() {
             Kind::StringLiteral => {
                 if self.quote_preference == QuotePreference::Single {
-                    return format!("'{}'", printer::escape_string(node.text(), printer::QuoteChar::SingleQuote));
+                    return format!(
+                        "'{}'",
+                        printer::escape_string(node.text(), printer::QuoteChar::SingleQuote)
+                    );
                 }
-                return format!("\"{}\"", printer::escape_string(node.text(), printer::QuoteChar::DoubleQuote));
+                return format!(
+                    "\"{}\"",
+                    printer::escape_string(node.text(), printer::QuoteChar::DoubleQuote)
+                );
             }
             Kind::TemplateHead | Kind::TemplateMiddle | Kind::TemplateTail => {
                 let mut raw_text = node.raw_text().to_string();
@@ -924,7 +1030,11 @@ impl InlayHintState<'_> {
         if pos < param_count {
             let param = parameters[pos];
             let param_id = get_parameter_declaration_identifier(param)?;
-            return Some(ParameterInfo { parameter: param_id, name: param_id.text().to_string(), is_rest_parameter: false });
+            return Some(ParameterInfo {
+                parameter: param_id,
+                name: param_id.text().to_string(),
+                is_rest_parameter: false,
+            });
         }
 
         let mut rest_parameter: Option<P<Symbol>> = None;
@@ -939,11 +1049,11 @@ impl InlayHintState<'_> {
         let rest_type = self.checker.get_type_of_symbol(rest_parameter);
         if rest_type.is_tuple_type() {
             let element_infos = rest_type.target().unwrap().as_tuple_type().element_infos();
-            let mut associated_names: Vec<Option<P<Node>>> = Vec::with_capacity(element_infos.len());
-            associated_names.extend(element_infos.iter().map(|element_info| {
-
-                element_info.labeled_declaration()
-            }));
+            let mut associated_names: Vec<Option<P<Node>>> =
+                Vec::with_capacity(element_infos.len());
+            associated_names.extend(
+                element_infos.iter().map(|element_info| element_info.labeled_declaration()),
+            );
             let index = pos - param_count;
             if index < associated_names.len() {
                 if let Some(associated_name) = associated_names[index] {
@@ -954,7 +1064,11 @@ impl InlayHintState<'_> {
                     } else {
                         associated_name.as_parameter_declaration().dot_dot_dot_token().is_some()
                     };
-                    return Some(ParameterInfo { parameter: name, name: name.text().to_string(), is_rest_parameter: is_rest_tuple_element });
+                    return Some(ParameterInfo {
+                        parameter: name,
+                        name: name.text().to_string(),
+                        is_rest_parameter: is_rest_tuple_element,
+                    });
                 }
             }
 
@@ -962,7 +1076,11 @@ impl InlayHintState<'_> {
         }
 
         if pos == param_count {
-            return Some(ParameterInfo { parameter: rest_id, name: rest_parameter.name().to_string(), is_rest_parameter: true });
+            return Some(ParameterInfo {
+                parameter: rest_id,
+                name: rest_parameter.name().to_string(),
+                is_rest_parameter: true,
+            });
         }
         None
     }
@@ -971,14 +1089,19 @@ impl InlayHintState<'_> {
 // inlay_hints.go:901
 fn get_parameter_declaration_identifier(symbol: P<Symbol>) -> Option<P<Node>> {
     let value_declaration = symbol.value_declaration()?;
-    if ast::is_parameter_declaration(value_declaration) && ast::is_identifier(value_declaration.name().unwrap()) {
+    if ast::is_parameter_declaration(value_declaration)
+        && ast::is_identifier(value_declaration.name().unwrap())
+    {
         return value_declaration.name();
     }
     None
 }
 
 // inlay_hints.go:908
-fn identifier_or_access_expression_postfix_matches_parameter_name(expr: P<Node>, parameter_name: &str) -> bool {
+fn identifier_or_access_expression_postfix_matches_parameter_name(
+    expr: P<Node>,
+    parameter_name: &str,
+) -> bool {
     if ast::is_identifier(expr) {
         return expr.text() == parameter_name;
     }
@@ -999,16 +1122,12 @@ impl InlayHintState<'_> {
         let ranges = get_leading_comment_ranges_of_node(node, self.file).unwrap();
         let file_text = self.file.text();
         if ranges.into_iter().any(|r| {
-            let comment_text = file_text[r
-                .text_range
-                .pos()
-                .expect_source("comment ranges have source positions")
-                as usize
-                ..r.text_range
-                    .end()
-                    .expect_source("comment ranges have source positions")
-                    as usize]
-                .trim_matches(|r: char| r.is_whitespace() || r == '/' || r == '*');
+            let comment_text =
+                file_text[r.text_range.pos().expect_source("comment ranges have source positions")
+                    as usize
+                    ..r.text_range.end().expect_source("comment ranges have source positions")
+                        as usize]
+                    .trim_matches(|r: char| r.is_whitespace() || r == '/' || r == '*');
             comment_text == name
         }) {
             return true;
@@ -1022,14 +1141,9 @@ impl InlayHintState<'_> {
         if let Some(close_paren_token) =
             astnav::find_child_of_kind(decl, Kind::CloseParenToken, self.file)
         {
-            return close_paren_token
-                .end()
-                .expect_source("parameter lists have source positions");
+            return close_paren_token.end().expect_source("parameter lists have source positions");
         }
-        decl.parameter_list()
-            .unwrap()
-            .end()
-            .expect_source("parameter lists have source positions")
+        decl.parameter_list().unwrap().end().expect_source("parameter lists have source positions")
     }
 }
 

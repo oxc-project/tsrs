@@ -42,7 +42,12 @@ pub trait Conn: Send + Sync {
     // waiting for the response after `timeout` with the error Go's Call returns then, ctx.Err(), which tests true
     // for `is(ErrorTag::DeadlineExceeded)` and reads "context deadline exceeded". Writing the request is not timed,
     // as in Go.
-    fn call_with_timeout(&self, method: &str, params: Option<&Value>, timeout: Duration) -> Result<Option<Value>, Error>;
+    fn call_with_timeout(
+        &self,
+        method: &str,
+        params: Option<&Value>,
+        timeout: Duration,
+    ) -> Result<Option<Value>, Error>;
 
     // conn.go:33
     // Notify sends a notification to the client (no response expected).

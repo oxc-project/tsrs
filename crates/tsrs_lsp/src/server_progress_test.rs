@@ -12,35 +12,45 @@ fn test_progress_notifications_end_to_end() {
         return;
     }
 
-    let files = [("/home/projects/tsconfig.json", "{}"), ("/home/projects/index.ts", "export const x = 1;")];
+    let files = [
+        ("/home/projects/tsconfig.json", "{}"),
+        ("/home/projects/index.ts", "export const x = 1;"),
+    ];
 
     // Collect $/progress notifications. Signal when "end" arrives.
     let progress_notifications: Arc<Mutex<Vec<lsproto::ProgressParams>>> = Arc::default();
     let (end_tx, end_rx) = std::sync::mpsc::sync_channel::<()>(1);
 
-    let (client, close_client) = new_lsp_client(test_server_options("/home/projects", &files), Some(acknowledge_registrations()));
+    let (client, close_client) = new_lsp_client(
+        test_server_options("/home/projects", &files),
+        Some(acknowledge_registrations()),
+    );
 
     {
         let progress_notifications = std::sync::Arc::clone(&progress_notifications);
-        *client.on_server_notification.lock().unwrap() = Some(Box::new(move |req: &lsproto::RequestMessage| {
-            if req.method == lsproto::Method::Progress {
-                if let Ok(params) = req.unmarshal_params::<lsproto::ProgressParams>() {
-                    let is_end = params.value.end.is_some();
-                    progress_notifications.lock().unwrap().push(params);
-                    if is_end {
-                        // Signaled, or already signaled.
-                        let _ = end_tx.try_send(());
+        *client.on_server_notification.lock().unwrap() =
+            Some(Box::new(move |req: &lsproto::RequestMessage| {
+                if req.method == lsproto::Method::Progress {
+                    if let Ok(params) = req.unmarshal_params::<lsproto::ProgressParams>() {
+                        let is_end = params.value.end.is_some();
+                        progress_notifications.lock().unwrap().push(params);
+                        if is_end {
+                            // Signaled, or already signaled.
+                            let _ = end_tx.try_send(());
+                        }
                     }
                 }
-            }
-        }));
+            }));
     }
 
     let (init_msg, _) = client.send_request(
         lsproto::INITIALIZE_INFO,
         lsproto::InitializeParams {
             capabilities: lsproto::ClientCapabilities {
-                window: Some(lsproto::WindowClientCapabilities { work_done_progress: Some(true), ..Default::default() }),
+                window: Some(lsproto::WindowClientCapabilities {
+                    work_done_progress: Some(true),
+                    ..Default::default()
+                }),
                 ..Default::default()
             },
             ..Default::default()
@@ -64,23 +74,39 @@ fn test_progress_notifications_end_to_end() {
     );
 
     // Send a request to ensure the server has processed the didOpen and loaded the project.
-    let (msg, resp) = client.send_request(lsproto::CUSTOM_PROJECT_INFO_INFO, lsproto::ProjectInfoParams { text_document: lsproto::TextDocumentIdentifier { uri } });
+    let (msg, resp) = client.send_request(
+        lsproto::CUSTOM_PROJECT_INFO_INFO,
+        lsproto::ProjectInfoParams { text_document: lsproto::TextDocumentIdentifier { uri } },
+    );
     assert!(msg.error.is_none());
     assert_eq!(resp.expect("expected a response").config_file_path, "/home/projects/tsconfig.json");
 
     // Wait for the "end" progress notification before reading.
-    end_rx.recv_timeout(Duration::from_secs(60)).expect("timed out waiting for progress end notification");
+    end_rx
+        .recv_timeout(Duration::from_secs(60))
+        .expect("timed out waiting for progress end notification");
 
     let notifications = progress_notifications.lock().unwrap().clone();
 
-    assert!(notifications.len() >= 2, "expected at least begin+end progress notifications, got {}", notifications.len());
+    assert!(
+        notifications.len() >= 2,
+        "expected at least begin+end progress notifications, got {}",
+        notifications.len()
+    );
 
     // First notification should be a "begin".
-    let begin = notifications[0].value.begin.as_ref().expect("expected first progress notification to be 'begin'");
+    let begin = notifications[0]
+        .value
+        .begin
+        .as_ref()
+        .expect("expected first progress notification to be 'begin'");
     assert_eq!(begin.title, "Loading");
 
     // Last notification should be an "end".
-    assert!(notifications.last().unwrap().value.end.is_some(), "expected last progress notification to be 'end'");
+    assert!(
+        notifications.last().unwrap().value.end.is_some(),
+        "expected last progress notification to be 'end'"
+    );
 
     // All notifications should share the same token.
     let first_token = token_string(&notifications[0].token);

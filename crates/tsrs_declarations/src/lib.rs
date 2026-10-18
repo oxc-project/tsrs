@@ -20,16 +20,18 @@ pub(crate) use std::rc::Rc;
 
 pub(crate) use rustc_hash::FxHashMap;
 pub(crate) use tsrs_ast::{self as ast, *};
-pub(crate) use tsrs_checker::{self as checker, Checker, SymbolAccessibility, SymbolAccessibilityResult, SymbolTracker};
+pub(crate) use tsrs_checker::{
+    self as checker, Checker, SymbolAccessibility, SymbolAccessibilityResult, SymbolTracker,
+};
 pub(crate) use tsrs_core::collections::Set;
 pub(crate) use tsrs_core::tspath;
-pub(crate) use tsrs_core::{alloc_str, alloc_vec, CompilerOptions, P};
+pub(crate) use tsrs_core::{CompilerOptions, P, alloc_str, alloc_vec};
 pub(crate) use tsrs_diagnostics::{self as diagnostics, Message};
 pub(crate) use tsrs_modulespecifiers::ModuleSpecifierGenerationHost;
 pub(crate) use tsrs_printer::{self as printer, EmitContext};
 pub(crate) use tsrs_scanner as scanner;
-pub(crate) use tsrs_tsoptions::outputpaths::OutputPaths;
 pub(crate) use tsrs_transformers as transformers;
+pub(crate) use tsrs_tsoptions::outputpaths::OutputPaths;
 
 /// Go package `nodebuilder` (flags only).
 pub(crate) mod nodebuilder {
@@ -40,7 +42,10 @@ mod types;
 
 // Go: `declarations` imports `transformers`; the base types moved to tsrs_transformers and are re-exported here so
 // existing paths keep compiling.
-pub use tsrs_transformers::{is_original_node_single_line, is_simple_copiable_expression, is_simple_inlineable_expression, Resolver, Transformer};
+pub use tsrs_transformers::{
+    Resolver, Transformer, is_original_node_single_line, is_simple_copiable_expression,
+    is_simple_inlineable_expression,
+};
 pub use types::*;
 
 mod diagnostics_;

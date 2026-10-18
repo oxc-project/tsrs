@@ -22,7 +22,9 @@ pub enum FileChangeKind {
 impl FileChangeKind {
     // filechange.go:26
     pub fn is_watch_kind(self) -> bool {
-        self == FileChangeKind::WatchCreate || self == FileChangeKind::WatchChange || self == FileChangeKind::WatchDelete
+        self == FileChangeKind::WatchCreate
+            || self == FileChangeKind::WatchChange
+            || self == FileChangeKind::WatchDelete
     }
 }
 
@@ -30,8 +32,8 @@ impl FileChangeKind {
 pub struct FileChange {
     pub kind: FileChangeKind,
     pub uri: lsproto::DocumentUri,
-    pub version: i32,                        // Only set for Open/Change
-    pub content: String,                     // Only set for Open
+    pub version: i32,                         // Only set for Open/Change
+    pub content: String,                      // Only set for Open
     pub language_kind: lsproto::LanguageKind, // Only set for Open
     pub changes: Vec<lsproto::TextDocumentContentChangePartialOrWholeDocument>, // Only set for Change
 }
@@ -76,7 +78,9 @@ impl FileChangeSummary {
 
     // filechange.go:70
     pub fn has_excessive_watch_events(&self) -> bool {
-        self.invalidate_all || self.created.len() + self.deleted.len() + self.changed.len() > excessiveChangeThreshold
+        self.invalidate_all
+            || self.created.len() + self.deleted.len() + self.changed.len()
+                > excessiveChangeThreshold
     }
 
     // filechange.go:74

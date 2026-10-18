@@ -1,4 +1,3 @@
-
 use super::*;
 
 // optionalchain.go:10
@@ -52,25 +51,48 @@ impl optionalChainTransformer {
                 let args = self.visitor().visit_nodes(Some(c.arguments)).unwrap();
                 if ast::is_synthetic_reference_expression(expression) {
                     let s = expression.as_synthetic_reference_expression();
-                    let res = self.factory().new_function_call_call(s.expression, Some(s.this_arg), args.nodes());
+                    let res = self.factory().new_function_call_call(
+                        s.expression,
+                        Some(s.this_arg),
+                        args.nodes(),
+                    );
                     res.set_loc(node.loc());
                     self.emit_context().set_original(res, node);
                     return res;
                 }
-                return self.factory().update_call_expression(node, expression, None /*questionDotToken*/, None /*typeArguments*/, args, node.flags());
+                return self.factory().update_call_expression(
+                    node,
+                    expression,
+                    None, /*questionDotToken*/
+                    None, /*typeArguments*/
+                    args,
+                    node.flags(),
+                );
             }
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }
 
     // optionalchain.go:57
-    fn visit_parenthesized_expression(&self, node: P<Node>, capture_this_arg: bool, is_delete: bool) -> P<Node> {
-        let expr = self.visit_non_optional_expression(node.expression().unwrap(), capture_this_arg, is_delete);
+    fn visit_parenthesized_expression(
+        &self,
+        node: P<Node>,
+        capture_this_arg: bool,
+        is_delete: bool,
+    ) -> P<Node> {
+        let expr = self.visit_non_optional_expression(
+            node.expression().unwrap(),
+            capture_this_arg,
+            is_delete,
+        );
         if ast::is_synthetic_reference_expression(expr) {
             // `(a.b)` -> { expression `((_a = a).b)`, thisArg: `_a` }
             // `(a[b])` -> { expression `((_a = a)[b])`, thisArg: `_a` }
             let synth = expr.as_synthetic_reference_expression();
-            let res = self.factory().new_synthetic_reference_expression(self.factory().update_parenthesized_expression(node, synth.expression), synth.this_arg);
+            let res = self.factory().new_synthetic_reference_expression(
+                self.factory().update_parenthesized_expression(node, synth.expression),
+                synth.this_arg,
+            );
             self.emit_context().set_original(res, node);
             return res;
         }
@@ -78,13 +100,20 @@ impl optionalChainTransformer {
     }
 
     // optionalchain.go:70
-    fn visit_property_or_element_access_expression(&self, node: P<Node>, capture_this_arg: bool, is_delete: bool) -> P<Node> {
+    fn visit_property_or_element_access_expression(
+        &self,
+        node: P<Node>,
+        capture_this_arg: bool,
+        is_delete: bool,
+    ) -> P<Node> {
         if node.flags().intersects(NodeFlags::OptionalChain) {
             // If `node` is an optional chain, then it is the outermost chain of an optional expression.
             return self.visit_optional_expression(node, capture_this_arg, is_delete);
         }
         let mut expression = self.visitor().visit_node(node.expression());
-        assert!(expression.is_none() || !ast::is_synthetic_reference_expression(expression.unwrap()));
+        assert!(
+            expression.is_none() || !ast::is_synthetic_reference_expression(expression.unwrap())
+        );
         let f = self.factory();
 
         let mut this_arg: Option<P<Node>> = None;
@@ -100,10 +129,22 @@ impl optionalChainTransformer {
         }
 
         let expression = if node.kind() == Kind::PropertyAccessExpression {
-            f.update_property_access_expression(node, expression.unwrap(), None /*questionDotToken*/, self.visitor().visit_node(node.name()).unwrap(), node.flags())
+            f.update_property_access_expression(
+                node,
+                expression.unwrap(),
+                None, /*questionDotToken*/
+                self.visitor().visit_node(node.name()).unwrap(),
+                node.flags(),
+            )
         } else {
             let p = node.as_element_access_expression();
-            f.update_element_access_expression(node, expression.unwrap(), None, self.visitor().visit_node(Some(p.argument_expression)).unwrap(), node.flags())
+            f.update_element_access_expression(
+                node,
+                expression.unwrap(),
+                None,
+                self.visitor().visit_node(Some(p.argument_expression)).unwrap(),
+                node.flags(),
+            )
         };
 
         if let Some(this_arg) = this_arg {
@@ -118,16 +159,29 @@ impl optionalChainTransformer {
     fn visit_delete_expression(&self, node: P<Node>) -> Option<P<Node>> {
         let unwrapped = ast::skip_parentheses(node.expression().unwrap());
         if unwrapped.flags().intersects(NodeFlags::OptionalChain) {
-            return Some(self.visit_non_optional_expression(node.expression().unwrap(), false, true));
+            return Some(self.visit_non_optional_expression(
+                node.expression().unwrap(),
+                false,
+                true,
+            ));
         }
         self.visitor().visit_each_child(Some(node))
     }
 
     // optionalchain.go:113
-    fn visit_non_optional_expression(&self, node: P<Node>, capture_this_arg: bool, is_delete: bool) -> P<Node> {
+    fn visit_non_optional_expression(
+        &self,
+        node: P<Node>,
+        capture_this_arg: bool,
+        is_delete: bool,
+    ) -> P<Node> {
         match node.kind() {
-            Kind::ParenthesizedExpression => self.visit_parenthesized_expression(node, capture_this_arg, is_delete),
-            Kind::ElementAccessExpression | Kind::PropertyAccessExpression => self.visit_property_or_element_access_expression(node, capture_this_arg, is_delete),
+            Kind::ParenthesizedExpression => {
+                self.visit_parenthesized_expression(node, capture_this_arg, is_delete)
+            }
+            Kind::ElementAccessExpression | Kind::PropertyAccessExpression => {
+                self.visit_property_or_element_access_expression(node, capture_this_arg, is_delete)
+            }
             Kind::CallExpression => self.visit_call_expression(node, capture_this_arg),
             _ => self.visitor().visit_node(Some(node)).unwrap(),
         }
@@ -164,19 +218,32 @@ fn is_call_chain(node: P<Node>) -> bool {
 
 impl optionalChainTransformer {
     // optionalchain.go:150
-    fn visit_optional_expression(&self, node: P<Node>, capture_this_arg: bool, is_delete: bool) -> P<Node> {
+    fn visit_optional_expression(
+        &self,
+        node: P<Node>,
+        capture_this_arg: bool,
+        is_delete: bool,
+    ) -> P<Node> {
         let f = self.factory();
         let r = flatten_chain(node);
         let expression = r.expression;
         let chain = r.chain;
-        let left = self.visit_non_optional_expression(ast::skip_partially_emitted_expressions(expression), is_call_chain(chain[0]), false);
+        let left = self.visit_non_optional_expression(
+            ast::skip_partially_emitted_expressions(expression),
+            is_call_chain(chain[0]),
+            false,
+        );
         let mut left_this_arg: Option<P<Node>> = None;
         let mut captured_left = left;
         if ast::is_synthetic_reference_expression(left) {
             left_this_arg = Some(left.as_synthetic_reference_expression().this_arg);
             captured_left = left.as_synthetic_reference_expression().expression;
         }
-        let mut left_expression = f.restore_outer_expressions(Some(expression), captured_left, OuterExpressionKinds::PartiallyEmittedExpressions);
+        let mut left_expression = f.restore_outer_expressions(
+            Some(expression),
+            captured_left,
+            OuterExpressionKinds::PartiallyEmittedExpressions,
+        );
         if !is_simple_copiable_expression(captured_left) {
             captured_left = f.new_temp_variable();
             self.emit_context().add_variable_declaration(captured_left);
@@ -199,9 +266,23 @@ impl optionalChainTransformer {
                         }
                     }
                     if segment.kind() == Kind::ElementAccessExpression {
-                        right_expression = f.new_element_access_expression(right_expression, None, self.visitor().visit_node(Some(segment.as_element_access_expression().argument_expression)).unwrap(), NodeFlags::None);
+                        right_expression = f.new_element_access_expression(
+                            right_expression,
+                            None,
+                            self.visitor()
+                                .visit_node(Some(
+                                    segment.as_element_access_expression().argument_expression,
+                                ))
+                                .unwrap(),
+                            NodeFlags::None,
+                        );
                     } else {
-                        right_expression = f.new_property_access_expression(right_expression, None, self.visitor().visit_node(segment.name()).unwrap(), NodeFlags::None);
+                        right_expression = f.new_property_access_expression(
+                            right_expression,
+                            None,
+                            self.visitor().visit_node(segment.name()).unwrap(),
+                            NodeFlags::None,
+                        );
                     }
                 }
                 Kind::CallExpression => {
@@ -216,9 +297,19 @@ impl optionalChainTransformer {
                         if lta.kind() == Kind::SuperKeyword {
                             call_this_arg = f.new_this_expression();
                         }
-                        right_expression = f.new_function_call_call(right_expression, Some(call_this_arg), self.visitor().visit_nodes(segment.argument_list()).unwrap().nodes());
+                        right_expression = f.new_function_call_call(
+                            right_expression,
+                            Some(call_this_arg),
+                            self.visitor().visit_nodes(segment.argument_list()).unwrap().nodes(),
+                        );
                     } else {
-                        right_expression = f.new_call_expression(right_expression, None, None, self.visitor().visit_nodes(segment.argument_list()).unwrap(), NodeFlags::None);
+                        right_expression = f.new_call_expression(
+                            right_expression,
+                            None,
+                            None,
+                            self.visitor().visit_nodes(segment.argument_list()).unwrap(),
+                            NodeFlags::None,
+                        );
                     }
                 }
                 _ => {}
@@ -228,7 +319,12 @@ impl optionalChainTransformer {
 
         let mut target = if is_delete {
             f.new_conditional_expression(
-                create_not_null_condition(self.emit_context(), left_expression, captured_left, true),
+                create_not_null_condition(
+                    self.emit_context(),
+                    left_expression,
+                    captured_left,
+                    true,
+                ),
                 f.new_token(Kind::QuestionToken),
                 f.new_true_expression(),
                 f.new_token(Kind::ColonToken),
@@ -236,7 +332,12 @@ impl optionalChainTransformer {
             )
         } else {
             f.new_conditional_expression(
-                create_not_null_condition(self.emit_context(), left_expression, captured_left, true),
+                create_not_null_condition(
+                    self.emit_context(),
+                    left_expression,
+                    captured_left,
+                    true,
+                ),
                 f.new_token(Kind::QuestionToken),
                 f.new_void_zero_expression(),
                 f.new_token(Kind::ColonToken),
@@ -253,8 +354,14 @@ impl optionalChainTransformer {
 }
 
 // optionalchain.go:237
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_optional_chain_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(optionalChainTransformer { base: Transformer::default() });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(opt.context)))
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(opt.context),
+    ))
 }

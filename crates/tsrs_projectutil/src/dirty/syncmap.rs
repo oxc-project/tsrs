@@ -132,7 +132,11 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
     }
 
     // syncmap.go:103
-    fn change_locked(self: &Arc<Self>, st: &mut syncEntryState<K, T>, apply: &mut dyn FnMut(&mut T)) {
+    fn change_locked(
+        self: &Arc<Self>,
+        st: &mut syncEntryState<K, T>,
+        apply: &mut dyn FnMut(&mut T),
+    ) {
         if st.e.dirty {
             apply(Shared::make_mut(st.e.value.as_mut().unwrap()));
             return;
@@ -160,13 +164,23 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
     }
 
     // syncmap.go:127
-    pub fn change_if(self: &Arc<Self>, cond: impl FnOnce(&T) -> bool, apply: impl FnOnce(&mut T)) -> bool {
+    pub fn change_if(
+        self: &Arc<Self>,
+        cond: impl FnOnce(&T) -> bool,
+        apply: impl FnOnce(&mut T),
+    ) -> bool {
         let mut cond = Some(cond);
         let mut apply = Some(apply);
-        self.change_if_dyn(&mut |v| (cond.take().unwrap())(v), &mut |v| (apply.take().unwrap())(v))
+        self.change_if_dyn(&mut |v| (cond.take().unwrap())(v), &mut |v| {
+            (apply.take().unwrap())(v);
+        })
     }
 
-    fn change_if_dyn(self: &Arc<Self>, cond: &mut dyn FnMut(&T) -> bool, apply: &mut dyn FnMut(&mut T)) -> bool {
+    fn change_if_dyn(
+        self: &Arc<Self>,
+        cond: &mut dyn FnMut(&T) -> bool,
+        apply: &mut dyn FnMut(&mut T),
+    ) -> bool {
         let mut st = self.mu.lock().unwrap();
         if let Some(proxy_for) = st.proxy_for.clone() {
             return proxy_for.change_if_dyn(cond, apply);
@@ -248,7 +262,9 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMapEntry<K, T
 }
 
 // Go passes `*SyncMapEntry` where a `Value[V]` is expected.
-impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> Value<T> for Arc<SyncMapEntry<K, T>> {
+impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> Value<T>
+    for Arc<SyncMapEntry<K, T>>
+{
     fn value(&self) -> Option<Shared<T>> {
         SyncMapEntry::value(self)
     }
@@ -305,11 +321,21 @@ impl<K, T> Default for FinalizationHooks<'_, K, T> {
 }
 
 impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
-    fn new_entry(&self, key: K, original: Option<Shared<T>>, value: Option<Shared<T>>, dirty: bool, delete: bool) -> Arc<SyncMapEntry<K, T>> {
+    fn new_entry(
+        &self,
+        key: K,
+        original: Option<Shared<T>>,
+        value: Option<Shared<T>>,
+        dirty: bool,
+        delete: bool,
+    ) -> Arc<SyncMapEntry<K, T>> {
         Arc::new(SyncMapEntry {
             m: Arc::downgrade(&self.inner),
             key,
-            mu: Mutex::new(syncEntryState { e: mapEntry { original, value, dirty, delete }, proxy_for: None }),
+            mu: Mutex::new(syncEntryState {
+                e: mapEntry { original, value, dirty, delete },
+                proxy_for: None,
+            }),
         })
     }
 
@@ -322,13 +348,23 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
             return Some(entry);
         }
         if let Some(val) = self.inner.base.get(key) {
-            return Some(self.new_entry(key.clone(), Some(val.clone()), Some(val.clone()), false, false));
+            return Some(self.new_entry(
+                key.clone(),
+                Some(val.clone()),
+                Some(val.clone()),
+                false,
+                false,
+            ));
         }
         None
     }
 
     // syncmap.go:226
-    pub fn load_or_store(&self, key: K, value: Shared<T>) -> (Option<Arc<SyncMapEntry<K, T>>>, bool) {
+    pub fn load_or_store(
+        &self,
+        key: K,
+        value: Shared<T>,
+    ) -> (Option<Arc<SyncMapEntry<K, T>>>, bool) {
         // Check for existence in the base map first so the sync map access is atomic.
         if let Some(base_value) = self.inner.base.get(&key) {
             if let Some(dirty) = self.inner.dirty.load(&key) {
@@ -337,7 +373,16 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
                 }
                 return (Some(dirty), true);
             }
-            return (Some(self.new_entry(key, Some(base_value.clone()), Some(base_value.clone()), false, false)), true);
+            return (
+                Some(self.new_entry(
+                    key,
+                    Some(base_value.clone()),
+                    Some(base_value.clone()),
+                    false,
+                    false,
+                )),
+                true,
+            );
         }
         let new_entry = self.new_entry(key.clone(), None, Some(value), true, false);
         let (entry, loaded) = self.inner.dirty.load_or_store(key, new_entry);
@@ -349,7 +394,8 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
 
     // syncmap.go:262
     pub fn delete(&self, key: &K) {
-        let new_entry = self.new_entry(key.clone(), self.inner.base.get(key).cloned(), None, false, true);
+        let new_entry =
+            self.new_entry(key.clone(), self.inner.base.get(key).cloned(), None, false, true);
         let (entry, loaded) = self.inner.dirty.load_or_store(key.clone(), new_entry);
         if loaded {
             entry.delete();
@@ -368,19 +414,31 @@ impl<K: Hash + Eq + Clone + Send + Sync, T: Cloneable + Clone> SyncMap<K, T> {
             true
         });
         // Go continues with the base map even when the callback stopped the dirty map's Range.
-        #[expect(clippy::iter_over_hash_type, reason = "unspecified order, as in Go: Range ranges Go maps, so no caller can rely on an order")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "unspecified order, as in Go: Range ranges Go maps, so no caller can rely on an order"
+        )]
         for (key, value) in self.inner.base.iter() {
             if seen_in_dirty.contains(key) {
                 continue; // already processed in dirty entries
             }
-            if !f(&self.new_entry(key.clone(), Some(value.clone()), Some(value.clone()), false, false)) {
+            if !f(&self.new_entry(
+                key.clone(),
+                Some(value.clone()),
+                Some(value.clone()),
+                false,
+                false,
+            )) {
                 break;
             }
         }
     }
 
     // syncmap.go:308
-    fn finalize_with_hooks(&self, mut hooks: FinalizationHooks<'_, K, T>) -> (SharedMap<K, T>, bool) {
+    fn finalize_with_hooks(
+        &self,
+        mut hooks: FinalizationHooks<'_, K, T>,
+    ) -> (SharedMap<K, T>, bool) {
         let mut changed = false;
         let mut result: Option<FxHashMap<K, Shared<T>>> = None;
         let base = &self.inner.base;

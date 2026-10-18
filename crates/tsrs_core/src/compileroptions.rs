@@ -1,6 +1,6 @@
+use crate::Tristate;
 use crate::collections::OrderedMap;
 use crate::tspath;
-use crate::Tristate;
 use rustc_hash::FxHashMap;
 use std::fmt;
 use std::sync::LazyLock;
@@ -169,7 +169,8 @@ pub struct CompilerOptions {
     pub checkers: Option<i64>,
 }
 
-pub static EMPTY_COMPILER_OPTIONS: LazyLock<CompilerOptions> = LazyLock::new(CompilerOptions::default);
+pub static EMPTY_COMPILER_OPTIONS: LazyLock<CompilerOptions> =
+    LazyLock::new(CompilerOptions::default);
 
 /// `EMPTY_COMPILER_OPTIONS` as an arena pointer (one per process; a compressed `P` cannot point to a static, so
 /// compressed builds keep a copy in the arena of the thread that first asks).
@@ -217,13 +218,15 @@ impl CompilerOptions {
 
     pub fn get_module_resolution_kind(&self) -> ModuleResolutionKind {
         match self.module_resolution {
-            ModuleResolutionKind::Unknown | ModuleResolutionKind::Classic | ModuleResolutionKind::Node10 => {
-                match self.get_emit_module_kind() {
-                    ModuleKind::Node16 | ModuleKind::Node18 | ModuleKind::Node20 => ModuleResolutionKind::Node16,
-                    ModuleKind::NodeNext => ModuleResolutionKind::NodeNext,
-                    _ => ModuleResolutionKind::Bundler,
+            ModuleResolutionKind::Unknown
+            | ModuleResolutionKind::Classic
+            | ModuleResolutionKind::Node10 => match self.get_emit_module_kind() {
+                ModuleKind::Node16 | ModuleKind::Node18 | ModuleKind::Node20 => {
+                    ModuleResolutionKind::Node16
                 }
-            }
+                ModuleKind::NodeNext => ModuleResolutionKind::NodeNext,
+                _ => ModuleResolutionKind::Bundler,
+            },
             _ => self.module_resolution,
         }
     }
@@ -248,7 +251,8 @@ impl CompilerOptions {
     }
 
     pub fn get_allow_importing_ts_extensions(&self) -> bool {
-        self.allow_importing_ts_extensions.is_true() || self.rewrite_relative_import_extensions.is_true()
+        self.allow_importing_ts_extensions.is_true()
+            || self.rewrite_relative_import_extensions.is_true()
     }
 
     pub fn allow_importing_ts_extensions_from(&self, file_name: &str) -> bool {
@@ -299,7 +303,10 @@ impl CompilerOptions {
         } else {
             // This was accounted for in the TS codebase, but only for third-party API usage
             // where the module resolution host does not provide a getCurrentDirectory().
-            assert!(!current_directory.is_empty(), "cannot get effective type roots without a config file path or current directory");
+            assert!(
+                !current_directory.is_empty(),
+                "cannot get effective type roots without a config file path or current directory"
+            );
             current_directory.to_string()
         };
 
@@ -325,7 +332,8 @@ impl CompilerOptions {
     }
 
     pub fn get_emit_standard_class_fields(&self) -> bool {
-        self.use_define_for_class_fields != Tristate::False && self.get_emit_script_target() >= ScriptTarget::ES2022
+        self.use_define_for_class_fields != Tristate::False
+            && self.get_emit_script_target() >= ScriptTarget::ES2022
     }
 
     pub fn get_use_define_for_class_fields(&self) -> bool {
@@ -447,7 +455,9 @@ impl ModuleKind {
     }
 
     pub fn supports_import_attributes(self) -> bool {
-        ModuleKind::Node18 <= self && self <= ModuleKind::NodeNext || self == ModuleKind::Preserve || self == ModuleKind::ESNext
+        ModuleKind::Node18 <= self && self <= ModuleKind::NodeNext
+            || self == ModuleKind::Preserve
+            || self == ModuleKind::ESNext
     }
 
     /// Go stringer: the constant name, or `ModuleKind(<n>)`.
@@ -520,7 +530,9 @@ impl ModuleResolutionKind {
     }
 }
 
-pub static MODULE_KIND_TO_MODULE_RESOLUTION_KIND: LazyLock<FxHashMap<ModuleKind, ModuleResolutionKind>> = LazyLock::new(|| {
+pub static MODULE_KIND_TO_MODULE_RESOLUTION_KIND: LazyLock<
+    FxHashMap<ModuleKind, ModuleResolutionKind>,
+> = LazyLock::new(|| {
     let mut m = FxHashMap::default();
     m.insert(ModuleKind::Node16, ModuleResolutionKind::Node16);
     m.insert(ModuleKind::NodeNext, ModuleResolutionKind::NodeNext);
@@ -537,7 +549,9 @@ impl ModuleResolutionKind {
     // as it probably represents a mistake when porting TS to Go.
     pub fn string(self) -> &'static str {
         match self {
-            ModuleResolutionKind::Unknown => panic!("should not use zero value of ModuleResolutionKind"),
+            ModuleResolutionKind::Unknown => {
+                panic!("should not use zero value of ModuleResolutionKind")
+            }
             ModuleResolutionKind::Classic => "Classic",
             ModuleResolutionKind::Node10 => "Node10",
             ModuleResolutionKind::Node16 => "Node16",
@@ -559,7 +573,10 @@ impl fmt::Display for ModuleResolutionKind {
 pub enum NewLineKind {
     #[default]
     None = 0,
-    #[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+    #[expect(
+        clippy::upper_case_acronyms,
+        reason = "The name matches the upstream Go or protocol vocabulary."
+    )]
     CRLF = 1,
     LF = 2,
 }

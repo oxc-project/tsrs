@@ -19,7 +19,10 @@ fn test_document_uri_to_file_name() {
         ("file://server/share/file.ts", "//server/share/file.ts"),
         ("file:///d%3A/work/tsgo932/lib/utils.ts", "d:/work/tsgo932/lib/utils.ts"),
         ("file:///D%3A/work/tsgo932/lib/utils.ts", "D:/work/tsgo932/lib/utils.ts"),
-        ("file:///d%3A/work/tsgo932/app/%28test%29/comp/comp-test.tsx", "d:/work/tsgo932/app/(test)/comp/comp-test.tsx"),
+        (
+            "file:///d%3A/work/tsgo932/app/%28test%29/comp/comp-test.tsx",
+            "d:/work/tsgo932/app/(test)/comp/comp-test.tsx",
+        ),
         ("file:///path/to/file.ts#section", "/path/to/file.ts"),
         ("file:///c:/test/me", "c:/test/me"),
         ("file://shares/files/c%23/p.cs", "//shares/files/c#/p.cs"),
@@ -35,9 +38,18 @@ fn test_document_uri_to_file_name() {
         ("file:///c%3A/test%20with%20%2525/c%23code", "c:/test with %25/c#code"),
         ("untitled:Untitled-1", "^/untitled/ts-nul-authority/Untitled-1"),
         ("untitled:Untitled-1#fragment", "^/untitled/ts-nul-authority/Untitled-1#fragment"),
-        ("untitled:c:/Users/jrieken/Code/abc.txt", "^/untitled/ts-nul-authority/c:/Users/jrieken/Code/abc.txt"),
-        ("untitled:C:/Users/jrieken/Code/abc.txt", "^/untitled/ts-nul-authority/C:/Users/jrieken/Code/abc.txt"),
-        ("untitled://wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts", "^/untitled/wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts"),
+        (
+            "untitled:c:/Users/jrieken/Code/abc.txt",
+            "^/untitled/ts-nul-authority/c:/Users/jrieken/Code/abc.txt",
+        ),
+        (
+            "untitled:C:/Users/jrieken/Code/abc.txt",
+            "^/untitled/ts-nul-authority/C:/Users/jrieken/Code/abc.txt",
+        ),
+        (
+            "untitled://wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts",
+            "^/untitled/wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts",
+        ),
     ];
     for &(uri, file_name) in tests {
         assert_eq!(lsproto::DocumentUri(uri.to_string()).file_name(), file_name, "{uri}");
@@ -52,7 +64,10 @@ fn test_file_name_to_document_uri() {
         ("//server/share/file.ts", "file://server/share/file.ts"),
         ("d:/work/tsgo932/lib/utils.ts", "file:///d%3A/work/tsgo932/lib/utils.ts"),
         ("D:/work/tsgo932/lib/utils.ts", "file:///d%3A/work/tsgo932/lib/utils.ts"),
-        ("d:/work/tsgo932/app/(test)/comp/comp-test.tsx", "file:///d%3A/work/tsgo932/app/%28test%29/comp/comp-test.tsx"),
+        (
+            "d:/work/tsgo932/app/(test)/comp/comp-test.tsx",
+            "file:///d%3A/work/tsgo932/app/%28test%29/comp/comp-test.tsx",
+        ),
         ("/path/to/file.ts", "file:///path/to/file.ts"),
         ("c:/test/me", "file:///c%3A/test/me"),
         ("//shares/files/c#/p.cs", "file://shares/files/c%23/p.cs"),
@@ -67,8 +82,14 @@ fn test_file_name_to_document_uri() {
         ("//localhost/c$/GitDevelopment/express", "file://localhost/c%24/GitDevelopment/express"),
         ("c:/test with %25/c#code", "file:///c%3A/test%20with%20%2525/c%23code"),
         ("^/untitled/ts-nul-authority/Untitled-1", "untitled:Untitled-1"),
-        ("^/untitled/ts-nul-authority/c:/Users/jrieken/Code/abc.txt", "untitled:c:/Users/jrieken/Code/abc.txt"),
-        ("^/untitled/ts-nul-authority///wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts", "untitled://wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts"),
+        (
+            "^/untitled/ts-nul-authority/c:/Users/jrieken/Code/abc.txt",
+            "untitled:c:/Users/jrieken/Code/abc.txt",
+        ),
+        (
+            "^/untitled/ts-nul-authority///wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts",
+            "untitled://wsl%2Bubuntu/home/jabaile/work/TypeScript/newfile.ts",
+        ),
     ];
     for &(file_name, uri) in tests {
         assert_eq!(file_name_to_document_uri(file_name).0, uri, "{file_name}");
@@ -106,9 +127,15 @@ impl Script for TestScript {
 
 // converters_test.go:111
 fn new_test_converters(text: &str) -> (Arc<Converters>, TestScript) {
-    let script = TestScript { name: "test.ts".to_string(), text: text.to_string(), original_text: String::new() };
+    let script = TestScript {
+        name: "test.ts".to_string(),
+        text: text.to_string(),
+        original_text: String::new(),
+    };
     let line_map = compute_lsp_line_starts(text);
-    let conv = new_converters(lsproto::PositionEncodingKind::UTF16, move |_| Some(std::sync::Arc::clone(&line_map)));
+    let conv = new_converters(lsproto::PositionEncodingKind::UTF16, move |_| {
+        Some(std::sync::Arc::clone(&line_map))
+    });
     (conv, script)
 }
 
@@ -190,7 +217,14 @@ fn run_js_reference(texts: &[&str]) -> Option<Vec<Vec<(i64, u32, u32)>>> {
         input
     });
 
-    let mut child = match Command::new("node").arg("-e").arg(JS_REFERENCE_SCRIPT).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn() {
+    let mut child = match Command::new("node")
+        .arg("-e")
+        .arg(JS_REFERENCE_SCRIPT)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+    {
         Ok(child) => child,
         Err(err) => {
             eprintln!("node not available: {err}");
@@ -216,7 +250,11 @@ fn run_js_reference(texts: &[&str]) -> Option<Vec<Vec<(i64, u32, u32)>>> {
                     .iter()
                     .map(|t| {
                         let Value::Object(o) = t else { panic!("bad tuple") };
-                        (num(o.get("bytePos")), num(o.get("line")) as u32, num(o.get("char")) as u32)
+                        (
+                            num(o.get("bytePos")),
+                            num(o.get("line")) as u32,
+                            num(o.get("char")) as u32,
+                        )
                     })
                     .collect()
             })
@@ -247,7 +285,9 @@ fn test_converters_against_js_reference() {
     ];
 
     let texts: Vec<&str> = cases.iter().map(|c| c.1).collect();
-    let Some(refs) = run_js_reference(&texts) else { return };
+    let Some(refs) = run_js_reference(&texts) else {
+        return;
+    };
     assert_eq!(refs.len(), cases.len());
 
     for (i, &(name, text)) in cases.iter().enumerate() {
@@ -255,10 +295,7 @@ fn test_converters_against_js_reference() {
         for &(byte_pos, line, char) in &refs[i] {
             let byte_pos =
                 u32::try_from(byte_pos).expect("reference position fits in a source position");
-            let expected_lc = lsproto::Position {
-                line,
-                character: char,
-            };
+            let expected_lc = lsproto::Position { line, character: char };
 
             let (got_lc, _) = conv.to_lsp_position(&script, byte_pos.into());
             assert_eq!(
@@ -268,7 +305,10 @@ fn test_converters_against_js_reference() {
 
             let positions = conv.from_lsp_position(script.clone(), expected_lc, Feature::All);
             assert_eq!(positions.len(), 1);
-            assert_eq!(positions[0].position, byte_pos, "{name}: LineAndCharacterToPosition({line},{char}) mismatch in {text:?}");
+            assert_eq!(
+                positions[0].position, byte_pos,
+                "{name}: LineAndCharacterToPosition({line},{char}) mismatch in {text:?}"
+            );
         }
     }
 }
@@ -279,11 +319,24 @@ fn test_converters_against_js_reference() {
 #[test]
 fn utf8_offset_inside_character_snaps_to_its_start() {
     let text = "const s = \"\u{1F600}\";\nx";
-    let script = TestScript { name: "test.ts".to_string(), text: text.to_string(), original_text: String::new() };
+    let script = TestScript {
+        name: "test.ts".to_string(),
+        text: text.to_string(),
+        original_text: String::new(),
+    };
     let line_map = compute_lsp_line_starts(text);
-    let conv = new_converters(lsproto::PositionEncodingKind::UTF8, move |_| Some(std::sync::Arc::clone(&line_map)));
+    let conv = new_converters(lsproto::PositionEncodingKind::UTF8, move |_| {
+        Some(std::sync::Arc::clone(&line_map))
+    });
     for character in 11..=14 {
-        assert_eq!(conv.line_and_character_to_position(&script, lsproto::Position { line: 0, character }), 11, "{character}");
+        assert_eq!(
+            conv.line_and_character_to_position(&script, lsproto::Position { line: 0, character }),
+            11,
+            "{character}"
+        );
     }
-    assert_eq!(conv.line_and_character_to_position(&script, lsproto::Position { line: 0, character: 15 }), 15);
+    assert_eq!(
+        conv.line_and_character_to_position(&script, lsproto::Position { line: 0, character: 15 }),
+        15
+    );
 }

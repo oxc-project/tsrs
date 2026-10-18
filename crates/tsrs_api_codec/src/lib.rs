@@ -7,17 +7,17 @@
 pub mod decoder;
 pub mod encoder;
 pub mod format;
-pub mod handle;
 mod generated;
+pub mod handle;
 pub mod msgpack;
 pub mod positionmap;
 pub mod stringtable;
 
-pub use decoder::{decode_nodes, decode_source_file, DecodeError, DecodedNode};
+pub use decoder::{DecodeError, DecodedNode, decode_nodes, decode_source_file};
 pub use encoder::{
-    build_node_index_table, encode_node, encode_source_file, set_source_file_id, set_source_file_lease, source_file_hash, EncodeError,
-    NodeIndexTable,
+    EncodeError, NodeIndexTable, build_node_index_table, encode_node, encode_source_file,
+    set_source_file_id, set_source_file_lease, source_file_hash,
 };
 pub use format::PROTOCOL_VERSION;
-pub use handle::{node_handle, parse_node_handle, resolve_node_index, ParsedNodeHandle};
+pub use handle::{ParsedNodeHandle, node_handle, parse_node_handle, resolve_node_index};
 pub use positionmap::PositionMap;

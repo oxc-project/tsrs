@@ -4,8 +4,8 @@
 // Go's diff tables hold closures that print lazily; the closures only read values captured when they are added,
 // so rendering each entry to a string when it is added prints the same text.
 
-use std::fmt::Write as _;
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 
 use rustc_hash::FxHashMap;
 use std::sync::Arc;
@@ -17,9 +17,9 @@ use tsrs_core::tspath;
 use tsrs_ls::lsconv;
 use tsrs_lsproto as lsproto;
 use tsrs_project::{ConfigFileRegistry, Snapshot};
+use tsrs_vfs::FS;
 use tsrs_vfs::iovfs::IoVFS;
 use tsrs_vfs::vfstest::MapFS;
-use tsrs_vfs::FS;
 
 use crate::baselineutil::is_lib_file;
 use crate::fourslash::FourslashTest;
@@ -52,7 +52,8 @@ pub(crate) fn new_state_baseline(fs_from_map: Arc<IoVFS<MapFS>>) -> StateBaselin
         serialized_open_files: FxHashMap::default(),
         serialized_config_file_registry: None,
     };
-    writeln!(state_baseline.baseline, "UseCaseSensitiveFileNames: {use_case_sensitive_file_names}").unwrap();
+    writeln!(state_baseline.baseline, "UseCaseSensitiveFileNames: {use_case_sensitive_file_names}")
+        .unwrap();
     let mut b = std::mem::take(&mut state_baseline.baseline);
     state_baseline.fs_differ.baseline_fs_with_diff(&mut b);
     state_baseline.baseline = b;
@@ -209,13 +210,33 @@ fn slice_from_iter_seq_string(seq: &[String]) -> Vec<String> {
 }
 
 // statebaseline.go:231
-fn print_string_iter_seq_with_diff_table(w: &mut String, header: &str, new_iter_seq: &[String], get_old_iter_seq: impl FnOnce() -> Vec<String>, options: diffTableOptions, top_change: &str) {
-    print_slices_with_diff_table(w, header, &slice_from_iter_seq_string(new_iter_seq), || slice_from_iter_seq_string(&get_old_iter_seq()), options, top_change, None);
+fn print_string_iter_seq_with_diff_table(
+    w: &mut String,
+    header: &str,
+    new_iter_seq: &[String],
+    get_old_iter_seq: impl FnOnce() -> Vec<String>,
+    options: diffTableOptions,
+    top_change: &str,
+) {
+    print_slices_with_diff_table(
+        w,
+        header,
+        &slice_from_iter_seq_string(new_iter_seq),
+        || slice_from_iter_seq_string(&get_old_iter_seq()),
+        options,
+        top_change,
+        None,
+    );
 }
 
 impl FourslashTest {
     // statebaseline.go:51 (`params` is evaluated only when state baselining is enabled)
-    pub(crate) fn baseline_request_or_notification(&mut self, t: &T, method: lsproto::Method, params: impl FnOnce() -> Value) {
+    pub(crate) fn baseline_request_or_notification(
+        &mut self,
+        t: &T,
+        method: lsproto::Method,
+        params: impl FnOnce() -> Value,
+    ) {
         t.helper();
 
         if !self.test_data.is_state_baselining_enabled() {
@@ -247,7 +268,9 @@ impl FourslashTest {
         let (_, result) = self.client().send_request(
             lsproto::TEXT_DOCUMENT_HOVER_INFO,
             lsproto::HoverParams {
-                text_document: lsproto::TextDocumentIdentifier { uri: lsconv::file_name_to_document_uri(file_name) },
+                text_document: lsproto::TextDocumentIdentifier {
+                    uri: lsconv::file_name_to_document_uri(file_name),
+                },
                 position: lsproto::Position { line: 0, character: 0 },
                 ..Default::default()
             },
@@ -341,11 +364,13 @@ impl FourslashTest {
                                     file_diff = "*new*";
                                 }
                             }
-                            Some(old_program) => match old_program.get_source_file_by_path(file.path()) {
-                                None => file_diff = "*new*",
-                                Some(old_file) if old_file != file => file_diff = "*modified*",
-                                Some(_) => {}
-                            },
+                            Some(old_program) => {
+                                match old_program.get_source_file_by_path(file.path()) {
+                                    None => file_diff = "*new*",
+                                    Some(old_file) if old_file != file => file_diff = "*modified*",
+                                    Some(_) => {}
+                                }
+                            }
                         }
                     }
                     if !file_diff.is_empty() || !is_lib_file(file_name) {
@@ -356,7 +381,8 @@ impl FourslashTest {
             if !same_program(old_program, program) {
                 if let Some(old_program) = old_program {
                     for &file in old_program.get_source_files() {
-                        if program.is_none_or(|p| p.get_source_file_by_path(file.path()).is_none()) {
+                        if program.is_none_or(|p| p.get_source_file_by_path(file.path()).is_none())
+                        {
                             sub_diff.add(file.file_name(), "*deleted*");
                         }
                     }
@@ -366,7 +392,10 @@ impl FourslashTest {
             projects_diff_table.add(&id, out);
         }
 
-        #[expect(clippy::iter_over_hash_type, reason = "The collected diff entries are sorted by diffTable::print before output.")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "The collected diff entries are sorted by diffTable::print before output."
+        )]
         for (project_name, info) in &state_baseline.serialized_projects {
             if !current_projects.contains_key(project_name) {
                 projects_diff_table.set_has_change();
@@ -385,7 +414,8 @@ impl FourslashTest {
             }
         }
         state_baseline.serialized_projects = current_projects;
-        state_baseline.serialized_programs_owner = Some(Box::new(snapshot.project_collection.projects()));
+        state_baseline.serialized_programs_owner =
+            Some(Box::new(snapshot.project_collection.projects()));
         projects_diff_table.print(w);
     }
 
@@ -406,20 +436,28 @@ impl FourslashTest {
             if let Some(default_project) = &default_project {
                 new_file_info.default_project_name = default_project.id().0;
             }
-            new_file_info.all_projects.extend(snapshot.project_collection.projects().into_iter().filter_map(|project| {
-                if let Some(program) = project.get_program() {
-                    if program.get_source_file_by_path(&path).is_some() { Some(project.id().0) } else { None }
-                } else {
-                    None
-                }
-            }));
+            new_file_info.all_projects.extend(
+                snapshot.project_collection.projects().into_iter().filter_map(|project| {
+                    if let Some(program) = project.get_program() {
+                        if program.get_source_file_by_path(&path).is_some() {
+                            Some(project.id().0)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                }),
+            );
             new_file_info.all_projects.sort();
             current_open_files.insert(file_name.clone(), new_file_info.clone());
             let open_file_change;
             let mut old_file_info = openFileInfo::default();
             if let Some(existing) = state_baseline.serialized_open_files.get(file_name) {
                 old_file_info = existing.clone();
-                if existing.default_project_name != new_file_info.default_project_name || existing.all_projects != new_file_info.all_projects {
+                if existing.default_project_name != new_file_info.default_project_name
+                    || existing.all_projects != new_file_info.all_projects
+                {
                     open_file_change = "*modified*";
                     files_diff_table.set_has_change();
                 } else {
@@ -443,7 +481,10 @@ impl FourslashTest {
             );
             files_diff_table.add(file_name, out);
         }
-        #[expect(clippy::iter_over_hash_type, reason = "The collected diff entries are sorted by diffTable::print before output.")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "The collected diff entries are sorted by diffTable::print before output."
+        )]
         for file_name in state_baseline.serialized_open_files.keys() {
             if !current_open_files.contains_key(file_name) {
                 files_diff_table.set_has_change();
@@ -463,19 +504,34 @@ impl FourslashTest {
         let mut config_diffs_table = diffTableWriter::new("Config");
         let mut config_file_names_diffs_table = diffTableWriter::new("Config File Names");
 
-        if state_baseline.serialized_config_file_registry.as_ref().is_some_and(|r| Arc::ptr_eq(r, &config_file_registry)) {
+        if state_baseline
+            .serialized_config_file_registry
+            .as_ref()
+            .is_some_and(|r| Arc::ptr_eq(r, &config_file_registry))
+        {
             return;
         }
         let old_registry = state_baseline.serialized_config_file_registry.clone();
         let options = diffTableOptions { indent: "    ", sort_keys: true };
-        let project_ids = |ids: &[tsrs_project::ID]| ids.iter().map(|id| id.0.clone()).collect::<Vec<String>>();
-        let paths = |ps: &[tspath::Path]| ps.iter().map(std::string::ToString::to_string).collect::<Vec<String>>();
+        let project_ids =
+            |ids: &[tsrs_project::ID]| ids.iter().map(|id| id.0.clone()).collect::<Vec<String>>();
+        let paths = |ps: &[tspath::Path]| {
+            ps.iter().map(std::string::ToString::to_string).collect::<Vec<String>>()
+        };
         config_file_registry.for_each_test_config_entry(|path, entry| {
             let mut config_change = "";
             let old_entry = old_registry.as_ref().and_then(|r| r.get_test_config_entry(path));
-            let (new_projects, new_open_files, new_configs) = (project_ids(&entry.retaining_projects), paths(&entry.retaining_open_files), paths(&entry.retaining_configs));
+            let (new_projects, new_open_files, new_configs) = (
+                project_ids(&entry.retaining_projects),
+                paths(&entry.retaining_open_files),
+                paths(&entry.retaining_configs),
+            );
             let (old_projects, old_open_files, old_configs) = match &old_entry {
-                Some(old) => (project_ids(&old.retaining_projects), paths(&old.retaining_open_files), paths(&old.retaining_configs)),
+                Some(old) => (
+                    project_ids(&old.retaining_projects),
+                    paths(&old.retaining_open_files),
+                    paths(&old.retaining_configs),
+                ),
                 None => (Vec::new(), Vec::new(), Vec::new()),
             };
             match &old_entry {
@@ -485,7 +541,10 @@ impl FourslashTest {
                 }
                 // Go `oldEntry != entry` compares two freshly built entries, so it is always true.
                 Some(_) => {
-                    if !are_iter_seq_equal(&old_projects, &new_projects) || !are_iter_seq_equal(&old_open_files, &new_open_files) || !are_iter_seq_equal(&old_configs, &new_configs) {
+                    if !are_iter_seq_equal(&old_projects, &new_projects)
+                        || !are_iter_seq_equal(&old_open_files, &new_open_files)
+                        || !are_iter_seq_equal(&old_configs, &new_configs)
+                    {
                         config_change = "*modified*";
                         config_diffs_table.set_has_change();
                     }
@@ -507,9 +566,30 @@ impl FourslashTest {
                     retaining_configs_modified = " *modified*";
                 }
             }
-            print_string_iter_seq_with_diff_table(&mut out, &format!("RetainingProjects:{retaining_projects_modified}"), &new_projects, || old_projects.clone(), options, config_change);
-            print_string_iter_seq_with_diff_table(&mut out, &format!("RetainingOpenFiles:{retaining_open_files_modified}"), &new_open_files, || old_open_files.clone(), options, config_change);
-            print_string_iter_seq_with_diff_table(&mut out, &format!("RetainingConfigs:{retaining_configs_modified}"), &new_configs, || old_configs.clone(), options, config_change);
+            print_string_iter_seq_with_diff_table(
+                &mut out,
+                &format!("RetainingProjects:{retaining_projects_modified}"),
+                &new_projects,
+                || old_projects.clone(),
+                options,
+                config_change,
+            );
+            print_string_iter_seq_with_diff_table(
+                &mut out,
+                &format!("RetainingOpenFiles:{retaining_open_files_modified}"),
+                &new_open_files,
+                || old_open_files.clone(),
+                options,
+                config_change,
+            );
+            print_string_iter_seq_with_diff_table(
+                &mut out,
+                &format!("RetainingConfigs:{retaining_configs_modified}"),
+                &new_configs,
+                || old_configs.clone(),
+                options,
+                config_change,
+            );
             config_diffs_table.add(&path.0, out);
         });
         config_file_registry.for_each_test_config_file_names_entry(|path, entry| {
@@ -581,7 +661,8 @@ impl FourslashTest {
             old_registry.for_each_test_config_file_names_entry(|path, _entry| {
                 if config_file_registry.get_test_config_file_names_entry(path).is_none() {
                     config_file_names_diffs_table.set_has_change();
-                    config_file_names_diffs_table.add(&path.0, format!("  [{}] *deleted*\n", path.0));
+                    config_file_names_diffs_table
+                        .add(&path.0, format!("  [{}] *deleted*\n", path.0));
                 }
             });
         }

@@ -6,7 +6,12 @@ fn new_gen() -> Generator {
     new_generator("main.js", "/", "/", ComparePathsOptions::default())
 }
 
-fn raw(sources: &[&str], mappings: &str, names: &[&str], sources_content: Option<Vec<Option<&str>>>) -> RawSourceMap {
+fn raw(
+    sources: &[&str],
+    mappings: &str,
+    names: &[&str],
+    sources_content: Option<Vec<Option<&str>>>,
+) -> RawSourceMap {
     RawSourceMap {
         version: 3,
         file: "main.js".to_string(),
@@ -14,7 +19,8 @@ fn raw(sources: &[&str], mappings: &str, names: &[&str], sources_content: Option
         sources: sources.iter().map(std::string::ToString::to_string).collect(),
         mappings: mappings.to_string(),
         names: names.iter().map(std::string::ToString::to_string).collect(),
-        sources_content: sources_content.map(|v| v.into_iter().map(|s| s.map(str::to_string)).collect()),
+        sources_content: sources_content
+            .map(|v| v.into_iter().map(|s| s.map(str::to_string)).collect()),
     }
 }
 
@@ -34,7 +40,8 @@ fn test_source_map_generator_empty() {
 fn test_source_map_generator_empty_serialized() {
     let mut r#gen = new_gen();
     let actual = r#gen.string();
-    let expected = r#"{"version":3,"file":"main.js","sourceRoot":"/","sources":[],"names":[],"mappings":""}"#;
+    let expected =
+        r#"{"version":3,"file":"main.js","sourceRoot":"/","sources":[],"names":[],"mappings":""}"#;
     assert_eq!(actual, expected);
 }
 
@@ -56,10 +63,7 @@ fn test_source_map_generator_set_source_content() {
     r#gen.set_source_content(source_index, "foo").unwrap();
     let source_map = r#gen.raw_source_map();
     assert_eq!(source_index, SourceIndex::Index(0));
-    assert_eq!(
-        source_map,
-        raw(&["main.ts"], "", &[], Some(vec![Some("foo")]))
-    );
+    assert_eq!(source_map, raw(&["main.ts"], "", &[], Some(vec![Some("foo")])));
 }
 
 // generator_test.go:69
@@ -71,15 +75,7 @@ fn test_source_map_generator_set_source_content_for_second_source_only() {
     r#gen.set_source_content(source_index, "foo").unwrap();
     let source_map = r#gen.raw_source_map();
     assert_eq!(source_index, SourceIndex::Index(1));
-    assert_eq!(
-        source_map,
-        raw(
-            &["skipped.ts", "main.ts"],
-            "",
-            &[],
-            Some(vec![None, Some("foo")])
-        )
-    );
+    assert_eq!(source_map, raw(&["skipped.ts", "main.ts"], "", &[], Some(vec![None, Some("foo")])));
 }
 
 // generator_test.go:89
@@ -239,7 +235,10 @@ fn test_source_map_generator_add_source_mapping_generated_line_cannot_backtrack(
     let mut r#gen = new_gen();
     let source_index = r#gen.add_source("/main.ts");
     r#gen.add_source_mapping(1, 0, source_index, 0, 0).unwrap();
-    assert_eq!(err(r#gen.add_source_mapping(0, 0, source_index, 0, 0)), "generatedLine cannot backtrack");
+    assert_eq!(
+        err(r#gen.add_source_mapping(0, 0, source_index, 0, 0)),
+        "generatedLine cannot backtrack"
+    );
 }
 
 // generator_test.go:334
@@ -263,7 +262,10 @@ fn test_source_map_generator_add_named_source_mapping_generated_line_cannot_back
     let source_index = r#gen.add_source("/main.ts");
     let name_index = r#gen.add_name("foo");
     r#gen.add_named_source_mapping(1, 0, source_index, 0, 0, name_index).unwrap();
-    assert_eq!(err(r#gen.add_named_source_mapping(0, 0, source_index, 0, 0, name_index)), "generatedLine cannot backtrack");
+    assert_eq!(
+        err(r#gen.add_named_source_mapping(0, 0, source_index, 0, 0, name_index)),
+        "generatedLine cannot backtrack"
+    );
 }
 
 // generator_test.go:373

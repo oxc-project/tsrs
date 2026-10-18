@@ -1,8 +1,13 @@
-use tsrs_contentmapper::{MappedOutput, ProtocolJson, SupplementalOutput, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedOutput, ProtocolJson, SupplementalOutput,
+    TransformParams, TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
-use crate::protocol::{initialize_result, no_notifications, quote, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    initialize_result, no_notifications, quote, testHandler, unexpected_method, unmarshal_params,
+};
 
 // supplemental_globals.go:12
 pub(crate) struct supplementalGlobalsHandler;
@@ -33,7 +38,11 @@ impl ipc::Handler for supplementalGlobalsHandler {
                         ..Default::default()
                     },
                     supplemental: vec![SupplementalOutput {
-                        mapped_output: MappedOutput { text: supplemental.to_string(), extension: ".ts".to_string(), ..Default::default() },
+                        mapped_output: MappedOutput {
+                            text: supplemental.to_string(),
+                            extension: ".ts".to_string(),
+                            ..Default::default()
+                        },
                     }],
                     ..Default::default()
                 }
@@ -43,7 +52,11 @@ impl ipc::Handler for supplementalGlobalsHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

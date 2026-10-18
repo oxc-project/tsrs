@@ -33,7 +33,10 @@ pub mod baseline {
     pub const NO_CONTENT: &str = "<no content>";
 
     // baseline.go:23
-    #[expect(clippy::needless_pass_by_value, reason = "The baseline API takes its options by value, matching the Go harness.")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "The baseline API takes its options by value, matching the Go harness."
+    )]
     pub fn run(t: &T, file_name: &str, actual: &str, opts: Options) {
         let subfolder = &opts.subfolder;
         let local_path = local_root().join(subfolder).join(file_name);
@@ -43,14 +46,25 @@ pub mod baseline {
 
     // baseline.go:42
     fn write_comparison(t: &T, actual_content: &str, local: &Path, reference: &Path) {
-        assert!(!actual_content.is_empty(), "the generated content was \"\". Return 'baseline.NoContent' if no baselining is required.");
+        assert!(
+            !actual_content.is_empty(),
+            "the generated content was \"\". Return 'baseline.NoContent' if no baselining is required."
+        );
         if let Err(err) = fs::create_dir_all(local.parent().unwrap()) {
-            t.error(&format!("failed to create directories for the local baseline file {}: {}", local.display(), err));
+            t.error(&format!(
+                "failed to create directories for the local baseline file {}: {}",
+                local.display(),
+                err
+            ));
             return;
         }
         if local.exists() {
             if let Err(err) = fs::remove_file(local) {
-                t.error(&format!("failed to remove the local baseline file {}: {}", local.display(), err));
+                t.error(&format!(
+                    "failed to remove the local baseline file {}: {}",
+                    local.display(),
+                    err
+                ));
                 return;
             }
         }
@@ -67,12 +81,20 @@ pub mod baseline {
         if actual_content == NO_CONTENT {
             let delete = PathBuf::from(format!("{}.delete", local.display()));
             if let Err(err) = fs::write(&delete, b"") {
-                t.error(&format!("failed to write the local baseline file {}: {}", delete.display(), err));
+                t.error(&format!(
+                    "failed to write the local baseline file {}: {}",
+                    delete.display(),
+                    err
+                ));
             }
             return;
         }
         if let Err(err) = fs::write(local, actual_content) {
-            t.error(&format!("failed to write the local baseline file {}: {}", local.display(), err));
+            t.error(&format!(
+                "failed to write the local baseline file {}: {}",
+                local.display(),
+                err
+            ));
             return;
         }
         if !found_expected {
@@ -85,7 +107,12 @@ pub mod baseline {
     // Go: repo.TestDataPath()/baselines/{local,reference}. The references are the Go checkout's
     // (ts-ref/tsc/testdata); actuals go under target/fourslash-results/local.
     pub fn reference_root() -> PathBuf {
-        crate::runner::repo_root().join("ts-ref").join("tsc").join("testdata").join("baselines").join("reference")
+        crate::runner::repo_root()
+            .join("ts-ref")
+            .join("tsc")
+            .join("testdata")
+            .join("baselines")
+            .join("reference")
     }
 
     pub fn local_root() -> PathBuf {

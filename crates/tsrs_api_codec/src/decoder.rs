@@ -22,7 +22,10 @@ pub enum DecodeError {
     InvalidTree(String),
     InvalidString(String),
     InvalidExtendedData(String),
-    InvalidCommonData { kind: Kind, value: u32 },
+    InvalidCommonData {
+        kind: Kind,
+        value: u32,
+    },
     MissingChild,
     InvalidSourceFileName(String),
     Unsupported(Kind),
@@ -32,18 +35,16 @@ pub enum DecodeError {
 }
 
 fn decode_text_pos(pos: u32) -> TextPos {
-    if pos >= u32::MAX - 1 {
-        TextPos::Synthetic
-    } else {
-        TextPos::source(pos)
-    }
+    if pos >= u32::MAX - 1 { TextPos::Synthetic } else { TextPos::source(pos) }
 }
 
 impl std::fmt::Display for DecodeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             DecodeError::TooShort(n) => write!(f, "data too short for header: {n} bytes"),
-            DecodeError::UnsupportedVersion(v) => write!(f, "unsupported protocol version {v} (expected {PROTOCOL_VERSION})"),
+            DecodeError::UnsupportedVersion(v) => {
+                write!(f, "unsupported protocol version {v} (expected {PROTOCOL_VERSION})")
+            }
             DecodeError::InvalidHeader(s) => write!(f, "invalid AST header offsets: {s}"),
             DecodeError::NoNodes => write!(f, "no nodes to decode"),
             DecodeError::InvalidKind(k) => write!(f, "invalid node kind {k}"),
@@ -51,7 +52,9 @@ impl std::fmt::Display for DecodeError {
             DecodeError::InvalidTree(s) => write!(f, "invalid node tree: {s}"),
             DecodeError::InvalidString(s) => write!(f, "invalid string: {s}"),
             DecodeError::InvalidExtendedData(s) => write!(f, "invalid extended data: {s}"),
-            DecodeError::InvalidCommonData { kind, value } => write!(f, "invalid common data {value} for {kind:?}"),
+            DecodeError::InvalidCommonData { kind, value } => {
+                write!(f, "invalid common data {value} for {kind:?}")
+            }
             DecodeError::MissingChild => write!(f, "missing required child"),
             DecodeError::InvalidSourceFileName(s) => write!(f, "invalid source file name {s:?}"),
             DecodeError::Unsupported(k) => write!(f, "{k:?} cannot be decoded"),
@@ -100,7 +103,10 @@ pub fn decode_source_file(data: &[u8]) -> Result<DecodedNode, DecodeError> {
 
 /// Go `DecodeNodes` allocating with `factory` in whatever region the caller has entered (the caller owns the
 /// lifetime of the result).
-pub fn decode_nodes_in_current_region(data: &[u8], factory: &NodeFactory) -> Result<P<Node>, DecodeError> {
+pub fn decode_nodes_in_current_region(
+    data: &[u8],
+    factory: &NodeFactory,
+) -> Result<P<Node>, DecodeError> {
     let mut d = Decoder::new(data, factory.clone())?;
     d.decode()
 }
@@ -146,7 +152,11 @@ pub fn is_wtf8(bytes: &[u8]) -> bool {
             Err(e) => {
                 let i = e.valid_up_to();
                 let tail = &rest[i..];
-                if tail.len() >= 3 && tail[0] == 0xED && (0xA0..=0xBF).contains(&tail[1]) && (0x80..=0xBF).contains(&tail[2]) {
+                if tail.len() >= 3
+                    && tail[0] == 0xED
+                    && (0xA0..=0xBF).contains(&tail[1])
+                    && (0x80..=0xBF).contains(&tail[2])
+                {
                     rest = &tail[3..];
                 } else {
                     return false;
@@ -166,11 +176,17 @@ impl<'a> Decoder<'a> {
             return Err(DecodeError::UnsupportedVersion(version));
         }
         let rd = |o| read_le32(data, o).unwrap();
-        let (str_table, str_data, ext_data, node_off) =
-            (rd(HEADER_OFFSET_STRING_OFFSETS), rd(HEADER_OFFSET_STRING_DATA), rd(HEADER_OFFSET_EXTENDED_DATA), rd(HEADER_OFFSET_NODES));
+        let (str_table, str_data, ext_data, node_off) = (
+            rd(HEADER_OFFSET_STRING_OFFSETS),
+            rd(HEADER_OFFSET_STRING_DATA),
+            rd(HEADER_OFFSET_EXTENDED_DATA),
+            rd(HEADER_OFFSET_NODES),
+        );
         let data_len = data.len() as u64;
         if [str_table, str_data, ext_data, node_off].iter().any(|&o| o as u64 > data_len) {
-            return Err(DecodeError::InvalidHeader(format!("offsets exceed data length ({data_len})")));
+            return Err(DecodeError::InvalidHeader(format!(
+                "offsets exceed data length ({data_len})"
+            )));
         }
         if !(str_table <= str_data && str_data <= ext_data && ext_data <= node_off) {
             return Err(DecodeError::InvalidHeader(format!(
@@ -178,7 +194,18 @@ impl<'a> Decoder<'a> {
             )));
         }
         let node_count = (data.len() - node_off as usize) / NODE_SIZE;
-        Ok(Decoder { raw: data, str_table, str_data, ext_data, node_off, node_count, factory, nodes: Vec::new(), lists: Vec::new(), is_list: Vec::new() })
+        Ok(Decoder {
+            raw: data,
+            str_table,
+            str_data,
+            ext_data,
+            node_off,
+            node_count,
+            factory,
+            nodes: Vec::new(),
+            lists: Vec::new(),
+            is_list: Vec::new(),
+        })
     }
 
     fn node_field(&self, i: usize, field: usize) -> u32 {
@@ -189,7 +216,9 @@ impl<'a> Decoder<'a> {
     pub(crate) fn read_ext(&self, offset: u32, field: usize) -> Result<u32, DecodeError> {
         let at = self.ext_data as usize + offset as usize + field;
         if at + 4 > self.node_off as usize {
-            return Err(DecodeError::InvalidExtendedData(format!("offset {offset}+{field} out of range")));
+            return Err(DecodeError::InvalidExtendedData(format!(
+                "offset {offset}+{field} out of range"
+            )));
         }
         Ok(read_le32(self.raw, at).unwrap())
     }
@@ -199,18 +228,26 @@ impl<'a> Decoder<'a> {
         if base + 8 > self.str_data as usize {
             return Err(DecodeError::InvalidString(format!("string index {idx} out of range")));
         }
-        let (start, end) = (read_le32(self.raw, base).unwrap() as usize, read_le32(self.raw, base + 4).unwrap() as usize);
+        let (start, end) = (
+            read_le32(self.raw, base).unwrap() as usize,
+            read_le32(self.raw, base + 4).unwrap() as usize,
+        );
         let region_len = self.raw.len() - self.str_data as usize;
         if start > end || end > region_len {
-            return Err(DecodeError::InvalidString(format!("string {idx} range {start}..{end} out of range")));
+            return Err(DecodeError::InvalidString(format!(
+                "string {idx} range {start}..{end} out of range"
+            )));
         }
         let bytes = &self.raw[self.str_data as usize + start..self.str_data as usize + end];
         if !is_wtf8(bytes) {
             return Err(DecodeError::InvalidString(format!("string {idx} is not UTF-8/WTF-8")));
         }
+        #[expect(
+            clippy::disallowed_methods,
+            reason = "WTF-8 lone surrogates are not UTF-8, so the checked from_utf8 would reject valid input; is_wtf8 checked the bytes above"
+        )]
         // SAFETY: UTF-8 or WTF-8 (the tsrs convention for JS strings with lone surrogates, see
         // tsrs_core::stringutil::encode_js_string_rune); `alloc_str` copies the bytes.
-        #[expect(clippy::disallowed_methods, reason = "WTF-8 lone surrogates are not UTF-8, so the checked from_utf8 would reject valid input; is_wtf8 checked the bytes above")]
         let text = unsafe { std::str::from_utf8_unchecked(bytes) };
         Ok(alloc_str(text))
     }
@@ -233,8 +270,13 @@ impl<'a> Decoder<'a> {
             if next == 0 {
                 break;
             }
-            if next <= cur || next >= self.node_count || self.node_field(next, NODE_OFFSET_PARENT) as usize != i {
-                return Err(DecodeError::InvalidTree(format!("bad sibling link {cur} -> {next} under {i}")));
+            if next <= cur
+                || next >= self.node_count
+                || self.node_field(next, NODE_OFFSET_PARENT) as usize != i
+            {
+                return Err(DecodeError::InvalidTree(format!(
+                    "bad sibling link {cur} -> {next} under {i}"
+                )));
             }
             out.push(next);
             cur = next;
@@ -262,10 +304,8 @@ impl<'a> Decoder<'a> {
             let trailing_comma = end == u32::MAX - 1;
             let loc = TextRange::from_text_pos(decode_text_pos(pos), decode_text_pos(end));
             if kind == SYNTAX_KIND_NODE_LIST {
-                let nodes: Vec<P<Node>> = child_indices
-                    .iter()
-                    .filter_map(|&ci| self.nodes[ci])
-                    .collect();
+                let nodes: Vec<P<Node>> =
+                    child_indices.iter().filter_map(|&ci| self.nodes[ci]).collect();
                 if trailing_comma {
                     if let Some(last) = nodes.last() {
                         last.mark_trailing_comma();
@@ -279,25 +319,38 @@ impl<'a> Decoder<'a> {
             }
             let k = kind_from_u32(kind).ok_or(DecodeError::InvalidKind(kind))?;
             let node = self.create_node(k, data, &child_indices).map_err(|e| match e {
-                DecodeError::InvalidTree(s) => DecodeError::InvalidTree(format!("at node {i} ({k:?}): {s}")),
+                DecodeError::InvalidTree(s) => {
+                    DecodeError::InvalidTree(format!("at node {i} ({k:?}): {s}"))
+                }
                 e => e,
             })?;
             node.set_loc(loc);
             node.set_flags(NodeFlags::from_bits_retain(self.node_field(i, NODE_OFFSET_FLAGS)));
             if k == Kind::SourceFile {
-                node.as_source_file().is_declaration_file.set(node.flags().intersects(NodeFlags::Ambient));
+                node.as_source_file()
+                    .is_declaration_file
+                    .set(node.flags().intersects(NodeFlags::Ambient));
             }
             self.nodes[i] = Some(node);
         }
         self.nodes[1].ok_or_else(|| DecodeError::InvalidTree("root is a NodeList".into()))
     }
 
-    fn create_node(&self, kind: Kind, data: u32, child_indices: &[usize]) -> Result<P<Node>, DecodeError> {
+    fn create_node(
+        &self,
+        kind: Kind,
+        data: u32,
+        child_indices: &[usize],
+    ) -> Result<P<Node>, DecodeError> {
         let common_data = (data >> 24) & 0x3f;
         match data & NODE_DATA_TYPE_MASK {
             NODE_DATA_TYPE_STRING => self.create_string_node(kind, data, common_data),
-            NODE_DATA_TYPE_EXTENDED_DATA => self.create_extended_node(kind, data, child_indices, common_data),
-            NODE_DATA_TYPE_CHILDREN => self.create_children_node(kind, data, child_indices, common_data),
+            NODE_DATA_TYPE_EXTENDED_DATA => {
+                self.create_extended_node(kind, data, child_indices, common_data)
+            }
+            NODE_DATA_TYPE_CHILDREN => {
+                self.create_children_node(kind, data, child_indices, common_data)
+            }
             _ => Err(DecodeError::InvalidTree(format!("reserved node data type for {kind:?}"))),
         }
     }
@@ -329,7 +382,12 @@ impl<'a> Decoder<'a> {
 
     // ── hand-written extended data (Go decodeExtendedData_*) ──
 
-    pub(crate) fn decode_extended_data_source_file(&self, data: u32, child_indices: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_source_file(
+        &self,
+        data: u32,
+        child_indices: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let off = data & NODE_DATA_STRING_INDEX_MASK;
         let text = self.get_string(self.read_ext(off, 0)?)?;
         let file_name = self.get_string(self.read_ext(off, 4)?)?;
@@ -337,7 +395,9 @@ impl<'a> Decoder<'a> {
         let language_variant = match self.read_ext(off, 12)? {
             0 => LanguageVariant::Standard,
             1 => LanguageVariant::JSX,
-            v => return Err(DecodeError::InvalidExtendedData(format!("languageVariant {v}"))),
+            v => {
+                return Err(DecodeError::InvalidExtendedData(format!("languageVariant {v}")));
+            }
         };
         let script_kind = match self.read_ext(off, 16)? {
             0 => ScriptKind::Unknown,
@@ -357,7 +417,10 @@ impl<'a> Decoder<'a> {
         let opts = SourceFileParseOptions {
             file_name: file_name.to_string(),
             path: tspath::Path(path.into()),
-            external_module_indicator_options: ExternalModuleIndicatorOptions { jsx: parse_opts & 1 != 0, force: parse_opts & 2 != 0 },
+            external_module_indicator_options: ExternalModuleIndicatorOptions {
+                jsx: parse_opts & 1 != 0,
+                force: parse_opts & 2 != 0,
+            },
         };
         let mut stmts = None;
         let mut end_of_file = None;
@@ -378,7 +441,10 @@ impl<'a> Decoder<'a> {
         Ok(node)
     }
 
-    fn ext_text_raw_flags(&self, data: u32) -> Result<(&'static str, &'static str, TokenFlags), DecodeError> {
+    fn ext_text_raw_flags(
+        &self,
+        data: u32,
+    ) -> Result<(&'static str, &'static str, TokenFlags), DecodeError> {
         let off = data & NODE_DATA_STRING_INDEX_MASK;
         Ok((
             self.get_string(self.read_ext(off, 0)?)?,
@@ -405,37 +471,72 @@ impl<'a> Decoder<'a> {
         Ok(self.factory.new_template_head(t, r, f))
     }
 
-    pub(crate) fn decode_extended_data_template_middle(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_template_middle(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, r, f) = self.ext_text_raw_flags(data)?;
         Ok(self.factory.new_template_middle(t, r, f))
     }
 
-    pub(crate) fn decode_extended_data_template_tail(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_template_tail(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, r, f) = self.ext_text_raw_flags(data)?;
         Ok(self.factory.new_template_tail(t, r, f))
     }
 
-    pub(crate) fn decode_extended_data_string_literal(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_string_literal(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, f) = self.ext_text_flags(data)?;
         Ok(self.factory.new_string_literal(t, f))
     }
 
-    pub(crate) fn decode_extended_data_numeric_literal(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_numeric_literal(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, f) = self.ext_text_flags(data)?;
         Ok(self.factory.new_numeric_literal(t, f))
     }
 
-    pub(crate) fn decode_extended_data_big_int_literal(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_big_int_literal(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, f) = self.ext_text_flags(data)?;
         Ok(self.factory.new_big_int_literal(t, f))
     }
 
-    pub(crate) fn decode_extended_data_regular_expression_literal(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_regular_expression_literal(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, f) = self.ext_text_flags(data)?;
         Ok(self.factory.new_regular_expression_literal(t, f))
     }
 
-    pub(crate) fn decode_extended_data_no_substitution_template_literal(&self, data: u32, _: &[usize], _: u32) -> Result<P<Node>, DecodeError> {
+    pub(crate) fn decode_extended_data_no_substitution_template_literal(
+        &self,
+        data: u32,
+        _: &[usize],
+        _: u32,
+    ) -> Result<P<Node>, DecodeError> {
         let (t, f) = self.ext_text_flags(data)?;
         Ok(self.factory.new_no_substitution_template_literal(t, f))
     }
@@ -486,7 +587,9 @@ impl FromChild<P<NodeList>> for P<NodeList> {
 pub(crate) fn from_node<R: FromChild<P<Node>>>(v: Option<P<Node>>) -> Result<R, DecodeError> {
     R::from_child(v)
 }
-pub(crate) fn from_list<R: FromChild<P<NodeList>>>(v: Option<P<NodeList>>) -> Result<R, DecodeError> {
+pub(crate) fn from_list<R: FromChild<P<NodeList>>>(
+    v: Option<P<NodeList>>,
+) -> Result<R, DecodeError> {
     R::from_child(v)
 }
 
@@ -524,6 +627,8 @@ pub(crate) fn absent<T: Absent>() -> Result<T, DecodeError> {
 }
 
 /// Go `decodeNodeCommonData_SyntheticExpression` panics: the node is checker-internal and never decoded.
-pub(crate) fn decode_node_common_data_synthetic_expression(_: u32) -> Result<(&'static dyn std::any::Any, bool), DecodeError> {
+pub(crate) fn decode_node_common_data_synthetic_expression(
+    _: u32,
+) -> Result<(&'static dyn std::any::Any, bool), DecodeError> {
     Err(DecodeError::Unsupported(Kind::SyntheticExpression))
 }

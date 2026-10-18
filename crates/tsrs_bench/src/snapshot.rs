@@ -25,13 +25,7 @@ pub(crate) struct RecordingFs {
 impl RecordingFs {
     pub(crate) fn new(inner: Arc<dyn FS>) -> Self {
         let case_sensitive = inner.use_case_sensitive_file_names();
-        Self {
-            inner,
-            snapshot: Mutex::new(SnapshotFs {
-                case_sensitive,
-                ..SnapshotFs::default()
-            }),
-        }
+        Self { inner, snapshot: Mutex::new(SnapshotFs { case_sensitive, ..SnapshotFs::default() }) }
     }
 
     pub(crate) fn freeze(&self) -> SnapshotFs {
@@ -44,10 +38,7 @@ macro_rules! record_read {
         fn $method(&self, path: &str) -> $result {
             let value = self.inner.$method(path);
             let mut snapshot = self.snapshot.lock().unwrap();
-            let recorded = snapshot
-                .$field
-                .entry(path.to_string())
-                .or_insert_with(|| value.clone());
+            let recorded = snapshot.$field.entry(path.to_string()).or_insert_with(|| value.clone());
             assert_eq!(
                 recorded,
                 &value,
@@ -65,10 +56,7 @@ macro_rules! replay_read {
             self.$field
                 .get(path)
                 .unwrap_or_else(|| {
-                    panic!(
-                        "unrecorded filesystem request: {}({path:?})",
-                        stringify!($method)
-                    )
+                    panic!("unrecorded filesystem request: {}({path:?})", stringify!($method))
                 })
                 .clone()
         }

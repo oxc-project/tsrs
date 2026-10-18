@@ -1,11 +1,11 @@
 use crate::*;
-use tsrs_ast::*;
-use tsrs_core::*;
-use tsrs_ast as ast;
-use tsrs_diagnostics as diagnostics;
-use tsrs_diagnostics::Message;
 use rustc_hash::FxHashSet;
 use std::fmt::Display;
+use tsrs_ast as ast;
+use tsrs_ast::*;
+use tsrs_core::*;
+use tsrs_diagnostics as diagnostics;
+use tsrs_diagnostics::Message;
 
 // Non-function declarations in checker.go:13069-15238 (hand-ported by checker-foundation):
 //   type PredicateSemantics (checker.go:13085)
@@ -36,7 +36,9 @@ impl ObjectLiteralState {
 
     /// `properties_table`, made with room for `capacity` members (the literal's members still to come) if new.
     fn properties_table_for(&self, capacity: usize) -> P<SymbolTable> {
-        if let Some(table) = self.properties_table.get() { table } else {
+        if let Some(table) = self.properties_table.get() {
+            table
+        } else {
             let table = SymbolTable::with_capacity(capacity);
             self.properties_table.set(Some(table));
             table
@@ -49,23 +51,43 @@ fn create_object_literal_type(c: &mut Checker, node: P<Node>, st: &ObjectLiteral
     let is_readonly = c.is_const_context(node);
     if st.has_computed_string_property {
         let string_type = c.string_type;
-        index_infos.push(c.get_object_literal_index_info(is_readonly, &st.properties_array[st.offset..], string_type));
+        index_infos.push(c.get_object_literal_index_info(
+            is_readonly,
+            &st.properties_array[st.offset..],
+            string_type,
+        ));
     }
     if st.has_computed_number_property {
         let number_type = c.number_type;
-        index_infos.push(c.get_object_literal_index_info(is_readonly, &st.properties_array[st.offset..], number_type));
+        index_infos.push(c.get_object_literal_index_info(
+            is_readonly,
+            &st.properties_array[st.offset..],
+            number_type,
+        ));
     }
     if st.has_computed_symbol_property {
         let es_symbol_type = c.es_symbol_type;
-        index_infos.push(c.get_object_literal_index_info(is_readonly, &st.properties_array[st.offset..], es_symbol_type));
+        index_infos.push(c.get_object_literal_index_info(
+            is_readonly,
+            &st.properties_array[st.offset..],
+            es_symbol_type,
+        ));
     }
-    let result = c.new_anonymous_type(node.symbol(), Some(st.properties_table()), &[], &[], &index_infos);
-    result.object_flags.set(result.object_flags_lazy() | st.object_flags | ObjectFlags::ObjectLiteral | ObjectFlags::ContainsObjectOrArrayLiteral);
+    let result =
+        c.new_anonymous_type(node.symbol(), Some(st.properties_table()), &[], &[], &index_infos);
+    result.object_flags.set(
+        result.object_flags_lazy()
+            | st.object_flags
+            | ObjectFlags::ObjectLiteral
+            | ObjectFlags::ContainsObjectOrArrayLiteral,
+    );
     if st.contextual_type.is_none() && ast::is_in_js_file(node) && !ast::is_in_json_file(node) {
         result.object_flags.set(result.object_flags_lazy() | ObjectFlags::JSLiteral);
     }
     if st.pattern_with_computed_properties {
-        result.object_flags.set(result.object_flags_lazy() | ObjectFlags::ObjectLiteralPatternWithComputedProperties);
+        result.object_flags.set(
+            result.object_flags_lazy() | ObjectFlags::ObjectLiteralPatternWithComputedProperties,
+        );
     }
     if st.in_destructuring_pattern {
         c.pattern_for_type.insert(result, node);
@@ -75,14 +97,22 @@ fn create_object_literal_type(c: &mut Checker, node: P<Node>, st: &ObjectLiteral
 
 impl Checker {
     // checker.go:13069
-    pub(crate) fn is_type_equality_comparable_to(&mut self, source: P<Type>, target: P<Type>) -> bool {
+    pub(crate) fn is_type_equality_comparable_to(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> bool {
         target.flags().intersects(TypeFlags::Nullable) || self.is_type_comparable_to(source, target)
     }
 
     // checker.go:13073
     pub(crate) fn check_truthiness_of_type(&mut self, t: P<Type>, node: P<Node>) -> P<Type> {
         if t.flags().intersects(TypeFlags::Void) {
-            self.error(Some(node), &diagnostics::An_expression_of_type_void_cannot_be_tested_for_truthiness, &[]);
+            self.error(
+                Some(node),
+                &diagnostics::An_expression_of_type_void_cannot_be_tested_for_truthiness,
+                &[],
+            );
             return t;
         }
         let semantics = self.get_syntactic_truthy_semantics(node);
@@ -133,12 +163,12 @@ impl Checker {
             }
             Kind::ConditionalExpression => {
                 let cond = node.as_conditional_expression();
-                return self.get_syntactic_truthy_semantics(cond.when_true) | self.get_syntactic_truthy_semantics(cond.when_false);
+                return self.get_syntactic_truthy_semantics(cond.when_true)
+                    | self.get_syntactic_truthy_semantics(cond.when_false);
             }
-            Kind::Identifier
-                if self.get_resolved_symbol(node) == self.undefined_symbol => {
-                    return PredicateSemantics::Never;
-                }
+            Kind::Identifier if self.get_resolved_symbol(node) == self.undefined_symbol => {
+                return PredicateSemantics::Never;
+            }
             _ => {}
         }
         PredicateSemantics::Sometimes
@@ -150,20 +180,30 @@ impl Checker {
         if ast::is_binary_expression(grandparent) {
             let grandparent_left = grandparent.as_binary_expression().left;
             let grandparent_operator_token = grandparent.as_binary_expression().operator_token;
-            if ast::is_binary_expression(grandparent_left) && grandparent_operator_token.kind() == Kind::BarBarToken {
+            if ast::is_binary_expression(grandparent_left)
+                && grandparent_operator_token.kind() == Kind::BarBarToken
+            {
                 self.grammar_error_on_node(
                     grandparent_left,
                     &diagnostics::X_0_and_1_operations_cannot_be_mixed_without_parentheses,
-                    &[&tsrs_scanner::token_to_string(Kind::QuestionQuestionToken), &tsrs_scanner::token_to_string(grandparent_operator_token.kind())],
+                    &[
+                        &tsrs_scanner::token_to_string(Kind::QuestionQuestionToken),
+                        &tsrs_scanner::token_to_string(grandparent_operator_token.kind()),
+                    ],
                 );
             }
         } else if ast::is_binary_expression(left) {
             let operator_token = left.as_binary_expression().operator_token;
-            if operator_token.kind() == Kind::BarBarToken || operator_token.kind() == Kind::AmpersandAmpersandToken {
+            if operator_token.kind() == Kind::BarBarToken
+                || operator_token.kind() == Kind::AmpersandAmpersandToken
+            {
                 self.grammar_error_on_node(
                     left,
                     &diagnostics::X_0_and_1_operations_cannot_be_mixed_without_parentheses,
-                    &[&tsrs_scanner::token_to_string(operator_token.kind()), &tsrs_scanner::token_to_string(Kind::QuestionQuestionToken)],
+                    &[
+                        &tsrs_scanner::token_to_string(operator_token.kind()),
+                        &tsrs_scanner::token_to_string(Kind::QuestionQuestionToken),
+                    ],
                 );
             }
         } else if ast::is_binary_expression(right) {
@@ -172,7 +212,10 @@ impl Checker {
                 self.grammar_error_on_node(
                     right,
                     &diagnostics::X_0_and_1_operations_cannot_be_mixed_without_parentheses,
-                    &[&tsrs_scanner::token_to_string(Kind::QuestionQuestionToken), &tsrs_scanner::token_to_string(operator_token.kind())],
+                    &[
+                        &tsrs_scanner::token_to_string(Kind::QuestionQuestionToken),
+                        &tsrs_scanner::token_to_string(operator_token.kind()),
+                    ],
                 );
             }
         }
@@ -193,7 +236,10 @@ impl Checker {
     }
 
     // checker.go:13156
-    pub(crate) fn get_syntactic_nullishness_semantics(&mut self, node: P<Node>) -> PredicateSemantics {
+    pub(crate) fn get_syntactic_nullishness_semantics(
+        &mut self,
+        node: P<Node>,
+    ) -> PredicateSemantics {
         let node = ast::skip_outer_expressions(node, OuterExpressionKinds::All);
         match node.kind() {
             Kind::AwaitExpression
@@ -212,7 +258,10 @@ impl Checker {
                 // List of operators that can produce null/undefined:
                 // || ||= && &&= ?? ??=
                 match bin.operator_token.kind() {
-                    Kind::BarBarToken | Kind::BarBarEqualsToken | Kind::AmpersandAmpersandToken | Kind::AmpersandAmpersandEqualsToken => {
+                    Kind::BarBarToken
+                    | Kind::BarBarEqualsToken
+                    | Kind::AmpersandAmpersandToken
+                    | Kind::AmpersandAmpersandEqualsToken => {
                         return PredicateSemantics::Sometimes;
                     }
                     // For these operator kinds, the right operand is effectively controlling
@@ -239,7 +288,8 @@ impl Checker {
             }
             Kind::ConditionalExpression => {
                 let cond = node.as_conditional_expression();
-                return self.get_syntactic_nullishness_semantics(cond.when_true) | self.get_syntactic_nullishness_semantics(cond.when_false);
+                return self.get_syntactic_nullishness_semantics(cond.when_true)
+                    | self.get_syntactic_nullishness_semantics(cond.when_false);
             }
             Kind::NullKeyword => {
                 return PredicateSemantics::Always;
@@ -292,20 +342,25 @@ impl Checker {
             }
             Kind::ConditionalExpression => {
                 let cond = node.as_conditional_expression();
-                return Self::is_side_effect_free(cond.when_true) && Self::is_side_effect_free(cond.when_false);
+                return Self::is_side_effect_free(cond.when_true)
+                    && Self::is_side_effect_free(cond.when_false);
             }
             Kind::BinaryExpression => {
                 let bin = node.as_binary_expression();
                 if ast::is_assignment_operator(bin.operator_token.kind()) {
                     return false;
                 }
-                return Self::is_side_effect_free(bin.left) && Self::is_side_effect_free(bin.right());
+                return Self::is_side_effect_free(bin.left)
+                    && Self::is_side_effect_free(bin.right());
             }
             Kind::PrefixUnaryExpression => {
                 // Unary operators ~, !, +, and - have no side effects.
                 // The rest do.
                 match node.as_prefix_unary_expression().operator {
-                    Kind::ExclamationToken | Kind::PlusToken | Kind::MinusToken | Kind::TildeToken => {
+                    Kind::ExclamationToken
+                    | Kind::PlusToken
+                    | Kind::MinusToken
+                    | Kind::TildeToken => {
                         return true;
                     }
                     _ => {}
@@ -325,13 +380,22 @@ impl Checker {
         ast::is_parenthesized_expression(parent)
             && ast::is_numeric_literal(left)
             && left.text() == "0"
-            && (ast::is_call_expression(parent.parent().unwrap()) && parent.parent().unwrap().expression() == Some(parent)
+            && (ast::is_call_expression(parent.parent().unwrap())
+                && parent.parent().unwrap().expression() == Some(parent)
                 || ast::is_tagged_template_expression(parent.parent().unwrap()))
-            && (ast::is_access_expression(right) || ast::is_identifier(right) && right.text() == "eval")
+            && (ast::is_access_expression(right)
+                || ast::is_identifier(right) && right.text() == "eval")
     }
 
     // checker.go:13255
-    pub(crate) fn check_instance_of_expression(&mut self, left: P<Node>, right: P<Node>, left_type: P<Type>, right_type: P<Type>, check_mode: CheckMode) -> P<Type> {
+    pub(crate) fn check_instance_of_expression(
+        &mut self,
+        left: P<Node>,
+        right: P<Node>,
+        left_type: P<Type>,
+        right_type: P<Type>,
+        check_mode: CheckMode,
+    ) -> P<Type> {
         if left_type == self.silent_never_type || right_type == self.silent_never_type {
             return self.silent_never_type;
         }
@@ -340,10 +404,16 @@ impl Checker {
         // and the right operand to be of type Any, a subtype of the 'Function' interface type, or have a call or construct signature.
         // The result is always of the Boolean primitive type.
         // NOTE: do not raise error if leftType is unknown as related error was already reported
-        if !is_type_any(Some(left_type)) && self.all_types_assignable_to_kind(left_type, TypeFlags::Primitive) {
+        if !is_type_any(Some(left_type))
+            && self.all_types_assignable_to_kind(left_type, TypeFlags::Primitive)
+        {
             self.error(Some(left), &diagnostics::The_left_hand_side_of_an_instanceof_expression_must_be_of_type_any_an_object_type_or_a_type_parameter, &[]);
         }
-        let signature = self.get_resolved_signature(left.parent().unwrap(), None /*candidatesOutArray*/, check_mode);
+        let signature = self.get_resolved_signature(
+            left.parent().unwrap(),
+            None, /*candidatesOutArray*/
+            check_mode,
+        );
         if signature == self.resolving_signature {
             // CheckMode.SkipGenericFunctions is enabled and this is a call to a generic function that
             // returns a function type. We defer checking and return silentNeverType.
@@ -368,21 +438,35 @@ impl Checker {
     }
 
     // checker.go:13285
-    pub(crate) fn check_in_expression(&mut self, left: P<Node>, right: P<Node>, left_type: P<Type>, right_type: P<Type>) -> P<Type> {
+    pub(crate) fn check_in_expression(
+        &mut self,
+        left: P<Node>,
+        right: P<Node>,
+        left_type: P<Type>,
+        right_type: P<Type>,
+    ) -> P<Type> {
         if left_type == self.silent_never_type || right_type == self.silent_never_type {
             return self.silent_never_type;
         }
         if ast::is_private_identifier(left) {
-            if self.language_version < LanguageFeatureMinimumTarget.private_names_and_class_static_blocks
-                || self.language_version < LanguageFeatureMinimumTarget.class_and_class_element_decorators
+            if self.language_version
+                < LanguageFeatureMinimumTarget.private_names_and_class_static_blocks
+                || self.language_version
+                    < LanguageFeatureMinimumTarget.class_and_class_element_decorators
                 || !self.compiler_options.get_use_define_for_class_fields()
             {
                 self.check_external_emit_helpers(left, ExternalEmitHelpers::ClassPrivateFieldIn);
             }
             // Unlike in 'checkPrivateIdentifierExpression' we now have access to the RHS type
             // which provides us with the opportunity to emit more detailed errors
-            if self.symbol_node_links.get(left).resolved_symbol.get().is_none() && ast::get_containing_class(left).is_some() {
-                let is_unchecked_js = self.is_unchecked_js_suggestion(Some(left), right_type.symbol(), true /*excludeClasses*/);
+            if self.symbol_node_links.get(left).resolved_symbol.get().is_none()
+                && ast::get_containing_class(left).is_some()
+            {
+                let is_unchecked_js = self.is_unchecked_js_suggestion(
+                    Some(left),
+                    right_type.symbol(),
+                    true, /*excludeClasses*/
+                );
                 self.report_nonexistent_property(left, right_type, is_unchecked_js);
             }
         } else {
@@ -411,15 +495,20 @@ impl Checker {
     // checker.go:13319
     pub(crate) fn has_empty_object_intersection(&mut self, t: P<Type>) -> bool {
         some_type(self, t, |c, t| {
-            t == c.unknown_empty_object_type || t.flags().intersects(TypeFlags::Intersection) && {
-                let base = c.get_base_constraint_or_type(t);
-                c.is_empty_anonymous_object_type(base)
-            }
+            t == c.unknown_empty_object_type
+                || t.flags().intersects(TypeFlags::Intersection) && {
+                    let base = c.get_base_constraint_or_type(t);
+                    c.is_empty_anonymous_object_type(base)
+                }
         })
     }
 
     // checker.go:13325
-    pub(crate) fn get_exact_optional_unassignable_properties(&mut self, source: P<Type>, target: P<Type>) -> Vec<P<Symbol>> {
+    pub(crate) fn get_exact_optional_unassignable_properties(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> Vec<P<Symbol>> {
         if is_tuple_type(source) && is_tuple_type(target) {
             return Vec::new();
         }
@@ -433,17 +522,32 @@ impl Checker {
     }
 
     // checker.go:13334
-    pub(crate) fn is_exact_optional_property_mismatch(&mut self, source: Option<P<Type>>, target: Option<P<Type>>) -> bool {
+    pub(crate) fn is_exact_optional_property_mismatch(
+        &mut self,
+        source: Option<P<Type>>,
+        target: Option<P<Type>>,
+    ) -> bool {
         match (source, target) {
-            (Some(source), Some(target)) => self.maybe_type_of_kind(source, TypeFlags::Undefined) && self.contains_missing_type(target),
+            (Some(source), Some(target)) => {
+                self.maybe_type_of_kind(source, TypeFlags::Undefined)
+                    && self.contains_missing_type(target)
+            }
             _ => false,
         }
     }
 
     // checker.go:13338
-    pub(crate) fn check_reference_expression(&mut self, expr: P<Node>, invalid_reference_message: &'static Message, invalid_optional_chain_message: &'static Message) -> bool {
+    pub(crate) fn check_reference_expression(
+        &mut self,
+        expr: P<Node>,
+        invalid_reference_message: &'static Message,
+        invalid_optional_chain_message: &'static Message,
+    ) -> bool {
         // References are combinations of identifiers, parentheses, and property accesses.
-        let node = ast::skip_outer_expressions(expr, OuterExpressionKinds::Assertions | OuterExpressionKinds::Parentheses);
+        let node = ast::skip_outer_expressions(
+            expr,
+            OuterExpressionKinds::Assertions | OuterExpressionKinds::Parentheses,
+        );
         if node.kind() != Kind::Identifier && !ast::is_access_expression(node) {
             self.error(Some(expr), invalid_reference_message, &[]);
             return false;
@@ -458,7 +562,10 @@ impl Checker {
     // checker.go:13352
     pub(crate) fn check_object_literal(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
         // Expando object literals have empty properties but filled exports
-        if node.properties().is_empty() && node.symbol().is_some() && node.symbol().unwrap().exports().map_or(0, |e| e.len()) != 0 {
+        if node.properties().is_empty()
+            && node.symbol().is_some()
+            && node.symbol().unwrap().exports().map_or(0, |e| e.len()) != 0
+        {
             let symbol = node.symbol().unwrap();
             let result = self.new_anonymous_type(Some(symbol), symbol.exports(), &[], &[], &[]);
             if ast::is_in_js_file(node) && !ast::is_in_json_file(node) {
@@ -473,14 +580,17 @@ impl Checker {
         // Grammar checking
         self.check_grammar_object_literal_expression(node, in_destructuring_pattern);
         // Local to this call (Go's GC collects it): owned here, not allocated in the arena.
-        let all_properties_table: Option<SymbolTable> = self.strict_null_checks.then(SymbolTable::default);
+        let all_properties_table: Option<SymbolTable> =
+            self.strict_null_checks.then(SymbolTable::default);
         let mut spread = self.empty_object_type;
         self.push_cached_contextual_type(node);
         let contextual_type = self.get_apparent_type_of_contextual_type(node, ContextFlags::None);
         let mut contextual_type_has_pattern = false;
         if let Some(contextual_type) = contextual_type {
             if let Some(pattern) = self.pattern_for_type.get(&contextual_type).copied() {
-                if ast::is_object_binding_pattern(pattern) || ast::is_object_literal_expression(pattern) {
+                if ast::is_object_binding_pattern(pattern)
+                    || ast::is_object_literal_expression(pattern)
+                {
                     contextual_type_has_pattern = true;
                 }
             }
@@ -520,10 +630,19 @@ impl Checker {
                     computed_name_type = Some(self.check_computed_property_name(name));
                 }
             }
-            if ast::is_property_assignment(member_decl) || ast::is_shorthand_property_assignment(member_decl) || ast::is_object_literal_method(member_decl) {
+            if ast::is_property_assignment(member_decl)
+                || ast::is_shorthand_property_assignment(member_decl)
+                || ast::is_object_literal_method(member_decl)
+            {
                 let t = match member_decl.kind() {
-                    Kind::PropertyAssignment => self.check_property_assignment(member_decl, check_mode),
-                    Kind::ShorthandPropertyAssignment => self.check_shorthand_property_assignment(member_decl, in_destructuring_pattern, check_mode),
+                    Kind::PropertyAssignment => {
+                        self.check_property_assignment(member_decl, check_mode)
+                    }
+                    Kind::ShorthandPropertyAssignment => self.check_shorthand_property_assignment(
+                        member_decl,
+                        in_destructuring_pattern,
+                        check_mode,
+                    ),
                     _ => self.check_object_literal_method(member_decl, check_mode),
                 };
                 st.object_flags |= t.object_flags() & ObjectFlags::PropagatingFlags;
@@ -535,9 +654,17 @@ impl Checker {
                 }
                 let member_symbol = member.unwrap();
                 let prop = if let Some(name_type) = name_type {
-                    self.new_symbol_ex(SymbolFlags::Property | member_symbol.flags(), alloc_str(&get_property_name_from_type(name_type)), check_flags | CheckFlags::Late)
+                    self.new_symbol_ex(
+                        SymbolFlags::Property | member_symbol.flags(),
+                        alloc_str(&get_property_name_from_type(name_type)),
+                        check_flags | CheckFlags::Late,
+                    )
                 } else {
-                    self.new_symbol_ex(SymbolFlags::Property | member_symbol.flags(), member_symbol.name(), check_flags)
+                    self.new_symbol_ex(
+                        SymbolFlags::Property | member_symbol.flags(),
+                        member_symbol.name(),
+                        check_flags,
+                    )
                 };
                 let links = self.value_symbol_links.get(prop);
                 if name_type.is_some() {
@@ -547,13 +674,20 @@ impl Checker {
                     // If object literal is an assignment pattern and if the assignment pattern specifies a default value
                     // for the property, make the property optional.
                     prop.flags.set(prop.flags() | SymbolFlags::Optional);
-                } else if contextual_type_has_pattern && !contextual_type.unwrap().object_flags().intersects(ObjectFlags::ObjectLiteralPatternWithComputedProperties) {
+                } else if contextual_type_has_pattern
+                    && !contextual_type
+                        .unwrap()
+                        .object_flags()
+                        .intersects(ObjectFlags::ObjectLiteralPatternWithComputedProperties)
+                {
                     // If object literal is contextually typed by the implied type of a binding pattern, and if the
                     // binding pattern specifies a default value for the property, make the property optional.
                     let contextual_type = contextual_type.unwrap();
-                    let implied_prop = self.get_property_of_type(contextual_type, member_symbol.name());
+                    let implied_prop =
+                        self.get_property_of_type(contextual_type, member_symbol.name());
                     if let Some(implied_prop) = implied_prop {
-                        prop.flags.set(prop.flags() | (implied_prop.flags() & SymbolFlags::Optional));
+                        prop.flags
+                            .set(prop.flags() | (implied_prop.flags() & SymbolFlags::Optional));
                     } else {
                         let string_type = self.string_type;
                         if self.get_index_info_of_type(contextual_type, string_type).is_none() {
@@ -575,7 +709,8 @@ impl Checker {
                 if contextual_type.is_some()
                     && check_mode.intersects(CheckMode::Inferential)
                     && !check_mode.intersects(CheckMode::SkipContextSensitive)
-                    && (ast::is_property_assignment(member_decl) || ast::is_method_declaration(member_decl))
+                    && (ast::is_property_assignment(member_decl)
+                        || ast::is_method_declaration(member_decl))
                     && self.is_context_sensitive(member_decl)
                 {
                     let inference_context = self.get_inference_context(node);
@@ -584,32 +719,60 @@ impl Checker {
                     if ast::is_property_assignment(member_decl) {
                         inference_node = member_decl.initializer().unwrap();
                     }
-                    Self::add_intra_expression_inference_site(inference_context.unwrap(), inference_node, t);
+                    Self::add_intra_expression_inference_site(
+                        inference_context.unwrap(),
+                        inference_node,
+                        t,
+                    );
                 }
             } else if member_decl.kind() == Kind::SpreadAssignment {
                 if !st.properties_array.is_empty() {
                     let object_literal_type = create_object_literal_type(self, node, &st);
-                    spread = self.get_spread_type(spread, object_literal_type, node.symbol(), st.object_flags, in_const_context);
+                    spread = self.get_spread_type(
+                        spread,
+                        object_literal_type,
+                        node.symbol(),
+                        st.object_flags,
+                        in_const_context,
+                    );
                     st.properties_array = Vec::new();
                     st.properties_table = Cell::new(None);
                     st.has_computed_string_property = false;
                     st.has_computed_number_property = false;
                     st.has_computed_symbol_property = false;
                 }
-                let checked = self.check_expression_ex(member_decl.expression().unwrap(), check_mode & CheckMode::Inferential);
+                let checked = self.check_expression_ex(
+                    member_decl.expression().unwrap(),
+                    check_mode & CheckMode::Inferential,
+                );
                 let t = self.get_reduced_type(checked);
                 if self.is_valid_spread_type(t) {
-                    let merged_type = self.try_merge_union_of_object_type_and_empty_object(t, in_const_context);
+                    let merged_type =
+                        self.try_merge_union_of_object_type_and_empty_object(t, in_const_context);
                     if all_properties_table.is_some() {
-                        self.check_spread_prop_overrides(merged_type, all_properties_table.as_ref(), member_decl);
+                        self.check_spread_prop_overrides(
+                            merged_type,
+                            all_properties_table.as_ref(),
+                            member_decl,
+                        );
                     }
                     st.offset = st.properties_array.len();
                     if self.is_error_type(spread) {
                         continue;
                     }
-                    spread = self.get_spread_type(spread, merged_type, node.symbol(), st.object_flags, in_const_context);
+                    spread = self.get_spread_type(
+                        spread,
+                        merged_type,
+                        node.symbol(),
+                        st.object_flags,
+                        in_const_context,
+                    );
                 } else {
-                    self.error(Some(member_decl), &diagnostics::Spread_types_may_only_be_created_from_object_types, &[]);
+                    self.error(
+                        Some(member_decl),
+                        &diagnostics::Spread_types_may_only_be_created_from_object_types,
+                        &[],
+                    );
                     spread = self.error_type;
                 }
                 continue;
@@ -619,11 +782,16 @@ impl Checker {
                 // an ordinary function declaration(section 6.1) with no parameters.
                 // A set accessor declaration is processed in the same manner
                 // as an ordinary function declaration with a single parameter and a Void return type.
-                assert!(member_decl.kind() == Kind::GetAccessor || member_decl.kind() == Kind::SetAccessor);
+                assert!(
+                    member_decl.kind() == Kind::GetAccessor
+                        || member_decl.kind() == Kind::SetAccessor
+                );
                 self.check_node_deferred(member_decl);
             }
             let member = member.unwrap();
-            if let Some(computed_name_type) = computed_name_type && !computed_name_type.flags().intersects(TypeFlags::StringOrNumberLiteralOrUnique) {
+            if let Some(computed_name_type) = computed_name_type
+                && !computed_name_type.flags().intersects(TypeFlags::StringOrNumberLiteralOrUnique)
+            {
                 let string_number_symbol_type = self.string_number_symbol_type;
                 if self.is_type_assignable_to(computed_name_type, string_number_symbol_type) {
                     let number_type = self.number_type;
@@ -640,7 +808,8 @@ impl Checker {
                     }
                 }
             } else {
-                st.properties_table_for(node.properties().len() - member_index).set(member.name(), member);
+                st.properties_table_for(node.properties().len() - member_index)
+                    .set(member.name(), member);
             }
             st.properties_array.push(member);
         }
@@ -651,7 +820,13 @@ impl Checker {
         if spread != self.empty_object_type {
             if !st.properties_array.is_empty() {
                 let object_literal_type = create_object_literal_type(self, node, &st);
-                spread = self.get_spread_type(spread, object_literal_type, node.symbol(), st.object_flags, in_const_context);
+                spread = self.get_spread_type(
+                    spread,
+                    object_literal_type,
+                    node.symbol(),
+                    st.object_flags,
+                    in_const_context,
+                );
                 st.properties_array = Vec::new();
                 st.properties_table = Cell::new(None);
                 st.has_computed_string_property = false;
@@ -686,7 +861,11 @@ impl Checker {
     }
 
     // checker.go:13576
-    pub(crate) fn check_deprecated_property(&mut self, name: P<Node>, contextual_type: Option<P<Type>>) {
+    pub(crate) fn check_deprecated_property(
+        &mut self,
+        name: P<Node>,
+        contextual_type: Option<P<Type>>,
+    ) {
         let Some(contextual_type) = contextual_type else {
             return;
         };
@@ -704,12 +883,23 @@ impl Checker {
     }
 
     // checker.go:13589
-    pub(crate) fn check_spread_prop_overrides(&mut self, t: P<Type>, props: Option<&SymbolTable>, spread: P<Node>) {
+    pub(crate) fn check_spread_prop_overrides(
+        &mut self,
+        t: P<Type>,
+        props: Option<&SymbolTable>,
+        spread: P<Node>,
+    ) {
         for &right in self.get_properties_of_type(t) {
-            if !right.flags().intersects(SymbolFlags::Optional) && !right.check_flags().intersects(CheckFlags::Partial) {
+            if !right.flags().intersects(SymbolFlags::Optional)
+                && !right.check_flags().intersects(CheckFlags::Partial)
+            {
                 if let Some(left) = props.and_then(|props| props.lookup(right.name())) {
                     let diagnostic = self.error(left.value_declaration(), &diagnostics::X_0_is_specified_more_than_once_so_this_usage_will_be_overwritten, &[&left.name()]);
-                    diagnostic.add_related_info(new_diagnostic_for_node(Some(spread), Some(&diagnostics::This_spread_always_overwrites_this_property), &[]));
+                    diagnostic.add_related_info(new_diagnostic_for_node(
+                        Some(spread),
+                        Some(&diagnostics::This_spread_always_overwrites_this_property),
+                        &[],
+                    ));
                 }
             }
         }
@@ -721,11 +911,20 @@ impl Checker {
      * and right = the new element to be spread.
      */
     // checker.go:13605
-    pub(crate) fn get_spread_type(&mut self, left: P<Type>, right: P<Type>, symbol: Option<P<Symbol>>, object_flags: ObjectFlags, readonly: bool) -> P<Type> {
+    pub(crate) fn get_spread_type(
+        &mut self,
+        left: P<Type>,
+        right: P<Type>,
+        symbol: Option<P<Symbol>>,
+        object_flags: ObjectFlags,
+        readonly: bool,
+    ) -> P<Type> {
         if left.flags().intersects(TypeFlags::Any) || right.flags().intersects(TypeFlags::Any) {
             return self.any_type;
         }
-        if left.flags().intersects(TypeFlags::Unknown) || right.flags().intersects(TypeFlags::Unknown) {
+        if left.flags().intersects(TypeFlags::Unknown)
+            || right.flags().intersects(TypeFlags::Unknown)
+        {
             return self.unknown_type;
         }
         if left.flags().intersects(TypeFlags::Never) {
@@ -736,20 +935,36 @@ impl Checker {
         }
         let left = self.try_merge_union_of_object_type_and_empty_object(left, readonly);
         if left.flags().intersects(TypeFlags::Union) {
-            if self.check_cross_product_union(&[left, right], Self::too_complex_key(&[left, right])) {
-                return self.map_type(left, |c, t| Some(c.get_spread_type(t, right, symbol, object_flags, readonly))).unwrap();
+            if self.check_cross_product_union(&[left, right], Self::too_complex_key(&[left, right]))
+            {
+                return self
+                    .map_type(left, |c, t| {
+                        Some(c.get_spread_type(t, right, symbol, object_flags, readonly))
+                    })
+                    .unwrap();
             }
             return self.error_type;
         }
         let right = self.try_merge_union_of_object_type_and_empty_object(right, readonly);
         if right.flags().intersects(TypeFlags::Union) {
-            if self.check_cross_product_union(&[left, right], Self::too_complex_key(&[left, right])) {
-                return self.map_type(right, |c, t| Some(c.get_spread_type(left, t, symbol, object_flags, readonly))).unwrap();
+            if self.check_cross_product_union(&[left, right], Self::too_complex_key(&[left, right]))
+            {
+                return self
+                    .map_type(right, |c, t| {
+                        Some(c.get_spread_type(left, t, symbol, object_flags, readonly))
+                    })
+                    .unwrap();
             }
             return self.error_type;
         }
         if right.flags().intersects(
-            TypeFlags::BooleanLike | TypeFlags::NumberLike | TypeFlags::BigIntLike | TypeFlags::StringLike | TypeFlags::EnumLike | TypeFlags::NonPrimitive | TypeFlags::Index,
+            TypeFlags::BooleanLike
+                | TypeFlags::NumberLike
+                | TypeFlags::BigIntLike
+                | TypeFlags::StringLike
+                | TypeFlags::EnumLike
+                | TypeFlags::NonPrimitive
+                | TypeFlags::Index,
         ) {
             return left;
         }
@@ -763,10 +978,13 @@ impl Checker {
             if left.flags().intersects(TypeFlags::Intersection) {
                 let types = left.types();
                 let last_left = types[types.len() - 1];
-                if self.is_non_generic_object_type(last_left) && self.is_non_generic_object_type(right) {
+                if self.is_non_generic_object_type(last_left)
+                    && self.is_non_generic_object_type(right)
+                {
                     let mut new_types = types.to_vec();
                     let n = new_types.len();
-                    new_types[n - 1] = self.get_spread_type(last_left, right, symbol, object_flags, readonly);
+                    new_types[n - 1] =
+                        self.get_spread_type(last_left, right, symbol, object_flags, readonly);
                     return self.get_intersection_type(&new_types);
                 }
             }
@@ -782,14 +1000,18 @@ impl Checker {
         // tsrs: sized for the larger side (the spread nearly always has that many members): spreading a large object
         // grew the table, and rebuilt its index, step by step. The left side counts only when already resolved, so
         // that nothing is resolved earlier than below.
-        let left_len = if left.flags().intersects(TypeFlags::Object) && left.object_flags_lazy().intersects(ObjectFlags::MembersResolved) {
+        let left_len = if left.flags().intersects(TypeFlags::Object)
+            && left.object_flags_lazy().intersects(ObjectFlags::MembersResolved)
+        {
             left.as_structured_type().properties().len()
         } else {
             0
         };
         let members = SymbolTable::with_capacity(right_props.len().max(left_len));
         for right_prop in right_props.iter().copied() {
-            if get_declaration_modifier_flags_from_symbol(right_prop).intersects(ModifierFlags::Private | ModifierFlags::Protected) {
+            if get_declaration_modifier_flags_from_symbol(right_prop)
+                .intersects(ModifierFlags::Private | ModifierFlags::Protected)
+            {
                 skipped_private_members.insert(right_prop.name());
             } else if Self::is_spreadable_property(right_prop) {
                 let s = self.get_spread_symbol(right_prop, readonly);
@@ -798,7 +1020,9 @@ impl Checker {
         }
 
         for left_prop in self.get_properties_of_type(left).iter().copied() {
-            if skipped_private_members.contains(left_prop.name()) || !Self::is_spreadable_property(left_prop) {
+            if skipped_private_members.contains(left_prop.name())
+                || !Self::is_spreadable_property(left_prop)
+            {
                 continue;
             }
             if let Some(right_prop) = members.lookup(left_prop.name()) {
@@ -814,12 +1038,19 @@ impl Checker {
                     // same type, or have properties which overlap. If the unions are large, it may turn out
                     // to be expensive to perform subtype reduction.
                     let left_type = self.get_type_of_symbol(left_prop);
-                    let left_type_without_undefined = self.remove_missing_or_undefined_type(left_type);
-                    let right_type_without_undefined = self.remove_missing_or_undefined_type(right_type);
+                    let left_type_without_undefined =
+                        self.remove_missing_or_undefined_type(left_type);
+                    let right_type_without_undefined =
+                        self.remove_missing_or_undefined_type(right_type);
                     if left_type_without_undefined == right_type_without_undefined {
                         links.resolved_type.set(Some(left_type));
                     } else {
-                        let u = self.get_union_type_ex(&[left_type, right_type_without_undefined], UnionReduction::Subtype, AliasArg::None, None);
+                        let u = self.get_union_type_ex(
+                            &[left_type, right_type_without_undefined],
+                            UnionReduction::Subtype,
+                            AliasArg::None,
+                            None,
+                        );
                         links.resolved_type.set(Some(u));
                     }
                     self.spread_links.get(result).left_spread.set(Some(left_prop));
@@ -833,10 +1064,17 @@ impl Checker {
                 members.set(left_prop.name(), s);
             }
         }
-        let spread_index_infos: Vec<P<IndexInfo>> = index_infos.iter().map(|&info| Self::get_index_info_with_readonly(info, readonly)).collect();
+        let spread_index_infos: Vec<P<IndexInfo>> = index_infos
+            .iter()
+            .map(|&info| Self::get_index_info_with_readonly(info, readonly))
+            .collect();
         let spread = self.new_anonymous_type(symbol, Some(members), &[], &[], &spread_index_infos);
         spread.object_flags.set(
-            spread.object_flags() | ObjectFlags::ObjectLiteral | ObjectFlags::ContainsObjectOrArrayLiteral | ObjectFlags::ContainsSpread | object_flags,
+            spread.object_flags()
+                | ObjectFlags::ObjectLiteral
+                | ObjectFlags::ContainsObjectOrArrayLiteral
+                | ObjectFlags::ContainsSpread
+                | object_flags,
         );
         spread
     }
@@ -844,7 +1082,13 @@ impl Checker {
     // checker.go:13715
     pub(crate) fn get_index_info_with_readonly(info: P<IndexInfo>, readonly: bool) -> P<IndexInfo> {
         if info.is_readonly.get() != readonly {
-            return Self::new_index_info(info.key_type.get().unwrap(), info.value_type.get().unwrap(), readonly, info.declaration.get(), info.components.get());
+            return Self::new_index_info(
+                info.key_type.get().unwrap(),
+                info.value_type.get().unwrap(),
+                readonly,
+                info.declaration.get(),
+                info.components.get(),
+            );
         }
         info
     }
@@ -853,8 +1097,13 @@ impl Checker {
     pub(crate) fn is_valid_spread_type(&mut self, t: P<Type>) -> bool {
         let mapped = self.map_type(t, |c, t| Some(c.get_base_constraint_or_type(t))).unwrap();
         let s = self.remove_definitely_falsy_types(mapped);
-        s.flags().intersects(TypeFlags::Any | TypeFlags::NonPrimitive | TypeFlags::Object | TypeFlags::InstantiableNonPrimitive)
-            || s.flags().intersects(TypeFlags::UnionOrIntersection) && s.types().iter().all(|&t| self.is_valid_spread_type(t))
+        s.flags().intersects(
+            TypeFlags::Any
+                | TypeFlags::NonPrimitive
+                | TypeFlags::Object
+                | TypeFlags::InstantiableNonPrimitive,
+        ) || s.flags().intersects(TypeFlags::UnionOrIntersection)
+            && s.types().iter().all(|&t| self.is_valid_spread_type(t))
     }
 
     // checker.go:13728
@@ -864,9 +1113,14 @@ impl Checker {
         result.extend(source_infos.iter().filter_map(|info| {
             let index_type = info.key_type.get().unwrap();
             if types.iter().all(|&t| self.get_index_info_of_type(t, index_type).is_some()) {
-                let value_types: Vec<P<Type>> = types.iter().map(|&t| self.get_index_type_of_type(t, index_type).unwrap()).collect();
+                let value_types: Vec<P<Type>> = types
+                    .iter()
+                    .map(|&t| self.get_index_type_of_type(t, index_type).unwrap())
+                    .collect();
                 let value_type = self.get_union_type(&value_types);
-                let is_readonly = types.iter().any(|&t| self.get_index_info_of_type(t, index_type).unwrap().is_readonly.get());
+                let is_readonly = types.iter().any(|&t| {
+                    self.get_index_info_of_type(t, index_type).unwrap().is_readonly.get()
+                });
                 Some(Self::new_index_info(index_type, value_type, is_readonly, None, &[]))
             } else {
                 None
@@ -881,7 +1135,11 @@ impl Checker {
     }
 
     // checker.go:13748
-    pub(crate) fn try_merge_union_of_object_type_and_empty_object(&mut self, t: P<Type>, readonly: bool) -> P<Type> {
+    pub(crate) fn try_merge_union_of_object_type_and_empty_object(
+        &mut self,
+        t: P<Type>,
+        readonly: bool,
+    ) -> P<Type> {
         if !t.flags().intersects(TypeFlags::Union) {
             return t;
         }
@@ -892,33 +1150,46 @@ impl Checker {
             }
             return self.empty_object_type;
         }
-        let first_type = t.types().iter().copied().find(|&t| !self.is_empty_object_type_or_spreads_into_empty_object(t));
+        let first_type = t
+            .types()
+            .iter()
+            .copied()
+            .find(|&t| !self.is_empty_object_type_or_spreads_into_empty_object(t));
         let Some(first_type) = first_type else {
             return t;
         };
-        let second_type = t.types().iter().copied().find(|&t| t != first_type && !self.is_empty_object_type_or_spreads_into_empty_object(t));
+        let second_type = t.types().iter().copied().find(|&t| {
+            t != first_type && !self.is_empty_object_type_or_spreads_into_empty_object(t)
+        });
         if second_type.is_some() {
             return t;
         }
         // gets the type as if it had been spread, but where everything in the spread is made optional
         let members = SymbolTable::new();
         for prop in self.get_properties_of_type(first_type).iter().copied() {
-            if get_declaration_modifier_flags_from_symbol(prop).intersects(ModifierFlags::Private | ModifierFlags::Protected) {
+            if get_declaration_modifier_flags_from_symbol(prop)
+                .intersects(ModifierFlags::Private | ModifierFlags::Protected)
+            {
                 // do nothing, skip privates
             } else if Self::is_spreadable_property(prop) {
-                let is_setonly_accessor = prop.flags().intersects(SymbolFlags::SetAccessor) && !prop.flags().intersects(SymbolFlags::GetAccessor);
+                let is_setonly_accessor = prop.flags().intersects(SymbolFlags::SetAccessor)
+                    && !prop.flags().intersects(SymbolFlags::GetAccessor);
                 let flags = SymbolFlags::Property | SymbolFlags::Optional;
                 let result = self.new_symbol_ex(
                     flags,
                     prop.name(),
-                    prop.check_flags() & CheckFlags::Late | if readonly { CheckFlags::Readonly } else { CheckFlags::empty() },
+                    prop.check_flags() & CheckFlags::Late
+                        | if readonly { CheckFlags::Readonly } else { CheckFlags::empty() },
                 );
                 let links = self.value_symbol_links.get(result);
                 if is_setonly_accessor {
                     links.resolved_type.set(Some(self.undefined_type));
                 } else {
                     let prop_type = self.get_type_of_symbol(prop);
-                    links.resolved_type.set(Some(self.add_optionality_ex(prop_type, true /*isProperty*/, true /*isOptional*/)));
+                    links.resolved_type.set(Some(self.add_optionality_ex(
+                        prop_type, true, /*isProperty*/
+                        true, /*isOptional*/
+                    )));
                 }
                 result.set_declarations_static(prop.declarations());
                 links.set_name_type(self.value_symbol_links.get(prop).name_type());
@@ -927,8 +1198,13 @@ impl Checker {
             }
         }
         let index_infos = self.get_index_infos_of_type(first_type);
-        let spread = self.new_anonymous_type(first_type.symbol(), Some(members), &[], &[], index_infos);
-        spread.object_flags.set(spread.object_flags_lazy() | ObjectFlags::ObjectLiteral | ObjectFlags::ContainsObjectOrArrayLiteral);
+        let spread =
+            self.new_anonymous_type(first_type.symbol(), Some(members), &[], &[], index_infos);
+        spread.object_flags.set(
+            spread.object_flags_lazy()
+                | ObjectFlags::ObjectLiteral
+                | ObjectFlags::ContainsObjectOrArrayLiteral,
+        );
         spread
     }
 
@@ -937,13 +1213,18 @@ impl Checker {
     pub fn is_spreadable_property(prop: P<Symbol>) -> bool {
         let declarations = prop.declarations();
         !declarations.iter().any(|&d| ast::is_private_identifier_class_element_declaration(d))
-            && !prop.flags().intersects(SymbolFlags::Method | SymbolFlags::GetAccessor | SymbolFlags::SetAccessor)
-            || !declarations.iter().any(|&d| d.parent().is_some() && ast::is_class_like(d.parent().unwrap()))
+            && !prop.flags().intersects(
+                SymbolFlags::Method | SymbolFlags::GetAccessor | SymbolFlags::SetAccessor,
+            )
+            || !declarations
+                .iter()
+                .any(|&d| d.parent().is_some() && ast::is_class_like(d.parent().unwrap()))
     }
 
     // checker.go:13803
     pub(crate) fn get_spread_symbol(&mut self, prop: P<Symbol>, readonly: bool) -> P<Symbol> {
-        let is_setonly_accessor = prop.flags().intersects(SymbolFlags::SetAccessor) && !prop.flags().intersects(SymbolFlags::GetAccessor);
+        let is_setonly_accessor = prop.flags().intersects(SymbolFlags::SetAccessor)
+            && !prop.flags().intersects(SymbolFlags::GetAccessor);
         if !is_setonly_accessor && readonly == self.is_readonly_symbol(prop) {
             return prop;
         }
@@ -951,7 +1232,8 @@ impl Checker {
         let result = self.new_symbol_ex(
             flags,
             prop.name(),
-            prop.check_flags() & CheckFlags::Late | if readonly { CheckFlags::Readonly } else { CheckFlags::empty() },
+            prop.check_flags() & CheckFlags::Late
+                | if readonly { CheckFlags::Readonly } else { CheckFlags::empty() },
         );
         let links = self.value_symbol_links.get(result);
         if is_setonly_accessor {
@@ -984,9 +1266,16 @@ impl Checker {
     // checker.go:13826
     pub(crate) fn has_default_value(node: P<Node>) -> bool {
         ast::is_binding_element(node) && node.initializer().is_some()
-            || ast::is_property_assignment(node) && Self::has_default_value(node.initializer().unwrap())
-            || ast::is_shorthand_property_assignment(node) && node.as_shorthand_property_assignment().object_assignment_initializer.get().is_some()
-            || ast::is_binary_expression(node) && node.as_binary_expression().operator_token.kind() == Kind::EqualsToken
+            || ast::is_property_assignment(node)
+                && Self::has_default_value(node.initializer().unwrap())
+            || ast::is_shorthand_property_assignment(node)
+                && node
+                    .as_shorthand_property_assignment()
+                    .object_assignment_initializer
+                    .get()
+                    .is_some()
+            || ast::is_binary_expression(node)
+                && node.as_binary_expression().operator_token.kind() == Kind::EqualsToken
     }
 
     // checker.go:13833
@@ -995,7 +1284,10 @@ impl Checker {
     }
 
     /// `is_const_context`, and `get_contextual_type(node, ContextFlags::None)` when it was computed on the way.
-    #[expect(clippy::option_option, reason = "The outer option records whether a result is available; the inner option records an absent value.")]
+    #[expect(
+        clippy::option_option,
+        reason = "The outer option records whether a result is available; the inner option records an absent value."
+    )]
     fn is_const_context_ex(&mut self, node: P<Node>) -> (bool, Option<Option<P<Type>>>) {
         let parent = node.parent().unwrap();
         if ast::is_const_assertion(parent) || Self::is_inline_import_attributes(node) {
@@ -1009,20 +1301,30 @@ impl Checker {
                 return (true, node_contextual_type);
             }
         }
-        let result = (ast::is_parenthesized_expression(parent) || ast::is_array_literal_expression(parent) || ast::is_spread_element(parent)) && self.is_const_context(parent)
-            || (ast::is_property_assignment(parent) || ast::is_shorthand_property_assignment(parent) || ast::is_template_span(parent))
+        let result = (ast::is_parenthesized_expression(parent)
+            || ast::is_array_literal_expression(parent)
+            || ast::is_spread_element(parent))
+            && self.is_const_context(parent)
+            || (ast::is_property_assignment(parent)
+                || ast::is_shorthand_property_assignment(parent)
+                || ast::is_template_span(parent))
                 && self.is_const_context(parent.parent().unwrap());
         (result, node_contextual_type)
     }
 
     // checker.go:13842
     pub(crate) fn is_inline_import_attributes(node: P<Node>) -> bool {
-        if !ast::is_object_literal_expression(node) || !ast::is_property_assignment(node.parent().unwrap()) || node.parent().unwrap().initializer() != Some(node) {
+        if !ast::is_object_literal_expression(node)
+            || !ast::is_property_assignment(node.parent().unwrap())
+            || node.parent().unwrap().initializer() != Some(node)
+        {
             return false;
         }
         let property = node.parent().unwrap();
         let property_name = property.name().unwrap();
-        if (!ast::is_identifier(property_name) && !ast::is_string_literal_like(property_name)) || property_name.text() != "with" {
+        if (!ast::is_identifier(property_name) && !ast::is_string_literal_like(property_name))
+            || property_name.text() != "with"
+        {
             return false;
         }
         let options = property.parent().unwrap();
@@ -1031,7 +1333,10 @@ impl Checker {
         }
         let import_call = ast::find_ancestor(options, ast::is_import_call);
         match import_call {
-            Some(import_call) => import_call.arguments().len() > 1 && ast::skip_parentheses(import_call.arguments()[1]) == options,
+            Some(import_call) => {
+                import_call.arguments().len() > 1
+                    && ast::skip_parentheses(import_call.arguments()[1]) == options
+            }
             None => false,
         }
     }
@@ -1056,14 +1361,21 @@ impl Checker {
             Kind::PrefixUnaryExpression => {
                 let op = node.as_prefix_unary_expression().operator;
                 let arg = node.as_prefix_unary_expression().operand;
-                return op == Kind::MinusToken && (arg.kind() == Kind::NumericLiteral || arg.kind() == Kind::BigIntLiteral)
+                return op == Kind::MinusToken
+                    && (arg.kind() == Kind::NumericLiteral || arg.kind() == Kind::BigIntLiteral)
                     || op == Kind::PlusToken && arg.kind() == Kind::NumericLiteral;
             }
             Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
                 let expr = ast::skip_parentheses(node.expression().unwrap());
                 let mut symbol: Option<P<Symbol>> = None;
                 if ast::is_entity_name_expression(expr) {
-                    symbol = self.resolve_entity_name(expr, SymbolFlags::Value, true /*ignoreErrors*/, false, None);
+                    symbol = self.resolve_entity_name(
+                        expr,
+                        SymbolFlags::Value,
+                        true, /*ignoreErrors*/
+                        false,
+                        None,
+                    );
                 }
                 return symbol.is_some_and(|symbol| symbol.flags().intersects(SymbolFlags::Enum));
             }
@@ -1082,23 +1394,37 @@ impl Checker {
         }
         // tsrs-only: every branch below that can answer true reaches a type variable, so a type already known not to
         // contain one (`couldContainTypeVariables` computed false; read only, never computed here) answers false.
-        if t.object_flags() & (ObjectFlags::CouldContainTypeVariablesComputed | ObjectFlags::CouldContainTypeVariables) == ObjectFlags::CouldContainTypeVariablesComputed {
+        if t.object_flags()
+            & (ObjectFlags::CouldContainTypeVariablesComputed
+                | ObjectFlags::CouldContainTypeVariables)
+            == ObjectFlags::CouldContainTypeVariablesComputed
+        {
             return false;
         }
         if t.flags().intersects(TypeFlags::TypeParameter) {
-            return t.symbol().is_some_and(|symbol| symbol.declarations().iter().any(|&d| ast::has_syntactic_modifier(d, ModifierFlags::Const)));
+            return t.symbol().is_some_and(|symbol| {
+                symbol
+                    .declarations()
+                    .iter()
+                    .any(|&d| ast::has_syntactic_modifier(d, ModifierFlags::Const))
+            });
         } else if t.flags().intersects(TypeFlags::UnionOrIntersection) {
             // tsrs-only: a union of primitives (`PrimitiveUnion`: no object, intersection or instantiable constituent)
             // has no constituent any branch here answers true for; `isConstContext` asks this of large literal unions.
-            if t.flags().intersects(TypeFlags::Union) && t.object_flags().intersects(ObjectFlags::PrimitiveUnion) {
+            if t.flags().intersects(TypeFlags::Union)
+                && t.object_flags().intersects(ObjectFlags::PrimitiveUnion)
+            {
                 return false;
             }
-            if t.types().iter().any(|&s| Self::may_be_const_type_variable(s) && self.is_const_type_variable(Some(s), depth)) {
+            if t.types().iter().any(|&s| {
+                Self::may_be_const_type_variable(s) && self.is_const_type_variable(Some(s), depth)
+            }) {
                 return true;
             }
             return false;
         } else if t.flags().intersects(TypeFlags::IndexedAccess) {
-            return self.is_const_type_variable(t.as_indexed_access_type().object_type.get(), depth + 1);
+            return self
+                .is_const_type_variable(t.as_indexed_access_type().object_type.get(), depth + 1);
         } else if t.flags().intersects(TypeFlags::Conditional) {
             let constraint = self.get_constraint_of_conditional_type(t);
             return self.is_const_type_variable(constraint, depth + 1);
@@ -1109,7 +1435,10 @@ impl Checker {
             return type_variable.is_some() && self.is_const_type_variable(type_variable, depth);
         } else if Self::is_generic_tuple_type(t) {
             if self.get_element_types(t).iter().copied().enumerate().any(|(i, s)| {
-                t.target_tuple_type().element_infos.get()[i].flags.intersects(ElementFlags::Variadic) && self.is_const_type_variable(Some(s), depth)
+                t.target_tuple_type().element_infos.get()[i]
+                    .flags
+                    .intersects(ElementFlags::Variadic)
+                    && self.is_const_type_variable(Some(s), depth)
             }) {
                 return true;
             }
@@ -1122,31 +1451,54 @@ impl Checker {
     #[inline]
     fn may_be_const_type_variable(t: P<Type>) -> bool {
         let flags = t.flags();
-        if flags.intersects(TypeFlags::TypeParameter | TypeFlags::UnionOrIntersection | TypeFlags::IndexedAccess | TypeFlags::Conditional | TypeFlags::Substitution) {
+        if flags.intersects(
+            TypeFlags::TypeParameter
+                | TypeFlags::UnionOrIntersection
+                | TypeFlags::IndexedAccess
+                | TypeFlags::Conditional
+                | TypeFlags::Substitution,
+        ) {
             return true;
         }
         t.object_flags().intersects(ObjectFlags::Mapped) || Self::is_generic_tuple_type(t)
     }
 
     // checker.go:13908
-    pub(crate) fn check_property_assignment(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
+    pub(crate) fn check_property_assignment(
+        &mut self,
+        node: P<Node>,
+        check_mode: CheckMode,
+    ) -> P<Type> {
         // Do not use hasDynamicName here, because that returns false for well known symbols.
         // We want to perform checkComputedPropertyName for all computed properties, including
         // well known symbols.
         if ast::is_computed_property_name(node.name().unwrap()) {
             self.check_computed_property_name(node.name().unwrap());
         }
-        let initializer_type = self.check_expression_for_mutable_location(node.initializer().unwrap(), check_mode);
+        let initializer_type =
+            self.check_expression_for_mutable_location(node.initializer().unwrap(), check_mode);
         if let Some(type_node) = node.type_node() {
             let t = self.get_type_from_type_node(type_node);
-            self.check_type_assignable_to_and_optionally_elaborate(initializer_type, t, Some(node), Some(node.initializer().unwrap()), None /*headMessage*/, None);
+            self.check_type_assignable_to_and_optionally_elaborate(
+                initializer_type,
+                t,
+                Some(node),
+                Some(node.initializer().unwrap()),
+                None, /*headMessage*/
+                None,
+            );
             return t;
         }
         initializer_type
     }
 
     // checker.go:13924
-    pub(crate) fn check_shorthand_property_assignment(&mut self, node: P<Node>, in_destructuring_pattern: bool, check_mode: CheckMode) -> P<Type> {
+    pub(crate) fn check_shorthand_property_assignment(
+        &mut self,
+        node: P<Node>,
+        in_destructuring_pattern: bool,
+        check_mode: CheckMode,
+    ) -> P<Type> {
         let mut expr: Option<P<Node>> = None;
         if !in_destructuring_pattern {
             expr = node.as_shorthand_property_assignment().object_assignment_initializer.get();
@@ -1158,16 +1510,28 @@ impl Checker {
         let expression_type = self.check_expression_for_mutable_location(expr, check_mode);
         if let Some(type_node) = node.type_node() {
             let t = self.get_type_from_type_node(type_node);
-            self.check_type_assignable_to_and_optionally_elaborate(expression_type, t, Some(node), Some(expr), None /*headMessage*/, None);
+            self.check_type_assignable_to_and_optionally_elaborate(
+                expression_type,
+                t,
+                Some(node),
+                Some(expr),
+                None, /*headMessage*/
+                None,
+            );
             return t;
         }
         expression_type
     }
 
     // checker.go:13941
-    pub(crate) fn is_in_property_initializer_or_class_static_block(node: P<Node>, ignore_arrow_functions: bool) -> bool {
+    pub(crate) fn is_in_property_initializer_or_class_static_block(
+        node: P<Node>,
+        ignore_arrow_functions: bool,
+    ) -> bool {
         ast::find_ancestor_or_quit(node, |node| match node.kind() {
-            Kind::PropertyDeclaration | Kind::ClassStaticBlockDeclaration => FindAncestorResult::True,
+            Kind::PropertyDeclaration | Kind::ClassStaticBlockDeclaration => {
+                FindAncestorResult::True
+            }
             Kind::TypeQuery | Kind::JsxClosingElement => FindAncestorResult::Quit,
             Kind::ArrowFunction => {
                 if ignore_arrow_functions {
@@ -1177,7 +1541,9 @@ impl Checker {
                 }
             }
             Kind::Block => {
-                if ast::is_function_like_declaration(node.parent()) && node.parent().unwrap().kind() != Kind::ArrowFunction {
+                if ast::is_function_like_declaration(node.parent())
+                    && node.parent().unwrap().kind() != Kind::ArrowFunction
+                {
                     FindAncestorResult::Quit
                 } else {
                     FindAncestorResult::False
@@ -1189,7 +1555,11 @@ impl Checker {
     }
 
     // checker.go:13958
-    pub(crate) fn get_narrowed_type_of_symbol(&mut self, symbol: P<Symbol>, location: P<Node>) -> P<Type> {
+    pub(crate) fn get_narrowed_type_of_symbol(
+        &mut self,
+        symbol: P<Symbol>,
+        location: P<Node>,
+    ) -> P<Type> {
         let mut t = self.get_type_of_symbol(symbol);
         let declaration = symbol.value_declaration();
         if let Some(declaration) = declaration {
@@ -1226,27 +1596,37 @@ impl Checker {
                     let root_initializer = root_declaration.initializer();
                     // Avoid declaration circularity without blocking binding defaults or nested callbacks.
                     if let Some(root_initializer) = root_initializer {
-                        if ast::is_node_descendant_of(location, root_initializer) && Self::get_control_flow_container(declaration) == Self::get_control_flow_container(location) {
+                        if ast::is_node_descendant_of(location, root_initializer)
+                            && Self::get_control_flow_container(declaration)
+                                == Self::get_control_flow_container(location)
+                        {
                             break 'case;
                         }
                     }
                     let parent = declaration.parent().unwrap().parent().unwrap();
-                    if ast::is_variable_declaration(root_declaration) && self.get_combined_node_flags_cached(root_declaration).intersects(NodeFlags::Constant)
+                    if ast::is_variable_declaration(root_declaration)
+                        && self
+                            .get_combined_node_flags_cached(root_declaration)
+                            .intersects(NodeFlags::Constant)
                         || ast::is_parameter_declaration(root_declaration)
                     {
                         let links = self.node_links.get(parent);
                         if !links.flags.get().intersects(NodeCheckFlags::InCheckIdentifier) {
                             links.flags.set(links.flags.get() | NodeCheckFlags::InCheckIdentifier);
-                            let parent_type = self.get_type_for_binding_element_parent(parent, CheckMode::Normal);
+                            let parent_type =
+                                self.get_type_for_binding_element_parent(parent, CheckMode::Normal);
                             let mut parent_type_constraint: Option<P<Type>> = None;
                             if let Some(parent_type) = parent_type {
-                                parent_type_constraint = self.map_type(parent_type, |c, t| Some(c.get_base_constraint_or_type(t)));
+                                parent_type_constraint = self.map_type(parent_type, |c, t| {
+                                    Some(c.get_base_constraint_or_type(t))
+                                });
                             }
                             // Guard parent-type resolution only; flow analysis should allow re-entrant narrowing
                             links.flags.set(links.flags.get() & !NodeCheckFlags::InCheckIdentifier);
                             if let Some(parent_type_constraint) = parent_type_constraint {
                                 if parent_type_constraint.flags().intersects(TypeFlags::Union)
-                                    && !(ast::is_parameter_declaration(root_declaration) && self.is_some_symbol_assigned(root_declaration))
+                                    && !(ast::is_parameter_declaration(root_declaration)
+                                        && self.is_some_symbol_assigned(root_declaration))
                                 {
                                     let pattern = declaration.parent().unwrap();
                                     let narrowed_type = self.get_flow_type_of_reference_ex(
@@ -1262,7 +1642,11 @@ impl Checker {
                                         // Destructurings are validated against the parent type elsewhere. Here we disable tuple bounds
                                         // checks because the narrowed type may have lower arity than the full parent type. For example,
                                         // for the declaration [x, y]: [1, 2] | [3], we may have narrowed the parent type to just [3].
-                                        t = self.get_binding_element_type_from_parent_type(declaration, narrowed_type, true /*noTupleBoundsCheck*/);
+                                        t = self.get_binding_element_type_from_parent_type(
+                                            declaration,
+                                            narrowed_type,
+                                            true, /*noTupleBoundsCheck*/
+                                        );
                                     }
                                 }
                             }
@@ -1295,21 +1679,29 @@ impl Checker {
                 // if it occurred in the specified location. We then recompute the narrowed parameter type by indexing into the
                 // narrowed tuple type.
                 let fn_ = declaration.parent().unwrap();
-                if fn_.parameters().len() >= 2 && self.is_context_sensitive_function_or_object_literal_method(fn_) {
+                if fn_.parameters().len() >= 2
+                    && self.is_context_sensitive_function_or_object_literal_method(fn_)
+                {
                     let contextual_signature = self.get_contextual_signature(fn_);
                     if let Some(contextual_signature) = contextual_signature {
-                        if contextual_signature.parameters.get().len() == 1 && signature_has_rest_parameter(contextual_signature) {
+                        if contextual_signature.parameters.get().len() == 1
+                            && signature_has_rest_parameter(contextual_signature)
+                        {
                             let mut mapper: Option<P<TypeMapper>> = None;
                             let context = self.get_inference_context(fn_);
                             if let Some(context) = context {
                                 mapper = context.non_fixing_mapper();
                             }
-                            let rest_param_type = self.get_type_of_symbol(contextual_signature.parameters.get()[0]);
+                            let rest_param_type =
+                                self.get_type_of_symbol(contextual_signature.parameters.get()[0]);
                             let instantiated = self.instantiate_type(rest_param_type, mapper);
                             let rest_type = self.get_reduced_apparent_type(instantiated);
                             if rest_type.flags().intersects(TypeFlags::Union)
                                 && every_type(self, rest_type, |_, t| is_tuple_type(t))
-                                && !fn_.parameters().iter().any(|&p| self.is_some_symbol_assigned(p))
+                                && !fn_
+                                    .parameters()
+                                    .iter()
+                                    .any(|&p| self.is_some_symbol_assigned(p))
                             {
                                 let narrowed_type = self.get_flow_type_of_reference_ex(
                                     fn_,
@@ -1342,13 +1734,20 @@ impl Checker {
         }
         let property_descriptor_type = self.check_expression_cached(node.arguments()[2]);
         if self.get_type_of_property_of_type(property_descriptor_type, "value").is_some() {
-            if let Some(writable_prop) = self.get_property_of_type(property_descriptor_type, "writable") {
-                let writable_type = if writable_prop.value_declaration().is_some() && ast::is_property_assignment(writable_prop.value_declaration().unwrap()) {
-                    self.check_expression(writable_prop.value_declaration().unwrap().initializer().unwrap())
+            if let Some(writable_prop) =
+                self.get_property_of_type(property_descriptor_type, "writable")
+            {
+                let writable_type = if writable_prop.value_declaration().is_some()
+                    && ast::is_property_assignment(writable_prop.value_declaration().unwrap())
+                {
+                    self.check_expression(
+                        writable_prop.value_declaration().unwrap().initializer().unwrap(),
+                    )
                 } else {
                     self.get_type_of_symbol(writable_prop)
                 };
-                return writable_type.flags().intersects(TypeFlags::BooleanLiteral) && !get_boolean_literal_value(writable_type);
+                return writable_type.flags().intersects(TypeFlags::BooleanLiteral)
+                    && !get_boolean_literal_value(writable_type);
             }
             return true;
         }
@@ -1364,15 +1763,26 @@ impl Checker {
         // Enum members
         // Object.defineProperty assignments with writable false or no setter
         // Unions and intersections of the above (unions and intersections eagerly set isReadonly on creation)
-        self.is_readonly_symbol_with_modifiers(symbol, || get_declaration_modifier_flags_from_symbol(symbol))
+        self.is_readonly_symbol_with_modifiers(symbol, || {
+            get_declaration_modifier_flags_from_symbol(symbol)
+        })
     }
 
     /// `is_readonly_symbol` for a caller that has `get_declaration_modifier_flags_from_symbol(symbol)` at hand.
-    pub(crate) fn is_readonly_symbol_with_modifiers(&mut self, symbol: P<Symbol>, modifiers: impl FnOnce() -> ModifierFlags) -> bool {
+    pub(crate) fn is_readonly_symbol_with_modifiers(
+        &mut self,
+        symbol: P<Symbol>,
+        modifiers: impl FnOnce() -> ModifierFlags,
+    ) -> bool {
         symbol.check_flags().intersects(CheckFlags::Readonly)
-            || symbol.flags().intersects(SymbolFlags::Property) && modifiers().intersects(ModifierFlags::Readonly)
-            || symbol.flags().intersects(SymbolFlags::Variable) && self.get_declaration_node_flags_from_symbol(symbol).intersects(NodeFlags::Constant)
-            || symbol.flags().intersects(SymbolFlags::Accessor) && !symbol.flags().intersects(SymbolFlags::SetAccessor)
+            || symbol.flags().intersects(SymbolFlags::Property)
+                && modifiers().intersects(ModifierFlags::Readonly)
+            || symbol.flags().intersects(SymbolFlags::Variable)
+                && self
+                    .get_declaration_node_flags_from_symbol(symbol)
+                    .intersects(NodeFlags::Constant)
+            || symbol.flags().intersects(SymbolFlags::Accessor)
+                && !symbol.flags().intersects(SymbolFlags::SetAccessor)
             || symbol.flags().intersects(SymbolFlags::EnumMember)
             || {
                 let declarations = symbol.declarations();
@@ -1381,7 +1791,11 @@ impl Checker {
     }
 
     // checker.go:14100
-    pub(crate) fn check_object_literal_method(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
+    pub(crate) fn check_object_literal_method(
+        &mut self,
+        node: P<Node>,
+        check_mode: CheckMode,
+    ) -> P<Type> {
         // Grammar checking
         self.check_grammar_method(node);
         // Do not use hasDynamicName here, because that returns false for well known symbols.
@@ -1390,12 +1804,21 @@ impl Checker {
         if ast::is_computed_property_name(node.name().unwrap()) {
             self.check_computed_property_name(node.name().unwrap());
         }
-        let uninstantiated_type = self.check_function_expression_or_object_literal_method(node, check_mode);
-        self.instantiate_type_with_single_generic_call_signature(node, uninstantiated_type, check_mode)
+        let uninstantiated_type =
+            self.check_function_expression_or_object_literal_method(node, check_mode);
+        self.instantiate_type_with_single_generic_call_signature(
+            node,
+            uninstantiated_type,
+            check_mode,
+        )
     }
 
     // checker.go:14113
-    pub(crate) fn check_expression_for_mutable_location(&mut self, node: P<Node>, check_mode: CheckMode) -> P<Type> {
+    pub(crate) fn check_expression_for_mutable_location(
+        &mut self,
+        node: P<Node>,
+        check_mode: CheckMode,
+    ) -> P<Type> {
         let t = self.check_expression_ex(node, check_mode);
         let (is_const_context, node_contextual_type) = self.is_const_context_ex(node);
         if is_const_context {
@@ -1408,7 +1831,8 @@ impl Checker {
                 Some(contextual_type) => contextual_type,
                 None => self.get_contextual_type(node, ContextFlags::None),
             };
-            let instantiated = self.instantiate_contextual_type(contextual_type, node, ContextFlags::None);
+            let instantiated =
+                self.instantiate_contextual_type(contextual_type, node, ContextFlags::None);
             self.get_widened_literal_like_type_for_contextual_type(t, instantiated)
         }
     }
@@ -1440,7 +1864,10 @@ impl Checker {
     }
 
     // checker.go:14142
-    pub(crate) fn get_referenced_value_or_alias_symbol(&mut self, reference: P<Node>) -> Option<P<Symbol>> {
+    pub(crate) fn get_referenced_value_or_alias_symbol(
+        &mut self,
+        reference: P<Node>,
+    ) -> Option<P<Symbol>> {
         let resolved_symbol = self.symbol_node_links.get(reference).resolved_symbol.get();
         if let Some(resolved_symbol) = resolved_symbol {
             if resolved_symbol != self.unknown_symbol {
@@ -1458,7 +1885,10 @@ impl Checker {
     }
 
     // checker.go:14150
-    pub(crate) fn get_cannot_find_name_diagnostic_for_name(&self, node: P<Node>) -> &'static Message {
+    pub(crate) fn get_cannot_find_name_diagnostic_for_name(
+        &self,
+        node: P<Node>,
+    ) -> &'static Message {
         match node.text() {
             "document" | "console" => &diagnostics::Cannot_find_name_0_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_include_dom,
             "$" => {
@@ -1507,21 +1937,36 @@ impl Checker {
     }
 
     // checker.go:14186
-    pub fn get_diagnostics_exported(&mut self, ctx: &Context, source_file: P<SourceFile>) -> Vec<P<Diagnostic>> {
+    pub fn get_diagnostics_exported(
+        &mut self,
+        ctx: &Context,
+        source_file: P<SourceFile>,
+    ) -> Vec<P<Diagnostic>> {
         self.get_diagnostics(ctx, source_file, false)
     }
 
     // checker.go:14190
-    pub fn get_suggestion_diagnostics(&mut self, ctx: &Context, source_file: P<SourceFile>) -> Vec<P<Diagnostic>> {
+    pub fn get_suggestion_diagnostics(
+        &mut self,
+        ctx: &Context,
+        source_file: P<SourceFile>,
+    ) -> Vec<P<Diagnostic>> {
         self.get_diagnostics(ctx, source_file, true)
     }
 
     // checker.go:14194
     // Go passes `&c.diagnostics` / `&c.suggestionDiagnostics`; the collections are plain Checker fields, so the
     // Rust port selects the collection with `suggestions` (true = `c.suggestionDiagnostics`).
-    pub(crate) fn get_diagnostics(&mut self, ctx: &Context, source_file: P<SourceFile>, suggestions: bool) -> Vec<P<Diagnostic>> {
+    pub(crate) fn get_diagnostics(
+        &mut self,
+        ctx: &Context,
+        source_file: P<SourceFile>,
+        suggestions: bool,
+    ) -> Vec<P<Diagnostic>> {
         self.check_not_canceled();
-        let check_unused = self.compiler_options.no_unused_locals.is_true() || self.compiler_options.no_unused_parameters.is_true() || suggestions;
+        let check_unused = self.compiler_options.no_unused_locals.is_true()
+            || self.compiler_options.no_unused_parameters.is_true()
+            || suggestions;
         self.check_source_file(ctx, source_file, check_unused);
         if self.was_canceled {
             return Vec::new();
@@ -1543,7 +1988,10 @@ impl Checker {
     // checker.go:14210
     // the callback is stored in `deferred_diagnostic_callbacks: Vec<Box<dyn FnOnce(&mut Checker)>>`, so it must be
     // `FnOnce + 'static`.
-    pub(crate) fn add_deferred_diagnostic(&mut self, callback: impl FnOnce(&mut Checker) + 'static) {
+    pub(crate) fn add_deferred_diagnostic(
+        &mut self,
+        callback: impl FnOnce(&mut Checker) + 'static,
+    ) {
         self.deferred_diagnostic_callbacks.push(Box::new(callback));
     }
 
@@ -1579,27 +2027,56 @@ impl Checker {
     }
 
     // checker.go:14237
-    pub(crate) fn error(&mut self, location: Option<P<Node>>, message: &'static Message, args: &[&dyn Display]) -> P<Diagnostic> {
+    pub(crate) fn error(
+        &mut self,
+        location: Option<P<Node>>,
+        message: &'static Message,
+        args: &[&dyn Display],
+    ) -> P<Diagnostic> {
         self.add_diagnostic(new_diagnostic_for_node(location, Some(message), args))
     }
 
     // checker.go:14241
-    pub(crate) fn error_skipped_on_no_emit(&mut self, location: P<Node>, message: &'static Message, args: &[&dyn Display]) -> P<Diagnostic> {
+    pub(crate) fn error_skipped_on_no_emit(
+        &mut self,
+        location: P<Node>,
+        message: &'static Message,
+        args: &[&dyn Display],
+    ) -> P<Diagnostic> {
         let diagnostic = self.error(Some(location), message, args);
         diagnostic.set_skipped_on_no_emit();
         diagnostic
     }
 
     // checker.go:14247
-    pub(crate) fn error_or_suggestion(&mut self, is_error: bool, location: Option<P<Node>>, message: &'static Message, args: &[&dyn Display]) {
-        self.add_error_or_suggestion(is_error, new_diagnostic_for_node(location, Some(message), args));
+    pub(crate) fn error_or_suggestion(
+        &mut self,
+        is_error: bool,
+        location: Option<P<Node>>,
+        message: &'static Message,
+        args: &[&dyn Display],
+    ) {
+        self.add_error_or_suggestion(
+            is_error,
+            new_diagnostic_for_node(location, Some(message), args),
+        );
     }
 
     // checker.go:14251
-    pub(crate) fn error_and_maybe_suggest_await(&mut self, location: Option<P<Node>>, maybe_missing_await: bool, message: &'static Message, args: &[&dyn Display]) -> P<Diagnostic> {
+    pub(crate) fn error_and_maybe_suggest_await(
+        &mut self,
+        location: Option<P<Node>>,
+        maybe_missing_await: bool,
+        message: &'static Message,
+        args: &[&dyn Display],
+    ) -> P<Diagnostic> {
         let diagnostic = self.error(location, message, args);
         if maybe_missing_await {
-            diagnostic.add_related_info(create_diagnostic_for_node(location, &diagnostics::Did_you_forget_to_use_await, &[]));
+            diagnostic.add_related_info(create_diagnostic_for_node(
+                location,
+                &diagnostics::Did_you_forget_to_use_await,
+                &[],
+            ));
         }
         diagnostic
     }
@@ -1622,17 +2099,34 @@ impl Checker {
     }
 
     // checker.go:14273
-    pub(crate) fn add_deprecated_suggestion(&mut self, location: P<Node>, declarations: &[P<Node>], deprecated_entity: &str) -> P<Diagnostic> {
-        let diagnostic = new_diagnostic_for_node(Some(location), Some(&diagnostics::X_0_is_deprecated), &[&deprecated_entity]);
+    pub(crate) fn add_deprecated_suggestion(
+        &mut self,
+        location: P<Node>,
+        declarations: &[P<Node>],
+        deprecated_entity: &str,
+    ) -> P<Diagnostic> {
+        let diagnostic = new_diagnostic_for_node(
+            Some(location),
+            Some(&diagnostics::X_0_is_deprecated),
+            &[&deprecated_entity],
+        );
         self.add_deprecated_suggestion_worker(declarations, diagnostic)
     }
 
     // checker.go:14278
-    pub(crate) fn add_deprecated_suggestion_worker(&mut self, declarations: &[P<Node>], diagnostic: P<Diagnostic>) -> P<Diagnostic> {
+    pub(crate) fn add_deprecated_suggestion_worker(
+        &mut self,
+        declarations: &[P<Node>],
+        diagnostic: P<Diagnostic>,
+    ) -> P<Diagnostic> {
         for &declaration in declarations {
             let deprecated_tag = ast::get_jsdoc_deprecated_tag(declaration);
             if let Some(deprecated_tag) = deprecated_tag {
-                diagnostic.add_related_info(new_diagnostic_for_node(Some(deprecated_tag), Some(&diagnostics::The_declaration_was_marked_as_deprecated_here), &[]));
+                diagnostic.add_related_info(new_diagnostic_for_node(
+                    Some(deprecated_tag),
+                    Some(&diagnostics::The_declaration_was_marked_as_deprecated_here),
+                    &[],
+                ));
                 break;
             }
         }
@@ -1651,8 +2145,10 @@ impl Checker {
                 return declarations.iter().all(|&d| self.is_deprecated_declaration(d));
             }
         }
-        symbol.value_declaration().is_some() && self.is_deprecated_declaration(symbol.value_declaration().unwrap())
-            || !declarations.is_empty() && declarations.iter().all(|&d| self.is_deprecated_declaration(d))
+        symbol.value_declaration().is_some()
+            && self.is_deprecated_declaration(symbol.value_declaration().unwrap())
+            || !declarations.is_empty()
+                && declarations.iter().all(|&d| self.is_deprecated_declaration(d))
     }
 
     // checker.go:14301
@@ -1675,7 +2171,12 @@ impl Checker {
 
     // checker.go:14313
     #[cfg_attr(feature = "site-counts", track_caller)]
-    pub(crate) fn new_symbol_ex(&mut self, flags: SymbolFlags, name: &'static str, check_flags: CheckFlags) -> P<Symbol> {
+    pub(crate) fn new_symbol_ex(
+        &mut self,
+        flags: SymbolFlags,
+        name: &'static str,
+        check_flags: CheckFlags,
+    ) -> P<Symbol> {
         let result = self.new_symbol(flags, name);
         result.check_flags.set(check_flags);
         result
@@ -1698,7 +2199,11 @@ impl Checker {
     }
 
     // checker.go:14331
-    pub(crate) fn combine_symbol_tables(&mut self, first: Option<P<SymbolTable>>, second: Option<P<SymbolTable>>) -> Option<P<SymbolTable>> {
+    pub(crate) fn combine_symbol_tables(
+        &mut self,
+        first: Option<P<SymbolTable>>,
+        second: Option<P<SymbolTable>>,
+    ) -> Option<P<SymbolTable>> {
         if first.is_none_or(|t| t.is_empty()) {
             return second;
         }
@@ -1712,7 +2217,13 @@ impl Checker {
     }
 
     // checker.go:14344
-    pub(crate) fn merge_symbol_table(&mut self, target: P<SymbolTable>, source: Option<P<SymbolTable>>, unidirectional: bool, merged_parent: Option<P<Symbol>>) {
+    pub(crate) fn merge_symbol_table(
+        &mut self,
+        target: P<SymbolTable>,
+        source: Option<P<SymbolTable>>,
+        unidirectional: bool,
+        merged_parent: Option<P<Symbol>>,
+    ) {
         let Some(source) = source else {
             return;
         };
@@ -1752,9 +2263,16 @@ impl Checker {
      * If target is not transient, mergeSymbol will produce a transient clone, mutate that and return it.
      */
     // checker.go:14381
-    pub(crate) fn merge_symbol(&mut self, target: P<Symbol>, source: P<Symbol>, unidirectional: bool) -> P<Symbol> {
+    pub(crate) fn merge_symbol(
+        &mut self,
+        target: P<Symbol>,
+        source: P<Symbol>,
+        unidirectional: bool,
+    ) -> P<Symbol> {
         let mut target = target;
-        if !target.flags().intersects(get_excluded_symbol_flags(source.flags())) || (source.flags() | target.flags()).intersects(SymbolFlags::Assignment) {
+        if !target.flags().intersects(get_excluded_symbol_flags(source.flags()))
+            || (source.flags() | target.flags()).intersects(SymbolFlags::Assignment)
+        {
             if source == target {
                 // This can happen when an export assigned namespace exports something also erroneously exported at the top level
                 // See `declarationFileNoCrashOnExtraExportModifier` for an example
@@ -1766,7 +2284,8 @@ impl Checker {
                     return source;
                 }
                 if !resolved_target.flags().intersects(get_excluded_symbol_flags(source.flags()))
-                    || (source.flags() | resolved_target.flags()).intersects(SymbolFlags::Assignment)
+                    || (source.flags() | resolved_target.flags())
+                        .intersects(SymbolFlags::Assignment)
                 {
                     target = self.clone_symbol(resolved_target);
                 } else {
@@ -1799,7 +2318,12 @@ impl Checker {
             }
             if source.exports().is_some() {
                 let target_exports = get_exports(target);
-                self.merge_symbol_table(target_exports, source.exports(), unidirectional, Some(target));
+                self.merge_symbol_table(
+                    target_exports,
+                    source.exports(),
+                    unidirectional,
+                    Some(target),
+                );
             }
             if !unidirectional {
                 self.record_merged_symbol(target, source);
@@ -1824,8 +2348,10 @@ impl Checker {
 
     // checker.go:14436
     pub(crate) fn report_merge_symbol_error(&mut self, target: P<Symbol>, source: P<Symbol>) {
-        let is_either_enum = target.flags().intersects(SymbolFlags::Enum) || source.flags().intersects(SymbolFlags::Enum);
-        let is_either_block_scoped = target.flags().intersects(SymbolFlags::BlockScopedVariable) || source.flags().intersects(SymbolFlags::BlockScopedVariable);
+        let is_either_enum = target.flags().intersects(SymbolFlags::Enum)
+            || source.flags().intersects(SymbolFlags::Enum);
+        let is_either_block_scoped = target.flags().intersects(SymbolFlags::BlockScopedVariable)
+            || source.flags().intersects(SymbolFlags::BlockScopedVariable);
         let message: &'static Message = if is_either_enum {
             &diagnostics::Enum_declarations_can_only_merge_with_namespace_or_other_enum_declarations
         } else if is_either_block_scoped {
@@ -1835,19 +2361,37 @@ impl Checker {
         };
         let source_symbol_file = ast::get_source_file_of_node(get_first_declaration(source));
         let target_symbol_file = ast::get_source_file_of_node(get_first_declaration(target));
-        let is_source_plain_js = ast::is_plain_js_file(source_symbol_file, self.compiler_options.check_js);
-        let is_target_plain_js = ast::is_plain_js_file(target_symbol_file, self.compiler_options.check_js);
+        let is_source_plain_js =
+            ast::is_plain_js_file(source_symbol_file, self.compiler_options.check_js);
+        let is_target_plain_js =
+            ast::is_plain_js_file(target_symbol_file, self.compiler_options.check_js);
         let symbol_name = self.symbol_to_string(source);
         if !is_source_plain_js {
-            self.add_duplicate_declaration_errors_for_symbols(source, message, &symbol_name, target);
+            self.add_duplicate_declaration_errors_for_symbols(
+                source,
+                message,
+                &symbol_name,
+                target,
+            );
         }
         if !is_target_plain_js {
-            self.add_duplicate_declaration_errors_for_symbols(target, message, &symbol_name, source);
+            self.add_duplicate_declaration_errors_for_symbols(
+                target,
+                message,
+                &symbol_name,
+                source,
+            );
         }
     }
 
     // checker.go:14461
-    pub(crate) fn add_duplicate_declaration_errors_for_symbols(&mut self, target: P<Symbol>, message: &'static Message, symbol_name: &str, source: P<Symbol>) {
+    pub(crate) fn add_duplicate_declaration_errors_for_symbols(
+        &mut self,
+        target: P<Symbol>,
+        message: &'static Message,
+        symbol_name: &str,
+        source: P<Symbol>,
+    ) {
         let target_declarations = target.declarations();
         for &node in target_declarations {
             let source_declarations = source.declarations();
@@ -1856,7 +2400,13 @@ impl Checker {
     }
 
     // checker.go:14467
-    pub(crate) fn add_duplicate_declaration_error(&mut self, node: P<Node>, message: &'static Message, symbol_name: &str, related_nodes: &[P<Node>]) {
+    pub(crate) fn add_duplicate_declaration_error(
+        &mut self,
+        node: P<Node>,
+        message: &'static Message,
+        symbol_name: &str,
+        related_nodes: &[P<Node>],
+    ) {
         let error_node = get_adjusted_node_for_error(node);
         let err = self.lookup_or_issue_error(error_node, message, &[&symbol_name]);
         for &related_node in related_nodes {
@@ -1864,8 +2414,13 @@ impl Checker {
             if adjusted_node == error_node {
                 continue;
             }
-            let leading_message = create_diagnostic_for_node(Some(adjusted_node), &diagnostics::X_0_was_also_declared_here, &[&symbol_name]);
-            let follow_on_message = create_diagnostic_for_node(Some(adjusted_node), &diagnostics::X_and_here, &[]);
+            let leading_message = create_diagnostic_for_node(
+                Some(adjusted_node),
+                &diagnostics::X_0_was_also_declared_here,
+                &[&symbol_name],
+            );
+            let follow_on_message =
+                create_diagnostic_for_node(Some(adjusted_node), &diagnostics::X_and_here, &[]);
             if err.related_information().len() >= 5
                 || err.related_information().iter().any(|&d| {
                     ast::compare_diagnostics(d, follow_on_message) == std::cmp::Ordering::Equal
@@ -1884,7 +2439,11 @@ impl Checker {
 }
 
 // checker.go:14493
-pub(crate) fn create_diagnostic_for_node(node: Option<P<Node>>, message: &'static Message, args: &[&dyn Display]) -> P<Diagnostic> {
+pub(crate) fn create_diagnostic_for_node(
+    node: Option<P<Node>>,
+    message: &'static Message,
+    args: &[&dyn Display],
+) -> P<Diagnostic> {
     new_diagnostic_for_node(node, Some(message), args)
 }
 
@@ -1899,7 +2458,12 @@ pub(crate) fn get_adjusted_node_for_error(node: P<Node>) -> P<Node> {
 
 impl Checker {
     // checker.go:14505
-    pub(crate) fn lookup_or_issue_error(&mut self, location: P<Node>, message: &'static Message, args: &[&dyn Display]) -> P<Diagnostic> {
+    pub(crate) fn lookup_or_issue_error(
+        &mut self,
+        location: P<Node>,
+        message: &'static Message,
+        args: &[&dyn Display],
+    ) -> P<Diagnostic> {
         self.add_diagnostic(new_diagnostic_for_node(Some(location), Some(message), args))
     }
 }
@@ -2008,7 +2572,11 @@ impl Checker {
     }
 
     // checker.go:14605
-    pub(crate) fn get_symbol_if_same_reference(&mut self, s1: P<Symbol>, s2: P<Symbol>) -> Option<P<Symbol>> {
+    pub(crate) fn get_symbol_if_same_reference(
+        &mut self,
+        s1: P<Symbol>,
+        s2: P<Symbol>,
+    ) -> Option<P<Symbol>> {
         let m1 = self.get_merged_symbol(s1);
         let r1 = self.resolve_symbol(m1);
         let a = self.get_merged_symbol(r1);
@@ -2023,7 +2591,10 @@ impl Checker {
 
     // checker.go:14612
     // returns Option (Go returns nil for a nil symbol; callers test the result against nil).
-    pub(crate) fn get_export_symbol_of_value_symbol_if_exported(&mut self, symbol: Option<P<Symbol>>) -> Option<P<Symbol>> {
+    pub(crate) fn get_export_symbol_of_value_symbol_if_exported(
+        &mut self,
+        symbol: Option<P<Symbol>>,
+    ) -> Option<P<Symbol>> {
         let mut symbol = symbol;
         if let Some(s) = symbol {
             if s.flags().intersects(SymbolFlags::ExportValue) && s.export_symbol().is_some() {
@@ -2060,7 +2631,9 @@ impl Checker {
     // checker.go:14637
     #[inline]
     pub(crate) fn get_late_bound_symbol(&mut self, symbol: P<Symbol>) -> P<Symbol> {
-        if !symbol.flags().intersects(SymbolFlags::ClassMember) || symbol.name() != InternalSymbolNameComputed {
+        if !symbol.flags().intersects(SymbolFlags::ClassMember)
+            || symbol.name() != InternalSymbolNameComputed
+        {
             return symbol;
         }
         self.get_late_bound_symbol_worker(symbol)
@@ -2094,26 +2667,56 @@ impl Checker {
     }
 
     // checker.go:14661
-    pub(crate) fn resolve_symbol_ex(&mut self, symbol: P<Symbol>, dont_resolve_alias: bool) -> P<Symbol> {
-        if !dont_resolve_alias && ast::is_non_local_alias(symbol, SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace) {
+    pub(crate) fn resolve_symbol_ex(
+        &mut self,
+        symbol: P<Symbol>,
+        dont_resolve_alias: bool,
+    ) -> P<Symbol> {
+        if !dont_resolve_alias
+            && ast::is_non_local_alias(
+                symbol,
+                SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace,
+            )
+        {
             return self.resolve_alias(symbol);
         }
         symbol
     }
 
     // checker.go:14668
-    pub(crate) fn get_target_of_import_equals_declaration(&mut self, node: P<Node>) -> Option<P<Symbol>> {
+    pub(crate) fn get_target_of_import_equals_declaration(
+        &mut self,
+        node: P<Node>,
+    ) -> Option<P<Symbol>> {
         // Node is ImportEqualsDeclaration | VariableDeclaration
-        if ast::is_variable_declaration(node) || node.as_import_equals_declaration().module_reference.kind() == Kind::ExternalModuleReference {
+        if ast::is_variable_declaration(node)
+            || node.as_import_equals_declaration().module_reference.kind()
+                == Kind::ExternalModuleReference
+        {
             let mut module_reference = get_external_module_require_argument(node);
             if module_reference.is_none() {
-                module_reference = ast::get_external_module_import_equals_declaration_expression(node);
+                module_reference =
+                    ast::get_external_module_import_equals_declaration_expression(node);
             }
-            let immediate = self.resolve_external_module_name(node, module_reference.unwrap(), false /*ignoreErrors*/, None /*importAttributesType*/);
-            let resolved = immediate.map(|immediate| self.resolve_external_module_symbol(immediate, true /*dontResolveAlias*/));
+            let immediate = self.resolve_external_module_name(
+                node,
+                module_reference.unwrap(),
+                false, /*ignoreErrors*/
+                None,  /*importAttributesType*/
+            );
+            let resolved = immediate.map(|immediate| {
+                self.resolve_external_module_symbol(immediate, true /*dontResolveAlias*/)
+            });
             if let Some(resolved) = resolved {
-                if ModuleKind::Node20 <= self.module_kind && self.module_kind <= ModuleKind::NodeNext {
-                    let module_exports = self.get_export_of_module(resolved, InternalSymbolNameModuleExports, node, true /*dontResolveAlias*/);
+                if ModuleKind::Node20 <= self.module_kind
+                    && self.module_kind <= ModuleKind::NodeNext
+                {
+                    let module_exports = self.get_export_of_module(
+                        resolved,
+                        InternalSymbolNameModuleExports,
+                        node,
+                        true, /*dontResolveAlias*/
+                    );
                     if module_exports.is_some() {
                         return module_exports;
                     }
@@ -2122,16 +2725,23 @@ impl Checker {
             self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
             return resolved;
         }
-        let resolved = self.get_symbol_of_part_of_right_hand_side_of_import_equals(node.as_import_equals_declaration().module_reference);
+        let resolved = self.get_symbol_of_part_of_right_hand_side_of_import_equals(
+            node.as_import_equals_declaration().module_reference,
+        );
         self.check_and_report_error_for_resolving_import_alias_to_type_only_symbol(node, resolved);
         resolved
     }
 
     // checker.go:14691
     pub(crate) fn resolve_external_module_type_by_literal(&mut self, name: P<Node>) -> P<Type> {
-        let module_sym = self.resolve_external_module_name(name, name, false /*ignoreErrors*/, None /*importAttributesType*/);
+        let module_sym = self.resolve_external_module_name(
+            name, name, false, /*ignoreErrors*/
+            None,  /*importAttributesType*/
+        );
         if let Some(module_sym) = module_sym {
-            let resolved_module_symbol = Some(self.resolve_external_module_symbol(module_sym, false /*dontResolveAlias*/));
+            let resolved_module_symbol = Some(
+                self.resolve_external_module_symbol(module_sym, false /*dontResolveAlias*/),
+            );
             if let Some(resolved_module_symbol) = resolved_module_symbol {
                 return self.get_type_of_symbol(resolved_module_symbol);
             }
@@ -2141,7 +2751,10 @@ impl Checker {
 
     // This function is only for imports with entity names
     // checker.go:14703
-    pub(crate) fn get_symbol_of_part_of_right_hand_side_of_import_equals(&mut self, entity_name: P<Node>) -> Option<P<Symbol>> {
+    pub(crate) fn get_symbol_of_part_of_right_hand_side_of_import_equals(
+        &mut self,
+        entity_name: P<Node>,
+    ) -> Option<P<Symbol>> {
         // There are three things we might try to look for. In the following examples,
         // the search term is enclosed in |...|:
         //
@@ -2149,12 +2762,22 @@ impl Checker {
         //     import a = |b.c|; // Value, type, namespace
         //     import a = |b.c|.d; // Namespace
         let mut entity_name = entity_name;
-        if entity_name.kind() == Kind::Identifier && ast::is_right_side_of_qualified_name_or_property_access(entity_name) {
+        if entity_name.kind() == Kind::Identifier
+            && ast::is_right_side_of_qualified_name_or_property_access(entity_name)
+        {
             entity_name = entity_name.parent().unwrap(); // QualifiedName
         }
         // Check for case 1 and 3 in the above example
-        if entity_name.kind() == Kind::Identifier || entity_name.parent().unwrap().kind() == Kind::QualifiedName {
-            return self.resolve_entity_name(entity_name, SymbolFlags::Namespace, false /*ignoreErrors*/, true /*dontResolveAlias*/, None /*location*/);
+        if entity_name.kind() == Kind::Identifier
+            || entity_name.parent().unwrap().kind() == Kind::QualifiedName
+        {
+            return self.resolve_entity_name(
+                entity_name,
+                SymbolFlags::Namespace,
+                false, /*ignoreErrors*/
+                true,  /*dontResolveAlias*/
+                None,  /*location*/
+            );
         }
         // Case 2 in above example
         // entityName.kind could be a QualifiedName or a Missing identifier
@@ -2171,25 +2794,42 @@ impl Checker {
     // checker.go:14723
     // `resolved` is Option (Go passes the possibly-nil result of getSymbolOfPartOfRightHandSideOfImportEquals).
     // It is unused, as in Go.
-    pub(crate) fn check_and_report_error_for_resolving_import_alias_to_type_only_symbol(&mut self, node: P<Node>, _resolved: Option<P<Symbol>>) {
+    pub(crate) fn check_and_report_error_for_resolving_import_alias_to_type_only_symbol(
+        &mut self,
+        node: P<Node>,
+        _resolved: Option<P<Symbol>>,
+    ) {
         let decl = node.as_import_equals_declaration();
         let mut name = decl.module_reference;
         loop {
-            if let Some(type_only_declaration) = self.get_type_only_declaration_of_entity_name(name) {
-                let is_export = ast::node_kind_is(type_only_declaration, &[Kind::ExportSpecifier, Kind::ExportDeclaration]);
+            if let Some(type_only_declaration) = self.get_type_only_declaration_of_entity_name(name)
+            {
+                let is_export = ast::node_kind_is(
+                    type_only_declaration,
+                    &[Kind::ExportSpecifier, Kind::ExportDeclaration],
+                );
                 let message: &'static Message = if is_export {
                     &diagnostics::An_import_alias_cannot_reference_a_declaration_that_was_exported_using_export_type
                 } else {
                     &diagnostics::An_import_alias_cannot_reference_a_declaration_that_was_imported_using_import_type
                 };
-                let related_message: &'static Message = if is_export { &diagnostics::X_0_was_exported_here } else { &diagnostics::X_0_was_imported_here };
+                let related_message: &'static Message = if is_export {
+                    &diagnostics::X_0_was_exported_here
+                } else {
+                    &diagnostics::X_0_was_imported_here
+                };
                 // TODO: how to get name for export *?
                 let mut name = "*";
                 if !ast::is_export_declaration(type_only_declaration) {
                     name = type_only_declaration.name().unwrap().text();
                 }
-                self.error(Some(decl.module_reference), message, &[])
-                    .add_related_info(create_diagnostic_for_node(Some(type_only_declaration), related_message, &[&name]));
+                self.error(Some(decl.module_reference), message, &[]).add_related_info(
+                    create_diagnostic_for_node(
+                        Some(type_only_declaration),
+                        related_message,
+                        &[&name],
+                    ),
+                );
                 break;
             }
             if ast::is_identifier(name) {
@@ -2200,7 +2840,10 @@ impl Checker {
     }
 
     // checker.go:14750
-    pub(crate) fn get_type_only_declaration_of_entity_name(&mut self, name: P<Node>) -> Option<P<Node>> {
+    pub(crate) fn get_type_only_declaration_of_entity_name(
+        &mut self,
+        name: P<Node>,
+    ) -> Option<P<Node>> {
         if let Some(symbol) = self.resolve_entity_name(
             name,
             SymbolFlags::Value | SymbolFlags::Type | SymbolFlags::Namespace,
@@ -2216,17 +2859,32 @@ impl Checker {
     // checker.go:14757
     pub(crate) fn get_target_of_import_clause(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let module_specifier = get_module_specifier_from_node(node.parent().unwrap()).unwrap();
-        let import_attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(node.parent().unwrap()));
-        let module_symbol = self.resolve_external_module_name(node, module_specifier, false /*ignoreErrors*/, import_attributes_type);
+        let import_attributes_type = self
+            .get_type_from_import_attributes(ast::get_import_attributes(node.parent().unwrap()));
+        let module_symbol = self.resolve_external_module_name(
+            node,
+            module_specifier,
+            false, /*ignoreErrors*/
+            import_attributes_type,
+        );
         if let Some(module_symbol) = module_symbol {
-            return self.get_target_of_module_default(module_symbol, node, true /*dontResolveAlias*/);
+            return self.get_target_of_module_default(
+                module_symbol,
+                node,
+                true, /*dontResolveAlias*/
+            );
         }
         None
     }
 
     // checker.go:14765
     // returns Option (Go returns the possibly-nil exportDefaultSymbol).
-    pub(crate) fn get_target_of_module_default(&mut self, module_symbol: P<Symbol>, node: P<Node>, dont_resolve_alias: bool) -> Option<P<Symbol>> {
+    pub(crate) fn get_target_of_module_default(
+        &mut self,
+        module_symbol: P<Symbol>,
+        node: P<Node>,
+        dont_resolve_alias: bool,
+    ) -> Option<P<Symbol>> {
         let file = module_symbol.declarations().iter().copied().find(|&d| ast::is_source_file(d));
         let specifier = Self::get_module_specifier_for_import_or_export(node);
 
@@ -2238,12 +2896,20 @@ impl Checker {
             && specifier.is_some()
             && ModuleKind::Node20 <= self.module_kind
             && self.module_kind <= ModuleKind::NodeNext
-            && self.get_emit_syntax_for_module_specifier_expression(specifier.unwrap()) == ModuleKind::CommonJS
-            && self.program.get_implied_node_format_for_emit(file.unwrap().as_source_file_p()) == ModuleKind::ESNext
+            && self.get_emit_syntax_for_module_specifier_expression(specifier.unwrap())
+                == ModuleKind::CommonJS
+            && self.program.get_implied_node_format_for_emit(file.unwrap().as_source_file_p())
+                == ModuleKind::ESNext
         {
-            export_module_dot_exports_symbol = self.resolve_export_by_name(module_symbol, InternalSymbolNameModuleExports, Some(node), dont_resolve_alias);
+            export_module_dot_exports_symbol = self.resolve_export_by_name(
+                module_symbol,
+                InternalSymbolNameModuleExports,
+                Some(node),
+                dont_resolve_alias,
+            );
         }
-        let export_default_symbol: Option<P<Symbol>> = if export_module_dot_exports_symbol.is_some() {
+        let export_default_symbol: Option<P<Symbol>> = if export_module_dot_exports_symbol.is_some()
+        {
             // We have a transpiled default import where the `require` resolves to an ES module with a `module.exports` named
             // export. With `esModuleInterop` (always enabled), this will work:
             //
@@ -2252,7 +2918,12 @@ impl Checker {
             self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
             return export_module_dot_exports_symbol;
         } else {
-            self.resolve_export_by_name(module_symbol, InternalSymbolNameDefault, Some(node), dont_resolve_alias)
+            self.resolve_export_by_name(
+                module_symbol,
+                InternalSymbolNameDefault,
+                Some(node),
+                dont_resolve_alias,
+            )
         };
         let Some(specifier) = specifier else {
             return export_default_symbol;
@@ -2262,23 +2933,37 @@ impl Checker {
         if ast::is_import_clause(node) {
             attributes = ast::get_import_attributes(node.parent().unwrap());
         } else if ast::is_import_specifier(node) {
-            attributes = ast::get_import_attributes(node.parent().unwrap().parent().unwrap().parent().unwrap());
+            attributes = ast::get_import_attributes(
+                node.parent().unwrap().parent().unwrap().parent().unwrap(),
+            );
         } else if ast::is_export_specifier(node) {
             attributes = ast::get_import_attributes(node.parent().unwrap().parent().unwrap());
         }
         let attributes_type = self.get_type_from_import_attributes(attributes);
-        let has_default_only = self.is_only_importable_as_default(specifier, Some(module_symbol), attributes_type);
-        let has_synthetic_default = self.can_have_synthetic_default(file, module_symbol, dont_resolve_alias, specifier);
+        let has_default_only =
+            self.is_only_importable_as_default(specifier, Some(module_symbol), attributes_type);
+        let has_synthetic_default =
+            self.can_have_synthetic_default(file, module_symbol, dont_resolve_alias, specifier);
         if export_default_symbol.is_none() && !has_synthetic_default && !has_default_only {
             if ast::is_import_clause(node) {
                 self.report_non_default_export(module_symbol, node);
             } else {
-                let name = if ast::is_import_or_export_specifier(node) { node.property_name_or_name() } else { node.name() };
-                self.error_no_module_member_symbol(module_symbol, module_symbol, node, name.unwrap());
+                let name = if ast::is_import_or_export_specifier(node) {
+                    node.property_name_or_name()
+                } else {
+                    node.name()
+                };
+                self.error_no_module_member_symbol(
+                    module_symbol,
+                    module_symbol,
+                    node,
+                    name.unwrap(),
+                );
             }
         } else if has_synthetic_default || has_default_only {
             // per emit behavior, a synthetic default overrides a "real" .default member if `__esModule` is not present
-            let mut resolved = Some(self.resolve_external_module_symbol(module_symbol, dont_resolve_alias));
+            let mut resolved =
+                Some(self.resolve_external_module_symbol(module_symbol, dont_resolve_alias));
             if resolved.is_none() {
                 resolved = Some(self.resolve_symbol_ex(module_symbol, dont_resolve_alias));
             }
@@ -2291,13 +2976,16 @@ impl Checker {
 
     // checker.go:14829
     pub(crate) fn report_non_default_export(&mut self, module_symbol: P<Symbol>, node: P<Node>) {
-        if module_symbol.exports().is_some() && lookup_export(module_symbol, node.symbol().unwrap().name()).is_some() {
+        if module_symbol.exports().is_some()
+            && lookup_export(module_symbol, node.symbol().unwrap().name()).is_some()
+        {
             let a = self.symbol_to_string(module_symbol);
             let b = self.symbol_to_string(node.symbol().unwrap());
             self.error(Some(node), &diagnostics::Module_0_has_no_default_export_Did_you_mean_to_use_import_1_from_0_instead, &[&a, &b]);
         } else {
             let a = self.symbol_to_string(module_symbol);
-            let diagnostic = self.error(node.name(), &diagnostics::Module_0_has_no_default_export, &[&a]);
+            let diagnostic =
+                self.error(node.name(), &diagnostics::Module_0_has_no_default_export, &[&a]);
             let mut export_star: Option<P<Symbol>> = None;
             if module_symbol.exports().is_some() {
                 export_star = lookup_export(module_symbol, InternalSymbolNameExportStar);
@@ -2309,15 +2997,27 @@ impl Checker {
                     if !(ast::is_export_declaration(decl) && decl.module_specifier().is_some()) {
                         continue;
                     }
-                    let attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(decl));
-                    let resolved_external_module_name = self.resolve_external_module_name(decl, decl.module_specifier().unwrap(), false /*ignoreErrors*/, attributes_type);
-                    if resolved_external_module_name.is_some_and(|m| lookup_export(m, InternalSymbolNameDefault).is_some()) {
+                    let attributes_type =
+                        self.get_type_from_import_attributes(ast::get_import_attributes(decl));
+                    let resolved_external_module_name = self.resolve_external_module_name(
+                        decl,
+                        decl.module_specifier().unwrap(),
+                        false, /*ignoreErrors*/
+                        attributes_type,
+                    );
+                    if resolved_external_module_name
+                        .is_some_and(|m| lookup_export(m, InternalSymbolNameDefault).is_some())
+                    {
                         default_export = Some(decl);
                         break;
                     }
                 }
                 if let Some(default_export) = default_export {
-                    diagnostic.add_related_info(create_diagnostic_for_node(Some(default_export), &diagnostics::X_export_Asterisk_does_not_re_export_a_default, &[]));
+                    diagnostic.add_related_info(create_diagnostic_for_node(
+                        Some(default_export),
+                        &diagnostics::X_export_Asterisk_does_not_re_export_a_default,
+                        &[],
+                    ));
                 }
             }
         }
@@ -2325,11 +3025,20 @@ impl Checker {
 
     // checker.go:14853
     // returns Option (Go returns nil when the export does not exist).
-    pub(crate) fn resolve_export_by_name(&mut self, module_symbol: P<Symbol>, name: &str, source_node: Option<P<Node>>, dont_resolve_alias: bool) -> Option<P<Symbol>> {
+    pub(crate) fn resolve_export_by_name(
+        &mut self,
+        module_symbol: P<Symbol>,
+        name: &str,
+        source_node: Option<P<Node>>,
+        dont_resolve_alias: bool,
+    ) -> Option<P<Symbol>> {
         let export_value = lookup_export(module_symbol, InternalSymbolNameExportEquals);
         let export_symbol = if let Some(export_value) = export_value {
             let t = self.get_type_of_symbol(export_value);
-            self.get_property_of_type_ex(t, name, true /*skipObjectFunctionPropertyAugment*/, false /*includeTypeOnlyMembers*/)
+            self.get_property_of_type_ex(
+                t, name, true,  /*skipObjectFunctionPropertyAugment*/
+                false, /*includeTypeOnlyMembers*/
+            )
         } else {
             lookup_export(module_symbol, name)
         };
@@ -2342,9 +3051,17 @@ impl Checker {
     // returns Option (Go returns nil when the module cannot be resolved).
     pub(crate) fn get_target_of_namespace_import(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let module_specifier = Self::get_module_specifier_for_import_or_export(node).unwrap();
-        let attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(node.parent().unwrap().parent().unwrap()));
-        let immediate = self.resolve_external_module_name(node, module_specifier, false /*ignoreErrors*/, attributes_type);
-        let resolved = immediate.map(|immediate| self.resolve_es_module_symbol(immediate, node, module_specifier));
+        let attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(
+            node.parent().unwrap().parent().unwrap(),
+        ));
+        let immediate = self.resolve_external_module_name(
+            node,
+            module_specifier,
+            false, /*ignoreErrors*/
+            attributes_type,
+        );
+        let resolved = immediate
+            .map(|immediate| self.resolve_es_module_symbol(immediate, node, module_specifier));
         self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
         resolved
     }
@@ -2353,9 +3070,17 @@ impl Checker {
     pub(crate) fn get_target_of_namespace_export(&mut self, node: P<Node>) -> Option<P<Symbol>> {
         let module_specifier = Self::get_module_specifier_for_import_or_export(node);
         if let Some(module_specifier) = module_specifier {
-            let attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(node.parent().unwrap()));
-            let immediate = self.resolve_external_module_name(node, module_specifier, false /*ignoreErrors*/, attributes_type);
-            let resolved = immediate.map(|immediate| self.resolve_es_module_symbol(immediate, node, module_specifier));
+            let attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(
+                node.parent().unwrap(),
+            ));
+            let immediate = self.resolve_external_module_name(
+                node,
+                module_specifier,
+                false, /*ignoreErrors*/
+                attributes_type,
+            );
+            let resolved = immediate
+                .map(|immediate| self.resolve_es_module_symbol(immediate, node, module_specifier));
             self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
             return resolved;
         }
@@ -2369,10 +3094,21 @@ impl Checker {
             let specifier = Self::get_module_specifier_for_import_or_export(node);
             if let Some(specifier) = specifier {
                 let attributes_type =
-                    self.get_type_from_import_attributes(ast::get_import_attributes(node.parent().unwrap().parent().unwrap().parent().unwrap()));
-                let module_symbol = self.resolve_external_module_name(node, specifier, false /*ignoreErrors*/, attributes_type);
+                    self.get_type_from_import_attributes(ast::get_import_attributes(
+                        node.parent().unwrap().parent().unwrap().parent().unwrap(),
+                    ));
+                let module_symbol = self.resolve_external_module_name(
+                    node,
+                    specifier,
+                    false, /*ignoreErrors*/
+                    attributes_type,
+                );
                 if let Some(module_symbol) = module_symbol {
-                    return self.get_target_of_module_default(module_symbol, node, true /*dontResolveAlias*/);
+                    return self.get_target_of_module_default(
+                        module_symbol,
+                        node,
+                        true, /*dontResolveAlias*/
+                    );
                 }
             }
         }
@@ -2380,13 +3116,19 @@ impl Checker {
         if ast::is_binding_element(node) {
             root = Some(ast::get_root_declaration(node));
         }
-        let resolved = self.get_external_module_member(root.unwrap(), node, true /*dontResolveAlias*/);
+        let resolved =
+            self.get_external_module_member(root.unwrap(), node, true /*dontResolveAlias*/);
         self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
         resolved
     }
 
     // checker.go:14905
-    pub(crate) fn get_external_module_member(&mut self, node: P<Node>, specifier: P<Node>, dont_resolve_alias: bool) -> Option<P<Symbol>> {
+    pub(crate) fn get_external_module_member(
+        &mut self,
+        node: P<Node>,
+        specifier: P<Node>,
+        dont_resolve_alias: bool,
+    ) -> Option<P<Symbol>> {
         // node is ImportDeclaration | ExportDeclaration | VariableDeclaration
         // specifier is ImportSpecifier | ExportSpecifier | BindingElement | PropertyAccessExpression
         let mut module_specifier = get_external_module_require_argument(node);
@@ -2399,14 +3141,24 @@ impl Checker {
             attributes = ast::get_import_attributes(node);
         }
         let import_attributes_type = self.get_type_from_import_attributes(attributes);
-        let module_symbol = self.resolve_external_module_name(node, module_specifier, false /*ignoreErrors*/, import_attributes_type);
-        let name = if !ast::is_property_access_expression(specifier) { specifier.property_name_or_name() } else { specifier.name() };
+        let module_symbol = self.resolve_external_module_name(
+            node,
+            module_specifier,
+            false, /*ignoreErrors*/
+            import_attributes_type,
+        );
+        let name = if !ast::is_property_access_expression(specifier) {
+            specifier.property_name_or_name()
+        } else {
+            specifier.name()
+        };
         let name = name.unwrap();
         if !ast::is_identifier(name) && !ast::is_string_literal(name) {
             return None;
         }
         let name_text = name.text();
-        let target_symbol = module_symbol.map(|m| self.resolve_es_module_symbol(m, specifier, module_specifier));
+        let target_symbol =
+            module_symbol.map(|m| self.resolve_es_module_symbol(m, specifier, module_specifier));
         if let Some(target_symbol) = target_symbol {
             // Note: The empty string is a valid module export name:
             //
@@ -2419,28 +3171,55 @@ impl Checker {
                     return module_symbol;
                 }
                 // First check if module was specified with "export=". If so, get the member from the resolved type
-                let mut symbol_from_variable = if module_symbol.is_some() && lookup_export(module_symbol_, InternalSymbolNameExportEquals).is_some() {
+                let mut symbol_from_variable = if module_symbol.is_some()
+                    && lookup_export(module_symbol_, InternalSymbolNameExportEquals).is_some()
+                {
                     let t = self.get_type_of_symbol(target_symbol);
-                    self.get_property_of_type_ex(t, name_text, true /*skipObjectFunctionPropertyAugment*/, false /*includeTypeOnlyMembers*/)
+                    self.get_property_of_type_ex(
+                        t, name_text, true,  /*skipObjectFunctionPropertyAugment*/
+                        false, /*includeTypeOnlyMembers*/
+                    )
                 } else {
                     self.get_property_of_variable(target_symbol, name_text)
                 };
                 // if symbolFromVariable is export - get its final target
-                symbol_from_variable = symbol_from_variable.map(|s| self.resolve_symbol_ex(s, dont_resolve_alias));
+                symbol_from_variable =
+                    symbol_from_variable.map(|s| self.resolve_symbol_ex(s, dont_resolve_alias));
                 let mut export_container = target_symbol;
-                if module_symbol.is_some() && lookup_export(module_symbol_, InternalSymbolNameExportEquals).is_some() {
+                if module_symbol.is_some()
+                    && lookup_export(module_symbol_, InternalSymbolNameExportEquals).is_some()
+                {
                     // For `export =` modules, supplemental type/namespace exports live on the original module symbol.
                     export_container = module_symbol_;
                 }
-                let mut symbol_from_module = self.get_export_of_module(export_container, name_text, specifier, dont_resolve_alias);
+                let mut symbol_from_module = self.get_export_of_module(
+                    export_container,
+                    name_text,
+                    specifier,
+                    dont_resolve_alias,
+                );
                 if symbol_from_module.is_none() && name_text == InternalSymbolNameDefault {
-                    let file = module_symbol_.declarations().iter().copied().find(|&d| ast::is_source_file(d));
-                    if self.is_only_importable_as_default(module_specifier, module_symbol, import_attributes_type)
-                        || self.can_have_synthetic_default(file, module_symbol_, dont_resolve_alias, module_specifier)
-                    {
-                        symbol_from_module = Some(self.resolve_external_module_symbol(module_symbol_, dont_resolve_alias));
+                    let file = module_symbol_
+                        .declarations()
+                        .iter()
+                        .copied()
+                        .find(|&d| ast::is_source_file(d));
+                    if self.is_only_importable_as_default(
+                        module_specifier,
+                        module_symbol,
+                        import_attributes_type,
+                    ) || self.can_have_synthetic_default(
+                        file,
+                        module_symbol_,
+                        dont_resolve_alias,
+                        module_specifier,
+                    ) {
+                        symbol_from_module = Some(
+                            self.resolve_external_module_symbol(module_symbol_, dont_resolve_alias),
+                        );
                         if symbol_from_module.is_none() {
-                            symbol_from_module = Some(self.resolve_symbol_ex(module_symbol_, dont_resolve_alias));
+                            symbol_from_module =
+                                Some(self.resolve_symbol_ex(module_symbol_, dont_resolve_alias));
                         }
                     }
                 }
@@ -2448,11 +3227,18 @@ impl Checker {
                 if let Some(symbol_from_module) = symbol_from_module {
                     symbol = Some(symbol_from_module);
                     if let Some(symbol_from_variable) = symbol_from_variable {
-                        symbol = Some(self.combine_value_and_type_symbols(symbol_from_variable, symbol_from_module));
+                        symbol = Some(self.combine_value_and_type_symbols(
+                            symbol_from_variable,
+                            symbol_from_module,
+                        ));
                     }
                 }
                 if ast::is_import_or_export_specifier(specifier)
-                    && self.is_only_importable_as_default(module_specifier, module_symbol, import_attributes_type)
+                    && self.is_only_importable_as_default(
+                        module_specifier,
+                        module_symbol,
+                        import_attributes_type,
+                    )
                     && name_text != InternalSymbolNameDefault
                 {
                     let module_kind = self.module_kind.to_string();
@@ -2467,7 +3253,11 @@ impl Checker {
     }
 
     // checker.go:14981
-    pub(crate) fn get_property_of_variable(&mut self, symbol: P<Symbol>, name: &str) -> Option<P<Symbol>> {
+    pub(crate) fn get_property_of_variable(
+        &mut self,
+        symbol: P<Symbol>,
+        name: &str,
+    ) -> Option<P<Symbol>> {
         if symbol.flags().intersects(SymbolFlags::Variable) {
             let type_annotation = symbol.value_declaration().unwrap().type_node();
             if let Some(type_annotation) = type_annotation {
@@ -2498,7 +3288,11 @@ impl Checker {
     // An 'import { Point } from "graphics"' needs to create a symbol that combines the value side 'Point'
     // property with the type/namespace side interface 'Point'.
     // checker.go:15009
-    pub(crate) fn combine_value_and_type_symbols(&mut self, value_symbol: P<Symbol>, type_symbol: P<Symbol>) -> P<Symbol> {
+    pub(crate) fn combine_value_and_type_symbols(
+        &mut self,
+        value_symbol: P<Symbol>,
+        type_symbol: P<Symbol>,
+    ) -> P<Symbol> {
         if value_symbol == self.unknown_symbol && type_symbol == self.unknown_symbol {
             return self.unknown_symbol;
         }
@@ -2508,7 +3302,8 @@ impl Checker {
         if value_symbol.flags().intersects(SymbolFlags::Type | SymbolFlags::Namespace) {
             return value_symbol;
         }
-        let result = self.new_symbol(value_symbol.flags() | type_symbol.flags(), value_symbol.name());
+        let result =
+            self.new_symbol(value_symbol.flags() | type_symbol.flags(), value_symbol.name());
         assert!(!value_symbol.declarations().is_empty() || !type_symbol.declarations().is_empty());
         let mut declarations = value_symbol.declarations().to_vec();
         declarations.extend(type_symbol.declarations().iter().copied());
@@ -2525,33 +3320,56 @@ impl Checker {
     }
 
     // checker.go:15032
-    pub(crate) fn get_export_of_module(&mut self, symbol: P<Symbol>, name_text: &str, specifier: P<Node>, dont_resolve_alias: bool) -> Option<P<Symbol>> {
+    pub(crate) fn get_export_of_module(
+        &mut self,
+        symbol: P<Symbol>,
+        name_text: &str,
+        specifier: P<Node>,
+        dont_resolve_alias: bool,
+    ) -> Option<P<Symbol>> {
         if symbol.flags().intersects(SymbolFlags::Module) {
-            let export_symbol = self.get_exports_of_symbol(symbol).and_then(|exports| exports.lookup(name_text));
+            let export_symbol =
+                self.get_exports_of_symbol(symbol).and_then(|exports| exports.lookup(name_text));
             let resolved = export_symbol.map(|s| self.resolve_symbol_ex(s, dont_resolve_alias));
-            let export_star_declaration = self.module_symbol_links.get(symbol).type_only_export_star_map.get(name_text);
-            self.mark_symbol_of_alias_declaration_if_type_only(Some(specifier), export_star_declaration);
+            let export_star_declaration =
+                self.module_symbol_links.get(symbol).type_only_export_star_map.get(name_text);
+            self.mark_symbol_of_alias_declaration_if_type_only(
+                Some(specifier),
+                export_star_declaration,
+            );
             return resolved;
         }
         None
     }
 
     // checker.go:15043
-    pub(crate) fn is_only_importable_as_default(&mut self, usage: P<Node>, resolved_module: Option<P<Symbol>>, import_attributes_type: Option<P<Type>>) -> bool {
+    pub(crate) fn is_only_importable_as_default(
+        &mut self,
+        usage: P<Node>,
+        resolved_module: Option<P<Symbol>>,
+        import_attributes_type: Option<P<Type>>,
+    ) -> bool {
         // In Node.js, JSON modules don't get named exports
         if ModuleKind::Node16 <= self.module_kind && self.module_kind <= ModuleKind::NodeNext {
             let usage_mode = self.get_emit_syntax_for_module_specifier_expression(usage);
             if usage_mode == ModuleKind::ESNext {
                 let mut resolved_module = resolved_module;
                 if resolved_module.is_none() {
-                    resolved_module = self.resolve_external_module_name(usage, usage, true /*ignoreErrors*/, import_attributes_type);
+                    resolved_module = self.resolve_external_module_name(
+                        usage,
+                        usage,
+                        true, /*ignoreErrors*/
+                        import_attributes_type,
+                    );
                 }
                 let mut target_file: Option<P<SourceFile>> = None;
                 if let Some(resolved_module) = resolved_module {
                     target_file = ast::get_source_file_of_module(resolved_module);
                 }
                 return target_file.is_some_and(|target_file| {
-                    ast::is_json_source_file(target_file) || tspath::get_declaration_file_extension(target_file.file_name()) == ".d.json.ts"
+                    ast::is_json_source_file(target_file)
+                        || tspath::get_declaration_file_extension(target_file.file_name())
+                            == ".d.json.ts"
                 });
             }
         }
@@ -2559,15 +3377,26 @@ impl Checker {
     }
 
     // checker.go:15061
-    pub(crate) fn can_have_synthetic_default(&mut self, file: Option<P<Node>>, module_symbol: P<Symbol>, dont_resolve_alias: bool, usage: P<Node>) -> bool {
+    pub(crate) fn can_have_synthetic_default(
+        &mut self,
+        file: Option<P<Node>>,
+        module_symbol: P<Symbol>,
+        dont_resolve_alias: bool,
+        usage: P<Node>,
+    ) -> bool {
         let mut usage_mode = ModuleKind::None;
         if file.is_some() {
             usage_mode = self.get_emit_syntax_for_module_specifier_expression(usage);
         }
         if let Some(file) = file {
             if usage_mode != ModuleKind::None {
-                let target_mode = self.program.get_implied_node_format_for_emit(file.as_source_file_p());
-                if usage_mode == ModuleKind::ESNext && target_mode == ModuleKind::CommonJS && ModuleKind::Node16 <= self.module_kind && self.module_kind <= ModuleKind::NodeNext {
+                let target_mode =
+                    self.program.get_implied_node_format_for_emit(file.as_source_file_p());
+                if usage_mode == ModuleKind::ESNext
+                    && target_mode == ModuleKind::CommonJS
+                    && ModuleKind::Node16 <= self.module_kind
+                    && self.module_kind <= ModuleKind::NodeNext
+                {
                     // In Node.js, CommonJS modules always have a synthetic default when imported into ESM
                     return true;
                 }
@@ -2582,12 +3411,19 @@ impl Checker {
                     // Try to get the project reference - try both source file mapping and output file mapping
                     // since declaration files can be mapped either way depending on how they're resolved
                     if self.program.get_redirect_for_resolution(file.as_source_file_p()).is_some()
-                        || self.program.get_project_reference_from_output_dts(file.as_source_file().path()).is_some()
+                        || self
+                            .program
+                            .get_project_reference_from_output_dts(file.as_source_file().path())
+                            .is_some()
                     {
                         // This is a declaration file from a project reference, so we can determine
                         // its module format from the referenced project's options
-                        let target_module_kind = self.emit_module_format_of_file(file.as_source_file_p());
-                        if usage_mode == ModuleKind::ESNext && ModuleKind::ES2015 <= target_module_kind && target_module_kind <= ModuleKind::ESNext {
+                        let target_module_kind =
+                            self.emit_module_format_of_file(file.as_source_file_p());
+                        if usage_mode == ModuleKind::ESNext
+                            && ModuleKind::ES2015 <= target_module_kind
+                            && target_module_kind <= ModuleKind::ESNext
+                        {
                             return false;
                         }
                     }
@@ -2597,13 +3433,28 @@ impl Checker {
         // Declaration files (and ambient modules)
         if file.is_none() || file.unwrap().as_source_file().is_declaration_file() {
             // Definitely cannot have a synthetic default if they have a syntactic default member specified
-            let default_export_symbol = self.resolve_export_by_name(module_symbol, InternalSymbolNameDefault, None /*sourceNode*/, true /*dontResolveAlias*/); // Dont resolve alias because we want the immediately exported symbol's declaration
-            if default_export_symbol.is_some_and(|s| s.declarations().iter().any(|&d| is_syntactic_default(d))) {
+            let default_export_symbol = self.resolve_export_by_name(
+                module_symbol,
+                InternalSymbolNameDefault,
+                None, /*sourceNode*/
+                true, /*dontResolveAlias*/
+            ); // Dont resolve alias because we want the immediately exported symbol's declaration
+            if default_export_symbol
+                .is_some_and(|s| s.declarations().iter().any(|&d| is_syntactic_default(d)))
+            {
                 return false;
             }
             // It _might_ still be incorrect to assume there is no __esModule marker on the import at runtime, even if there is no `default` member
             // So we check a bit more,
-            if self.resolve_export_by_name(module_symbol, "__esModule", None /*sourceNode*/, dont_resolve_alias).is_some() {
+            if self
+                .resolve_export_by_name(
+                    module_symbol,
+                    "__esModule",
+                    None, /*sourceNode*/
+                    dont_resolve_alias,
+                )
+                .is_some()
+            {
                 // If there is an `__esModule` specified in the declaration (meaning someone explicitly added it or wrote it in their code),
                 // it definitely is a module and does not have a synthetic default
                 return false;
@@ -2622,19 +3473,38 @@ impl Checker {
         // JS files have a synthetic default if they do not contain ES2015+ module syntax (export = is not valid in js) _and_ do not have an __esModule marker
         let external_module_indicator = file.as_source_file().external_module_indicator();
         (external_module_indicator.is_none() || external_module_indicator == Some(file))
-            && self.resolve_export_by_name(module_symbol, "__esModule", None /*sourceNode*/, dont_resolve_alias).is_none()
+            && self
+                .resolve_export_by_name(
+                    module_symbol,
+                    "__esModule",
+                    None, /*sourceNode*/
+                    dont_resolve_alias,
+                )
+                .is_none()
     }
 
     // checker.go:15120
-    pub(crate) fn get_emit_syntax_for_module_specifier_expression(&self, usage: P<Node>) -> ModuleKind {
+    pub(crate) fn get_emit_syntax_for_module_specifier_expression(
+        &self,
+        usage: P<Node>,
+    ) -> ModuleKind {
         if ast::is_string_literal_like(usage) {
-            return self.program.get_emit_syntax_for_usage_location(ast::get_source_file_of_node(usage).unwrap(), usage);
+            return self.program.get_emit_syntax_for_usage_location(
+                ast::get_source_file_of_node(usage).unwrap(),
+                usage,
+            );
         }
         ModuleKind::None
     }
 
     // checker.go:15127
-    pub(crate) fn error_no_module_member_symbol(&mut self, module_symbol: P<Symbol>, target_symbol: P<Symbol>, node: P<Node>, name: P<Node>) {
+    pub(crate) fn error_no_module_member_symbol(
+        &mut self,
+        module_symbol: P<Symbol>,
+        target_symbol: P<Symbol>,
+        node: P<Node>,
+        name: P<Node>,
+    ) {
         if self.compiler_options.no_check.is_true() {
             return;
         }
@@ -2646,9 +3516,17 @@ impl Checker {
         }
         if let Some(suggestion) = suggestion {
             let suggestion_name = self.symbol_to_string(suggestion);
-            let diagnostic = self.error(Some(name), &diagnostics::X_0_has_no_exported_member_named_1_Did_you_mean_2, &[&module_name, &declaration_name, &suggestion_name]);
+            let diagnostic = self.error(
+                Some(name),
+                &diagnostics::X_0_has_no_exported_member_named_1_Did_you_mean_2,
+                &[&module_name, &declaration_name, &suggestion_name],
+            );
             if let Some(value_declaration) = suggestion.value_declaration() {
-                diagnostic.add_related_info(create_diagnostic_for_node(Some(value_declaration), &diagnostics::X_0_is_declared_here, &[&suggestion_name]));
+                diagnostic.add_related_info(create_diagnostic_for_node(
+                    Some(value_declaration),
+                    &diagnostics::X_0_is_declared_here,
+                    &[&suggestion_name],
+                ));
             }
         } else if lookup_export(module_symbol, InternalSymbolNameDefault).is_some() {
             self.error(Some(name), &diagnostics::Module_0_has_no_exported_member_1_Did_you_mean_to_use_import_1_from_0_instead, &[&module_name, &declaration_name]);
@@ -2658,53 +3536,95 @@ impl Checker {
     }
 
     // checker.go:15152
-    pub(crate) fn report_non_exported_member(&mut self, name: P<Node>, declaration_name: &str, module_symbol: P<Symbol>, module_name: &str) {
+    pub(crate) fn report_non_exported_member(
+        &mut self,
+        name: P<Node>,
+        declaration_name: &str,
+        module_symbol: P<Symbol>,
+        module_name: &str,
+    ) {
         let mut local_symbol: Option<P<Symbol>> = None;
         if let Some(locals) = module_symbol.value_declaration().unwrap().locals() {
             local_symbol = locals.lookup(name.text());
         }
         let exports = module_symbol.exports();
         if let Some(local_symbol) = local_symbol {
-            if let Some(exported_equals_symbol) = exports.and_then(|e| e.lookup(InternalSymbolNameExportEquals)) {
-                if self.get_symbol_if_same_reference(exported_equals_symbol, local_symbol).is_some() {
-                    self.report_invalid_import_equals_export_member(name, declaration_name, module_name);
+            if let Some(exported_equals_symbol) =
+                exports.and_then(|e| e.lookup(InternalSymbolNameExportEquals))
+            {
+                if self.get_symbol_if_same_reference(exported_equals_symbol, local_symbol).is_some()
+                {
+                    self.report_invalid_import_equals_export_member(
+                        name,
+                        declaration_name,
+                        module_name,
+                    );
                 } else {
-                    self.error(Some(name), &diagnostics::Module_0_has_no_exported_member_1, &[&module_name, &declaration_name]);
+                    self.error(
+                        Some(name),
+                        &diagnostics::Module_0_has_no_exported_member_1,
+                        &[&module_name, &declaration_name],
+                    );
                 }
             } else {
                 // Go's findInMap over the exports map (iteration order is unspecified in Go).
                 let mut exported_symbol: Option<P<Symbol>> = None;
                 if let Some(exports) = exports {
-                    if let Some(symbol) =
-                        exports.entries().into_iter().find_map(|(_, symbol)| self.get_symbol_if_same_reference(symbol, local_symbol).map(|_| symbol))
-                    {
+                    if let Some(symbol) = exports.entries().into_iter().find_map(|(_, symbol)| {
+                        self.get_symbol_if_same_reference(symbol, local_symbol).map(|_| symbol)
+                    }) {
                         exported_symbol = Some(symbol);
                     }
                 }
                 let diagnostic = if let Some(exported_symbol) = exported_symbol {
                     let s = self.symbol_to_string(exported_symbol);
-                    self.error(Some(name), &diagnostics::Module_0_declares_1_locally_but_it_is_exported_as_2, &[&module_name, &declaration_name, &s])
+                    self.error(
+                        Some(name),
+                        &diagnostics::Module_0_declares_1_locally_but_it_is_exported_as_2,
+                        &[&module_name, &declaration_name, &s],
+                    )
                 } else {
-                    self.error(Some(name), &diagnostics::Module_0_declares_1_locally_but_it_is_not_exported, &[&module_name, &declaration_name])
+                    self.error(
+                        Some(name),
+                        &diagnostics::Module_0_declares_1_locally_but_it_is_not_exported,
+                        &[&module_name, &declaration_name],
+                    )
                 };
                 let declarations = local_symbol.declarations();
                 for (i, &decl) in declarations.iter().enumerate() {
                     diagnostic.add_related_info(create_diagnostic_for_node(
                         Some(decl),
-                        if i == 0 { &diagnostics::X_0_is_declared_here } else { &diagnostics::X_and_here },
+                        if i == 0 {
+                            &diagnostics::X_0_is_declared_here
+                        } else {
+                            &diagnostics::X_and_here
+                        },
                         &[&declaration_name],
                     ));
                 }
             }
         } else {
-            self.error(Some(name), &diagnostics::Module_0_has_no_exported_member_1, &[&module_name, &declaration_name]);
+            self.error(
+                Some(name),
+                &diagnostics::Module_0_has_no_exported_member_1,
+                &[&module_name, &declaration_name],
+            );
         }
     }
 
     // checker.go:15184
-    pub(crate) fn report_invalid_import_equals_export_member(&mut self, name: P<Node>, declaration_name: &str, module_name: &str) {
+    pub(crate) fn report_invalid_import_equals_export_member(
+        &mut self,
+        name: P<Node>,
+        declaration_name: &str,
+        module_name: &str,
+    ) {
         if self.module_kind >= ModuleKind::ES2015 {
-            self.error(Some(name), &diagnostics::X_0_can_only_be_imported_by_using_a_default_import, &[&declaration_name]);
+            self.error(
+                Some(name),
+                &diagnostics::X_0_can_only_be_imported_by_using_a_default_import,
+                &[&declaration_name],
+            );
         } else if ast::is_in_js_file(name) {
             self.error(Some(name), &diagnostics::X_0_can_only_be_imported_by_using_a_require_call_or_by_using_a_default_import, &[&declaration_name]);
         } else {
@@ -2717,15 +3637,31 @@ impl Checker {
     }
 
     // checker.go:15194
-    pub(crate) fn get_target_of_export_specifier(&mut self, node: P<Node>, meaning: SymbolFlags, dont_resolve_alias: bool) -> Option<P<Symbol>> {
+    pub(crate) fn get_target_of_export_specifier(
+        &mut self,
+        node: P<Node>,
+        meaning: SymbolFlags,
+        dont_resolve_alias: bool,
+    ) -> Option<P<Symbol>> {
         let name = node.property_name_or_name().unwrap();
         if ast::module_export_name_is_default(name) {
             let specifier = Self::get_module_specifier_for_import_or_export(node);
             if let Some(specifier) = specifier {
-                let attributes_type = self.get_type_from_import_attributes(ast::get_import_attributes(node.parent().unwrap().parent().unwrap()));
-                let module_symbol = self.resolve_external_module_name(node, specifier, false /*ignoreErrors*/, attributes_type);
+                let attributes_type = self.get_type_from_import_attributes(
+                    ast::get_import_attributes(node.parent().unwrap().parent().unwrap()),
+                );
+                let module_symbol = self.resolve_external_module_name(
+                    node,
+                    specifier,
+                    false, /*ignoreErrors*/
+                    attributes_type,
+                );
                 if let Some(module_symbol) = module_symbol {
-                    return self.get_target_of_module_default(module_symbol, node, dont_resolve_alias);
+                    return self.get_target_of_module_default(
+                        module_symbol,
+                        node,
+                        dont_resolve_alias,
+                    );
                 }
             }
         }
@@ -2735,7 +3671,13 @@ impl Checker {
         } else if ast::is_string_literal(name) {
             None
         } else {
-            self.resolve_entity_name(name, meaning, false /*ignoreErrors*/, dont_resolve_alias, None /*location*/)
+            self.resolve_entity_name(
+                name,
+                meaning,
+                false, /*ignoreErrors*/
+                dont_resolve_alias,
+                None, /*location*/
+            )
         };
         self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
         resolved
@@ -2758,7 +3700,8 @@ impl Checker {
 
     // checker.go:15233
     pub(crate) fn get_target_of_binary_expression(&mut self, node: P<Node>) -> Option<P<Symbol>> {
-        let resolved = self.get_target_of_alias_like_expression(node.as_binary_expression().right());
+        let resolved =
+            self.get_target_of_alias_like_expression(node.as_binary_expression().right());
         self.mark_symbol_of_alias_declaration_if_type_only(Some(node), None);
         resolved
     }

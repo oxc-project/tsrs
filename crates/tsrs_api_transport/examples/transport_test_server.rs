@@ -9,7 +9,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 use tsrs_api_transport::callbackfs::{CallbackConfig, CallbackFs};
-use tsrs_api_transport::{serve, ApiError, Caller, Handler, RequestContext, Response, ServeOptions};
+use tsrs_api_transport::{
+    ApiError, Caller, Handler, RequestContext, Response, ServeOptions, serve,
+};
 use tsrs_vfs::FS;
 
 struct TestHandler {
@@ -58,9 +60,8 @@ impl TestHandler {
             "stat" => match fs.stat(&p.path) {
                 None => serde_json::Value::Null,
                 Some(info) => {
-                    let mtime_ms = info
-                        .mod_time
-                        .map(|t| match t.duration_since(std::time::UNIX_EPOCH) {
+                    let mtime_ms =
+                        info.mod_time.map(|t| match t.duration_since(std::time::UNIX_EPOCH) {
                             Ok(d) => d.as_millis() as i64,
                             Err(e) => -(e.duration().as_millis() as i64),
                         });
@@ -76,11 +77,20 @@ impl TestHandler {
 }
 
 impl Handler for TestHandler {
-    fn handle_request(&self, cx: &RequestContext, method: &str, params: &[u8]) -> Result<Response, ApiError> {
+    fn handle_request(
+        &self,
+        cx: &RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<Response, ApiError> {
         match method {
             // Session.HandleRequest: echo is raw binary under msgpack, the JSON params otherwise.
             "echo" if !self.is_async => Ok(Response::Binary(params.to_vec())),
-            "echo" => Ok(if params.is_empty() { Response::null() } else { Response::Json(params.to_vec()) }),
+            "echo" => Ok(if params.is_empty() {
+                Response::null()
+            } else {
+                Response::Json(params.to_vec())
+            }),
             "ping" => Response::json("pong"),
             "initialize" => Response::json(&serde_json::json!({
                 "useCaseSensitiveFileNames": self.fs.use_case_sensitive_file_names(),
@@ -109,11 +119,22 @@ impl Handler for TestHandler {
                     let method_json = serde_json::to_string(&item.method).unwrap();
                     match self.handle_request(cx, &item.method, p) {
                         Ok(Response::Json(json)) => {
-                            write!(out, "{{\"method\":{method_json},\"result\":{}}}", String::from_utf8_lossy(&json)).unwrap();
+                            write!(
+                                out,
+                                "{{\"method\":{method_json},\"result\":{}}}",
+                                String::from_utf8_lossy(&json)
+                            )
+                            .unwrap();
                         }
-                        Ok(Response::Binary(_)) => return Err(ApiError::internal("binary result in batch")),
-                        Err(e) => write!(out, "{{\"method\":{method_json},\"result\":null,\"error\":{}}}",
-                            serde_json::to_string(&e.message).unwrap()).unwrap(),
+                        Ok(Response::Binary(_)) => {
+                            return Err(ApiError::internal("binary result in batch"));
+                        }
+                        Err(e) => write!(
+                            out,
+                            "{{\"method\":{method_json},\"result\":null,\"error\":{}}}",
+                            serde_json::to_string(&e.message).unwrap()
+                        )
+                        .unwrap(),
                     }
                 }
                 out.push_str("]}");
@@ -130,9 +151,16 @@ impl Handler for TestHandler {
                 }
                 let ps = serde_json::from_slice::<Ops>(params).map_err(bad)?.ops;
                 let results: Vec<serde_json::Value> = std::thread::scope(|s| {
-                    #[expect(clippy::needless_collect, reason = "Spawn all scoped calls before joining any handle so this fixture exercises parallel callbacks.")]
-                    let handles: Vec<_> = ps.iter().map(|p| s.spawn(move || self.fs_op(p))).collect();
-                    handles.into_iter().map(|h| h.join().unwrap_or(serde_json::Value::String("<panicked>".into()))).collect()
+                    #[expect(
+                        clippy::needless_collect,
+                        reason = "Spawn all scoped calls before joining any handle so this fixture exercises parallel callbacks."
+                    )]
+                    let handles: Vec<_> =
+                        ps.iter().map(|p| s.spawn(move || self.fs_op(p))).collect();
+                    handles
+                        .into_iter()
+                        .map(|h| h.join().unwrap_or(serde_json::Value::String("<panicked>".into())))
+                        .collect()
                 });
                 Response::json(&results)
             }
@@ -146,7 +174,9 @@ impl Handler for TestHandler {
                 Response::json(&serde_json::json!({"raw": text}))
             }
             "test/depth" => Response::json(&cx.depth),
-            "test/fail" => Err(ApiError::internal("api: client error: requested failure \u{1F600}")),
+            "test/fail" => {
+                Err(ApiError::internal("api: client error: requested failure \u{1F600}"))
+            }
             "test/panic" => panic!("requested panic \u{1F600}"),
             "test/badJson" => Ok(Response::Json(b"{not json".to_vec())),
             "test/exit" => std::process::exit(3),
@@ -161,7 +191,9 @@ impl Handler for TestHandler {
                 }
                 Response::json(&ms)
             }
-            _ => Err(ApiError::internal(format!("api: invalid request: unknown method {method:?}"))),
+            _ => {
+                Err(ApiError::internal(format!("api: invalid request: unknown method {method:?}")))
+            }
         }
     }
 }
@@ -182,7 +214,11 @@ fn main() {
             "--cwd" => cwd = args.next().unwrap_or_default(),
             "--pipe" => pipe = args.next(),
             _ if arg.starts_with("--callbacks=") => {
-                callbacks = arg["--callbacks=".len()..].split(',').filter(|s| !s.is_empty()).map(String::from).collect();
+                callbacks = arg["--callbacks=".len()..]
+                    .split(',')
+                    .filter(|s| !s.is_empty())
+                    .map(String::from)
+                    .collect();
             }
             _ if arg.starts_with("--useCaseSensitiveFileNames=") => {
                 case_sensitive = Some(&arg["--useCaseSensitiveFileNames=".len()..] == "true");
@@ -203,7 +239,8 @@ fn main() {
     let mut options = ServeOptions::new(is_async);
     options.collect_timing = timing;
     let result = serve(pipe.as_deref().map(std::path::Path::new), options, |caller| {
-        let fs = Arc::new(CallbackFs::new(Arc::new(tsrs_vfs::osvfs::fs()), &config, case_sensitive));
+        let fs =
+            Arc::new(CallbackFs::new(Arc::new(tsrs_vfs::osvfs::fs()), &config, case_sensitive));
         fs.set_connection(std::sync::Arc::clone(&caller));
         Arc::new(TestHandler { is_async, fs, caller, cwd })
     });

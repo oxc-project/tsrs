@@ -1,10 +1,10 @@
 use std::collections::hash_map::Entry;
 
 use rustc_hash::FxHashMap;
+use tsrs_core::UTF16Offset;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::{self, Value};
 use tsrs_core::tspath::{self, ComparePathsOptions};
-use tsrs_core::UTF16Offset;
 
 // generator.go:14
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -113,8 +113,14 @@ impl RawSourceMap {
         m.insert("version".to_string(), Value::Number(self.version as f64));
         m.insert("file".to_string(), Value::String(self.file.clone()));
         m.insert("sourceRoot".to_string(), Value::String(self.source_root.clone()));
-        m.insert("sources".to_string(), Value::Array(self.sources.iter().map(|s| Value::String(s.clone())).collect()));
-        m.insert("names".to_string(), Value::Array(self.names.iter().map(|s| Value::String(s.clone())).collect()));
+        m.insert(
+            "sources".to_string(),
+            Value::Array(self.sources.iter().map(|s| Value::String(s.clone())).collect()),
+        );
+        m.insert(
+            "names".to_string(),
+            Value::Array(self.names.iter().map(|s| Value::String(s.clone())).collect()),
+        );
         m.insert("mappings".to_string(), Value::String(self.mappings.clone()));
         if let Some(sources_content) = &self.sources_content {
             m.insert(
@@ -138,14 +144,18 @@ impl RawSourceMap {
             match v {
                 Value::Null => Ok(String::new()),
                 Value::String(s) => Ok(s.clone()),
-                _ => Err(format!("json: cannot unmarshal into Go RawSourceMap.{name} of type string")),
+                _ => Err(format!(
+                    "json: cannot unmarshal into Go RawSourceMap.{name} of type string"
+                )),
             }
         }
         fn strings(name: &str, v: &Value) -> Result<Vec<String>, String> {
             match v {
                 Value::Null => Ok(Vec::new()),
                 Value::Array(items) => items.iter().map(|item| string(name, item)).collect(),
-                _ => Err(format!("json: cannot unmarshal into Go RawSourceMap.{name} of type []string")),
+                _ => Err(format!(
+                    "json: cannot unmarshal into Go RawSourceMap.{name} of type []string"
+                )),
             }
         }
 
@@ -153,7 +163,10 @@ impl RawSourceMap {
         let members = match value {
             Value::Null => return Ok(sm),
             Value::Object(members) => members,
-            _ => return Err("json: cannot unmarshal into Go value of type sourcemap.RawSourceMap".to_string()),
+            _ => {
+                return Err("json: cannot unmarshal into Go value of type sourcemap.RawSourceMap"
+                    .to_string());
+            }
         };
         for (name, v) in members {
             match name.as_str() {
@@ -193,7 +206,12 @@ impl RawSourceMap {
 }
 
 // generator.go:66
-pub fn new_generator(file: &str, source_root: &str, sources_directory_path: &str, options: ComparePathsOptions) -> Generator {
+pub fn new_generator(
+    file: &str,
+    source_root: &str,
+    sources_directory_path: &str,
+    options: ComparePathsOptions,
+) -> Generator {
     Generator {
         file: file.to_string(),
         source_root: source_root.to_string(),
@@ -219,8 +237,6 @@ impl Generator {
             true, /*isAbsolutePathAnUrl*/
             &self.path_options,
         );
-
-
 
         match self.source_to_source_index_map.entry(source) {
             Entry::Occupied(entry) => *entry.get(),
@@ -256,7 +272,9 @@ impl Generator {
     // generator.go:113
     // Declares a name in the source map, returning the index of the name
     pub fn add_name(&mut self, name: &str) -> NameIndex {
-        if let Some(&name_index) = self.name_to_name_index_map.get(name) { name_index } else {
+        if let Some(&name_index) = self.name_to_name_index_map.get(name) {
+            name_index
+        } else {
             let name_index = NameIndex::Index(self.names.len() as u32);
             self.names.push(name.to_string());
             self.name_to_name_index_map.insert(name.to_string(), name_index);
@@ -284,7 +302,8 @@ impl Generator {
     ) -> bool {
         self.pending_source_index == source_index
             && (self.pending_source_line > source_line
-                || self.pending_source_line == source_line && self.pending_source_character > source_character)
+                || self.pending_source_line == source_line
+                    && self.pending_source_character > source_character)
     }
 
     // generator.go:141
@@ -354,7 +373,10 @@ impl Generator {
             self.last_generated_character = 0;
         } else {
             // panic rather than error as an invariant has been violated
-            assert!(self.last_generated_line == self.pending_generated_line, "generatedLine cannot backtrack");
+            assert!(
+                self.last_generated_line == self.pending_generated_line,
+                "generatedLine cannot backtrack"
+            );
             // Emit comma to separate the entry
             if self.has_last {
                 self.append_mapping_char_code(',');
@@ -465,7 +487,10 @@ impl Generator {
         if source_index as usize >= self.sources.len() {
             return Err("sourceIndex is out of range".to_string());
         }
-        if self.has_pending && !self.is_new_generated_position(generated_line, generated_character) && !self.has_pending_source {
+        if self.has_pending
+            && !self.is_new_generated_position(generated_line, generated_character)
+            && !self.has_pending_source
+        {
             return Ok(());
         }
         self.add_mapping(
@@ -502,18 +527,16 @@ impl Generator {
         if name_index as usize >= self.names.len() {
             return Err("nameIndex is out of range".to_string());
         }
-        if self.has_pending && !self.is_new_generated_position(generated_line, generated_character) && !self.has_pending_source {
+        if self.has_pending
+            && !self.is_new_generated_position(generated_line, generated_character)
+            && !self.has_pending_source
+        {
             return Ok(());
         }
         self.add_mapping(
             generated_line,
             generated_character,
-            Some((
-                source_index,
-                source_line,
-                source_character,
-                Some(name_index),
-            )),
+            Some((source_index, source_line, source_character, Some(name_index))),
         );
         Ok(())
     }

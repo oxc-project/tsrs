@@ -9,9 +9,10 @@ use rustc_hash::FxHashMap;
 use tsrs_core::context::Context;
 use tsrs_core::json::{self, Value};
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{alloc_str, CompilerOptions, ModuleKind, ResolutionMode, P};
+use tsrs_core::{CompilerOptions, ModuleKind, P, ResolutionMode, alloc_str};
 use tsrs_module::{
-    DiagAndArgs, ResolutionData, ResolutionHost, ResolvedModule, ResolvedProjectReference, ResolvedTypeReferenceDirective, Resolver, ResolverOptions,
+    DiagAndArgs, ResolutionData, ResolutionHost, ResolvedModule, ResolvedProjectReference,
+    ResolvedTypeReferenceDirective, Resolver, ResolverOptions,
 };
 use tsrs_project::ModuleResolverFactory;
 use tsrs_tsoptions::gojson;
@@ -19,7 +20,7 @@ use tsrs_vfs::FS;
 
 use crate::handler::{ApiError, ApiResult, ClientConn};
 use crate::session::Session;
-use crate::wire::{b, s, strings, DocumentIdentifier, Obj, Params};
+use crate::wire::{DocumentIdentifier, Obj, Params, b, s, strings};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 struct StaticKey {
@@ -37,11 +38,24 @@ pub struct StaticResolutions {
 }
 
 impl StaticResolutions {
-    fn lookup(&self, module_name: &str, containing_directory: &str, mode: ResolutionMode) -> Option<P<ResolvedModule>> {
-        let directory = tspath::to_path(containing_directory, &self.current_directory, self.use_case_sensitive_file_names);
+    fn lookup(
+        &self,
+        module_name: &str,
+        containing_directory: &str,
+        mode: ResolutionMode,
+    ) -> Option<P<ResolvedModule>> {
+        let directory = tspath::to_path(
+            containing_directory,
+            &self.current_directory,
+            self.use_case_sensitive_file_names,
+        );
         let m = module_name.to_string();
         let keys = [
-            StaticKey { module_name: m.clone(), directory: Some(directory.clone()), mode: Some(mode) },
+            StaticKey {
+                module_name: m.clone(),
+                directory: Some(directory.clone()),
+                mode: Some(mode),
+            },
             StaticKey { module_name: m.clone(), directory: Some(directory), mode: None },
             StaticKey { module_name: m.clone(), directory: None, mode: Some(mode) },
             StaticKey { module_name: m, directory: None, mode: None },
@@ -68,7 +82,9 @@ impl Resolver for StaticResolver {
         mode: ResolutionMode,
         redirected: Option<&dyn ResolvedProjectReference>,
     ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
-        if let Some(r) = self.resolutions.lookup(module_name, &tspath::get_directory_path(containing_file), mode) {
+        if let Some(r) =
+            self.resolutions.lookup(module_name, &tspath::get_directory_path(containing_file), mode)
+        {
             return Ok((r, Vec::new()));
         }
         if !self.resolutions.fallback_to_resolver {
@@ -76,7 +92,12 @@ impl Resolver for StaticResolver {
         }
         self.fallback.resolve_module_name(module_name, containing_file, mode, redirected)
     }
-    fn resolve_module_name_from_directory(&self, module_name: &str, dir: &str, mode: ResolutionMode) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
+    fn resolve_module_name_from_directory(
+        &self,
+        module_name: &str,
+        dir: &str,
+        mode: ResolutionMode,
+    ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
         if let Some(r) = self.resolutions.lookup(module_name, dir, mode) {
             return Ok((r, Vec::new()));
         }
@@ -133,7 +154,12 @@ struct ResolverOptionsTemplate {
 
 impl ResolverOptionsTemplate {
     fn from(o: &ResolverOptions) -> Self {
-        ResolverOptionsTemplate { host: o.host, typings_location: o.typings_location.clone(), project_name: o.project_name.clone(), extra_extensions: o.extra_extensions.clone() }
+        ResolverOptionsTemplate {
+            host: o.host,
+            typings_location: o.typings_location.clone(),
+            project_name: o.project_name.clone(),
+            extra_extensions: o.extra_extensions.clone(),
+        }
     }
     fn with_options(&self, compiler_options: P<CompilerOptions>) -> ResolverOptions {
         let mut o = ResolverOptions::new(self.host, compiler_options);
@@ -157,7 +183,12 @@ impl Resolver for SharedResolver {
     ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
         self.0.resolve_module_name(a, b, c, d)
     }
-    fn resolve_module_name_from_directory(&self, a: &str, b: &str, c: ResolutionMode) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
+    fn resolve_module_name_from_directory(
+        &self,
+        a: &str,
+        b: &str,
+        c: ResolutionMode,
+    ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
         self.0.resolve_module_name_from_directory(a, b, c)
     }
     fn resolve_type_reference_directive(
@@ -185,21 +216,34 @@ struct CallbackResolver {
 }
 
 impl CallbackResolver {
-    fn resolve(&self, module_name: &str, containing_directory: &str, mode: ResolutionMode) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
+    fn resolve(
+        &self,
+        module_name: &str,
+        containing_directory: &str,
+        mode: ResolutionMode,
+    ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
         let params = Obj::new()
             .set("moduleName", s(module_name))
             .set("containingDirectory", s(containing_directory))
             .set("resolutionMode", Value::Number(mode.value() as f64))
             .set_opt("snapshot", (self.snapshot != 0).then(|| Value::Number(self.snapshot as f64)))
-            .set_opt("inProgressSnapshot", (self.context_id != 0).then(|| Value::Number(self.context_id as f64)))
+            .set_opt(
+                "inProgressSnapshot",
+                (self.context_id != 0).then(|| Value::Number(self.context_id as f64)),
+            )
             .build();
         let text = json::marshal(&params)?;
-        let result = self.conn.call(&self.registration.callback, &text).map_err(|e| format!("resolveModuleName callback failed: {e}"))?;
+        let result = self
+            .conn
+            .call(&self.registration.callback, &text)
+            .map_err(|e| format!("resolveModuleName callback failed: {e}"))?;
         if result.is_empty() || result == "null" {
             return Ok((unresolved(), Vec::new()));
         }
-        let v = json::unmarshal(&result).map_err(|e| format!("invalid resolveModuleName callback result: {e}"))?;
-        let r = static_resolution_to_resolved_module(&v, &self.current_directory).map_err(|e| format!("invalid resolveModuleName callback result: {e}"))?;
+        let v = json::unmarshal(&result)
+            .map_err(|e| format!("invalid resolveModuleName callback result: {e}"))?;
+        let r = static_resolution_to_resolved_module(&v, &self.current_directory)
+            .map_err(|e| format!("invalid resolveModuleName callback result: {e}"))?;
         Ok((r, Vec::new()))
     }
 }
@@ -214,7 +258,12 @@ impl Resolver for CallbackResolver {
     ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
         self.resolve(module_name, &tspath::get_directory_path(containing_file), mode)
     }
-    fn resolve_module_name_from_directory(&self, module_name: &str, dir: &str, mode: ResolutionMode) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
+    fn resolve_module_name_from_directory(
+        &self,
+        module_name: &str,
+        dir: &str,
+        mode: ResolutionMode,
+    ) -> Result<(P<ResolvedModule>, Vec<DiagAndArgs>), String> {
         self.resolve(module_name, dir, mode)
     }
     fn resolve_type_reference_directive(
@@ -253,7 +302,8 @@ fn static_resolution_to_resolved_module(v: &Value, cwd: &str) -> ApiResult<P<Res
             peer_dependencies: alloc_str(pkg.str("peerDependencies")?),
         };
     }
-    let original_for_check = if original_path.is_empty() { &resolved_file_name } else { &original_path };
+    let original_for_check =
+        if original_path.is_empty() { &resolved_file_name } else { &original_path };
     r.is_external_library_import = original_for_check.contains("/node_modules/");
     r.extension = tspath::try_get_extension_from_path(&resolved_file_name);
     r.resolved_file_name = alloc_str(&resolved_file_name);
@@ -269,7 +319,9 @@ fn mode_from(v: &Value, what: &str) -> ApiResult<Option<ResolutionMode>> {
                 0 => ModuleKind::None,
                 1 => ModuleKind::CommonJS,
                 99 => ModuleKind::ESNext,
-                x => return Err(ApiError::client(format!("{what} has invalid resolutionMode {x}"))),
+                x => {
+                    return Err(ApiError::client(format!("{what} has invalid resolutionMode {x}")));
+                }
             };
             Ok(Some(mode))
         }
@@ -317,7 +369,11 @@ struct Factory {
 }
 
 impl ModuleResolverFactory for Factory {
-    fn new_resolver(&self, _ctx: &Context, mut options: ResolverOptions) -> (Box<dyn Resolver>, Box<dyn FnOnce() + Send>) {
+    fn new_resolver(
+        &self,
+        _ctx: &Context,
+        mut options: ResolverOptions,
+    ) -> (Box<dyn Resolver>, Box<dyn FnOnce() + Send>) {
         options.compiler_options = self.registration.compiler_options;
         let template = ResolverOptionsTemplate::from(&options);
         let mut fallback: Box<dyn Resolver> = Box::new(tsrs_module::new_resolver(options));
@@ -330,10 +386,17 @@ impl ModuleResolverFactory for Factory {
         let shared: Arc<dyn Resolver> = Arc::from(fallback);
         let (context_id, release): (u64, Box<dyn FnOnce() + Send>) = match self.session.upgrade() {
             Some(session) => {
-                let id = session.module_resolvers.next_context_id.fetch_add(1, Ordering::SeqCst) + 1;
+                let id =
+                    session.module_resolvers.next_context_id.fetch_add(1, Ordering::SeqCst) + 1;
                 let mut resolvers = FxHashMap::default();
                 resolvers.insert(self.registration.id, Arc::clone(&shared));
-                session.module_resolvers.contexts.lock().unwrap().insert(id, Arc::new(ProgramResolutionContext { options: template, resolvers: Mutex::new(resolvers) }));
+                session.module_resolvers.contexts.lock().unwrap().insert(
+                    id,
+                    Arc::new(ProgramResolutionContext {
+                        options: template,
+                        resolvers: Mutex::new(resolvers),
+                    }),
+                );
                 let weak = Weak::clone(&self.session);
                 (
                     id,
@@ -355,7 +418,8 @@ impl ModuleResolverFactory for Factory {
             fallback: Box::new(SharedResolver(shared)),
         });
         if let Some(res) = &self.registration.resolutions {
-            resolver = Box::new(StaticResolver { fallback: resolver, resolutions: Arc::clone(res) });
+            resolver =
+                Box::new(StaticResolver { fallback: resolver, resolutions: Arc::clone(res) });
         }
         (resolver, release)
     }
@@ -378,7 +442,10 @@ impl ResolutionHost for FsHost {
 
 impl Session {
     /// Go `compileModuleResolutionSpec`.
-    fn compile_module_resolution_spec(&self, v: &Value) -> ApiResult<Option<Arc<StaticResolutions>>> {
+    fn compile_module_resolution_spec(
+        &self,
+        v: &Value,
+    ) -> ApiResult<Option<Arc<StaticResolutions>>> {
         if matches!(v, Value::Null) {
             return Ok(None);
         }
@@ -388,7 +455,11 @@ impl Session {
         let fallback = match p.str("fallback")? {
             "resolve" => true,
             "unresolved" => false,
-            other => return Err(ApiError::client(format!("invalid module resolution fallback {other:?}"))),
+            other => {
+                return Err(ApiError::client(format!(
+                    "invalid module resolution fallback {other:?}"
+                )));
+            }
         };
         let mut entries = FxHashMap::default();
         for (i, entry) in p.array("entries")?.iter().enumerate() {
@@ -398,14 +469,18 @@ impl Session {
             let e = Params(entry);
             let module_name = e.str("moduleName")?.to_string();
             if module_name.is_empty() {
-                return Err(ApiError::client(format!("module resolution entry {i} has an empty moduleName")));
+                return Err(ApiError::client(format!(
+                    "module resolution entry {i} has an empty moduleName"
+                )));
             }
             if !e.has("result") {
                 return Err(ApiError::client(format!("module resolution entry {i} has no result")));
             }
             let directory = if e.has("containingDirectory") {
-                let d = DocumentIdentifier::parse(e.get("containingDirectory"), "containingDirectory")?;
-                let dir = tspath::get_normalized_absolute_path(&d.to_absolute_file_name(&cwd), &cwd);
+                let d =
+                    DocumentIdentifier::parse(e.get("containingDirectory"), "containingDirectory")?;
+                let dir =
+                    tspath::get_normalized_absolute_path(&d.to_absolute_file_name(&cwd), &cwd);
                 Some(tspath::to_path(&dir, &cwd, self.use_case_sensitive_file_names()))
             } else {
                 None
@@ -414,23 +489,36 @@ impl Session {
             let key = StaticKey { module_name: module_name.clone(), directory, mode };
             match entries.entry(key) {
                 Entry::Occupied(_) => {
-                    return Err(ApiError::client(format!("duplicate static module resolution for {module_name:?}")));
+                    return Err(ApiError::client(format!(
+                        "duplicate static module resolution for {module_name:?}"
+                    )));
                 }
                 Entry::Vacant(entry) => {
                     entry.insert(static_resolution_to_resolved_module(e.get("result"), &cwd)?);
                 }
             }
         }
-        Ok(Some(Arc::new(StaticResolutions { fallback_to_resolver: fallback, entries, current_directory: cwd, use_case_sensitive_file_names: self.use_case_sensitive_file_names() })))
+        Ok(Some(Arc::new(StaticResolutions {
+            fallback_to_resolver: fallback,
+            entries,
+            current_directory: cwd,
+            use_case_sensitive_file_names: self.use_case_sensitive_file_names(),
+        })))
     }
 
     pub(crate) fn handle_create_module_resolver(&self, p: Params) -> ApiResult<Value> {
         p.object()?;
-        let mut options = gojson::compiler_options_from_go_json(p.get("compilerOptions")).map_err(ApiError::invalid_request)?;
+        let mut options = gojson::compiler_options_from_go_json(p.get("compilerOptions"))
+            .map_err(ApiError::invalid_request)?;
         crate::predecode::exact_compiler_options_ints(p.get("compilerOptions"), &mut options);
         let resolutions = self.compile_module_resolution_spec(p.get("moduleResolutions"))?;
         let id = self.module_resolvers.next_id.fetch_add(1, Ordering::SeqCst) + 1;
-        let registration = Arc::new(ModuleResolverRegistration { id, compiler_options: P::new(options), resolutions, callback: p.str("resolveModuleNameCallback")?.to_string() });
+        let registration = Arc::new(ModuleResolverRegistration {
+            id,
+            compiler_options: P::new(options),
+            resolutions,
+            callback: p.str("resolveModuleNameCallback")?.to_string(),
+        });
         self.module_resolvers.registrations.lock().unwrap().insert(id, registration);
         Ok(Value::Number(id as f64))
     }
@@ -445,17 +533,31 @@ impl Session {
     }
 
     fn registration(&self, id: u64) -> ApiResult<Arc<ModuleResolverRegistration>> {
-        self.module_resolvers.registrations.lock().unwrap().get(&id).cloned().ok_or_else(|| ApiError::client(format!("module resolver {id} not found")))
+        self.module_resolvers
+            .registrations
+            .lock()
+            .unwrap()
+            .get(&id)
+            .cloned()
+            .ok_or_else(|| ApiError::client(format!("module resolver {id} not found")))
     }
 
     /// Go `Session.moduleResolverFactory` for `createPrograms[].options.moduleResolver`.
-    pub(crate) fn module_resolver_factory(&self, id: u64) -> ApiResult<(Arc<dyn ModuleResolverFactory>, u64)> {
+    pub(crate) fn module_resolver_factory(
+        &self,
+        id: u64,
+    ) -> ApiResult<(Arc<dyn ModuleResolverFactory>, u64)> {
         let registration = self.registration(id)?;
         let conn = self.connection();
         if !registration.callback.is_empty() && conn.is_none() {
             return Err(ApiError::client("API connection is not initialized"));
         }
-        let factory = Factory { registration, session: self.weak_self(), conn, current_directory: self.current_directory().to_string() };
+        let factory = Factory {
+            registration,
+            session: self.weak_self(),
+            conn,
+            current_directory: self.current_directory().to_string(),
+        };
         Ok((Arc::new(factory), id))
     }
 
@@ -468,7 +570,8 @@ impl Session {
         let mode = mode_from(p.get("resolutionMode"), "request")?.unwrap_or(ModuleKind::None);
         let cwd = self.current_directory().to_string();
         let dir = p.document("containingDirectory")?;
-        let containing_directory = tspath::get_normalized_absolute_path(&dir.to_absolute_file_name(&cwd), &cwd);
+        let containing_directory =
+            tspath::get_normalized_absolute_path(&dir.to_absolute_file_name(&cwd), &cwd);
         let snapshot = p.u64("snapshot")?;
         let in_progress = p.u64("inProgressSnapshot")?;
         if snapshot != 0 && in_progress != 0 {
@@ -481,11 +584,14 @@ impl Session {
         let _sd_pin;
         let mut resolver: Box<dyn Resolver> = if in_progress != 0 {
             let ctx = self.module_resolvers.contexts.lock().unwrap().get(&in_progress).cloned();
-            let ctx = ctx.ok_or_else(|| ApiError::client(format!("in-progress snapshot {in_progress} not found")))?;
+            let ctx = ctx.ok_or_else(|| {
+                ApiError::client(format!("in-progress snapshot {in_progress} not found"))
+            })?;
             let mut resolvers = ctx.resolvers.lock().unwrap();
-            let r = Arc::clone(resolvers
-                .entry(data.id)
-                .or_insert_with(|| Arc::new(tsrs_module::new_resolver(ctx.options.with_options(data.compiler_options))) as Arc<dyn Resolver>));
+            let r = Arc::clone(resolvers.entry(data.id).or_insert_with(|| {
+                Arc::new(tsrs_module::new_resolver(ctx.options.with_options(data.compiler_options)))
+                    as Arc<dyn Resolver>
+            }));
             Box::new(SharedResolver(r))
         } else {
             let fs: Arc<dyn FS> = if snapshot != 0 {
@@ -500,23 +606,49 @@ impl Session {
             owned_host = Some(host);
             // SAFETY: `host` stays alive until reclaimed below, after the resolver is dropped.
             let host_ref: &'static FsHost = unsafe { &*host };
-            Box::new(tsrs_module::new_resolver(ResolverOptions::new(host_ref, data.compiler_options)))
+            Box::new(tsrs_module::new_resolver(ResolverOptions::new(
+                host_ref,
+                data.compiler_options,
+            )))
         };
         if !data.callback.is_empty() {
-            let conn = self.connection().ok_or_else(|| ApiError::client("API connection is not initialized"))?;
-            resolver = Box::new(CallbackResolver { registration: Arc::clone(&data), conn, current_directory: cwd, snapshot, context_id: in_progress, fallback: resolver });
+            let conn = self
+                .connection()
+                .ok_or_else(|| ApiError::client("API connection is not initialized"))?;
+            resolver = Box::new(CallbackResolver {
+                registration: Arc::clone(&data),
+                conn,
+                current_directory: cwd,
+                snapshot,
+                context_id: in_progress,
+                fallback: resolver,
+            });
         }
         if let Some(res) = &data.resolutions {
-            resolver = Box::new(StaticResolver { fallback: resolver, resolutions: Arc::clone(res) });
+            resolver =
+                Box::new(StaticResolver { fallback: resolver, resolutions: Arc::clone(res) });
         }
-        let result = resolver.resolve_module_name_from_directory(module_name, &containing_directory, mode);
+        let result =
+            resolver.resolve_module_name_from_directory(module_name, &containing_directory, mode);
         drop(resolver);
         if let Some(host) = owned_host {
             // SAFETY: allocated above; the only resolver referencing it was dropped.
             drop(unsafe { Box::from_raw(host) });
         }
         let (resolved, trace) = result.map_err(ApiError::internal)?;
-        let trace: Vec<String> = trace.iter().map(|t| tsrs_diagnostics::localize(Some(t.message), tsrs_diagnostics::Key::default(), &t.args)).collect();
-        Ok(Obj::new().set("resolvedModule", resolved_module_response(&resolved)).set_opt("trace", (!trace.is_empty()).then(|| strings(trace))).build())
+        let trace: Vec<String> = trace
+            .iter()
+            .map(|t| {
+                tsrs_diagnostics::localize(
+                    Some(t.message),
+                    tsrs_diagnostics::Key::default(),
+                    &t.args,
+                )
+            })
+            .collect();
+        Ok(Obj::new()
+            .set("resolvedModule", resolved_module_response(&resolved))
+            .set_opt("trace", (!trace.is_empty()).then(|| strings(trace)))
+            .build())
     }
 }

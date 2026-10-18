@@ -7,11 +7,15 @@ use tsrs_core::new_work_group;
 use tsrs_core::tspath::{self, Path};
 use tsrs_ls::lsconv;
 use tsrs_lsproto as lsproto;
-use tsrs_vfs::{cachedvfs, Entries, FileInfo, FS};
+use tsrs_vfs::{Entries, FS, FileInfo, cachedvfs};
 
-use crate::dirty::{self, CloneableMap, Cloneable, FinalizationHooks, Shared, SharedMap, SyncMapEntry, Value};
+use crate::dirty::{
+    self, Cloneable, CloneableMap, FinalizationHooks, Shared, SharedMap, SyncMapEntry, Value,
+};
 use crate::filechange::{FileChangeExpander, FileChangeSummary};
-use crate::overlayfs::{cachedFile, hash_string_128, new_cached_file, FileHandle, LayeredFileSystem, OverlayMap, ToPath};
+use crate::overlayfs::{
+    FileHandle, LayeredFileSystem, OverlayMap, ToPath, cachedFile, hash_string_128, new_cached_file,
+};
 
 pub trait FileHandleSource {
     fn get_file(&self, file_name: &str) -> Option<Arc<dyn FileHandle>>;
@@ -30,8 +34,13 @@ pub(crate) struct cachedLayeredFileSystem {
 }
 
 // snapshotfs.go:38
-pub(crate) fn new_cached_layered_file_system(file_system: Arc<dyn LayeredFileSystem>) -> Arc<dyn LayeredFileSystem> {
-    Arc::new(cachedLayeredFileSystem { fs: cachedvfs::from(Arc::clone(&file_system)), layered: file_system })
+pub(crate) fn new_cached_layered_file_system(
+    file_system: Arc<dyn LayeredFileSystem>,
+) -> Arc<dyn LayeredFileSystem> {
+    Arc::new(cachedLayeredFileSystem {
+        fs: cachedvfs::from(Arc::clone(&file_system)),
+        layered: file_system,
+    })
 }
 
 impl FileHandleSource for cachedLayeredFileSystem {
@@ -211,12 +220,18 @@ fn merge_cached_directory_entries(
     is_cached_file: impl Fn(&Path) -> bool,
     use_case_sensitive_file_names: bool,
 ) -> Entries {
-    let mut entries = Entries { symlinks: directory_entries.symlinks.clone(), ..Default::default() };
+    let mut entries =
+        Entries { symlinks: directory_entries.symlinks.clone(), ..Default::default() };
     let equal_name = |left: &str, right: &str| {
-        tspath::get_canonical_file_name(left, use_case_sensitive_file_names) == tspath::get_canonical_file_name(right, use_case_sensitive_file_names)
+        tspath::get_canonical_file_name(left, use_case_sensitive_file_names)
+            == tspath::get_canonical_file_name(right, use_case_sensitive_file_names)
     };
-    let has_name = |names: &[String], name: &str| names.iter().any(|candidate| equal_name(candidate, name));
-    #[expect(clippy::iter_over_hash_type, reason = "Go ranges the cached entry map too, so cached children are appended in map order there as well")]
+    let has_name =
+        |names: &[String], name: &str| names.iter().any(|candidate| equal_name(candidate, name));
+    #[expect(
+        clippy::iter_over_hash_type,
+        reason = "Go ranges the cached entry map too, so cached children are appended in map order there as well"
+    )]
     for (child_path, child_name) in cached_entries.iter() {
         if let Some(symlinks) = &mut entries.symlinks {
             symlinks.retain(|name| !equal_name(name, child_name));
@@ -233,7 +248,9 @@ fn merge_cached_directory_entries(
         }
     }
     for directory_name in &directory_entries.directories {
-        if !has_name(&entries.files, directory_name) && !has_name(&entries.directories, directory_name) {
+        if !has_name(&entries.files, directory_name)
+            && !has_name(&entries.directories, directory_name)
+        {
             entries.directories.push(directory_name.clone());
         }
     }
@@ -342,7 +359,10 @@ impl snapshotFSBuilder {
         }
 
         if let Some(deleted) = &deleted {
-            #[expect(clippy::iter_over_hash_type, reason = "removes each path from its parent dir and prunes emptied dirs; the end state is order-free; Go ranges the map too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "removes each path from its parent dir and prunes emptied dirs; the end state is order-free; Go ranges the map too"
+            )]
             for path in deleted.keys() {
                 self.on_deleted_file_or_directory(path);
             }
@@ -351,7 +371,10 @@ impl snapshotFSBuilder {
         // Prune deleted symlink paths from realpath alias sets before finalizing,
         // so that empty sets are dropped during finalization.
         if let Some(deleted) = &deleted {
-            #[expect(clippy::iter_over_hash_type, reason = "per-path removal from alias sets; commutes; Go ranges the map too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "per-path removal from alias sets; commutes; Go ranges the map too"
+            )]
             for (deleted_path, deleted_file) in deleted {
                 let Some(deleted_file) = deleted_file else {
                     continue;
@@ -359,7 +382,9 @@ impl snapshotFSBuilder {
                 if deleted_file.realpath_path.0.is_empty() {
                     continue;
                 }
-                if let Some(entry) = self.node_modules_realpath_aliases.load(&deleted_file.realpath_path) {
+                if let Some(entry) =
+                    self.node_modules_realpath_aliases.load(&deleted_file.realpath_path)
+                {
                     entry.locked(&mut |e: &dyn Value<realpathAliasSet>| {
                         e.change(&mut |alias_set: &mut realpathAliasSet| {
                             alias_set.paths.delete(deleted_path);
@@ -372,7 +397,8 @@ impl snapshotFSBuilder {
             }
         }
 
-        let (node_modules_realpath_aliases, aliases_changed) = self.node_modules_realpath_aliases.finalize();
+        let (node_modules_realpath_aliases, aliases_changed) =
+            self.node_modules_realpath_aliases.finalize();
 
         (
             SnapshotFS {
@@ -398,7 +424,12 @@ impl snapshotFSBuilder {
     }
 
     // snapshotfs.go:348
-    fn cache_source_file(&self, file_name: &str, path: &Path, source: &dyn FileHandle) -> Option<Arc<dyn FileHandle>> {
+    fn cache_source_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+        source: &dyn FileHandle,
+    ) -> Option<Arc<dyn FileHandle>> {
         let mut file = new_cached_file(file_name.to_string(), source.content().to_string());
         file.base.hash = source.hash();
         let (entry, loaded) = self.cache_files.load_or_store(path.clone(), Shared::new(file));
@@ -410,9 +441,19 @@ impl snapshotFSBuilder {
     }
 
     // snapshotfs.go:361
-    fn get_cached_file(&self, file_name: &str, path: &Path, force_reload: bool) -> Option<Arc<dyn FileHandle>> {
-        let placeholder = cachedFile { base: crate::overlayfs::fileBase::new(file_name.to_string(), String::new(), 0), needs_reload: true, realpath_path: Path::default() };
-        let (entry, loaded) = self.cache_files.load_or_store(path.clone(), Shared::new(placeholder));
+    fn get_cached_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+        force_reload: bool,
+    ) -> Option<Arc<dyn FileHandle>> {
+        let placeholder = cachedFile {
+            base: crate::overlayfs::fileBase::new(file_name.to_string(), String::new(), 0),
+            needs_reload: true,
+            realpath_path: Path::default(),
+        };
+        let (entry, loaded) =
+            self.cache_files.load_or_store(path.clone(), Shared::new(placeholder));
         if let Some(entry) = entry {
             if !loaded && path.contains("/node_modules/") {
                 self.record_realpath_alias(&entry, file_name, path);
@@ -429,7 +470,12 @@ impl snapshotFSBuilder {
     // recordRealpathAlias checks if fileName is accessed through a symlink and, if so,
     // records a mapping from the realpath-based key to the symlink-based key.
     // This is only called for files inside node_modules where symlinks are common.
-    fn record_realpath_alias(&self, cached_file_entry: &Arc<SyncMapEntry<Path, cachedFile>>, symlink_file_name: &str, symlink_path: &Path) {
+    fn record_realpath_alias(
+        &self,
+        cached_file_entry: &Arc<SyncMapEntry<Path, cachedFile>>,
+        symlink_file_name: &str,
+        symlink_path: &Path,
+    ) {
         let realpath = self.fs.realpath(symlink_file_name);
         let realpath_path = (self.to_path)(&realpath);
         if realpath_path != *symlink_path {
@@ -437,7 +483,9 @@ impl snapshotFSBuilder {
             cached_file_entry.change(|file| {
                 file.realpath_path = rp;
             });
-            let (entry, _) = self.node_modules_realpath_aliases.load_or_store(realpath_path, Shared::new(realpathAliasSet::default()));
+            let (entry, _) = self
+                .node_modules_realpath_aliases
+                .load_or_store(realpath_path, Shared::new(realpathAliasSet::default()));
             if let Some(entry) = entry {
                 let sp = symlink_path.clone();
                 entry.change(|alias_set| {
@@ -448,7 +496,10 @@ impl snapshotFSBuilder {
     }
 
     // snapshotfs.go:392
-    fn reload_entry(&self, entry: &Arc<SyncMapEntry<Path, cachedFile>>) -> Option<Arc<dyn FileHandle>> {
+    fn reload_entry(
+        &self,
+        entry: &Arc<SyncMapEntry<Path, cachedFile>>,
+    ) -> Option<Arc<dyn FileHandle>> {
         let mut file_name = String::new();
         entry.locked(&mut |e: &dyn Value<cachedFile>| {
             if let Some(v) = e.value() {
@@ -466,7 +517,11 @@ impl snapshotFSBuilder {
             }
             if let Some(content) = &content {
                 e.change(&mut |file: &mut cachedFile| {
-                    file.base = crate::overlayfs::fileBase::new(file.base.file_name.clone(), content.clone(), hash_string_128(content));
+                    file.base = crate::overlayfs::fileBase::new(
+                        file.base.file_name.clone(),
+                        content.clone(),
+                        hash_string_128(content),
+                    );
                     file.needs_reload = false;
                 });
             } else {
@@ -477,7 +532,10 @@ impl snapshotFSBuilder {
     }
 
     // snapshotfs.go:424
-    pub(crate) fn reload_entry_if_needed(&self, entry: &Arc<SyncMapEntry<Path, cachedFile>>) -> Option<Arc<dyn FileHandle>> {
+    pub(crate) fn reload_entry_if_needed(
+        &self,
+        entry: &Arc<SyncMapEntry<Path, cachedFile>>,
+    ) -> Option<Arc<dyn FileHandle>> {
         let mut file_name = String::new();
         entry.locked(&mut |e: &dyn Value<cachedFile>| {
             if let Some(v) = e.value() {
@@ -497,7 +555,11 @@ impl snapshotFSBuilder {
                 }
                 if let Some(content) = &content {
                     e.change(&mut |file: &mut cachedFile| {
-                        file.base = crate::overlayfs::fileBase::new(file.base.file_name.clone(), content.clone(), hash_string_128(content));
+                        file.base = crate::overlayfs::fileBase::new(
+                            file.base.file_name.clone(),
+                            content.clone(),
+                            hash_string_128(content),
+                        );
                         file.needs_reload = false;
                     });
                 } else {
@@ -571,7 +633,10 @@ impl snapshotFSBuilder {
         if !change.changed.is_empty() {
             let filtered_changed: SyncSet<lsproto::DocumentUri> = SyncSet::default();
             let wg = new_work_group(false);
-            #[expect(clippy::iter_over_hash_type, reason = "per-entry reload plus a set insert; Go runs these in parallel")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "per-entry reload plus a set insert; Go runs these in parallel"
+            )]
             for uri in change.changed.keys() {
                 let path = (self.to_path)(&uri.file_name());
                 if let Some(file) = self.fs.get_file_by_path(&uri.file_name(), &path) {
@@ -594,11 +659,15 @@ impl snapshotFSBuilder {
             }
             wg.run_and_wait();
             drop(wg);
-            let mut new_changed = tsrs_core::collections::new_set_with_size_hint(filtered_changed.size());
+            let mut new_changed =
+                tsrs_core::collections::new_set_with_size_hint(filtered_changed.size());
             new_changed.m.extend(filtered_changed.keys());
             change.changed = new_changed;
         }
-        #[expect(clippy::iter_over_hash_type, reason = "only deletes cache entries; Go ranges the set too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "only deletes cache entries; Go ranges the set too"
+        )]
         for uri in change.deleted.keys() {
             let path = (self.to_path)(&uri.file_name());
             if let Some(entry) = self.cache_files.load(&path) {
@@ -633,7 +702,11 @@ impl snapshotFSBuilder {
                 return;
             }
             e.change(&mut |file: &mut cachedFile| {
-                file.base = crate::overlayfs::fileBase::new(file.base.file_name.clone(), content.clone(), hash_string_128(content));
+                file.base = crate::overlayfs::fileBase::new(
+                    file.base.file_name.clone(),
+                    content.clone(),
+                    hash_string_128(content),
+                );
                 file.needs_reload = false;
             });
         });
@@ -655,7 +728,8 @@ impl snapshotFSBuilder {
         if content_mapper_watched_files.is_some_and(|w| w.has(&(self.to_path)(&file_name))) {
             return true;
         }
-        let extensions: Vec<&str> = content_mapper_extensions.iter().map(std::string::String::as_str).collect();
+        let extensions: Vec<&str> =
+            content_mapper_extensions.iter().map(std::string::String::as_str).collect();
         if tspath::file_extension_is_one_of(&file_name, &extensions) {
             return true;
         }
@@ -687,12 +761,28 @@ impl snapshotFSBuilder {
     ) -> FileChangeSummary {
         if !change.deleted.is_empty() {
             let mut filtered_deleted: Set<lsproto::DocumentUri> = Set::default();
-            #[expect(clippy::iter_over_hash_type, reason = "filters into a new set; pure inserts; Go ranges the set too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "filters into a new set; pure inserts; Go ranges the set too"
+            )]
             for uri in change.deleted.keys() {
                 let path = (self.to_path)(&uri.file_name());
-                if self.cache_directories.get(&path).is_some() || has_open_file_within(&path, previous_open_files, open_files) {
-                    self.collect_files_recursive(&path, &mut filtered_deleted, previous_open_files, open_files);
-                } else if self.is_relevant_file_name(uri, content_mapper_extensions, content_mapper_watched_files, open_files) || is_node_modules_path(&path) {
+                if self.cache_directories.get(&path).is_some()
+                    || has_open_file_within(&path, previous_open_files, open_files)
+                {
+                    self.collect_files_recursive(
+                        &path,
+                        &mut filtered_deleted,
+                        previous_open_files,
+                        open_files,
+                    );
+                } else if self.is_relevant_file_name(
+                    uri,
+                    content_mapper_extensions,
+                    content_mapper_watched_files,
+                    open_files,
+                ) || is_node_modules_path(&path)
+                {
                     // node_modules deletions must always be preserved for auto-import registry change handlers.
                     // They won't be in cacheDirectories since the registry doesn't use the snapshotFSBuilder for
                     // its file system, since we don't want to retain files read there.
@@ -706,7 +796,16 @@ impl snapshotFSBuilder {
             let mut filtered_changed: Set<lsproto::DocumentUri> = Set::default();
             // filters into a new set; pure inserts; Go ranges the set too
             filtered_changed.m.extend(change.changed.keys().iter().filter_map(|uri| {
-                if self.is_relevant_file_name(uri, content_mapper_extensions, content_mapper_watched_files, open_files) { Some(uri.clone()) } else { None }
+                if self.is_relevant_file_name(
+                    uri,
+                    content_mapper_extensions,
+                    content_mapper_watched_files,
+                    open_files,
+                ) {
+                    Some(uri.clone())
+                } else {
+                    None
+                }
             }));
             change.changed = filtered_changed;
         }
@@ -729,23 +828,26 @@ impl snapshotFSBuilder {
         open_files: &FxHashMap<Path, Arc<dyn FileHandle>>,
     ) {
         // pure set inserts; Go ranges the map too
-        files.m.extend(
-            open_files.iter().filter_map(
-                |(path, file)| {
-                    if dir_path.contains_path(path) { Some(lsconv::file_name_to_document_uri(file.file_name())) } else { None }
-                },
-            ),
-        );
+        files.m.extend(open_files.iter().filter_map(|(path, file)| {
+            if dir_path.contains_path(path) {
+                Some(lsconv::file_name_to_document_uri(file.file_name()))
+            } else {
+                None
+            }
+        }));
         // pure set inserts; Go ranges the map too
-        files.m.extend(
-            previous_open_files
-                .iter()
-                .filter_map(|(path, file)| if dir_path.contains_path(path) { Some(lsconv::file_name_to_document_uri(file.file_name())) } else { None }),
-        );
+        files.m.extend(previous_open_files.iter().filter_map(|(path, file)| {
+            if dir_path.contains_path(path) {
+                Some(lsconv::file_name_to_document_uri(file.file_name()))
+            } else {
+                None
+            }
+        }));
         let Some(dir_entry) = self.cache_directories.get(dir_path) else {
             return;
         };
-        let children: Vec<Path> = dir_entry.value().map(|v| v.keys().cloned().collect()).unwrap_or_default();
+        let children: Vec<Path> =
+            dir_entry.value().map(|v| v.keys().cloned().collect()).unwrap_or_default();
         for child_path in children {
             if let Some(entry) = self.cache_files.load(&child_path) {
                 if let Some(file) = entry.value() {
@@ -763,7 +865,8 @@ impl snapshotFSBuilder {
         previous_open_files: &FxHashMap<Path, Arc<dyn FileHandle>>,
         open_files: &FxHashMap<Path, Arc<dyn FileHandle>>,
     ) -> FileChangeSummary {
-        if !change.opened.0.is_empty() && !tspath::is_dynamic_file_name(&change.opened.file_name()) {
+        if !change.opened.0.is_empty() && !tspath::is_dynamic_file_name(&change.opened.file_name())
+        {
             let path = (self.to_path)(&change.opened.file_name());
             let entry = self.cache_files.load(&path);
             match &entry {
@@ -857,7 +960,10 @@ impl FileSource for snapshotFSBuilder {
         merge_cached_directory_entries(
             &lower_entries,
             &directory,
-            |path| self.cache_files.load(path).is_some_and(|entry| entry.value().is_some()) || self.fs.file_exists(path),
+            |path| {
+                self.cache_files.load(path).is_some_and(|entry| entry.value().is_some())
+                    || self.fs.file_exists(path)
+            },
             self.fs.use_case_sensitive_file_names(),
         )
     }
@@ -869,7 +975,10 @@ impl SnapshotFS {
     // files that were accessed through node_modules symlinks. When a watch event arrives
     // using a realpath, this expands it to include the symlink-based path so that
     // downstream consumers (markDirtyFiles, markFilesChanged) can find cached entries.
-    pub(crate) fn expand_realpath_aliases(&self, mut change: FileChangeSummary) -> FileChangeSummary {
+    pub(crate) fn expand_realpath_aliases(
+        &self,
+        mut change: FileChangeSummary,
+    ) -> FileChangeSummary {
         if self.node_modules_realpath_aliases.is_empty() {
             return change;
         }
@@ -879,7 +988,13 @@ impl SnapshotFS {
         for uri in change.changed.keys() {
             let path = (self.to_path)(&uri.file_name());
             if let Some(aliases) = self.node_modules_realpath_aliases.get(&path) {
-                additional_changed.m.extend(aliases.paths.keys().iter().map(|alias_path| lsconv::file_name_to_document_uri(alias_path)));
+                additional_changed.m.extend(
+                    aliases
+                        .paths
+                        .keys()
+                        .iter()
+                        .map(|alias_path| lsconv::file_name_to_document_uri(alias_path)),
+                );
             }
         }
         // pure set unions; Go ranges the set too
@@ -890,7 +1005,13 @@ impl SnapshotFS {
         for uri in change.deleted.keys() {
             let path = (self.to_path)(&uri.file_name());
             if let Some(aliases) = self.node_modules_realpath_aliases.get(&path) {
-                additional_deleted.m.extend(aliases.paths.keys().iter().map(|alias_path| lsconv::file_name_to_document_uri(alias_path)));
+                additional_deleted.m.extend(
+                    aliases
+                        .paths
+                        .keys()
+                        .iter()
+                        .map(|alias_path| lsconv::file_name_to_document_uri(alias_path)),
+                );
             }
         }
         // pure set unions; Go ranges the set too
@@ -916,7 +1037,11 @@ pub(crate) fn is_node_modules_path(path: &Path) -> bool {
 }
 
 // snapshotfs.go:693
-fn has_open_file_within(path: &Path, previous_open_files: &FxHashMap<Path, Arc<dyn FileHandle>>, open_files: &FxHashMap<Path, Arc<dyn FileHandle>>) -> bool {
+fn has_open_file_within(
+    path: &Path,
+    previous_open_files: &FxHashMap<Path, Arc<dyn FileHandle>>,
+    open_files: &FxHashMap<Path, Arc<dyn FileHandle>>,
+) -> bool {
     // pure any() predicate; Go ranges the map too
     if open_files.keys().into_iter().any(|open_file_path| path.contains_path(open_file_path)) {
         return true;
@@ -937,10 +1062,23 @@ pub(crate) struct sourceFS {
 }
 
 // snapshotfs.go:777
-pub(crate) fn new_source_fs(tracking: bool, source: Arc<dyn FileSource>, to_path: ToPath) -> sourceFS {
-    let (seen_files, missing_directories) =
-        if tracking { (Some(Arc::new(SyncSet::default())), Some(Arc::new(SyncSet::default()))) } else { (None, None) };
-    sourceFS { tracking: RwLock::new(tracking), to_path, missing_directories, seen_files: RwLock::new(seen_files), source: RwLock::new(source) }
+pub(crate) fn new_source_fs(
+    tracking: bool,
+    source: Arc<dyn FileSource>,
+    to_path: ToPath,
+) -> sourceFS {
+    let (seen_files, missing_directories) = if tracking {
+        (Some(Arc::new(SyncSet::default())), Some(Arc::new(SyncSet::default())))
+    } else {
+        (None, None)
+    };
+    sourceFS {
+        tracking: RwLock::new(tracking),
+        to_path,
+        missing_directories,
+        seen_files: RwLock::new(seen_files),
+        source: RwLock::new(source),
+    }
 }
 
 impl sourceFS {

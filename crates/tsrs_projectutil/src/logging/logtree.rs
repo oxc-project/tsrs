@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex, Weak};
 use std::time::SystemTime;
 
 use super::logcollector::LogCollector;
-use super::logger::{format_time, Logger};
+use super::logger::{Logger, format_time};
 
 struct logEntry {
     time: SystemTime,
@@ -111,6 +111,7 @@ impl LogTree {
 
     // logtree.go:77
     pub fn is_verbose(&self) -> bool {
+        // Relaxed: verbosity is an independent flag; it does not publish other data.
         self.0.as_ref().is_some_and(|c| c.verbose.load(Ordering::Relaxed))
     }
 

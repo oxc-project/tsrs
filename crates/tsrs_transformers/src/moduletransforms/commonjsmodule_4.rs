@@ -9,7 +9,9 @@ impl CommonJSModuleTransformer {
             self.discarded_value_visitor().visit_node(n.initializer),
             self.visitor().visit_node(n.condition),
             self.discarded_value_visitor().visit_node(n.incrementor),
-            self.emit_context().visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap(),
+            self.emit_context()
+                .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                .unwrap(),
         )
     }
 
@@ -21,7 +23,9 @@ impl CommonJSModuleTransformer {
             n.await_modifier,
             self.discarded_value_visitor().visit_node(Some(n.initializer)).unwrap(),
             self.visitor().visit_node(Some(n.expression)).unwrap(),
-            self.emit_context().visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor()).unwrap(),
+            self.emit_context()
+                .visit_iteration_body(Some(n.statement()), &mut self.top_level_nested_visitor())
+                .unwrap(),
         )
     }
 
@@ -39,16 +43,26 @@ impl CommonJSModuleTransformer {
 
     // Visits a parenthesized expression whose value may be discarded at runtime.
     // commonjsmodule.go:1371
-    pub(crate) fn visit_parenthesized_expression(&self, node: P<Node>, result_is_discarded: bool) -> P<Node> {
-        let mut v = if result_is_discarded { self.discarded_value_visitor() } else { self.visitor() };
+    pub(crate) fn visit_parenthesized_expression(
+        &self,
+        node: P<Node>,
+        result_is_discarded: bool,
+    ) -> P<Node> {
+        let mut v =
+            if result_is_discarded { self.discarded_value_visitor() } else { self.visitor() };
         let expression = v.visit_node(node.expression()).unwrap();
         self.factory().update_parenthesized_expression(node, expression)
     }
 
     // Visits a partially emitted expression whose value may be discarded at runtime.
     // commonjsmodule.go:1377
-    pub(crate) fn visit_partially_emitted_expression(&self, node: P<Node>, result_is_discarded: bool) -> P<Node> {
-        let mut v = if result_is_discarded { self.discarded_value_visitor() } else { self.visitor() };
+    pub(crate) fn visit_partially_emitted_expression(
+        &self,
+        node: P<Node>,
+        result_is_discarded: bool,
+    ) -> P<Node> {
+        let mut v =
+            if result_is_discarded { self.discarded_value_visitor() } else { self.visitor() };
         let expression = v.visit_node(node.expression()).unwrap();
         self.factory().update_partially_emitted_expression(node, expression)
     }
@@ -56,7 +70,11 @@ impl CommonJSModuleTransformer {
     // Visits a binary expression whose value may be discarded, or which might contain an assignment to an exported
     // identifier.
     // commonjsmodule.go:1384
-    pub(crate) fn visit_binary_expression(&self, node: P<Node>, result_is_discarded: bool) -> P<Node> {
+    pub(crate) fn visit_binary_expression(
+        &self,
+        node: P<Node>,
+        result_is_discarded: bool,
+    ) -> P<Node> {
         if ast::is_destructuring_assignment(node) {
             return self.visit_destructuring_assignment(node, result_is_discarded);
         }
@@ -82,16 +100,26 @@ impl CommonJSModuleTransformer {
         // - We only transform identifiers that are exported at the top level.
         let emit_context = self.emit_context();
         let left = node.as_binary_expression().left;
-        if ast::is_identifier(left) && (!is_generated_identifier(emit_context, left) || is_file_level_reserved_generated_identifier(emit_context, left)) && !is_local_name(emit_context, left) {
+        if ast::is_identifier(left)
+            && (!is_generated_identifier(emit_context, left)
+                || is_file_level_reserved_generated_identifier(emit_context, left))
+            && !is_local_name(emit_context, left)
+        {
             let exported_names = self.get_exports(left);
             if !exported_names.is_empty() {
                 // For each additional export of the declaration, apply an export assignment.
                 let mut expression = self.visitor().visit_each_child(Some(node)).unwrap();
-                expression = exported_names.into_iter().fold(expression, |mut expression, export_name| {
-                    expression = self.create_export_expression(export_name, expression, Some(node.loc()) /*location*/, false /*liveBinding*/);
+                expression =
+                    exported_names.into_iter().fold(expression, |mut expression, export_name| {
+                        expression = self.create_export_expression(
+                            export_name,
+                            expression,
+                            Some(node.loc()), /*location*/
+                            false,            /*liveBinding*/
+                        );
 
-                    expression
-                });
+                        expression
+                    });
                 return expression;
             }
         }
@@ -101,10 +129,22 @@ impl CommonJSModuleTransformer {
 
     // Visits a destructuring assignment which might target an exported identifier.
     // commonjsmodule.go:1425
-    pub(crate) fn visit_destructuring_assignment(&self, node: P<Node>, value_is_discarded: bool) -> P<Node> {
+    pub(crate) fn visit_destructuring_assignment(
+        &self,
+        node: P<Node>,
+        value_is_discarded: bool,
+    ) -> P<Node> {
         if self.destructuring_needs_flattening(node.as_binary_expression().left) {
-            let callback = |name: P<Node>, value: P<Node>, location: Option<&TextRange>| self.create_all_export_expressions(name, value, location);
-            return flatten_destructuring_assignment(&self.base, node, !value_is_discarded /*needsValue*/, FlattenLevel::All, Some(&callback));
+            let callback = |name: P<Node>, value: P<Node>, location: Option<&TextRange>| {
+                self.create_all_export_expressions(name, value, location)
+            };
+            return flatten_destructuring_assignment(
+                &self.base,
+                node,
+                !value_is_discarded, /*needsValue*/
+                FlattenLevel::All,
+                Some(&callback),
+            );
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }
@@ -131,7 +171,9 @@ impl CommonJSModuleTransformer {
                             return Some(true);
                         }
                     }
-                    Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor => return Some(false),
+                    Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor => {
+                        return Some(false);
+                    }
                     _ => {}
                 }
 
@@ -167,7 +209,10 @@ impl CommonJSModuleTransformer {
             // natively: substitution will rewrite the identifier to `exports.X`, so no flattening
             // is needed. Re-aliased exports (where the export name differs from the local name) or
             // multi-exported names cannot be expressed natively in a destructuring assignment.
-            if exported_names.len() == 1 && self.is_direct_export(node) && exported_names[0].text() == node.text() {
+            if exported_names.len() == 1
+                && self.is_direct_export(node)
+                && exported_names[0].text() == node.text()
+            {
                 return false;
             }
             return true;
@@ -178,7 +223,12 @@ impl CommonJSModuleTransformer {
     // createAllExportExpressions is the callback used during destructuring flattening to create
     // export expressions for each exported identifier binding.
     // commonjsmodule.go:1500
-    fn create_all_export_expressions(&self, name: P<Node>, value: P<Node>, location: Option<&TextRange>) -> P<Node> {
+    fn create_all_export_expressions(
+        &self,
+        name: P<Node>,
+        value: P<Node>,
+        location: Option<&TextRange>,
+    ) -> P<Node> {
         let f = self.factory();
         let emit_context = self.emit_context();
         let exported_names = self.get_exports(name);
@@ -190,27 +240,45 @@ impl CommonJSModuleTransformer {
                 // Create exports.name = value to handle the direct export assignment,
                 // since the Go port doesn't have an onSubstituteNode mechanism to rewrite identifiers.
                 let export_name = name.clone_node(f);
-                emit_context.add_emit_flags(export_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
-                let property_access = f.new_property_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, export_name, NodeFlags::None);
+                emit_context
+                    .add_emit_flags(export_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
+                let property_access = f.new_property_access_expression(
+                    f.new_identifier("exports"),
+                    None, /*questionDotToken*/
+                    export_name,
+                    NodeFlags::None,
+                );
                 emit_context.add_emit_flags(property_access, EmitFlags::NoComments);
                 expression = f.new_assignment_expression(property_access, value);
                 emit_context.assign_comment_and_source_map_ranges(expression, name);
             } else {
                 expression = f.new_assignment_expression(name, value);
             }
-            expression = exported_names.into_iter().fold(expression, |mut expression, export_name| {
-                expression = self.create_export_expression(export_name, expression, location.copied(), false /*liveBinding*/);
+            expression =
+                exported_names.into_iter().fold(expression, |mut expression, export_name| {
+                    expression = self.create_export_expression(
+                        export_name,
+                        expression,
+                        location.copied(),
+                        false, /*liveBinding*/
+                    );
 
-                expression
-            });
+                    expression
+                });
             return expression;
         }
         // If the identifier is directly exported but has no additional export aliases,
         // still write to exports.name.
         if self.is_direct_export(name) {
             let export_name = name.clone_node(f);
-            emit_context.add_emit_flags(export_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
-            let property_access = f.new_property_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, export_name, NodeFlags::None);
+            emit_context
+                .add_emit_flags(export_name, EmitFlags::NoComments | EmitFlags::NoSourceMap);
+            let property_access = f.new_property_access_expression(
+                f.new_identifier("exports"),
+                None, /*questionDotToken*/
+                export_name,
+                NodeFlags::None,
+            );
             emit_context.add_emit_flags(property_access, EmitFlags::NoComments);
             let result = f.new_assignment_expression(property_access, value);
             emit_context.assign_comment_and_source_map_ranges(result, name);
@@ -224,14 +292,24 @@ impl CommonJSModuleTransformer {
     // `export { x }` for a locally-declared variable.
     // commonjsmodule.go:1550
     fn is_direct_export(&self, name: P<Node>) -> bool {
-        let export_container = self.resolver.get_referenced_export_container(self.emit_context().most_original(Some(name)).unwrap(), false /*prefixLocals*/);
+        let export_container = self.resolver.get_referenced_export_container(
+            self.emit_context().most_original(Some(name)).unwrap(),
+            false, /*prefixLocals*/
+        );
         export_container.is_some_and(ast::is_source_file)
     }
 
     // commonjsmodule.go:1555
     pub(crate) fn visit_assignment_property(&self, node: P<Node>) -> P<Node> {
         let mut v = self.visitor();
-        self.factory().update_property_assignment(node, None /*modifiers*/, v.visit_node(node.name()).unwrap(), None /*postfixToken*/, None /*typeNode*/, self.assignment_pattern_visitor().visit_node(node.initializer()).unwrap())
+        self.factory().update_property_assignment(
+            node,
+            None, /*modifiers*/
+            v.visit_node(node.name()).unwrap(),
+            None, /*postfixToken*/
+            None, /*typeNode*/
+            self.assignment_pattern_visitor().visit_node(node.initializer()).unwrap(),
+        )
     }
 
     // commonjsmodule.go:1566
@@ -252,9 +330,21 @@ impl CommonJSModuleTransformer {
         }
         if let Some(object_assignment_initializer) = n.object_assignment_initializer() {
             let equals_token = n.equals_token.unwrap_or_else(|| f.new_token(Kind::EqualsToken));
-            target = f.new_binary_expression(None /*modifiers*/, target, None /*typeNode*/, equals_token, self.visitor().visit_node(Some(object_assignment_initializer)).unwrap());
+            target = f.new_binary_expression(
+                None, /*modifiers*/
+                target,
+                None, /*typeNode*/
+                equals_token,
+                self.visitor().visit_node(Some(object_assignment_initializer)).unwrap(),
+            );
         }
-        let updated = f.new_property_assignment(None /*modifiers*/, node.name().unwrap(), None /*postfixToken*/, None /*typeNode*/, target);
+        let updated = f.new_property_assignment(
+            None, /*modifiers*/
+            node.name().unwrap(),
+            None, /*postfixToken*/
+            None, /*typeNode*/
+            target,
+        );
         self.emit_context().set_original(updated, node);
         self.emit_context().assign_comment_and_source_map_ranges(updated, node);
         updated
@@ -262,23 +352,39 @@ impl CommonJSModuleTransformer {
 
     // commonjsmodule.go:1608
     pub(crate) fn visit_assignment_rest_property(&self, node: P<Node>) -> P<Node> {
-        self.factory().update_spread_assignment(node, self.visit_destructuring_assignment_target(node.expression().unwrap()))
+        self.factory().update_spread_assignment(
+            node,
+            self.visit_destructuring_assignment_target(node.expression().unwrap()),
+        )
     }
 
     // commonjsmodule.go:1615
     pub(crate) fn visit_assignment_rest_element(&self, node: P<Node>) -> P<Node> {
-        self.factory().update_spread_element(node, self.visit_destructuring_assignment_target(node.expression().unwrap()))
+        self.factory().update_spread_element(
+            node,
+            self.visit_destructuring_assignment_target(node.expression().unwrap()),
+        )
     }
 
     // commonjsmodule.go:1622
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     pub(crate) fn visit_assignment_element(&self, node: P<Node>) -> Option<P<Node>> {
         if ast::is_binary_expression(node) {
             let n = node.as_binary_expression();
             if n.operator_token.kind() == Kind::EqualsToken {
                 let left = self.visit_destructuring_assignment_target(n.left);
                 let right = self.visitor().visit_node(Some(n.right())).unwrap();
-                return Some(self.factory().update_binary_expression(node, None /*modifiers*/, left, None /*typeNode*/, n.operator_token, right));
+                return Some(self.factory().update_binary_expression(
+                    node,
+                    None, /*modifiers*/
+                    left,
+                    None, /*typeNode*/
+                    n.operator_token,
+                    right,
+                ));
             }
         }
 
@@ -289,7 +395,9 @@ impl CommonJSModuleTransformer {
     fn visit_destructuring_assignment_target(&self, node: P<Node>) -> P<Node> {
         let grandparent_node = self.push_node(node);
         let result = match node.kind() {
-            Kind::ObjectLiteralExpression | Kind::ArrayLiteralExpression => self.visit_assignment_pattern_no_stack(node).unwrap(),
+            Kind::ObjectLiteralExpression | Kind::ArrayLiteralExpression => {
+                self.visit_assignment_pattern_no_stack(node).unwrap()
+            }
             _ => self.visit_destructuring_assignment_target_no_stack(node),
         };
         self.pop_node(grandparent_node);
@@ -299,7 +407,11 @@ impl CommonJSModuleTransformer {
     // commonjsmodule.go:1653
     fn visit_destructuring_assignment_target_no_stack(&self, node: P<Node>) -> P<Node> {
         let emit_context = self.emit_context();
-        if ast::is_identifier(node) && (!is_generated_identifier(emit_context, node) || is_file_level_reserved_generated_identifier(emit_context, node)) && !is_local_name(emit_context, node) {
+        if ast::is_identifier(node)
+            && (!is_generated_identifier(emit_context, node)
+                || is_file_level_reserved_generated_identifier(emit_context, node))
+            && !is_local_name(emit_context, node)
+        {
             let f = self.factory();
             let mut expression = self.visit_expression_identifier(node);
             let exported_names = self.get_exports(node);
@@ -311,18 +423,36 @@ impl CommonJSModuleTransformer {
                 // to:
                 //  { x: { set value(v) { exports.x = x = v; } }.value } = y
 
-                let value = f.new_unique_name_ex("value", AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic, ..Default::default() });
+                let value = f.new_unique_name_ex(
+                    "value",
+                    AutoGenerateOptions {
+                        flags: GeneratedIdentifierFlags::Optimistic,
+                        ..Default::default()
+                    },
+                );
                 expression = f.new_assignment_expression(expression, value);
 
-                expression = exported_names.into_iter().fold(expression, |mut expression, export_name| {
-                    expression = self.create_export_expression(export_name, expression, None /*location*/, false /*liveBinding*/);
+                expression =
+                    exported_names.into_iter().fold(expression, |mut expression, export_name| {
+                        expression = self.create_export_expression(
+                            export_name,
+                            expression,
+                            None,  /*location*/
+                            false, /*liveBinding*/
+                        );
 
-                    expression
-                });
+                        expression
+                    });
 
                 let statement = f.new_expression_statement(expression);
                 let statement_list = f.new_node_list(vec![statement]);
-                let param = f.new_parameter_declaration(None /*modifiers*/, None /*dotDotDotToken*/, value, None /*questionToken*/, None /*type*/, None /*initializer*/);
+                let param = f.new_parameter_declaration(
+                    None, /*modifiers*/
+                    None, /*dotDotDotToken*/
+                    value, None, /*questionToken*/
+                    None, /*type*/
+                    None, /*initializer*/
+                );
                 let value_setter = f.new_set_accessor_declaration(
                     None, /*modifiers*/
                     f.new_identifier("value"),
@@ -333,8 +463,14 @@ impl CommonJSModuleTransformer {
                     Some(f.new_block(statement_list, false /*multiLine*/)),
                 );
                 let property_list = f.new_node_list(vec![value_setter]);
-                expression = f.new_object_literal_expression(property_list, false /*multiLine*/);
-                expression = f.new_property_access_expression(expression, None /*questionDotToken*/, f.new_identifier("value"), NodeFlags::None);
+                expression =
+                    f.new_object_literal_expression(property_list, false /*multiLine*/);
+                expression = f.new_property_access_expression(
+                    expression,
+                    None, /*questionDotToken*/
+                    f.new_identifier("value"),
+                    NodeFlags::None,
+                );
             }
             return expression;
         }
@@ -347,14 +483,26 @@ impl CommonJSModuleTransformer {
     fn visit_comma_expression(&self, node: P<Node>, result_is_discarded: bool) -> P<Node> {
         let n = node.as_binary_expression();
         let left = self.discarded_value_visitor().visit_node(Some(n.left)).unwrap();
-        let mut v = if result_is_discarded { self.discarded_value_visitor() } else { self.visitor() };
+        let mut v =
+            if result_is_discarded { self.discarded_value_visitor() } else { self.visitor() };
         let right = v.visit_node(Some(n.right())).unwrap();
-        self.factory().update_binary_expression(node, None /*modifiers*/, left, None /*typeNode*/, n.operator_token, right)
+        self.factory().update_binary_expression(
+            node,
+            None, /*modifiers*/
+            left,
+            None, /*typeNode*/
+            n.operator_token,
+            right,
+        )
     }
 
     // Visits a prefix unary expression that might modify an exported identifier.
     // commonjsmodule.go:1709
-    pub(crate) fn visit_prefix_unary_expression(&self, node: P<Node>, _result_is_discarded: bool) -> P<Node> {
+    pub(crate) fn visit_prefix_unary_expression(
+        &self,
+        node: P<Node>,
+        _result_is_discarded: bool,
+    ) -> P<Node> {
         // When we see a prefix increment expression whose operand is an exported
         // symbol, we should ensure all exports of that symbol are updated with the correct
         // value.
@@ -365,7 +513,10 @@ impl CommonJSModuleTransformer {
         //   namespace due to how they are transformed in TypeScript.
         // - We only transform identifiers that are exported at the top level.
         let n = node.as_prefix_unary_expression();
-        if (n.operator == Kind::PlusPlusToken || n.operator == Kind::MinusMinusToken) && ast::is_identifier(n.operand) && !is_local_name(self.emit_context(), n.operand) {
+        if (n.operator == Kind::PlusPlusToken || n.operator == Kind::MinusMinusToken)
+            && ast::is_identifier(n.operand)
+            && !is_local_name(self.emit_context(), n.operand)
+        {
             let exported_names = self.get_exports(n.operand);
             if !exported_names.is_empty() {
                 // given:
@@ -379,9 +530,18 @@ impl CommonJSModuleTransformer {
                 // note:
                 //   after the operation, `exports.x` will hold the value of `x` after the increment.
 
-                let mut expression = self.factory().update_prefix_unary_expression(node, n.operator, self.visitor().visit_node(Some(n.operand)).unwrap());
+                let mut expression = self.factory().update_prefix_unary_expression(
+                    node,
+                    n.operator,
+                    self.visitor().visit_node(Some(n.operand)).unwrap(),
+                );
                 for export_name in exported_names {
-                    expression = self.create_export_expression(export_name, expression, None /*location*/, false /*liveBinding*/);
+                    expression = self.create_export_expression(
+                        export_name,
+                        expression,
+                        None,  /*location*/
+                        false, /*liveBinding*/
+                    );
                     self.emit_context().assign_comment_and_source_map_ranges(expression, node);
                 }
                 return expression;
@@ -392,7 +552,11 @@ impl CommonJSModuleTransformer {
 
     // Visits a postfix unary expression that might modify an exported identifier.
     // commonjsmodule.go:1746
-    pub(crate) fn visit_postfix_unary_expression(&self, node: P<Node>, result_is_discarded: bool) -> P<Node> {
+    pub(crate) fn visit_postfix_unary_expression(
+        &self,
+        node: P<Node>,
+        result_is_discarded: bool,
+    ) -> P<Node> {
         // When we see a postfix increment expression whose operand is an exported
         // symbol, we should ensure all exports of that symbol are updated with the correct
         // value.
@@ -404,7 +568,10 @@ impl CommonJSModuleTransformer {
         // - We only transform identifiers that are exported at the top level.
         let n = node.as_postfix_unary_expression();
         let emit_context = self.emit_context();
-        if (n.operator == Kind::PlusPlusToken || n.operator == Kind::MinusMinusToken) && ast::is_identifier(n.operand) && !is_local_name(emit_context, n.operand) {
+        if (n.operator == Kind::PlusPlusToken || n.operator == Kind::MinusMinusToken)
+            && ast::is_identifier(n.operand)
+            && !is_local_name(emit_context, n.operand)
+        {
             let exported_names = self.get_exports(n.operand);
             if !exported_names.is_empty() {
                 // given (value is discarded):
@@ -433,7 +600,11 @@ impl CommonJSModuleTransformer {
 
                 let f = self.factory();
                 let mut temp: Option<P<Node>> = None;
-                let mut expression = f.update_postfix_unary_expression(node, self.visitor().visit_node(Some(n.operand)).unwrap(), n.operator);
+                let mut expression = f.update_postfix_unary_expression(
+                    node,
+                    self.visitor().visit_node(Some(n.operand)).unwrap(),
+                    n.operator,
+                );
                 if !result_is_discarded {
                     let t = f.new_temp_variable();
                     emit_context.add_variable_declaration(t);
@@ -447,7 +618,12 @@ impl CommonJSModuleTransformer {
                 emit_context.assign_comment_and_source_map_ranges(expression, node);
 
                 for export_name in exported_names {
-                    expression = self.create_export_expression(export_name, expression, None /*location*/, false /*liveBinding*/);
+                    expression = self.create_export_expression(
+                        export_name,
+                        expression,
+                        None,  /*location*/
+                        false, /*liveBinding*/
+                    );
                     emit_context.assign_comment_and_source_map_ranges(expression, node);
                 }
 
@@ -469,7 +645,10 @@ impl CommonJSModuleTransformer {
     pub(crate) fn visit_call_expression(&self, node: P<Node>) -> P<Node> {
         let mut needs_rewrite = false;
         if self.compiler_options.rewrite_relative_import_extensions.is_true() {
-            if ast::is_import_call(node) && !node.arguments().is_empty() || ast::is_in_js_file(node) && ast::is_require_call(node, false /*requireStringLiteralLikeArgument*/) {
+            if ast::is_import_call(node) && !node.arguments().is_empty()
+                || ast::is_in_js_file(node)
+                    && ast::is_require_call(node, false /*requireStringLiteralLikeArgument*/)
+            {
                 needs_rewrite = true;
             }
         }
@@ -491,7 +670,14 @@ impl CommonJSModuleTransformer {
             // note:
             //   the indirect call is applied by the printer by way of the `EFIndirectCall` emit flag.
             let expression = self.visit_expression_identifier(callee);
-            let updated = self.factory().update_call_expression(node, expression, n.question_dot_token(), None /*typeArguments*/, self.visitor().visit_nodes(Some(n.arguments)).unwrap(), node.flags());
+            let updated = self.factory().update_call_expression(
+                node,
+                expression,
+                n.question_dot_token(),
+                None, /*typeArguments*/
+                self.visitor().visit_nodes(Some(n.arguments)).unwrap(),
+                node.flags(),
+            );
             if !ast::is_identifier(expression) && !is_helper_name(self.emit_context(), callee) {
                 self.emit_context().add_emit_flags(updated, EmitFlags::IndirectCall);
             }
@@ -503,7 +689,11 @@ impl CommonJSModuleTransformer {
     // commonjsmodule.go:1868
     fn should_transform_import_call(&self) -> bool {
         let current_source_file = self.current_source_file.get().unwrap();
-        ast::should_transform_import_call(current_source_file.file_name(), &self.compiler_options, (self.get_emit_module_format_of_file)(current_source_file))
+        ast::should_transform_import_call(
+            current_source_file.file_name(),
+            &self.compiler_options,
+            (self.get_emit_module_format_of_file)(current_source_file),
+        )
     }
 
     // commonjsmodule.go:1872
@@ -513,18 +703,35 @@ impl CommonJSModuleTransformer {
         }
 
         let f = self.factory();
-        let external_module_name = get_external_module_name_literal(f, node, self.current_source_file.get(), None /*host*/, None /*resolver*/, &self.compiler_options);
+        let external_module_name = get_external_module_name_literal(
+            f,
+            node,
+            self.current_source_file.get(),
+            None, /*host*/
+            None, /*resolver*/
+            &self.compiler_options,
+        );
         let first_argument = self.visitor().visit_node(node.arguments().first().copied());
 
         // Only use the external module name if it differs from the first argument. This allows us to preserve the quote style of the argument on output.
-        let argument = if external_module_name.is_some() && first_argument.is_none_or(|a| !ast::is_string_literal(a) || a.text() != external_module_name.unwrap().text()) {
+        let argument = if external_module_name.is_some()
+            && first_argument.is_none_or(|a| {
+                !ast::is_string_literal(a) || a.text() != external_module_name.unwrap().text()
+            }) {
             external_module_name
         } else if first_argument.is_some() && rewrite_or_shim {
             let first_argument = first_argument.unwrap();
             if ast::is_string_literal(first_argument) {
-                rewrite_module_specifier(self.emit_context(), Some(first_argument), &self.compiler_options)
+                rewrite_module_specifier(
+                    self.emit_context(),
+                    Some(first_argument),
+                    &self.compiler_options,
+                )
             } else {
-                Some(f.new_rewrite_relative_import_extensions_helper(first_argument, self.compiler_options.jsx == tsrs_core::JsxEmit::Preserve))
+                Some(f.new_rewrite_relative_import_extensions_helper(
+                    first_argument,
+                    self.compiler_options.jsx == tsrs_core::JsxEmit::Preserve,
+                ))
             }
         } else {
             first_argument
@@ -543,17 +750,26 @@ impl CommonJSModuleTransformer {
         // Otherwise, we inline it in require() so that it's statically analyzable
         let f = self.factory();
 
-        let need_sync_eval = arg.is_some_and(|arg| !super::utilities::is_simple_inlineable_expression(arg));
+        let need_sync_eval =
+            arg.is_some_and(|arg| !super::utilities::is_simple_inlineable_expression(arg));
 
         let mut promise_resolve_arguments: Vec<P<Node>> = Vec::new();
         if need_sync_eval {
             promise_resolve_arguments = vec![f.new_template_expression(
                 f.new_template_head("", "", TokenFlags::None),
-                f.new_node_list(vec![f.new_template_span(arg.unwrap(), f.new_template_tail("", "", TokenFlags::None))]),
+                f.new_node_list(vec![f.new_template_span(
+                    arg.unwrap(),
+                    f.new_template_tail("", "", TokenFlags::None),
+                )]),
             )];
         }
         let promise_resolve_call = f.new_call_expression(
-            f.new_property_access_expression(f.new_identifier("Promise"), None /*questionDotToken*/, f.new_identifier("resolve"), NodeFlags::None),
+            f.new_property_access_expression(
+                f.new_identifier("Promise"),
+                None, /*questionDotToken*/
+                f.new_identifier("resolve"),
+                NodeFlags::None,
+            ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(promise_resolve_arguments),
@@ -567,25 +783,43 @@ impl CommonJSModuleTransformer {
             require_arguments = vec![arg];
         }
 
-        let require_call = f.new_import_star_helper(f.new_call_expression(f.new_identifier("require"), None /*questionDotToken*/, None /*typeArguments*/, f.new_node_list(require_arguments), NodeFlags::None));
+        let require_call = f.new_import_star_helper(f.new_call_expression(
+            f.new_identifier("require"),
+            None, /*questionDotToken*/
+            None, /*typeArguments*/
+            f.new_node_list(require_arguments),
+            NodeFlags::None,
+        ));
 
         let mut parameters: Vec<P<Node>> = Vec::new();
         if need_sync_eval {
-            parameters = vec![f.new_parameter_declaration(None /*modifiers*/, None /*dotDotDotToken*/, f.new_identifier("s"), None /*questionToken*/, None /*type*/, None /*initializer*/)];
+            parameters = vec![f.new_parameter_declaration(
+                None, /*modifiers*/
+                None, /*dotDotDotToken*/
+                f.new_identifier("s"),
+                None, /*questionToken*/
+                None, /*type*/
+                None, /*initializer*/
+            )];
         }
 
         let function = f.new_arrow_function(
             None, /*modifiers*/
             None, /*typeParameters*/
             Some(f.new_node_list(parameters)),
-            None, /*type*/
-            None, /*fullSignature*/
+            None,                                            /*type*/
+            None,                                            /*fullSignature*/
             Some(f.new_token(Kind::EqualsGreaterThanToken)), /*equalsGreaterThanToken*/
             Some(require_call),
         );
 
         f.new_call_expression(
-            f.new_property_access_expression(promise_resolve_call, None /*questionDotToken*/, f.new_identifier("then"), NodeFlags::None),
+            f.new_property_access_expression(
+                promise_resolve_call,
+                None, /*questionDotToken*/
+                f.new_identifier("then"),
+                NodeFlags::None,
+            ),
             None, /*questionDotToken*/
             None, /*typeArguments*/
             f.new_node_list(vec![function]),
@@ -604,11 +838,19 @@ impl CommonJSModuleTransformer {
             let mut first_argument = v.visit_node(Some(n.arguments.nodes()[0])).unwrap();
             let first_argument_changed;
             if ast::is_string_literal_like(first_argument) {
-                let rewritten = rewrite_module_specifier(self.emit_context(), Some(first_argument), &self.compiler_options).unwrap();
+                let rewritten = rewrite_module_specifier(
+                    self.emit_context(),
+                    Some(first_argument),
+                    &self.compiler_options,
+                )
+                .unwrap();
                 first_argument_changed = rewritten != first_argument;
                 first_argument = rewritten;
             } else {
-                first_argument = f.new_rewrite_relative_import_extensions_helper(first_argument, self.compiler_options.jsx == tsrs_core::JsxEmit::Preserve);
+                first_argument = f.new_rewrite_relative_import_extensions_helper(
+                    first_argument,
+                    self.compiler_options.jsx == tsrs_core::JsxEmit::Preserve,
+                );
                 first_argument_changed = true;
             }
 
@@ -621,7 +863,14 @@ impl CommonJSModuleTransformer {
             }
         }
 
-        f.update_call_expression(node, expression, n.question_dot_token(), None /*typeArguments*/, arguments_list, node.flags())
+        f.update_call_expression(
+            node,
+            expression,
+            n.question_dot_token(),
+            None, /*typeArguments*/
+            arguments_list,
+            node.flags(),
+        )
     }
 
     // Visits a tagged template expression that might reference an imported symbol and thus require an indirect call.
@@ -639,7 +888,14 @@ impl CommonJSModuleTransformer {
             //   the indirect call is applied by the printer by way of the `EFIndirectCall` emit flag.
 
             let expression = self.visit_expression_identifier(n.tag);
-            let updated = self.factory().update_tagged_template_expression(node, expression, None /*questionDotToken*/, None /*typeArguments*/, self.visitor().visit_node(Some(n.template)).unwrap(), node.flags());
+            let updated = self.factory().update_tagged_template_expression(
+                node,
+                expression,
+                None, /*questionDotToken*/
+                None, /*typeArguments*/
+                self.visitor().visit_node(Some(n.template)).unwrap(),
+                node.flags(),
+            );
             if !ast::is_identifier(expression) && !is_helper_name(self.emit_context(), n.tag) {
                 self.emit_context().add_emit_flags(updated, EmitFlags::IndirectCall);
             }
@@ -660,9 +916,17 @@ impl CommonJSModuleTransformer {
             // destructuring assignment
             let mut expression = exported_or_imported_name;
             if let Some(object_assignment_initializer) = n.object_assignment_initializer() {
-                expression = f.new_assignment_expression(expression, self.visitor().visit_node(Some(object_assignment_initializer)).unwrap());
+                expression = f.new_assignment_expression(
+                    expression,
+                    self.visitor().visit_node(Some(object_assignment_initializer)).unwrap(),
+                );
             }
-            let assignment = f.new_property_assignment(None /*modifiers*/, name, None /*postfixToken*/, None /*typeNode*/, expression);
+            let assignment = f.new_property_assignment(
+                None, /*modifiers*/
+                name, None, /*postfixToken*/
+                None, /*typeNode*/
+                expression,
+            );
             assignment.set_loc(node.loc());
             self.emit_context().assign_comment_and_source_map_ranges(assignment, node);
             return assignment;
@@ -692,12 +956,23 @@ impl CommonJSModuleTransformer {
     pub(crate) fn visit_expression_identifier(&self, node: P<Node>) -> P<Node> {
         let emit_context = self.emit_context();
         let info = emit_context.get_auto_generate_info(Some(node));
-        if info.is_none_or(|info| info.flags.has_allow_name_substitution()) && !is_helper_name(emit_context, node) && !is_local_name(emit_context, node) && !is_declaration_name_of_enum_or_namespace(emit_context, node) {
+        if info.is_none_or(|info| info.flags.has_allow_name_substitution())
+            && !is_helper_name(emit_context, node)
+            && !is_local_name(emit_context, node)
+            && !is_declaration_name_of_enum_or_namespace(emit_context, node)
+        {
             let f = self.factory();
             let original = emit_context.most_original(Some(node)).unwrap();
-            let export_container = self.resolver.get_referenced_export_container(original, is_export_name(emit_context, node));
+            let export_container = self
+                .resolver
+                .get_referenced_export_container(original, is_export_name(emit_context, node));
             if export_container.is_some_and(ast::is_source_file) {
-                let reference = f.new_property_access_expression(f.new_identifier("exports"), None /*questionDotToken*/, node.clone_node(f), NodeFlags::None);
+                let reference = f.new_property_access_expression(
+                    f.new_identifier("exports"),
+                    None, /*questionDotToken*/
+                    node.clone_node(f),
+                    NodeFlags::None,
+                );
                 emit_context.assign_comment_and_source_map_ranges(reference, node);
                 reference.set_loc(node.loc());
                 return reference;
@@ -721,11 +996,24 @@ impl CommonJSModuleTransformer {
                     let decl = ast::find_ancestor(import_declaration, ast::is_import_declaration);
                     let target = f.new_generated_name_for_node(decl.unwrap_or(import_declaration));
                     let reference = if ast::is_string_literal(name) {
-                        f.new_element_access_expression(target, None /*questionDotToken*/, f.new_string_literal_from_node(name), NodeFlags::None)
+                        f.new_element_access_expression(
+                            target,
+                            None, /*questionDotToken*/
+                            f.new_string_literal_from_node(name),
+                            NodeFlags::None,
+                        )
                     } else {
                         let reference_name = name.clone_node(f);
-                        emit_context.add_emit_flags(reference_name, EmitFlags::NoSourceMap | EmitFlags::NoComments);
-                        f.new_property_access_expression(target, None /*questionDotToken*/, reference_name, NodeFlags::None)
+                        emit_context.add_emit_flags(
+                            reference_name,
+                            EmitFlags::NoSourceMap | EmitFlags::NoComments,
+                        );
+                        f.new_property_access_expression(
+                            target,
+                            None, /*questionDotToken*/
+                            reference_name,
+                            NodeFlags::None,
+                        )
                     };
                     emit_context.assign_comment_and_source_map_ranges(reference, node);
                     reference.set_loc(node.loc());
@@ -743,7 +1031,9 @@ impl CommonJSModuleTransformer {
         let info = self.module_info();
         if !is_generated_identifier(emit_context, name) {
             let original = emit_context.most_original(Some(name)).unwrap();
-            if let Some(import_declaration) = self.resolver.get_referenced_import_declaration(original) {
+            if let Some(import_declaration) =
+                self.resolver.get_referenced_import_declaration(original)
+            {
                 return info.exported_bindings.get(&import_declaration).to_vec();
             }
 

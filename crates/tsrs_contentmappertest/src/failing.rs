@@ -1,4 +1,4 @@
-use tsrs_contentmapper::{ProtocolJson, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{METHOD_INITIALIZE, METHOD_TRANSFORM, ProtocolJson};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 
@@ -19,7 +19,11 @@ impl ipc::Handler for failingHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

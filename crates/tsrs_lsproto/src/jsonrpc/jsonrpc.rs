@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-use crate::json::{kind, Json, JsonError, ObjectWriter, Value};
+use crate::json::{Json, JsonError, ObjectWriter, Value, kind};
 use crate::structcodec::{field, opt, struct_members};
 
 // jsonrpc.go:14

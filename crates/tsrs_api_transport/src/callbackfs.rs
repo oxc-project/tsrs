@@ -12,7 +12,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rustc_hash::FxHashSet;
 use serde::Deserialize;
 use serde_json::value::RawValue;
-use tsrs_vfs::{Entries, FileInfo, FileMode, FS};
+use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 
 use crate::handler::Caller;
 
@@ -118,7 +118,8 @@ struct Decoded {
 impl Decoded {
     fn value<'a, T: Deserialize<'a>>(&'a self, name: &str) -> T {
         let raw = self.value.as_deref().unwrap_or("null");
-        serde_json::from_str(raw).unwrap_or_else(|e| fail(format!("invalid {name} callback value: {e}")))
+        serde_json::from_str(raw)
+            .unwrap_or_else(|e| fail(format!("invalid {name} callback value: {e}")))
     }
 
     /// json.Unmarshal(value, &string) as callbackfs.go does: an absent value is `unexpected EOF`, `null`
@@ -163,8 +164,8 @@ fn decode_callback_response(name: &str, result: &[u8]) -> Decoded {
     if let Err(e) = crate::strictjson::validate(result) {
         fail(e);
     }
-    let response: CallbackResponse<'_> =
-        serde_json::from_slice(result).unwrap_or_else(|e| fail(format!("invalid {name} callback response: {e}")));
+    let response: CallbackResponse<'_> = serde_json::from_slice(result)
+        .unwrap_or_else(|e| fail(format!("invalid {name} callback response: {e}")));
     let kind = response.kind.unwrap_or_default();
     if kind.is_empty() {
         fail("filesystem callback response is missing a kind");
@@ -180,7 +181,11 @@ fn invalid_kind(name: &str, response: &Decoded) -> ! {
 }
 
 impl CallbackFs {
-    pub fn new(base: Arc<dyn FS>, config: &CallbackConfig, case_sensitive: Option<bool>) -> CallbackFs {
+    pub fn new(
+        base: Arc<dyn FS>,
+        config: &CallbackConfig,
+        case_sensitive: Option<bool>,
+    ) -> CallbackFs {
         CallbackFs {
             base,
             enabled: config.enabled.iter().cloned().collect(),
@@ -226,10 +231,20 @@ impl CallbackFs {
     fn fake_stat_for_path(&self, path: &str) -> Option<FileInfo> {
         let name = base_file_name(path);
         if self.directory_exists(path) {
-            return Some(FileInfo { name, size: 0, mode: FileMode::Dir | FileMode::from_bits_retain(0o555), mod_time: None });
+            return Some(FileInfo {
+                name,
+                size: 0,
+                mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
+                mod_time: None,
+            });
         }
         if self.file_exists(path) {
-            return Some(FileInfo { name, size: 0, mode: FileMode::from_bits_retain(0o444), mod_time: None });
+            return Some(FileInfo {
+                name,
+                size: 0,
+                mode: FileMode::from_bits_retain(0o444),
+                mod_time: None,
+            });
         }
         None
     }
@@ -295,7 +310,9 @@ impl FS for CallbackFs {
                         #[serde(default)]
                         symlinks: Option<Vec<String>>,
                     }
-                    let Some(raw) = response.value::<Option<RawEntries>>(CALLBACK_GET_ACCESSIBLE_ENTRIES) else {
+                    let Some(raw) =
+                        response.value::<Option<RawEntries>>(CALLBACK_GET_ACCESSIBLE_ENTRIES)
+                    else {
                         fail("invalid getAccessibleEntries callback value: null");
                     };
                     Entries {
@@ -344,8 +361,9 @@ impl FS for CallbackFs {
                         mtime: String,
                     }
                     let stat = response.value::<RawStat>(CALLBACK_STAT);
-                    let mod_time = parse_rfc3339(&stat.mtime)
-                        .unwrap_or_else(|e| fail(format!("parsing time {:?} as RFC3339: {e}", stat.mtime)));
+                    let mod_time = parse_rfc3339(&stat.mtime).unwrap_or_else(|e| {
+                        fail(format!("parsing time {:?} as RFC3339: {e}", stat.mtime))
+                    });
                     Some(FileInfo {
                         name: base_file_name(path),
                         size: stat.size,
@@ -462,12 +480,24 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, String> {
         }
         Ok(std::str::from_utf8(part).unwrap().parse::<i64>().unwrap())
     };
-    if b.len() < 20 || b[4] != b'-' || b[7] != b'-' || !(b[10] == b'T' || b[10] == b't') || b[13] != b':' || b[16] != b':' {
+    if b.len() < 20
+        || b[4] != b'-'
+        || b[7] != b'-'
+        || !(b[10] == b'T' || b[10] == b't')
+        || b[13] != b':'
+        || b[16] != b':'
+    {
         return Err("cannot parse".to_string());
     }
     let (year, month, day) = (num(0..4)?, num(5..7)?, num(8..10)?);
     let (hour, min, sec) = (num(11..13)?, num(14..16)?, num(17..19)?);
-    if !(1..=12).contains(&month) || day < 1 || day > days_in_month(year, month) || hour > 23 || min > 59 || sec > 59 {
+    if !(1..=12).contains(&month)
+        || day < 1
+        || day > days_in_month(year, month)
+        || hour > 23
+        || min > 59
+        || sec > 59
+    {
         return Err("value out of range".to_string());
     }
     let mut i = 19;
@@ -490,11 +520,7 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, String> {
                 return Err("time zone offset out of range".to_string());
             }
             let off = oh * 3600 + om * 60;
-            if sign == b'-' {
-                -off
-            } else {
-                off
-            }
+            if sign == b'-' { -off } else { off }
         }
         _ => return Err("bad time zone".to_string()),
     };

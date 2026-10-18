@@ -106,8 +106,7 @@ pub fn node_is_asi_candidate(node: P<Node>, file: P<SourceFile>) -> bool {
 
     let start_line = scanner::get_ecma_line_of_position(
         file.get(),
-        node.end()
-            .expect_source("parsed nodes have source positions"),
+        node.end().expect_source("parsed nodes have source positions"),
     );
     let end_line = scanner::get_ecma_line_of_position(
         file.get(),

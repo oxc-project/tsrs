@@ -3,7 +3,7 @@ use std::sync::atomic::AtomicU32;
 
 use hashbrown::HashTable;
 use rustc_hash::FxBuildHasher;
-use tsrs_core::{FrozenCell, OwnedCell, OwnedPSliceCell, OwnedTaggedStrCell, PKey, P};
+use tsrs_core::{FrozenCell, OwnedCell, OwnedPSliceCell, OwnedTaggedStrCell, P, PKey};
 
 use crate::ast::{Node, SourceFile};
 use crate::checkflags::CheckFlags;
@@ -32,7 +32,7 @@ pub struct Symbol {
     pub name: OwnedTaggedStrCell,
     declarations: OwnedPSliceCell<P<Node>>, // Go slice: shared by copies, replaced (not mutated) on append
     pub(crate) id: AtomicU32,               // Go uint64; ids above u32::MAX panic in get_symbol_id
-    parent_or_tables: OwnedCell<PKey>,      // `P::key` of the parent or (with `TAG_TABLES`) of the tail; 0 = none
+    parent_or_tables: OwnedCell<PKey>, // `P::key` of the parent or (with `TAG_TABLES`) of the tail; 0 = none
 }
 
 #[derive(Default)]
@@ -48,7 +48,8 @@ struct SymbolTables {
 }
 
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(std::mem::size_of::<Symbol>() == if tsrs_core::COMPRESSED_PTRS { 32 } else { 40 });
+const _: () =
+    assert!(std::mem::size_of::<Symbol>() == if tsrs_core::COMPRESSED_PTRS { 32 } else { 40 });
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(std::mem::size_of::<Symbol>() == 32);
 
@@ -60,7 +61,11 @@ const TAG_VALUE_FIRST: u8 = 2;
 impl Symbol {
     /// Allocates a fresh symbol (Go `&ast.Symbol{Flags: flags, Name: name}`).
     pub fn new(flags: SymbolFlags, name: &'static str) -> P<Symbol> {
-        let s = P::new(Symbol { flags: OwnedCell::new(flags), name: OwnedTaggedStrCell::new(name), ..Default::default() });
+        let s = P::new(Symbol {
+            flags: OwnedCell::new(flags),
+            name: OwnedTaggedStrCell::new(name),
+            ..Default::default()
+        });
         if tsrs_core::sharedgraph::on_seed_thread() {
             crate::get_symbol_id(s);
         }
@@ -119,7 +124,10 @@ impl Symbol {
         self.set_declarations_static(tsrs_core::alloc_vec(result));
     }
     #[inline]
-    #[expect(clippy::disallowed_methods, reason = "indexing with a bounds check: +0.7% instructions, one checker (notes/mem-small.md)")]
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "indexing with a bounds check: +0.7% instructions, one checker (notes/mem-small.md)"
+    )]
     pub fn value_declaration(&self) -> Option<P<Node>> {
         if self.name.tags() & TAG_VALUE_FIRST != 0 {
             let declarations = self.declarations.get();
@@ -132,7 +140,9 @@ impl Symbol {
     }
     pub fn set_value_declaration(&self, value_declaration: Option<P<Node>>) {
         let tags = self.name.tags();
-        if value_declaration.is_some() && self.declarations.get().first().copied() == value_declaration {
+        if value_declaration.is_some()
+            && self.declarations.get().first().copied() == value_declaration
+        {
             self.name.set_tags(tags | TAG_VALUE_FIRST);
             if let Some(tables) = self.tables() {
                 tables.value_declaration.set(None);
@@ -147,12 +157,18 @@ impl Symbol {
     #[inline]
     fn tables(&self) -> Option<P<SymbolTables>> {
         // SAFETY: with the tag, the field holds the key of the tail made by `tables_for_write` (never freed).
-        (self.name.tags() & TAG_TABLES != 0).then(|| unsafe { P::from_key(self.parent_or_tables.get()) })
+        (self.name.tags() & TAG_TABLES != 0)
+            .then(|| unsafe { P::from_key(self.parent_or_tables.get()) })
     }
     #[inline]
     fn tables_for_write(&self) -> P<SymbolTables> {
-        if let Some(tables) = self.tables() { tables } else {
-            let tables = P::new(SymbolTables { parent: OwnedCell::new(self.parent()), ..Default::default() });
+        if let Some(tables) = self.tables() {
+            tables
+        } else {
+            let tables = P::new(SymbolTables {
+                parent: OwnedCell::new(self.parent()),
+                ..Default::default()
+            });
             self.parent_or_tables.set(tables.key());
             self.name.set_tags(self.name.tags() | TAG_TABLES);
             tables
@@ -228,7 +244,8 @@ impl Symbol {
     }
 
     pub fn is_external_module(&self) -> bool {
-        self.flags.get().intersects(SymbolFlags::Module) && is_ambient_module_symbol_name(self.name.get())
+        self.flags.get().intersects(SymbolFlags::Module)
+            && is_ambient_module_symbol_name(self.name.get())
     }
 
     pub fn is_static(&self) -> bool {
@@ -258,11 +275,20 @@ pub fn get_source_file_of_symbol(symbol: P<Symbol>) -> Option<P<SourceFile>> {
     }
     if symbol.declarations().is_empty() {
         // A class's implicit prototype has no declaration of its own.
-        assert!(symbol.flags.get().intersects(SymbolFlags::Prototype), "File-bound symbol has no declarations");
+        assert!(
+            symbol.flags.get().intersects(SymbolFlags::Prototype),
+            "File-bound symbol has no declarations"
+        );
         let parent = symbol.parent();
-        assert!(parent.is_some_and(|p| p.flags.get().intersects(SymbolFlags::Class)), "Prototype has no declaring class");
+        assert!(
+            parent.is_some_and(|p| p.flags.get().intersects(SymbolFlags::Class)),
+            "Prototype has no declaring class"
+        );
         symbol = parent.unwrap();
-        assert!(!symbol.flags.get().intersects(SymbolFlags::Transient), "Prototype parent is not file-bound");
+        assert!(
+            !symbol.flags.get().intersects(SymbolFlags::Transient),
+            "Prototype parent is not file-bound"
+        );
         assert!(!symbol.declarations().is_empty(), "Prototype parent has no declarations");
     }
     let first = symbol.declarations()[0];
@@ -350,9 +376,16 @@ impl EntryVec {
             unsafe { std::alloc::alloc(Self::layout(cap)) }
         } else {
             // SAFETY: `ptr` was allocated with the layout of `self.cap` entries.
-            unsafe { std::alloc::realloc(self.ptr.as_ptr().cast(), Self::layout(self.cap as usize), Self::layout(cap).size()) }
+            unsafe {
+                std::alloc::realloc(
+                    self.ptr.as_ptr().cast(),
+                    Self::layout(self.cap as usize),
+                    Self::layout(cap).size(),
+                )
+            }
         };
-        self.ptr = std::ptr::NonNull::new(ptr.cast()).unwrap_or_else(|| std::alloc::handle_alloc_error(Self::layout(cap)));
+        self.ptr = std::ptr::NonNull::new(ptr.cast())
+            .unwrap_or_else(|| std::alloc::handle_alloc_error(Self::layout(cap)));
         self.cap = cap32;
     }
 
@@ -370,7 +403,9 @@ impl EntryVec {
         let len = self.len as usize;
         assert!(i < len, "removal index out of bounds");
         // SAFETY: `i` < `len`; the entries are `Copy`.
-        unsafe { std::ptr::copy(self.ptr.as_ptr().add(i + 1), self.ptr.as_ptr().add(i), len - i - 1) };
+        unsafe {
+            std::ptr::copy(self.ptr.as_ptr().add(i + 1), self.ptr.as_ptr().add(i), len - i - 1);
+        };
         self.len -= 1;
     }
 }
@@ -407,7 +442,9 @@ impl Drop for EntryVec {
     fn drop(&mut self) {
         if self.cap != 0 {
             // SAFETY: allocated with the layout of `cap` entries.
-            unsafe { std::alloc::dealloc(self.ptr.as_ptr().cast(), Self::layout(self.cap as usize)) };
+            unsafe {
+                std::alloc::dealloc(self.ptr.as_ptr().cast(), Self::layout(self.cap as usize));
+            };
         }
     }
 }
@@ -443,7 +480,11 @@ impl KeyPrint {
 
     #[inline]
     fn of(name: &str, hash: u32) -> KeyPrint {
-        KeyPrint(Self::len_bits(name) | (Self::hash_bits(hash) << (SymbolMapEntry::HASH_SHIFT - SymbolMapEntry::LEN_SHIFT)))
+        KeyPrint(
+            Self::len_bits(name)
+                | (Self::hash_bits(hash)
+                    << (SymbolMapEntry::HASH_SHIFT - SymbolMapEntry::LEN_SHIFT)),
+        )
     }
 }
 
@@ -603,16 +644,23 @@ fn hash_name(name: &str) -> u32 {
             let h = FxBuildHasher.hash_one(name);
             return (h ^ (h >> 32)) as u32;
         }
-        (u64::from_le_bytes(b[..8].try_into().unwrap()), u64::from_le_bytes(b[len - 8..].try_into().unwrap()))
+        (
+            u64::from_le_bytes(b[..8].try_into().unwrap()),
+            u64::from_le_bytes(b[len - 8..].try_into().unwrap()),
+        )
     } else if len >= 4 {
-        (u32::from_le_bytes(b[..4].try_into().unwrap()) as u64, u32::from_le_bytes(b[len - 4..].try_into().unwrap()) as u64)
+        (
+            u32::from_le_bytes(b[..4].try_into().unwrap()) as u64,
+            u32::from_le_bytes(b[len - 4..].try_into().unwrap()) as u64,
+        )
     } else if len > 0 {
         (b[0] as u64, ((b[len - 1] as u64) << 8) | b[len / 2] as u64)
     } else {
         (0, 0)
     };
     // The two constants are AArch64 logical immediates (one `eor` each, no four-instruction load).
-    let m = ((x ^ 0x5555_5555_5555_5555) as u128).wrapping_mul((y ^ 0x3333_3333_3333_3333 ^ len as u64) as u128);
+    let m = ((x ^ 0x5555_5555_5555_5555) as u128)
+        .wrapping_mul((y ^ 0x3333_3333_3333_3333 ^ len as u64) as u128);
     let h = (m as u64) ^ ((m >> 64) as u64);
     (h ^ (h >> 32)) as u32
 }
@@ -661,7 +709,10 @@ fn index_hash(hash: u32) -> u64 {
 impl SymbolMap {
     fn with_capacity(n: usize) -> SymbolMap {
         let extra = if n > SYMBOL_TABLE_LINEAR_MAX {
-            ExtraSlot::boxed(SymbolMapExtra { index: Some(HashTable::with_capacity(n)), odd_keys: Vec::new() })
+            ExtraSlot::boxed(SymbolMapExtra {
+                index: Some(HashTable::with_capacity(n)),
+                odd_keys: Vec::new(),
+            })
         } else {
             ExtraSlot::default()
         };
@@ -721,12 +772,17 @@ impl SymbolMap {
         let print = KeyPrint::of(name, hash);
         let i = match self.index() {
             None => (0..self.entries.len()).find(|&i| self.entries[i].print() == print)?,
-            Some(index) => *index.find(index_hash(hash), |&i| self.entries[i as usize].print() == print)? as usize,
+            Some(index) => *index
+                .find(index_hash(hash), |&i| self.entries[i as usize].print() == print)?
+                as usize,
         };
         let e = self.entries[i];
         if !e.is_odd() {
             let key = e.symbol().name();
-            if key.len() == name.len() && (std::ptr::eq(key.as_ptr(), name.as_ptr()) || name.len() <= 16 && short_text_eq(key.as_bytes(), name.as_bytes())) {
+            if key.len() == name.len()
+                && (std::ptr::eq(key.as_ptr(), name.as_ptr())
+                    || name.len() <= 16 && short_text_eq(key.as_bytes(), name.as_bytes()))
+            {
                 return Some(i);
             }
         }
@@ -744,7 +800,9 @@ impl SymbolMap {
         }
         match self.index() {
             None => (i + 1..self.entries.len()).find(|&j| self.entry_matches(j, name, print)),
-            Some(index) => index.find(index_hash(hash), |&j| self.entry_matches(j as usize, name, print)).map(|&j| j as usize),
+            Some(index) => index
+                .find(index_hash(hash), |&j| self.entry_matches(j as usize, name, print))
+                .map(|&j| j as usize),
         }
     }
 
@@ -780,7 +838,9 @@ impl SymbolMap {
         }
         if let Some(SymbolMapExtra { index: Some(index), odd_keys }) = self.extra.get_mut() {
             let entries = &self.entries;
-            index.insert_unique(index_hash(hash), i as u32, |&m| index_hash(hash_name(key_at(entries, odd_keys, m as usize))));
+            index.insert_unique(index_hash(hash), i as u32, |&m| {
+                index_hash(hash_name(key_at(entries, odd_keys, m as usize)))
+            });
         } else if self.entries.len() > SYMBOL_TABLE_LINEAR_MAX {
             self.build_index();
         }
@@ -793,7 +853,9 @@ impl SymbolMap {
         let len = self.entries.len();
         let mut index = HashTable::with_capacity(len);
         for j in 0..len {
-            index.insert_unique(index_hash(self.entry_hash(j)), j as u32, |&m| index_hash(self.entry_hash(m as usize)));
+            index.insert_unique(index_hash(self.entry_hash(j)), j as u32, |&m| {
+                index_hash(self.entry_hash(m as usize))
+            });
         }
         self.extra.get_or_insert().index = Some(index);
     }
@@ -877,7 +939,9 @@ impl NameFilter {
 
     #[inline]
     pub fn may_contain(&self, key: HashedName<'_>) -> bool {
-        Self::bit_positions(key.hash).iter().all(|&b| self.0[(b >> 6) as usize] & (1 << (b & 63)) != 0)
+        Self::bit_positions(key.hash)
+            .iter()
+            .all(|&b| self.0[(b >> 6) as usize] & (1 << (b & 63)) != 0)
     }
 }
 
@@ -1075,7 +1139,8 @@ mod tests {
         let large = SymbolTable::new();
         let mut names = Vec::new();
         for i in 0..200 {
-            let name: &'static str = Box::leak(format!("member{i}{}", "x".repeat(i % 23)).into_boxed_str());
+            let name: &'static str =
+                Box::leak(format!("member{i}{}", "x".repeat(i % 23)).into_boxed_str());
             names.push(name);
             let table = if i < 10 { &small } else { &large };
             table.set(name, Symbol::new(SymbolFlags::Property, name));
@@ -1095,8 +1160,13 @@ mod tests {
     fn index_finds_every_key_through_growth_and_deletes() {
         // Past the linear limit and 255 entries, presized and grown, with deletes, an odd key and a replaced symbol.
         for presized in [0, 20, 300] {
-            let table = if presized == 0 { SymbolTable::new() } else { SymbolTable::with_capacity(presized) };
-            let names: Vec<&'static str> = (0..600).map(|i| &*Box::leak(format!("k{i}").into_boxed_str())).collect();
+            let table = if presized == 0 {
+                SymbolTable::new()
+            } else {
+                SymbolTable::with_capacity(presized)
+            };
+            let names: Vec<&'static str> =
+                (0..600).map(|i| &*Box::leak(format!("k{i}").into_boxed_str())).collect();
             let mut expected: Vec<(&'static str, P<Symbol>)> = Vec::new();
             for (i, &name) in names.iter().enumerate() {
                 let symbol = Symbol::new(SymbolFlags::Property, if i == 7 { "odd" } else { name });

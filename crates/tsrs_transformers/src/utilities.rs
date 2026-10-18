@@ -4,7 +4,6 @@
 
 use crate::*;
 
-
 // utilities.go:12
 pub fn is_generated_identifier(emit_context: P<EmitContext>, name: P<Node>) -> bool {
     emit_context.has_auto_generate_info(Some(name))
@@ -81,18 +80,28 @@ pub fn is_identifier_reference(name: P<Node>, parent: P<Node>) -> bool {
             // only an `Initializer()` child that can be `Identifier` would be an instance of `IdentifierReference`
             parent.initializer() == Some(name)
         }
-        Kind::ShorthandPropertyAssignment => parent.as_shorthand_property_assignment().object_assignment_initializer() == Some(name),
-        Kind::ForStatement => {
-            parent.initializer() == Some(name) || parent.as_for_statement().condition == Some(name) || parent.as_for_statement().incrementor == Some(name)
+        Kind::ShorthandPropertyAssignment => {
+            parent.as_shorthand_property_assignment().object_assignment_initializer() == Some(name)
         }
-        Kind::ForInStatement | Kind::ForOfStatement => parent.initializer() == Some(name) || parent.expression() == Some(name),
-        Kind::ImportEqualsDeclaration => parent.as_import_equals_declaration().module_reference == name,
+        Kind::ForStatement => {
+            parent.initializer() == Some(name)
+                || parent.as_for_statement().condition == Some(name)
+                || parent.as_for_statement().incrementor == Some(name)
+        }
+        Kind::ForInStatement | Kind::ForOfStatement => {
+            parent.initializer() == Some(name) || parent.expression() == Some(name)
+        }
+        Kind::ImportEqualsDeclaration => {
+            parent.as_import_equals_declaration().module_reference == name
+        }
         Kind::ArrowFunction => parent.body() == Some(name),
         Kind::ConditionalExpression => {
             let c = parent.as_conditional_expression();
             c.condition == name || c.when_true == name || c.when_false == name
         }
-        Kind::CallExpression | Kind::NewExpression => parent.expression() == Some(name) || parent.arguments().contains(&name),
+        Kind::CallExpression | Kind::NewExpression => {
+            parent.expression() == Some(name) || parent.arguments().contains(&name)
+        }
         Kind::TaggedTemplateExpression => parent.as_tagged_template_expression().tag == name,
         Kind::ImportAttribute => parent.as_import_attribute().value == name,
         Kind::JsxOpeningElement | Kind::JsxClosingElement => parent.tag_name() == name,
@@ -101,7 +110,10 @@ pub fn is_identifier_reference(name: P<Node>, parent: P<Node>) -> bool {
 }
 
 // utilities.go:112
-fn convert_binding_element_to_array_assignment_element(emit_context: P<EmitContext>, element: P<Node>) -> P<Node> {
+fn convert_binding_element_to_array_assignment_element(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> P<Node> {
     let f = &emit_context.get().factory;
     let Some(name) = element.name() else {
         let elision = f.new_omitted_expression();
@@ -127,7 +139,10 @@ fn convert_binding_element_to_array_assignment_element(emit_context: P<EmitConte
 }
 
 // utilities.go:135
-fn convert_binding_element_to_object_assignment_element(emit_context: P<EmitContext>, element: P<Node>) -> P<Node> {
+fn convert_binding_element_to_object_assignment_element(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> P<Node> {
     let f = &emit_context.get().factory;
     let e = element.as_binding_element();
     if e.dot_dot_dot_token().is_some() {
@@ -137,16 +152,26 @@ fn convert_binding_element_to_object_assignment_element(emit_context: P<EmitCont
         return spread;
     }
     if let Some(property_name) = e.property_name() {
-        let mut expression = convert_binding_name_to_assignment_element_target(emit_context, element.name().unwrap());
+        let mut expression = convert_binding_name_to_assignment_element_target(
+            emit_context,
+            element.name().unwrap(),
+        );
         if let Some(initializer) = e.initializer() {
             expression = f.new_assignment_expression(expression, initializer);
         }
-        let assignment = f.new_property_assignment(None /*modifiers*/, property_name, None /*postfixToken*/, None /*typeNode*/, expression);
+        let assignment = f.new_property_assignment(
+            None, /*modifiers*/
+            property_name,
+            None, /*postfixToken*/
+            None, /*typeNode*/
+            expression,
+        );
         emit_context.set_original(assignment, element);
         emit_context.assign_comment_and_source_map_ranges(assignment, element);
         return assignment;
     }
-    let equals_token = if e.initializer().is_some() { Some(f.new_token(Kind::EqualsToken)) } else { None };
+    let equals_token =
+        if e.initializer().is_some() { Some(f.new_token(Kind::EqualsToken)) } else { None };
     let assignment = f.new_shorthand_property_assignment(
         None, /*modifiers*/
         element.name().unwrap(),
@@ -161,20 +186,35 @@ fn convert_binding_element_to_object_assignment_element(emit_context: P<EmitCont
 }
 
 // utilities.go:169
-pub fn convert_binding_pattern_to_assignment_pattern(emit_context: P<EmitContext>, element: P<Node>) -> P<Node> {
+pub fn convert_binding_pattern_to_assignment_pattern(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> P<Node> {
     match element.kind() {
-        Kind::ArrayBindingPattern => convert_binding_element_to_array_assignment_pattern(emit_context, element),
-        Kind::ObjectBindingPattern => convert_binding_element_to_object_assignment_pattern(emit_context, element),
+        Kind::ArrayBindingPattern => {
+            convert_binding_element_to_array_assignment_pattern(emit_context, element)
+        }
+        Kind::ObjectBindingPattern => {
+            convert_binding_element_to_object_assignment_pattern(emit_context, element)
+        }
         _ => panic!("Unknown binding pattern"),
     }
 }
 
 // utilities.go:180
-fn convert_binding_element_to_object_assignment_pattern(emit_context: P<EmitContext>, element: P<Node>) -> P<Node> {
+fn convert_binding_element_to_object_assignment_pattern(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> P<Node> {
     let f = &emit_context.get().factory;
     let mut properties: Vec<P<Node>> = Vec::new();
     let elements = element.as_binding_pattern().elements;
-    properties.extend(elements.nodes().iter().map(|&e| convert_binding_element_to_object_assignment_element(emit_context, e)));
+    properties.extend(
+        elements
+            .nodes()
+            .iter()
+            .map(|&e| convert_binding_element_to_object_assignment_element(emit_context, e)),
+    );
     let property_list = f.new_node_list(properties);
     property_list.loc.set(elements.loc.get());
     let object = f.new_object_literal_expression(property_list, false /*multiLine*/);
@@ -184,11 +224,19 @@ fn convert_binding_element_to_object_assignment_pattern(emit_context: P<EmitCont
 }
 
 // utilities.go:193
-fn convert_binding_element_to_array_assignment_pattern(emit_context: P<EmitContext>, element: P<Node>) -> P<Node> {
+fn convert_binding_element_to_array_assignment_pattern(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> P<Node> {
     let f = &emit_context.get().factory;
     let mut out: Vec<P<Node>> = Vec::new();
     let elements = element.as_binding_pattern().elements;
-    out.extend(elements.nodes().iter().map(|&e| convert_binding_element_to_array_assignment_element(emit_context, e)));
+    out.extend(
+        elements
+            .nodes()
+            .iter()
+            .map(|&e| convert_binding_element_to_array_assignment_element(emit_context, e)),
+    );
     let element_list = f.new_node_list(out);
     element_list.loc.set(elements.loc.get());
     let object = f.new_array_literal_expression(element_list, false /*multiLine*/);
@@ -198,7 +246,10 @@ fn convert_binding_element_to_array_assignment_pattern(emit_context: P<EmitConte
 }
 
 // utilities.go:206
-fn convert_binding_name_to_assignment_element_target(emit_context: P<EmitContext>, element: P<Node>) -> P<Node> {
+fn convert_binding_name_to_assignment_element_target(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> P<Node> {
     if ast::is_binding_pattern(element) {
         return convert_binding_pattern_to_assignment_pattern(emit_context, element);
     }
@@ -206,9 +257,13 @@ fn convert_binding_name_to_assignment_element_target(emit_context: P<EmitContext
 }
 
 // utilities.go:213
-pub fn convert_variable_declaration_to_assignment_expression(emit_context: P<EmitContext>, element: P<Node>) -> Option<P<Node>> {
+pub fn convert_variable_declaration_to_assignment_expression(
+    emit_context: P<EmitContext>,
+    element: P<Node>,
+) -> Option<P<Node>> {
     let initializer = element.initializer()?;
-    let expression = convert_binding_name_to_assignment_element_target(emit_context, element.name().unwrap());
+    let expression =
+        convert_binding_name_to_assignment_element_target(emit_context, element.name().unwrap());
     let assignment = emit_context.factory.new_assignment_expression(expression, initializer);
     emit_context.set_original(assignment, element);
     emit_context.assign_comment_and_source_map_ranges(assignment, element);
@@ -216,7 +271,10 @@ pub fn convert_variable_declaration_to_assignment_expression(emit_context: P<Emi
 }
 
 // utilities.go:224. Go distinguishes a nil slice (-> nil) from an empty one (-> an empty SyntaxList).
-pub fn single_or_many(nodes: Option<Vec<P<Node>>>, factory: &printer::NodeFactory) -> Option<P<Node>> {
+pub fn single_or_many(
+    nodes: Option<Vec<P<Node>>>,
+    factory: &printer::NodeFactory,
+) -> Option<P<Node>> {
     let nodes = nodes?;
     if nodes.len() == 1 {
         return Some(nodes[0]);
@@ -226,7 +284,10 @@ pub fn single_or_many(nodes: Option<Vec<P<Node>>>, factory: &printer::NodeFactor
 
 // utilities.go:241
 pub fn is_simple_copiable_expression(expression: P<Node>) -> bool {
-    ast::is_string_literal_like(expression) || ast::is_numeric_literal(expression) || ast::is_keyword_kind(expression.kind()) || ast::is_identifier(expression)
+    ast::is_string_literal_like(expression)
+        || ast::is_numeric_literal(expression)
+        || ast::is_keyword_kind(expression.kind())
+        || ast::is_identifier(expression)
 }
 
 // utilities.go:248
@@ -242,7 +303,10 @@ pub fn is_original_node_single_line(emit_context: P<EmitContext>, node: Option<P
     };
     // The most original node can be a synthesized one in a parsed file. Go passes its position (-1) on to
     // GetECMALineOfPosition, which returns line -1 for it, so two synthesized positions are on the same line.
-    let line_of = |pos: tsrs_core::TextPos| pos.source_offset().map_or(-1, |pos| scanner::get_ecma_line_of_position(&*source, pos) as isize);
+    let line_of = |pos: tsrs_core::TextPos| {
+        pos.source_offset()
+            .map_or(-1, |pos| scanner::get_ecma_line_of_position(&*source, pos) as isize)
+    };
     line_of(original.pos()) == line_of(original.end())
 }
 
@@ -253,13 +317,18 @@ pub fn is_simple_inlineable_expression(expression: P<Node>) -> bool {
 
 // utilities.go:275
 pub fn find_super_statement_index_path(statements: &[P<Node>], start: usize) -> Vec<usize> {
-    let mut indices = find_super_statement_index_path_worker(statements, start, Vec::new()).unwrap_or_default();
+    let mut indices =
+        find_super_statement_index_path_worker(statements, start, Vec::new()).unwrap_or_default();
     indices.reverse();
     indices
 }
 
 // utilities.go:281
-fn find_super_statement_index_path_worker(statements: &[P<Node>], start: usize, indices: Vec<usize>) -> Option<Vec<usize>> {
+fn find_super_statement_index_path_worker(
+    statements: &[P<Node>],
+    start: usize,
+    indices: Vec<usize>,
+) -> Option<Vec<usize>> {
     for (i, element) in statements.iter().enumerate().skip(start) {
         let statement = *element;
         if get_super_call_from_statement(statement).is_some() {
@@ -267,7 +336,11 @@ fn find_super_statement_index_path_worker(statements: &[P<Node>], start: usize, 
             indices.push(i);
             return Some(indices);
         } else if ast::is_try_statement(statement) {
-            if let Some(mut result) = find_super_statement_index_path_worker(statement.as_try_statement().try_block.statements(), 0, indices.clone()) {
+            if let Some(mut result) = find_super_statement_index_path_worker(
+                statement.as_try_statement().try_block.statements(),
+                0,
+                indices.clone(),
+            ) {
                 result.push(i);
                 return Some(result);
             }
@@ -339,7 +412,9 @@ pub fn get_non_assignment_operator_for_compound_assignment(kind: Kind) -> Kind {
         Kind::PercentEqualsToken => Kind::PercentToken,
         Kind::LessThanLessThanEqualsToken => Kind::LessThanLessThanToken,
         Kind::GreaterThanGreaterThanEqualsToken => Kind::GreaterThanGreaterThanToken,
-        Kind::GreaterThanGreaterThanGreaterThanEqualsToken => Kind::GreaterThanGreaterThanGreaterThanToken,
+        Kind::GreaterThanGreaterThanGreaterThanEqualsToken => {
+            Kind::GreaterThanGreaterThanGreaterThanToken
+        }
         Kind::AmpersandEqualsToken => Kind::AmpersandToken,
         Kind::BarEqualsToken => Kind::BarToken,
         Kind::CaretEqualsToken => Kind::CaretToken,

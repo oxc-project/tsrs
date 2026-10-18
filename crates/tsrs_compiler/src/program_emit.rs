@@ -14,13 +14,13 @@ use std::sync::{Condvar, Mutex};
 use std::time::{Duration, Instant};
 
 use tsrs_ast::{Diagnostic, SourceFile};
-use tsrs_core::arena::Region;
 use tsrs_core::P;
+use tsrs_core::arena::Region;
 
 use crate::checkerpool::Context;
-use crate::emitter::{emitter, EmitOnly};
+use crate::emitter::{EmitOnly, emitter};
 use crate::program::Program;
-use crate::programlike::{get_diagnostics_of_any_program_like, ProgramLike};
+use crate::programlike::{ProgramLike, get_diagnostics_of_any_program_like};
 use tsrs_tsoptions::outputpaths::{self, ForceEmitPaths};
 
 // program.go:1845
@@ -50,9 +50,9 @@ pub struct EmitOptions<'a> {
 #[derive(Default, Clone)]
 pub struct EmitResult {
     pub emit_skipped: bool,
-    pub diagnostics: Vec<P<Diagnostic>>,            // Contains declaration emit diagnostics
-    pub emitted_files: Vec<String>,                 // Array of files the compiler wrote to disk
-    pub source_maps: Vec<SourceMapEmitResult>,      // Array of sourceMapData if compiler emitted sourcemaps
+    pub diagnostics: Vec<P<Diagnostic>>, // Contains declaration emit diagnostics
+    pub emitted_files: Vec<String>,      // Array of files the compiler wrote to disk
+    pub source_maps: Vec<SourceMapEmitResult>, // Array of sourceMapData if compiler emitted sourcemaps
 }
 
 // program.go:1869
@@ -171,68 +171,93 @@ impl Program {
     // program.go:1875
     pub fn emit(&'static self, ctx: &Context, options: &EmitOptions) -> EmitResult {
         if !options.force_emit && options.emit_only != EmitOnly::EmitOnlyBuilderSignature {
-            let result = handle_no_emit_options(ctx, &self, options.target_source_files.as_deref(), None);
+            let result =
+                handle_no_emit_options(ctx, &self, options.target_source_files.as_deref(), None);
             if let Some(result) = result {
                 return result;
             }
         }
-        combine_emit_results(self.emit_each_file(ctx, options).into_iter().map(|(_, result)| Some(result)).collect())
+        combine_emit_results(
+            self.emit_each_file(ctx, options).into_iter().map(|(_, result)| Some(result)).collect(),
+        )
     }
 
     /// The emit of `emit`, with each emitted file's result kept apart (in emit order), and without the `noEmit` /
     /// `noEmitOnError` handling (`handle_no_emit_options`), which the caller applies. The files run on their checkers'
     /// threads, so one call over many files is the parallel equivalent of a call per file (the incremental emit).
-    pub fn emit_each_file(&'static self, ctx: &Context, options: &EmitOptions) -> Vec<(P<SourceFile>, EmitResult)> {
+    pub fn emit_each_file(
+        &'static self,
+        ctx: &Context,
+        options: &EmitOptions,
+    ) -> Vec<(P<SourceFile>, EmitResult)> {
         let new_line = self.options().new_line.get_new_line_character();
-        let force_dts_emit = options.emit_only == EmitOnly::EmitOnlyBuilderSignature || options.force_emit && options.emit_only == EmitOnly::EmitOnlyDts;
+        let force_dts_emit = options.emit_only == EmitOnly::EmitOnlyBuilderSignature
+            || options.force_emit && options.emit_only == EmitOnly::EmitOnlyDts;
         let force_js_emit = options.force_emit && options.emit_only == EmitOnly::EmitOnlyJs;
-        let source_files = crate::emitter::get_source_files_to_emit(self, options.target_source_files.as_deref(), force_dts_emit, force_js_emit);
+        let source_files = crate::emitter::get_source_files_to_emit(
+            self,
+            options.target_source_files.as_deref(),
+            force_dts_emit,
+            force_js_emit,
+        );
 
-        let results: Vec<Mutex<Option<EmitResult>>> = source_files.iter().map(|_| Mutex::new(None)).collect();
+        let results: Vec<Mutex<Option<EmitResult>>> =
+            source_files.iter().map(|_| Mutex::new(None)).collect();
         let times = EmitTimes::default();
         let mem_log = crate::emitter::emit_mem_log();
         // Each file's emit runs in a scratch region of its own (notes/mem-emit-regions.md): the transformed trees,
         // the emit context and the node builder's per-request state are allocated there and freed once the file is
         // printed and written; the checker escapes to its own arena (`CheckerSlot::with`), and so do diagnostics
         // and the program's caches (`EmitHost`).
-        let transform = |c: &mut tsrs_checker::Checker, source_file: P<SourceFile>| -> (emitter, Region) {
-            let emit_resolver = c.get_emit_resolver();
-            let outer_before = if mem_log { tsrs_core::ptr::arena_used_bytes() } else { 0 };
-            let region = Region::new_scratch(EMIT_REGION_FIRST_CHUNK);
-            let e = {
-                let _scratch = region.enter_scratch();
-                let checker_slot = P::new(tsrs_checker::CheckerSlot::default());
-                let host = crate::emithost::new_emit_host(self, emit_resolver, checker_slot);
-                let paths = outputpaths::get_output_paths_for(
-                    source_file,
-                    &self.options(),
-                    host,
-                    ForceEmitPaths { dts: force_dts_emit, js: force_js_emit, declaration_map: options.force_emit && options.emit_only == EmitOnly::EmitOnlyDts },
-                );
-                let mut e = emitter {
-                    host,
-                    emit_only: options.emit_only,
-                    emitter_diagnostics: tsrs_ast::DiagnosticsCollection::default(),
-                    paths,
-                    source_file,
-                    emit_result: EmitResult::default(),
-                    force_emit: options.force_emit,
-                    write_file: options.write_file,
-                    times: &times,
-                    pending_js: None,
-                    declaration_diagnostics: Vec::new(),
-                    pending_declaration: None,
+        let transform =
+            |c: &mut tsrs_checker::Checker, source_file: P<SourceFile>| -> (emitter, Region) {
+                let emit_resolver = c.get_emit_resolver();
+                let outer_before = if mem_log { tsrs_core::ptr::arena_used_bytes() } else { 0 };
+                let region = Region::new_scratch(EMIT_REGION_FIRST_CHUNK);
+                let e = {
+                    let _scratch = region.enter_scratch();
+                    let checker_slot = P::new(tsrs_checker::CheckerSlot::default());
+                    let host = crate::emithost::new_emit_host(self, emit_resolver, checker_slot);
+                    let paths = outputpaths::get_output_paths_for(
+                        source_file,
+                        &self.options(),
+                        host,
+                        ForceEmitPaths {
+                            dts: force_dts_emit,
+                            js: force_js_emit,
+                            declaration_map: options.force_emit
+                                && options.emit_only == EmitOnly::EmitOnlyDts,
+                        },
+                    );
+                    let mut e = emitter {
+                        host,
+                        emit_only: options.emit_only,
+                        emitter_diagnostics: tsrs_ast::DiagnosticsCollection::default(),
+                        paths,
+                        source_file,
+                        emit_result: EmitResult::default(),
+                        force_emit: options.force_emit,
+                        write_file: options.write_file,
+                        times: &times,
+                        pending_js: None,
+                        declaration_diagnostics: Vec::new(),
+                        pending_declaration: None,
+                    };
+                    checker_slot.lend(c, || e.transform());
+                    e
                 };
-                checker_slot.lend(c, || e.transform());
-                e
+                c.forget_scratch_keyed_caches();
+                if mem_log {
+                    let outer = tsrs_core::ptr::arena_used_bytes() - outer_before;
+                    eprintln!(
+                        "emitmem\ttransform\t{}\t{}\t{}",
+                        source_file.file_name(),
+                        region.used_bytes(),
+                        outer
+                    );
+                }
+                (e, region)
             };
-            c.forget_scratch_keyed_caches();
-            if mem_log {
-                let outer = tsrs_core::ptr::arena_used_bytes() - outer_before;
-                eprintln!("emitmem\ttransform\t{}\t{}\t{}", source_file.file_name(), region.used_bytes(), outer);
-            }
-            (e, region)
-        };
         let print = |(mut e, region): (emitter, Region), index: usize| {
             let outer_before = if mem_log { tsrs_core::ptr::arena_used_bytes() } else { 0 };
             let used_before = if mem_log { region.used_bytes() } else { 0 };
@@ -245,7 +270,12 @@ impl Program {
             };
             if mem_log {
                 let outer = tsrs_core::ptr::arena_used_bytes() - outer_before;
-                eprintln!("emitmem\tprint\t{}\t{}\t{}", e.source_file.file_name(), region.used_bytes() - used_before, outer);
+                eprintln!(
+                    "emitmem\tprint\t{}\t{}\t{}",
+                    e.source_file.file_name(),
+                    region.used_bytes() - used_before,
+                    outer
+                );
             }
             // The emitter's own fields are heap values; the region goes last.
             drop(e);
@@ -272,7 +302,9 @@ impl Program {
                     });
                 });
             }
-            Some(pool) => pool.for_each_checker_group_do(&source_files, true, |c, index, file| print(transform(c, file), index)),
+            Some(pool) => pool.for_each_checker_group_do(&source_files, true, |c, index, file| {
+                print(transform(c, file), index);
+            }),
             None => {
                 for (index, &file) in source_files.iter().enumerate() {
                     let e = {
@@ -286,11 +318,19 @@ impl Program {
 
         times.record();
         if let (true, Some((in_use, high_water))) = (mem_log, tsrs_core::ptr::reserve_stats()) {
-            eprintln!("emitmem\treserve\tin use {} MiB\thigh water {} MiB", in_use >> 20, high_water >> 20);
+            eprintln!(
+                "emitmem\treserve\tin use {} MiB\thigh water {} MiB",
+                in_use >> 20,
+                high_water >> 20
+            );
         }
 
         // collect results from emit, preserving input order
-        source_files.into_iter().zip(results).map(|(file, r)| (file, r.into_inner().unwrap().unwrap())).collect()
+        source_files
+            .into_iter()
+            .zip(results)
+            .map(|(file, r)| (file, r.into_inner().unwrap().unwrap()))
+            .collect()
     }
 }
 
@@ -312,7 +352,12 @@ pub fn combine_emit_results(results: Vec<Option<EmitResult>>) -> EmitResult {
 }
 
 // program.go:1984. The incremental program passes its own `emitBuildInfo`.
-pub fn handle_no_emit_options(ctx: &Context, program: &dyn ProgramLike, files: Option<&[P<SourceFile>]>, emit_build_info: Option<&dyn Fn() -> Option<EmitResult>>) -> Option<EmitResult> {
+pub fn handle_no_emit_options(
+    ctx: &Context,
+    program: &dyn ProgramLike,
+    files: Option<&[P<SourceFile>]>,
+    emit_build_info: Option<&dyn Fn() -> Option<EmitResult>>,
+) -> Option<EmitResult> {
     if !program.options().no_emit.is_true() {
         if !program.options().no_emit_on_error.is_true() {
             return None; // NoEmit is false and NoEmitOnError is also false, so we can proceed with normal emit

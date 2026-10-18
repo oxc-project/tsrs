@@ -57,7 +57,8 @@ const RESOURCE: &str = "the program's API checker";
 
 pub(crate) fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLease> {
     let key = std::ptr::from_ref::<Program>(program) as usize;
-    let gate = Arc::clone(lock_gates().get_or_insert_with(FxHashMap::default).entry(key).or_default());
+    let gate =
+        Arc::clone(lock_gates().get_or_insert_with(FxHashMap::default).entry(key).or_default());
     let lease = |gate: Arc<Gate>| ApiCheckerLease { key, gate };
     let result = (|| {
         let mut st = gate.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -77,13 +78,23 @@ pub(crate) fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLeas
             let w = wait.get_or_insert_with(|| ContentionWait::new(st.holder.as_ref()));
             w.set_holder(st.holder.as_ref());
             if w.may_deadlock() {
-                return Err(CheckerError { kind: CheckerErrorKind::Internal, message: tsrs_api_transport::reentrancy::reentrancy_error(RESOURCE).message });
+                return Err(CheckerError {
+                    kind: CheckerErrorKind::Internal,
+                    message: tsrs_api_transport::reentrancy::reentrancy_error(RESOURCE).message,
+                });
             }
             if cx.cancel.is_cancelled() {
-                return Err(CheckerError { kind: CheckerErrorKind::Internal, message: "ipc: connection closed".to_string() });
+                return Err(CheckerError {
+                    kind: CheckerErrorKind::Internal,
+                    message: "ipc: connection closed".to_string(),
+                });
             }
             // Re-check shortly: the holder may start or stop waiting on the client while we wait.
-            st = gate.released.wait_timeout(st, Duration::from_millis(2)).unwrap_or_else(std::sync::PoisonError::into_inner).0;
+            st = gate
+                .released
+                .wait_timeout(st, Duration::from_millis(2))
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .0;
         }
     })();
     match result {
@@ -98,7 +109,9 @@ pub(crate) fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLeas
 fn forget_if_unused(key: usize, gate: &Arc<Gate>) {
     let mut gates = lock_gates();
     // One reference in the map plus the caller's: nobody else holds or waits on this gate.
-    if Arc::strong_count(gate) == 2 && !gate.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner).held {
+    if Arc::strong_count(gate) == 2
+        && !gate.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner).held
+    {
         if let Some(map) = gates.as_mut() {
             map.remove(&key);
         }
@@ -119,5 +132,7 @@ impl Drop for ApiCheckerLease {
 
 #[cfg(test)]
 pub(crate) fn is_tracked(program: &'static Program) -> bool {
-    lock_gates().as_ref().is_some_and(|m| m.contains_key(&(std::ptr::from_ref::<Program>(program) as usize)))
+    lock_gates()
+        .as_ref()
+        .is_some_and(|m| m.contains_key(&(std::ptr::from_ref::<Program>(program) as usize)))
 }

@@ -126,7 +126,9 @@ impl ResponseError {
         let members = match v {
             Value::Object(members) => members,
             Value::Null => return Ok(r),
-            v => return Err(unmarshal_error(&v, None, "jsonrpc.ResponseError", "/error", "")),
+            v => {
+                return Err(unmarshal_error(&v, None, "jsonrpc.ResponseError", "/error", ""));
+            }
         };
         for (k, v) in members {
             match k.as_str() {
@@ -220,7 +222,8 @@ impl Message {
     // Go `json.Unmarshal(data, &m)`. Unknown members are ignored and a JSON null decodes as the zero Message, as
     // json/v2 does.
     pub fn unmarshal(data: &[u8]) -> Result<Message, Error> {
-        let text = tsrs_core::utf8::basic::from_utf8(data).map_err(|_| Error::new("jsontext: invalid UTF-8 within message"))?;
+        let text = tsrs_core::utf8::basic::from_utf8(data)
+            .map_err(|_| Error::new("jsontext: invalid UTF-8 within message"))?;
         let mut m = Message::default();
         let members = match json::unmarshal(text).map_err(Error::new)? {
             Value::Object(members) => members,
@@ -230,11 +233,20 @@ impl Message {
         for (k, v) in members {
             match k.as_str() {
                 "jsonrpc" => unmarshal_jsonrpc_version(&v)?,
-                "id" => m.id = if matches!(v, Value::Null) { None } else { Some(ID::unmarshal_json(v)?) },
+                "id" => {
+                    m.id =
+                        if matches!(v, Value::Null) { None } else { Some(ID::unmarshal_json(v)?) }
+                }
                 "method" => m.method = unmarshal_string(v, "/method")?,
                 "params" => m.params = Some(v),
                 "result" => m.result = Some(v),
-                "error" => m.error = if matches!(v, Value::Null) { None } else { Some(ResponseError::unmarshal_json(v)?) },
+                "error" => {
+                    m.error = if matches!(v, Value::Null) {
+                        None
+                    } else {
+                        Some(ResponseError::unmarshal_json(v)?)
+                    }
+                }
                 _ => {}
             }
         }
@@ -276,7 +288,11 @@ impl ResponseMessage {
 
 // Go `json.Marshal(jsonrpc.RequestMessage{ID: id, Method: method, Params: params})` from borrowed parts, so that
 // writing (or logging) a request does not copy its params. A None `params` is Go's nil `any` (omitted).
-pub fn marshal_request_message(id: Option<&ID>, method: &str, params: Option<&Value>) -> Result<String, Error> {
+pub fn marshal_request_message(
+    id: Option<&ID>,
+    method: &str,
+    params: Option<&Value>,
+) -> Result<String, Error> {
     let mut out = String::from(MESSAGE_START);
     if let Some(id) = id {
         out.push_str(",\"id\":");
@@ -293,7 +309,11 @@ pub fn marshal_request_message(id: Option<&ID>, method: &str, params: Option<&Va
 }
 
 // Go `json.Marshal(jsonrpc.ResponseMessage{ID: id, Result: result, Error: err})` from borrowed parts.
-pub fn marshal_response_message(id: Option<&ID>, result: Option<&Value>, err: Option<&ResponseError>) -> Result<String, Error> {
+pub fn marshal_response_message(
+    id: Option<&ID>,
+    result: Option<&Value>,
+    err: Option<&ResponseError>,
+) -> Result<String, Error> {
     let mut out = String::from(MESSAGE_START);
     if let Some(id) = id {
         out.push_str(",\"id\":");
@@ -331,12 +351,19 @@ fn unmarshal_int32(v: &Value, pointer: &str) -> Result<i32, Error> {
                 return Err(unmarshal_error(v, Some(&text), "int32", pointer, "invalid syntax"));
             }
             if n < f64::from(i32::MIN) || n > f64::from(i32::MAX) {
-                return Err(unmarshal_error(v, Some(&text), "int32", pointer, "value out of range"));
+                return Err(unmarshal_error(
+                    v,
+                    Some(&text),
+                    "int32",
+                    pointer,
+                    "value out of range",
+                ));
             }
             Ok(n as i32)
         }
-        Value::Integer(n) => i32::try_from(*n)
-            .map_err(|_| unmarshal_error(v, Some(&n.to_string()), "int32", pointer, "value out of range")),
+        Value::Integer(n) => i32::try_from(*n).map_err(|_| {
+            unmarshal_error(v, Some(&n.to_string()), "int32", pointer, "value out of range")
+        }),
         Value::Null => Ok(0),
         _ => Err(unmarshal_error(v, None, "int32", pointer, "")),
     }
@@ -344,7 +371,13 @@ fn unmarshal_int32(v: &Value, pointer: &str) -> Result<i32, Error> {
 
 // json/v2's SemanticError text for a value it cannot unmarshal into a Go type:
 // `json: cannot unmarshal JSON <kind>[ <value>] into Go <type>[ within "<pointer>"][: <err>]`.
-fn unmarshal_error(v: &Value, value: Option<&str>, go_type: &str, pointer: &str, err: &str) -> Error {
+fn unmarshal_error(
+    v: &Value,
+    value: Option<&str>,
+    go_type: &str,
+    pointer: &str,
+    err: &str,
+) -> Error {
     let mut s = String::from("json: cannot unmarshal");
     s.push_str(match v {
         Value::Null => " JSON null",

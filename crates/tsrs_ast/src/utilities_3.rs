@@ -1,4 +1,4 @@
-use tsrs_core::{compare_text_ranges, CompilerOptions, ModuleKind, P};
+use tsrs_core::{CompilerOptions, ModuleKind, P, compare_text_ranges};
 
 use crate::*;
 
@@ -11,27 +11,37 @@ pub fn is_call_like_expression(node: P<Node>) -> bool {
         | Kind::NewExpression
         | Kind::TaggedTemplateExpression
         | Kind::Decorator => true,
-        Kind::BinaryExpression => node.as_binary_expression().operator_token.kind() == Kind::InstanceOfKeyword,
+        Kind::BinaryExpression => {
+            node.as_binary_expression().operator_token.kind() == Kind::InstanceOfKeyword
+        }
         _ => false,
     }
 }
 
 pub fn is_jsx_call_like(node: P<Node>) -> bool {
-    matches!(node.kind(), Kind::JsxOpeningElement | Kind::JsxSelfClosingElement | Kind::JsxOpeningFragment)
+    matches!(
+        node.kind(),
+        Kind::JsxOpeningElement | Kind::JsxSelfClosingElement | Kind::JsxOpeningFragment
+    )
 }
 
 pub fn is_this_in_type_query(mut node: P<Node>) -> bool {
     if !is_this_identifier(node) {
         return false;
     }
-    while is_qualified_name(node.parent().unwrap()) && node.parent().unwrap().as_qualified_name().left == node {
+    while is_qualified_name(node.parent().unwrap())
+        && node.parent().unwrap().as_qualified_name().left == node
+    {
         node = node.parent().unwrap();
     }
     node.parent().unwrap().kind() == Kind::TypeQuery
 }
 
 pub fn is_class_member_modifier(token: Kind) -> bool {
-    is_parameter_property_modifier(token) || token == Kind::StaticKeyword || token == Kind::OverrideKeyword || token == Kind::AccessorKeyword
+    is_parameter_property_modifier(token)
+        || token == Kind::StaticKeyword
+        || token == Kind::OverrideKeyword
+        || token == Kind::AccessorKeyword
 }
 
 pub fn is_parameter_property_modifier(kind: Kind) -> bool {
@@ -76,10 +86,14 @@ pub(crate) fn is_identifier_in_non_emitting_heritage_clause(node: P<Node>) -> bo
     while is_property_access_expression(parent) || is_expression_with_type_arguments(parent) {
         parent = parent.parent().unwrap();
     }
-    is_heritage_clause(parent) && (parent.as_heritage_clause().token == Kind::ImplementsKeyword || is_interface_declaration(parent.parent().unwrap()))
+    is_heritage_clause(parent)
+        && (parent.as_heritage_clause().token == Kind::ImplementsKeyword
+            || is_interface_declaration(parent.parent().unwrap()))
 }
 
-pub(crate) fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(mut node: P<Node>) -> bool {
+pub(crate) fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(
+    mut node: P<Node>,
+) -> bool {
     while node_kind_is(node, &[Kind::Identifier, Kind::PropertyAccessExpression]) {
         node = node.parent().unwrap();
     }
@@ -94,7 +108,9 @@ pub(crate) fn is_part_of_possibly_valid_type_or_abstract_computed_property_name(
 }
 
 pub(crate) fn is_shorthand_property_name_use_site(use_site: P<Node>) -> bool {
-    is_identifier(use_site) && is_shorthand_property_assignment(use_site.parent().unwrap()) && use_site.parent().unwrap().name() == Some(use_site)
+    is_identifier(use_site)
+        && is_shorthand_property_assignment(use_site.parent().unwrap())
+        && use_site.parent().unwrap().name() == Some(use_site)
 }
 
 pub fn get_property_name_for_property_name_node(name: P<Node>) -> std::borrow::Cow<'static, str> {
@@ -112,7 +128,8 @@ pub fn get_property_name_for_property_name_node(name: P<Node>) -> std::borrow::C
                 return name_expression.text().into();
             }
             if is_signed_numeric_literal(name_expression) {
-                let mut text = name_expression.as_prefix_unary_expression().operand.text().to_string();
+                let mut text =
+                    name_expression.as_prefix_unary_expression().operand.text().to_string();
                 if name_expression.as_prefix_unary_expression().operator == Kind::MinusToken {
                     text = format!("-{text}");
                 }
@@ -130,7 +147,9 @@ pub fn is_part_of_type_only_import_or_export_declaration(node: P<Node>) -> bool 
 
 pub fn is_emittable_import(node: P<Node>) -> bool {
     match node.kind() {
-        Kind::ImportDeclaration => node.import_clause().is_some_and(|import_clause| !import_clause.is_type_only()),
+        Kind::ImportDeclaration => {
+            node.import_clause().is_some_and(|import_clause| !import_clause.is_type_only())
+        }
         Kind::ExportDeclaration | Kind::ImportEqualsDeclaration => !node.is_type_only(),
         Kind::CallExpression => is_import_call(node),
         _ => false,
@@ -139,7 +158,13 @@ pub fn is_emittable_import(node: P<Node>) -> bool {
 
 pub fn is_resolution_mode_override_host(node: impl Into<Option<P<Node>>>) -> bool {
     match node.into() {
-        Some(node) => matches!(node.kind(), Kind::ImportType | Kind::ExportDeclaration | Kind::ImportDeclaration | Kind::JSImportDeclaration),
+        Some(node) => matches!(
+            node.kind(),
+            Kind::ImportType
+                | Kind::ExportDeclaration
+                | Kind::ImportDeclaration
+                | Kind::JSImportDeclaration
+        ),
         None => false,
     }
 }
@@ -150,7 +175,9 @@ pub fn has_resolution_mode_override(node: impl Into<Option<P<Node>>>) -> bool {
     };
     let attributes = match node.kind() {
         Kind::ImportType => node.as_import_type_node().attributes,
-        Kind::ImportDeclaration | Kind::JSImportDeclaration => node.as_import_declaration().attributes(),
+        Kind::ImportDeclaration | Kind::JSImportDeclaration => {
+            node.as_import_declaration().attributes()
+        }
         Kind::ExportDeclaration => node.as_export_declaration().attributes,
         _ => None,
     };
@@ -169,7 +196,10 @@ pub fn get_external_module_import_equals_declaration_expression(node: P<Node>) -
     node.as_import_equals_declaration().module_reference.expression()
 }
 
-pub fn create_modifiers_from_modifier_flags(flags: ModifierFlags, mut create_modifier: impl FnMut(Kind) -> P<Node>) -> Vec<P<Node>> {
+pub fn create_modifiers_from_modifier_flags(
+    flags: ModifierFlags,
+    mut create_modifier: impl FnMut(Kind) -> P<Node>,
+) -> Vec<P<Node>> {
     let mut result = Vec::new();
     if flags.intersects(ModifierFlags::Export) {
         result.push(create_modifier(Kind::ExportKeyword));
@@ -231,11 +261,22 @@ pub fn get_this_parameter(signature: P<Node>) -> Option<P<Node>> {
     None
 }
 
-pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: Option<P<ModifierList>>) -> P<Node> {
+pub fn replace_modifiers(
+    factory: &NodeFactory,
+    node: P<Node>,
+    modifier_array: Option<P<ModifierList>>,
+) -> P<Node> {
     match node.kind() {
         Kind::TypeParameter => {
             let d = node.as_type_parameter_declaration();
-            return factory.update_type_parameter_declaration(node, modifier_array, node.name().unwrap(), d.constraint, d.expression, d.default_type);
+            return factory.update_type_parameter_declaration(
+                node,
+                modifier_array,
+                node.name().unwrap(),
+                d.constraint,
+                d.expression,
+                d.default_type,
+            );
         }
         Kind::Parameter => {
             return factory.update_parameter_declaration(
@@ -249,13 +290,33 @@ pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: O
             );
         }
         Kind::ConstructorType => {
-            return factory.update_constructor_type_node(node, modifier_array, node.type_parameter_list(), node.parameter_list(), node.type_node());
+            return factory.update_constructor_type_node(
+                node,
+                modifier_array,
+                node.type_parameter_list(),
+                node.parameter_list(),
+                node.type_node(),
+            );
         }
         Kind::PropertySignature => {
-            return factory.update_property_signature_declaration(node, modifier_array, node.name().unwrap(), node.postfix_token(), node.type_node(), node.initializer());
+            return factory.update_property_signature_declaration(
+                node,
+                modifier_array,
+                node.name().unwrap(),
+                node.postfix_token(),
+                node.type_node(),
+                node.initializer(),
+            );
         }
         Kind::PropertyDeclaration => {
-            return factory.update_property_declaration(node, modifier_array, node.name().unwrap(), node.postfix_token(), node.type_node(), node.initializer());
+            return factory.update_property_declaration(
+                node,
+                modifier_array,
+                node.name().unwrap(),
+                node.postfix_token(),
+                node.type_node(),
+                node.initializer(),
+            );
         }
         Kind::MethodSignature => {
             return factory.update_method_signature_declaration(
@@ -319,7 +380,12 @@ pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: O
             );
         }
         Kind::IndexSignature => {
-            return factory.update_index_signature_declaration(node, modifier_array, node.parameter_list(), node.type_node());
+            return factory.update_index_signature_declaration(
+                node,
+                modifier_array,
+                node.parameter_list(),
+                node.type_node(),
+            );
         }
         Kind::FunctionExpression => {
             let d = node.as_function_expression();
@@ -359,7 +425,11 @@ pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: O
             );
         }
         Kind::VariableStatement => {
-            return factory.update_variable_statement(node, modifier_array, node.as_variable_statement().declaration_list);
+            return factory.update_variable_statement(
+                node,
+                modifier_array,
+                node.as_variable_statement().declaration_list,
+            );
         }
         Kind::FunctionDeclaration => {
             let d = node.as_function_declaration();
@@ -396,10 +466,21 @@ pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: O
             );
         }
         Kind::TypeAliasDeclaration => {
-            return factory.update_type_alias_declaration(node, modifier_array, node.name().unwrap(), node.type_parameter_list(), node.type_node());
+            return factory.update_type_alias_declaration(
+                node,
+                modifier_array,
+                node.name().unwrap(),
+                node.type_parameter_list(),
+                node.type_node(),
+            );
         }
         Kind::EnumDeclaration => {
-            return factory.update_enum_declaration(node, modifier_array, node.name().unwrap(), node.member_list().unwrap());
+            return factory.update_enum_declaration(
+                node,
+                modifier_array,
+                node.name().unwrap(),
+                node.member_list().unwrap(),
+            );
         }
         Kind::ModuleDeclaration => {
             return factory.update_module_declaration(
@@ -431,7 +512,13 @@ pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: O
         }
         Kind::ExportAssignment => {
             let d = node.as_export_assignment();
-            return factory.update_export_assignment(node, modifier_array, d.is_export_equals, node.type_node(), node.expression().unwrap());
+            return factory.update_export_assignment(
+                node,
+                modifier_array,
+                d.is_export_equals,
+                node.type_node(),
+                node.expression().unwrap(),
+            );
         }
         Kind::ExportDeclaration => {
             let d = node.as_export_declaration();
@@ -446,7 +533,10 @@ pub fn replace_modifiers(factory: &NodeFactory, node: P<Node>, modifier_array: O
         }
         _ => {}
     }
-    panic!("Node that does not have modifiers tried to have modifier replaced: {}", node.kind() as i16)
+    panic!(
+        "Node that does not have modifiers tried to have modifier replaced: {}",
+        node.kind() as i16
+    )
 }
 
 pub fn is_late_visibility_painted_statement(node: P<Node>) -> bool {
@@ -471,7 +561,8 @@ pub fn is_external_module_augmentation(node: P<Node>) -> bool {
 }
 
 pub fn get_source_file_of_module(module: P<Symbol>) -> Option<P<SourceFile>> {
-    let declaration = module.value_declaration().or_else(|| get_non_augmentation_declaration(module));
+    let declaration =
+        module.value_declaration().or_else(|| get_non_augmentation_declaration(module));
     get_source_file_of_node(declaration)
 }
 
@@ -492,13 +583,17 @@ pub fn is_type_declaration(node: P<Node>) -> bool {
         | Kind::JSTypeAliasDeclaration
         | Kind::EnumDeclaration => true,
         Kind::ImportClause => node.is_type_only() && node.name().is_some(),
-        Kind::ImportSpecifier | Kind::ExportSpecifier => node.parent().unwrap().parent().unwrap().is_type_only(),
+        Kind::ImportSpecifier | Kind::ExportSpecifier => {
+            node.parent().unwrap().parent().unwrap().is_type_only()
+        }
         _ => false,
     }
 }
 
 pub fn is_type_declaration_name(name: P<Node>) -> bool {
-    name.kind() == Kind::Identifier && is_type_declaration(name.parent().unwrap()) && get_name_of_declaration(name.parent()) == Some(name)
+    name.kind() == Kind::Identifier
+        && is_type_declaration(name.parent().unwrap())
+        && get_name_of_declaration(name.parent()) == Some(name)
 }
 
 pub fn is_right_side_of_qualified_name_or_property_access(node: P<Node>) -> bool {
@@ -511,9 +606,15 @@ pub fn is_right_side_of_qualified_name_or_property_access(node: P<Node>) -> bool
     }
 }
 
-pub fn should_transform_import_call(_file_name: &str, options: &CompilerOptions, implied_node_format_for_emit: ModuleKind) -> bool {
+pub fn should_transform_import_call(
+    _file_name: &str,
+    options: &CompilerOptions,
+    implied_node_format_for_emit: ModuleKind,
+) -> bool {
     let module_kind = options.get_emit_module_kind();
-    if ModuleKind::Node16 <= module_kind && module_kind <= ModuleKind::NodeNext || module_kind == ModuleKind::Preserve {
+    if ModuleKind::Node16 <= module_kind && module_kind <= ModuleKind::NodeNext
+        || module_kind == ModuleKind::Preserve
+    {
         return false;
     }
     implied_node_format_for_emit < ModuleKind::ES2015
@@ -561,8 +662,14 @@ pub fn compare_node_positions(n1: P<Node>, n2: P<Node>) -> std::cmp::Ordering {
 }
 
 pub fn is_unterminated_literal(node: P<Node>) -> bool {
-    is_literal_kind(node.kind()) && node.literal_like_data().unwrap().token_flags().intersects(TokenFlags::Unterminated)
-        || is_template_literal_kind(node.kind()) && node.template_literal_like_data().unwrap().template_flags.intersects(TokenFlags::Unterminated)
+    is_literal_kind(node.kind())
+        && node.literal_like_data().unwrap().token_flags().intersects(TokenFlags::Unterminated)
+        || is_template_literal_kind(node.kind())
+            && node
+                .template_literal_like_data()
+                .unwrap()
+                .template_flags
+                .intersects(TokenFlags::Unterminated)
 }
 
 // Gets a value indicating whether a class element is either a static or an instance property declaration with an initializer.
@@ -613,7 +720,9 @@ pub fn get_elements_of_binding_or_assignment_pattern(name: P<Node>) -> &'static 
     match name.kind() {
         // `a` in `{a}`
         // `a` in `[a]`
-        Kind::ObjectBindingPattern | Kind::ArrayBindingPattern | Kind::ArrayLiteralExpression => name.elements(),
+        Kind::ObjectBindingPattern | Kind::ArrayBindingPattern | Kind::ArrayLiteralExpression => {
+            name.elements()
+        }
         // `a` in `{a}`
         Kind::ObjectLiteralExpression => name.properties(),
         _ => &[],
@@ -621,7 +730,10 @@ pub fn get_elements_of_binding_or_assignment_pattern(name: P<Node>) -> &'static 
 }
 
 pub fn is_declaration_binding_element(binding_element: P<Node>) -> bool {
-    matches!(binding_element.kind(), Kind::VariableDeclaration | Kind::Parameter | Kind::BindingElement)
+    matches!(
+        binding_element.kind(),
+        Kind::VariableDeclaration | Kind::Parameter | Kind::BindingElement
+    )
 }
 
 /**
@@ -661,7 +773,9 @@ pub fn get_target_of_binding_or_assignment_element(binding_element: P<Node>) -> 
                 // `b.c` in `({ a: b.c = 1 } = ...)`
                 // `b[0]` in `({ a: b[0] } = ...)`
                 // `b[0]` in `({ a: b[0] = 1 } = ...)`
-                return get_target_of_binding_or_assignment_element(binding_element.initializer().unwrap());
+                return get_target_of_binding_or_assignment_element(
+                    binding_element.initializer().unwrap(),
+                );
             }
             Kind::ShorthandPropertyAssignment => {
                 // `a` in `({ a } = ...)`
@@ -670,7 +784,9 @@ pub fn get_target_of_binding_or_assignment_element(binding_element: P<Node>) -> 
             }
             Kind::SpreadAssignment => {
                 // `a` in `({ ...a } = ...)`
-                return get_target_of_binding_or_assignment_element(binding_element.expression().unwrap());
+                return get_target_of_binding_or_assignment_element(
+                    binding_element.expression().unwrap(),
+                );
             }
             _ => {}
         }
@@ -685,7 +801,9 @@ pub fn get_target_of_binding_or_assignment_element(binding_element: P<Node>) -> 
         // `[a]` in `[[a] = 1] = ...`
         // `a.b` in `[a.b = 1] = ...`
         // `a[0]` in `[a[0] = 1] = ...`
-        return get_target_of_binding_or_assignment_element(binding_element.as_binary_expression().left);
+        return get_target_of_binding_or_assignment_element(
+            binding_element.as_binary_expression().left,
+        );
     }
 
     if is_spread_element(binding_element) {
@@ -702,7 +820,9 @@ pub fn get_target_of_binding_or_assignment_element(binding_element: P<Node>) -> 
 }
 
 pub fn is_jsdoc_name_reference_context(node: P<Node>) -> bool {
-    node.flags().intersects(NodeFlags::JSDoc) && find_ancestor(node, |node| is_jsdoc_name_reference(node) || is_jsdoc_link_like(node)).is_some()
+    node.flags().intersects(NodeFlags::JSDoc)
+        && find_ancestor(node, |node| is_jsdoc_name_reference(node) || is_jsdoc_link_like(node))
+            .is_some()
 }
 
 // GetJSDocRoot returns the containing JSDoc node for a node inside a JSDoc comment.
@@ -748,9 +868,10 @@ pub fn get_next_jsdoc_comment_location(node: P<Node>) -> Option<P<Node>> {
             | Kind::VariableStatement
             | Kind::ExpressionStatement => return Some(parent),
             Kind::VariableDeclarationList
-                if parent.as_variable_declaration_list().declarations.nodes()[0] == node => {
-                    return Some(parent);
-                }
+                if parent.as_variable_declaration_list().declarations.nodes()[0] == node =>
+            {
+                return Some(parent);
+            }
             _ => {}
         }
     }
@@ -762,17 +883,28 @@ pub fn is_import_or_import_equals_declaration(node: P<Node>) -> bool {
 }
 
 pub fn is_variable_parameter_or_property(node: P<Node>) -> bool {
-    matches!(node.kind(), Kind::VariableDeclaration | Kind::Parameter | Kind::PropertySignature | Kind::PropertyDeclaration)
+    matches!(
+        node.kind(),
+        Kind::VariableDeclaration
+            | Kind::Parameter
+            | Kind::PropertySignature
+            | Kind::PropertyDeclaration
+    )
 }
 
 pub fn is_primitive_literal_value(node: P<Node>, include_big_int: bool) -> bool {
     match node.kind() {
-        Kind::TrueKeyword | Kind::FalseKeyword | Kind::NumericLiteral | Kind::StringLiteral | Kind::NoSubstitutionTemplateLiteral => true,
+        Kind::TrueKeyword
+        | Kind::FalseKeyword
+        | Kind::NumericLiteral
+        | Kind::StringLiteral
+        | Kind::NoSubstitutionTemplateLiteral => true,
         Kind::BigIntLiteral => include_big_int,
         Kind::PrefixUnaryExpression => {
             let p = node.as_prefix_unary_expression();
             if p.operator == Kind::MinusToken {
-                return is_numeric_literal(p.operand) || (include_big_int && is_big_int_literal(p.operand));
+                return is_numeric_literal(p.operand)
+                    || (include_big_int && is_big_int_literal(p.operand));
             }
             if p.operator == Kind::PlusToken {
                 return is_numeric_literal(p.operand);
@@ -813,7 +945,10 @@ pub fn has_modifier(node: P<Node>, flags: ModifierFlags) -> bool {
     node.modifier_flags().intersects(flags)
 }
 
-pub fn is_expando_initializer(declaration: P<Node>, initializer: impl Into<Option<P<Node>>>) -> bool {
+pub fn is_expando_initializer(
+    declaration: P<Node>,
+    initializer: impl Into<Option<P<Node>>>,
+) -> bool {
     let Some(initializer) = initializer.into() else {
         return false;
     };
@@ -822,7 +957,9 @@ pub fn is_expando_initializer(declaration: P<Node>, initializer: impl Into<Optio
     }
     if is_in_js_file(initializer) {
         return is_class_expression(initializer)
-            || (is_object_literal_expression(initializer) && initializer.properties().is_empty() && declaration.type_node().is_none());
+            || (is_object_literal_expression(initializer)
+                && initializer.properties().is_empty()
+                && declaration.type_node().is_none());
     }
     false
 }
@@ -868,7 +1005,10 @@ pub fn is_infinity_or_nan_string(name: &str) -> bool {
 }
 
 pub fn get_first_constructor_with_body(node: P<Node>) -> Option<P<Node>> {
-    node.members().iter().copied().find(|&member| is_constructor_declaration(member) && node_is_present(member.body()))
+    node.members()
+        .iter()
+        .copied()
+        .find(|&member| is_constructor_declaration(member) && node_is_present(member.body()))
 }
 
 // Returns true for nodes that are considered executable for the purposes of unreachable code detection.
@@ -895,7 +1035,12 @@ pub fn has_ambient_modifier(node: P<Node>) -> bool {
     has_syntactic_modifier(node, ModifierFlags::Ambient)
 }
 
-pub fn node_can_be_decorated(use_legacy_decorators: bool, node: P<Node>, parent: Option<P<Node>>, grandparent: Option<P<Node>>) -> bool {
+pub fn node_can_be_decorated(
+    use_legacy_decorators: bool,
+    node: P<Node>,
+    parent: Option<P<Node>>,
+    grandparent: Option<P<Node>>,
+) -> bool {
     // private names cannot be used with decorators yet
     if use_legacy_decorators && node.name().is_some_and(is_private_identifier) {
         return false;
@@ -908,12 +1053,19 @@ pub fn node_can_be_decorated(use_legacy_decorators: bool, node: P<Node>, parent:
         // property declarations are valid if their parent is a class declaration.
         Kind::PropertyDeclaration => parent.is_some_and(|parent| {
             use_legacy_decorators && is_class_declaration(parent)
-                || !use_legacy_decorators && is_class_like(parent) && !has_abstract_modifier(node) && !has_ambient_modifier(node)
+                || !use_legacy_decorators
+                    && is_class_like(parent)
+                    && !has_abstract_modifier(node)
+                    && !has_ambient_modifier(node)
         }),
         // if this method has a body and its parent is a class declaration, this is a valid target.
-        Kind::GetAccessor | Kind::SetAccessor | Kind::MethodDeclaration => parent.is_some_and(|parent| {
-            node.body().is_some() && (use_legacy_decorators && is_class_declaration(parent) || !use_legacy_decorators && is_class_like(parent))
-        }),
+        Kind::GetAccessor | Kind::SetAccessor | Kind::MethodDeclaration => {
+            parent.is_some_and(|parent| {
+                node.body().is_some()
+                    && (use_legacy_decorators && is_class_declaration(parent)
+                        || !use_legacy_decorators && is_class_like(parent))
+            })
+        }
         Kind::Parameter => {
             // TODO(rbuckton): ParameterDeclaration decorator support for ES decorators must wait until it is standardized
             if !use_legacy_decorators {
@@ -922,23 +1074,35 @@ pub fn node_can_be_decorated(use_legacy_decorators: bool, node: P<Node>, parent:
             // if the parameter's parent has a body and its grandparent is a class declaration, this is a valid target.
             parent.is_some_and(|parent| {
                 parent.body().is_some()
-                    && (parent.kind() == Kind::Constructor || parent.kind() == Kind::MethodDeclaration || parent.kind() == Kind::SetAccessor)
+                    && (parent.kind() == Kind::Constructor
+                        || parent.kind() == Kind::MethodDeclaration
+                        || parent.kind() == Kind::SetAccessor)
                     && get_this_parameter(parent) != Some(node)
-                    && grandparent.is_some_and(|grandparent| grandparent.kind() == Kind::ClassDeclaration)
+                    && grandparent
+                        .is_some_and(|grandparent| grandparent.kind() == Kind::ClassDeclaration)
             })
         }
         _ => false,
     }
 }
 
-pub fn class_or_constructor_parameter_is_decorated(use_legacy_decorators: bool, node: P<Node>) -> bool {
+pub fn class_or_constructor_parameter_is_decorated(
+    use_legacy_decorators: bool,
+    node: P<Node>,
+) -> bool {
     if node_is_decorated(use_legacy_decorators, node, None, None) {
         return true;
     }
-    get_first_constructor_with_body(node).is_some_and(|constructor| child_is_decorated(use_legacy_decorators, constructor, Some(node)))
+    get_first_constructor_with_body(node).is_some_and(|constructor| {
+        child_is_decorated(use_legacy_decorators, constructor, Some(node))
+    })
 }
 
-pub fn class_element_or_class_element_parameter_is_decorated(use_legacy_decorators: bool, node: P<Node>, parent: P<Node>) -> bool {
+pub fn class_element_or_class_element_parameter_is_decorated(
+    use_legacy_decorators: bool,
+    node: P<Node>,
+    parent: P<Node>,
+) -> bool {
     let mut parameters: Option<P<NodeList>> = None;
     if is_accessor(node) {
         let decls = get_all_accessor_declarations(parent.members(), node);
@@ -974,22 +1138,39 @@ pub fn class_element_or_class_element_parameter_is_decorated(use_legacy_decorato
     false
 }
 
-pub fn node_is_decorated(use_legacy_decorators: bool, node: P<Node>, parent: Option<P<Node>>, grandparent: Option<P<Node>>) -> bool {
+pub fn node_is_decorated(
+    use_legacy_decorators: bool,
+    node: P<Node>,
+    parent: Option<P<Node>>,
+    grandparent: Option<P<Node>>,
+) -> bool {
     has_decorators(node) && node_can_be_decorated(use_legacy_decorators, node, parent, grandparent)
 }
 
-pub fn node_or_child_is_decorated(use_legacy_decorators: bool, node: P<Node>, parent: Option<P<Node>>, grandparent: Option<P<Node>>) -> bool {
-    node_is_decorated(use_legacy_decorators, node, parent, grandparent) || child_is_decorated(use_legacy_decorators, node, parent)
+pub fn node_or_child_is_decorated(
+    use_legacy_decorators: bool,
+    node: P<Node>,
+    parent: Option<P<Node>>,
+    grandparent: Option<P<Node>>,
+) -> bool {
+    node_is_decorated(use_legacy_decorators, node, parent, grandparent)
+        || child_is_decorated(use_legacy_decorators, node, parent)
 }
 
-pub fn child_is_decorated(use_legacy_decorators: bool, node: P<Node>, parent: Option<P<Node>>) -> bool {
+pub fn child_is_decorated(
+    use_legacy_decorators: bool,
+    node: P<Node>,
+    parent: Option<P<Node>>,
+) -> bool {
     match node.kind() {
-        Kind::ClassDeclaration | Kind::ClassExpression => {
-            node.members().iter().any(|&m| node_or_child_is_decorated(use_legacy_decorators, m, Some(node), parent))
-        }
-        Kind::MethodDeclaration | Kind::SetAccessor | Kind::Constructor => {
-            node.parameters().iter().any(|&p| node_is_decorated(use_legacy_decorators, p, Some(node), parent))
-        }
+        Kind::ClassDeclaration | Kind::ClassExpression => node
+            .members()
+            .iter()
+            .any(|&m| node_or_child_is_decorated(use_legacy_decorators, m, Some(node), parent)),
+        Kind::MethodDeclaration | Kind::SetAccessor | Kind::Constructor => node
+            .parameters()
+            .iter()
+            .any(|&p| node_is_decorated(use_legacy_decorators, p, Some(node), parent)),
         _ => false,
     }
 }
@@ -1003,7 +1184,10 @@ pub struct AllAccessorDeclarations {
     pub get_accessor: Option<P<Node>>,
 }
 
-pub fn get_all_accessor_declarations_for_declaration(accessor: P<Node>, declarations_of_symbol: &[P<Node>]) -> AllAccessorDeclarations {
+pub fn get_all_accessor_declarations_for_declaration(
+    accessor: P<Node>,
+    declarations_of_symbol: &[P<Node>],
+) -> AllAccessorDeclarations {
     let other_kind = if accessor.kind() == Kind::SetAccessor {
         Kind::GetAccessor
     } else if accessor.kind() == Kind::GetAccessor {
@@ -1028,7 +1212,10 @@ pub fn get_all_accessor_declarations_for_declaration(accessor: P<Node>, declarat
     AllAccessorDeclarations { first_accessor, second_accessor, set_accessor, get_accessor }
 }
 
-pub fn get_all_accessor_declarations(parent_declarations: &[P<Node>], accessor: P<Node>) -> AllAccessorDeclarations {
+pub fn get_all_accessor_declarations(
+    parent_declarations: &[P<Node>],
+    accessor: P<Node>,
+) -> AllAccessorDeclarations {
     if has_dynamic_name(accessor) {
         // dynamic names can only be match up via checker symbol lookup, just return an object with just this accessor
         return get_all_accessor_declarations_for_declaration(accessor, &[accessor]);
@@ -1049,9 +1236,14 @@ pub fn get_all_accessor_declarations(parent_declarations: &[P<Node>], accessor: 
 
 pub fn is_async_function(node: P<Node>) -> bool {
     match node.kind() {
-        Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::ArrowFunction | Kind::MethodDeclaration => {
+        Kind::FunctionDeclaration
+        | Kind::FunctionExpression
+        | Kind::ArrowFunction
+        | Kind::MethodDeclaration => {
             let data = node.body_data().unwrap();
-            data.body.is_some() && data.asterisk_token.is_none() && has_syntactic_modifier(node, ModifierFlags::Async)
+            data.body.is_some()
+                && data.asterisk_token.is_none()
+                && has_syntactic_modifier(node, ModifierFlags::Async)
         }
         _ => false,
     }
@@ -1086,11 +1278,13 @@ pub fn tag_names_are_equivalent(lhs: P<Node>, rhs: P<Node>) -> bool {
         Kind::Identifier => lhs.text() == rhs.text(),
         Kind::ThisKeyword => true,
         Kind::JsxNamespacedName => {
-            lhs.as_jsx_namespaced_name().namespace.text() == rhs.as_jsx_namespaced_name().namespace.text()
+            lhs.as_jsx_namespaced_name().namespace.text()
+                == rhs.as_jsx_namespaced_name().namespace.text()
                 && lhs.name().unwrap().text() == rhs.name().unwrap().text()
         }
         Kind::PropertyAccessExpression => {
-            lhs.name().unwrap().text() == rhs.name().unwrap().text() && tag_names_are_equivalent(lhs.expression().unwrap(), rhs.expression().unwrap())
+            lhs.name().unwrap().text() == rhs.name().unwrap().text()
+                && tag_names_are_equivalent(lhs.expression().unwrap(), rhs.expression().unwrap())
         }
         _ => panic!("Unhandled case in TagNamesAreEquivalent"),
     }
@@ -1115,7 +1309,10 @@ pub(crate) fn is_argument_of_element_access_expression(node: impl Into<Option<P<
     let Some(node) = node.into() else {
         return false;
     };
-    node.parent().is_some_and(|parent| parent.kind() == Kind::ElementAccessExpression && parent.as_element_access_expression().argument_expression == node)
+    node.parent().is_some_and(|parent| {
+        parent.kind() == Kind::ElementAccessExpression
+            && parent.as_element_access_expression().argument_expression == node
+    })
 }
 
 // If the given node is part of a subtree of JSDoc nodes that have been cloned into a reparsed construct,
@@ -1126,7 +1323,8 @@ pub fn get_reparsed_node_for_node(node: impl Into<Option<P<Node>>>) -> Option<P<
         if let Some(file) = get_source_file_of_node(node) {
             let reparsed_clones = file.reparsed_clones();
             if !reparsed_clones.is_empty() {
-                let (mut pos, found) = binary_search_func(reparsed_clones, node, compare_node_positions);
+                let (mut pos, found) =
+                    binary_search_func(reparsed_clones, node, compare_node_positions);
                 if !found && pos > 0 {
                     pos -= 1;
                 }
@@ -1168,26 +1366,36 @@ pub fn is_expando_property_declaration(node: impl Into<Option<P<Node>>>) -> bool
 
 // IsSuperProperty checks if a node is super.x or super[x].
 pub fn is_super_property(node: P<Node>) -> bool {
-    (is_property_access_expression(node) || is_element_access_expression(node)) && node.expression().unwrap().kind() == Kind::SuperKeyword
+    (is_property_access_expression(node) || is_element_access_expression(node))
+        && node.expression().unwrap().kind() == Kind::SuperKeyword
 }
 
 // Indicates whether a node is a potential source of an assigned name for a class, function, or arrow function.
 pub fn is_named_evaluation_source(node: P<Node>) -> bool {
     match node.kind() {
         Kind::PropertyAssignment => !is_proto_setter(node.name().unwrap()),
-        Kind::ShorthandPropertyAssignment => node.as_shorthand_property_assignment().object_assignment_initializer().is_some(),
-        Kind::VariableDeclaration => is_identifier(node.name().unwrap()) && node.initializer().is_some(),
+        Kind::ShorthandPropertyAssignment => {
+            node.as_shorthand_property_assignment().object_assignment_initializer().is_some()
+        }
+        Kind::VariableDeclaration => {
+            is_identifier(node.name().unwrap()) && node.initializer().is_some()
+        }
         Kind::Parameter => {
-            is_identifier(node.name().unwrap()) && node.initializer().is_some() && node.as_parameter_declaration().dot_dot_dot_token().is_none()
+            is_identifier(node.name().unwrap())
+                && node.initializer().is_some()
+                && node.as_parameter_declaration().dot_dot_dot_token().is_none()
         }
         Kind::BindingElement => {
-            is_identifier(node.name().unwrap()) && node.initializer().is_some() && node.as_binding_element().dot_dot_dot_token().is_none()
+            is_identifier(node.name().unwrap())
+                && node.initializer().is_some()
+                && node.as_binding_element().dot_dot_dot_token().is_none()
         }
         Kind::PropertyDeclaration => node.initializer().is_some(),
         Kind::BinaryExpression => match node.as_binary_expression().operator_token.kind() {
-            Kind::EqualsToken | Kind::AmpersandAmpersandEqualsToken | Kind::BarBarEqualsToken | Kind::QuestionQuestionEqualsToken => {
-                is_identifier(node.as_binary_expression().left)
-            }
+            Kind::EqualsToken
+            | Kind::AmpersandAmpersandEqualsToken
+            | Kind::BarBarEqualsToken
+            | Kind::QuestionQuestionEqualsToken => is_identifier(node.as_binary_expression().left),
             _ => false,
         },
         Kind::ExportAssignment => true,
@@ -1211,7 +1419,12 @@ pub fn is_string_literal_like_type(node: P<Node>) -> bool {
 // JSImportDeclaration): `Node::kind` is immutable in Rust, so the clone is created with the target kind directly.
 pub fn clone_as_import_declaration(node: P<Node>, f: &NodeFactory) -> P<Node> {
     let d = node.as_import_declaration();
-    let updated = f.new_import_declaration(d.modifiers(), d.import_clause(), d.module_specifier(), d.attributes());
+    let updated = f.new_import_declaration(
+        d.modifiers(),
+        d.import_clause(),
+        d.module_specifier(),
+        d.attributes(),
+    );
     crate::ast::clone_node(updated, node, &f.hooks)
 }
 
@@ -1228,7 +1441,9 @@ pub fn is_non_contextual_keyword(token: Kind) -> bool {
 // utilities.go:1703
 pub fn is_external_module_indicator(node: P<Node>) -> bool {
     // Exported top-level member indicates moduleness
-    is_any_import_or_re_export(node) || is_export_assignment(node) || has_syntactic_modifier(node, ModifierFlags::Export)
+    is_any_import_or_re_export(node)
+        || is_export_assignment(node)
+        || has_syntactic_modifier(node, ModifierFlags::Export)
 }
 
 // Language-service-only utilities (added for tsrs_ls; the batch port skipped them).
@@ -1236,7 +1451,9 @@ pub fn is_external_module_indicator(node: P<Node>) -> bool {
 // utilities.go:89
 pub fn find_last_visible_node(nodes: &[P<Node>]) -> Option<P<Node>> {
     let mut from_end = 1;
-    while from_end <= nodes.len() && nodes[nodes.len() - from_end].flags().intersects(NodeFlags::Reparsed) {
+    while from_end <= nodes.len()
+        && nodes[nodes.len() - from_end].flags().intersects(NodeFlags::Reparsed)
+    {
         from_end += 1;
     }
     if from_end <= nodes.len() {
@@ -1261,7 +1478,11 @@ pub fn is_whitespace_only_jsx_text(node: P<Node>) -> bool {
 }
 
 // utilities.go:3056
-pub fn for_each_child_and_jsdoc(node: P<Node>, source_file: &'static SourceFile, v: &mut dyn FnMut(P<Node>) -> bool) -> bool {
+pub fn for_each_child_and_jsdoc(
+    node: P<Node>,
+    source_file: &'static SourceFile,
+    v: &mut dyn FnMut(P<Node>) -> bool,
+) -> bool {
     if node.jsdoc(Some(source_file)).iter().any(|&jsdoc| v(jsdoc)) {
         return true;
     }
@@ -1438,11 +1659,14 @@ pub fn get_super_container(node: P<Node>, stop_on_functions: bool) -> Option<P<N
 }
 
 // utilities.go:2592
-pub fn is_default_import(node: P<Node> /*ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration*/) -> bool {
+pub fn is_default_import(
+    node: P<Node>, /*ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration*/
+) -> bool {
     match node.kind() {
         Kind::ImportDeclaration | Kind::JSImportDeclaration => {
             let import_clause = node.import_clause();
-            import_clause.is_some_and(|import_clause| import_clause.as_import_clause().name.is_some())
+            import_clause
+                .is_some_and(|import_clause| import_clause.as_import_clause().name.is_some())
         }
         _ => false,
     }
@@ -1450,7 +1674,10 @@ pub fn is_default_import(node: P<Node> /*ImportDeclaration | ImportEqualsDeclara
 
 // utilities.go:3650
 pub fn is_argument_expression_of_element_access(node: P<Node>) -> bool {
-    node.parent().is_some_and(|parent| parent.kind() == Kind::ElementAccessExpression && parent.as_element_access_expression().argument_expression == node)
+    node.parent().is_some_and(|parent| {
+        parent.kind() == Kind::ElementAccessExpression
+            && parent.as_element_access_expression().argument_expression == node
+    })
 }
 
 // utilities.go:3654
@@ -1494,33 +1721,93 @@ fn select_tag_name_of_jsx_opening_like_element(node: P<Node>) -> Option<P<Node>>
 }
 
 // utilities.go:3689
-pub fn is_call_expression_target(node: P<Node>, include_element_access: bool, skip_past_outer_expressions: bool) -> bool {
-    is_callee_worker(node, is_call_expression, select_expression_of_call_or_new_expression_or_decorator, include_element_access, skip_past_outer_expressions)
+pub fn is_call_expression_target(
+    node: P<Node>,
+    include_element_access: bool,
+    skip_past_outer_expressions: bool,
+) -> bool {
+    is_callee_worker(
+        node,
+        is_call_expression,
+        select_expression_of_call_or_new_expression_or_decorator,
+        include_element_access,
+        skip_past_outer_expressions,
+    )
 }
 
 // utilities.go:3693
-pub fn is_new_expression_target(node: P<Node>, include_element_access: bool, skip_past_outer_expressions: bool) -> bool {
-    is_callee_worker(node, is_new_expression, select_expression_of_call_or_new_expression_or_decorator, include_element_access, skip_past_outer_expressions)
+pub fn is_new_expression_target(
+    node: P<Node>,
+    include_element_access: bool,
+    skip_past_outer_expressions: bool,
+) -> bool {
+    is_callee_worker(
+        node,
+        is_new_expression,
+        select_expression_of_call_or_new_expression_or_decorator,
+        include_element_access,
+        skip_past_outer_expressions,
+    )
 }
 
 // utilities.go:3697
-pub fn is_call_or_new_expression_target(node: P<Node>, include_element_access: bool, skip_past_outer_expressions: bool) -> bool {
-    is_callee_worker(node, is_call_or_new_expression, select_expression_of_call_or_new_expression_or_decorator, include_element_access, skip_past_outer_expressions)
+pub fn is_call_or_new_expression_target(
+    node: P<Node>,
+    include_element_access: bool,
+    skip_past_outer_expressions: bool,
+) -> bool {
+    is_callee_worker(
+        node,
+        is_call_or_new_expression,
+        select_expression_of_call_or_new_expression_or_decorator,
+        include_element_access,
+        skip_past_outer_expressions,
+    )
 }
 
 // utilities.go:3701
-pub fn is_tagged_template_tag(node: P<Node>, include_element_access: bool, skip_past_outer_expressions: bool) -> bool {
-    is_callee_worker(node, is_tagged_template_expression, select_tag_of_tagged_template_expression, include_element_access, skip_past_outer_expressions)
+pub fn is_tagged_template_tag(
+    node: P<Node>,
+    include_element_access: bool,
+    skip_past_outer_expressions: bool,
+) -> bool {
+    is_callee_worker(
+        node,
+        is_tagged_template_expression,
+        select_tag_of_tagged_template_expression,
+        include_element_access,
+        skip_past_outer_expressions,
+    )
 }
 
 // utilities.go:3705
-pub fn is_decorator_target(node: P<Node>, include_element_access: bool, skip_past_outer_expressions: bool) -> bool {
-    is_callee_worker(node, is_decorator, select_expression_of_call_or_new_expression_or_decorator, include_element_access, skip_past_outer_expressions)
+pub fn is_decorator_target(
+    node: P<Node>,
+    include_element_access: bool,
+    skip_past_outer_expressions: bool,
+) -> bool {
+    is_callee_worker(
+        node,
+        is_decorator,
+        select_expression_of_call_or_new_expression_or_decorator,
+        include_element_access,
+        skip_past_outer_expressions,
+    )
 }
 
 // utilities.go:3709
-pub fn is_jsx_opening_like_element_tag_name(node: P<Node>, include_element_access: bool, skip_past_outer_expressions: bool) -> bool {
-    is_callee_worker(node, is_jsx_opening_like_element, select_tag_name_of_jsx_opening_like_element, include_element_access, skip_past_outer_expressions)
+pub fn is_jsx_opening_like_element_tag_name(
+    node: P<Node>,
+    include_element_access: bool,
+    skip_past_outer_expressions: bool,
+) -> bool {
+    is_callee_worker(
+        node,
+        is_jsx_opening_like_element,
+        select_tag_name_of_jsx_opening_like_element,
+        include_element_access,
+        skip_past_outer_expressions,
+    )
 }
 
 // utilities.go:3713
@@ -1531,7 +1818,11 @@ fn is_callee_worker(
     include_element_access: bool,
     skip_past_outer_expressions: bool,
 ) -> bool {
-    let mut target = if include_element_access { climb_past_property_or_element_access(node) } else { climb_past_property_access(node) };
+    let mut target = if include_element_access {
+        climb_past_property_or_element_access(node)
+    } else {
+        climb_past_property_access(node)
+    };
     if skip_past_outer_expressions {
         // Only skip outer expressions if the target is actually an expression node
         if is_expression(target) {
@@ -1550,13 +1841,19 @@ pub fn import_from_module_specifier(node: P<Node>) -> P<Node> {
 }
 
 // utilities.go:4203
-pub fn try_get_import_from_module_specifier(node: P<Node> /*StringLiteralLike*/) -> Option<P<Node>> {
+pub fn try_get_import_from_module_specifier(
+    node: P<Node>, /*StringLiteralLike*/
+) -> Option<P<Node>> {
     let parent = node.parent().unwrap();
     match parent.kind() {
-        Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::ExportDeclaration => Some(parent),
+        Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::ExportDeclaration => {
+            Some(parent)
+        }
         Kind::ExternalModuleReference => parent.parent(),
         Kind::CallExpression => {
-            if is_import_call(parent) || is_require_call(parent, false /*requireStringLiteralLikeArgument*/) {
+            if is_import_call(parent)
+                || is_require_call(parent, false /*requireStringLiteralLikeArgument*/)
+            {
                 return Some(parent);
             }
             None
@@ -1656,7 +1953,9 @@ pub fn get_declaration_name(declaration: P<Node>) -> String {
 }
 
 // utilities.go:3961 (added for emit)
-pub fn try_get_property_name_of_binding_or_assignment_element(binding_element: P<Node>) -> Option<P<Node>> {
+pub fn try_get_property_name_of_binding_or_assignment_element(
+    binding_element: P<Node>,
+) -> Option<P<Node>> {
     match binding_element.kind() {
         Kind::BindingElement => {
             // `a` in `let { a: b } = ...`
@@ -1664,7 +1963,9 @@ pub fn try_get_property_name_of_binding_or_assignment_element(binding_element: P
             // `"a"` in `let { "a": b } = ...`
             // `1` in `let { 1: b } = ...`
             if let Some(property_name) = binding_element.property_name() {
-                if is_computed_property_name(property_name) && is_string_or_numeric_literal_like(property_name.expression().unwrap()) {
+                if is_computed_property_name(property_name)
+                    && is_string_or_numeric_literal_like(property_name.expression().unwrap())
+                {
                     return property_name.expression();
                 }
                 return Some(property_name);
@@ -1676,7 +1977,9 @@ pub fn try_get_property_name_of_binding_or_assignment_element(binding_element: P
             // `"a"` in `({ "a": b } = ...)`
             // `1` in `({ 1: b } = ...)`
             if let Some(property_name) = binding_element.name() {
-                if is_computed_property_name(property_name) && is_string_or_numeric_literal_like(property_name.expression().unwrap()) {
+                if is_computed_property_name(property_name)
+                    && is_string_or_numeric_literal_like(property_name.expression().unwrap())
+                {
                     return property_name.expression();
                 }
                 return Some(property_name);
@@ -1702,13 +2005,16 @@ pub fn try_get_property_name_of_binding_or_assignment_element(binding_element: P
 pub fn is_export_namespace_as_default_declaration(node: P<Node>) -> bool {
     if is_export_declaration(node) {
         let export_clause = node.as_export_declaration().export_clause.unwrap();
-        return is_namespace_export(export_clause) && module_export_name_is_default(export_clause.name().unwrap());
+        return is_namespace_export(export_clause)
+            && module_export_name_is_default(export_clause.name().unwrap());
     }
     false
 }
 
 // utilities.go:4046 (added for emit)
-pub fn get_rest_indicator_of_binding_or_assignment_element(binding_element: P<Node>) -> Option<P<Node>> {
+pub fn get_rest_indicator_of_binding_or_assignment_element(
+    binding_element: P<Node>,
+) -> Option<P<Node>> {
     match binding_element.kind() {
         Kind::Parameter => binding_element.as_parameter_declaration().dot_dot_dot_token(),
         Kind::BindingElement => binding_element.as_binding_element().dot_dot_dot_token(),

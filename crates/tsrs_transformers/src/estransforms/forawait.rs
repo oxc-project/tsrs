@@ -1,7 +1,7 @@
 use crate::*;
 use printer::{EmitFlags, GeneratedIdentifierFlags};
-use tsrs_core::collections::OrderedSet;
 use tsrs_core::TextRange;
+use tsrs_core::collections::OrderedSet;
 
 use super::async_::is_simple_parameter_list;
 use super::superAccessState;
@@ -25,17 +25,25 @@ const forAwaitHierarchyFactsIterationContainer: forAwaitHierarchyFacts = 1 << 1;
 
 const forAwaitHierarchyFactsAncestorFactsMask: forAwaitHierarchyFacts = (1 << 2) - 1;
 
-const forAwaitHierarchyFactsSourceFileExcludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsIterationContainer;
-const forAwaitHierarchyFactsStrictModeSourceFileIncludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsNone;
+const forAwaitHierarchyFactsSourceFileExcludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsIterationContainer;
+const forAwaitHierarchyFactsStrictModeSourceFileIncludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsNone;
 
-const forAwaitHierarchyFactsClassOrFunctionIncludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsHasLexicalThis;
-const forAwaitHierarchyFactsClassOrFunctionExcludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsIterationContainer;
+const forAwaitHierarchyFactsClassOrFunctionIncludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsHasLexicalThis;
+const forAwaitHierarchyFactsClassOrFunctionExcludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsIterationContainer;
 
-const forAwaitHierarchyFactsArrowFunctionIncludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsNone;
-const forAwaitHierarchyFactsArrowFunctionExcludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsClassOrFunctionExcludes;
+const forAwaitHierarchyFactsArrowFunctionIncludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsNone;
+const forAwaitHierarchyFactsArrowFunctionExcludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsClassOrFunctionExcludes;
 
-const forAwaitHierarchyFactsIterationStatementIncludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsIterationContainer;
-const forAwaitHierarchyFactsIterationStatementExcludes: forAwaitHierarchyFacts = forAwaitHierarchyFactsNone;
+const forAwaitHierarchyFactsIterationStatementIncludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsIterationContainer;
+const forAwaitHierarchyFactsIterationStatementExcludes: forAwaitHierarchyFacts =
+    forAwaitHierarchyFactsNone;
 
 // forawait.go:43
 pub struct forawaitTransformer {
@@ -52,7 +60,10 @@ pub struct forawaitTransformer {
 }
 
 // forawait.go:56
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn newforawait_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(forawaitTransformer {
         base: Transformer::default(),
@@ -64,15 +75,23 @@ pub fn newforawait_transformer(opt: &TransformOptions) -> Option<P<Transformer>>
         fallback_node_visitor: OnceCell::new(),
         no_async_modifier_visitor: OnceCell::new(),
     });
-    let result = tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(opt.context));
+    let result = tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(opt.context),
+    );
     tx.get().super_access_state.init_super_access_visitor(tx.emit_context(), tx.factory());
-    let _ = tx.fallback_node_visitor.set(tx.emit_context().new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_fallback(n))));
-    let _ = tx.no_async_modifier_visitor.set(tx.emit_context().new_node_visitor(Rc::new(|_: &mut NodeVisitor, node: P<Node>| {
-        if node.kind() == Kind::AsyncKeyword {
-            return None;
-        }
-        Some(node)
-    })));
+    let _ =
+        tx.fallback_node_visitor.set(tx.emit_context().new_node_visitor(Rc::new(
+            move |_: &mut NodeVisitor, n: P<Node>| tx.visit_fallback(n),
+        )));
+    let _ = tx.no_async_modifier_visitor.set(tx.emit_context().new_node_visitor(Rc::new(
+        |_: &mut NodeVisitor, node: P<Node>| {
+            if node.kind() == Kind::AsyncKeyword {
+                return None;
+            }
+            Some(node)
+        },
+    )));
     Some(result)
 }
 
@@ -99,16 +118,28 @@ impl forawaitTransformer {
     }
 
     // forawait.go:73
-    fn affects_subtree(&self, exclude_facts: forAwaitHierarchyFacts, include_facts: forAwaitHierarchyFacts) -> bool {
-        self.for_await_hierarchy_facts.get() != ((self.for_await_hierarchy_facts.get() & !exclude_facts) | include_facts)
+    fn affects_subtree(
+        &self,
+        exclude_facts: forAwaitHierarchyFacts,
+        include_facts: forAwaitHierarchyFacts,
+    ) -> bool {
+        self.for_await_hierarchy_facts.get()
+            != ((self.for_await_hierarchy_facts.get() & !exclude_facts) | include_facts)
     }
 
     // enterSubtree sets the HierarchyFacts for this node prior to visiting this node's subtree,
     // returning the facts set prior to modification.
     // forawait.go:79
-    fn enter_subtree(&self, exclude_facts: forAwaitHierarchyFacts, include_facts: forAwaitHierarchyFacts) -> forAwaitHierarchyFacts {
+    fn enter_subtree(
+        &self,
+        exclude_facts: forAwaitHierarchyFacts,
+        include_facts: forAwaitHierarchyFacts,
+    ) -> forAwaitHierarchyFacts {
         let ancestor_facts = self.for_await_hierarchy_facts.get();
-        self.for_await_hierarchy_facts.set(((self.for_await_hierarchy_facts.get() & !exclude_facts) | include_facts) & forAwaitHierarchyFactsAncestorFactsMask);
+        self.for_await_hierarchy_facts.set(
+            ((self.for_await_hierarchy_facts.get() & !exclude_facts) | include_facts)
+                & forAwaitHierarchyFactsAncestorFactsMask,
+        );
         ancestor_facts
     }
 
@@ -120,7 +151,10 @@ impl forawaitTransformer {
     }
 
     // forawait.go:91
-    fn visit_modifiers_no_async(&self, modifiers: Option<P<ModifierList>>) -> Option<P<ModifierList>> {
+    fn visit_modifiers_no_async(
+        &self,
+        modifiers: Option<P<ModifierList>>,
+    ) -> Option<P<ModifierList>> {
         self.no_async_modifier_visitor.get().unwrap().clone().visit_modifiers(modifiers)
     }
 
@@ -152,7 +186,12 @@ impl forawaitTransformer {
             return Some(node);
         }
         match node.kind() {
-            Kind::FunctionExpression | Kind::FunctionDeclaration | Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor | Kind::Constructor => {
+            Kind::FunctionExpression
+            | Kind::FunctionDeclaration
+            | Kind::MethodDeclaration
+            | Kind::GetAccessor
+            | Kind::SetAccessor
+            | Kind::Constructor => {
                 return Some(node);
             }
             _ => {}
@@ -178,12 +217,13 @@ impl forawaitTransformer {
             Kind::YieldExpression => Some(self.visit_yield_expression(node)),
             Kind::ReturnStatement => Some(self.visit_return_statement(node)),
             Kind::LabeledStatement => Some(self.visit_labeled_statement(node)),
-            Kind::DoStatement | Kind::WhileStatement | Kind::ForInStatement => self.do_with_hierarchy_facts(
-                forawaitTransformer::visit_default,
-                node,
-                forAwaitHierarchyFactsIterationStatementExcludes,
-                forAwaitHierarchyFactsIterationStatementIncludes,
-            ),
+            Kind::DoStatement | Kind::WhileStatement | Kind::ForInStatement => self
+                .do_with_hierarchy_facts(
+                    forawaitTransformer::visit_default,
+                    node,
+                    forAwaitHierarchyFactsIterationStatementExcludes,
+                    forAwaitHierarchyFactsIterationStatementIncludes,
+                ),
             Kind::ForOfStatement => Some(self.visit_for_of_statement(node, None)),
             Kind::ForStatement => self.do_with_hierarchy_facts(
                 forawaitTransformer::visit_default,
@@ -249,7 +289,9 @@ impl forawaitTransformer {
             let f = self.factory();
             let result = f.new_yield_expression(
                 None, /*asteriskToken*/
-                Some(f.new_await_helper(self.visitor().visit_node(Some(node.as_await_expression().expression)).unwrap())),
+                Some(f.new_await_helper(
+                    self.visitor().visit_node(Some(node.as_await_expression().expression)).unwrap(),
+                )),
             );
             result.set_loc(node.loc());
             self.emit_context().set_original(result, node);
@@ -272,19 +314,28 @@ impl forawaitTransformer {
                 let async_delegator_result = f.new_async_delegator_helper(async_values_result);
                 async_delegator_result.set_loc(expression.loc());
 
-                let inner_yield = f.update_yield_expression(node, y.asterisk_token, Some(async_delegator_result));
+                let inner_yield =
+                    f.update_yield_expression(node, y.asterisk_token, Some(async_delegator_result));
 
                 let awaited_yield = f.new_await_helper(inner_yield);
 
-                let result = f.new_yield_expression(None /*asteriskToken*/, Some(awaited_yield));
+                let result =
+                    f.new_yield_expression(None /*asteriskToken*/, Some(awaited_yield));
                 result.set_loc(node.loc());
                 self.emit_context().set_original(result, node);
                 return result;
             }
 
-            let inner_expression = if y.expression.is_some() { self.visitor().visit_node(y.expression).unwrap() } else { f.new_void_zero_expression() };
+            let inner_expression = if y.expression.is_some() {
+                self.visitor().visit_node(y.expression).unwrap()
+            } else {
+                f.new_void_zero_expression()
+            };
 
-            let result = f.new_yield_expression(None /*asteriskToken*/, Some(self.create_downlevel_await(inner_expression)));
+            let result = f.new_yield_expression(
+                None, /*asteriskToken*/
+                Some(self.create_downlevel_await(inner_expression)),
+            );
             result.set_loc(node.loc());
             self.emit_context().set_original(result, node);
             return result;
@@ -297,8 +348,14 @@ impl forawaitTransformer {
     fn visit_return_statement(&self, node: P<Node>) -> P<Node> {
         if self.is_async_generator() {
             let r = node.as_return_statement();
-            let expression = if r.expression().is_some() { self.visitor().visit_node(r.expression()).unwrap() } else { self.factory().new_void_zero_expression() };
-            return self.factory().update_return_statement(node, Some(self.create_downlevel_await(expression)));
+            let expression = if r.expression().is_some() {
+                self.visitor().visit_node(r.expression()).unwrap()
+            } else {
+                self.factory().new_void_zero_expression()
+            };
+            return self
+                .factory()
+                .update_return_statement(node, Some(self.create_downlevel_await(expression)));
         }
 
         self.visitor().visit_each_child(Some(node)).unwrap()
@@ -308,17 +365,25 @@ impl forawaitTransformer {
     fn visit_labeled_statement(&self, node: P<Node>) -> P<Node> {
         if self.enclosing_function_flags.get().intersects(FunctionFlags::Async) {
             let statement = unwrap_innermost_statement_of_label(node);
-            if statement.kind() == Kind::ForOfStatement && statement.as_for_in_or_of_statement().await_modifier.is_some() {
+            if statement.kind() == Kind::ForOfStatement
+                && statement.as_for_in_or_of_statement().await_modifier.is_some()
+            {
                 return self.visit_for_of_statement(statement, Some(node));
             }
-            return self.factory().restore_enclosing_label(self.visitor().visit_node(Some(statement)).unwrap(), Some(node));
+            return self.factory().restore_enclosing_label(
+                self.visitor().visit_node(Some(statement)).unwrap(),
+                Some(node),
+            );
         }
         self.visitor().visit_each_child(Some(node)).unwrap()
     }
 
     // forawait.go:319
     fn visit_source_file(&self, node: P<Node>) -> P<Node> {
-        let ancestor_facts = self.enter_subtree(forAwaitHierarchyFactsSourceFileExcludes, forAwaitHierarchyFactsStrictModeSourceFileIncludes);
+        let ancestor_facts = self.enter_subtree(
+            forAwaitHierarchyFactsSourceFileExcludes,
+            forAwaitHierarchyFactsStrictModeSourceFileIncludes,
+        );
         self.exported_variable_statement.set(false);
         let visited = self.visitor().visit_each_child(Some(node)).unwrap();
         self.emit_context().add_emit_helper(visited, &self.emit_context().read_emit_helpers());
@@ -328,19 +393,34 @@ impl forawaitTransformer {
 
     // visitForOfStatement visits a ForOfStatement and converts it into a ES2015-compatible ForOfStatement.
     // forawait.go:332
-    fn visit_for_of_statement(&self, node: P<Node>, outermost_labeled_statement: Option<P<Node>>) -> P<Node> {
-        let ancestor_facts = self.enter_subtree(forAwaitHierarchyFactsIterationStatementExcludes, forAwaitHierarchyFactsIterationStatementIncludes);
+    fn visit_for_of_statement(
+        &self,
+        node: P<Node>,
+        outermost_labeled_statement: Option<P<Node>>,
+    ) -> P<Node> {
+        let ancestor_facts = self.enter_subtree(
+            forAwaitHierarchyFactsIterationStatementExcludes,
+            forAwaitHierarchyFactsIterationStatementIncludes,
+        );
         let result = if node.as_for_in_or_of_statement().await_modifier.is_some() {
             self.transform_for_await_of_statement(node, outermost_labeled_statement, ancestor_facts)
         } else {
-            self.factory().restore_enclosing_label(self.visitor().visit_each_child(Some(node)).unwrap(), outermost_labeled_statement)
+            self.factory().restore_enclosing_label(
+                self.visitor().visit_each_child(Some(node)).unwrap(),
+                outermost_labeled_statement,
+            )
         };
         self.exit_subtree(ancestor_facts);
         result
     }
 
     // forawait.go:344
-    fn convert_for_of_statement_head(&self, node: P<Node>, bound_value: P<Node>, non_user_code: P<Node>) -> P<Node> {
+    fn convert_for_of_statement_head(
+        &self,
+        node: P<Node>,
+        bound_value: P<Node>,
+        non_user_code: P<Node>,
+    ) -> P<Node> {
         let f = self.factory();
         let n = node.as_for_in_or_of_statement();
         let value = f.new_temp_variable();
@@ -349,8 +429,10 @@ impl forawaitTransformer {
         let iterator_value_statement = f.new_expression_statement(iterator_value_expression);
         self.emit_context().set_source_map_range(iterator_value_statement, n.expression.loc());
 
-        let exit_non_user_code_expression = f.new_assignment_expression(non_user_code, f.new_keyword_expression(Kind::FalseKeyword));
-        let exit_non_user_code_statement = f.new_expression_statement(exit_non_user_code_expression);
+        let exit_non_user_code_expression = f
+            .new_assignment_expression(non_user_code, f.new_keyword_expression(Kind::FalseKeyword));
+        let exit_non_user_code_statement =
+            f.new_expression_statement(exit_non_user_code_expression);
         self.emit_context().set_source_map_range(exit_non_user_code_statement, n.expression.loc());
 
         let mut statements = vec![iterator_value_statement, exit_non_user_code_statement];
@@ -379,21 +461,37 @@ impl forawaitTransformer {
     // forawait.go:381
     fn create_downlevel_await(&self, expression: P<Node>) -> P<Node> {
         if self.enclosing_function_flags.get().intersects(FunctionFlags::Generator) {
-            return self.factory().new_yield_expression(None /*asteriskToken*/, Some(self.factory().new_await_helper(expression)));
+            return self.factory().new_yield_expression(
+                None, /*asteriskToken*/
+                Some(self.factory().new_await_helper(expression)),
+            );
         }
         self.factory().new_await_expression(expression)
     }
 
     // forawait.go:391
-    fn transform_for_await_of_statement(&self, node: P<Node>, outermost_labeled_statement: Option<P<Node>>, ancestor_facts: forAwaitHierarchyFacts) -> P<Node> {
+    fn transform_for_await_of_statement(
+        &self,
+        node: P<Node>,
+        outermost_labeled_statement: Option<P<Node>>,
+        ancestor_facts: forAwaitHierarchyFacts,
+    ) -> P<Node> {
         let f = self.factory();
         let ec = self.emit_context();
         let n = node.as_for_in_or_of_statement();
         let expression = self.visitor().visit_node(Some(n.expression)).unwrap();
 
-        let iterator = if ast::is_identifier(expression) { f.new_generated_name_for_node(expression) } else { f.new_temp_variable() };
+        let iterator = if ast::is_identifier(expression) {
+            f.new_generated_name_for_node(expression)
+        } else {
+            f.new_temp_variable()
+        };
 
-        let result = if ast::is_identifier(expression) { f.new_generated_name_for_node(iterator) } else { f.new_temp_variable() };
+        let result = if ast::is_identifier(expression) {
+            f.new_generated_name_for_node(iterator)
+        } else {
+            f.new_temp_variable()
+        };
 
         let non_user_code = f.new_temp_variable();
         let done = f.new_temp_variable();
@@ -404,14 +502,29 @@ impl forawaitTransformer {
         let call_values = f.new_async_values_helper(expression);
         call_values.set_loc(n.expression.loc());
         let call_next = f.new_call_expression(
-            f.new_property_access_expression(iterator, None, f.new_identifier("next"), NodeFlags::None),
+            f.new_property_access_expression(
+                iterator,
+                None,
+                f.new_identifier("next"),
+                NodeFlags::None,
+            ),
             None,
             None,
             f.new_node_list(vec![]),
             NodeFlags::None,
         );
-        let get_done = f.new_property_access_expression(result, None, f.new_identifier("done"), NodeFlags::None);
-        let get_value = f.new_property_access_expression(result, None, f.new_identifier("value"), NodeFlags::None);
+        let get_done = f.new_property_access_expression(
+            result,
+            None,
+            f.new_identifier("done"),
+            NodeFlags::None,
+        );
+        let get_value = f.new_property_access_expression(
+            result,
+            None,
+            f.new_identifier("value"),
+            NodeFlags::None,
+        );
         let call_return = f.new_function_call_call(return_method, Some(iterator), &[]);
 
         ec.add_variable_declaration(error_record);
@@ -419,7 +532,11 @@ impl forawaitTransformer {
 
         // if we are enclosed in an outer loop ensure we reset 'errorRecord' per each iteration
         let initializer = if ancestor_facts & forAwaitHierarchyFactsIterationContainer != 0 {
-            f.inline_expressions(&[f.new_assignment_expression(error_record, f.new_void_zero_expression()), call_values]).unwrap()
+            f.inline_expressions(&[
+                f.new_assignment_expression(error_record, f.new_void_zero_expression()),
+                call_values,
+            ])
+            .unwrap()
         } else {
             call_values
         };
@@ -429,7 +546,12 @@ impl forawaitTransformer {
         iterator_decl.set_loc(n.expression.loc());
         let var_decl_list = f.new_variable_declaration_list(
             f.new_node_list(vec![
-                f.new_variable_declaration(non_user_code, None, None, Some(f.new_keyword_expression(Kind::TrueKeyword))),
+                f.new_variable_declaration(
+                    non_user_code,
+                    None,
+                    None,
+                    Some(f.new_keyword_expression(Kind::TrueKeyword)),
+                ),
                 iterator_decl,
                 f.new_variable_declaration(result, None, None, None),
             ]),
@@ -445,26 +567,49 @@ impl forawaitTransformer {
             ])
             .unwrap();
 
-        let incrementor = f.new_assignment_expression(non_user_code, f.new_keyword_expression(Kind::TrueKeyword));
+        let incrementor =
+            f.new_assignment_expression(non_user_code, f.new_keyword_expression(Kind::TrueKeyword));
 
-        let for_statement = f.new_for_statement(Some(var_decl_list), Some(condition), Some(incrementor), self.convert_for_of_statement_head(node, get_value, non_user_code));
+        let for_statement = f.new_for_statement(
+            Some(var_decl_list),
+            Some(condition),
+            Some(incrementor),
+            self.convert_for_of_statement_head(node, get_value, non_user_code),
+        );
         for_statement.set_loc(node.loc());
         ec.add_emit_flags(for_statement, EmitFlags::NoTokenTrailingSourceMaps);
         ec.set_original(for_statement, node);
 
         // Build the try/catch/finally
-        let try_block = f.new_block(f.new_node_list(vec![f.restore_enclosing_label(for_statement, outermost_labeled_statement)]), true);
+        let try_block = f.new_block(
+            f.new_node_list(vec![
+                f.restore_enclosing_label(for_statement, outermost_labeled_statement),
+            ]),
+            true,
+        );
 
         // catch clause: { e_1 = { error: e_2 }; }
         let catch_body = f.new_block(
             f.new_node_list(vec![f.new_expression_statement(f.new_assignment_expression(
                 error_record,
-                f.new_object_literal_expression(f.new_node_list(vec![f.new_property_assignment(None, f.new_identifier("error"), None, None, catch_variable)]), false),
+                f.new_object_literal_expression(
+                    f.new_node_list(vec![f.new_property_assignment(
+                        None,
+                        f.new_identifier("error"),
+                        None,
+                        None,
+                        catch_variable,
+                    )]),
+                    false,
+                ),
             ))]),
             false,
         );
         ec.add_emit_flags(catch_body, EmitFlags::SingleLine);
-        let catch_clause = f.new_catch_clause(Some(f.new_variable_declaration(catch_variable, None, None, None)), catch_body);
+        let catch_clause = f.new_catch_clause(
+            Some(f.new_variable_declaration(catch_variable, None, None, None)),
+            catch_body,
+        );
 
         // finally block
         // inner try: if (!nonUserCode && !done && (returnMethod = iterator.return)) await returnMethod.call(iterator);
@@ -479,9 +624,21 @@ impl forawaitTransformer {
             ),
             None,
             f.new_token(Kind::AmpersandAmpersandToken),
-            f.new_assignment_expression(return_method, f.new_property_access_expression(iterator, None, f.new_identifier("return"), NodeFlags::None)),
+            f.new_assignment_expression(
+                return_method,
+                f.new_property_access_expression(
+                    iterator,
+                    None,
+                    f.new_identifier("return"),
+                    NodeFlags::None,
+                ),
+            ),
         );
-        let inner_if_statement = f.new_if_statement(inner_if_condition, f.new_expression_statement(self.create_downlevel_await(call_return)), None);
+        let inner_if_statement = f.new_if_statement(
+            inner_if_condition,
+            f.new_expression_statement(self.create_downlevel_await(call_return)),
+            None,
+        );
         ec.add_emit_flags(inner_if_statement, EmitFlags::SingleLine);
 
         let inner_try_block = f.new_block(f.new_node_list(vec![inner_if_statement]), false);
@@ -489,24 +646,35 @@ impl forawaitTransformer {
         // inner finally: if (errorRecord) throw errorRecord.error;
         let inner_finally_if = f.new_if_statement(
             error_record,
-            f.new_throw_statement(f.new_property_access_expression(error_record, None, f.new_identifier("error"), NodeFlags::None)),
+            f.new_throw_statement(f.new_property_access_expression(
+                error_record,
+                None,
+                f.new_identifier("error"),
+                NodeFlags::None,
+            )),
             None,
         );
         ec.add_emit_flags(inner_finally_if, EmitFlags::SingleLine);
         let inner_finally_block = f.new_block(f.new_node_list(vec![inner_finally_if]), false);
         ec.add_emit_flags(inner_finally_block, EmitFlags::SingleLine);
 
-        let inner_try_statement = f.new_try_statement(inner_try_block, None, Some(inner_finally_block));
+        let inner_try_statement =
+            f.new_try_statement(inner_try_block, None, Some(inner_finally_block));
         let finally_block = f.new_block(f.new_node_list(vec![inner_try_statement]), true);
 
         f.new_try_statement(try_block, Some(catch_clause), Some(finally_block))
     }
 
     // forawait.go:537
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_constructor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         let updated = self.factory().update_constructor_declaration(
             node,
@@ -522,11 +690,16 @@ impl forawaitTransformer {
     }
 
     // forawait.go:554
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_get_accessor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let name = self.visitor().visit_node(node.name()).unwrap();
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         let updated = self.factory().update_get_accessor_declaration(
             node,
@@ -543,11 +716,16 @@ impl forawaitTransformer {
     }
 
     // forawait.go:572
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_set_accessor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let name = self.visitor().visit_node(node.name()).unwrap();
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         let updated = self.factory().update_set_accessor_declaration(
             node,
@@ -564,21 +742,39 @@ impl forawaitTransformer {
     }
 
     // forawait.go:590
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_method_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let flags = self.enclosing_function_flags.get();
 
-        let modifiers = if flags.intersects(FunctionFlags::Generator) { self.visit_modifiers_no_async(node.modifiers()) } else { node.modifiers() };
-
-        let asterisk_token = if flags.intersects(FunctionFlags::Async) { None } else { node.as_method_declaration().asterisk_token() };
-
-
-
-        let (parameters, body) = if flags.intersects(FunctionFlags::Async) && flags.intersects(FunctionFlags::Generator) {
-            (Some(self.transform_async_generator_function_parameter_list(node)), Some(self.transform_async_generator_function_body(node)))
+        let modifiers = if flags.intersects(FunctionFlags::Generator) {
+            self.visit_modifiers_no_async(node.modifiers())
         } else {
-            (self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()), self.emit_context().visit_function_body(node.body(), &mut self.visitor()))
+            node.modifiers()
+        };
+
+        let asterisk_token = if flags.intersects(FunctionFlags::Async) {
+            None
+        } else {
+            node.as_method_declaration().asterisk_token()
+        };
+
+        let (parameters, body) = if flags.intersects(FunctionFlags::Async)
+            && flags.intersects(FunctionFlags::Generator)
+        {
+            (
+                Some(self.transform_async_generator_function_parameter_list(node)),
+                Some(self.transform_async_generator_function_body(node)),
+            )
+        } else {
+            (
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()),
+                self.emit_context().visit_function_body(node.body(), &mut self.visitor()),
+            )
         };
 
         let name = self.visitor().visit_node(node.name()).unwrap();
@@ -599,21 +795,39 @@ impl forawaitTransformer {
     }
 
     // forawait.go:635
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_function_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let flags = self.enclosing_function_flags.get();
 
-        let modifiers = if flags.intersects(FunctionFlags::Generator) { self.visit_modifiers_no_async(node.modifiers()) } else { node.modifiers() };
-
-        let asterisk_token = if flags.intersects(FunctionFlags::Async) { None } else { node.as_function_declaration().asterisk_token() };
-
-
-
-        let (parameters, body) = if flags.intersects(FunctionFlags::Async) && flags.intersects(FunctionFlags::Generator) {
-            (Some(self.transform_async_generator_function_parameter_list(node)), Some(self.transform_async_generator_function_body(node)))
+        let modifiers = if flags.intersects(FunctionFlags::Generator) {
+            self.visit_modifiers_no_async(node.modifiers())
         } else {
-            (self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()), self.emit_context().visit_function_body(node.body(), &mut self.visitor()))
+            node.modifiers()
+        };
+
+        let asterisk_token = if flags.intersects(FunctionFlags::Async) {
+            None
+        } else {
+            node.as_function_declaration().asterisk_token()
+        };
+
+        let (parameters, body) = if flags.intersects(FunctionFlags::Async)
+            && flags.intersects(FunctionFlags::Generator)
+        {
+            (
+                Some(self.transform_async_generator_function_parameter_list(node)),
+                Some(self.transform_async_generator_function_body(node)),
+            )
+        } else {
+            (
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()),
+                self.emit_context().visit_function_body(node.body(), &mut self.visitor()),
+            )
         };
 
         let updated = self.factory().update_function_declaration(
@@ -632,10 +846,15 @@ impl forawaitTransformer {
     }
 
     // forawait.go:680
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_arrow_function(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         let updated = self.factory().update_arrow_function(
             node,
@@ -652,21 +871,39 @@ impl forawaitTransformer {
     }
 
     // forawait.go:698
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_function_expression(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_enclosing_function_flags = self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
+        let saved_enclosing_function_flags =
+            self.enclosing_function_flags.replace(ast::get_function_flags(Some(node)));
         let flags = self.enclosing_function_flags.get();
 
-        let modifiers = if flags.intersects(FunctionFlags::Generator) { self.visit_modifiers_no_async(node.modifiers()) } else { node.modifiers() };
-
-        let asterisk_token = if flags.intersects(FunctionFlags::Async) { None } else { node.as_function_expression().asterisk_token() };
-
-
-
-        let (parameters, body) = if flags.intersects(FunctionFlags::Async) && flags.intersects(FunctionFlags::Generator) {
-            (Some(self.transform_async_generator_function_parameter_list(node)), Some(self.transform_async_generator_function_body(node)))
+        let modifiers = if flags.intersects(FunctionFlags::Generator) {
+            self.visit_modifiers_no_async(node.modifiers())
         } else {
-            (self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()), self.emit_context().visit_function_body(node.body(), &mut self.visitor()))
+            node.modifiers()
+        };
+
+        let asterisk_token = if flags.intersects(FunctionFlags::Async) {
+            None
+        } else {
+            node.as_function_expression().asterisk_token()
+        };
+
+        let (parameters, body) = if flags.intersects(FunctionFlags::Async)
+            && flags.intersects(FunctionFlags::Generator)
+        {
+            (
+                Some(self.transform_async_generator_function_parameter_list(node)),
+                Some(self.transform_async_generator_function_body(node)),
+            )
+        } else {
+            (
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()),
+                self.emit_context().visit_function_body(node.body(), &mut self.visitor()),
+            )
         };
 
         let updated = self.factory().update_function_expression(
@@ -687,7 +924,10 @@ impl forawaitTransformer {
     // forawait.go:743
     fn transform_async_generator_function_parameter_list(&self, node: P<Node>) -> P<NodeList> {
         if is_simple_parameter_list(node.parameters()) {
-            return self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()).unwrap();
+            return self
+                .emit_context()
+                .visit_parameters(node.parameter_list(), &mut self.visitor())
+                .unwrap();
         }
         // Add fixed parameters to preserve the function's `length` property.
         let f = self.factory();
@@ -702,7 +942,10 @@ impl forawaitTransformer {
                 None,
                 f.new_generated_name_for_node_ex(
                     param.name(),
-                    printer::AutoGenerateOptions { flags: GeneratedIdentifierFlags::ReservedInNestedScopes, ..Default::default() },
+                    printer::AutoGenerateOptions {
+                        flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
+                        ..Default::default()
+                    },
                 ),
                 None,
                 None,
@@ -725,19 +968,35 @@ impl forawaitTransformer {
             inner_parameters = ec.visit_parameters(node.parameter_list(), &mut self.visitor());
         }
 
-        let auto_generate_options = printer::AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel, ..Default::default() };
-        let saved_captured_super_properties = s.captured_super_properties.replace(Some(OrderedSet::default()));
+        let auto_generate_options = printer::AutoGenerateOptions {
+            flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel,
+            ..Default::default()
+        };
+        let saved_captured_super_properties =
+            s.captured_super_properties.replace(Some(OrderedSet::default()));
         let saved_has_super_element_access = s.has_super_element_access.replace(false);
         let saved_has_super_property_assignment = s.has_super_property_assignment.replace(false);
-        let saved_super_binding = s.super_binding.replace(Some(f.new_unique_name_ex("_super", auto_generate_options)));
-        let saved_super_index_binding = s.super_index_binding.replace(Some(f.new_unique_name_ex("_superIndex", auto_generate_options)));
+        let saved_super_binding =
+            s.super_binding.replace(Some(f.new_unique_name_ex("_super", auto_generate_options)));
+        let saved_super_index_binding = s
+            .super_index_binding
+            .replace(Some(f.new_unique_name_ex("_superIndex", auto_generate_options)));
 
         let body = node.body().unwrap();
-        let mut async_body = f.update_block(body, self.visitor().visit_nodes(body.statement_list()).unwrap(), body.as_block().multi_line);
-        async_body = f.update_block(async_body, ec.end_and_merge_variable_environment_list(async_body.statement_list()).unwrap(), async_body.as_block().multi_line);
+        let mut async_body = f.update_block(
+            body,
+            self.visitor().visit_nodes(body.statement_list()).unwrap(),
+            body.as_block().multi_line,
+        );
+        async_body = f.update_block(
+            async_body,
+            ec.end_and_merge_variable_environment_list(async_body.statement_list()).unwrap(),
+            async_body.as_block().multi_line,
+        );
 
         // Substitute super property accesses with _super/_superIndex helpers
-        let emit_super_helpers = !s.captured_super_properties.borrow().as_ref().unwrap().is_empty() || s.has_super_element_access.get();
+        let emit_super_helpers = !s.captured_super_properties.borrow().as_ref().unwrap().is_empty()
+            || s.has_super_element_access.get();
         if emit_super_helpers {
             async_body = s.substitute_super_accesses_in_body(async_body);
         }
@@ -766,17 +1025,26 @@ impl forawaitTransformer {
         )));
 
         ec.start_variable_environment();
-        if emit_super_helpers && !s.captured_super_properties.borrow().as_ref().unwrap().is_empty() {
+        if emit_super_helpers && !s.captured_super_properties.borrow().as_ref().unwrap().is_empty()
+        {
             ec.add_initialization_statement(s.create_super_access_variable_statement());
         }
 
         let outer_statements = vec![return_statement];
 
-        let block = f.update_block(body, ec.end_and_merge_variable_environment_list(Some(f.new_node_list(outer_statements))).unwrap(), body.as_block().multi_line);
+        let block = f.update_block(
+            body,
+            ec.end_and_merge_variable_environment_list(Some(f.new_node_list(outer_statements)))
+                .unwrap(),
+            body.as_block().multi_line,
+        );
 
         if emit_super_helpers && s.has_super_element_access.get() {
             if s.has_super_property_assignment.get() {
-                ec.add_emit_helper(block, &[SP::from_static(&printer::ADVANCED_ASYNC_SUPER_HELPER)]);
+                ec.add_emit_helper(
+                    block,
+                    &[SP::from_static(&printer::ADVANCED_ASYNC_SUPER_HELPER)],
+                );
             } else {
                 ec.add_emit_helper(block, &[SP::from_static(&printer::ASYNC_SUPER_HELPER)]);
             }

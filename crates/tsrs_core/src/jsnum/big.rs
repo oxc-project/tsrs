@@ -77,9 +77,7 @@ impl Int {
         let shift = bits - prec;
         let mut rounded = magnitude >> shift;
         let half = magnitude.bit((shift - 1) as u64);
-        let sticky = magnitude
-            .trailing_zeros()
-            .is_some_and(|zeros| zeros < (shift - 1) as u64);
+        let sticky = magnitude.trailing_zeros().is_some_and(|zeros| zeros < (shift - 1) as u64);
         if half && (sticky || rounded.bit(0)) {
             rounded += 1u8;
         }
@@ -126,10 +124,7 @@ mod tests {
             ("--1", 0),
             ("１２", 0),
         ] {
-            assert!(
-                Int::set_string(text, base).is_none(),
-                "{text:?}, base {base}"
-            );
+            assert!(Int::set_string(text, base).is_none(), "{text:?}, base {base}");
         }
     }
 
@@ -157,16 +152,10 @@ mod tests {
             ("9007199254740995", 9_007_199_254_740_996.0),
             ("-9007199254740993", -9_007_199_254_740_992.0),
         ] {
-            assert_eq!(
-                Int::set_string(text, 10).unwrap().float64().to_bits(),
-                expected.to_bits()
-            );
+            assert_eq!(Int::set_string(text, 10).unwrap().float64().to_bits(), expected.to_bits());
         }
         assert_eq!(Int::new(2).exp(&Int::new(1024)).float64(), f64::INFINITY);
-        assert_eq!(
-            Int::new(-2).exp(&Int::new(1025)).float64(),
-            f64::NEG_INFINITY
-        );
+        assert_eq!(Int::new(-2).exp(&Int::new(1025)).float64(), f64::NEG_INFINITY);
         assert_eq!(Int::new(0).float64().to_bits(), 0);
     }
 }

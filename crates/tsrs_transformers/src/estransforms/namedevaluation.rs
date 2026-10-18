@@ -1,6 +1,5 @@
 // Port of estransforms/namedevaluation.go.
 
-
 use super::*;
 
 // namedevaluation.go:16
@@ -9,8 +8,13 @@ use super::*;
  * call's second argument is the value stored in the `assignedName` property of the block's `EmitNode`.
  * @internal
  */
-pub(crate) fn is_class_named_evaluation_helper_block(emit_context: P<EmitContext>, node: P<Node>) -> bool {
-    if !ast::is_class_static_block_declaration(node) || node.as_class_static_block_declaration().body.statements().len() != 1 {
+pub(crate) fn is_class_named_evaluation_helper_block(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+) -> bool {
+    if !ast::is_class_static_block_declaration(node)
+        || node.as_class_static_block_declaration().body.statements().len() != 1
+    {
         return false;
     }
 
@@ -19,7 +23,8 @@ pub(crate) fn is_class_named_evaluation_helper_block(emit_context: P<EmitContext
         let expression = statement.expression().unwrap();
         if emit_context.is_call_to_helper(expression, "__setFunctionName") {
             let arguments = expression.as_call_expression().arguments;
-            return arguments.nodes().len() >= 2 && Some(arguments.nodes()[1]) == emit_context.assigned_name(node);
+            return arguments.nodes().len() >= 2
+                && Some(arguments.nodes()[1]) == emit_context.assigned_name(node);
         }
     }
     false
@@ -31,9 +36,16 @@ pub(crate) fn is_class_named_evaluation_helper_block(emit_context: P<EmitContext
  * `__setFunctionName` helper.
  * @internal
  */
-pub(crate) fn class_has_explicitly_assigned_name(emit_context: P<EmitContext>, node: P<Node>) -> bool {
+pub(crate) fn class_has_explicitly_assigned_name(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+) -> bool {
     if emit_context.assigned_name(node).is_some() {
-        if node.members().iter().any(|&member| is_class_named_evaluation_helper_block(emit_context, member)) {
+        if node
+            .members()
+            .iter()
+            .any(|&member| is_class_named_evaluation_helper_block(emit_context, member))
+        {
             return true;
         }
     }
@@ -46,7 +58,10 @@ pub(crate) fn class_has_explicitly_assigned_name(emit_context: P<EmitContext>, n
  * call to the `__setFunctionName` helper.
  * @internal
  */
-pub(crate) fn class_has_declared_or_explicitly_assigned_name(emit_context: P<EmitContext>, node: P<Node>) -> bool {
+pub(crate) fn class_has_declared_or_explicitly_assigned_name(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+) -> bool {
     node.name().is_some() || class_has_explicitly_assigned_name(emit_context, node)
 }
 
@@ -54,7 +69,11 @@ pub(crate) fn class_has_declared_or_explicitly_assigned_name(emit_context: P<Emi
 // Indicates whether an expression is an anonymous function definition.
 //
 // See https://tc39.es/ecma262/#sec-isanonymousfunctiondefinition
-pub(crate) fn is_anonymous_function_definition(emit_context: P<EmitContext>, node: P<Node>, cb: Option<&dyn Fn(P<Node>) -> bool>) -> bool {
+pub(crate) fn is_anonymous_function_definition(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+    cb: Option<&dyn Fn(P<Node>) -> bool>,
+) -> bool {
     let node = ast::skip_outer_expressions(node, OEK::All);
     match node.kind() {
         Kind::ClassExpression => {
@@ -84,27 +103,47 @@ pub(crate) fn is_named_evaluation(emit_context: P<EmitContext>, node: P<Node>) -
 }
 
 // namedevaluation.go:89
-pub(crate) fn is_named_evaluation_and(emit_context: P<EmitContext>, node: P<Node>, cb: Option<&dyn Fn(P<Node>) -> bool>) -> bool {
+pub(crate) fn is_named_evaluation_and(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+    cb: Option<&dyn Fn(P<Node>) -> bool>,
+) -> bool {
     if !ast::is_named_evaluation_source(node) {
         return false;
     }
     match node.kind() {
-        Kind::ShorthandPropertyAssignment => {
-            is_anonymous_function_definition(emit_context, node.as_shorthand_property_assignment().object_assignment_initializer().unwrap(), cb)
-        }
-        Kind::PropertyAssignment | Kind::VariableDeclaration | Kind::Parameter | Kind::BindingElement | Kind::PropertyDeclaration => {
+        Kind::ShorthandPropertyAssignment => is_anonymous_function_definition(
+            emit_context,
+            node.as_shorthand_property_assignment().object_assignment_initializer().unwrap(),
+            cb,
+        ),
+        Kind::PropertyAssignment
+        | Kind::VariableDeclaration
+        | Kind::Parameter
+        | Kind::BindingElement
+        | Kind::PropertyDeclaration => {
             is_anonymous_function_definition(emit_context, node.initializer().unwrap(), cb)
         }
-        Kind::BinaryExpression => is_anonymous_function_definition(emit_context, node.as_binary_expression().right(), cb),
-        Kind::ExportAssignment => is_anonymous_function_definition(emit_context, node.expression().unwrap(), cb),
+        Kind::BinaryExpression => {
+            is_anonymous_function_definition(emit_context, node.as_binary_expression().right(), cb)
+        }
+        Kind::ExportAssignment => {
+            is_anonymous_function_definition(emit_context, node.expression().unwrap(), cb)
+        }
         _ => panic!("Unhandled case in isNamedEvaluation"),
     }
 }
 
 // namedevaluation.go:109
 // Gets a string literal to use as the assigned name of an anonymous class or function declaration.
-pub(crate) fn get_assigned_name_of_identifier(emit_context: P<EmitContext>, name: P<Node>, expression: P<Node> /*WrappedExpression<AnonymousFunctionDefinition>*/) -> P<Node> {
-    let original = emit_context.most_original(Some(ast::skip_outer_expressions(expression, OEK::All))).unwrap();
+pub(crate) fn get_assigned_name_of_identifier(
+    emit_context: P<EmitContext>,
+    name: P<Node>,
+    expression: P<Node>, /*WrappedExpression<AnonymousFunctionDefinition>*/
+) -> P<Node> {
+    let original = emit_context
+        .most_original(Some(ast::skip_outer_expressions(expression, OEK::All)))
+        .unwrap();
     if (ast::is_class_declaration(original) || ast::is_function_declaration(original))
         && original.name().is_none()
         && ast::has_syntactic_modifier(original, ModifierFlags::Default)
@@ -115,10 +154,15 @@ pub(crate) fn get_assigned_name_of_identifier(emit_context: P<EmitContext>, name
 }
 
 // namedevaluation.go:118
-pub(crate) fn get_assigned_name_of_property_name(emit_context: P<EmitContext>, name: P<Node>, assigned_name_text: &str) -> (P<Node>, P<Node>) {
+pub(crate) fn get_assigned_name_of_property_name(
+    emit_context: P<EmitContext>,
+    name: P<Node>,
+    assigned_name_text: &str,
+) -> (P<Node>, P<Node>) {
     let factory = &emit_context.factory;
     if !assigned_name_text.is_empty() {
-        let assigned_name = factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None);
+        let assigned_name =
+            factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None);
         return (assigned_name, name);
     }
 
@@ -151,16 +195,22 @@ pub(crate) fn get_assigned_name_of_property_name(emit_context: P<EmitContext>, n
 // side effects.
 // The thisExpression parameter overrides the expression to use for the actual `this` reference. This can be used to provide an
 // expression that has already had its `EmitFlags` set or may have been tracked to prevent substitution.
-pub(crate) fn create_class_named_evaluation_helper_block(emit_context: P<EmitContext>, assigned_name: P<Node>, this_expression: Option<P<Node>>) -> P<Node> {
+pub(crate) fn create_class_named_evaluation_helper_block(
+    emit_context: P<EmitContext>,
+    assigned_name: P<Node>,
+    this_expression: Option<P<Node>>,
+) -> P<Node> {
     // produces:
     //
     //  static { __setFunctionName(this, "C"); }
     //
 
-    let this_expression = this_expression.unwrap_or_else(|| emit_context.factory.new_this_expression());
+    let this_expression =
+        this_expression.unwrap_or_else(|| emit_context.factory.new_this_expression());
 
     let factory = &emit_context.factory;
-    let expression = factory.new_set_function_name_helper(this_expression, assigned_name, "" /*prefix*/);
+    let expression =
+        factory.new_set_function_name_helper(this_expression, assigned_name, "" /*prefix*/);
     let statement = factory.new_expression_statement(expression);
     let body = factory.new_block(factory.new_node_list(vec![statement]), false /*multiLine*/);
     let block = factory.new_class_static_block_declaration(None /*modifiers*/, body);
@@ -197,9 +247,13 @@ pub(crate) fn inject_class_named_evaluation_helper_block_if_missing(
     }
 
     let factory = &emit_context.factory;
-    let named_evaluation_block = create_class_named_evaluation_helper_block(emit_context, assigned_name, this_expression);
+    let named_evaluation_block =
+        create_class_named_evaluation_helper_block(emit_context, assigned_name, this_expression);
     if let Some(name) = node.name() {
-        emit_context.set_source_map_range(named_evaluation_block.body().unwrap().statements()[0], name.loc());
+        emit_context.set_source_map_range(
+            named_evaluation_block.body().unwrap().statements()[0],
+            name.loc(),
+        );
     }
 
     let insertion_index = node
@@ -256,7 +310,10 @@ pub(crate) fn finish_transform_named_evaluation(
     assigned_name: P<Node>,
     ignore_empty_string_literal: bool,
 ) -> P<Node> {
-    if ignore_empty_string_literal && ast::is_string_literal(assigned_name) && assigned_name.text().is_empty() {
+    if ignore_empty_string_literal
+        && ast::is_string_literal(assigned_name)
+        && assigned_name.text().is_empty()
+    {
         return expression;
     }
 
@@ -264,7 +321,12 @@ pub(crate) fn finish_transform_named_evaluation(
     let inner_expression = ast::skip_outer_expressions(expression, OEK::All);
 
     let updated_expression = if ast::is_class_expression(inner_expression) {
-        inject_class_named_evaluation_helper_block_if_missing(emit_context, inner_expression, assigned_name, None /*thisExpression*/)
+        inject_class_named_evaluation_helper_block_if_missing(
+            emit_context,
+            inner_expression,
+            assigned_name,
+            None, /*thisExpression*/
+        )
     } else {
         factory.new_set_function_name_helper(inner_expression, assigned_name, "" /*prefix*/)
     };
@@ -287,9 +349,22 @@ pub(crate) fn transform_named_evaluation_of_property_assignment(
     //     ...
 
     let factory = &context.factory;
-    let (assigned_name, name) = get_assigned_name_of_property_name(context, node.name().unwrap(), assigned_name_text);
-    let initializer = finish_transform_named_evaluation(context, node.initializer().unwrap(), assigned_name, ignore_empty_string_literal);
-    factory.update_property_assignment(node, None /*modifiers*/, name, None /*postfixToken*/, None /*typeNode*/, initializer)
+    let (assigned_name, name) =
+        get_assigned_name_of_property_name(context, node.name().unwrap(), assigned_name_text);
+    let initializer = finish_transform_named_evaluation(
+        context,
+        node.initializer().unwrap(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
+    factory.update_property_assignment(
+        node,
+        None, /*modifiers*/
+        name,
+        None, /*postfixToken*/
+        None, /*typeNode*/
+        initializer,
+    )
 }
 
 // namedevaluation.go:287
@@ -313,9 +388,18 @@ pub(crate) fn transform_named_evaluation_of_shorthand_assignment_property(
     let assigned_name = if !assigned_name_text.is_empty() {
         factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     } else {
-        get_assigned_name_of_identifier(emit_context, node.name().unwrap(), object_assignment_initializer_in)
+        get_assigned_name_of_identifier(
+            emit_context,
+            node.name().unwrap(),
+            object_assignment_initializer_in,
+        )
     };
-    let object_assignment_initializer = finish_transform_named_evaluation(emit_context, object_assignment_initializer_in, assigned_name, ignore_empty_string_literal);
+    let object_assignment_initializer = finish_transform_named_evaluation(
+        emit_context,
+        object_assignment_initializer_in,
+        assigned_name,
+        ignore_empty_string_literal,
+    );
     factory.update_shorthand_property_assignment(
         node,
         None, /*modifiers*/
@@ -352,10 +436,25 @@ pub(crate) fn transform_named_evaluation_of_variable_declaration(
     let assigned_name = if !assigned_name_text.is_empty() {
         factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     } else {
-        get_assigned_name_of_identifier(emit_context, node.name().unwrap(), node.initializer().unwrap())
+        get_assigned_name_of_identifier(
+            emit_context,
+            node.name().unwrap(),
+            node.initializer().unwrap(),
+        )
     };
-    let initializer = finish_transform_named_evaluation(emit_context, node.initializer().unwrap(), assigned_name, ignore_empty_string_literal);
-    factory.update_variable_declaration(node, node.name().unwrap(), None /*exclamationToken*/, None /*typeNode*/, Some(initializer))
+    let initializer = finish_transform_named_evaluation(
+        emit_context,
+        node.initializer().unwrap(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
+    factory.update_variable_declaration(
+        node,
+        node.name().unwrap(),
+        None, /*exclamationToken*/
+        None, /*typeNode*/
+        Some(initializer),
+    )
 }
 
 // namedevaluation.go:347
@@ -385,9 +484,18 @@ pub(crate) fn transform_named_evaluation_of_parameter_declaration(
     let assigned_name = if !assigned_name_text.is_empty() {
         factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     } else {
-        get_assigned_name_of_identifier(emit_context, node.name().unwrap(), node.initializer().unwrap())
+        get_assigned_name_of_identifier(
+            emit_context,
+            node.name().unwrap(),
+            node.initializer().unwrap(),
+        )
     };
-    let initializer = finish_transform_named_evaluation(emit_context, node.initializer().unwrap(), assigned_name, ignore_empty_string_literal);
+    let initializer = finish_transform_named_evaluation(
+        emit_context,
+        node.initializer().unwrap(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
     factory.update_parameter_declaration(
         node,
         None, /*modifiers*/
@@ -426,11 +534,26 @@ pub(crate) fn transform_named_evaluation_of_binding_element(
     let assigned_name = if !assigned_name_text.is_empty() {
         factory.new_string_literal(alloc_str(assigned_name_text), TokenFlags::None)
     } else {
-        get_assigned_name_of_identifier(emit_context, node.name().unwrap(), node.initializer().unwrap())
+        get_assigned_name_of_identifier(
+            emit_context,
+            node.name().unwrap(),
+            node.initializer().unwrap(),
+        )
     };
-    let initializer = finish_transform_named_evaluation(emit_context, node.initializer().unwrap(), assigned_name, ignore_empty_string_literal);
+    let initializer = finish_transform_named_evaluation(
+        emit_context,
+        node.initializer().unwrap(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
     let b = node.as_binding_element();
-    factory.update_binding_element(node, b.dot_dot_dot_token(), b.property_name(), node.name(), Some(initializer))
+    factory.update_binding_element(
+        node,
+        b.dot_dot_dot_token(),
+        b.property_name(),
+        node.name(),
+        Some(initializer),
+    )
 }
 
 // namedevaluation.go:417
@@ -448,9 +571,22 @@ pub(crate) fn transform_named_evaluation_of_property_declaration(
     //     ...
 
     let factory = &emit_context.factory;
-    let (assigned_name, name) = get_assigned_name_of_property_name(emit_context, node.name().unwrap(), assigned_name_text);
-    let initializer = finish_transform_named_evaluation(emit_context, node.initializer().unwrap(), assigned_name, ignore_empty_string_literal);
-    factory.update_property_declaration(node, node.modifiers(), name, None /*postfixToken*/, None /*typeNode*/, Some(initializer))
+    let (assigned_name, name) =
+        get_assigned_name_of_property_name(emit_context, node.name().unwrap(), assigned_name_text);
+    let initializer = finish_transform_named_evaluation(
+        emit_context,
+        node.initializer().unwrap(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
+    factory.update_property_declaration(
+        node,
+        node.modifiers(),
+        name,
+        None, /*postfixToken*/
+        None, /*typeNode*/
+        Some(initializer),
+    )
 }
 
 // namedevaluation.go:438
@@ -493,8 +629,20 @@ pub(crate) fn transform_named_evaluation_of_assignment_expression(
     } else {
         get_assigned_name_of_identifier(emit_context, b.left, b.right())
     };
-    let right = finish_transform_named_evaluation(emit_context, b.right(), assigned_name, ignore_empty_string_literal);
-    factory.update_binary_expression(node, None /*modifiers*/, b.left, None /*typeNode*/, b.operator_token, right)
+    let right = finish_transform_named_evaluation(
+        emit_context,
+        b.right(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
+    factory.update_binary_expression(
+        node,
+        None, /*modifiers*/
+        b.left,
+        None, /*typeNode*/
+        b.operator_token,
+        right,
+    )
 }
 
 // namedevaluation.go:483
@@ -522,22 +670,80 @@ pub(crate) fn transform_named_evaluation_of_export_assignment(
     } else {
         factory.new_string_literal("default", TokenFlags::None)
     };
-    let expression = finish_transform_named_evaluation(emit_context, e.expression(), assigned_name, ignore_empty_string_literal);
-    factory.update_export_assignment(node, None /*modifiers*/, e.is_export_equals, None /*typeNode*/, expression)
+    let expression = finish_transform_named_evaluation(
+        emit_context,
+        e.expression(),
+        assigned_name,
+        ignore_empty_string_literal,
+    );
+    factory.update_export_assignment(
+        node,
+        None, /*modifiers*/
+        e.is_export_equals,
+        None, /*typeNode*/
+        expression,
+    )
 }
 
 // namedevaluation.go:513
 // Performs a shallow transformation of a `NamedEvaluation` node, such that a valid name will be assigned.
-pub(crate) fn transform_named_evaluation(context: P<EmitContext>, node: P<Node> /*NamedEvaluation*/, ignore_empty_string_literal: bool, assigned_name: &str) -> P<Node> {
+pub(crate) fn transform_named_evaluation(
+    context: P<EmitContext>,
+    node: P<Node>, /*NamedEvaluation*/
+    ignore_empty_string_literal: bool,
+    assigned_name: &str,
+) -> P<Node> {
     match node.kind() {
-        Kind::PropertyAssignment => transform_named_evaluation_of_property_assignment(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::ShorthandPropertyAssignment => transform_named_evaluation_of_shorthand_assignment_property(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::VariableDeclaration => transform_named_evaluation_of_variable_declaration(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::Parameter => transform_named_evaluation_of_parameter_declaration(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::BindingElement => transform_named_evaluation_of_binding_element(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::PropertyDeclaration => transform_named_evaluation_of_property_declaration(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::BinaryExpression => transform_named_evaluation_of_assignment_expression(context, node, ignore_empty_string_literal, assigned_name),
-        Kind::ExportAssignment => transform_named_evaluation_of_export_assignment(context, node, ignore_empty_string_literal, assigned_name),
+        Kind::PropertyAssignment => transform_named_evaluation_of_property_assignment(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
+        Kind::ShorthandPropertyAssignment => {
+            transform_named_evaluation_of_shorthand_assignment_property(
+                context,
+                node,
+                ignore_empty_string_literal,
+                assigned_name,
+            )
+        }
+        Kind::VariableDeclaration => transform_named_evaluation_of_variable_declaration(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
+        Kind::Parameter => transform_named_evaluation_of_parameter_declaration(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
+        Kind::BindingElement => transform_named_evaluation_of_binding_element(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
+        Kind::PropertyDeclaration => transform_named_evaluation_of_property_declaration(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
+        Kind::BinaryExpression => transform_named_evaluation_of_assignment_expression(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
+        Kind::ExportAssignment => transform_named_evaluation_of_export_assignment(
+            context,
+            node,
+            ignore_empty_string_literal,
+            assigned_name,
+        ),
         _ => panic!("Unhandled case in transformNamedEvaluation"),
     }
 }

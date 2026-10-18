@@ -9,10 +9,10 @@ mod mapbuilder;
 mod syncmap;
 mod util;
 
+pub use r#box::*;
 pub use cloneablemap::*;
 pub use interfaces::*;
 pub use map::*;
 pub use mapbuilder::*;
-pub use r#box::*;
 pub use syncmap::*;
 pub use util::*;

@@ -12,14 +12,24 @@ pub const COMPRESSED_PTRS: bool = cfg!(compressed_ptrs);
 /// and `tsc -b`, and `tsc -b` builds and reports on the calling thread. False on native targets, where the
 /// branches it guards fold away.
 pub const NO_THREADS: bool = cfg!(all(target_family = "wasm", not(target_feature = "atomics")));
-pub use ptr::{alloc, alloc_slice, alloc_slice_aligned4, alloc_slice_recycled, alloc_slice_scratch, alloc_str, alloc_str_scratch, alloc_vec, alloc_vec_scratch, arena_checkpoint, arena_pin, arena_rewindable, ArenaStringBuilder, arena_rewind, free_raw, free_slice_ptr, OptionSliceCell, OptionThinSliceCell, PackedStr, PSliceCell, SliceCell, StrCell, SlicePair, StaticSlicePtr, ThinSlice, ThinSliceCell, PKey, PSlot, P, PACK_BITS, SP};
+pub use ptr::{
+    ArenaStringBuilder, OptionSliceCell, OptionThinSliceCell, P, PACK_BITS, PKey, PSliceCell,
+    PSlot, PackedStr, SP, SliceCell, SlicePair, StaticSlicePtr, StrCell, ThinSlice, ThinSliceCell,
+    alloc, alloc_slice, alloc_slice_aligned4, alloc_slice_recycled, alloc_slice_scratch, alloc_str,
+    alloc_str_scratch, alloc_vec, alloc_vec_scratch, arena_checkpoint, arena_pin, arena_rewind,
+    arena_rewindable, free_raw, free_slice_ptr,
+};
 
 mod frozen;
-pub use frozen::{FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedPSliceCell, OwnedSliceCell, OwnedStrCell, OwnedTaggedStrCell};
+pub use frozen::{
+    FrozenCell, FrozenRef, FrozenRefMut, OwnedCell, OwnedPSliceCell, OwnedSliceCell, OwnedStrCell,
+    OwnedTaggedStrCell,
+};
 
 pub mod collections;
 pub mod compat;
 pub mod debug;
+pub mod festats;
 pub mod glob;
 pub mod gocompat;
 pub mod goslices;
@@ -29,7 +39,6 @@ pub mod lazymembers;
 pub mod memsplit;
 pub mod phases;
 pub mod runslots;
-pub mod festats;
 pub mod semver;
 pub mod sharedgraph;
 pub mod stringutil;

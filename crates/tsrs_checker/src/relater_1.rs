@@ -43,10 +43,18 @@ impl Relation {
     // relater.go:102
     pub(crate) fn lookup(&self, key: RelationKey) -> RelationComparisonResult {
         let bits = match key {
-            RelationKey::Pair(k) => self.pairs.borrow().find(pair_slot_hash(k), |&slot| slot >> RELATION_RESULT_BITS == k).map(|&slot| slot & RELATION_RESULT_MASK),
-            RelationKey::Hashed(k) => self.hashed.borrow().get(&PackedHashKey::from(k)).map(|&bits| bits as u64),
+            RelationKey::Pair(k) => self
+                .pairs
+                .borrow()
+                .find(pair_slot_hash(k), |&slot| slot >> RELATION_RESULT_BITS == k)
+                .map(|&slot| slot & RELATION_RESULT_MASK),
+            RelationKey::Hashed(k) => {
+                self.hashed.borrow().get(&PackedHashKey::from(k)).map(|&bits| bits as u64)
+            }
         };
-        bits.map_or(RelationComparisonResult::None, |bits| RelationComparisonResult::from_bits_retain(bits as u32))
+        bits.map_or(RelationComparisonResult::None, |bits| {
+            RelationComparisonResult::from_bits_retain(bits as u32)
+        })
     }
 
     // relater.go:106
@@ -61,7 +69,9 @@ impl Relation {
                 match pairs.find_mut(hash, |&slot| slot >> RELATION_RESULT_BITS == k) {
                     Some(existing) => *existing = slot,
                     None => {
-                        pairs.insert_unique(hash, slot, |&slot| pair_slot_hash(slot >> RELATION_RESULT_BITS));
+                        pairs.insert_unique(hash, slot, |&slot| {
+                            pair_slot_hash(slot >> RELATION_RESULT_BITS)
+                        });
                     }
                 }
             }
@@ -100,7 +110,11 @@ impl Checker {
     }
 
     // relater.go:128
-    pub(crate) fn compare_types_assignable_simple(&mut self, source: P<Type>, target: P<Type>) -> Ternary {
+    pub(crate) fn compare_types_assignable_simple(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> Ternary {
         let relation = self.assignable_relation;
         if self.is_type_related_to(source, target, relation) {
             return Ternary::True;
@@ -109,7 +123,12 @@ impl Checker {
     }
 
     // relater.go:135
-    pub(crate) fn compare_types_assignable_worker(&mut self, source: P<Type>, target: P<Type>, report_errors: bool) -> Ternary {
+    pub(crate) fn compare_types_assignable_worker(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        report_errors: bool,
+    ) -> Ternary {
         let _ = report_errors;
         let relation = self.assignable_relation;
         if self.is_type_related_to(source, target, relation) {
@@ -157,7 +176,12 @@ impl Checker {
     }
 
     // relater.go:169
-    pub(crate) fn is_type_related_to(&mut self, source: P<Type>, target: P<Type>, relation: P<Relation>) -> bool {
+    pub(crate) fn is_type_related_to(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+    ) -> bool {
         let mut source = source;
         let mut target = target;
         if is_fresh_literal_type(source) {
@@ -172,7 +196,12 @@ impl Checker {
         // Two different regular literals of one kind (not enum members) are related by no relation: narrowing a
         // union of string literals by a literal asks this of every constituent.
         let flags = source.flags();
-        if flags == target.flags() && matches!(flags, TypeFlags::StringLiteral | TypeFlags::NumberLiteral | TypeFlags::BigIntLiteral) {
+        if flags == target.flags()
+            && matches!(
+                flags,
+                TypeFlags::StringLiteral | TypeFlags::NumberLiteral | TypeFlags::BigIntLiteral
+            )
+        {
             return false;
         }
         if relation != self.identity_relation {
@@ -184,7 +213,10 @@ impl Checker {
                 return true;
             }
         } else if !(source.flags() | target.flags()).intersects(
-            TypeFlags::UnionOrIntersection | TypeFlags::IndexedAccess | TypeFlags::Conditional | TypeFlags::Substitution,
+            TypeFlags::UnionOrIntersection
+                | TypeFlags::IndexedAccess
+                | TypeFlags::Conditional
+                | TypeFlags::Substitution,
         ) {
             // We have excluded types that may simplify to other forms, so types must have identical flags
             if source.flags() != target.flags() {
@@ -194,11 +226,17 @@ impl Checker {
                 return true;
             }
         }
-        if source.flags().intersects(TypeFlags::Object) && target.flags().intersects(TypeFlags::Object) {
+        if source.flags().intersects(TypeFlags::Object)
+            && target.flags().intersects(TypeFlags::Object)
+        {
             let is_identity = relation == self.identity_relation;
-            let (id, _) = get_relation_key(self, source, target, IntersectionState::None, is_identity, false);
+            let (id, _) =
+                get_relation_key(self, source, target, IntersectionState::None, is_identity, false);
             let related = relation.lookup(id);
-            crate::sitecount::hit("relation cache (isTypeRelatedTo)", if related != RelationComparisonResult::None { "hit" } else { "miss" });
+            crate::sitecount::hit(
+                "relation cache (isTypeRelatedTo)",
+                if related != RelationComparisonResult::None { "hit" } else { "miss" },
+            );
             if related != RelationComparisonResult::None {
                 return related.intersects(RelationComparisonResult::Succeeded);
             }
@@ -207,8 +245,14 @@ impl Checker {
             || target.flags().intersects(TypeFlags::StructuredOrInstantiable)
         {
             if relation == self.identity_relation
-                && (source.flags() | target.flags()).intersects(TypeFlags::UnionOrIntersection | TypeFlags::IndexedAccess | TypeFlags::Conditional | TypeFlags::Substitution)
-                && !(source.flags().intersects(TypeFlags::Object) && target.flags().intersects(TypeFlags::Primitive))
+                && (source.flags() | target.flags()).intersects(
+                    TypeFlags::UnionOrIntersection
+                        | TypeFlags::IndexedAccess
+                        | TypeFlags::Conditional
+                        | TypeFlags::Substitution,
+                )
+                && !(source.flags().intersects(TypeFlags::Object)
+                    && target.flags().intersects(TypeFlags::Primitive))
             {
                 // tsrs-only (notes/perf-checker-64.md): what is_related_to_ex decides for the identity relation before
                 // it recurses, without borrowing a relater. Inference asks whether an argument type is identical to
@@ -232,7 +276,13 @@ impl Checker {
     }
 
     // relater.go:205
-    pub(crate) fn is_simple_type_related_to(&mut self, source: P<Type>, target: P<Type>, relation: P<Relation>, error_reporter: Option<ErrorReporter<'_>>) -> bool {
+    pub(crate) fn is_simple_type_related_to(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        error_reporter: Option<ErrorReporter<'_>>,
+    ) -> bool {
         let mut error_reporter = error_reporter;
         let s = source.flags();
         let t = target.flags();
@@ -251,10 +301,15 @@ impl Checker {
                 && (relation == self.assignable_relation || relation == self.comparable_relation)
                 && self.is_unknown_like_union_type(target);
         }
-        if t.intersects(TypeFlags::Any) || s.intersects(TypeFlags::Never) || source == self.wildcard_type {
+        if t.intersects(TypeFlags::Any)
+            || s.intersects(TypeFlags::Never)
+            || source == self.wildcard_type
+        {
             return true;
         }
-        if t.intersects(TypeFlags::Unknown) && !(relation == self.strict_subtype_relation && s.intersects(TypeFlags::Any)) {
+        if t.intersects(TypeFlags::Unknown)
+            && !(relation == self.strict_subtype_relation && s.intersects(TypeFlags::Any))
+        {
             return true;
         }
         if t.intersects(TypeFlags::Never) {
@@ -294,21 +349,33 @@ impl Checker {
         if s.intersects(TypeFlags::Enum)
             && t.intersects(TypeFlags::Enum)
             && source.symbol().unwrap().name() == target.symbol().unwrap().name()
-            && self.is_enum_type_related_to(source.symbol().unwrap(), target.symbol().unwrap(), reborrow_reporter(&mut error_reporter))
+            && self.is_enum_type_related_to(
+                source.symbol().unwrap(),
+                target.symbol().unwrap(),
+                reborrow_reporter(&mut error_reporter),
+            )
         {
             return true;
         }
         if s.intersects(TypeFlags::EnumLiteral) && t.intersects(TypeFlags::EnumLiteral) {
             if s.intersects(TypeFlags::Union)
                 && t.intersects(TypeFlags::Union)
-                && self.is_enum_type_related_to(source.symbol().unwrap(), target.symbol().unwrap(), reborrow_reporter(&mut error_reporter))
+                && self.is_enum_type_related_to(
+                    source.symbol().unwrap(),
+                    target.symbol().unwrap(),
+                    reborrow_reporter(&mut error_reporter),
+                )
             {
                 return true;
             }
             if s.intersects(TypeFlags::Literal)
                 && t.intersects(TypeFlags::Literal)
                 && source.as_literal_type().value_equals(target.as_literal_type())
-                && self.is_enum_type_related_to(source.symbol().unwrap(), target.symbol().unwrap(), reborrow_reporter(&mut error_reporter))
+                && self.is_enum_type_related_to(
+                    source.symbol().unwrap(),
+                    target.symbol().unwrap(),
+                    reborrow_reporter(&mut error_reporter),
+                )
             {
                 return true;
             }
@@ -322,7 +389,8 @@ impl Checker {
             return true;
         }
         if s.intersects(TypeFlags::Null)
-            && (!self.strict_null_checks && !t.intersects(TypeFlags::UnionOrIntersection) || t.intersects(TypeFlags::Null))
+            && (!self.strict_null_checks && !t.intersects(TypeFlags::UnionOrIntersection)
+                || t.intersects(TypeFlags::Null))
         {
             return true;
         }
@@ -342,7 +410,9 @@ impl Checker {
             // a numeric literal type is assignable any computed numeric enum type or any numeric enum literal type
             // with a matching value. These rules exist such that enums can be used for bit-flag purposes.
             if s.intersects(TypeFlags::Number)
-                && (t.intersects(TypeFlags::Enum) || t.intersects(TypeFlags::NumberLiteral) && t.intersects(TypeFlags::EnumLiteral))
+                && (t.intersects(TypeFlags::Enum)
+                    || t.intersects(TypeFlags::NumberLiteral)
+                        && t.intersects(TypeFlags::EnumLiteral))
             {
                 return true;
             }
@@ -364,13 +434,26 @@ impl Checker {
     }
 
     // relater.go:281
-    pub(crate) fn is_enum_type_related_to(&mut self, source: P<Symbol>, target: P<Symbol>, error_reporter: Option<ErrorReporter<'_>>) -> bool {
+    pub(crate) fn is_enum_type_related_to(
+        &mut self,
+        source: P<Symbol>,
+        target: P<Symbol>,
+        error_reporter: Option<ErrorReporter<'_>>,
+    ) -> bool {
         let mut error_reporter = error_reporter;
         // core.IfElse evaluates both branches.
         let source_parent = self.get_parent_of_symbol(source);
-        let source_symbol = if source.flags().intersects(SymbolFlags::EnumMember) { source_parent.unwrap() } else { source };
+        let source_symbol = if source.flags().intersects(SymbolFlags::EnumMember) {
+            source_parent.unwrap()
+        } else {
+            source
+        };
         let target_parent = self.get_parent_of_symbol(target);
-        let target_symbol = if target.flags().intersects(SymbolFlags::EnumMember) { target_parent.unwrap() } else { target };
+        let target_symbol = if target.flags().intersects(SymbolFlags::EnumMember) {
+            target_parent.unwrap()
+        } else {
+            target
+        };
         if source_symbol == target_symbol {
             return true;
         }
@@ -380,7 +463,10 @@ impl Checker {
         {
             return false;
         }
-        let key = EnumRelationKey { source_id: get_symbol_id(source_symbol), target_id: get_symbol_id(target_symbol) };
+        let key = EnumRelationKey {
+            source_id: get_symbol_id(source_symbol),
+            target_id: get_symbol_id(target_symbol),
+        };
         let entry = self.enum_relation.get(&key).copied().unwrap_or(RelationComparisonResult::None);
         if entry != RelationComparisonResult::None
             && !(entry.intersects(RelationComparisonResult::Failed) && error_reporter.is_some())
@@ -391,12 +477,18 @@ impl Checker {
         let source_enum_type = self.get_type_of_symbol(source_symbol);
         for source_property in self.get_properties_of_type(source_enum_type).iter().copied() {
             if source_property.flags().intersects(SymbolFlags::EnumMember) {
-                let target_property = self.get_property_of_type(target_enum_type, source_property.name());
+                let target_property =
+                    self.get_property_of_type(target_enum_type, source_property.name());
                 if target_property.is_none_or(|p| !p.flags().intersects(SymbolFlags::EnumMember)) {
                     if let Some(reporter) = error_reporter.as_mut() {
                         let a = self.symbol_to_string(source_property);
                         let declared = self.get_declared_type_of_symbol(target_symbol);
-                        let b = self.type_to_string_ex(declared, None /*enclosingDeclaration*/, TypeFormatFlags::UseFullyQualifiedType, None);
+                        let b = self.type_to_string_ex(
+                            declared,
+                            None, /*enclosingDeclaration*/
+                            TypeFormatFlags::UseFullyQualifiedType,
+                            None,
+                        );
                         reporter(self, &diagnostics::Property_0_is_missing_in_type_1, &[&a, &b]);
                     }
                     self.enum_relation.insert(key, RelationComparisonResult::Failed);
@@ -404,10 +496,14 @@ impl Checker {
                 }
                 let target_property = target_property.unwrap();
                 let source_value = self
-                    .get_enum_member_value(get_declaration_of_kind(source_property, Kind::EnumMember).unwrap())
+                    .get_enum_member_value(
+                        get_declaration_of_kind(source_property, Kind::EnumMember).unwrap(),
+                    )
                     .value;
                 let target_value = self
-                    .get_enum_member_value(get_declaration_of_kind(target_property, Kind::EnumMember).unwrap())
+                    .get_enum_member_value(
+                        get_declaration_of_kind(target_property, Kind::EnumMember).unwrap(),
+                    )
                     .value;
                 if source_value != target_value {
                     // If we have 2 enums with *known* values that differ, they are incompatible.
@@ -457,25 +553,64 @@ impl Checker {
     }
 
     // relater.go:339
-    pub(crate) fn check_type_assignable_to(&mut self, source: P<Type>, target: P<Type>, error_node: Option<P<Node>>, head_message: Option<&'static Message>) -> bool {
+    pub(crate) fn check_type_assignable_to(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        error_node: Option<P<Node>>,
+        head_message: Option<&'static Message>,
+    ) -> bool {
         let relation = self.assignable_relation;
         self.check_type_related_to_ex(source, target, relation, error_node, head_message, None)
     }
 
     // relater.go:343
-    pub(crate) fn check_type_assignable_to_ex(&mut self, source: P<Type>, target: P<Type>, error_node: Option<P<Node>>, head_message: Option<&'static Message>, diagnostic_output: &mut Vec<P<Diagnostic>>) -> bool {
+    pub(crate) fn check_type_assignable_to_ex(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        error_node: Option<P<Node>>,
+        head_message: Option<&'static Message>,
+        diagnostic_output: &mut Vec<P<Diagnostic>>,
+    ) -> bool {
         let relation = self.assignable_relation;
-        self.check_type_related_to_ex(source, target, relation, error_node, head_message, Some(diagnostic_output))
+        self.check_type_related_to_ex(
+            source,
+            target,
+            relation,
+            error_node,
+            head_message,
+            Some(diagnostic_output),
+        )
     }
 
     // relater.go:347
-    pub(crate) fn check_type_comparable_to(&mut self, source: P<Type>, target: P<Type>, error_node: P<Node>, head_message: Option<&'static Message>) -> bool {
+    pub(crate) fn check_type_comparable_to(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        error_node: P<Node>,
+        head_message: Option<&'static Message>,
+    ) -> bool {
         let relation = self.comparable_relation;
-        self.check_type_related_to_ex(source, target, relation, Some(error_node), head_message, None)
+        self.check_type_related_to_ex(
+            source,
+            target,
+            relation,
+            Some(error_node),
+            head_message,
+            None,
+        )
     }
 
     // relater.go:351
-    pub(crate) fn check_type_related_to(&mut self, source: P<Type>, target: P<Type>, relation: P<Relation>, error_node: Option<P<Node>>) -> bool {
+    pub(crate) fn check_type_related_to(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        error_node: Option<P<Node>>,
+    ) -> bool {
         self.check_type_related_to_ex(source, target, relation, error_node, None, None)
     }
 
@@ -483,13 +618,25 @@ impl Checker {
     // Check that source is related to target according to the given relation. When errorNode is non-nil, errors are
     // reported to the checker's diagnostic collection or through diagnosticOutput when non-nil. Callers can assume that
     // this function only reports zero or one error to diagnosticOutput (unlike checkTypeRelatedToAndOptionallyElaborate).
-    pub(crate) fn check_type_related_to_ex(&mut self, source: P<Type>, target: P<Type>, relation: P<Relation>, error_node: Option<P<Node>>, head_message: Option<&'static Message>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn check_type_related_to_ex(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        error_node: Option<P<Node>>,
+        head_message: Option<&'static Message>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut error_node = error_node;
         let r = self.get_relater();
         r.relation.set(Some(relation));
         r.error_node.set(error_node);
-        r.relation_count
-            .set((16_000_000 - isize::try_from(relation.size()).expect("relation size exceeds signed budget range")) / 8);
+        r.relation_count.set(
+            (16_000_000
+                - isize::try_from(relation.size())
+                    .expect("relation size exceeds signed budget range"))
+                / 8,
+        );
         let result = r.is_related_to_ex(
             self,
             source,
@@ -502,15 +649,28 @@ impl Checker {
         if r.overflow.get() {
             // Record this relation as having failed such that we don't attempt the overflowing operation again.
             let is_identity = relation == self.identity_relation;
-            let (id, _) = get_relation_key(self, source, target, IntersectionState::None, is_identity, false /*ignoreConstraints*/);
-            relation.set(id, RelationComparisonResult::Failed | RelationComparisonResult::ComplexityOverflow);
+            let (id, _) = get_relation_key(
+                self,
+                source,
+                target,
+                IntersectionState::None,
+                is_identity,
+                false, /*ignoreConstraints*/
+            );
+            relation.set(
+                id,
+                RelationComparisonResult::Failed | RelationComparisonResult::ComplexityOverflow,
+            );
             if error_node.is_none() {
                 error_node = self.current_node;
             }
             let s = self.type_to_string(source, None);
             let t = self.type_to_string(target, None);
-            let diagnostic =
-                new_diagnostic_for_node(error_node, Some(&diagnostics::Excessive_complexity_comparing_types_0_and_1), &[&s, &t]);
+            let diagnostic = new_diagnostic_for_node(
+                error_node,
+                Some(&diagnostics::Excessive_complexity_comparing_types_0_and_1),
+                &[&s, &t],
+            );
             self.report_diagnostic(Some(diagnostic), diagnostic_output);
         } else if r.error_chain.get().is_some() {
             // Check if we should issue an extra diagnostic to produce a quickfix for a slightly incorrect import statement
@@ -524,7 +684,8 @@ impl Checker {
                 if let Some(originating_import) = links.originating_import.get() {
                     if !is_import_call(originating_import) {
                         let t = self.get_type_of_symbol(links.target.get().unwrap());
-                        let helpful_retry = self.check_type_related_to(t, target, relation /*errorNode*/, None);
+                        let helpful_retry = self
+                            .check_type_related_to(t, target, relation /*errorNode*/, None);
                         if helpful_retry {
                             // Likely an incorrect import. Issue a helpful diagnostic to produce a quickfix to change the import
                             r.related_info.borrow_mut().push(create_diagnostic_for_node(
@@ -537,7 +698,11 @@ impl Checker {
                 }
             }
             let related_info = r.related_info.borrow().clone();
-            let diagnostic = create_diagnostic_chain_from_error_chain(r.error_chain.get(), r.error_node.get().unwrap(), &related_info);
+            let diagnostic = create_diagnostic_chain_from_error_chain(
+                r.error_chain.get(),
+                r.error_node.get().unwrap(),
+                &related_info,
+            );
             self.report_diagnostic(diagnostic, diagnostic_output);
         }
         self.put_relater(r);
@@ -546,7 +711,11 @@ impl Checker {
 }
 
 // relater.go:400
-pub(crate) fn create_diagnostic_chain_from_error_chain(chain: Option<P<ErrorChain>>, error_node: P<Node>, related_info: &[P<Diagnostic>]) -> Option<P<Diagnostic>> {
+pub(crate) fn create_diagnostic_chain_from_error_chain(
+    chain: Option<P<ErrorChain>>,
+    error_node: P<Node>,
+    related_info: &[P<Diagnostic>],
+) -> Option<P<Diagnostic>> {
     let mut chain = chain;
     while let Some(ch) = chain {
         if !ch.message.elided_in_compatibility_pyramid() {
@@ -558,14 +727,21 @@ pub(crate) fn create_diagnostic_chain_from_error_chain(chain: Option<P<ErrorChai
     let next = create_diagnostic_chain_from_error_chain(chain.next, error_node, related_info);
     let args = string_args(&chain.args);
     match next {
-        None => Some(new_diagnostic_for_node(Some(error_node), Some(chain.message), &args).set_related_info(related_info)),
+        None => Some(
+            new_diagnostic_for_node(Some(error_node), Some(chain.message), &args)
+                .set_related_info(related_info),
+        ),
         Some(next) => Some(ast::new_diagnostic_chain(next, chain.message, &args)),
     }
 }
 
 impl Checker {
     // relater.go:414
-    pub(crate) fn report_diagnostic(&mut self, diagnostic: Option<P<Diagnostic>>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) {
+    pub(crate) fn report_diagnostic(
+        &mut self,
+        diagnostic: Option<P<Diagnostic>>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) {
         if let Some(diagnostic) = diagnostic {
             if let Some(diagnostic_output) = diagnostic_output {
                 diagnostic_output.push(diagnostic);
@@ -576,27 +752,74 @@ impl Checker {
     }
 
     // relater.go:424
-    pub(crate) fn check_type_assignable_to_and_optionally_elaborate(&mut self, source: P<Type>, target: P<Type>, error_node: Option<P<Node>>, expr: Option<P<Node>>, head_message: Option<&'static Message>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn check_type_assignable_to_and_optionally_elaborate(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        error_node: Option<P<Node>>,
+        expr: Option<P<Node>>,
+        head_message: Option<&'static Message>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let relation = self.assignable_relation;
-        self.check_type_related_to_and_optionally_elaborate(source, target, relation, error_node, expr, head_message, diagnostic_output)
+        self.check_type_related_to_and_optionally_elaborate(
+            source,
+            target,
+            relation,
+            error_node,
+            expr,
+            head_message,
+            diagnostic_output,
+        )
     }
 
     // relater.go:428
-    pub(crate) fn check_type_related_to_and_optionally_elaborate(&mut self, source: P<Type>, target: P<Type>, relation: P<Relation>, error_node: Option<P<Node>>, expr: Option<P<Node>>, head_message: Option<&'static Message>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn check_type_related_to_and_optionally_elaborate(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        error_node: Option<P<Node>>,
+        expr: Option<P<Node>>,
+        head_message: Option<&'static Message>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut diagnostic_output = diagnostic_output;
         if self.is_type_related_to(source, target, relation) {
             return true;
         }
         if error_node.is_some()
-            && !self.elaborate_error(expr, source, target, relation, head_message, diagnostic_output.as_deref_mut())
+            && !self.elaborate_error(
+                expr,
+                source,
+                target,
+                relation,
+                head_message,
+                diagnostic_output.as_deref_mut(),
+            )
         {
-            return self.check_type_related_to_ex(source, target, relation, error_node, head_message, diagnostic_output);
+            return self.check_type_related_to_ex(
+                source,
+                target,
+                relation,
+                error_node,
+                head_message,
+                diagnostic_output,
+            );
         }
         false
     }
 
     // relater.go:438
-    pub(crate) fn elaborate_error(&mut self, node: Option<P<Node>>, source: P<Type>, target: P<Type>, relation: P<Relation>, head_message: Option<&'static Message>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn elaborate_error(
+        &mut self,
+        node: Option<P<Node>>,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        head_message: Option<&'static Message>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut diagnostic_output = diagnostic_output;
         let Some(node) = node else {
             return false;
@@ -631,7 +854,14 @@ impl Checker {
                 if node.kind() == Kind::AsExpression && !is_const_assertion(node) {
                     return false;
                 }
-                return self.elaborate_error(node.expression(), source, target, relation, head_message, diagnostic_output);
+                return self.elaborate_error(
+                    node.expression(),
+                    source,
+                    target,
+                    relation,
+                    head_message,
+                    diagnostic_output,
+                );
             }
             Kind::BinaryExpression => match node.as_binary_expression().operator_token.kind() {
                 Kind::EqualsToken | Kind::CommaToken => {
@@ -647,16 +877,40 @@ impl Checker {
                 _ => {}
             },
             Kind::ObjectLiteralExpression => {
-                return self.elaborate_object_literal(node, source, target, relation, diagnostic_output);
+                return self.elaborate_object_literal(
+                    node,
+                    source,
+                    target,
+                    relation,
+                    diagnostic_output,
+                );
             }
             Kind::ArrayLiteralExpression => {
-                return self.elaborate_array_literal(node, source, target, relation, diagnostic_output);
+                return self.elaborate_array_literal(
+                    node,
+                    source,
+                    target,
+                    relation,
+                    diagnostic_output,
+                );
             }
             Kind::ArrowFunction => {
-                return self.elaborate_arrow_function(node, source, target, relation, diagnostic_output);
+                return self.elaborate_arrow_function(
+                    node,
+                    source,
+                    target,
+                    relation,
+                    diagnostic_output,
+                );
             }
             Kind::JsxAttributes => {
-                return self.elaborate_jsx_components(node, source, target, relation, diagnostic_output);
+                return self.elaborate_jsx_components(
+                    node,
+                    source,
+                    target,
+                    relation,
+                    diagnostic_output,
+                );
             }
             _ => {}
         }
@@ -666,17 +920,32 @@ impl Checker {
     // relater.go:474
     pub(crate) fn is_or_has_generic_conditional(t: P<Type>) -> bool {
         t.flags().intersects(TypeFlags::Conditional)
-            || (t.flags().intersects(TypeFlags::Intersection) && t.types().iter().any(|&t| Self::is_or_has_generic_conditional(t)))
+            || (t.flags().intersects(TypeFlags::Intersection)
+                && t.types().iter().any(|&t| Self::is_or_has_generic_conditional(t)))
     }
 
     // relater.go:478
-    pub(crate) fn elaborate_did_you_mean_to_call_or_construct(&mut self, node: P<Node>, source: P<Type>, target: P<Type>, relation: P<Relation>, kind: SignatureKind, head_message: Option<&'static Message>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn elaborate_did_you_mean_to_call_or_construct(
+        &mut self,
+        node: P<Node>,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        kind: SignatureKind,
+        head_message: Option<&'static Message>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let signatures = self.get_signatures_of_type(source, kind);
         let mut some = false;
         for &s in signatures {
             let return_type = self.get_return_type_of_signature(s);
             if !return_type.flags().intersects(TypeFlags::Any | TypeFlags::Never)
-                && self.check_type_related_to(return_type, target, relation, None /*errorNode*/)
+                && self.check_type_related_to(
+                    return_type,
+                    target,
+                    relation,
+                    None, /*errorNode*/
+                )
             {
                 some = true;
                 break;
@@ -684,7 +953,14 @@ impl Checker {
         }
         if some {
             let mut diags: Vec<P<Diagnostic>> = Vec::new();
-            if !self.check_type_related_to_ex(source, target, relation, Some(node), head_message, Some(&mut diags)) {
+            if !self.check_type_related_to_ex(
+                source,
+                target,
+                relation,
+                Some(node),
+                head_message,
+                Some(&mut diags),
+            ) {
                 let diagnostic = diags[0];
                 let message = if kind == SignatureKind::Construct {
                     &diagnostics::Did_you_mean_to_use_new_with_this_expression
@@ -692,7 +968,11 @@ impl Checker {
                     &diagnostics::Did_you_mean_to_call_this_expression
                 };
                 self.report_diagnostic(
-                    Some(diagnostic.add_related_info(create_diagnostic_for_node(Some(node), message, &[]))),
+                    Some(diagnostic.add_related_info(create_diagnostic_for_node(
+                        Some(node),
+                        message,
+                        &[],
+                    ))),
                     diagnostic_output,
                 );
                 return true;
@@ -702,7 +982,14 @@ impl Checker {
     }
 
     // relater.go:496
-    pub(crate) fn elaborate_object_literal(&mut self, node: P<Node>, source: P<Type>, target: P<Type>, relation: P<Relation>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn elaborate_object_literal(
+        &mut self,
+        node: P<Node>,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut diagnostic_output = diagnostic_output;
         if target.flags().intersects(TypeFlags::Primitive | TypeFlags::Never) {
             return false;
@@ -713,12 +1000,19 @@ impl Checker {
                 continue;
             }
             let symbol = self.get_symbol_of_declaration(prop).unwrap();
-            let name_type = self.get_literal_type_from_property(symbol, TypeFlags::StringOrNumberLiteralOrUnique, false);
+            let name_type = self.get_literal_type_from_property(
+                symbol,
+                TypeFlags::StringOrNumberLiteralOrUnique,
+                false,
+            );
             if name_type.flags().intersects(TypeFlags::Never) {
                 continue;
             }
             match prop.kind() {
-                Kind::SetAccessor | Kind::GetAccessor | Kind::MethodDeclaration | Kind::ShorthandPropertyAssignment => {
+                Kind::SetAccessor
+                | Kind::GetAccessor
+                | Kind::MethodDeclaration
+                | Kind::ShorthandPropertyAssignment => {
                     reported_error = self.elaborate_element(
                         source,
                         target,
@@ -756,7 +1050,14 @@ impl Checker {
     }
 
     // relater.go:520
-    pub(crate) fn elaborate_array_literal(&mut self, node: P<Node>, source: P<Type>, target: P<Type>, relation: P<Relation>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn elaborate_array_literal(
+        &mut self,
+        node: P<Node>,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut diagnostic_output = diagnostic_output;
         let mut source = source;
         if target.flags().intersects(TypeFlags::Primitive | TypeFlags::Never) {
@@ -796,24 +1097,56 @@ impl Checker {
     }
 
     // relater.go:544
-    pub(crate) fn elaborate_element(&mut self, source: P<Type>, target: P<Type>, relation: P<Relation>, prop: P<Node>, next: Option<P<Node>>, name_type: P<Type>, error_message: Option<&'static Message>, diagnostic_factory: Option<&mut dyn FnMut(&mut Checker, P<Node>) -> P<Diagnostic>>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn elaborate_element(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        prop: P<Node>,
+        next: Option<P<Node>>,
+        name_type: P<Type>,
+        error_message: Option<&'static Message>,
+        diagnostic_factory: Option<&mut dyn FnMut(&mut Checker, P<Node>) -> P<Diagnostic>>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut diagnostic_output = diagnostic_output;
-        let target_prop_type = self.get_best_match_indexed_access_type_or_undefined(source, target, name_type);
-        let Some(mut target_prop_type) = target_prop_type.filter(|t| !t.flags().intersects(TypeFlags::IndexedAccess)) else {
+        let target_prop_type =
+            self.get_best_match_indexed_access_type_or_undefined(source, target, name_type);
+        let Some(mut target_prop_type) =
+            target_prop_type.filter(|t| !t.flags().intersects(TypeFlags::IndexedAccess))
+        else {
             // Don't elaborate on indexes on generic variables
             return false;
         };
-        let source_prop_type = self.get_indexed_access_type_or_undefined(source, name_type, AccessFlags::None, None, AliasArg::None);
+        let source_prop_type = self.get_indexed_access_type_or_undefined(
+            source,
+            name_type,
+            AccessFlags::None,
+            None,
+            AliasArg::None,
+        );
         let Some(mut source_prop_type) = source_prop_type else {
             // Don't elaborate on indexes on generic variables or when types match
             return false;
         };
-        if self.check_type_related_to(source_prop_type, target_prop_type, relation, None /*errorNode*/) {
+        if self.check_type_related_to(
+            source_prop_type,
+            target_prop_type,
+            relation,
+            None, /*errorNode*/
+        ) {
             // Don't elaborate on indexes on generic variables or when types match
             return false;
         }
         if next.is_some()
-            && self.elaborate_error(next, source_prop_type, target_prop_type, relation, None /*headMessage*/, diagnostic_output.as_deref_mut())
+            && self.elaborate_error(
+                next,
+                source_prop_type,
+                target_prop_type,
+                relation,
+                None, /*headMessage*/
+                diagnostic_output.as_deref_mut(),
+            )
         {
             return true;
         }
@@ -822,13 +1155,15 @@ impl Checker {
         // Use the expression type, if available
         let mut specific_source = source_prop_type;
         if let Some(next) = next {
-            specific_source = self.check_expression_for_mutable_location_with_contextual_type(next, source_prop_type);
+            specific_source = self
+                .check_expression_for_mutable_location_with_contextual_type(next, source_prop_type);
         }
         if let Some(diagnostic_factory) = diagnostic_factory {
             // Use the custom diagnostic factory if provided (e.g., for JSX text children with dynamic error messages)
             diags.push(diagnostic_factory(self, prop));
         } else if self.exact_optional_property_types
-            && self.is_exact_optional_property_mismatch(Some(specific_source), Some(target_prop_type))
+            && self
+                .is_exact_optional_property_mismatch(Some(specific_source), Some(target_prop_type))
         {
             let a = self.type_to_string(specific_source, None);
             let b = self.type_to_string(target_prop_type, None);
@@ -850,12 +1185,26 @@ impl Checker {
                 .flags()
                 .intersects(SymbolFlags::Optional);
             target_prop_type = self.remove_missing_type(target_prop_type, target_is_optional);
-            source_prop_type = self.remove_missing_type(source_prop_type, target_is_optional && source_is_optional);
-            let result =
-                self.check_type_related_to_ex(specific_source, target_prop_type, relation, Some(prop), error_message, Some(&mut diags));
+            source_prop_type = self
+                .remove_missing_type(source_prop_type, target_is_optional && source_is_optional);
+            let result = self.check_type_related_to_ex(
+                specific_source,
+                target_prop_type,
+                relation,
+                Some(prop),
+                error_message,
+                Some(&mut diags),
+            );
             if result && specific_source != source_prop_type {
                 // If for whatever reason the expression type doesn't yield an error, make sure we still issue an error on the sourcePropType
-                self.check_type_related_to_ex(source_prop_type, target_prop_type, relation, Some(prop), error_message, Some(&mut diags));
+                self.check_type_related_to_ex(
+                    source_prop_type,
+                    target_prop_type,
+                    relation,
+                    Some(prop),
+                    error_message,
+                    Some(&mut diags),
+                );
             }
         }
         if diags.is_empty() {
@@ -873,7 +1222,9 @@ impl Checker {
             let index_info = self.get_applicable_index_info(target, name_type);
             if let Some(index_info) = index_info {
                 if let Some(declaration) = index_info.declaration() {
-                    if !self.program.is_source_file_default_library(get_source_file_of_node(declaration).unwrap().path()) {
+                    if !self.program.is_source_file_default_library(
+                        get_source_file_of_node(declaration).unwrap().path(),
+                    ) {
                         issued_elaboration = true;
                         diagnostic.add_related_info(create_diagnostic_for_node(
                             Some(declaration),
@@ -888,7 +1239,8 @@ impl Checker {
             && (target_prop.is_some_and(|p| !p.declarations().is_empty())
                 || target.symbol().is_some_and(|s| !s.declarations().is_empty()))
         {
-            let target_node = if let Some(p) = target_prop.filter(|p| !p.declarations().is_empty()) {
+            let target_node = if let Some(p) = target_prop.filter(|p| !p.declarations().is_empty())
+            {
                 p.declarations()[0]
             } else {
                 target.symbol().unwrap().declarations()[0]
@@ -896,7 +1248,9 @@ impl Checker {
             if property_name.is_empty() || name_type.flags().intersects(TypeFlags::UniqueESSymbol) {
                 property_name = self.type_to_string(name_type, None);
             }
-            if !self.program.is_source_file_default_library(get_source_file_of_node(target_node).unwrap().path()) {
+            if !self.program.is_source_file_default_library(
+                get_source_file_of_node(target_node).unwrap().path(),
+            ) {
                 let target_str = self.type_to_string(target, None);
                 diagnostic.add_related_info(create_diagnostic_for_node(
                     Some(target_node),
@@ -910,22 +1264,47 @@ impl Checker {
     }
 
     // relater.go:618
-    pub(crate) fn get_best_match_indexed_access_type_or_undefined(&mut self, source: P<Type>, target: P<Type>, name_type: P<Type>) -> Option<P<Type>> {
-        let idx = self.get_indexed_access_type_or_undefined(target, name_type, AccessFlags::None, None, AliasArg::None);
+    pub(crate) fn get_best_match_indexed_access_type_or_undefined(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        name_type: P<Type>,
+    ) -> Option<P<Type>> {
+        let idx = self.get_indexed_access_type_or_undefined(
+            target,
+            name_type,
+            AccessFlags::None,
+            None,
+            AliasArg::None,
+        );
         if idx.is_some() {
             return idx;
         }
         if target.flags().intersects(TypeFlags::Union) {
-            let best = self.get_best_matching_type(source, target, super::checker::Checker::compare_types_assignable_simple);
+            let best = self.get_best_matching_type(
+                source,
+                target,
+                super::checker::Checker::compare_types_assignable_simple,
+            );
             if let Some(best) = best {
-                return self.get_indexed_access_type_or_undefined(best, name_type, AccessFlags::None, None, AliasArg::None);
+                return self.get_indexed_access_type_or_undefined(
+                    best,
+                    name_type,
+                    AccessFlags::None,
+                    None,
+                    AliasArg::None,
+                );
             }
         }
         None
     }
 
     // relater.go:632
-    pub(crate) fn check_expression_for_mutable_location_with_contextual_type(&mut self, next: P<Node>, source_prop_type: P<Type>) -> P<Type> {
+    pub(crate) fn check_expression_for_mutable_location_with_contextual_type(
+        &mut self,
+        next: P<Node>,
+        source_prop_type: P<Type>,
+    ) -> P<Type> {
         self.push_contextual_type(next, Some(source_prop_type), false /*isCache*/);
         let result = self.check_expression_for_mutable_location(next, CheckMode::Contextual);
         self.pop_contextual_type();
@@ -933,7 +1312,14 @@ impl Checker {
     }
 
     // relater.go:639
-    pub(crate) fn elaborate_arrow_function(&mut self, node: P<Node>, source: P<Type>, target: P<Type>, relation: P<Relation>, diagnostic_output: Option<&mut Vec<P<Diagnostic>>>) -> bool {
+    pub(crate) fn elaborate_arrow_function(
+        &mut self,
+        node: P<Node>,
+        source: P<Type>,
+        target: P<Type>,
+        relation: P<Relation>,
+        diagnostic_output: Option<&mut Vec<P<Diagnostic>>>,
+    ) -> bool {
         let mut diagnostic_output = diagnostic_output;
         // Don't elaborate blocks or functions with annotated parameter types
         if node.body().is_some_and(is_block) || node.parameters().iter().any(|&p| has_type(p)) {
@@ -948,18 +1334,38 @@ impl Checker {
         }
         let return_expression = node.body();
         let source_return = self.get_return_type_of_signature(source_sig);
-        let target_returns: Vec<P<Type>> = target_signatures.iter().map(|&s| self.get_return_type_of_signature(s)).collect();
+        let target_returns: Vec<P<Type>> =
+            target_signatures.iter().map(|&s| self.get_return_type_of_signature(s)).collect();
         let target_return = self.get_union_type(&target_returns);
-        if self.check_type_related_to(source_return, target_return, relation, None /*errorNode*/) {
+        if self.check_type_related_to(
+            source_return,
+            target_return,
+            relation,
+            None, /*errorNode*/
+        ) {
             return false;
         }
         if return_expression.is_some()
-            && self.elaborate_error(return_expression, source_return, target_return, relation, None /*headMessage*/, diagnostic_output.as_deref_mut())
+            && self.elaborate_error(
+                return_expression,
+                source_return,
+                target_return,
+                relation,
+                None, /*headMessage*/
+                diagnostic_output.as_deref_mut(),
+            )
         {
             return true;
         }
         let mut diags: Vec<P<Diagnostic>> = Vec::new();
-        self.check_type_related_to_ex(source_return, target_return, relation, return_expression, None /*headMessage*/, Some(&mut diags));
+        self.check_type_related_to_ex(
+            source_return,
+            target_return,
+            relation,
+            return_expression,
+            None, /*headMessage*/
+            Some(&mut diags),
+        );
         if !diags.is_empty() {
             let diagnostic = diags[0];
             if let Some(symbol) = target.symbol().filter(|s| !s.declarations().is_empty()) {
@@ -974,7 +1380,12 @@ impl Checker {
                 && self.get_type_of_property_of_type(source_return, "then").is_none()
             {
                 let promise_type = self.create_promise_type(source_return);
-                if self.check_type_related_to(promise_type, target_return, relation, None /*errorNode*/) {
+                if self.check_type_related_to(
+                    promise_type,
+                    target_return,
+                    relation,
+                    None, /*errorNode*/
+                ) {
                     diagnostic.add_related_info(create_diagnostic_for_node(
                         Some(node),
                         &diagnostics::Did_you_mean_to_mark_this_function_as_async,
@@ -1003,9 +1414,15 @@ impl Checker {
                 && self.signatures_of_structured_type(t, SignatureKind::Construct).is_empty()
                 && self.index_infos_of_structured_type(t).is_empty()
                 && self.has_properties_of_structured_type(t)
-                && self.every_property_of_structured_type(t, &mut |_, p| p.flags().intersects(SymbolFlags::Optional));
+                && self.every_property_of_structured_type(t, &mut |_, p| {
+                    p.flags().intersects(SymbolFlags::Optional)
+                });
             if t.object_flags_lazy().intersects(ObjectFlags::MembersResolved) {
-                t.object_flags.set(t.object_flags_lazy() | ObjectFlags::IsWeakTypeComputed | if result { ObjectFlags::IsWeakType } else { ObjectFlags::None });
+                t.object_flags.set(
+                    t.object_flags_lazy()
+                        | ObjectFlags::IsWeakTypeComputed
+                        | if result { ObjectFlags::IsWeakType } else { ObjectFlags::None },
+                );
             }
             return result;
         }
@@ -1019,7 +1436,12 @@ impl Checker {
     }
 
     // relater.go:695
-    pub(crate) fn has_common_properties(&mut self, source: P<Type>, target: P<Type>, is_comparing_jsx_attributes: bool) -> bool {
+    pub(crate) fn has_common_properties(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        is_comparing_jsx_attributes: bool,
+    ) -> bool {
         for prop in self.get_properties_of_type(source) {
             if self.is_known_property(target, prop.name(), is_comparing_jsx_attributes) {
                 return true;
@@ -1042,7 +1464,12 @@ impl Checker {
      *    @param name a property name to search
      *    @param isComparingJsxAttributes a boolean flag indicating whether we are searching in `JsxAttributesType`
      */
-    pub(crate) fn is_known_property(&mut self, target_type: P<Type>, name: &str, is_comparing_jsx_attributes: bool) -> bool {
+    pub(crate) fn is_known_property(
+        &mut self,
+        target_type: P<Type>,
+        name: &str,
+        is_comparing_jsx_attributes: bool,
+    ) -> bool {
         if target_type.flags().intersects(TypeFlags::Object) {
             // For backwards compatibility a symbol-named property is satisfied by a string index signature. This
             // is incorrect and inconsistent with element access expressions, where it is an error, so eventually
@@ -1066,7 +1493,9 @@ impl Checker {
                 is_comparing_jsx_attributes,
             );
         }
-        if target_type.flags().intersects(TypeFlags::UnionOrIntersection) && is_excess_property_check_target(target_type) {
+        if target_type.flags().intersects(TypeFlags::UnionOrIntersection)
+            && is_excess_property_check_target(target_type)
+        {
             for &t in target_type.types() {
                 if self.is_known_property(t, name, is_comparing_jsx_attributes) {
                     return true;
@@ -1089,8 +1518,10 @@ pub(crate) fn is_excess_property_check_target(t: P<Type>) -> bool {
         || t.flags().intersects(TypeFlags::NonPrimitive)
         || t.flags().intersects(TypeFlags::Substitution)
             && is_excess_property_check_target(t.as_substitution_type().base_type.get().unwrap())
-        || t.flags().intersects(TypeFlags::Union) && t.types().iter().any(|&t| is_excess_property_check_target(t))
-        || t.flags().intersects(TypeFlags::Intersection) && t.types().iter().all(|&t| is_excess_property_check_target(t))
+        || t.flags().intersects(TypeFlags::Union)
+            && t.types().iter().any(|&t| is_excess_property_check_target(t))
+        || t.flags().intersects(TypeFlags::Intersection)
+            && t.types().iter().all(|&t| is_excess_property_check_target(t))
 }
 
 impl Checker {
@@ -1150,29 +1581,57 @@ impl Checker {
     /// The first walk to reach an entry computes it exactly as `has_matching_recursion_identity` would, so anything
     /// that computation resolves is resolved at the same point.
     #[inline]
-    pub(crate) fn is_deeply_nested_on_stack(&mut self, t: P<Type>, stack: &[RelaterStackEntry], max_depth: usize) -> bool {
+    pub(crate) fn is_deeply_nested_on_stack(
+        &mut self,
+        t: P<Type>,
+        stack: &[RelaterStackEntry],
+        max_depth: usize,
+    ) -> bool {
         stack.len() >= max_depth && self.is_deeply_nested_on_stack_walk(t, stack, max_depth)
     }
 
-    fn is_deeply_nested_on_stack_walk(&mut self, t: P<Type>, stack: &[RelaterStackEntry], max_depth: usize) -> bool {
+    fn is_deeply_nested_on_stack_walk(
+        &mut self,
+        t: P<Type>,
+        stack: &[RelaterStackEntry],
+        max_depth: usize,
+    ) -> bool {
         let result = self.is_deeply_nested_on_stack_walk_kept(t, stack, max_depth);
         if self.deep_nested_shadow {
             let types: Vec<P<Type>> = stack.iter().map(|e| e.t).collect();
             let fresh = self.is_deeply_nested_type(t, &types, max_depth);
-            assert!(result == fresh, "TSRS_DEEP_NESTED=shadow: type {} on a stack of {}: kept identities say {result}, a fresh walk {fresh}", t.id.0, stack.len());
+            assert!(
+                result == fresh,
+                "TSRS_DEEP_NESTED=shadow: type {} on a stack of {}: kept identities say {result}, a fresh walk {fresh}",
+                t.id.0,
+                stack.len()
+            );
             for e in stack {
                 let kept = e.identity_key.get();
                 if kept != 0 {
                     let target = get_recursion_identity_target(self, e.t);
-                    let fresh = if target.flags().intersects(TypeFlags::Intersection) { RECURSION_KEY_INTERSECTION | target.pack() } else { recursion_key(get_recursion_identity_from_target(target)) };
-                    assert!(kept == fresh, "TSRS_DEEP_NESTED=shadow: the kept recursion identity of type {} changed", e.t.id.0);
+                    let fresh = if target.flags().intersects(TypeFlags::Intersection) {
+                        RECURSION_KEY_INTERSECTION | target.pack()
+                    } else {
+                        recursion_key(get_recursion_identity_from_target(target))
+                    };
+                    assert!(
+                        kept == fresh,
+                        "TSRS_DEEP_NESTED=shadow: the kept recursion identity of type {} changed",
+                        e.t.id.0
+                    );
                 }
             }
         }
         result
     }
 
-    fn is_deeply_nested_on_stack_walk_kept(&mut self, t: P<Type>, stack: &[RelaterStackEntry], max_depth: usize) -> bool {
+    fn is_deeply_nested_on_stack_walk_kept(
+        &mut self,
+        t: P<Type>,
+        stack: &[RelaterStackEntry],
+        max_depth: usize,
+    ) -> bool {
         let target = get_recursion_identity_target(self, t);
         let top = stack.last().filter(|e| e.t == t && e.identity_key.get() == 0);
         if target.flags().intersects(TypeFlags::Intersection) {
@@ -1206,7 +1665,11 @@ impl Checker {
             }
             let matches = if entry_key & RECURSION_KEY_TAG == RECURSION_KEY_INTERSECTION {
                 // SAFETY: the low bits are `pack` of the entry's recursion identity target, a live type.
-                intersection_has_matching_recursion_identity(self, unsafe { P::unpack(entry_key) }, identity)
+                intersection_has_matching_recursion_identity(
+                    self,
+                    unsafe { P::unpack(entry_key) },
+                    identity,
+                )
             } else {
                 entry_key == key
             };
@@ -1242,9 +1705,16 @@ fn recursion_key(identity: RecursionId) -> u64 {
 }
 
 // relater.go:797
-#[expect(clippy::inline_always, reason = "measured: plain #[inline] lets it be outlined (notes/perf-icount-hillclimb.md, round 3)")]
+#[expect(
+    clippy::inline_always,
+    reason = "measured: plain #[inline] lets it be outlined (notes/perf-icount-hillclimb.md, round 3)"
+)]
 #[inline(always)]
-pub(crate) fn has_matching_recursion_identity(c: &mut Checker, t: P<Type>, identity: RecursionId) -> bool {
+pub(crate) fn has_matching_recursion_identity(
+    c: &mut Checker,
+    t: P<Type>,
+    identity: RecursionId,
+) -> bool {
     let target = get_recursion_identity_target(c, t);
     if target.flags().intersects(TypeFlags::Intersection) {
         return intersection_has_matching_recursion_identity(c, target, identity);
@@ -1254,7 +1724,11 @@ pub(crate) fn has_matching_recursion_identity(c: &mut Checker, t: P<Type>, ident
 
 /// `has_matching_recursion_identity` of an intersection recursion identity target.
 #[inline(never)]
-fn intersection_has_matching_recursion_identity(c: &mut Checker, target: P<Type>, identity: RecursionId) -> bool {
+fn intersection_has_matching_recursion_identity(
+    c: &mut Checker,
+    target: P<Type>,
+    identity: RecursionId,
+) -> bool {
     intersection_recursion_keys(c, target).contains(&recursion_key(identity))
 }
 
@@ -1299,7 +1773,9 @@ pub(crate) fn get_recursion_identity(c: &mut Checker, t: P<Type>) -> RecursionId
 #[inline]
 pub(crate) fn get_recursion_identity_target(c: &mut Checker, t: P<Type>) -> P<Type> {
     // Most types are their own target; the unwrapping is out of line.
-    if t.flags().intersects(TypeFlags::IndexedAccess) || t.object_flags().contains(ObjectFlags::InstantiatedMapped) {
+    if t.flags().intersects(TypeFlags::IndexedAccess)
+        || t.object_flags().contains(ObjectFlags::InstantiatedMapped)
+    {
         return get_recursion_identity_target_worker(c, t);
     }
     t
@@ -1308,12 +1784,16 @@ pub(crate) fn get_recursion_identity_target(c: &mut Checker, t: P<Type>) -> P<Ty
 #[inline(never)]
 fn get_recursion_identity_target_worker(c: &mut Checker, t: P<Type>) -> P<Type> {
     if t.flags().intersects(TypeFlags::IndexedAccess) {
-        return get_recursion_identity_target(c, t.as_indexed_access_type().object_type.get().unwrap());
+        return get_recursion_identity_target(
+            c,
+            t.as_indexed_access_type().object_type.get().unwrap(),
+        );
     }
     if t.object_flags().contains(ObjectFlags::InstantiatedMapped) {
         let target = c.get_modifiers_type_from_mapped_type(t);
         if target.symbol().is_some()
-            || target.flags().intersects(TypeFlags::Intersection) && target.types().iter().any(|t| t.symbol().is_some())
+            || target.flags().intersects(TypeFlags::Intersection)
+                && target.types().iter().any(|t| t.symbol().is_some())
         {
             return get_recursion_identity_target(c, target);
         }
@@ -1330,7 +1810,10 @@ fn get_recursion_identity_target_worker(c: &mut Checker, t: P<Type>) -> P<Type> 
 // reference the type have a recursion identity that differs from the object identity.
 // tsrs: inline, it is asked of every type on the relater's stack (and of each constituent of an intersection there)
 // for each deeply-nested test, 474M times on the 38k-file codebase.
-#[expect(clippy::inline_always, reason = "measured: #[inline] is ignored here (notes/perf-icount-hillclimb.md, round 3)")]
+#[expect(
+    clippy::inline_always,
+    reason = "measured: #[inline] is ignored here (notes/perf-icount-hillclimb.md, round 3)"
+)]
 #[inline(always)]
 pub(crate) fn get_recursion_identity_from_target(t: P<Type>) -> RecursionId {
     // Object and array literals are known not to contain recursive references and don't need a recursion identity.
@@ -1344,7 +1827,9 @@ pub(crate) fn get_recursion_identity_from_target(t: P<Type>) -> RecursionId {
             }
         }
         if let Some(symbol) = t.symbol() {
-            if !(t.object_flags().intersects(ObjectFlags::FromTypeNode) || t.object_flags().intersects(ObjectFlags::Anonymous) && symbol.flags().intersects(SymbolFlags::Class))
+            if !(t.object_flags().intersects(ObjectFlags::FromTypeNode)
+                || t.object_flags().intersects(ObjectFlags::Anonymous)
+                    && symbol.flags().intersects(SymbolFlags::Class))
             {
                 // We track object types that have a symbol by that symbol (representing the origin of the type), but
                 // exclude the static sides of classes (since they share their symbols with the instance sides) and type
@@ -1373,11 +1858,17 @@ pub(crate) fn get_recursion_identity_from_target(t: P<Type>) -> RecursionId {
 
 impl Checker {
     // relater.go:872
-    pub(crate) fn get_best_matching_type(&mut self, source: P<Type>, target: P<Type>, is_related_to: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary) -> Option<P<Type>> {
+    pub(crate) fn get_best_matching_type(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        is_related_to: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary,
+    ) -> Option<P<Type>> {
         if let Some(t) = self.find_matching_discriminant_type(source, target, is_related_to) {
             return Some(t);
         }
-        if let Some(t) = Self::find_matching_type_reference_or_type_alias_reference(source, target) {
+        if let Some(t) = Self::find_matching_type_reference_or_type_alias_reference(source, target)
+        {
             return Some(t);
         }
         if let Some(t) = self.find_best_type_for_object_literal(source, target) {
@@ -1386,14 +1877,18 @@ impl Checker {
         if let Some(t) = self.find_best_type_for_invokable(source, target, SignatureKind::Call) {
             return Some(t);
         }
-        if let Some(t) = self.find_best_type_for_invokable(source, target, SignatureKind::Construct) {
+        if let Some(t) = self.find_best_type_for_invokable(source, target, SignatureKind::Construct)
+        {
             return Some(t);
         }
         self.find_most_overlappy_type(source, target)
     }
 
     // relater.go:891
-    pub(crate) fn find_matching_type_reference_or_type_alias_reference(source: P<Type>, union_target: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn find_matching_type_reference_or_type_alias_reference(
+        source: P<Type>,
+        union_target: P<Type>,
+    ) -> Option<P<Type>> {
         let source_object_flags = source.object_flags();
         if source_object_flags.intersects(ObjectFlags::Reference | ObjectFlags::Anonymous)
             && union_target.flags().intersects(TypeFlags::Union)
@@ -1401,7 +1896,9 @@ impl Checker {
             for &target in union_target.types() {
                 if target.flags().intersects(TypeFlags::Object) {
                     let overlap_obj_flags = source_object_flags & target.object_flags();
-                    if overlap_obj_flags.intersects(ObjectFlags::Reference) && source.target() == target.target() {
+                    if overlap_obj_flags.intersects(ObjectFlags::Reference)
+                        && source.target() == target.target()
+                    {
                         return Some(target);
                     }
                     if overlap_obj_flags.intersects(ObjectFlags::Anonymous)
@@ -1418,7 +1915,12 @@ impl Checker {
     }
 
     // relater.go:909
-    pub(crate) fn find_best_type_for_invokable(&mut self, source: P<Type>, union_target: P<Type>, kind: SignatureKind) -> Option<P<Type>> {
+    pub(crate) fn find_best_type_for_invokable(
+        &mut self,
+        source: P<Type>,
+        union_target: P<Type>,
+        kind: SignatureKind,
+    ) -> Option<P<Type>> {
         if !self.get_signatures_of_type(source, kind).is_empty() {
             for &t in union_target.types() {
                 if !self.get_signatures_of_type(t, kind).is_empty() {
@@ -1431,19 +1933,27 @@ impl Checker {
     }
 
     // relater.go:916
-    pub(crate) fn find_most_overlappy_type(&mut self, source: P<Type>, union_target: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn find_most_overlappy_type(
+        &mut self,
+        source: P<Type>,
+        union_target: P<Type>,
+    ) -> Option<P<Type>> {
         let mut best_match: Option<P<Type>> = None;
         if !source.flags().intersects(TypeFlags::Primitive | TypeFlags::InstantiablePrimitive) {
             let mut matching_count = 0;
             for &target in union_target.types() {
-                if !target.flags().intersects(TypeFlags::Primitive | TypeFlags::InstantiablePrimitive) {
+                if !target
+                    .flags()
+                    .intersects(TypeFlags::Primitive | TypeFlags::InstantiablePrimitive)
+                {
                     let source_index = self.get_index_type(source);
                     let target_index = self.get_index_type(target);
                     let overlap = self.get_intersection_type(&[source_index, target_index]);
                     if overlap.flags().intersects(TypeFlags::Index) {
                         // perfect overlap of keys
                         return Some(target);
-                    } else if is_unit_type(overlap) || overlap.flags().intersects(TypeFlags::Union) {
+                    } else if is_unit_type(overlap) || overlap.flags().intersects(TypeFlags::Union)
+                    {
                         // We only want to account for literal types otherwise.
                         // If we have a union of index types, it seems likely that we
                         // needed to elaborate between two generic mapped types anyway.
@@ -1463,8 +1973,14 @@ impl Checker {
     }
 
     // relater.go:945
-    pub(crate) fn find_best_type_for_object_literal(&mut self, source: P<Type>, union_target: P<Type>) -> Option<P<Type>> {
-        if source.object_flags().intersects(ObjectFlags::ObjectLiteral) && some_type(self, union_target, super::checker::Checker::is_array_like_type) {
+    pub(crate) fn find_best_type_for_object_literal(
+        &mut self,
+        source: P<Type>,
+        union_target: P<Type>,
+    ) -> Option<P<Type>> {
+        if source.object_flags().intersects(ObjectFlags::ObjectLiteral)
+            && some_type(self, union_target, super::checker::Checker::is_array_like_type)
+        {
             for &t in union_target.types() {
                 if !self.is_array_like_type(t) {
                     return Some(t);
@@ -1476,12 +1992,21 @@ impl Checker {
     }
 
     // relater.go:952
-    pub(crate) fn should_report_unmatched_property_error(&mut self, source: P<Type>, target: P<Type>) -> bool {
-        let type_call_signatures = self.get_signatures_of_structured_type(source, SignatureKind::Call);
-        let type_construct_signatures = self.get_signatures_of_structured_type(source, SignatureKind::Construct);
+    pub(crate) fn should_report_unmatched_property_error(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> bool {
+        let type_call_signatures =
+            self.get_signatures_of_structured_type(source, SignatureKind::Call);
+        let type_construct_signatures =
+            self.get_signatures_of_structured_type(source, SignatureKind::Construct);
         let type_properties = self.get_properties_of_object_type(source);
-        if (!type_call_signatures.is_empty() || !type_construct_signatures.is_empty()) && type_properties.is_empty() {
-            if (!self.get_signatures_of_type(target, SignatureKind::Call).is_empty() && !type_call_signatures.is_empty())
+        if (!type_call_signatures.is_empty() || !type_construct_signatures.is_empty())
+            && type_properties.is_empty()
+        {
+            if (!self.get_signatures_of_type(target, SignatureKind::Call).is_empty()
+                && !type_call_signatures.is_empty())
                 || !self.get_signatures_of_type(target, SignatureKind::Construct).is_empty()
                     && !type_construct_signatures.is_empty()
             {
@@ -1494,35 +2019,101 @@ impl Checker {
     }
 
     // relater.go:967
-    pub(crate) fn get_unmatched_property(&mut self, source: P<Type>, target: P<Type>, require_optional_properties: bool, match_discriminant_properties: bool) -> Option<P<Symbol>> {
-        self.get_unmatched_properties_worker(source, target, require_optional_properties, match_discriminant_properties, None)
+    pub(crate) fn get_unmatched_property(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        require_optional_properties: bool,
+        match_discriminant_properties: bool,
+    ) -> Option<P<Symbol>> {
+        self.get_unmatched_properties_worker(
+            source,
+            target,
+            require_optional_properties,
+            match_discriminant_properties,
+            None,
+        )
     }
 
     /// `get_unmatched_property(source, target, require_optional_properties, false)` that also records, for each
     /// property of `get_properties_of_type(target)` by position, the source property it looked up (`Some(found)`)
     /// or `None` where it looked nothing up. Nothing is recorded when it walks a lazy member table's declared members
     /// instead (`found` is then left empty), or past an unmatched property.
-    #[expect(clippy::option_option, reason = "The outer option records whether a result is available; the inner option records an absent value.")]
-    pub(crate) fn get_unmatched_property_recording(&mut self, source: P<Type>, target: P<Type>, require_optional_properties: bool, found: &mut Vec<Option<Option<P<Symbol>>>>) -> Option<P<Symbol>> {
-        self.get_unmatched_properties_worker_ex(source, target, require_optional_properties, false, None, Some(found))
+    #[expect(
+        clippy::option_option,
+        reason = "The outer option records whether a result is available; the inner option records an absent value."
+    )]
+    pub(crate) fn get_unmatched_property_recording(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        require_optional_properties: bool,
+        found: &mut Vec<Option<Option<P<Symbol>>>>,
+    ) -> Option<P<Symbol>> {
+        self.get_unmatched_properties_worker_ex(
+            source,
+            target,
+            require_optional_properties,
+            false,
+            None,
+            Some(found),
+        )
     }
 
     // relater.go:971
-    pub(crate) fn get_unmatched_properties(&mut self, source: P<Type>, target: P<Type>, require_optional_properties: bool, match_discriminant_properties: bool) -> Vec<P<Symbol>> {
+    pub(crate) fn get_unmatched_properties(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        require_optional_properties: bool,
+        match_discriminant_properties: bool,
+    ) -> Vec<P<Symbol>> {
         let mut props: Vec<P<Symbol>> = Vec::new();
-        self.get_unmatched_properties_worker(source, target, require_optional_properties, match_discriminant_properties, Some(&mut props));
+        self.get_unmatched_properties_worker(
+            source,
+            target,
+            require_optional_properties,
+            match_discriminant_properties,
+            Some(&mut props),
+        );
         props
     }
 
     // relater.go:977
-    pub(crate) fn get_unmatched_properties_worker(&mut self, source: P<Type>, target: P<Type>, require_optional_properties: bool, match_discriminant_properties: bool, props_out: Option<&mut Vec<P<Symbol>>>) -> Option<P<Symbol>> {
-        self.get_unmatched_properties_worker_ex(source, target, require_optional_properties, match_discriminant_properties, props_out, None)
+    pub(crate) fn get_unmatched_properties_worker(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        require_optional_properties: bool,
+        match_discriminant_properties: bool,
+        props_out: Option<&mut Vec<P<Symbol>>>,
+    ) -> Option<P<Symbol>> {
+        self.get_unmatched_properties_worker_ex(
+            source,
+            target,
+            require_optional_properties,
+            match_discriminant_properties,
+            props_out,
+            None,
+        )
     }
 
-    #[expect(clippy::option_option, reason = "The outer option records whether a result is available; the inner option records an absent value.")]
-    fn get_unmatched_properties_worker_ex(&mut self, source: P<Type>, target: P<Type>, require_optional_properties: bool, match_discriminant_properties: bool, props_out: Option<&mut Vec<P<Symbol>>>, found: Option<&mut Vec<Option<Option<P<Symbol>>>>>) -> Option<P<Symbol>> {
+    #[expect(
+        clippy::option_option,
+        reason = "The outer option records whether a result is available; the inner option records an absent value."
+    )]
+    fn get_unmatched_properties_worker_ex(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        require_optional_properties: bool,
+        match_discriminant_properties: bool,
+        props_out: Option<&mut Vec<P<Symbol>>>,
+        found: Option<&mut Vec<Option<Option<P<Symbol>>>>>,
+    ) -> Option<P<Symbol>> {
         let mut props_out = props_out;
-        let lazy_properties = if self.lazy_unmatched { self.get_lazy_properties_in_order(target) } else { None };
+        let lazy_properties =
+            if self.lazy_unmatched { self.get_lazy_properties_in_order(target) } else { None };
         let lazy = lazy_properties.is_some();
         let properties: std::borrow::Cow<'static, [P<Symbol>]> = match lazy_properties {
             Some(properties) => properties.into(),
@@ -1540,9 +2131,14 @@ impl Checker {
                     && !target_prop.check_flags.get().intersects(CheckFlags::Partial))
                 && !is_static_private_identifier_property(target_prop)
             {
-                let source_prop = if (lazy || self.lazy_has_prop) && !match_discriminant_properties {
+                let source_prop = if (lazy || self.lazy_has_prop) && !match_discriminant_properties
+                {
                     // notes/mem-lazy.md L9/L10: only whether the source has the property matters below.
-                    if self.has_property_of_type(source, target_prop.name()) { Some(target_prop) } else { None }
+                    if self.has_property_of_type(source, target_prop.name()) {
+                        Some(target_prop)
+                    } else {
+                        None
+                    }
                 } else if let Some(resolved_source) = &resolved_source {
                     self.get_resolved_property(resolved_source, target_prop.name())
                 } else {
@@ -1560,7 +2156,8 @@ impl Checker {
                 match source_prop {
                     None => {
                         if lazy {
-                            target_prop = self.get_property_of_type(target, target_prop.name()).unwrap();
+                            target_prop =
+                                self.get_property_of_type(target, target_prop.name()).unwrap();
                         }
                         match props_out.as_deref_mut() {
                             None => return Some(target_prop),
@@ -1570,7 +2167,8 @@ impl Checker {
                     Some(source_prop) => {
                         if match_discriminant_properties {
                             if lazy {
-                                target_prop = self.get_property_of_type(target, target_prop.name()).unwrap();
+                                target_prop =
+                                    self.get_property_of_type(target, target_prop.name()).unwrap();
                             }
                             let target_type = self.get_type_of_symbol(target_prop);
                             if target_type.flags().intersects(TypeFlags::Unit) {
@@ -1617,7 +2215,9 @@ impl Checker {
         }
         let mut members: Vec<P<Symbol>> = Vec::new();
         let mut seen: FxHashSet<&'static str> = FxHashSet::default();
-        if let Some(declared_members) = self.resolve_declared_members(reduced.target().unwrap()).declared_members.get() {
+        if let Some(declared_members) =
+            self.resolve_declared_members(reduced.target().unwrap()).declared_members.get()
+        {
             for (id, symbol) in declared_members.entries() {
                 if self.is_named_member(symbol, id) {
                     seen.insert(id);
@@ -1626,10 +2226,11 @@ impl Checker {
             }
         }
         for &base_type in lm.ready.get().unwrap().base_types.get() {
-            let base_properties: std::borrow::Cow<'static, [P<Symbol>]> = match self.get_lazy_properties_in_order(base_type) {
-                Some(properties) => properties.into(),
-                None => self.get_properties_of_type(base_type).into(),
-            };
+            let base_properties: std::borrow::Cow<'static, [P<Symbol>]> =
+                match self.get_lazy_properties_in_order(base_type) {
+                    Some(properties) => properties.into(),
+                    None => self.get_properties_of_type(base_type).into(),
+                };
             for &p in base_properties.iter() {
                 if !is_static_private_identifier_property(p) && seen.insert(p.name()) {
                     members.push(p);
@@ -1637,11 +2238,14 @@ impl Checker {
             }
         }
         let container = reduced.symbol();
-        let is_class_or_interface_container = container.is_some_and(|c| c.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface));
+        let is_class_or_interface_container = container
+            .is_some_and(|c| c.flags().intersects(SymbolFlags::Class | SymbolFlags::Interface));
         let mut contained: Vec<P<Symbol>> = Vec::new();
         let mut rest: Vec<P<Symbol>> = Vec::new();
         for p in members {
-            if is_class_or_interface_container && Self::is_declaration_contained_by(p, container.unwrap()) {
+            if is_class_or_interface_container
+                && Self::is_declaration_contained_by(p, container.unwrap())
+            {
                 contained.push(p);
             } else {
                 rest.push(p);
@@ -1657,7 +2261,10 @@ impl Checker {
 
 // relater.go:1008
 /// tsrs: borrows `properties` when nothing is excluded (nearly always: the set is empty).
-pub(crate) fn exclude_properties<'a>(properties: &'a [P<Symbol>], excluded_properties: &Set<String>) -> std::borrow::Cow<'a, [P<Symbol>]> {
+pub(crate) fn exclude_properties<'a>(
+    properties: &'a [P<Symbol>],
+    excluded_properties: &Set<String>,
+) -> std::borrow::Cow<'a, [P<Symbol>]> {
     if excluded_properties.is_empty() || properties.is_empty() {
         return properties.into();
     }
@@ -1707,17 +2314,29 @@ impl TypeDiscriminator<'_> {
 impl Checker {
     // relater.go:1055
     // Keep this up-to-date with the same logic within `getApparentTypeOfContextualType`, since they should behave similarly
-    pub(crate) fn find_matching_discriminant_type(&mut self, source: P<Type>, target: P<Type>, is_related_to: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary) -> Option<P<Type>> {
+    pub(crate) fn find_matching_discriminant_type(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        is_related_to: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary,
+    ) -> Option<P<Type>> {
         let mut is_related_to = is_related_to;
-        if target.flags().intersects(TypeFlags::Union) && source.flags().intersects(TypeFlags::Intersection | TypeFlags::Object) {
+        if target.flags().intersects(TypeFlags::Union)
+            && source.flags().intersects(TypeFlags::Intersection | TypeFlags::Object)
+        {
             if let Some(m) = self.get_matching_union_constituent_for_type(target, source) {
                 return Some(m);
             }
             let source_properties = self.get_properties_of_type(source);
-            let discriminant_properties = self.find_discriminant_properties(source_properties, target);
+            let discriminant_properties =
+                self.find_discriminant_properties(source_properties, target);
             if !discriminant_properties.is_empty() {
-                let mut discriminator = TypeDiscriminator { props: discriminant_properties, is_related_to: &mut is_related_to };
-                let discriminated = self.discriminate_type_by_discriminable_items(target, &mut discriminator);
+                let mut discriminator = TypeDiscriminator {
+                    props: discriminant_properties,
+                    is_related_to: &mut is_related_to,
+                };
+                let discriminated =
+                    self.discriminate_type_by_discriminable_items(target, &mut discriminator);
                 if discriminated != target {
                     return Some(discriminated);
                 }
@@ -1727,7 +2346,11 @@ impl Checker {
     }
 
     // relater.go:1070
-    pub(crate) fn find_discriminant_properties(&mut self, source_properties: &[P<Symbol>], target: P<Type>) -> Vec<P<Symbol>> {
+    pub(crate) fn find_discriminant_properties(
+        &mut self,
+        source_properties: &[P<Symbol>],
+        target: P<Type>,
+    ) -> Vec<P<Symbol>> {
         let mut result: Vec<P<Symbol>> = Vec::new();
         for &source_property in source_properties {
             if self.is_discriminant_property(Some(target), source_property.name()) {
@@ -1740,9 +2363,15 @@ impl Checker {
     // relater.go:1080
     pub(crate) fn is_discriminant_property(&mut self, t: Option<P<Type>>, name: &str) -> bool {
         if let Some(t) = t.filter(|t| t.flags().intersects(TypeFlags::Union)) {
-            let prop = self.get_union_or_intersection_property(t, name, false /*skipObjectFunctionPropertyAugment*/);
-            if let Some(prop) = prop.filter(|p| p.check_flags.get().intersects(CheckFlags::SyntheticProperty)) {
-                if tsrs_core::sharedgraph::frozen(prop.get()) && !prop.check_flags.get().intersects(CheckFlags::IsDiscriminantComputed) {
+            let prop = self.get_union_or_intersection_property(
+                t, name, false, /*skipObjectFunctionPropertyAugment*/
+            );
+            if let Some(prop) =
+                prop.filter(|p| p.check_flags.get().intersects(CheckFlags::SyntheticProperty))
+            {
+                if tsrs_core::sharedgraph::frozen(prop.get())
+                    && !prop.check_flags.get().intersects(CheckFlags::IsDiscriminantComputed)
+                {
                     // Shared graph: a frozen symbol's flags cannot be cached into; compute, don't cache.
                     return prop.check_flags.get().contains(CheckFlags::NonUniformAndLiteral) && {
                         let prop_type = self.get_type_of_symbol(prop);
@@ -1750,7 +2379,8 @@ impl Checker {
                     };
                 }
                 if !prop.check_flags.get().intersects(CheckFlags::IsDiscriminantComputed) {
-                    prop.check_flags.set(prop.check_flags.get() | CheckFlags::IsDiscriminantComputed);
+                    prop.check_flags
+                        .set(prop.check_flags.get() | CheckFlags::IsDiscriminantComputed);
                     if prop.check_flags.get().contains(CheckFlags::NonUniformAndLiteral) && {
                         let prop_type = self.get_type_of_symbol(prop);
                         !self.is_generic_type(prop_type)
@@ -1765,7 +2395,11 @@ impl Checker {
     }
 
     // relater.go:1096
-    pub(crate) fn get_matching_union_constituent_for_type(&mut self, union_type: P<Type>, t: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn get_matching_union_constituent_for_type(
+        &mut self,
+        union_type: P<Type>,
+        t: P<Type>,
+    ) -> Option<P<Type>> {
         let key_property_name = self.get_key_property_name(union_type);
         if key_property_name.is_empty() {
             return None;
@@ -1801,7 +2435,11 @@ impl Checker {
     // relater.go:1124
     // Given a union type for which getKeyPropertyName returned a non-empty string, return the constituent
     // that corresponds to the given key type for that property name.
-    pub(crate) fn get_constituent_type_for_key_type(&mut self, t: P<Type>, key_type: P<Type>) -> Option<P<Type>> {
+    pub(crate) fn get_constituent_type_for_key_type(
+        &mut self,
+        t: P<Type>,
+        key_type: P<Type>,
+    ) -> Option<P<Type>> {
         let key = self.get_regular_type_of_literal_type(key_type);
         let result = t.as_union_type().constituent_map().and_then(|m| m.get(&key));
         if result != Some(self.unknown_type) {
@@ -1811,7 +2449,10 @@ impl Checker {
     }
 
     // relater.go:1132
-    pub(crate) fn compute_key_property_name_and_map(&mut self, t: P<Type>) -> (String, FxHashMap<P<Type>, P<Type>>) {
+    pub(crate) fn compute_key_property_name_and_map(
+        &mut self,
+        t: P<Type>,
+    ) -> (String, FxHashMap<P<Type>, P<Type>>) {
         let types = t.types();
         if types.len() < 10
             || t.object_flags().intersects(ObjectFlags::PrimitiveUnion)
@@ -1859,11 +2500,17 @@ impl Checker {
     // has a non-literal type or if less than 10 or less than 50% of the constituents have a unique key.
     // Entries with duplicate keys have unknownType as the value.
     // (An empty map stands for Go's nil map.)
-    pub(crate) fn map_types_by_key_property(&mut self, types: &[P<Type>], key_property_name: &str) -> FxHashMap<P<Type>, P<Type>> {
+    pub(crate) fn map_types_by_key_property(
+        &mut self,
+        types: &[P<Type>],
+        key_property_name: &str,
+    ) -> FxHashMap<P<Type>, P<Type>> {
         let mut types_by_key: FxHashMap<P<Type>, P<Type>> = FxHashMap::default();
         let mut count = 0;
         for &t in types {
-            if t.flags().intersects(TypeFlags::Object | TypeFlags::Intersection | TypeFlags::InstantiableNonPrimitive) {
+            if t.flags().intersects(
+                TypeFlags::Object | TypeFlags::Intersection | TypeFlags::InstantiableNonPrimitive,
+            ) {
                 let discriminant = self.get_type_of_property_of_type(t, key_property_name);
                 let Some(discriminant) = discriminant.filter(|&d| is_literal_type(d)) else {
                     return FxHashMap::default();
@@ -1895,11 +2542,17 @@ impl Checker {
     }
 
     // relater.go:1205
-    pub(crate) fn discriminate_type_by_discriminable_items(&mut self, target: P<Type>, discriminator: &mut dyn Discriminator) -> P<Type> {
+    pub(crate) fn discriminate_type_by_discriminable_items(
+        &mut self,
+        target: P<Type>,
+        discriminator: &mut dyn Discriminator,
+    ) -> P<Type> {
         let types = target.types();
         let mut include = vec![Ternary::False; types.len()];
         for (i, &t) in types.iter().enumerate() {
-            if !t.flags().intersects(TypeFlags::Primitive) && !self.get_reduced_type(t).flags().intersects(TypeFlags::Never) {
+            if !t.flags().intersects(TypeFlags::Primitive)
+                && !self.get_reduced_type(t).flags().intersects(TypeFlags::Never)
+            {
                 include[i] = Ternary::True;
             }
         }
@@ -1915,7 +2568,9 @@ impl Checker {
                 if include[i] != Ternary::False {
                     let target_type = match known.as_ref().and_then(|known| known[i]) {
                         Some(target_type) => target_type,
-                        None => self.get_type_of_property_or_index_signature_of_type(types[i], name),
+                        None => {
+                            self.get_type_of_property_or_index_signature_of_type(types[i], name)
+                        }
                     };
                     if let Some(target_type) = target_type {
                         if discriminator.matches(self, n, target_type) {
@@ -1940,7 +2595,8 @@ impl Checker {
                     filtered_types.push(t);
                 }
             }
-            let filtered = self.get_union_type_ex(&filtered_types, UnionReduction::None, AliasArg::None, None);
+            let filtered =
+                self.get_union_type_ex(&filtered_types, UnionReduction::None, AliasArg::None, None);
             if !filtered.flags().intersects(TypeFlags::Never) {
                 return filtered;
             }
@@ -1955,13 +2611,21 @@ impl Checker {
     /// type with resolved members whose member `name` is a value symbol with its type resolved, or one with no such
     /// member, no index infos and a name that no `Object` or `Function` member has. Computed only with no member
     /// resolution in progress; dropped when any type's members are reset.
-    fn discriminant_property_types(&mut self, target: P<Type>, types: &[P<Type>], name: &str) -> Option<std::rc::Rc<[Option<Option<P<Type>>>]>> {
+    fn discriminant_property_types(
+        &mut self,
+        target: P<Type>,
+        types: &[P<Type>],
+        name: &str,
+    ) -> Option<std::rc::Rc<[Option<Option<P<Type>>>]>> {
         if types.len() < 8 {
             return None;
         }
         let key = HashedName::new(name);
         let epoch = self.members_reset_epoch;
-        if let Some(e) = self.discriminant_property_types.get(&(target, key.hash())).and_then(|entries| entries.iter().find(|e| e.0 == name))
+        if let Some(e) = self
+            .discriminant_property_types
+            .get(&(target, key.hash()))
+            .and_then(|entries| entries.iter().find(|e| e.0 == name))
             && e.1 == epoch
         {
             return Some(std::rc::Rc::clone(&e.2));
@@ -1969,7 +2633,8 @@ impl Checker {
         if self.members_resolving != 0 {
             return None;
         }
-        let known: std::rc::Rc<[Option<Option<P<Type>>>]> = types.iter().map(|&t| self.known_property_or_index_type(t, key)).collect();
+        let known: std::rc::Rc<[Option<Option<P<Type>>>]> =
+            types.iter().map(|&t| self.known_property_or_index_type(t, key)).collect();
         let entries = self.discriminant_property_types.entry((target, key.hash())).or_default();
         entries.retain(|e| e.0 != name);
         entries.push((alloc_str(name), epoch, std::rc::Rc::clone(&known)));
@@ -1977,24 +2642,39 @@ impl Checker {
     }
 
     /// See `discriminant_property_types`.
-    #[expect(clippy::option_option, reason = "The outer option records whether a result is available; the inner option records an absent value.")]
-    fn known_property_or_index_type(&mut self, t: P<Type>, key: HashedName<'_>) -> Option<Option<P<Type>>> {
+    #[expect(
+        clippy::option_option,
+        reason = "The outer option records whether a result is available; the inner option records an absent value."
+    )]
+    fn known_property_or_index_type(
+        &mut self,
+        t: P<Type>,
+        key: HashedName<'_>,
+    ) -> Option<Option<P<Type>>> {
         if t.flags() != TypeFlags::Object
-            || t.object_flags_lazy() & (ObjectFlags::MembersResolved | ObjectFlags::Mapped) != ObjectFlags::MembersResolved
+            || t.object_flags_lazy() & (ObjectFlags::MembersResolved | ObjectFlags::Mapped)
+                != ObjectFlags::MembersResolved
             || is_tuple_type(t)
             || t.symbol().is_some_and(|s| s.flags().intersects(SymbolFlags::ValueModule))
         {
             return None;
         }
         match t.as_structured_type().members().and_then(|m| m.lookup_hashed(key)) {
-            Some(prop) if prop.flags().intersects(SymbolFlags::Value) => self.cached_type_of_value_symbol(prop).map(Some),
+            Some(prop) if prop.flags().intersects(SymbolFlags::Value) => {
+                self.cached_type_of_value_symbol(prop).map(Some)
+            }
             Some(_) => None,
-            None => (self.index_infos_of_structured_type(t).is_empty() && !self.may_be_augment_member(key)).then_some(None),
+            None => (self.index_infos_of_structured_type(t).is_empty()
+                && !self.may_be_augment_member(key))
+            .then_some(None),
         }
     }
 
     // relater.go:1256
-    pub(crate) fn filter_primitives_if_contains_non_primitive(&mut self, union_type: P<Type>) -> P<Type> {
+    pub(crate) fn filter_primitives_if_contains_non_primitive(
+        &mut self,
+        union_type: P<Type>,
+    ) -> P<Type> {
         if self.maybe_type_of_kind(union_type, TypeFlags::NonPrimitive) {
             let result = self.filter_type(union_type, |_, t| is_non_primitive_type(t));
             if !result.flags().intersects(TypeFlags::Never) {
@@ -2012,7 +2692,11 @@ pub(crate) fn is_non_primitive_type(t: P<Type>) -> bool {
 
 impl Checker {
     // relater.go:1270
-    pub(crate) fn get_type_names_for_error_display(&mut self, left: P<Type>, right: P<Type>) -> (String, String) {
+    pub(crate) fn get_type_names_for_error_display(
+        &mut self,
+        left: P<Type>,
+        right: P<Type>,
+    ) -> (String, String) {
         let mut left_str = if self.symbol_value_declaration_is_context_sensitive(left.symbol()) {
             self.type_to_string(left, left.symbol().unwrap().value_declaration())
         } else {
@@ -2032,11 +2716,19 @@ impl Checker {
 
     // relater.go:1290
     pub(crate) fn get_type_name_for_error_display(&mut self, t: P<Type>) -> String {
-        self.type_to_string_ex(t, None /*enclosingDeclaration*/, TypeFormatFlags::UseFullyQualifiedType, None)
+        self.type_to_string_ex(
+            t,
+            None, /*enclosingDeclaration*/
+            TypeFormatFlags::UseFullyQualifiedType,
+            None,
+        )
     }
 
     // relater.go:1294
-    pub(crate) fn symbol_value_declaration_is_context_sensitive(&mut self, symbol: Option<P<Symbol>>) -> bool {
+    pub(crate) fn symbol_value_declaration_is_context_sensitive(
+        &mut self,
+        symbol: Option<P<Symbol>>,
+    ) -> bool {
         let Some(symbol) = symbol else {
             return false;
         };
@@ -2065,12 +2757,17 @@ impl Checker {
                 }
             }
         }
-        is_unit_type(t) || t.flags().intersects(TypeFlags::TemplateLiteral) || t.flags().intersects(TypeFlags::StringMapping)
+        is_unit_type(t)
+            || t.flags().intersects(TypeFlags::TemplateLiteral)
+            || t.flags().intersects(TypeFlags::StringMapping)
     }
     // relater.go:1317
     pub(crate) fn get_variances(&mut self, t: P<Type>) -> Vec<VarianceFlags> {
         // Arrays and tuples are known to be covariant, no need to spend time computing this.
-        if t == self.global_array_type || t == self.global_readonly_array_type || t.object_flags().intersects(ObjectFlags::Tuple) {
+        if t == self.global_array_type
+            || t == self.global_readonly_array_type
+            || t.object_flags().intersects(ObjectFlags::Tuple)
+        {
             return self.array_variances.to_vec();
         }
         self.get_variances_worker(t.symbol().unwrap(), t.as_interface_type().type_parameters())
@@ -2088,9 +2785,15 @@ impl Checker {
     // generic type are structurally compared. We infer the variance information by comparing
     // instantiations of the generic type for type arguments with known relations. The function
     // returns an empty slice when invoked recursively for the given generic type.
-    pub(crate) fn get_variances_worker(&mut self, symbol: P<Symbol>, type_parameters: &'static [P<Type>]) -> Vec<VarianceFlags> {
+    pub(crate) fn get_variances_worker(
+        &mut self,
+        symbol: P<Symbol>,
+        type_parameters: &'static [P<Type>],
+    ) -> Vec<VarianceFlags> {
         let links = self.variance_links.get(symbol);
-        let variances_len = |links: P<VarianceLinks>| links.variances.get().map_or(0, <[types::VarianceFlags]>::len);
+        let variances_len = |links: P<VarianceLinks>| {
+            links.variances.get().map_or(0, <[types::VarianceFlags]>::len)
+        };
         if links.variances.get().is_none() {
             let stack_index = self.get_variance_stack_index(symbol);
             if stack_index.is_none() {
@@ -2119,32 +2822,41 @@ impl Checker {
                         // invariance, covariance, contravariance or bivariance.
                         let marker_super_type = self.marker_super_type;
                         let marker_sub_type = self.marker_sub_type;
-                        let type_with_super = self.create_marker_type(symbol, tp, marker_super_type);
+                        let type_with_super =
+                            self.create_marker_type(symbol, tp, marker_super_type);
                         let type_with_sub = self.create_marker_type(symbol, tp, marker_sub_type);
-                        let mut v = (if self.is_type_assignable_to(type_with_sub, type_with_super) {
-                            VarianceFlags::Covariant
-                        } else {
-                            VarianceFlags::Invariant
-                        }) | (if self.is_type_assignable_to(type_with_super, type_with_sub) {
-                            VarianceFlags::Contravariant
-                        } else {
-                            VarianceFlags::Invariant
-                        });
+                        let mut v =
+                            (if self.is_type_assignable_to(type_with_sub, type_with_super) {
+                                VarianceFlags::Covariant
+                            } else {
+                                VarianceFlags::Invariant
+                            }) | (if self.is_type_assignable_to(type_with_super, type_with_sub) {
+                                VarianceFlags::Contravariant
+                            } else {
+                                VarianceFlags::Invariant
+                            });
                         // If the instantiations appear to be related bivariantly it may be because the
                         // type parameter is independent (i.e. it isn't witnessed anywhere in the generic
                         // type). To determine this we compare instantiations where the type parameter is
                         // replaced with marker types that are known to be unrelated.
                         if v == VarianceFlags::Bivariant && {
                             let marker_other_type = self.marker_other_type;
-                            let type_with_other = self.create_marker_type(symbol, tp, marker_other_type);
+                            let type_with_other =
+                                self.create_marker_type(symbol, tp, marker_other_type);
                             self.is_type_assignable_to(type_with_other, type_with_super)
                         } {
                             v = VarianceFlags::Independent;
                         }
-                        if self.reliability_flags.intersects(RelationComparisonResult::ReportsUnmeasurable) {
+                        if self
+                            .reliability_flags
+                            .intersects(RelationComparisonResult::ReportsUnmeasurable)
+                        {
                             v |= VarianceFlags::Unmeasurable;
                         }
-                        if self.reliability_flags.intersects(RelationComparisonResult::ReportsUnreliable) {
+                        if self
+                            .reliability_flags
+                            .intersects(RelationComparisonResult::ReportsUnreliable)
+                        {
                             v |= VarianceFlags::Unreliable;
                         }
                         self.reliability_flags = save_reliability_flags;
@@ -2205,7 +2917,12 @@ impl Checker {
     }
 
     // relater.go:1446
-    pub(crate) fn create_marker_type(&mut self, symbol: P<Symbol>, source: P<Type>, target: P<Type>) -> P<Type> {
+    pub(crate) fn create_marker_type(
+        &mut self,
+        symbol: P<Symbol>,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> P<Type> {
         let mapper = new_simple_type_mapper(source, target);
         let t = self.get_declared_type_of_symbol(symbol);
         if self.is_error_type(t) {
@@ -2217,7 +2934,8 @@ impl Checker {
             let type_arguments = self.instantiate_types(type_parameters, Some(mapper));
             self.get_type_alias_instantiation(symbol, &type_arguments, None)
         } else {
-            let type_arguments = self.instantiate_types(t.as_interface_type().type_parameters(), Some(mapper));
+            let type_arguments =
+                self.instantiate_types(t.as_interface_type().type_parameters(), Some(mapper));
             self.create_type_reference(t, &type_arguments)
         };
         self.marker_types.add(result);
@@ -2243,9 +2961,14 @@ impl Checker {
     // relater.go:1478
     // Return true if the given type reference has a 'void' type argument for a covariant type parameter.
     // See comment at call in recursiveTypeRelatedTo for when this case matters.
-    pub(crate) fn has_covariant_void_argument(type_arguments: &[P<Type>], variances: &[VarianceFlags]) -> bool {
+    pub(crate) fn has_covariant_void_argument(
+        type_arguments: &[P<Type>],
+        variances: &[VarianceFlags],
+    ) -> bool {
         for (i, &v) in variances.iter().enumerate() {
-            if v & VarianceFlags::VarianceMask == VarianceFlags::Covariant && type_arguments[i].flags().intersects(TypeFlags::Void) {
+            if v & VarianceFlags::VarianceMask == VarianceFlags::Covariant
+                && type_arguments[i].flags().intersects(TypeFlags::Void)
+            {
                 return true;
             }
         }
@@ -2253,32 +2976,64 @@ impl Checker {
     }
 
     // relater.go:1487
-    pub(crate) fn is_signature_assignable_to(&mut self, source: P<Signature>, target: P<Signature>, ignore_return_types: bool) -> bool {
-        let check_mode = if ignore_return_types { SignatureCheckMode::IgnoreReturnTypes } else { SignatureCheckMode::None };
+    pub(crate) fn is_signature_assignable_to(
+        &mut self,
+        source: P<Signature>,
+        target: P<Signature>,
+        ignore_return_types: bool,
+    ) -> bool {
+        let check_mode = if ignore_return_types {
+            SignatureCheckMode::IgnoreReturnTypes
+        } else {
+            SignatureCheckMode::None
+        };
         let compare_types = Self::compare_types_assignable_comparer();
-        self.compare_signatures_related(source, target, check_mode, false /*reportErrors*/, None /*errorReporter*/, compare_types, None /*reportUnreliableMarkers*/)
-            != Ternary::False
+        self.compare_signatures_related(
+            source,
+            target,
+            check_mode,
+            false, /*reportErrors*/
+            None,  /*errorReporter*/
+            compare_types,
+            None, /*reportUnreliableMarkers*/
+        ) != Ternary::False
     }
 
     // relater.go:1491
-    pub(crate) fn compare_signatures_related(&mut self, source: P<Signature>, target: P<Signature>, check_mode: SignatureCheckMode, report_errors: bool, error_reporter: Option<ErrorReporter<'_>>, compare_types: TypeComparer, report_unreliable_markers: Option<P<TypeMapper>>) -> Ternary {
+    pub(crate) fn compare_signatures_related(
+        &mut self,
+        source: P<Signature>,
+        target: P<Signature>,
+        check_mode: SignatureCheckMode,
+        report_errors: bool,
+        error_reporter: Option<ErrorReporter<'_>>,
+        compare_types: TypeComparer,
+        report_unreliable_markers: Option<P<TypeMapper>>,
+    ) -> Ternary {
         let mut error_reporter = error_reporter;
         let mut source = source;
         let mut target = target;
         if source == target {
             return Ternary::True;
         }
-        if !(check_mode.intersects(SignatureCheckMode::StrictTopSignature) && self.is_top_signature(source)) && self.is_top_signature(target) {
+        if !(check_mode.intersects(SignatureCheckMode::StrictTopSignature)
+            && self.is_top_signature(source))
+            && self.is_top_signature(target)
+        {
             return Ternary::True;
         }
-        if check_mode.intersects(SignatureCheckMode::StrictTopSignature) && self.is_top_signature(source) && !self.is_top_signature(target) {
+        if check_mode.intersects(SignatureCheckMode::StrictTopSignature)
+            && self.is_top_signature(source)
+            && !self.is_top_signature(target)
+        {
             return Ternary::False;
         }
         let target_count = self.get_parameter_count(target);
         let mut source_has_more_parameters = false;
         if !self.has_effective_rest_parameter(target) {
             if check_mode.intersects(SignatureCheckMode::StrictArity) {
-                source_has_more_parameters = self.has_effective_rest_parameter(source) || self.get_parameter_count(source) > target_count;
+                source_has_more_parameters = self.has_effective_rest_parameter(source)
+                    || self.get_parameter_count(source) > target_count;
             } else {
                 source_has_more_parameters = self.get_min_argument_count(source) > target_count;
             }
@@ -2296,15 +3051,25 @@ impl Checker {
             }
             return Ternary::False;
         }
-        if !source.type_parameters().is_empty() && !same(source.type_parameters(), target.type_parameters()) {
+        if !source.type_parameters().is_empty()
+            && !same(source.type_parameters(), target.type_parameters())
+        {
             target = self.get_canonical_signature(target);
-            source = self.instantiate_signature_in_context_of(source, target, None /*inferenceContext*/, Some(compare_types));
+            source = self.instantiate_signature_in_context_of(
+                source,
+                target,
+                None, /*inferenceContext*/
+                Some(compare_types),
+            );
         }
         let source_count = self.get_parameter_count(source);
         let source_rest_type = self.get_non_array_rest_type(source);
         let target_rest_type = self.get_non_array_rest_type(target);
         if source_rest_type.is_some() || target_rest_type.is_some() {
-            self.instantiate_type(source_rest_type.or(target_rest_type).unwrap(), report_unreliable_markers);
+            self.instantiate_type(
+                source_rest_type.or(target_rest_type).unwrap(),
+                report_unreliable_markers,
+            );
         }
         let kind = target.declaration().map_or(Kind::Unknown, |d| d.kind());
         let strict_variance = !check_mode.intersects(SignatureCheckMode::Callback)
@@ -2320,14 +3085,24 @@ impl Checker {
                 // void sources are assignable to anything.
                 let mut related = Ternary::False;
                 if !strict_variance {
-                    related = compare_types(self, source_this_type, target_this_type, false /*reportErrors*/);
+                    related = compare_types(
+                        self,
+                        source_this_type,
+                        target_this_type,
+                        false, /*reportErrors*/
+                    );
                 }
                 if related == Ternary::False {
-                    related = compare_types(self, target_this_type, source_this_type, report_errors);
+                    related =
+                        compare_types(self, target_this_type, source_this_type, report_errors);
                 }
                 if related == Ternary::False {
                     if report_errors {
-                        (error_reporter.as_mut().unwrap())(self, &diagnostics::The_this_types_of_each_signature_are_incompatible, &[]);
+                        (error_reporter.as_mut().unwrap())(
+                            self,
+                            &diagnostics::The_this_types_of_each_signature_are_incompatible,
+                            &[],
+                        );
                     }
                     return Ternary::False;
                 }
@@ -2356,7 +3131,9 @@ impl Checker {
                 self.try_get_type_at_position(target, i)
             };
             if let (Some(source_type), Some(target_type)) = (source_type, target_type) {
-                if source_type != target_type || check_mode.intersects(SignatureCheckMode::StrictArity) {
+                if source_type != target_type
+                    || check_mode.intersects(SignatureCheckMode::StrictArity)
+                {
                     // In order to ensure that any generic type Foo<T> is at least co-variant with respect to T no matter
                     // how Foo uses T, we need to relate parameters bi-variantly (given that parameters are input positions,
                     // they naturally relate only contra-variantly). However, if the source and target parameters both have
@@ -2367,11 +3144,15 @@ impl Checker {
                     // with respect to T.
                     let mut source_sig: Option<P<Signature>> = None;
                     let mut target_sig: Option<P<Signature>> = None;
-                    if !check_mode.intersects(SignatureCheckMode::Callback) && !self.is_instantiated_generic_parameter(source, i) {
+                    if !check_mode.intersects(SignatureCheckMode::Callback)
+                        && !self.is_instantiated_generic_parameter(source, i)
+                    {
                         let t = self.get_non_nullable_type(source_type);
                         source_sig = self.get_single_call_signature(t);
                     }
-                    if !check_mode.intersects(SignatureCheckMode::Callback) && !self.is_instantiated_generic_parameter(target, i) {
+                    if !check_mode.intersects(SignatureCheckMode::Callback)
+                        && !self.is_instantiated_generic_parameter(target, i)
+                    {
                         let t = self.get_non_nullable_type(target_type);
                         target_sig = self.get_single_call_signature(t);
                     }
@@ -2387,15 +3168,25 @@ impl Checker {
                             target_sig.unwrap(),
                             source_sig.unwrap(),
                             (check_mode & SignatureCheckMode::StrictArity)
-                                | if strict_variance { SignatureCheckMode::StrictCallback } else { SignatureCheckMode::BivariantCallback },
+                                | if strict_variance {
+                                    SignatureCheckMode::StrictCallback
+                                } else {
+                                    SignatureCheckMode::BivariantCallback
+                                },
                             report_errors,
                             reborrow_reporter(&mut error_reporter),
                             compare_types,
                             report_unreliable_markers,
                         );
                     } else {
-                        if !check_mode.intersects(SignatureCheckMode::Callback) && !strict_variance {
-                            related = compare_types(self, source_type, target_type, false /*reportErrors*/);
+                        if !check_mode.intersects(SignatureCheckMode::Callback) && !strict_variance
+                        {
+                            related = compare_types(
+                                self,
+                                source_type,
+                                target_type,
+                                false, /*reportErrors*/
+                            );
                         }
                         if related == Ternary::False {
                             related = compare_types(self, target_type, source_type, report_errors);
@@ -2406,7 +3197,12 @@ impl Checker {
                         && check_mode.intersects(SignatureCheckMode::StrictArity)
                         && i >= self.get_min_argument_count(source)
                         && i < self.get_min_argument_count(target)
-                        && compare_types(self, source_type, target_type, false /*reportErrors*/) != Ternary::False
+                        && compare_types(
+                            self,
+                            source_type,
+                            target_type,
+                            false, /*reportErrors*/
+                        ) != Ternary::False
                     {
                         related = Ternary::False;
                     }
@@ -2414,7 +3210,11 @@ impl Checker {
                         if report_errors {
                             let a = self.get_parameter_name_at_position(source, i);
                             let b = self.get_parameter_name_at_position(target, i);
-                            (error_reporter.as_mut().unwrap())(self, &diagnostics::Types_of_parameters_0_and_1_are_incompatible, &[&a, &b]);
+                            (error_reporter.as_mut().unwrap())(
+                                self,
+                                &diagnostics::Types_of_parameters_0_and_1_are_incompatible,
+                                &[&a, &b],
+                            );
                         }
                         return Ternary::False;
                     }
@@ -2447,7 +3247,11 @@ impl Checker {
                 {
                     if report_errors {
                         let a = self.signature_to_string(source);
-                        (error_reporter.as_mut().unwrap())(self, &diagnostics::Signature_0_must_be_a_type_predicate, &[&a]);
+                        (error_reporter.as_mut().unwrap())(
+                            self,
+                            &diagnostics::Signature_0_must_be_a_type_predicate,
+                            &[&a],
+                        );
                     }
                     return Ternary::False;
                 }
@@ -2457,16 +3261,24 @@ impl Checker {
                 // wouldn't be co-variant for T without this rule.
                 let mut related = Ternary::False;
                 if check_mode.intersects(SignatureCheckMode::BivariantCallback) {
-                    related = compare_types(self, target_return_type, source_return_type, false /*reportErrors*/);
+                    related = compare_types(
+                        self,
+                        target_return_type,
+                        source_return_type,
+                        false, /*reportErrors*/
+                    );
                 }
                 if related == Ternary::False {
-                    related = compare_types(self, source_return_type, target_return_type, report_errors);
+                    related =
+                        compare_types(self, source_return_type, target_return_type, report_errors);
                 }
                 result &= related;
                 if result == Ternary::False && report_errors {
                     // The errors reported here serve as markers that trigger error chain reduction in the (*Relater).reportError
                     // method. The markers are elided in the final diagnostic chain and never actually reported.
-                    let message: &'static Message = if source.parameters().is_empty() && target.parameters().is_empty() {
+                    let message: &'static Message = if source.parameters().is_empty()
+                        && target.parameters().is_empty()
+                    {
                         if source.flags().intersects(SignatureFlags::Construct) {
                             &diagnostics::Construct_signatures_with_no_arguments_have_incompatible_return_types_0_and_1
                         } else {
@@ -2487,26 +3299,47 @@ impl Checker {
     }
 
     // relater.go:1675
-    pub(crate) fn compare_type_predicate_related_to(&mut self, source: P<TypePredicate>, target: P<TypePredicate>, report_errors: bool, error_reporter: Option<ErrorReporter<'_>>, compare_types: TypeComparer) -> Ternary {
+    pub(crate) fn compare_type_predicate_related_to(
+        &mut self,
+        source: P<TypePredicate>,
+        target: P<TypePredicate>,
+        report_errors: bool,
+        error_reporter: Option<ErrorReporter<'_>>,
+        compare_types: TypeComparer,
+    ) -> Ternary {
         let mut error_reporter = error_reporter;
         if source.kind() != target.kind() {
             if report_errors {
                 (error_reporter.as_mut().unwrap())(self, &diagnostics::A_this_based_type_guard_is_not_compatible_with_a_parameter_based_type_guard, &[]);
                 let a = self.type_predicate_to_string(source);
                 let b = self.type_predicate_to_string(target);
-                (error_reporter.as_mut().unwrap())(self, &diagnostics::Type_predicate_0_is_not_assignable_to_1, &[&a, &b]);
+                (error_reporter.as_mut().unwrap())(
+                    self,
+                    &diagnostics::Type_predicate_0_is_not_assignable_to_1,
+                    &[&a, &b],
+                );
             }
             return Ternary::False;
         }
-        if source.kind() == TypePredicateKind::Identifier || source.kind() == TypePredicateKind::AssertsIdentifier {
+        if source.kind() == TypePredicateKind::Identifier
+            || source.kind() == TypePredicateKind::AssertsIdentifier
+        {
             if source.parameter_index() != target.parameter_index() {
                 if report_errors {
                     let a = source.parameter_name();
                     let b = target.parameter_name();
-                    (error_reporter.as_mut().unwrap())(self, &diagnostics::Parameter_0_is_not_in_the_same_position_as_parameter_1, &[&a, &b]);
+                    (error_reporter.as_mut().unwrap())(
+                        self,
+                        &diagnostics::Parameter_0_is_not_in_the_same_position_as_parameter_1,
+                        &[&a, &b],
+                    );
                     let a = self.type_predicate_to_string(source);
                     let b = self.type_predicate_to_string(target);
-                    (error_reporter.as_mut().unwrap())(self, &diagnostics::Type_predicate_0_is_not_assignable_to_1, &[&a, &b]);
+                    (error_reporter.as_mut().unwrap())(
+                        self,
+                        &diagnostics::Type_predicate_0_is_not_assignable_to_1,
+                        &[&a, &b],
+                    );
                 }
                 return Ternary::False;
             }
@@ -2521,7 +3354,11 @@ impl Checker {
         if related == Ternary::False && report_errors {
             let a = self.type_predicate_to_string(source);
             let b = self.type_predicate_to_string(target);
-            (error_reporter.as_mut().unwrap())(self, &diagnostics::Type_predicate_0_is_not_assignable_to_1, &[&a, &b]);
+            (error_reporter.as_mut().unwrap())(
+                self,
+                &diagnostics::Type_predicate_0_is_not_assignable_to_1,
+                &[&a, &b],
+            );
         }
         related
     }
@@ -2538,9 +3375,16 @@ impl Checker {
             && signature_has_rest_parameter(s)
         {
             let param_type = self.get_type_of_parameter(s.parameters()[0]);
-            let rest_type = if self.is_array_type(param_type) { self.get_type_arguments(param_type)[0] } else { param_type };
+            let rest_type = if self.is_array_type(param_type) {
+                self.get_type_arguments(param_type)[0]
+            } else {
+                param_type
+            };
             return rest_type.flags().intersects(TypeFlags::Any | TypeFlags::Never)
-                && self.get_return_type_of_signature(s).flags().intersects(TypeFlags::AnyOrUnknown);
+                && self
+                    .get_return_type_of_signature(s)
+                    .flags()
+                    .intersects(TypeFlags::AnyOrUnknown);
         }
         false
     }
@@ -2557,12 +3401,7 @@ impl Checker {
             if is_tuple_type(rest_type) {
                 let target = rest_type.target_tuple_type();
                 return length + target.fixed_length.get()
-                    - usize::from(
-                        !target
-                            .combined_flags
-                            .get()
-                            .intersects(ElementFlags::Variable),
-                    );
+                    - usize::from(!target.combined_flags.get().intersects(ElementFlags::Variable));
             }
         }
         length
@@ -2585,7 +3424,8 @@ impl Checker {
         {
             let mut min_argument_count = None;
             if signature_has_rest_parameter(signature) {
-                let rest_type = self.get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
+                let rest_type = self
+                    .get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
                 if is_tuple_type(rest_type) {
                     let first_optional_index =
                         find_index(rest_type.target_tuple_type().element_infos(), |info| {
@@ -2599,11 +3439,11 @@ impl Checker {
                     }
                 }
             }
-            let mut min_argument_count = if let Some(min_argument_count) = min_argument_count { min_argument_count } else {
+            let mut min_argument_count = if let Some(min_argument_count) = min_argument_count {
+                min_argument_count
+            } else {
                 if strong_arity_for_untyped_js.is_empty()
-                    && signature
-                        .flags()
-                        .intersects(SignatureFlags::IsUntypedSignatureInJSFile)
+                    && signature.flags().intersects(SignatureFlags::IsUntypedSignatureInJSFile)
                 {
                     return 0;
                 }
@@ -2620,9 +3460,7 @@ impl Checker {
                 }
                 min_argument_count = i;
             }
-            signature
-                .resolved_min_argument_count
-                .set(Some(min_argument_count));
+            signature.resolved_min_argument_count.set(Some(min_argument_count));
         }
         signature.resolved_min_argument_count.get().unwrap()
     }
@@ -2630,8 +3468,14 @@ impl Checker {
     // relater.go:1782
     pub fn has_effective_rest_parameter(&mut self, signature: P<Signature>) -> bool {
         if signature_has_rest_parameter(signature) {
-            let rest_type = self.get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
-            return !is_tuple_type(rest_type) || rest_type.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable);
+            let rest_type =
+                self.get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
+            return !is_tuple_type(rest_type)
+                || rest_type
+                    .target_tuple_type()
+                    .combined_flags
+                    .get()
+                    .intersects(ElementFlags::Variable);
         }
         false
     }
@@ -2663,7 +3507,11 @@ impl Checker {
             let rest_type = self.get_type_of_symbol(signature.parameters()[param_count]);
             let index = pos - param_count;
             if !is_tuple_type(rest_type)
-                || rest_type.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable)
+                || rest_type
+                    .target_tuple_type()
+                    .combined_flags
+                    .get()
+                    .intersects(ElementFlags::Variable)
                 || index < rest_type.target_tuple_type().fixed_length()
             {
                 let index_type = self.get_number_literal_type(Number(index as f64));
@@ -2718,8 +3566,9 @@ impl Checker {
         let mut types: Vec<P<Type>> = Vec::with_capacity(length);
         let mut infos: Vec<TupleElementInfo> = Vec::with_capacity(length);
         for i in 0..length {
-
-            let flags = if let Some(rest_type) = rest_type && i == length - 1 {
+            let flags = if let Some(rest_type) = rest_type
+                && i == length - 1
+            {
                 types.push(rest_type);
                 ElementFlags::Variadic
             } else {
@@ -2731,10 +3580,7 @@ impl Checker {
                 }
             };
             let labeled_declaration = self.get_nameable_declaration_at_position(source, i + pos);
-            infos.push(TupleElementInfo {
-                flags,
-                labeled_declaration,
-            });
+            infos.push(TupleElementInfo { flags, labeled_declaration });
         }
         self.create_tuple_type_ex(&types, &infos, readonly)
     }
@@ -2778,7 +3624,8 @@ impl Checker {
 
     // relater.go:1887
     pub(crate) fn is_valid_declaration_for_tuple_label(d: P<Node>) -> bool {
-        is_named_tuple_member(d) || is_parameter_declaration(d) && d.name().is_some() && is_identifier(d.name().unwrap())
+        is_named_tuple_member(d)
+            || is_parameter_declaration(d) && d.name().is_some() && is_identifier(d.name().unwrap())
     }
 
     // relater.go:1891
@@ -2795,14 +3642,16 @@ impl Checker {
     // relater.go:1899
     pub(crate) fn get_effective_rest_type(&mut self, signature: P<Signature>) -> Option<P<Type>> {
         if signature_has_rest_parameter(signature) {
-            let rest_type = self.get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
+            let rest_type =
+                self.get_type_of_symbol(signature.parameters()[signature.parameters().len() - 1]);
             if !is_tuple_type(rest_type) {
                 if is_type_any(Some(rest_type)) {
                     return Some(self.any_array_type);
                 }
                 return Some(rest_type);
             }
-            if rest_type.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable) {
+            if rest_type.target_tuple_type().combined_flags.get().intersects(ElementFlags::Variable)
+            {
                 let fixed_length = rest_type.target_tuple_type().fixed_length();
                 return Some(self.slice_tuple_type(rest_type, fixed_length, 0));
             }
@@ -2843,7 +3692,11 @@ impl Checker {
         for i in 0..fixed_length {
             keys.push(self.get_string_literal_type(&i.to_string()));
         }
-        let array_type = if t.target_tuple_type().readonly.get() { self.global_readonly_array_type } else { self.global_array_type };
+        let array_type = if t.target_tuple_type().readonly.get() {
+            self.global_readonly_array_type
+        } else {
+            self.global_array_type
+        };
         keys.push(self.get_index_type(array_type));
         self.get_union_type(&keys)
     }
@@ -2857,7 +3710,10 @@ impl Checker {
     }
 
     // relater.go:1947
-    pub(crate) fn get_this_type_of_signature(&mut self, signature: P<Signature>) -> Option<P<Type>> {
+    pub(crate) fn get_this_type_of_signature(
+        &mut self,
+        signature: P<Signature>,
+    ) -> Option<P<Type>> {
         if let Some(this_parameter) = signature.this_parameter() {
             return Some(self.get_type_of_symbol(this_parameter));
         }
@@ -2910,11 +3766,16 @@ impl Checker {
         if let Some(rest_symbol) = rest_symbol {
             if let Some(value_declaration) = rest_symbol.value_declaration() {
                 if is_parameter_declaration(value_declaration) {
-                    return Self::get_tuple_element_label_from_binding_element(value_declaration, index, element_info.flags);
+                    return Self::get_tuple_element_label_from_binding_element(
+                        value_declaration,
+                        index,
+                        element_info.flags,
+                    );
                 }
             }
         }
-        let root_name = if let Some(rest_symbol) = rest_symbol { rest_symbol.name() } else { "arg" };
+        let root_name =
+            if let Some(rest_symbol) = rest_symbol { rest_symbol.name() } else { "arg" };
         format!("{root_name}_{index}")
     }
 
@@ -2961,27 +3822,30 @@ impl Checker {
                     }
                     return format!("{name}_n");
                 }
-                Kind::ArrayBindingPattern
-                    if has_dot_dot_dot_token(node) => {
-                        let elements = name_node.elements();
-                        let last_element = last_or_nil(elements);
-                        let last_element_is_binding_element_rest = last_element
-                            .is_some_and(|e| is_binding_element(e) && has_dot_dot_dot_token(e));
-                        let element_count =
-                            elements.len() - usize::from(last_element_is_binding_element_rest);
-                        if index < element_count {
-                            let element = elements[index];
-                            if is_binding_element(element) {
-                                return Self::get_tuple_element_label_from_binding_element(element, index, element_flags);
-                            }
-                        } else if last_element_is_binding_element_rest {
+                Kind::ArrayBindingPattern if has_dot_dot_dot_token(node) => {
+                    let elements = name_node.elements();
+                    let last_element = last_or_nil(elements);
+                    let last_element_is_binding_element_rest = last_element
+                        .is_some_and(|e| is_binding_element(e) && has_dot_dot_dot_token(e));
+                    let element_count =
+                        elements.len() - usize::from(last_element_is_binding_element_rest);
+                    if index < element_count {
+                        let element = elements[index];
+                        if is_binding_element(element) {
                             return Self::get_tuple_element_label_from_binding_element(
-                                last_element.unwrap(),
-                                index - element_count,
+                                element,
+                                index,
                                 element_flags,
                             );
                         }
+                    } else if last_element_is_binding_element_rest {
+                        return Self::get_tuple_element_label_from_binding_element(
+                            last_element.unwrap(),
+                            index - element_count,
+                            element_flags,
+                        );
                     }
+                }
                 _ => {}
             }
         }
@@ -2989,35 +3853,54 @@ impl Checker {
     }
 
     // relater.go:2049
-    pub fn get_type_predicate_of_signature(&mut self, sig: P<Signature>) -> Option<P<TypePredicate>> {
+    pub fn get_type_predicate_of_signature(
+        &mut self,
+        sig: P<Signature>,
+    ) -> Option<P<TypePredicate>> {
         if sig.resolved_type_predicate(self.no_type_predicate).is_none() {
             if let Some(target) = sig.target() {
                 let target_type_predicate = self.get_type_predicate_of_signature(target);
                 if let Some(target_type_predicate) = target_type_predicate {
-                    let predicate = self.instantiate_type_predicate(target_type_predicate, sig.mapper.get().unwrap());
+                    let predicate = self.instantiate_type_predicate(
+                        target_type_predicate,
+                        sig.mapper.get().unwrap(),
+                    );
                     sig.set_resolved_type_predicate(Some(predicate), self.no_type_predicate);
                 }
             } else if let Some(composite) = sig.composite() {
-                let predicate = self.get_union_or_intersection_type_predicate(composite.signatures.get(), composite.is_union.get());
+                let predicate = self.get_union_or_intersection_type_predicate(
+                    composite.signatures.get(),
+                    composite.is_union.get(),
+                );
                 sig.set_resolved_type_predicate(predicate, self.no_type_predicate);
             } else if let Some(declaration) = sig.declaration() {
                 let type_node = declaration.type_node();
                 if let Some(type_node) = type_node {
                     if is_type_predicate_node(type_node) {
-                        let predicate = self.create_type_predicate_from_type_predicate_node(type_node, sig);
+                        let predicate =
+                            self.create_type_predicate_from_type_predicate_node(type_node, sig);
                         sig.set_resolved_type_predicate(Some(predicate), self.no_type_predicate);
                     }
                 } else if is_function_like_declaration(declaration)
-                    && sig.resolved_return_type.get().is_none_or(|t| t.flags().intersects(TypeFlags::Boolean))
+                    && sig
+                        .resolved_return_type
+                        .get()
+                        .is_none_or(|t| t.flags().intersects(TypeFlags::Boolean))
                     && self.get_parameter_count(sig) > 0
                 {
-                    sig.set_resolved_type_predicate(Some(self.no_type_predicate), self.no_type_predicate); // avoid infinite loop
+                    sig.set_resolved_type_predicate(
+                        Some(self.no_type_predicate),
+                        self.no_type_predicate,
+                    ); // avoid infinite loop
                     let predicate = self.get_type_predicate_from_body(declaration);
                     sig.set_resolved_type_predicate(predicate, self.no_type_predicate);
                 }
             }
             if sig.resolved_type_predicate(self.no_type_predicate).is_none() {
-                sig.set_resolved_type_predicate(Some(self.no_type_predicate), self.no_type_predicate);
+                sig.set_resolved_type_predicate(
+                    Some(self.no_type_predicate),
+                    self.no_type_predicate,
+                );
             }
         }
         if sig.resolved_type_predicate(self.no_type_predicate) == Some(self.no_type_predicate) {
@@ -3027,14 +3910,19 @@ impl Checker {
     }
 
     // relater.go:2083
-    pub(crate) fn get_union_or_intersection_type_predicate(&mut self, signatures: &[P<Signature>], is_union: bool) -> Option<P<TypePredicate>> {
+    pub(crate) fn get_union_or_intersection_type_predicate(
+        &mut self,
+        signatures: &[P<Signature>],
+        is_union: bool,
+    ) -> Option<P<TypePredicate>> {
         let mut last: Option<P<TypePredicate>> = None;
         let mut types: Vec<P<Type>> = Vec::new();
         for &sig in signatures {
             let pred = self.get_type_predicate_of_signature(sig);
             if let Some(pred) = pred {
                 // Constituent type predicates must all have matching kinds. We don't create composite type predicates for assertions.
-                if pred.kind() != TypePredicateKind::This && pred.kind() != TypePredicateKind::Identifier
+                if pred.kind() != TypePredicateKind::This
+                    && pred.kind() != TypePredicateKind::Identifier
                     || last.is_some() && !Self::type_predicate_kinds_match(last.unwrap(), pred)
                 {
                     return None;
@@ -3047,14 +3935,22 @@ impl Checker {
                 if is_union {
                     return_type = Some(self.get_return_type_of_signature(sig));
                 }
-                if return_type != Some(self.false_type) && return_type != Some(self.regular_false_type) {
+                if return_type != Some(self.false_type)
+                    && return_type != Some(self.regular_false_type)
+                {
                     return None;
                 }
             }
         }
         let last = last?;
-        let composite_type = self.get_union_or_intersection_type(&types, is_union, UnionReduction::Literal);
-        Some(Self::new_type_predicate(last.kind(), last.parameter_name(), last.parameter_index(), Some(composite_type)))
+        let composite_type =
+            self.get_union_or_intersection_type(&types, is_union, UnionReduction::Literal);
+        Some(Self::new_type_predicate(
+            last.kind(),
+            last.parameter_name(),
+            last.parameter_index(),
+            Some(composite_type),
+        ))
     }
 
     // relater.go:2113
@@ -3063,7 +3959,11 @@ impl Checker {
     }
 
     // relater.go:2117
-    pub(crate) fn create_type_predicate_from_type_predicate_node(&mut self, node: P<Node>, signature: P<Signature>) -> P<TypePredicate> {
+    pub(crate) fn create_type_predicate_from_type_predicate_node(
+        &mut self,
+        node: P<Node>,
+        signature: P<Signature>,
+    ) -> P<TypePredicate> {
         let predicate_node = node.as_type_predicate_node();
         let mut t: Option<P<Type>> = None;
         if let Some(type_node) = predicate_node.type_ {
@@ -3093,13 +3993,22 @@ impl Checker {
     }
 
     // relater.go:2133
-    pub(crate) fn instantiate_type_predicate(&mut self, predicate: P<TypePredicate>, mapper: P<TypeMapper>) -> P<TypePredicate> {
+    pub(crate) fn instantiate_type_predicate(
+        &mut self,
+        predicate: P<TypePredicate>,
+        mapper: P<TypeMapper>,
+    ) -> P<TypePredicate> {
         // Go instantiateType returns nil for a nil type.
         let t = predicate.type_().map(|t| self.instantiate_type(t, Some(mapper)));
         if t == predicate.type_() {
             return predicate;
         }
-        Self::new_type_predicate(predicate.kind(), predicate.parameter_name(), predicate.parameter_index(), t)
+        Self::new_type_predicate(
+            predicate.kind(),
+            predicate.parameter_name(),
+            predicate.parameter_index(),
+            t,
+        )
     }
 
     // relater.go:2141
@@ -3118,9 +4027,17 @@ impl Checker {
     }
 
     // relater.go:2145
-    pub(crate) fn is_resolving_return_type_of_signature(&mut self, signature: P<Signature>) -> bool {
+    pub(crate) fn is_resolving_return_type_of_signature(
+        &mut self,
+        signature: P<Signature>,
+    ) -> bool {
         if let Some(composite) = signature.composite() {
-            if composite.signatures.get().iter().any(|&s| self.is_resolving_return_type_of_signature(s)) {
+            if composite
+                .signatures
+                .get()
+                .iter()
+                .any(|&s| self.is_resolving_return_type_of_signature(s))
+            {
                 return true;
             }
         }
@@ -3148,7 +4065,13 @@ impl Checker {
             }
             for signature_list in signature_lists.iter().skip(1) {
                 if self
-                    .find_matching_signature(signature_list, signature, false /*partialMatch*/, false /*ignoreThisTypes*/, false /*ignoreReturnTypes*/)
+                    .find_matching_signature(
+                        signature_list,
+                        signature,
+                        false, /*partialMatch*/
+                        false, /*ignoreThisTypes*/
+                        false, /*ignoreReturnTypes*/
+                    )
                     .is_none()
                 {
                     return Vec::new();
@@ -3163,9 +4086,21 @@ impl Checker {
             let m = if i == list_index {
                 Some(signature)
             } else {
-                let m = self.find_matching_signature(signature_list, signature, false /*partialMatch*/, false /*ignoreThisTypes*/, true /*ignoreReturnTypes*/);
+                let m = self.find_matching_signature(
+                    signature_list,
+                    signature,
+                    false, /*partialMatch*/
+                    false, /*ignoreThisTypes*/
+                    true,  /*ignoreReturnTypes*/
+                );
                 if m.is_none() {
-                    self.find_matching_signature(signature_list, signature, true /*partialMatch*/, false /*ignoreThisTypes*/, true /*ignoreReturnTypes*/)
+                    self.find_matching_signature(
+                        signature_list,
+                        signature,
+                        true,  /*partialMatch*/
+                        false, /*ignoreThisTypes*/
+                        true,  /*ignoreReturnTypes*/
+                    )
                 } else {
                     m
                 }
@@ -3179,12 +4114,31 @@ impl Checker {
     }
 
     // relater.go:2187
-    pub(crate) fn find_matching_signature(&mut self, signature_list: &[P<Signature>], signature: P<Signature>, partial_match: bool, ignore_this_types: bool, ignore_return_types: bool) -> Option<P<Signature>> {
+    pub(crate) fn find_matching_signature(
+        &mut self,
+        signature_list: &[P<Signature>],
+        signature: P<Signature>,
+        partial_match: bool,
+        ignore_this_types: bool,
+        ignore_return_types: bool,
+    ) -> Option<P<Signature>> {
         for &s in signature_list {
             let compare_types = |c: &mut Checker, s: P<Type>, t: P<Type>| {
-                if partial_match { c.compare_types_subtype_of(s, t) } else { c.compare_types_identical(s, t) }
+                if partial_match {
+                    c.compare_types_subtype_of(s, t)
+                } else {
+                    c.compare_types_identical(s, t)
+                }
             };
-            if self.compare_signatures_identical(s, signature, partial_match, ignore_this_types, ignore_return_types, compare_types) != Ternary::False {
+            if self.compare_signatures_identical(
+                s,
+                signature,
+                partial_match,
+                ignore_this_types,
+                ignore_return_types,
+                compare_types,
+            ) != Ternary::False
+            {
                 return Some(s);
             }
         }
@@ -3195,7 +4149,15 @@ impl Checker {
     /**
      * See signatureRelatedTo, compareSignaturesIdentical
      */
-    pub(crate) fn compare_signatures_identical(&mut self, source: P<Signature>, target: P<Signature>, partial_match: bool, ignore_this_types: bool, ignore_return_types: bool, compare_types: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary) -> Ternary {
+    pub(crate) fn compare_signatures_identical(
+        &mut self,
+        source: P<Signature>,
+        target: P<Signature>,
+        partial_match: bool,
+        ignore_this_types: bool,
+        ignore_return_types: bool,
+        compare_types: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary,
+    ) -> Ternary {
         let mut compare_types = compare_types;
         let mut source = source;
         if source == target {
@@ -3229,7 +4191,8 @@ impl Checker {
                     return Ternary::False;
                 }
             }
-            source = self.instantiate_signature_ex(source, mapper, true /*eraseTypeParameters*/);
+            source =
+                self.instantiate_signature_ex(source, mapper, true /*eraseTypeParameters*/);
         }
         let mut result = Ternary::True;
         if !ignore_this_types {
@@ -3259,7 +4222,11 @@ impl Checker {
             let source_type_predicate = self.get_type_predicate_of_signature(source);
             let target_type_predicate = self.get_type_predicate_of_signature(target);
             if source_type_predicate.is_some() || target_type_predicate.is_some() {
-                result &= self.compare_type_predicates_identical(source_type_predicate, target_type_predicate, &mut compare_types);
+                result &= self.compare_type_predicates_identical(
+                    source_type_predicate,
+                    target_type_predicate,
+                    &mut compare_types,
+                );
             } else {
                 let s = self.get_return_type_of_signature(source);
                 let t = self.get_return_type_of_signature(target);
@@ -3270,7 +4237,12 @@ impl Checker {
     }
 
     // relater.go:2260
-    pub(crate) fn is_matching_signature(&mut self, source: P<Signature>, target: P<Signature>, partial_match: bool) -> bool {
+    pub(crate) fn is_matching_signature(
+        &mut self,
+        source: P<Signature>,
+        target: P<Signature>,
+        partial_match: bool,
+    ) -> bool {
         let source_parameter_count = self.get_parameter_count(source);
         let target_parameter_count = self.get_parameter_count(target);
         let source_min_argument_count = self.get_min_argument_count(source);
@@ -3294,7 +4266,11 @@ impl Checker {
     }
 
     // relater.go:2280
-    pub(crate) fn compare_type_parameters_identical(&mut self, source_params: &[P<Type>], target_params: &[P<Type>]) -> bool {
+    pub(crate) fn compare_type_parameters_identical(
+        &mut self,
+        source_params: &[P<Type>],
+        target_params: &[P<Type>],
+    ) -> bool {
         if source_params.len() != target_params.len() {
             return false;
         }
@@ -3306,8 +4282,10 @@ impl Checker {
                 continue;
             }
             // We instantiate the target type parameter constraints into the source types so we can recognize `<T, U extends T>` as the same as `<A, B extends A>`
-            let source_constraint = self.get_constraint_from_type_parameter(source).unwrap_or(self.unknown_type);
-            let target_constraint = self.get_constraint_from_type_parameter(target).unwrap_or(self.unknown_type);
+            let source_constraint =
+                self.get_constraint_from_type_parameter(source).unwrap_or(self.unknown_type);
+            let target_constraint =
+                self.get_constraint_from_type_parameter(target).unwrap_or(self.unknown_type);
             let target_constraint = self.instantiate_type(target_constraint, Some(mapper));
             if !self.is_type_identical_to(source_constraint, target_constraint) {
                 return false;
@@ -3321,7 +4299,12 @@ impl Checker {
     }
 
     // relater.go:2303
-    pub(crate) fn compare_type_predicates_identical(&mut self, source: Option<P<TypePredicate>>, target: Option<P<TypePredicate>>, compare_types: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary) -> Ternary {
+    pub(crate) fn compare_type_predicates_identical(
+        &mut self,
+        source: Option<P<TypePredicate>>,
+        target: Option<P<TypePredicate>>,
+        compare_types: impl FnMut(&mut Checker, P<Type>, P<Type>) -> Ternary,
+    ) -> Ternary {
         let mut compare_types = compare_types;
         let (Some(source), Some(target)) = (source, target) else {
             return Ternary::False;
@@ -3339,7 +4322,11 @@ impl Checker {
     }
 
     // relater.go:2315
-    pub(crate) fn get_effective_constraint_of_intersection(&mut self, types: &[P<Type>], target_is_union: bool) -> Option<P<Type>> {
+    pub(crate) fn get_effective_constraint_of_intersection(
+        &mut self,
+        types: &[P<Type>],
+        target_is_union: bool,
+    ) -> Option<P<Type>> {
         let mut constraints: Vec<P<Type>> = Vec::new();
         let mut has_disjoint_domain_type = false;
         for &t in types {
@@ -3347,7 +4334,11 @@ impl Checker {
                 // We keep following constraints as long as we have an instantiable type that is known
                 // not to be circular or infinite (hence we stop on index access types).
                 let mut constraint = self.get_constraint_of_type(t);
-                while let Some(c) = constraint.filter(|c| c.flags().intersects(TypeFlags::TypeParameter | TypeFlags::Index | TypeFlags::Conditional)) {
+                while let Some(c) = constraint.filter(|c| {
+                    c.flags().intersects(
+                        TypeFlags::TypeParameter | TypeFlags::Index | TypeFlags::Conditional,
+                    )
+                }) {
                     constraint = self.get_constraint_of_type(c);
                 }
                 if let Some(constraint) = constraint {
@@ -3356,7 +4347,9 @@ impl Checker {
                         constraints.push(t);
                     }
                 }
-            } else if t.flags().intersects(TypeFlags::DisjointDomains) || self.is_empty_anonymous_object_type(t) {
+            } else if t.flags().intersects(TypeFlags::DisjointDomains)
+                || self.is_empty_anonymous_object_type(t)
+            {
                 has_disjoint_domain_type = true;
             }
         }
@@ -3368,20 +4361,29 @@ impl Checker {
                 // We add any types belong to one of the disjoint domains because they might cause the final
                 // intersection operation to reduce the union constraints.
                 for &t in types {
-                    if t.flags().intersects(TypeFlags::DisjointDomains) || self.is_empty_anonymous_object_type(t) {
+                    if t.flags().intersects(TypeFlags::DisjointDomains)
+                        || self.is_empty_anonymous_object_type(t)
+                    {
                         constraints.push(t);
                     }
                 }
             }
             // The source types were normalized; ensure the result is normalized too.
-            let intersection = self.get_intersection_type_ex(&constraints, IntersectionFlags::NoConstraintReduction, AliasArg::None);
+            let intersection = self.get_intersection_type_ex(
+                &constraints,
+                IntersectionFlags::NoConstraintReduction,
+                AliasArg::None,
+            );
             return Some(self.get_normalized_type(intersection, false /*writing*/));
         }
         None
     }
 
     // relater.go:2354
-    pub(crate) fn template_literal_types_definitely_unrelated(source: &'static TemplateLiteralType, target: &'static TemplateLiteralType) -> bool {
+    pub(crate) fn template_literal_types_definitely_unrelated(
+        source: &'static TemplateLiteralType,
+        target: &'static TemplateLiteralType,
+    ) -> bool {
         // Two template literal types with differences in their starting or ending text spans are definitely unrelated.
         let source_texts = source.texts();
         let target_texts = target.texts();
@@ -3397,15 +4399,22 @@ impl Checker {
     }
 
     // relater.go:2365
-    pub(crate) fn is_type_matched_by_template_literal_type(&mut self, source: P<Type>, target: &'static TemplateLiteralType, compare_types: TypeComparer) -> bool {
+    pub(crate) fn is_type_matched_by_template_literal_type(
+        &mut self,
+        source: P<Type>,
+        target: &'static TemplateLiteralType,
+        compare_types: TypeComparer,
+    ) -> bool {
         let inferences = self.infer_types_from_template_literal_type(source, target, compare_types);
         // An empty result stands for Go's nil (a successful inference is never empty).
         if !inferences.is_empty() {
-            if inferences
-                .iter()
-                .enumerate()
-                .any(|(i, &inference)| !self.is_valid_type_for_template_literal_placeholder(inference, target.types()[i], compare_types))
-            {
+            if inferences.iter().enumerate().any(|(i, &inference)| {
+                !self.is_valid_type_for_template_literal_placeholder(
+                    inference,
+                    target.types()[i],
+                    compare_types,
+                )
+            }) {
                 return false;
             }
             return true;
@@ -3415,7 +4424,12 @@ impl Checker {
 
     // relater.go:2378
     // (An empty result stands for Go's nil: a non-nil result always has one element per target placeholder.)
-    pub(crate) fn infer_types_from_template_literal_type(&mut self, source: P<Type>, target: &'static TemplateLiteralType, compare_types: TypeComparer) -> Vec<P<Type>> {
+    pub(crate) fn infer_types_from_template_literal_type(
+        &mut self,
+        source: P<Type>,
+        target: &'static TemplateLiteralType,
+        compare_types: TypeComparer,
+    ) -> Vec<P<Type>> {
         if source.flags().intersects(TypeFlags::StringLiteral) {
             let value = get_string_literal_value(source);
             return self.infer_from_literal_parts_to_template_literal(&[value], &[], target);
@@ -3427,11 +4441,19 @@ impl Checker {
                 result.extend(source_template.types().iter().enumerate().map(|(i, &s)| {
                     let a = self.get_base_constraint_or_type(s);
                     let b = self.get_base_constraint_or_type(target.types()[i]);
-                    if compare_types(self, a, b, false /*partialMatch*/) != Ternary::False { s } else { self.get_string_like_type_for_type(s) }
+                    if compare_types(self, a, b, false /*partialMatch*/) != Ternary::False {
+                        s
+                    } else {
+                        self.get_string_like_type_for_type(s)
+                    }
                 }));
                 return result;
             }
-            return self.infer_from_literal_parts_to_template_literal(source_template.texts(), source_template.types(), target);
+            return self.infer_from_literal_parts_to_template_literal(
+                source_template.texts(),
+                source_template.types(),
+                target,
+            );
         }
         Vec::new()
     }
@@ -3459,7 +4481,12 @@ impl Checker {
     // the first inference is the template literal type `<${string}>`. The remainder of the source makes up the second
     // inference, the template literal type `<${number}-${number}>`.
     // (An empty result stands for Go's nil.)
-    pub(crate) fn infer_from_literal_parts_to_template_literal(&mut self, source_texts: &[&str], source_types: &[P<Type>], target: &'static TemplateLiteralType) -> Vec<P<Type>> {
+    pub(crate) fn infer_from_literal_parts_to_template_literal(
+        &mut self,
+        source_texts: &[&str],
+        source_types: &[P<Type>],
+        target: &'static TemplateLiteralType,
+    ) -> Vec<P<Type>> {
         let last_source_index = source_texts.len() - 1;
         let source_start_text = source_texts[0];
         let source_end_text = source_texts[last_source_index];
@@ -3467,7 +4494,8 @@ impl Checker {
         let last_target_index = target_texts.len() - 1;
         let target_start_text = target_texts[0];
         let target_end_text = target_texts[last_target_index];
-        if last_source_index == 0 && source_start_text.len() < target_start_text.len() + target_end_text.len()
+        if last_source_index == 0
+            && source_start_text.len() < target_start_text.len() + target_end_text.len()
             || !source_start_text.starts_with(target_start_text)
             || !source_end_text.ends_with(target_end_text)
         {
@@ -3483,8 +4511,12 @@ impl Checker {
             }
             remaining_end_text
         };
-        let add_match = |c: &mut Checker, s: usize, p: usize, seg: &mut usize, pos: &mut usize, matches: &mut Vec<P<Type>>| {
-
+        let add_match = |c: &mut Checker,
+                         s: usize,
+                         p: usize,
+                         seg: &mut usize,
+                         pos: &mut usize,
+                         matches: &mut Vec<P<Type>>| {
             let match_type = if s == *seg {
                 let text = stringutil::combine_surrogate_pairs(&get_source_text(s)[*pos..p]);
                 c.get_string_literal_type(&text)
@@ -3542,7 +4574,14 @@ impl Checker {
                 return Vec::new();
             }
         }
-        add_match(self, last_source_index, get_source_text(last_source_index).len(), &mut seg, &mut pos, &mut matches);
+        add_match(
+            self,
+            last_source_index,
+            get_source_text(last_source_index).len(),
+            &mut seg,
+            &mut pos,
+            &mut matches,
+        );
         matches
     }
 
@@ -3555,32 +4594,51 @@ impl Checker {
     }
 
     // relater.go:2509
-    pub(crate) fn is_valid_type_for_template_literal_placeholder(&mut self, source: P<Type>, target: P<Type>, compare_types: TypeComparer) -> bool {
+    pub(crate) fn is_valid_type_for_template_literal_placeholder(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+        compare_types: TypeComparer,
+    ) -> bool {
         if target.flags().intersects(TypeFlags::Intersection) {
-            return target
-                .types()
-                .iter()
-                .all(|&t| t == self.empty_type_literal_type || self.is_valid_type_for_template_literal_placeholder(source, t, compare_types));
+            return target.types().iter().all(|&t| {
+                t == self.empty_type_literal_type
+                    || self.is_valid_type_for_template_literal_placeholder(source, t, compare_types)
+            });
         }
-        if target.flags().intersects(TypeFlags::String) || compare_types(self, source, target, false) != Ternary::False {
+        if target.flags().intersects(TypeFlags::String)
+            || compare_types(self, source, target, false) != Ternary::False
+        {
             return true;
         }
         if source.flags().intersects(TypeFlags::StringLiteral) {
             let value = get_string_literal_value(source);
-            return target.flags().intersects(TypeFlags::Number) && is_valid_number_string(value, false /*roundTripOnly*/)
-                || target.flags().intersects(TypeFlags::BigInt) && is_valid_big_int_string(value, false /*roundTripOnly*/)
+            return target.flags().intersects(TypeFlags::Number)
+                && is_valid_number_string(value, false /*roundTripOnly*/)
+                || target.flags().intersects(TypeFlags::BigInt)
+                    && is_valid_big_int_string(value, false /*roundTripOnly*/)
                 || target.flags().intersects(TypeFlags::BooleanLiteral | TypeFlags::Nullable)
                     && value == target.as_intrinsic_type().intrinsic_name()
-                || target.flags().intersects(TypeFlags::StringMapping) && self.is_member_of_string_mapping(source, target)
+                || target.flags().intersects(TypeFlags::StringMapping)
+                    && self.is_member_of_string_mapping(source, target)
                 || target.flags().intersects(TypeFlags::TemplateLiteral)
-                    && self.is_type_matched_by_template_literal_type(source, target.as_template_literal_type(), compare_types);
+                    && self.is_type_matched_by_template_literal_type(
+                        source,
+                        target.as_template_literal_type(),
+                        compare_types,
+                    );
         }
         if source.flags().intersects(TypeFlags::TemplateLiteral) {
             let texts = source.as_template_literal_type().texts();
             return texts.len() == 2
                 && texts[0].is_empty()
                 && texts[1].is_empty()
-                && compare_types(self, source.as_template_literal_type().types()[0], target, false) != Ternary::False;
+                && compare_types(
+                    self,
+                    source.as_template_literal_type().types()[0],
+                    target,
+                    false,
+                ) != Ternary::False;
         }
         false
     }
@@ -3608,7 +4666,11 @@ impl Checker {
     }
 
     // relater.go:2551
-    pub(crate) fn apply_target_string_mapping_to_source(&mut self, source: P<Type>, target: P<Type>) -> (P<Type>, P<Type>) {
+    pub(crate) fn apply_target_string_mapping_to_source(
+        &mut self,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> (P<Type>, P<Type>) {
         let mut source = source;
         let mut inner = target.as_string_mapping_type().target.get().unwrap();
         if inner.flags().intersects(TypeFlags::StringMapping) {
@@ -3634,6 +4696,9 @@ pub(crate) fn visibility_to_string(flags: ModifierFlags) -> String {
 pub(crate) fn are_different_plain_literals(a: P<Type>, b: P<Type>) -> bool {
     let flags = a.flags();
     flags == b.flags()
-        && matches!(flags, TypeFlags::StringLiteral | TypeFlags::NumberLiteral | TypeFlags::BigIntLiteral)
+        && matches!(
+            flags,
+            TypeFlags::StringLiteral | TypeFlags::NumberLiteral | TypeFlags::BigIntLiteral
+        )
         && a.as_literal_type().regular_type.get() != b.as_literal_type().regular_type.get()
 }

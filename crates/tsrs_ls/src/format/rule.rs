@@ -27,7 +27,10 @@ impl RuleImpl {
     }
 
     // rule.go:24
-    #[expect(dead_code, reason = "Go's String() makes ruleImpl a fmt.Stringer for debug output; no Go code calls it")]
+    #[expect(
+        dead_code,
+        reason = "Go's String() makes ruleImpl a fmt.Stringer for debug output; no Go code calls it"
+    )]
     pub(crate) fn string(&self) -> &'static str {
         self.debug_name
     }
@@ -109,7 +112,8 @@ pub(crate) fn rule(
     }
     let left_range = to_token_range(left);
     let right_range = to_token_range(right);
-    let rule: &'static RuleImpl = Box::leak(Box::new(RuleImpl { debug_name, context, action, flags: flag }));
+    let rule: &'static RuleImpl =
+        Box::leak(Box::new(RuleImpl { debug_name, context, action, flags: flag }));
     RuleSpec { left_token_range: left_range, right_token_range: right_range, rule }
 }
 
@@ -140,9 +144,12 @@ impl RuleAction {
     pub(crate) const DeleteToken: RuleAction = RuleAction(1 << 5);
     pub(crate) const InsertTrailingSemicolon: RuleAction = RuleAction(1 << 6);
 
-    pub(crate) const StopAction: RuleAction = RuleAction(Self::StopProcessingSpaceActions.0 | Self::StopProcessingTokenActions.0);
-    pub(crate) const ModifySpaceAction: RuleAction = RuleAction(Self::InsertSpace.0 | Self::InsertNewLine.0 | Self::DeleteSpace.0);
-    pub(crate) const ModifyTokenAction: RuleAction = RuleAction(Self::DeleteToken.0 | Self::InsertTrailingSemicolon.0);
+    pub(crate) const StopAction: RuleAction =
+        RuleAction(Self::StopProcessingSpaceActions.0 | Self::StopProcessingTokenActions.0);
+    pub(crate) const ModifySpaceAction: RuleAction =
+        RuleAction(Self::InsertSpace.0 | Self::InsertNewLine.0 | Self::DeleteSpace.0);
+    pub(crate) const ModifyTokenAction: RuleAction =
+        RuleAction(Self::DeleteToken.0 | Self::InsertTrailingSemicolon.0);
 }
 
 impl std::ops::BitAnd for RuleAction {

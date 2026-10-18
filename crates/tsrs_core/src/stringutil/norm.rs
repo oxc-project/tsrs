@@ -44,7 +44,10 @@ mod tests {
 
     #[test]
     fn normalization_matches_pinned_combining_sequences() {
-        let marks: Vec<char> = (0..=0x0010_ffff).filter_map(char::from_u32).filter(|&c| unicode_is_mn(c as u32)).collect();
+        let marks: Vec<char> = (0..=0x0010_ffff)
+            .filter_map(char::from_u32)
+            .filter(|&c| unicode_is_mn(c as u32))
+            .collect();
         let mut seed = 0x1234_5678_u64;
         for case in 0..20_000 {
             let mut text = if case % 3 == 0 { String::new() } else { "Åé각".to_owned() };
@@ -60,10 +63,7 @@ mod tests {
 
     #[test]
     fn normalization_preserves_canonical_order_and_hangul() {
-        assert_eq!(
-            norm_nfd_string("Åé각"),
-            "A\u{30a}e\u{301}\u{1100}\u{1161}\u{11a8}"
-        );
+        assert_eq!(norm_nfd_string("Åé각"), "A\u{30a}e\u{301}\u{1100}\u{1161}\u{11a8}");
         assert_eq!(norm_nfd_string("a\u{301}\u{327}"), "a\u{327}\u{301}");
         assert_eq!(norm_nfd_string("\u{301}\u{327}"), "\u{327}\u{301}");
         assert_eq!(norm_nfd_string("a\u{301}\u{300}"), "a\u{301}\u{300}");

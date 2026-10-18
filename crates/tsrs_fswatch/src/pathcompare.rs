@@ -1,5 +1,5 @@
-use std::sync::Mutex;
 use rustc_hash::FxHashMap;
+use std::sync::Mutex;
 use tsrs_core::stringutil::equal_fold;
 
 use crate::canonicalize::{fold_native_path, nativePathFolding};
@@ -68,7 +68,11 @@ impl pathComparer {
     }
 
     // pathcompare.go:61
-    pub(crate) fn suffix_prepared(self, root: &comparisonPath, path: &mut comparisonPath) -> Option<String> {
+    pub(crate) fn suffix_prepared(
+        self,
+        root: &comparisonPath,
+        path: &mut comparisonPath,
+    ) -> Option<String> {
         if is_in_directory_or_self(&root.path, &path.path) {
             return Some(path.path[root.path.len()..].to_string());
         }
@@ -83,7 +87,10 @@ impl pathComparer {
     }
 
     // pathcompare.go:75
-    pub(crate) fn suffix_unicode(root: &comparisonPath, path: &mut comparisonPath) -> Option<String> {
+    pub(crate) fn suffix_unicode(
+        root: &comparisonPath,
+        path: &mut comparisonPath,
+    ) -> Option<String> {
         if !nativePathFolding {
             return path_suffix_fold_unicode(&root.path, &path.path);
         }
@@ -133,7 +140,12 @@ impl pathComparer {
     }
 
     // pathcompare.go:176
-    pub(crate) fn rebase_prepared(self, path: &mut comparisonPath, from: &comparisonPath, to: &str) -> Option<String> {
+    pub(crate) fn rebase_prepared(
+        self,
+        path: &mut comparisonPath,
+        from: &comparisonPath,
+        to: &str,
+    ) -> Option<String> {
         if is_in_directory_or_self(&from.path, &path.path) {
             return Some(rebase_path(&path.path, &from.path, to));
         }

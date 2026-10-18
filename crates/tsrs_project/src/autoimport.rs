@@ -4,17 +4,17 @@ use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_compiler::Program;
 use tsrs_core::collections::SyncMap;
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{alloc_str, P};
+use tsrs_core::{P, alloc_str};
 use tsrs_ls::autoimport::{ProjectID, RegistryCloneHost};
-use tsrs_module::packagejson::{self, InfoCacheEntry, PackageJson};
 use tsrs_module::ResolutionHost;
+use tsrs_module::packagejson::{self, InfoCacheEntry, PackageJson};
 use tsrs_vfs::{Entries, FS};
 
 use crate::overlayfs::{FileHandle, ToPath};
-use crate::parsecache::{new_parse_cache_key, ParseCache, ParseCacheKey};
+use crate::parsecache::{ParseCache, ParseCacheKey, new_parse_cache_key};
 use crate::project::ID;
 use crate::projectcollection::ProjectCollection;
-use crate::snapshotfs::{new_source_fs, snapshotFSBuilder, sourceFS, FileHandleSource, FileSource};
+use crate::snapshotfs::{FileHandleSource, FileSource, new_source_fs, snapshotFSBuilder, sourceFS};
 
 struct autoImportBuilderFS {
     snapshot_fs_builder: Arc<snapshotFSBuilder>,
@@ -85,7 +85,14 @@ pub(crate) fn new_auto_import_registry_clone_host(
     autoImportRegistryCloneHost {
         project_collection,
         parse_cache,
-        fs: new_source_fs(false, Arc::new(autoImportBuilderFS { snapshot_fs_builder, untracked_files: SyncMap::default() }), to_path),
+        fs: new_source_fs(
+            false,
+            Arc::new(autoImportBuilderFS {
+                snapshot_fs_builder,
+                untracked_files: SyncMap::default(),
+            }),
+            to_path,
+        ),
         current_directory: current_directory.to_string(),
         files: Mutex::new(Vec::new()),
     }
@@ -135,7 +142,10 @@ impl RegistryCloneHost for autoImportRegistryCloneHost {
             Err(_) => P::new(InfoCacheEntry {
                 directory_exists: true,
                 package_directory: alloc_str(&tspath::get_directory_path(file_name)),
-                contents: Some(P::new(PackageJson::new(tsrs_module::packagejson::Fields::default(), false))),
+                contents: Some(P::new(PackageJson::new(
+                    tsrs_module::packagejson::Fields::default(),
+                    false,
+                ))),
             }),
             Ok(fields) => P::new(InfoCacheEntry {
                 directory_exists: true,
@@ -148,7 +158,11 @@ impl RegistryCloneHost for autoImportRegistryCloneHost {
     // autoimport.go:152
     fn get_source_file(&self, file_name: &str, path: &Path) -> Option<P<SourceFile>> {
         let fh = self.fs.get_file(file_name)?;
-        let opts = SourceFileParseOptions { file_name: file_name.to_string(), path: path.clone(), ..Default::default() };
+        let opts = SourceFileParseOptions {
+            file_name: file_name.to_string(),
+            path: path.clone(),
+            ..Default::default()
+        };
         let key = new_parse_cache_key(opts, fh.hash(), fh.kind());
         let result = self.parse_cache.acquire(&key, fh);
 
@@ -165,4 +179,3 @@ impl RegistryCloneHost for autoImportRegistryCloneHost {
         }
     }
 }
-

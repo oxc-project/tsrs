@@ -1,7 +1,7 @@
 use tsrs_ast::{self as ast, Node, Symbol};
 use tsrs_checker::Type;
-use tsrs_core::context::Context;
 use tsrs_core::P;
+use tsrs_core::context::Context;
 use tsrs_lsproto as lsproto;
 
 use crate::astnav;
@@ -32,7 +32,8 @@ impl LanguageService {
     // api.go:32
     pub fn get_symbol_at_location(&self, ctx: &Context, node: P<Node>) -> Option<P<Symbol>> {
         let program = self.get_program();
-        let mut checker = program.get_type_checker_for_file(ctx, ast::get_source_file_of_node(node).unwrap());
+        let mut checker =
+            program.get_type_checker_for_file(ctx, ast::get_source_file_of_node(node).unwrap());
         checker.get_symbol_at_location_exported(node)
     }
 

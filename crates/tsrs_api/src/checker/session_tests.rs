@@ -13,7 +13,7 @@ use rustc_hash::FxHashMap;
 use std::sync::Arc;
 
 use tsrs_core::json::{self, Value};
-use tsrs_vfs::{bundled, vfstest, FS};
+use tsrs_vfs::{FS, bundled, vfstest};
 
 use crate::handler::{Handler, Response};
 use crate::session::{Session, SessionOptions};
@@ -25,10 +25,27 @@ const OTHER: &str = include_str!("testdata/go_probe/fixture/other.ts");
 const GO_SHAPES: &str = include_str!("testdata/go_probe/go_shapes_b85298b6.jsonl");
 
 const ID_KEYS: &[&str] = &[
-    "id", "target", "freshType", "regularType", "thisType", "typeParameter", "constraintType", "nameType", "templateType", "objectType",
-    "indexType", "checkType", "extendsType", "baseType", "substConstraint", "unknown", "undefined", "arguments",
+    "id",
+    "target",
+    "freshType",
+    "regularType",
+    "thisType",
+    "typeParameter",
+    "constraintType",
+    "nameType",
+    "templateType",
+    "objectType",
+    "indexType",
+    "checkType",
+    "extendsType",
+    "baseType",
+    "substConstraint",
+    "unknown",
+    "undefined",
+    "arguments",
 ];
-const ID_ARRAY_KEYS: &[&str] = &["typeParameters", "outerTypeParameters", "localTypeParameters", "aliasTypeArguments"];
+const ID_ARRAY_KEYS: &[&str] =
+    &["typeParameters", "outerTypeParameters", "localTypeParameters", "aliasTypeArguments"];
 
 #[derive(Default)]
 struct Ids {
@@ -38,7 +55,15 @@ struct Ids {
 }
 
 /// Keys whose object values are symbol references (their `id` is a symbol id, a separate counter).
-const SYMBOL_KEYS: &[&str] = &["symbol", "aliasSymbol", "parent", "exportSymbol", "reference", "thisParameter", "parameters"];
+const SYMBOL_KEYS: &[&str] = &[
+    "symbol",
+    "aliasSymbol",
+    "parent",
+    "exportSymbol",
+    "reference",
+    "thisParameter",
+    "parameters",
+];
 
 impl Ids {
     fn num(&mut self, n: f64) -> Value {
@@ -67,13 +92,20 @@ fn normalize(v: &Value, ids: &mut Ids, in_symbol: bool) -> Value {
                 let nv = match (k.as_str(), child) {
                     ("id", Value::Number(n)) if in_symbol => ids.sym(*n),
                     (key, Value::Number(n)) if ID_KEYS.contains(&key) => ids.num(*n),
-                    (key, Value::Array(a)) if ID_ARRAY_KEYS.contains(&key) => {
-                        Value::Array(a.iter().map(|x| if let Value::Number(n) = x { ids.num(*n) } else { x.clone() }).collect())
-                    }
+                    (key, Value::Array(a)) if ID_ARRAY_KEYS.contains(&key) => Value::Array(
+                        a.iter()
+                            .map(|x| if let Value::Number(n) = x { ids.num(*n) } else { x.clone() })
+                            .collect(),
+                    ),
                     ("file" | "nodeId", Value::String(s)) => ids.str(s),
                     // Escaped names of well-known-symbol members embed the unique ES symbol's
                     // process-wide symbol id: `__@iterator@1360`.
-                    ("name", Value::String(s)) if s.starts_with("__@") && s.rfind('@').is_some_and(|i| i > 2 && s[i + 1..].bytes().all(|b| b.is_ascii_digit())) => {
+                    ("name", Value::String(s))
+                        if s.starts_with("__@")
+                            && s.rfind('@').is_some_and(|i| {
+                                i > 2 && s[i + 1..].bytes().all(|b| b.is_ascii_digit())
+                            }) =>
+                    {
                         let i = s.rfind('@').unwrap();
                         Value::String(format!("{}@<symbol id>", &s[..i]))
                     }
@@ -133,14 +165,20 @@ impl S {
     }
 
     pub(super) fn at(&self, needle: &str) -> Value {
-        self.sp(&[("file", Value::String("/p/main.ts".into())), ("position", Value::Number(utf16_pos(MAIN, needle) as f64))])
+        self.sp(&[
+            ("file", Value::String("/p/main.ts".into())),
+            ("position", Value::Number(utf16_pos(MAIN, needle) as f64)),
+        ])
     }
 
     fn sym_ref(&self, needle: &str) -> Value {
         get(&self.call("getSymbolAtPosition", &self.at(needle)).unwrap(), "reference")
     }
 
-    #[expect(clippy::needless_pass_by_value, reason = "Probe requests take temporary owned JSON fixtures, matching the request-building API throughout this suite.")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Probe requests take temporary owned JSON fixtures, matching the request-building API throughout this suite."
+    )]
     fn shape(&mut self, label: &str, method: &str, params: Value) -> Value {
         match self.call(method, &params) {
             Ok(r) => {
@@ -154,7 +192,10 @@ impl S {
         }
     }
 
-    #[expect(clippy::needless_pass_by_value, reason = "Probe requests take temporary owned JSON fixtures, matching the request-building API throughout this suite.")]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Probe requests take temporary owned JSON fixtures, matching the request-building API throughout this suite."
+    )]
     fn wrong(&mut self, label: &str, method: &str, params: Value) {
         let r = match self.call(method, &params) {
             Ok(r) => obj(&[("result", r)]),
@@ -181,10 +222,19 @@ fn session() -> S {
 /// A session over the fixture (plus `extra` files) with one snapshot opening `configs`; `S.project`
 /// is the `/p` project.
 pub(super) fn session_with(extra: &[(&str, &str)], configs: &[&str]) -> S {
-    let mut files = vec![("/p/tsconfig.json", TSCONFIG), ("/p/main.ts", MAIN), ("/p/types.d.ts", TYPES), ("/p/other.ts", OTHER)];
+    let mut files = vec![
+        ("/p/tsconfig.json", TSCONFIG),
+        ("/p/main.ts", MAIN),
+        ("/p/types.d.ts", TYPES),
+        ("/p/other.ts", OTHER),
+    ];
     files.extend_from_slice(extra);
-    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|(k, v)| (k.to_string(), v.to_string())), false)));
-    let session = Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.to_string(), v.to_string())),
+        false,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
     let mut s = S { session, snapshot: 0.0, project: String::new(), lines: Vec::new() };
     let open = Value::Array(configs.iter().map(|c| Value::String(c.to_string())).collect());
     let snap = s.call("createSnapshot", &obj(&[("openProjects", open)])).unwrap();
@@ -210,50 +260,112 @@ fn shapes() -> Vec<(String, Value)> {
     let boxt = s.shape("type.reference", "getTypeAtPosition", s.at("box:"));
     s.shape("type.union", "getTypeAtPosition", s.at("maybe:"));
     s.shape("type.bigint", "getTypeAtPosition", s.at("big ="));
-    let pair = s.call("getDeclaredTypeOfSymbol", &s.sp(&[("symbol", s.sym_ref("Pair<A, B>"))])).unwrap();
+    let pair =
+        s.call("getDeclaredTypeOfSymbol", &s.sp(&[("symbol", s.sym_ref("Pair<A, B>"))])).unwrap();
     s.shape("type.tupleTarget", "getTargetOfType", s.sp(&[("objectId", get(&pair, "id"))]));
-    let box_target = s.shape("type.interfaceTarget", "getTargetOfType", s.sp(&[("objectId", get(&boxt, "id"))]));
-    s.shape("type.typeParameter", "getLocalTypeParametersOfType", s.sp(&[("objectId", get(&box_target, "id"))]));
+    let box_target =
+        s.shape("type.interfaceTarget", "getTargetOfType", s.sp(&[("objectId", get(&boxt, "id"))]));
+    s.shape(
+        "type.typeParameter",
+        "getLocalTypeParametersOfType",
+        s.sp(&[("objectId", get(&box_target, "id"))]),
+    );
     s.shape("type.thisType", "getThisTypeOfType", s.sp(&[("objectId", get(&box_target, "id"))]));
-    for (label, needle) in [("type.mapped", "M = "), ("type.conditional", "C<T> ="), ("type.templateLiteral", "TL = "), ("type.indexedAccess", "IA<T, K")] {
+    for (label, needle) in [
+        ("type.mapped", "M = "),
+        ("type.conditional", "C<T> ="),
+        ("type.templateLiteral", "TL = "),
+        ("type.indexedAccess", "IA<T, K"),
+    ] {
         let params = s.sp(&[("symbol", s.sym_ref(needle))]);
         s.shape(label, "getDeclaredTypeOfSymbol", params);
     }
     let str_t = s.call("getStringType", &s.sp(&[])).unwrap();
     s.shape("type.intrinsic", "getStringType", s.sp(&[]));
     s.shape("indexInfos", "getIndexInfosOfType", s.sp(&[("type", get(&boxt, "id"))]));
-    s.shape("indexInfo.number.none", "getIndexInfoOfType", s.sp(&[("type", get(&str_t, "id")), ("kind", n(1))]));
+    s.shape(
+        "indexInfo.number.none",
+        "getIndexInfoOfType",
+        s.sp(&[("type", get(&str_t, "id")), ("kind", n(1))]),
+    );
     s.shape("symbol.variable", "getSymbolAtPosition", s.at("box:"));
     s.shape("symbol.class", "getSymbolAtPosition", s.at("Dog extends"));
-    s.shape("symbol.global", "resolveName", s.sp(&[("name", Value::String("Array".into())), ("meaning", n(tsrs_ast::SymbolFlags::Type.bits()))]));
-    s.shape("symbol.none", "resolveName", s.sp(&[("name", Value::String("nope".into())), ("meaning", n(tsrs_ast::SymbolFlags::Value.bits()))]));
+    s.shape(
+        "symbol.global",
+        "resolveName",
+        s.sp(&[
+            ("name", Value::String("Array".into())),
+            ("meaning", n(tsrs_ast::SymbolFlags::Type.bits())),
+        ]),
+    );
+    s.shape(
+        "symbol.none",
+        "resolveName",
+        s.sp(&[
+            ("name", Value::String("nope".into())),
+            ("meaning", n(tsrs_ast::SymbolFlags::Value.bits())),
+        ]),
+    );
     s.shape("members.empty", "getMembersOfSymbol", obj(&[("symbol", s.sym_ref("box:"))]));
     s.shape("exports.empty", "getExportsOfSymbol", obj(&[("symbol", s.sym_ref("box:"))]));
     s.shape("properties.empty", "getPropertiesOfType", s.sp(&[("type", get(&str_t, "id"))]));
     s.shape("typeArguments", "getTypeArguments", s.sp(&[("type", get(&boxt, "id"))]));
-    s.shape("aliasTypeArguments.empty", "getAliasTypeArgumentsOfType", s.sp(&[("objectId", get(&boxt, "id"))]));
+    s.shape(
+        "aliasTypeArguments.empty",
+        "getAliasTypeArgumentsOfType",
+        s.sp(&[("objectId", get(&boxt, "id"))]),
+    );
     let over = s.call("getTypeAtPosition", &s.at("over(x: string)")).unwrap();
-    let sigs = s.shape("signatures", "getSignaturesOfType", s.sp(&[("type", get(&over, "id")), ("kind", n(0))]));
-    s.shape("signatures.construct.empty", "getSignaturesOfType", s.sp(&[("type", get(&over, "id")), ("kind", n(1))]));
+    let sigs = s.shape(
+        "signatures",
+        "getSignaturesOfType",
+        s.sp(&[("type", get(&over, "id")), ("kind", n(0))]),
+    );
+    s.shape(
+        "signatures.construct.empty",
+        "getSignaturesOfType",
+        s.sp(&[("type", get(&over, "id")), ("kind", n(1))]),
+    );
     let sig0 = match &sigs {
         Value::Array(a) => a[0].clone(),
         other => panic!("{other:?}"),
     };
-    s.shape("signature.typeParameters.empty", "getTypeParametersOfSignature", s.sp(&[("objectId", get(&sig0, "id"))]));
-    s.shape("signature.thisParameter.none", "getThisParameterOfSignature", s.sp(&[("objectId", get(&sig0, "id"))]));
+    s.shape(
+        "signature.typeParameters.empty",
+        "getTypeParametersOfSignature",
+        s.sp(&[("objectId", get(&sig0, "id"))]),
+    );
+    s.shape(
+        "signature.thisParameter.none",
+        "getThisParameterOfSignature",
+        s.sp(&[("objectId", get(&sig0, "id"))]),
+    );
     let is_str = s.call("getTypeAtPosition", &s.at("isStr(")).unwrap();
-    let is_str_sigs = s.call("getSignaturesOfType", &s.sp(&[("type", get(&is_str, "id")), ("kind", n(0))])).unwrap();
+    let is_str_sigs = s
+        .call("getSignaturesOfType", &s.sp(&[("type", get(&is_str, "id")), ("kind", n(0))]))
+        .unwrap();
     let is_str_sig = match &is_str_sigs {
         Value::Array(a) => a[0].clone(),
         other => panic!("{other:?}"),
     };
-    s.shape("typePredicate", "getTypePredicateOfSignature", s.sp(&[("signature", get(&is_str_sig, "id"))]));
-    s.shape("typePredicate.none", "getTypePredicateOfSignature", s.sp(&[("signature", get(&sig0, "id"))]));
+    s.shape(
+        "typePredicate",
+        "getTypePredicateOfSignature",
+        s.sp(&[("signature", get(&is_str_sig, "id"))]),
+    );
+    s.shape(
+        "typePredicate.none",
+        "getTypePredicateOfSignature",
+        s.sp(&[("signature", get(&sig0, "id"))]),
+    );
     s.shape("jsDocTags", "getJsDocTags", s.sp(&[("symbol", s.sym_ref("Animal {"))]));
     s.shape("jsDocTags.none", "getJsDocTags", s.sp(&[("symbol", s.sym_ref("box:"))]));
     s.shape("exportsOfModule.none", "getExportsOfModule", s.sp(&[("symbol", s.sym_ref("box:"))]));
     s.shape("baseTypes.none", "getBaseTypes", s.sp(&[("type", get(&box_target, "id"))]));
-    let first_decl = |s: &S, needle: &str| match get(&s.call("getSymbolAtPosition", &s.at(needle)).unwrap(), "declarations") {
+    let first_decl = |s: &S, needle: &str| match get(
+        &s.call("getSymbolAtPosition", &s.at(needle)).unwrap(),
+        "declarations",
+    ) {
         Value::Array(a) => a[0].clone(),
         other => panic!("{other:?}"),
     };
@@ -264,7 +376,10 @@ fn shapes() -> Vec<(String, Value)> {
     s.shape(
         "completions",
         "getCompletionsAtPosition",
-        s.sp(&[("file", Value::String("/p/main.ts".into())), ("position", n((utf16_pos(MAIN, "box.value") + 4) as f64))]),
+        s.sp(&[
+            ("file", Value::String("/p/main.ts".into())),
+            ("position", n((utf16_pos(MAIN, "box.value") + 4) as f64)),
+        ]),
     );
     s.shape("wellKnownSignatures", "getWellKnownSignatures", s.sp(&[]));
 
@@ -279,8 +394,18 @@ fn shapes() -> Vec<(String, Value)> {
         ("getRegularTypeOfType(object)", "getRegularTypeOfType", "objectId", &obj_id),
         ("getTypesOfType(literal)", "getTypesOfType", "objectId", &lit_id),
         ("getTypeParametersOfType(literal)", "getTypeParametersOfType", "objectId", &lit_id),
-        ("getOuterTypeParametersOfType(literal)", "getOuterTypeParametersOfType", "objectId", &lit_id),
-        ("getLocalTypeParametersOfType(literal)", "getLocalTypeParametersOfType", "objectId", &lit_id),
+        (
+            "getOuterTypeParametersOfType(literal)",
+            "getOuterTypeParametersOfType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getLocalTypeParametersOfType(literal)",
+            "getLocalTypeParametersOfType",
+            "objectId",
+            &lit_id,
+        ),
         ("getThisTypeOfType(literal)", "getThisTypeOfType", "objectId", &lit_id),
         ("getObjectTypeOfType(literal)", "getObjectTypeOfType", "objectId", &lit_id),
         ("getIndexTypeOfType(literal)", "getIndexTypeOfType", "objectId", &lit_id),
@@ -288,14 +413,49 @@ fn shapes() -> Vec<(String, Value)> {
         ("getExtendsTypeOfType(literal)", "getExtendsTypeOfType", "objectId", &lit_id),
         ("getBaseTypeOfType(literal)", "getBaseTypeOfType", "objectId", &lit_id),
         ("getConstraintOfType(literal)", "getConstraintOfType", "objectId", &lit_id),
-        ("getTypeParameterOfMappedType(literal)", "getTypeParameterOfMappedType", "objectId", &lit_id),
-        ("getConstraintTypeOfMappedType(literal)", "getConstraintTypeOfMappedType", "objectId", &lit_id),
+        (
+            "getTypeParameterOfMappedType(literal)",
+            "getTypeParameterOfMappedType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getConstraintTypeOfMappedType(literal)",
+            "getConstraintTypeOfMappedType",
+            "objectId",
+            &lit_id,
+        ),
         ("getNameTypeOfMappedType(literal)", "getNameTypeOfMappedType", "objectId", &lit_id),
-        ("getTemplateTypeOfMappedType(literal)", "getTemplateTypeOfMappedType", "objectId", &lit_id),
-        ("getTrueTypeOfConditionalType(literal)", "getTrueTypeOfConditionalType", "objectId", &lit_id),
-        ("getFalseTypeOfConditionalType(literal)", "getFalseTypeOfConditionalType", "objectId", &lit_id),
-        ("getConstraintOfTypeParameter(literal)", "getConstraintOfTypeParameter", "objectId", &lit_id),
-        ("getDefaultFromTypeParameter(literal)", "getDefaultFromTypeParameter", "objectId", &lit_id),
+        (
+            "getTemplateTypeOfMappedType(literal)",
+            "getTemplateTypeOfMappedType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getTrueTypeOfConditionalType(literal)",
+            "getTrueTypeOfConditionalType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getFalseTypeOfConditionalType(literal)",
+            "getFalseTypeOfConditionalType",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getConstraintOfTypeParameter(literal)",
+            "getConstraintOfTypeParameter",
+            "objectId",
+            &lit_id,
+        ),
+        (
+            "getDefaultFromTypeParameter(literal)",
+            "getDefaultFromTypeParameter",
+            "objectId",
+            &lit_id,
+        ),
     ] {
         let params = s.sp(&[(key, id.clone())]);
         s.wrong(label, method, params);
@@ -310,7 +470,11 @@ fn shapes() -> Vec<(String, Value)> {
     s.wrong("getParameterType(index -1)", "getParameterType", p);
 
     // Missing / null / empty parameter values (same raw payloads as the Go probe).
-    let sp = format!(r#""snapshot":{},"project":{}"#, json::marshal(&n(s.snapshot)).unwrap(), json::marshal_string(&s.project));
+    let sp = format!(
+        r#""snapshot":{},"project":{}"#,
+        json::marshal(&n(s.snapshot)).unwrap(),
+        json::marshal_string(&s.project)
+    );
     for (method, raw) in [
         ("getSymbolAtPosition", r#"{<sp>,"position":0}"#),
         ("getSymbolAtPosition", r#"{<sp>,"file":null,"position":0}"#),
@@ -322,7 +486,10 @@ fn shapes() -> Vec<(String, Value)> {
         ("getSymbolsOfSourceFiles", r#"{<sp>,"files":[{}]}"#),
         ("getSymbolsOfSourceFiles", r#"{<sp>,"files":null}"#),
         ("resolveName", r#"{<sp>,"name":"Array","meaning":788968,"file":null,"position":0}"#),
-        ("resolveName", r#"{<sp>,"name":"box","meaning":111551,"file":"/p/main.ts","position":null}"#),
+        (
+            "resolveName",
+            r#"{<sp>,"name":"box","meaning":111551,"file":"/p/main.ts","position":null}"#,
+        ),
         ("getSymbolsInScope", r#"{<sp>,"file":null,"position":0,"meaning":1}"#),
         ("getSymbolsAtPositions", r#"{<sp>,"file":"/p/main.ts","positions":null}"#),
         ("getTypesOfSymbols", r#"{<sp>,"symbols":[null]}"#),
@@ -346,7 +513,9 @@ fn session_responses_match_pinned_go() {
     if let Ok(out) = std::env::var("TSRS_CHECKER_SHAPES_OUT") {
         let mut text = String::new();
         text = ours.iter().fold(text, |mut text, (q, r)| {
-            text.push_str(&json::marshal(&obj(&[("q", Value::String(q.clone())), ("r", r.clone())])).unwrap());
+            text.push_str(
+                &json::marshal(&obj(&[("q", Value::String(q.clone())), ("r", r.clone())])).unwrap(),
+            );
             text.push('\n');
 
             text
@@ -364,7 +533,8 @@ fn session_responses_match_pinned_go() {
             continue;
         };
         compared += 1;
-        let (mut go_n, mut rs_n) = (normalize(&go, &mut Ids::default(), false), normalize(rs, &mut Ids::default(), false));
+        let (mut go_n, mut rs_n) =
+            (normalize(&go, &mut Ids::default(), false), normalize(rs, &mut Ids::default(), false));
         // Go's json/v2 decoder picks "cannot unmarshal" or "unable to unmarshal" per process (observed
         // both on regeneration); the rest of the text is compared exactly.
         for v in [&mut go_n, &mut rs_n] {
@@ -375,11 +545,20 @@ fn session_responses_match_pinned_go() {
             }
         }
         if go_n != rs_n {
-            diffs.push(format!("{q}\n  go: {}\n  rs: {}", json::marshal(&go_n).unwrap(), json::marshal(&rs_n).unwrap()));
+            diffs.push(format!(
+                "{q}\n  go: {}\n  rs: {}",
+                json::marshal(&go_n).unwrap(),
+                json::marshal(&rs_n).unwrap()
+            ));
         }
     }
     assert_eq!(compared, GO_SHAPES.lines().filter(|l| !l.is_empty()).count());
-    assert!(diffs.is_empty(), "{} of {compared} differ from pinned Go:\n{}", diffs.len(), diffs.join("\n"));
+    assert!(
+        diffs.is_empty(),
+        "{} of {compared} differ from pinned Go:\n{}",
+        diffs.len(),
+        diffs.join("\n")
+    );
 }
 
 /// Exact uint64 handles through core's Session: values above 2^53 must reach the lookup unrounded (pinned Go
@@ -389,30 +568,74 @@ fn session_responses_match_pinned_go() {
 fn uint64_handles_above_2_pow_53_are_looked_up_exactly() {
     let s = session();
     let raw = |method: &str, params: String| s.call_raw(method, &params);
-    let sp = format!(r#""snapshot":{},"project":{}"#, json::marshal(&n(s.snapshot)).unwrap(), json::marshal_string(&s.project));
+    let sp = format!(
+        r#""snapshot":{},"project":{}"#,
+        json::marshal(&n(s.snapshot)).unwrap(),
+        json::marshal_string(&s.project)
+    );
     // Small handles are unaffected (and register the project's type/signature registries first).
     let t = s.call("getTypeAtPosition", &s.at("box:")).unwrap();
-    assert_eq!(raw("typeToString", format!(r#"{{{sp},"type":{}}}"#, json::marshal(&get(&t, "id")).unwrap())), Ok(Value::String("Box<number>".into())));
+    assert_eq!(
+        raw(
+            "typeToString",
+            format!(r#"{{{sp},"type":{}}}"#, json::marshal(&get(&t, "id")).unwrap())
+        ),
+        Ok(Value::String("Box<number>".into()))
+    );
     let over = s.call("getTypeAtPosition", &s.at("over(x: string)")).unwrap();
-    let Value::Array(sigs) = s.call("getSignaturesOfType", &s.sp(&[("type", get(&over, "id")), ("kind", n(0))])).unwrap() else { panic!() };
-    let ret = raw("getReturnTypeOfSignature", format!(r#"{{{sp},"objectId":{}}}"#, json::marshal(&get(&sigs[0], "id")).unwrap())).unwrap();
+    let Value::Array(sigs) = s
+        .call("getSignaturesOfType", &s.sp(&[("type", get(&over, "id")), ("kind", n(0))]))
+        .unwrap()
+    else {
+        panic!()
+    };
+    let ret = raw(
+        "getReturnTypeOfSignature",
+        format!(r#"{{{sp},"objectId":{}}}"#, json::marshal(&get(&sigs[0], "id")).unwrap()),
+    )
+    .unwrap();
     assert_eq!(get(&ret, "flags"), Value::Number(32.0), "string return type");
     for id in ["9007199254740993", "9007199254740992", "18446744073709551615"] {
         assert_eq!(
-            raw("getTypeAtPosition", format!(r#"{{"snapshot":{id},"project":{},"file":"/p/main.ts","position":0}}"#, json::marshal_string(&s.project))),
+            raw(
+                "getTypeAtPosition",
+                format!(
+                    r#"{{"snapshot":{id},"project":{},"file":"/p/main.ts","position":0}}"#,
+                    json::marshal_string(&s.project)
+                )
+            ),
             Err(format!("api: client error: snapshot {id} not found"))
         );
-        assert_eq!(raw("getReturnTypeOfSignature", format!(r#"{{{sp},"objectId":{id}}}"#)), Err(format!("api: client error: signature handle {id} not found in project registry")));
-        assert_eq!(raw("getRestTypeOfSignature", format!(r#"{{{sp},"signature":{id}}}"#)), Err(format!("api: client error: signature handle {id} not found in project registry")));
+        assert_eq!(
+            raw("getReturnTypeOfSignature", format!(r#"{{{sp},"objectId":{id}}}"#)),
+            Err(format!("api: client error: signature handle {id} not found in project registry"))
+        );
+        assert_eq!(
+            raw("getRestTypeOfSignature", format!(r#"{{{sp},"signature":{id}}}"#)),
+            Err(format!("api: client error: signature handle {id} not found in project registry"))
+        );
         // Escaped member names reach the same exact literal.
         assert_eq!(
-            raw("getTypeAtPosition", format!(r#"{{"snap\u0073hot":{id},"project":{},"file":"/p/main.ts","position":0}}"#, json::marshal_string(&s.project))),
+            raw(
+                "getTypeAtPosition",
+                format!(
+                    r#"{{"snap\u0073hot":{id},"project":{},"file":"/p/main.ts","position":0}}"#,
+                    json::marshal_string(&s.project)
+                )
+            ),
             Err(format!("api: client error: snapshot {id} not found"))
         );
     }
     // Type ids are uint32: above it is an invalid request (decode error), at the bound a lookup.
-    assert!(raw("typeToString", format!(r#"{{{sp},"type":4294967296}}"#)).unwrap_err().starts_with("api: invalid request: "));
-    assert_eq!(raw("typeToString", format!(r#"{{{sp},"type":4294967295}}"#)), Err("api: client error: type handle 4294967295 not found in project registry".to_string()));
+    assert!(
+        raw("typeToString", format!(r#"{{{sp},"type":4294967296}}"#))
+            .unwrap_err()
+            .starts_with("api: invalid request: ")
+    );
+    assert_eq!(
+        raw("typeToString", format!(r#"{{{sp},"type":4294967295}}"#)),
+        Err("api: client error: type handle 4294967295 not found in project registry".to_string())
+    );
 
     // Nested symbol references (and import-adder actions) read their own exact literals, never a same-named
     // top-level field (core integration of predecode::exact_u64(object, key) at any depth).
@@ -420,13 +643,24 @@ fn uint64_handles_above_2_pow_53_are_looked_up_exactly() {
     let project = json::marshal_string(&s.project);
     for id in ["9007199254740993", "18446744073709551615"] {
         let symbol = format!(r#"{{"kind":1,"snapshot":{snap},"project":{project},"id":{id}}}"#);
-        let missing = Err(format!("api: client error: symbol handle {id} not found in snapshot registry"));
+        let missing =
+            Err(format!("api: client error: symbol handle {id} not found in snapshot registry"));
         assert_eq!(raw("getTypeOfSymbol", format!(r#"{{{sp},"symbol":{symbol}}}"#)), missing);
         assert_eq!(raw("getTypesOfSymbols", format!(r#"{{{sp},"symbols":[{symbol}]}}"#)), missing);
-        let r = raw("getImportAdderEdits", format!(r#"{{{sp},"file":"/p/main.ts","actions":[{{"kind":"importSymbol","symbol":{symbol}}}]}}"#));
+        let r = raw(
+            "getImportAdderEdits",
+            format!(
+                r#"{{{sp},"file":"/p/main.ts","actions":[{{"kind":"importSymbol","symbol":{symbol}}}]}}"#
+            ),
+        );
         assert!(matches!(&r, Err(e) if e.contains(id)), "{r:?}");
         // The nested snapshot is exact too, and is not taken from the top-level `snapshot` literal.
-        let r = raw("getParentOfSymbol", format!(r#"{{"snapshot":{snap},"symbol":{{"kind":1,"snapshot":{id},"project":{project},"id":1}}}}"#));
+        let r = raw(
+            "getParentOfSymbol",
+            format!(
+                r#"{{"snapshot":{snap},"symbol":{{"kind":1,"snapshot":{id},"project":{project},"id":1}}}}"#
+            ),
+        );
         assert_eq!(r, Err(format!("api: client error: snapshot {id} not found")));
     }
     for bad in ["1e3", "1.0", "18446744073709551616"] {
@@ -434,10 +668,18 @@ fn uint64_handles_above_2_pow_53_are_looked_up_exactly() {
         for (method, params) in [
             ("getTypeOfSymbol", format!(r#"{{{sp},"symbol":{symbol}}}"#)),
             ("getTypesOfSymbols", format!(r#"{{{sp},"symbols":[{symbol}]}}"#)),
-            ("getImportAdderEdits", format!(r#"{{{sp},"file":"/p/main.ts","actions":[{{"kind":"importSymbol","symbol":{symbol}}}]}}"#)),
+            (
+                "getImportAdderEdits",
+                format!(
+                    r#"{{{sp},"file":"/p/main.ts","actions":[{{"kind":"importSymbol","symbol":{symbol}}}]}}"#
+                ),
+            ),
         ] {
             let e = raw(method, params).unwrap_err();
-            assert!(e.starts_with("api: invalid request: failed to unmarshal"), "{method} {bad}: {e}");
+            assert!(
+                e.starts_with("api: invalid request: failed to unmarshal"),
+                "{method} {bad}: {e}"
+            );
         }
     }
 }
@@ -454,12 +696,29 @@ fn type_flags_and_tuple_targets_match_pinned_go() {
         ("/m/tsconfig.json", include_str!("testdata/go_probe/flags/m/tsconfig.json")),
         ("/m/models.ts", include_str!("testdata/go_probe/flags/m/models.ts")),
     ];
-    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(files.iter().map(|(k, v)| (k.to_string(), v.to_string())), false)));
-    let session = Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
-    let s = S { session: std::sync::Arc::clone(&session), snapshot: 0.0, project: String::new(), lines: Vec::new() };
+    let fs: Arc<dyn FS> = Arc::new(bundled::wrap_fs(vfstest::from_map(
+        files.iter().map(|(k, v)| (k.to_string(), v.to_string())),
+        false,
+    )));
+    let session =
+        Session::new(SessionOptions::new("/".to_string(), bundled::lib_path(), fs, false));
+    let s = S {
+        session: std::sync::Arc::clone(&session),
+        snapshot: 0.0,
+        project: String::new(),
+        lines: Vec::new(),
+    };
     let mut snaps = FxHashMap::default();
     snaps.extend((["t", "m"]).into_iter().map(|fx| {
-        let r = s.call("createSnapshot", &obj(&[("openProjects", Value::Array(vec![Value::String(format!("/{fx}/tsconfig.json"))]))])).unwrap();
+        let r = s
+            .call(
+                "createSnapshot",
+                &obj(&[(
+                    "openProjects",
+                    Value::Array(vec![Value::String(format!("/{fx}/tsconfig.json"))]),
+                )]),
+            )
+            .unwrap();
         let Value::Number(snap) = get(&r, "snapshot") else { panic!() };
         let Value::Array(projects) = get(&r, "projects") else { panic!() };
         let Value::String(project) = get(&projects[0], "id") else { panic!() };
@@ -470,7 +729,11 @@ fn type_flags_and_tuple_targets_match_pinned_go() {
         let f: Vec<&str> = line.split('\t').collect();
         let (fx, file, needle, kind, method) = (f[0], f[1], f[2], f[3], f[4]);
         let (snap, project) = snaps[fx].clone();
-        let program = session.snapshot_data(snap as u64).unwrap().get_program(&tsrs_project::ID(project.clone())).unwrap();
+        let program = session
+            .snapshot_data(snap as u64)
+            .unwrap()
+            .get_program(&tsrs_project::ID(project.clone()))
+            .unwrap();
         let sf = program.get_source_file(&format!("/{fx}/{file}")).unwrap();
         let text = sf.text();
         let mut pos = text.find(needle).unwrap() + needle.len();
@@ -480,16 +743,22 @@ fn type_flags_and_tuple_targets_match_pinned_go() {
         let pos = u32::try_from(pos).expect("test source fits in a source position");
         let mut node = Some(tsrs_astnav::get_touching_property_name(sf, pos));
         while let Some(n) = node {
-            if kind == "alias" && n.parent().is_some_and(|p| p.kind() == tsrs_ast::Kind::TypeAliasDeclaration) {
+            if kind == "alias"
+                && n.parent().is_some_and(|p| p.kind() == tsrs_ast::Kind::TypeAliasDeclaration)
+            {
                 break;
             }
-            if kind == "ArrayLiteralExpression" && n.kind() == tsrs_ast::Kind::ArrayLiteralExpression {
+            if kind == "ArrayLiteralExpression"
+                && n.kind() == tsrs_ast::Kind::ArrayLiteralExpression
+            {
                 break;
             }
             node = n.parent();
         }
         let handle = session.node_handle_from(node.unwrap()).unwrap();
-        let sp = |extra: (&str, Value)| obj(&[("snapshot", n(snap)), ("project", Value::String(project.clone())), extra]);
+        let sp = |extra: (&str, Value)| {
+            obj(&[("snapshot", n(snap)), ("project", Value::String(project.clone())), extra])
+        };
         let (method, prop) = match method.split_once("+prop:") {
             Some((m, p)) => (m, Some(p)),
             None => (method, None),
@@ -497,12 +766,24 @@ fn type_flags_and_tuple_targets_match_pinned_go() {
         let label = format!("{fx}/{file} {method} @{needle}");
         let mut r = s.call(method, &sp(("location", Value::String(handle.clone())))).unwrap();
         if let Some(prop) = prop {
-            s.call("getPropertyOfType", &obj(&[("snapshot", n(snap)), ("project", Value::String(project.clone())), ("type", get(&r, "id")), ("name", Value::String(prop.into()))])).unwrap();
+            s.call(
+                "getPropertyOfType",
+                &obj(&[
+                    ("snapshot", n(snap)),
+                    ("project", Value::String(project.clone())),
+                    ("type", get(&r, "id")),
+                    ("name", Value::String(prop.into())),
+                ]),
+            )
+            .unwrap();
             r = s.call(method, &sp(("location", Value::String(handle)))).unwrap();
         }
         ours.push((label.clone(), r.clone()));
         if get(&r, "target") != Value::Null {
-            ours.push((format!("{label} target"), s.call("getTargetOfType", &sp(("objectId", get(&r, "id")))).unwrap()));
+            ours.push((
+                format!("{label} target"),
+                s.call("getTargetOfType", &sp(("objectId", get(&r, "id")))).unwrap(),
+            ));
         }
     }
     let golden: Vec<(String, Value)> = GOLDEN
@@ -518,10 +799,21 @@ fn type_flags_and_tuple_targets_match_pinned_go() {
     let mut diffs = Vec::new();
     for ((gq, go), (rq, rs)) in golden.iter().zip(&ours) {
         assert_eq!(gq, rq);
-        let (go_n, rs_n) = (normalize(go, &mut Ids::default(), false), normalize(rs, &mut Ids::default(), false));
+        let (go_n, rs_n) =
+            (normalize(go, &mut Ids::default(), false), normalize(rs, &mut Ids::default(), false));
         if go_n != rs_n {
-            diffs.push(format!("{gq}\n  go: {}\n  rs: {}", json::marshal(&go_n).unwrap(), json::marshal(&rs_n).unwrap()));
+            diffs.push(format!(
+                "{gq}\n  go: {}\n  rs: {}",
+                json::marshal(&go_n).unwrap(),
+                json::marshal(&rs_n).unwrap()
+            ));
         }
     }
-    assert!(diffs.is_empty(), "{} of {} differ from pinned Go:\n{}", diffs.len(), golden.len(), diffs.join("\n"));
+    assert!(
+        diffs.is_empty(),
+        "{} of {} differ from pinned Go:\n{}",
+        diffs.len(),
+        golden.len(),
+        diffs.join("\n")
+    );
 }

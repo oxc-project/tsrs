@@ -5,7 +5,7 @@
 
 use tsrs_core::collections::OrderedMap;
 
-use crate::json::{is_null, kind, Json, JsonError, Value};
+use crate::json::{Json, JsonError, Value, is_null, kind};
 use crate::lsp::{err_missing, err_not_object, err_null};
 
 // unmarshalStruct's object check. A non-strict structure (one Go decodes with json/v2's default struct
@@ -54,11 +54,17 @@ pub fn opt_non_null<T: Json>(name: &str, v: &Value, go_type: &str) -> Result<Opt
 
 // structcodec.go:100
 pub fn check_required(seen: u64, required_names: &[&str], go_type: &str) -> Result<(), JsonError> {
-    let required_mask = if required_names.len() == 64 { u64::MAX } else { (1u64 << required_names.len()) - 1 };
+    let required_mask =
+        if required_names.len() == 64 { u64::MAX } else { (1u64 << required_names.len()) - 1 };
     let missing = required_mask & !seen;
     if missing != 0 {
         let mut missing_props = Vec::new();
-        missing_props.extend(required_names.iter().enumerate().filter_map(|(id, n)| if missing & (1 << id) != 0 { Some(*n) } else { None }));
+        missing_props.extend(
+            required_names
+                .iter()
+                .enumerate()
+                .filter_map(|(id, n)| if missing & (1 << id) != 0 { Some(*n) } else { None }),
+        );
         return Err(JsonError::method(go_type, err_missing(&missing_props)));
     }
     Ok(())
@@ -98,7 +104,11 @@ pub fn scan_discriminated_struct<'a>(
     let Value::Object(members) = v else {
         return Err(JsonError::method(go_type, err_not_object(kind(v))));
     };
-    Ok(DiscriminatedStructDecoder { type_name, discriminator, discriminator_value: members.get(discriminator) })
+    Ok(DiscriminatedStructDecoder {
+        type_name,
+        discriminator,
+        discriminator_value: members.get(discriminator),
+    })
 }
 
 impl DiscriminatedStructDecoder<'_> {
@@ -134,7 +144,11 @@ impl DiscriminatedStructDecoder<'_> {
 // structcodec.go:235: the arm is decoded with its struct spec. Go decodes the discriminator first, then
 // replays the fields that preceded it (each with a fresh json.Unmarshal), then decodes the remaining fields
 // from the stream; the arm's own errors are reported against the union's type.
-pub fn unmarshal_discriminated_arm<T: Json>(v: &Value, union_go_type: &str, discriminator: &str) -> Result<T, JsonError> {
+pub fn unmarshal_discriminated_arm<T: Json>(
+    v: &Value,
+    union_go_type: &str,
+    discriminator: &str,
+) -> Result<T, JsonError> {
     let err = match T::from_json(v) {
         Ok(arm) => return Ok(arm),
         Err(err) => err,
@@ -149,7 +163,13 @@ pub fn unmarshal_discriminated_arm<T: Json>(v: &Value, union_go_type: &str, disc
             let mut reordered = OrderedMap::default();
             reordered.reserve(members.len());
             reordered.extend(
-                members.iter().skip(d).take(1).chain(members.iter().take(d)).chain(members.iter().skip(d + 1)).map(|(k, item)| (k.clone(), item.clone())),
+                members
+                    .iter()
+                    .skip(d)
+                    .take(1)
+                    .chain(members.iter().take(d))
+                    .chain(members.iter().skip(d + 1))
+                    .map(|(k, item)| (k.clone(), item.clone())),
             );
             match T::from_json(&Value::Object(reordered)) {
                 Ok(arm) => return Ok(arm),

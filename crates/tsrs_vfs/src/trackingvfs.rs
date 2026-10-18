@@ -6,7 +6,7 @@ use std::time::SystemTime;
 
 use tsrs_core::collections::SyncMap;
 
-use crate::{Entries, FileInfo, FS as VFS};
+use crate::{Entries, FS as VFS, FileInfo};
 
 pub struct FS<T: VFS> {
     pub inner: T,

@@ -3,14 +3,14 @@ use std::sync::{Arc, Mutex};
 use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Node, SourceFile};
 use tsrs_checker as checker;
-use tsrs_tsoptions::{ParsedCommandLine, SourceOutputAndProjectReference};
-use tsrs_modulespecifiers::ModuleSpecifierGenerationHost;
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{alloc_str, CompilerOptions, ModuleKind, ResolutionMode, Tristate, P};
+use tsrs_core::{CompilerOptions, ModuleKind, P, ResolutionMode, Tristate, alloc_str};
 use tsrs_module::packagejson::InfoCacheEntry;
 use tsrs_module::symlinks::KnownSymlinks;
 use tsrs_module::{DefaultResolver, ModeAwareCacheKey, ResolvedModule};
+use tsrs_modulespecifiers::ModuleSpecifierGenerationHost;
 use tsrs_tsoptions::outputpaths::OutputPathsHost;
+use tsrs_tsoptions::{ParsedCommandLine, SourceOutputAndProjectReference};
 
 use super::extract::ToPathFunc;
 use super::registry::RegistryCloneHost;
@@ -34,7 +34,8 @@ pub(crate) struct aliasResolver {
     // symlinks maps from realpath to symlinked path and file name
     pub(crate) symlinks: FxHashMap<Path, pathAndFileName>,
     on_failed_ambient_module_lookup: OnFailedAmbientModuleLookup,
-    resolved_modules: Mutex<FxHashMap<Path, Arc<Mutex<FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>>>>>,
+    resolved_modules:
+        Mutex<FxHashMap<Path, Arc<Mutex<FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>>>>>,
 
     options: P<CompilerOptions>,
     root_files_static: &'static [P<SourceFile>],
@@ -120,7 +121,11 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:96
-    fn get_emit_syntax_for_usage_location(&self, _source_file: P<SourceFile>, _usage_location: P<Node>) -> ResolutionMode {
+    fn get_emit_syntax_for_usage_location(
+        &self,
+        _source_file: P<SourceFile>,
+        _usage_location: P<Node>,
+    ) -> ResolutionMode {
         ModuleKind::ESNext
     }
 
@@ -130,13 +135,27 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:111
-    fn get_resolved_module(&self, current_source_file: P<SourceFile>, module_reference: &str, mode: ResolutionMode) -> Option<P<ResolvedModule>> {
-        let cache = Arc::clone(self.resolved_modules.lock().unwrap().entry(current_source_file.path().clone()).or_default());
+    fn get_resolved_module(
+        &self,
+        current_source_file: P<SourceFile>,
+        module_reference: &str,
+        mode: ResolutionMode,
+    ) -> Option<P<ResolvedModule>> {
+        let cache = Arc::clone(
+            self.resolved_modules
+                .lock()
+                .unwrap()
+                .entry(current_source_file.path().clone())
+                .or_default(),
+        );
         let key = ModeAwareCacheKey { name: alloc_str(module_reference), mode };
         if let Some(&resolved) = cache.lock().unwrap().get(&key) {
             return Some(resolved);
         }
-        let (resolved, _) = self.module_resolver.resolve_module_name(module_reference, current_source_file.file_name(), mode, None).unwrap();
+        let (resolved, _) = self
+            .module_resolver
+            .resolve_module_name(module_reference, current_source_file.file_name(), mode, None)
+            .unwrap();
         let resolved = *cache.lock().unwrap().entry(key).or_insert(resolved);
         if !resolved.is_resolved() && !tspath::path_is_relative(module_reference) {
             (self.on_failed_ambient_module_lookup)(current_source_file, module_reference);
@@ -145,7 +164,9 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:136
-    fn get_resolved_modules(&self) -> &FxHashMap<Path, FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>> {
+    fn get_resolved_modules(
+        &self,
+    ) -> &FxHashMap<Path, FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>> {
         // only used when producing diagnostics, which hopefully the checker won't do
         &self.empty_resolved_modules
     }
@@ -171,7 +192,11 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:231
-    fn source_file_may_be_emitted(&self, _source_file: P<SourceFile>, _force_dts_emit: bool) -> bool {
+    fn source_file_may_be_emitted(
+        &self,
+        _source_file: P<SourceFile>,
+        _force_dts_emit: bool,
+    ) -> bool {
         panic!("unimplemented")
     }
 
@@ -181,12 +206,18 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:196
-    fn get_project_reference_from_output_dts(&self, _path: &Path) -> Option<P<SourceOutputAndProjectReference>> {
+    fn get_project_reference_from_output_dts(
+        &self,
+        _path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>> {
         panic!("unimplemented")
     }
 
     // aliasresolver.go:201
-    fn get_project_reference_from_source(&self, _path: &Path) -> Option<P<SourceOutputAndProjectReference>> {
+    fn get_project_reference_from_source(
+        &self,
+        _path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>> {
         panic!("unimplemented")
     }
 
@@ -216,7 +247,11 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:106
-    fn get_mode_for_usage_location(&self, _file: P<SourceFile>, _module_specifier: P<Node>) -> ResolutionMode {
+    fn get_mode_for_usage_location(
+        &self,
+        _file: P<SourceFile>,
+        _module_specifier: P<Node>,
+    ) -> ResolutionMode {
         ModuleKind::ESNext
     }
 
@@ -259,7 +294,10 @@ impl ModuleSpecifierGenerationHost for aliasResolver {
     }
 
     // aliasresolver.go:201
-    fn get_project_reference_from_source(&self, _path: &Path) -> Option<P<SourceOutputAndProjectReference>> {
+    fn get_project_reference_from_source(
+        &self,
+        _path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>> {
         panic!("unimplemented")
     }
 
@@ -294,12 +332,20 @@ impl ModuleSpecifierGenerationHost for aliasResolver {
     }
 
     // aliasresolver.go:216
-    fn get_resolved_module_from_module_specifier(&self, _file: P<SourceFile>, _module_specifier: P<Node>) -> Option<P<ResolvedModule>> {
+    fn get_resolved_module_from_module_specifier(
+        &self,
+        _file: P<SourceFile>,
+        _module_specifier: P<Node>,
+    ) -> Option<P<ResolvedModule>> {
         panic!("unimplemented")
     }
 
     // aliasresolver.go:106
-    fn get_mode_for_usage_location(&self, _file: P<SourceFile>, _module_specifier: P<Node>) -> ResolutionMode {
+    fn get_mode_for_usage_location(
+        &self,
+        _file: P<SourceFile>,
+        _module_specifier: P<Node>,
+    ) -> ResolutionMode {
         ModuleKind::ESNext
     }
 }

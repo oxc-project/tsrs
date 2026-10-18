@@ -67,7 +67,10 @@ fn diagnostics_equal(diag1: &Diagnostic, diag2: &Diagnostic) -> bool {
 }
 
 // util.go:69
-fn diagnostic_codes_equal(code1: Option<&IntegerOrString>, code2: Option<&IntegerOrString>) -> bool {
+fn diagnostic_codes_equal(
+    code1: Option<&IntegerOrString>,
+    code2: Option<&IntegerOrString>,
+) -> bool {
     // Go dereferences both codes.
     let (code1, code2) = (code1.unwrap(), code2.unwrap());
     if let (Some(s1), Some(s2)) = (&code1.string, &code2.string) {
@@ -80,7 +83,10 @@ fn diagnostic_codes_equal(code1: Option<&IntegerOrString>, code2: Option<&Intege
 }
 
 // util.go:79
-fn diagnostic_messages_equal(message1: &StringOrMarkupContent, message2: &StringOrMarkupContent) -> bool {
+fn diagnostic_messages_equal(
+    message1: &StringOrMarkupContent,
+    message2: &StringOrMarkupContent,
+) -> bool {
     if let (Some(s1), Some(s2)) = (&message1.string, &message2.string) {
         return s1 == s2;
     }
@@ -91,7 +97,10 @@ fn diagnostic_messages_equal(message1: &StringOrMarkupContent, message2: &String
 }
 
 // util.go:89
-pub fn compare_diagnostics<'a>(list1: &'a [Diagnostic], list2: &'a [Diagnostic]) -> (Vec<&'a Diagnostic>, Vec<&'a Diagnostic>) {
+pub fn compare_diagnostics<'a>(
+    list1: &'a [Diagnostic],
+    list2: &'a [Diagnostic],
+) -> (Vec<&'a Diagnostic>, Vec<&'a Diagnostic>) {
     let mut missing_from_list1 = Vec::new();
     let mut missing_from_list2 = Vec::new();
     missing_from_list2.extend(list1.iter().filter(|elem| !diagnostic_exists_in_slice(elem, list2)));

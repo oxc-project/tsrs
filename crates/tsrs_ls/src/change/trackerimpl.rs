@@ -1,7 +1,7 @@
 use tsrs_ast::{self as ast, Kind, Node, SourceFile};
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::stringutil;
-use tsrs_core::{apply_bulk_edits, TextRange, P};
+use tsrs_core::{P, TextRange, apply_bulk_edits};
 use tsrs_lsproto as lsproto;
 use tsrs_printer as printer;
 use tsrs_scanner as scanner;
@@ -14,7 +14,9 @@ use crate::spanmap::Feature;
 
 impl Tracker {
     // trackerimpl.go:22
-    pub(crate) fn get_text_changes_from_changes(&mut self) -> OrderedMap<String, Vec<lsproto::TextEdit>> {
+    pub(crate) fn get_text_changes_from_changes(
+        &mut self,
+    ) -> OrderedMap<String, Vec<lsproto::TextEdit>> {
         let mut changes: OrderedMap<String, Vec<lsproto::TextEdit>> = OrderedMap::default();
         // A content-mapped file can have several projections, each keyed separately in t.changes but
         // all sharing one original file. Their edits are collected together before being ordered and checked,
@@ -68,7 +70,10 @@ impl Tracker {
                 *text_changes = deduped;
             }
             // verify that change intervals do not overlap, except possibly at end points.
-            if let Some(pair) = text_changes.windows(2).find(|pair| text_edits_conflict(&pair[0], &pair[1], projection_count > 1)) {
+            if let Some(pair) = text_changes
+                .windows(2)
+                .find(|pair| text_edits_conflict(&pair[0], &pair[1], projection_count > 1))
+            {
                 if projection_count > 1 {
                     // Conflicting projections cannot be applied to the original file.
                     self.unmappable_files.insert(file_name.clone());
@@ -81,11 +86,19 @@ impl Tracker {
     }
 
     // trackerimpl.go:136
-    fn compute_new_text(&mut self, change: &trackerEdit, target_source_file: P<SourceFile>, source_file: P<SourceFile>) -> String {
-        if change.kind == trackerEditKind::Text { return change.new_text.clone() }
+    fn compute_new_text(
+        &mut self,
+        change: &trackerEdit,
+        target_source_file: P<SourceFile>,
+        source_file: P<SourceFile>,
+    ) -> String {
+        if change.kind == trackerEditKind::Text {
+            return change.new_text.clone();
+        }
 
         let start = self.to_lsp_edit_range(source_file, change.text_range).start;
-        let positions = self.converters.from_lsp_position_for_source_file(source_file, start, Feature::All);
+        let positions =
+            self.converters.from_lsp_position_for_source_file(source_file, start, Feature::All);
         let mut result = String::new();
         let mut found = false;
         // The original range may have multiple verbatim copies; it is safe to lose their identity only when
@@ -107,27 +120,45 @@ impl Tracker {
                         .nodes
                         .iter()
                         .map(|&n| {
-                            let t = self.get_formatted_text_of_node(n, target_source_file, projection, pos, &change.options);
+                            let t = self.get_formatted_text_of_node(
+                                n,
+                                target_source_file,
+                                projection,
+                                pos,
+                                &change.options,
+                            );
                             t.strip_suffix(self.new_line.as_str()).map(str::to_string).unwrap_or(t)
                         })
                         .collect();
                     parts.join(&joiner)
                 }
-                trackerEditKind::ReplaceWithSingleNode => {
-                    self.get_formatted_text_of_node(change.node.unwrap(), target_source_file, projection, pos, &change.options)
+                trackerEditKind::ReplaceWithSingleNode => self.get_formatted_text_of_node(
+                    change.node.unwrap(),
+                    target_source_file,
+                    projection,
+                    pos,
+                    &change.options,
+                ),
+                trackerEditKind::Text => {
+                    panic!("change kind {} should have been handled earlier", change.kind as i32)
                 }
-                trackerEditKind::Text => panic!("change kind {} should have been handled earlier", change.kind as i32),
             };
             // Strip initial indentation if text will be inserted in the middle of the line.
             let mut no_indent: &str = &text;
-            if !(change.options.indentation.is_some() || format::get_line_start_position_for_position(pos, projection) == pos) {
+            if !(change.options.indentation.is_some()
+                || format::get_line_start_position_for_position(pos, projection) == pos)
+            {
                 no_indent = text.trim_start_matches(|c: char| c.is_whitespace());
             }
             let candidate = format!(
                 "{}{}{}",
                 change.options.prefix,
                 no_indent,
-                if no_indent.ends_with(change.options.suffix.as_str()) { "" } else { change.options.suffix.as_str() }
+                if no_indent.ends_with(change.options.suffix.as_str()) {
+                    ""
+                } else {
+                    change.options.suffix.as_str()
+                }
             );
             if found && candidate != result {
                 self.unmappable_files.insert(source_file.original_file_name().to_string());
@@ -156,8 +187,16 @@ impl Tracker {
     // The indentation is read from the original text at the edit's original position, so it holds for a
     // content-mapped file whose projection is indented differently from the document the edit is applied to.
     // Edits carrying an explicit indentation option are left alone.
-    fn reindent_inserted_lines(&self, source_file: P<SourceFile>, change: &trackerEdit, text: String) -> String {
-        if text.is_empty() || change.text_range.pos() != change.text_range.end() || change.options.indentation.is_some() {
+    fn reindent_inserted_lines(
+        &self,
+        source_file: P<SourceFile>,
+        change: &trackerEdit,
+        text: String,
+    ) -> String {
+        if text.is_empty()
+            || change.text_range.pos() != change.text_range.end()
+            || change.options.indentation.is_some()
+        {
             return text;
         }
         if !text.ends_with(self.new_line.as_str()) {
@@ -207,14 +246,16 @@ impl Tracker {
     ) -> String {
         let (text, source_file_like) = self.get_nonformatted_text(node_in, target_source_file);
         // !!! if (validate) validate(node, text);
-        let format_options = get_format_code_settings_for_writing(self.format_settings.clone(), target_source_file);
+        let format_options =
+            get_format_code_settings_for_writing(self.format_settings.clone(), target_source_file);
 
         let initial_indentation = match options.indentation {
             None => format::get_indentation(
                 pos,
                 source_file,
                 &format_options,
-                options.prefix == self.new_line || format::get_line_start_position_for_position(pos, source_file) == pos,
+                options.prefix == self.new_line
+                    || format::get_line_start_position_for_position(pos, source_file) == pos,
             ),
             Some(indentation) => indentation,
         };
@@ -222,7 +263,9 @@ impl Tracker {
         let mut delta = 0;
         if let Some(d) = options.delta {
             delta = d;
-        } else if format_options.indent_size != 0 && format::should_indent_child_node(&format_options, node_in, None, None, false) {
+        } else if format_options.indent_size != 0
+            && format::should_indent_child_node(&format_options, node_in, None, None, false)
+        {
             delta = format_options.indent_size;
         }
 
@@ -238,7 +281,11 @@ impl Tracker {
     }
 
     // trackerimpl.go:295
-    fn get_nonformatted_text(&self, node: P<Node>, source_file: P<SourceFile>) -> (String, P<Node>) {
+    fn get_nonformatted_text(
+        &self,
+        node: P<Node>,
+        source_file: P<SourceFile>,
+    ) -> (String, P<Node>) {
         let (text, node_out) = printer::print_and_position_node(
             &self.node_factory,
             node,
@@ -291,7 +338,10 @@ impl Tracker {
             let mut f = self.node_factory.clone();
             let jsdoc_comments = tsrs_parser::get_jsdoc_comment_ranges(&mut f, &[], node, text);
             if !jsdoc_comments.is_empty() {
-                return format::get_line_start_position_for_position(jsdoc_comments[0].pos(), source_file);
+                return format::get_line_start_position_for_position(
+                    jsdoc_comments[0].pos(),
+                    source_file,
+                );
             }
         }
 
@@ -309,9 +359,7 @@ impl Tracker {
             _ => {}
         }
 
-        let full_start = node
-            .pos()
-            .expect_source("parsed nodes have source positions");
+        let full_start = node.pos().expect_source("parsed nodes have source positions");
         if full_start == start {
             return start;
         }
@@ -336,7 +384,8 @@ impl Tracker {
         if has_trailing_comment {
             // Check first for leading comments as if the node is the first import, we want to exclude the trivia;
             // otherwise we get the trailing comments.
-            let mut comments: Vec<ast::CommentRange> = scanner::get_leading_comment_ranges(text, full_start).collect();
+            let mut comments: Vec<ast::CommentRange> =
+                scanner::get_leading_comment_ranges(text, full_start).collect();
             if comments.is_empty() {
                 comments = scanner::get_trailing_comment_ranges(text, full_start).collect();
             }
@@ -344,7 +393,11 @@ impl Tracker {
                 return scanner::skip_trivia_ex(
                     text,
                     comments[0].end(),
-                    Some(&scanner::SkipTriviaOptions { stop_after_line_break: true, stop_at_comments: true, ..Default::default() }),
+                    Some(&scanner::SkipTriviaOptions {
+                        stop_after_line_break: true,
+                        stop_at_comments: true,
+                        ..Default::default()
+                    }),
                 );
             }
         }
@@ -374,15 +427,20 @@ impl Tracker {
             // If the trailing comment is a multiline comment that extends to the next lines,
             // return the end of the comment and track it for the next nodes to adjust.
             let line_starts = source_file.ecma_line_map();
-            let node_end = node
-                .end()
-                .expect_source("parsed nodes have source positions"); let node_end_line = scanner::compute_line_of_position(line_starts, node_end);
-            if let Some(comment) = scanner::get_trailing_comment_ranges(source_file.text(), node_end)
-                // Ignore single-line comments and comments starting on subsequent lines.
-                .take_while(|comment| {
-                    comment.kind != Kind::SingleLineCommentTrivia && scanner::compute_line_of_position(line_starts, comment.pos()) <= node_end_line
-                })
-                .find(|comment| scanner::compute_line_of_position(line_starts, comment.end()) > node_end_line)
+            let node_end = node.end().expect_source("parsed nodes have source positions");
+            let node_end_line = scanner::compute_line_of_position(line_starts, node_end);
+            if let Some(comment) =
+                scanner::get_trailing_comment_ranges(source_file.text(), node_end)
+                    // Ignore single-line comments and comments starting on subsequent lines.
+                    .take_while(|comment| {
+                        comment.kind != Kind::SingleLineCommentTrivia
+                            && scanner::compute_line_of_position(line_starts, comment.pos())
+                                <= node_end_line
+                    })
+                    .find(|comment| {
+                        scanner::compute_line_of_position(line_starts, comment.end())
+                            > node_end_line
+                    })
             {
                 return Some(scanner::skip_trivia_ex(
                     source_file.text(),
@@ -406,9 +464,7 @@ impl Tracker {
         node: P<Node>,
         trailing_trivia_option: TrailingTriviaOption,
     ) -> u32 {
-        let node_end = node
-            .end()
-            .expect_source("parsed nodes have source positions");
+        let node_end = node.end().expect_source("parsed nodes have source positions");
         if trailing_trivia_option == TrailingTriviaOption::Exclude {
             return node_end;
         }
@@ -437,10 +493,7 @@ impl Tracker {
         let new_end = scanner::skip_trivia_ex(
             text,
             node_end,
-            Some(&scanner::SkipTriviaOptions {
-                stop_after_line_break: true,
-                ..Default::default()
-            }),
+            Some(&scanner::SkipTriviaOptions { stop_after_line_break: true, ..Default::default() }),
         );
 
         if new_end != node_end
@@ -453,9 +506,7 @@ impl Tracker {
     }
 
     // trackerimpl.go:475
-    pub(crate) fn get_insertion_position_at_source_file_top(
-        source_file: P<SourceFile>,
-    ) -> u32 {
+    pub(crate) fn get_insertion_position_at_source_file_top(source_file: P<SourceFile>) -> u32 {
         let mut last_prologue: Option<P<Node>> = None;
         for &node in source_file.statements.nodes() {
             if ast::is_prologue_directive(node) {
@@ -475,15 +526,16 @@ impl Tracker {
             let ch = bytes[*position as usize];
             if stringutil::is_line_break(u32::from(ch)) {
                 *position += 1;
-                if (*position as usize) < bytes.len() && ch == b'\r' && bytes[*position as usize] == b'\n' {
+                if (*position as usize) < bytes.len()
+                    && ch == b'\r'
+                    && bytes[*position as usize] == b'\n'
+                {
                     *position += 1;
                 }
             }
         };
         if let Some(last_prologue) = last_prologue {
-            position = last_prologue
-                .end()
-                .expect_source("parsed prologues have source positions");
+            position = last_prologue.end().expect_source("parsed prologues have source positions");
             advance_past_line_break(&mut position);
             return position;
         }
@@ -494,7 +546,8 @@ impl Tracker {
             advance_past_line_break(&mut position);
         }
 
-        let ranges: Vec<ast::CommentRange> = scanner::get_leading_comment_ranges(text, position).collect();
+        let ranges: Vec<ast::CommentRange> =
+            scanner::get_leading_comment_ranges(text, position).collect();
         if ranges.is_empty() {
             return position;
         }
@@ -581,23 +634,32 @@ pub(crate) fn text_edits_conflict(
         return true;
     }
     // Different insertions at the same position are ambiguous when they may come from different projections.
-    multiple_projections && a.range.start == a.range.end && a.range == b.range && a.new_text != b.new_text
+    multiple_projections
+        && a.range.start == a.range.end
+        && a.range == b.range
+        && a.new_text != b.new_text
 }
 
 // trackerimpl.go:255
 fn leading_indentation(text: &str) -> &str {
     let bytes = text.as_bytes();
     let mut end = 0;
-    end += (end..bytes.len()).take_while(|&index| bytes[index] == b' ' || bytes[index] == b'\t').count();
+    end += (end..bytes.len())
+        .take_while(|&index| bytes[index] == b' ' || bytes[index] == b'\t')
+        .count();
     &text[..end]
 }
 
 // trackerimpl.go:285
-pub fn get_format_code_settings_for_writing(options: FormatCodeSettings, source_file: P<SourceFile>) -> FormatCodeSettings {
+pub fn get_format_code_settings_for_writing(
+    options: FormatCodeSettings,
+    source_file: P<SourceFile>,
+) -> FormatCodeSettings {
     let mut options = options;
     let should_auto_detect_semicolon_preference = options.semicolons == SemicolonPreference::Ignore;
     let should_remove_semicolons = options.semicolons == SemicolonPreference::Remove
-        || should_auto_detect_semicolon_preference && !lsutil::probably_uses_semicolons(source_file);
+        || should_auto_detect_semicolon_preference
+            && !lsutil::probably_uses_semicolons(source_file);
     if should_remove_semicolons {
         options.semicolons = SemicolonPreference::Remove;
     }
@@ -607,9 +669,9 @@ pub fn get_format_code_settings_for_writing(options: FormatCodeSettings, source_
 
 // trackerimpl.go:452
 pub(crate) fn has_comments_before_line_break(text: &str, start: u32) -> bool {
-    if let Some(result) =
-        text[start as usize..].chars().into_iter().find_map(|ch| if !stringutil::is_white_space_single_line(ch as u32) { Some(ch == '/') } else { None })
-    {
+    if let Some(result) = text[start as usize..].chars().into_iter().find_map(|ch| {
+        if !stringutil::is_white_space_single_line(ch as u32) { Some(ch == '/') } else { None }
+    }) {
         return result;
     }
     false

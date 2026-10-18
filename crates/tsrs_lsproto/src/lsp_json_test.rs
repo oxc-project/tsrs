@@ -19,17 +19,23 @@ fn test_unmarshal_rejects_null_for_optional_non_nullable_fields() {
     let tests: Vec<(&str, String, &str)> = vec![
         (
             "InlayHint kind null",
-            error_text::<InlayHint>(r#"{"position": {"line": 0, "character": 0}, "label": "foo", "kind": null}"#),
+            error_text::<InlayHint>(
+                r#"{"position": {"line": 0, "character": 0}, "label": "foo", "kind": null}"#,
+            ),
             r#"null value is not allowed for field "kind""#,
         ),
         (
             "InlayHint textEdits null",
-            error_text::<InlayHint>(r#"{"position": {"line": 0, "character": 0}, "label": "foo", "textEdits": null}"#),
+            error_text::<InlayHint>(
+                r#"{"position": {"line": 0, "character": 0}, "label": "foo", "textEdits": null}"#,
+            ),
             r#"null value is not allowed for field "textEdits""#,
         ),
         (
             "InlayHint paddingLeft null",
-            error_text::<InlayHint>(r#"{"position": {"line": 0, "character": 0}, "label": "foo", "paddingLeft": null}"#),
+            error_text::<InlayHint>(
+                r#"{"position": {"line": 0, "character": 0}, "label": "foo", "paddingLeft": null}"#,
+            ),
             r#"null value is not allowed for field "paddingLeft""#,
         ),
         (
@@ -39,7 +45,9 @@ fn test_unmarshal_rejects_null_for_optional_non_nullable_fields() {
         ),
         (
             "FoldingRange startCharacter null",
-            error_text::<FoldingRange>(r#"{"startLine": 0, "endLine": 10, "startCharacter": null}"#),
+            error_text::<FoldingRange>(
+                r#"{"startLine": 0, "endLine": 10, "startCharacter": null}"#,
+            ),
             r#"null value is not allowed for field "startCharacter""#,
         ),
         (
@@ -49,7 +57,9 @@ fn test_unmarshal_rejects_null_for_optional_non_nullable_fields() {
         ),
         (
             "Hover range null",
-            error_text::<Hover>(r#"{"contents": {"kind": "plaintext", "value": "hi"}, "range": null}"#),
+            error_text::<Hover>(
+                r#"{"contents": {"kind": "plaintext", "value": "hi"}, "range": null}"#,
+            ),
             r#"null value is not allowed for field "range""#,
         ),
         (
@@ -69,7 +79,9 @@ fn test_unmarshal_rejects_null_for_optional_non_nullable_fields() {
         ),
         (
             "InitializeParams capabilities null",
-            error_text::<InitializeParams>(r#"{"processId": null, "rootUri": null, "capabilities": null}"#),
+            error_text::<InitializeParams>(
+                r#"{"processId": null, "rootUri": null, "capabilities": null}"#,
+            ),
             r#"null value is not allowed for field "capabilities""#,
         ),
         (
@@ -84,7 +96,9 @@ fn test_unmarshal_rejects_null_for_optional_non_nullable_fields() {
         ),
         (
             "TextDocumentEdit edits null (required slice)",
-            error_text::<TextDocumentEdit>(r#"{"textDocument": {"uri": "file:///a.ts", "version": 1}, "edits": null}"#),
+            error_text::<TextDocumentEdit>(
+                r#"{"textDocument": {"uri": "file:///a.ts", "version": 1}, "edits": null}"#,
+            ),
             r#"null value is not allowed for field "edits""#,
         ),
     ];
@@ -97,9 +111,18 @@ fn test_unmarshal_rejects_null_for_optional_non_nullable_fields() {
 // lsp_json_test.go:116
 #[test]
 fn test_unmarshal_accepts_null_for_nullable_fields() {
-    unmarshal_str::<InitializeParams>(r#"{"processId": null, "rootUri": null, "capabilities": {}}"#).unwrap();
-    unmarshal_str::<InitializeParams>(r#"{"processId": null, "rootUri": null, "capabilities": {}, "workspaceFolders": null}"#).unwrap();
-    unmarshal_str::<InitializeParams>(r#"{"processId": null, "rootUri": null, "capabilities": {}}"#).unwrap();
+    unmarshal_str::<InitializeParams>(
+        r#"{"processId": null, "rootUri": null, "capabilities": {}}"#,
+    )
+    .unwrap();
+    unmarshal_str::<InitializeParams>(
+        r#"{"processId": null, "rootUri": null, "capabilities": {}, "workspaceFolders": null}"#,
+    )
+    .unwrap();
+    unmarshal_str::<InitializeParams>(
+        r#"{"processId": null, "rootUri": null, "capabilities": {}}"#,
+    )
+    .unwrap();
     unmarshal_str::<InitializationOptions>(r#"{"userPreferences": null}"#).unwrap();
     unmarshal_str::<InitializeParams>(r#"{"processId": null, "rootUri": null, "capabilities": {}, "initializationOptions": null}"#)
         .unwrap();
@@ -108,7 +131,9 @@ fn test_unmarshal_accepts_null_for_nullable_fields() {
 // lsp_json_test.go:160
 #[test]
 fn test_unmarshal_accepts_omitted_optional_fields() {
-    let hint = unmarshal_str::<InlayHint>(r#"{"position": {"line": 1, "character": 5}, "label": "test"}"#).unwrap();
+    let hint =
+        unmarshal_str::<InlayHint>(r#"{"position": {"line": 1, "character": 5}, "label": "test"}"#)
+            .unwrap();
     assert!(hint.kind.is_none());
     assert!(hint.text_edits.is_none());
     assert!(hint.tooltip.is_none());
@@ -131,7 +156,11 @@ fn test_unmarshal_accepts_omitted_optional_fields() {
 #[test]
 fn test_unmarshal_rejects_incomplete_objects() {
     let tests = [
-        ("InlayHint missing position", error_text::<InlayHint>(r#"{"label": "test"}"#), "missing required properties: position"),
+        (
+            "InlayHint missing position",
+            error_text::<InlayHint>(r#"{"label": "test"}"#),
+            "missing required properties: position",
+        ),
         (
             "InlayHint missing label",
             error_text::<InlayHint>(r#"{"position": {"line": 0, "character": 0}}"#),
@@ -139,10 +168,16 @@ fn test_unmarshal_rejects_incomplete_objects() {
         ),
         (
             "Location missing uri",
-            error_text::<Location>(r#"{"range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 0}}}"#),
+            error_text::<Location>(
+                r#"{"range": {"start": {"line": 0, "character": 0}, "end": {"line": 0, "character": 0}}}"#,
+            ),
             "missing required properties: uri",
         ),
-        ("Location empty object", error_text::<Location>(r"{}"), "missing required properties: uri, range"),
+        (
+            "Location empty object",
+            error_text::<Location>(r"{}"),
+            "missing required properties: uri, range",
+        ),
     ];
 
     for (name, err, err_text) in tests {
@@ -161,7 +196,10 @@ fn round_trip<T: Json + PartialEq + std::fmt::Debug>(value: &T) {
 fn test_marshal_unmarshal_round_trip() {
     round_trip(&InlayHint {
         position: Position { line: 1, character: 5 },
-        label: StringOrInlayHintLabelParts { string: Some("param".to_string()), ..Default::default() },
+        label: StringOrInlayHintLabelParts {
+            string: Some("param".to_string()),
+            ..Default::default()
+        },
         kind: Some(InlayHintKind::Parameter),
         ..Default::default()
     });
@@ -180,7 +218,10 @@ fn test_marshal_unmarshal_round_trip() {
     });
     round_trip(&Location {
         uri: DocumentUri::from("file:///test.ts"),
-        range: Range { start: Position { line: 1, character: 2 }, end: Position { line: 3, character: 4 } },
+        range: Range {
+            start: Position { line: 1, character: 2 },
+            end: Position { line: 3, character: 4 },
+        },
     });
     round_trip(&InitializeParams {
         process_id: IntegerOrNull::default(),
@@ -220,7 +261,11 @@ fn test_marshal_union_types() {
     assert_eq!(marshal(&IntegerOrNull { integer: Some(42) }).unwrap(), "42");
     assert_eq!(marshal(&IntegerOrNull::default()).unwrap(), "null");
     assert_eq!(marshal(&IntegerOrString { integer: Some(7), ..Default::default() }).unwrap(), "7");
-    assert_eq!(marshal(&IntegerOrString { string: Some("tok".to_string()), ..Default::default() }).unwrap(), r#""tok""#);
+    assert_eq!(
+        marshal(&IntegerOrString { string: Some("tok".to_string()), ..Default::default() })
+            .unwrap(),
+        r#""tok""#
+    );
 }
 
 // lsp_json_test.go:439
@@ -328,12 +373,18 @@ impl Json for OptionalDiscriminatorArm {
 #[test]
 fn test_unmarshal_discriminator_union() {
     // WorkDoneProgressBegin
-    let v = unmarshal_str::<WorkDoneProgressBeginOrReportOrEnd>(r#"{"kind": "begin", "title": "Indexing"}"#).unwrap();
+    let v = unmarshal_str::<WorkDoneProgressBeginOrReportOrEnd>(
+        r#"{"kind": "begin", "title": "Indexing"}"#,
+    )
+    .unwrap();
     assert!(v.begin.is_some() && v.report.is_none() && v.end.is_none());
     assert_eq!(v.begin.unwrap().title, "Indexing");
 
     // WorkDoneProgressReport
-    let v = unmarshal_str::<WorkDoneProgressBeginOrReportOrEnd>(r#"{"kind": "report", "message": "50%"}"#).unwrap();
+    let v = unmarshal_str::<WorkDoneProgressBeginOrReportOrEnd>(
+        r#"{"kind": "report", "message": "50%"}"#,
+    )
+    .unwrap();
     assert!(v.begin.is_none() && v.end.is_none());
     assert_eq!(v.report.unwrap().message.as_deref(), Some("50%"));
 
@@ -342,16 +393,30 @@ fn test_unmarshal_discriminator_union() {
     assert!(v.begin.is_none() && v.report.is_none() && v.end.is_some());
 
     // discriminator after variant fields
-    let v = unmarshal_str::<WorkDoneProgressBeginOrReportOrEnd>(r#"{"title": "Indexing", "percentage": 25, "kind": "begin"}"#).unwrap();
+    let v = unmarshal_str::<WorkDoneProgressBeginOrReportOrEnd>(
+        r#"{"title": "Indexing", "percentage": 25, "kind": "begin"}"#,
+    )
+    .unwrap();
     let begin = v.begin.unwrap();
     assert_eq!(begin.title, "Indexing");
     assert_eq!(begin.percentage, Some(25));
 
     // optional discriminator is preserved
     let input = tsrs_core::json::unmarshal(r#"{"kind": "begin", "title": "Indexing"}"#).unwrap();
-    let state = scan_discriminated_struct(&input, "lsproto.optionalDiscriminatorArm", "optionalDiscriminatorArm", "kind").unwrap();
+    let state = scan_discriminated_struct(
+        &input,
+        "lsproto.optionalDiscriminatorArm",
+        "optionalDiscriminatorArm",
+        "kind",
+    )
+    .unwrap();
     assert_eq!(state.discriminator_str(), Some("begin"));
-    let v = unmarshal_discriminated_arm::<OptionalDiscriminatorArm>(&input, "lsproto.optionalDiscriminatorArm", "kind").unwrap();
+    let v = unmarshal_discriminated_arm::<OptionalDiscriminatorArm>(
+        &input,
+        "lsproto.optionalDiscriminatorArm",
+        "kind",
+    )
+    .unwrap();
     assert!(v.kind.is_some());
     assert_eq!(v.title, "Indexing");
 
@@ -398,7 +463,10 @@ fn test_unmarshal_string_or_array_union() {
     assert_eq!(v.string.as_deref(), Some("hello"));
     assert!(v.inlay_hint_label_parts.is_none());
 
-    let v = unmarshal_str::<StringOrInlayHintLabelParts>(r#"[{"value": "param"}, {"value": ": "}, {"value": "string"}]"#).unwrap();
+    let v = unmarshal_str::<StringOrInlayHintLabelParts>(
+        r#"[{"value": "param"}, {"value": ": "}, {"value": "string"}]"#,
+    )
+    .unwrap();
     assert!(v.string.is_none());
     let parts = v.inlay_hint_label_parts.unwrap();
     assert_eq!(parts.len(), 3);
@@ -418,7 +486,12 @@ fn test_unmarshal_document_edit_union() {
 		}"#,
     )
     .unwrap();
-    assert!(v.text_document_edit.is_some() && v.create_file.is_none() && v.rename_file.is_none() && v.delete_file.is_none());
+    assert!(
+        v.text_document_edit.is_some()
+            && v.create_file.is_none()
+            && v.rename_file.is_none()
+            && v.delete_file.is_none()
+    );
 
     // TextDocumentEdit with non-string kind
     let v = unmarshal_str::<U>(
@@ -429,7 +502,12 @@ fn test_unmarshal_document_edit_union() {
 		}"#,
     )
     .unwrap();
-    assert!(v.text_document_edit.is_some() && v.create_file.is_none() && v.rename_file.is_none() && v.delete_file.is_none());
+    assert!(
+        v.text_document_edit.is_some()
+            && v.create_file.is_none()
+            && v.rename_file.is_none()
+            && v.delete_file.is_none()
+    );
 
     // CreateFile with kind create
     let v = unmarshal_str::<U>(r#"{"kind": "create", "uri": "file:///new.ts"}"#).unwrap();
@@ -441,7 +519,10 @@ fn test_unmarshal_document_edit_union() {
     assert_eq!(v.create_file.unwrap().uri, DocumentUri::from("file:///new.ts"));
 
     // RenameFile with kind rename
-    let v = unmarshal_str::<U>(r#"{"kind": "rename", "oldUri": "file:///old.ts", "newUri": "file:///new.ts"}"#).unwrap();
+    let v = unmarshal_str::<U>(
+        r#"{"kind": "rename", "oldUri": "file:///old.ts", "newUri": "file:///new.ts"}"#,
+    )
+    .unwrap();
     assert_eq!(v.rename_file.unwrap().old_uri, DocumentUri::from("file:///old.ts"));
 
     // DeleteFile with kind delete
@@ -541,9 +622,15 @@ fn round_trip_marshal<T: Json>(value: &T) {
 // marshal -> unmarshal unchanged.
 #[test]
 fn test_round_trip() {
-    round_trip_marshal(&Range { start: Position { line: 1, character: 2 }, end: Position { line: 3, character: 4 } });
+    round_trip_marshal(&Range {
+        start: Position { line: 1, character: 2 },
+        end: Position { line: 3, character: 4 },
+    });
     round_trip_marshal(&TextEdit {
-        range: Range { start: Position { line: 1, character: 2 }, end: Position { line: 3, character: 4 } },
+        range: Range {
+            start: Position { line: 1, character: 2 },
+            end: Position { line: 3, character: 4 },
+        },
         new_text: "hello".to_string(),
     });
     round_trip_marshal(&MarkupContent { kind: MarkupKind::Markdown, value: "**x**".to_string() });
@@ -574,7 +661,9 @@ fn test_round_trip() {
 #[test]
 fn test_strictness_missing_required() {
     let errs = [
-        error_text::<TextEdit>(r#"{"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":1}}}"#),
+        error_text::<TextEdit>(
+            r#"{"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":1}}}"#,
+        ),
         error_text::<Range>(r#"{"start":{"line":0,"character":0}}"#),
         error_text::<Position>(r#"{"line":0}"#),
     ];
@@ -599,12 +688,16 @@ fn test_strictness_not_object() {
 #[test]
 fn test_unmarshal_params_requires_params() {
     fn params(raw: Option<&str>) -> RequestMessage {
-        RequestMessage { params: raw.map(|r| tsrs_core::json::unmarshal(r).unwrap()), ..Default::default() }
+        RequestMessage {
+            params: raw.map(|r| tsrs_core::json::unmarshal(r).unwrap()),
+            ..Default::default()
+        }
     }
 
     // NoParams: only truly-absent/empty params are accepted; null and any
     // present value are rejected. (An empty raw value is represented as absent.)
-    let no_params_tests = [("absent", None, false), ("null", Some("null"), true), ("object", Some("{}"), true)];
+    let no_params_tests =
+        [("absent", None, false), ("null", Some("null"), true), ("object", Some("{}"), true)];
     for (name, raw, want_err) in no_params_tests {
         let result = params(raw).unmarshal_params::<NoParams>();
         if want_err {

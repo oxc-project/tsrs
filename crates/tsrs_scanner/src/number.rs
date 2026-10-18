@@ -50,7 +50,9 @@ fn parse_radix<const BITS: u32>(digits: &[u8]) -> Option<f64> {
         return parse_radix_slow::<BITS>(digits);
     }
     let mut value = 0_u64;
-    value = digits.iter().try_fold(value, |value, &byte| Some((value << BITS) | u64::from(digit::<BITS>(byte)?)))?;
+    value = digits
+        .iter()
+        .try_fold(value, |value, &byte| Some((value << BITS) | u64::from(digit::<BITS>(byte)?)))?;
     Some(value as f64)
 }
 

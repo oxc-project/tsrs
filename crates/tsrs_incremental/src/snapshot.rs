@@ -1,14 +1,17 @@
 // Port of execute/incremental/snapshot.go.
 
-use std::fmt::Write as _;
 use std::cell::{Cell, RefCell};
+use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
-use tsrs_ast::{self as ast, Diagnostic, DiagnosticExt, RepopulateDiagnosticInfo, RepopulateDiagnosticKind, SourceFile};
+use tsrs_ast::{
+    self as ast, Diagnostic, DiagnosticExt, RepopulateDiagnosticInfo, RepopulateDiagnosticKind,
+    SourceFile,
+};
 use tsrs_compiler::Program as CompilerProgram;
 use tsrs_core::collections::{SyncMap, SyncSet};
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{alloc_str, new_text_range, CompilerOptions, ResolutionMode, Tristate, P};
+use tsrs_core::{CompilerOptions, P, ResolutionMode, Tristate, alloc_str, new_text_range};
 use tsrs_diagnostics::{Category, Key};
 
 use crate::emit::WriteFileData;
@@ -93,14 +96,20 @@ pub fn get_file_emit_kind(options: &CompilerOptions) -> FileEmitKind {
 }
 
 // snapshot.go:82
-pub(crate) fn get_pending_emit_kind_with_options(options: &CompilerOptions, old_options: &CompilerOptions) -> FileEmitKind {
+pub(crate) fn get_pending_emit_kind_with_options(
+    options: &CompilerOptions,
+    old_options: &CompilerOptions,
+) -> FileEmitKind {
     let old_emit_kind = get_file_emit_kind(old_options);
     let new_emit_kind = get_file_emit_kind(options);
     get_pending_emit_kind(new_emit_kind, old_emit_kind)
 }
 
 // snapshot.go:88
-pub(crate) fn get_pending_emit_kind(emit_kind: FileEmitKind, old_emit_kind: FileEmitKind) -> FileEmitKind {
+pub(crate) fn get_pending_emit_kind(
+    emit_kind: FileEmitKind,
+    old_emit_kind: FileEmitKind,
+) -> FileEmitKind {
     if old_emit_kind == emit_kind {
         return FileEmitKind::None;
     }
@@ -135,13 +144,23 @@ pub struct EmitSignature {
 impl EmitSignature {
     // Covert to Emit signature based on oldOptions and EmitSignature format
     // If d.ts map options differ then swap the format, otherwise use as is
-    pub(crate) fn get_new_emit_signature(&self, old_options: &CompilerOptions, new_options: &CompilerOptions) -> EmitSignature {
+    pub(crate) fn get_new_emit_signature(
+        &self,
+        old_options: &CompilerOptions,
+        new_options: &CompilerOptions,
+    ) -> EmitSignature {
         if old_options.declaration_map.is_true() == new_options.declaration_map.is_true() {
             return self.clone();
         }
         match &self.signature_with_different_options {
-            None => EmitSignature { signature: String::new(), signature_with_different_options: Some(vec![self.signature.clone()]) },
-            Some(with_different_options) => EmitSignature { signature: with_different_options[0].clone(), signature_with_different_options: None },
+            None => EmitSignature {
+                signature: String::new(),
+                signature_with_different_options: Some(vec![self.signature.clone()]),
+            },
+            Some(with_different_options) => EmitSignature {
+                signature: with_different_options[0].clone(),
+                signature_with_different_options: None,
+            },
         }
     }
 }
@@ -197,8 +216,13 @@ pub struct DiagnosticsOrBuildInfoDiagnosticsWithFileName {
 }
 
 impl DiagnosticsOrBuildInfoDiagnosticsWithFileName {
-    pub(crate) fn from_diagnostics(diagnostics: Vec<P<Diagnostic>>) -> Arc<DiagnosticsOrBuildInfoDiagnosticsWithFileName> {
-        Arc::new(DiagnosticsOrBuildInfoDiagnosticsWithFileName { diagnostics: Mutex::new(Some(diagnostics)), build_info_diagnostics: Vec::new() })
+    pub(crate) fn from_diagnostics(
+        diagnostics: Vec<P<Diagnostic>>,
+    ) -> Arc<DiagnosticsOrBuildInfoDiagnosticsWithFileName> {
+        Arc::new(DiagnosticsOrBuildInfoDiagnosticsWithFileName {
+            diagnostics: Mutex::new(Some(diagnostics)),
+            build_info_diagnostics: Vec::new(),
+        })
     }
 
     pub(crate) fn has_diagnostics(&self) -> bool {
@@ -216,7 +240,11 @@ fn key_of(key: &str) -> Key {
 
 impl buildInfoDiagnosticWithFileName {
     // snapshot.go:150
-    pub(crate) fn to_diagnostic(&self, p: &'static CompilerProgram, file: Option<P<SourceFile>>) -> P<Diagnostic> {
+    pub(crate) fn to_diagnostic(
+        &self,
+        p: &'static CompilerProgram,
+        file: Option<P<SourceFile>>,
+    ) -> P<Diagnostic> {
         let file_for_diagnostic = if !self.file.is_empty() {
             p.get_source_file_by_path(&self.file)
         } else if !self.no_file {
@@ -229,8 +257,16 @@ impl buildInfoDiagnosticWithFileName {
             return repopulate_diagnostic_chain(self, p, file_for_diagnostic);
         }
 
-        let message_chain: Vec<P<Diagnostic>> = self.message_chain.iter().map(|msg| msg.to_diagnostic(p, file_for_diagnostic)).collect();
-        let related_information: Vec<P<Diagnostic>> = self.related_information.iter().map(|info| info.to_diagnostic(p, file_for_diagnostic)).collect();
+        let message_chain: Vec<P<Diagnostic>> = self
+            .message_chain
+            .iter()
+            .map(|msg| msg.to_diagnostic(p, file_for_diagnostic))
+            .collect();
+        let related_information: Vec<P<Diagnostic>> = self
+            .related_information
+            .iter()
+            .map(|info| info.to_diagnostic(p, file_for_diagnostic))
+            .collect();
         let diagnostic = ast::new_diagnostic_from_serialized(
             file_for_diagnostic,
             new_text_range(self.pos, self.end),
@@ -251,9 +287,15 @@ impl buildInfoDiagnosticWithFileName {
     }
 
     // snapshot.go:203
-    pub(crate) fn to_diagnostic_without_repopulate(&self, p: &'static CompilerProgram, file: Option<P<SourceFile>>) -> P<Diagnostic> {
-        let message_chain: Vec<P<Diagnostic>> = self.message_chain.iter().map(|msg| msg.to_diagnostic(p, file)).collect();
-        let related_information: Vec<P<Diagnostic>> = self.related_information.iter().map(|info| info.to_diagnostic(p, file)).collect();
+    pub(crate) fn to_diagnostic_without_repopulate(
+        &self,
+        p: &'static CompilerProgram,
+        file: Option<P<SourceFile>>,
+    ) -> P<Diagnostic> {
+        let message_chain: Vec<P<Diagnostic>> =
+            self.message_chain.iter().map(|msg| msg.to_diagnostic(p, file)).collect();
+        let related_information: Vec<P<Diagnostic>> =
+            self.related_information.iter().map(|info| info.to_diagnostic(p, file)).collect();
         ast::new_diagnostic_from_serialized(
             file,
             new_text_range(self.pos, self.end),
@@ -273,23 +315,35 @@ impl buildInfoDiagnosticWithFileName {
 // repopulateDiagnosticChain recomputes a diagnostic chain entry that depends on
 // program state which may have changed between incremental builds.
 // snapshot.go:189
-pub(crate) fn repopulate_diagnostic_chain(b: &buildInfoDiagnosticWithFileName, p: &'static CompilerProgram, file: Option<P<SourceFile>>) -> P<Diagnostic> {
+pub(crate) fn repopulate_diagnostic_chain(
+    b: &buildInfoDiagnosticWithFileName,
+    p: &'static CompilerProgram,
+    file: Option<P<SourceFile>>,
+) -> P<Diagnostic> {
     let info = b.repopulate_info.as_ref().unwrap();
     match info.kind {
         RepopulateDiagnosticKind::ModeMismatch => repopulate_mode_mismatch_chain(b, p, file),
-        RepopulateDiagnosticKind::ModuleNotFound => repopulate_module_not_found_chain(b, p, file, info),
+        RepopulateDiagnosticKind::ModuleNotFound => {
+            repopulate_module_not_found_chain(b, p, file, info)
+        }
     }
 }
 
 // snapshot.go:225
-fn repopulate_mode_mismatch_chain(b: &buildInfoDiagnosticWithFileName, p: &'static CompilerProgram, file: Option<P<SourceFile>>) -> P<Diagnostic> {
+fn repopulate_mode_mismatch_chain(
+    b: &buildInfoDiagnosticWithFileName,
+    p: &'static CompilerProgram,
+    file: Option<P<SourceFile>>,
+) -> P<Diagnostic> {
     let Some(file) = file else {
         return b.to_diagnostic_without_repopulate(p, file);
     };
 
-    let details = tsrs_checker::create_mode_mismatch_details(p as &'static dyn tsrs_checker::Program, file);
+    let details =
+        tsrs_checker::create_mode_mismatch_details(p as &'static dyn tsrs_checker::Program, file);
 
-    let next_chain: Vec<P<Diagnostic>> = b.message_chain.iter().map(|msg| msg.to_diagnostic(p, Some(file))).collect();
+    let next_chain: Vec<P<Diagnostic>> =
+        b.message_chain.iter().map(|msg| msg.to_diagnostic(p, Some(file))).collect();
 
     ast::new_diagnostic_from_serialized(
         Some(file),
@@ -322,9 +376,16 @@ fn repopulate_module_not_found_chain(
         package_name = &info.module_reference;
     }
 
-    let details = tsrs_checker::create_module_not_found_chain(p as &'static dyn tsrs_checker::Program, file, &info.module_reference, info.mode, package_name);
+    let details = tsrs_checker::create_module_not_found_chain(
+        p as &'static dyn tsrs_checker::Program,
+        file,
+        &info.module_reference,
+        info.mode,
+        package_name,
+    );
 
-    let next_chain: Vec<P<Diagnostic>> = b.message_chain.iter().map(|msg| msg.to_diagnostic(p, Some(file))).collect();
+    let next_chain: Vec<P<Diagnostic>> =
+        b.message_chain.iter().map(|msg| msg.to_diagnostic(p, Some(file))).collect();
 
     ast::new_diagnostic_from_serialized(
         Some(file),
@@ -343,12 +404,17 @@ fn repopulate_module_not_found_chain(
 
 impl DiagnosticsOrBuildInfoDiagnosticsWithFileName {
     // snapshot.go:285
-    pub(crate) fn get_diagnostics(&self, p: &'static CompilerProgram, file: Option<P<SourceFile>>) -> Vec<P<Diagnostic>> {
+    pub(crate) fn get_diagnostics(
+        &self,
+        p: &'static CompilerProgram,
+        file: Option<P<SourceFile>>,
+    ) -> Vec<P<Diagnostic>> {
         if let Some(diagnostics) = self.diagnostics.lock().unwrap().as_ref() {
             return diagnostics.clone();
         }
         // Convert and cache the diagnostics
-        let diagnostics: Vec<P<Diagnostic>> = self.build_info_diagnostics.iter().map(|diag| diag.to_diagnostic(p, file)).collect();
+        let diagnostics: Vec<P<Diagnostic>> =
+            self.build_info_diagnostics.iter().map(|diag| diag.to_diagnostic(p, file)).collect();
         *self.diagnostics.lock().unwrap() = Some(diagnostics.clone());
         diagnostics
     }
@@ -420,7 +486,11 @@ impl Snapshot {
     }
 
     // snapshot.go:356
-    pub(crate) fn add_file_to_affected_files_pending_emit(&self, file_path: &Path, emit_kind: FileEmitKind) {
+    pub(crate) fn add_file_to_affected_files_pending_emit(
+        &self,
+        file_path: &Path,
+        emit_kind: FileEmitKind,
+    ) {
         let existing_kind = self.affected_files_pending_emit.load(file_path).unwrap_or_default();
         self.affected_files_pending_emit.store(file_path.clone(), existing_kind | emit_kind);
         if emit_kind.intersects(FileEmitKind::DtsErrors) {
@@ -456,7 +526,12 @@ impl Snapshot {
     }
 
     // snapshot.go:404
-    pub(crate) fn compute_signature_with_diagnostics(&self, file: P<SourceFile>, text: &str, data: &WriteFileData) -> String {
+    pub(crate) fn compute_signature_with_diagnostics(
+        &self,
+        file: P<SourceFile>,
+        text: &str,
+        data: &WriteFileData,
+    ) -> String {
         let mut builder = String::new();
         builder.push_str(get_text_handling_source_map_for_signature(text, data));
         for &diag in &data.diagnostics {
@@ -493,7 +568,11 @@ pub(crate) fn get_text_handling_source_map_for_signature<'a>(
 }
 
 // snapshot.go:413
-pub(crate) fn diagnostic_to_string_builder(diagnostic: Option<P<Diagnostic>>, file: P<SourceFile>, builder: &mut String) {
+pub(crate) fn diagnostic_to_string_builder(
+    diagnostic: Option<P<Diagnostic>>,
+    file: P<SourceFile>,
+    builder: &mut String,
+) {
     let Some(diagnostic) = diagnostic else {
         return;
     };
@@ -501,15 +580,22 @@ pub(crate) fn diagnostic_to_string_builder(diagnostic: Option<P<Diagnostic>>, fi
     if diagnostic.file() != Some(file) {
         // Go dereferences diagnostic.File() here; a file-less diagnostic would panic.
         let diagnostic_file = diagnostic.file().unwrap();
-        builder.push_str(&tspath::ensure_path_is_non_module_name(&tspath::get_relative_path_from_directory(
-            &tspath::get_directory_path(file.path()),
-            diagnostic_file.path(),
-            &ComparePathsOptions::default(),
-        )));
+        builder.push_str(&tspath::ensure_path_is_non_module_name(
+            &tspath::get_relative_path_from_directory(
+                &tspath::get_directory_path(file.path()),
+                diagnostic_file.path(),
+                &ComparePathsOptions::default(),
+            ),
+        ));
     }
     if diagnostic.file().is_some() {
         // Go prints the raw ints: a synthetic position is -1, and its length 0.
-        let _ = write!(builder, "({},{}): ", diagnostic.pos().map_or(-1, i64::from), diagnostic.len().map_or(0, i64::from));
+        let _ = write!(
+            builder,
+            "({},{}): ",
+            diagnostic.pos().map_or(-1, i64::from),
+            diagnostic.len().map_or(0, i64::from)
+        );
     }
     builder.push_str(diagnostic.category().name());
     let _ = write!(builder, "{}: ", diagnostic.code());

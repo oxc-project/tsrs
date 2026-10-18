@@ -1,7 +1,10 @@
 use super::*;
 
 // utilities.go:12
-pub(crate) fn is_declaration_name_of_enum_or_namespace(emit_context: P<EmitContext>, node: P<Node>) -> bool {
+pub(crate) fn is_declaration_name_of_enum_or_namespace(
+    emit_context: P<EmitContext>,
+    node: P<Node>,
+) -> bool {
     if let Some(original) = emit_context.most_original(Some(node)) {
         if let Some(parent) = original.parent() {
             if let Kind::EnumDeclaration | Kind::ModuleDeclaration = parent.kind() {
@@ -13,14 +16,25 @@ pub(crate) fn is_declaration_name_of_enum_or_namespace(emit_context: P<EmitConte
 }
 
 // utilities.go:22
-pub(crate) fn rewrite_module_specifier(emit_context: P<EmitContext>, node: Option<P<Node>>, compiler_options: &CompilerOptions) -> Option<P<Node>> {
+pub(crate) fn rewrite_module_specifier(
+    emit_context: P<EmitContext>,
+    node: Option<P<Node>>,
+    compiler_options: &CompilerOptions,
+) -> Option<P<Node>> {
     let node = node?;
-    if !ast::is_string_literal(node) || !tsrs_core::should_rewrite_module_specifier(node.text(), compiler_options) {
+    if !ast::is_string_literal(node)
+        || !tsrs_core::should_rewrite_module_specifier(node.text(), compiler_options)
+    {
         return Some(node);
     }
-    let updated_text = tspath::change_extension(node.text(), tsrs_tsoptions::outputpaths::get_output_extension(node.text(), compiler_options.jsx));
+    let updated_text = tspath::change_extension(
+        node.text(),
+        tsrs_tsoptions::outputpaths::get_output_extension(node.text(), compiler_options.jsx),
+    );
     if updated_text != node.text() {
-        let updated = emit_context.factory.new_string_literal(alloc_str(&updated_text), node.as_string_literal().token_flags());
+        let updated = emit_context
+            .factory
+            .new_string_literal(alloc_str(&updated_text), node.as_string_literal().token_flags());
         emit_context.set_original(updated, node);
         emit_context.assign_comment_and_source_map_ranges(updated, node);
         return Some(updated);
@@ -58,7 +72,13 @@ pub(crate) fn get_external_module_name_literal(
     let module_name = ast::get_external_module_name(import_node);
     if let Some(module_name) = module_name {
         if ast::is_string_literal(module_name) {
-            let mut name = try_get_module_name_from_declaration(import_node, host, factory, resolver, compiler_options);
+            let mut name = try_get_module_name_from_declaration(
+                import_node,
+                host,
+                factory,
+                resolver,
+                compiler_options,
+            );
             if name.is_none() {
                 name = try_rename_external_module(factory, module_name, source_file);
             }
@@ -79,7 +99,12 @@ pub(crate) fn get_external_module_name_literal(
 //
 // Otherwise, a new StringLiteral node representing the module name will be returned.
 // utilities.go:76
-pub(crate) fn try_get_module_name_from_file(_factory: &printer::NodeFactory, file: Option<P<SourceFile>>, _host: Option<()>, /*EmitHost*/ _options: &CompilerOptions) -> Option<P<Node>> {
+pub(crate) fn try_get_module_name_from_file(
+    _factory: &printer::NodeFactory,
+    file: Option<P<SourceFile>>,
+    _host: Option<()>,
+    /*EmitHost*/ _options: &CompilerOptions,
+) -> Option<P<Node>> {
     file?;
     // !!!
     // if file.moduleName {
@@ -97,19 +122,31 @@ pub(crate) fn try_get_module_name_from_declaration(
     compiler_options: &CompilerOptions,
 ) -> Option<P<Node>> {
     let resolver = resolver?;
-    try_get_module_name_from_file(factory, resolver.get_external_module_file_from_declaration(declaration), host, compiler_options)
+    try_get_module_name_from_file(
+        factory,
+        resolver.get_external_module_file_from_declaration(declaration),
+        host,
+        compiler_options,
+    )
 }
 
 // Some bundlers (SystemJS builder) sometimes want to rename dependencies.
 // Here we check if alternative name was provided for a given moduleName and return it if possible.
 // utilities.go:102
-pub(crate) fn try_rename_external_module(_factory: &printer::NodeFactory, _module_name: P<Node>, _source_file: Option<P<SourceFile>>) -> Option<P<Node>> {
+pub(crate) fn try_rename_external_module(
+    _factory: &printer::NodeFactory,
+    _module_name: P<Node>,
+    _source_file: Option<P<SourceFile>>,
+) -> Option<P<Node>> {
     // !!!
     None
 }
 
 // utilities.go:107
-pub(crate) fn is_file_level_reserved_generated_identifier(emit_context: P<EmitContext>, name: P<Node>) -> bool {
+pub(crate) fn is_file_level_reserved_generated_identifier(
+    emit_context: P<EmitContext>,
+    name: P<Node>,
+) -> bool {
     let info = emit_context.get_auto_generate_info(Some(name));
     matches!(info, Some(info) if info.flags.is_file_level() && info.flags.is_optimistic() && info.flags.is_reserved_in_nested_scopes())
 }

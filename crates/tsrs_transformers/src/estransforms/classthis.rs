@@ -13,9 +13,13 @@ pub(crate) fn is_class_this_assignment_block(emit_context: P<EmitContext>, node:
             let statement = body.statements.nodes()[0];
             if ast::is_expression_statement(statement) {
                 let expression = statement.expression().unwrap();
-                if ast::is_assignment_expression(expression, true /*excludeCompoundAssignment*/) {
+                if ast::is_assignment_expression(
+                    expression, true, /*excludeCompoundAssignment*/
+                ) {
                     let binary = expression.as_binary_expression();
-                    return ast::is_identifier(binary.left) && emit_context.class_this(node) == Some(binary.left) && binary.right().kind() == Kind::ThisKeyword;
+                    return ast::is_identifier(binary.left)
+                        && emit_context.class_this(node) == Some(binary.left)
+                        && binary.right().kind() == Kind::ThisKeyword;
                 }
             }
         }

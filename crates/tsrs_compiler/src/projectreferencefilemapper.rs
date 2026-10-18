@@ -17,7 +17,7 @@ pub(crate) struct projectReferenceFileMapper {
     pub(crate) dts_directories: FxHashSet<Path>,
 
     pub(crate) config_to_project_reference: FxHashMap<Path, Option<P<ParsedCommandLine>>>, // All the resolved references needed
-    pub(crate) references_in_config_file: FxHashMap<Path, Vec<Path>>,                       // Map of config file to its references
+    pub(crate) references_in_config_file: FxHashMap<Path, Vec<Path>>, // Map of config file to its references
     pub(crate) source_to_project_reference: FxHashMap<Path, P<SourceOutputAndProjectReference>>,
     pub(crate) output_dts_to_project_reference: FxHashMap<Path, P<SourceOutputAndProjectReference>>,
 
@@ -54,12 +54,17 @@ pub(crate) fn resolution_host_for(host: Arc<dyn CompilerHost>) -> &'static dyn R
     Box::leak(Box::new(compilerResolutionHost(host)))
 }
 
-pub(crate) fn as_resolved_project_reference(config: P<ParsedCommandLine>) -> &'static dyn ResolvedProjectReference {
+pub(crate) fn as_resolved_project_reference(
+    config: P<ParsedCommandLine>,
+) -> &'static dyn ResolvedProjectReference {
     config.get()
 }
 
 impl projectReferenceFileMapper {
-    pub(crate) fn new(config: P<ParsedCommandLine>, use_source_of_project_reference: bool) -> projectReferenceFileMapper {
+    pub(crate) fn new(
+        config: P<ParsedCommandLine>,
+        use_source_of_project_reference: bool,
+    ) -> projectReferenceFileMapper {
         projectReferenceFileMapper {
             config,
             use_source_of_project_reference,
@@ -75,9 +80,15 @@ impl projectReferenceFileMapper {
     }
 
     // projectreferencefilemapper.go:30
-    pub(crate) fn resolution_host(&'static self, host: &'static dyn ResolutionHost) -> &'static dyn ResolutionHost {
-        if self.use_source_of_project_reference && !self.output_dts_to_project_reference.is_empty() {
-            return *self.dts_faking_host.get_or_init(|| new_project_reference_dts_faking_host(host, self));
+    pub(crate) fn resolution_host(
+        &'static self,
+        host: &'static dyn ResolutionHost,
+    ) -> &'static dyn ResolutionHost {
+        if self.use_source_of_project_reference && !self.output_dts_to_project_reference.is_empty()
+        {
+            return *self
+                .dts_faking_host
+                .get_or_init(|| new_project_reference_dts_faking_host(host, self));
         }
         host
     }
@@ -117,39 +128,65 @@ impl projectReferenceFileMapper {
         let mut result = Vec::new();
         if let Some(refs) = self.references_in_config_file.get(&self.root_config_path()) {
             result.reserve(refs.len());
-            result.extend(refs.iter().map(|ref_path| self.config_to_project_reference.get(ref_path).copied().flatten()));
+            result.extend(
+                refs.iter().map(|ref_path| {
+                    self.config_to_project_reference.get(ref_path).copied().flatten()
+                }),
+            );
         }
         result
     }
 
     // projectreferencefilemapper.go:77
-    pub(crate) fn get_project_reference_from_source(&self, path: &Path) -> Option<P<SourceOutputAndProjectReference>> {
+    pub(crate) fn get_project_reference_from_source(
+        &self,
+        path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>> {
         self.source_to_project_reference.get(path).copied()
     }
 
     // projectreferencefilemapper.go:81
-    pub(crate) fn get_project_reference_from_output_dts(&self, path: &Path) -> Option<P<SourceOutputAndProjectReference>> {
+    pub(crate) fn get_project_reference_from_output_dts(
+        &self,
+        path: &Path,
+    ) -> Option<P<SourceOutputAndProjectReference>> {
         self.output_dts_to_project_reference.get(path).copied()
     }
 
     // projectreferencefilemapper.go:85
     pub(crate) fn is_source_from_project_reference(&self, path: &Path) -> bool {
-        self.use_source_of_project_reference && self.get_project_reference_from_source(path).is_some()
+        self.use_source_of_project_reference
+            && self.get_project_reference_from_source(path).is_some()
     }
 
     // projectreferencefilemapper.go:89
-    pub(crate) fn get_compiler_options_for_file(&self, file_name: &str, path: &Path) -> P<CompilerOptions> {
+    pub(crate) fn get_compiler_options_for_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+    ) -> P<CompilerOptions> {
         let redirect = self.get_redirect_parsed_command_line_for_resolution(file_name, path);
-        module::get_compiler_options_with_redirect(self.config.compiler_options().unwrap(), redirect.map(as_resolved_project_reference))
+        module::get_compiler_options_with_redirect(
+            self.config.compiler_options().unwrap(),
+            redirect.map(as_resolved_project_reference),
+        )
     }
 
     // projectreferencefilemapper.go:94
-    pub(crate) fn get_redirect_parsed_command_line_for_resolution(&self, _file_name: &str, path: &Path) -> Option<P<ParsedCommandLine>> {
+    pub(crate) fn get_redirect_parsed_command_line_for_resolution(
+        &self,
+        _file_name: &str,
+        path: &Path,
+    ) -> Option<P<ParsedCommandLine>> {
         self.redirect_reference(path).map(|reference| reference.resolved)
     }
 
     // projectreferencefilemapper.go:99
-    pub(crate) fn get_redirect_for_resolution(&self, file_name: &str, path: &Path) -> (Option<P<ParsedCommandLine>>, String) {
+    pub(crate) fn get_redirect_for_resolution(
+        &self,
+        file_name: &str,
+        path: &Path,
+    ) -> (Option<P<ParsedCommandLine>>, String) {
         match self.redirect_reference(path) {
             Some(reference) => (Some(reference.resolved), reference.source.clone()),
             None => (None, file_name.to_string()),
@@ -178,7 +215,10 @@ impl projectReferenceFileMapper {
     }
 
     // projectreferencefilemapper.go:119
-    pub(crate) fn get_resolved_reference_for(&self, path: &Path) -> (Option<P<ParsedCommandLine>>, bool) {
+    pub(crate) fn get_resolved_reference_for(
+        &self,
+        path: &Path,
+    ) -> (Option<P<ParsedCommandLine>>, bool) {
         match self.config_to_project_reference.get(path) {
             Some(config) => (*config, true),
             None => (None, false),
@@ -193,10 +233,16 @@ impl projectReferenceFileMapper {
         if self.config.project_references().is_empty() {
             return false;
         }
-        let mut seen_ref: FxHashSet<Path> = FxHashSet::with_capacity_and_hasher(self.references_in_config_file.len(), rustc_hash::FxBuildHasher);
+        let mut seen_ref: FxHashSet<Path> = FxHashSet::with_capacity_and_hasher(
+            self.references_in_config_file.len(),
+            rustc_hash::FxBuildHasher,
+        );
         let root_config_path = self.root_config_path();
         seen_ref.insert(root_config_path.clone());
-        let refs = self.references_in_config_file.get(&root_config_path).map_or(&[] as &[Path], std::vec::Vec::as_slice);
+        let refs = self
+            .references_in_config_file
+            .get(&root_config_path)
+            .map_or(&[] as &[Path], std::vec::Vec::as_slice);
         self.range_resolved_reference_worker(refs, &mut f, self.config, &mut seen_ref)
     }
 
@@ -216,7 +262,10 @@ impl projectReferenceFileMapper {
             if !f(path, config, parent, index) {
                 return true;
             }
-            let child_refs = self.references_in_config_file.get(path).map_or(&[] as &[Path], std::vec::Vec::as_slice);
+            let child_refs = self
+                .references_in_config_file
+                .get(path)
+                .map_or(&[] as &[Path], std::vec::Vec::as_slice);
             // A reference that did not resolve has no references of its own (Go recurses with a nil parent over
             // an empty list).
             if let Some(config) = config {
@@ -244,9 +293,15 @@ impl projectReferenceFileMapper {
         let Some(child_config_file) = child_config.config_file else {
             return false;
         };
-        let mut seen_ref: FxHashSet<Path> = FxHashSet::with_capacity_and_hasher(self.references_in_config_file.len(), rustc_hash::FxBuildHasher);
+        let mut seen_ref: FxHashSet<Path> = FxHashSet::with_capacity_and_hasher(
+            self.references_in_config_file.len(),
+            rustc_hash::FxBuildHasher,
+        );
         seen_ref.insert(child_config_file.source_file.path().clone());
-        let refs = self.references_in_config_file.get(child_config_file.source_file.path()).map_or(&[] as &[Path], std::vec::Vec::as_slice);
+        let refs = self
+            .references_in_config_file
+            .get(child_config_file.source_file.path())
+            .map_or(&[] as &[Path], std::vec::Vec::as_slice);
         self.range_resolved_reference_worker(refs, &mut f, self.config, &mut seen_ref)
     }
 }
@@ -261,31 +316,50 @@ impl projectReferenceFileMapperBuilder {
         if self.has_no_references() {
             return String::new();
         }
-        if self.mapper.use_source_of_project_reference && self.mapper.get_project_reference_from_output_dts(path).is_none() {
+        if self.mapper.use_source_of_project_reference
+            && self.mapper.get_project_reference_from_output_dts(path).is_none()
+        {
             self.resolve_symlink(file_name, path);
         }
         self.mapper.get_parse_file_redirect(file_name, path)
     }
 
     // projectreferencefilemapper.go:181
-    pub(crate) fn get_redirect_for_resolution(&self, file_name: &str, path: &Path) -> (Option<P<ParsedCommandLine>>, String) {
+    pub(crate) fn get_redirect_for_resolution(
+        &self,
+        file_name: &str,
+        path: &Path,
+    ) -> (Option<P<ParsedCommandLine>>, String) {
         if self.has_no_references() {
             return (None, file_name.to_string());
         }
-        if self.mapper.get_project_reference_from_source(path).is_none() && self.mapper.get_project_reference_from_output_dts(path).is_none() {
+        if self.mapper.get_project_reference_from_source(path).is_none()
+            && self.mapper.get_project_reference_from_output_dts(path).is_none()
+        {
             self.resolve_symlink(file_name, path);
         }
         self.mapper.get_redirect_for_resolution(file_name, path)
     }
 
     // projectreferencefilemapper.go:188
-    pub(crate) fn get_compiler_options_for_file(&self, file_name: &str, path: &Path) -> P<CompilerOptions> {
+    pub(crate) fn get_compiler_options_for_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+    ) -> P<CompilerOptions> {
         let (redirect, _) = self.get_redirect_for_resolution(file_name, path);
-        module::get_compiler_options_with_redirect(self.mapper.config.compiler_options().unwrap(), redirect.map(as_resolved_project_reference))
+        module::get_compiler_options_with_redirect(
+            self.mapper.config.compiler_options().unwrap(),
+            redirect.map(as_resolved_project_reference),
+        )
     }
 
     // projectreferencefilemapper.go:193
-    pub(crate) fn get_redirect_parsed_command_line_for_resolution(&self, file_name: &str, path: &Path) -> Option<P<ParsedCommandLine>> {
+    pub(crate) fn get_redirect_parsed_command_line_for_resolution(
+        &self,
+        file_name: &str,
+        path: &Path,
+    ) -> Option<P<ParsedCommandLine>> {
         let (redirect, _) = self.get_redirect_for_resolution(file_name, path);
         redirect
     }
@@ -320,7 +394,10 @@ impl projectReferenceFileMapperBuilder {
                 if real_declaration_path == *path {
                     self.mapper.realpath_dts_to_source.store(path.clone(), None);
                 } else {
-                    self.mapper.realpath_dts_to_source.store(path.clone(), self.mapper.get_project_reference_from_output_dts(&real_declaration_path));
+                    self.mapper.realpath_dts_to_source.store(
+                        path.clone(),
+                        self.mapper.get_project_reference_from_output_dts(&real_declaration_path),
+                    );
                 }
             }
         }

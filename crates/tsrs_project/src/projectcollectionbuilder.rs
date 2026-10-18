@@ -5,11 +5,15 @@ use std::time::Instant;
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast::Diagnostic;
 use tsrs_compiler::Program;
-use tsrs_core::{breadth_first_search_parallel_ex, BreadthFirstSearchLevel, BreadthFirstSearchOptions};
-use tsrs_core::collections::{new_set_with_size_hint, Set, SyncMap, SyncSet};
+use tsrs_core::collections::{Set, SyncMap, SyncSet, new_set_with_size_hint};
 use tsrs_core::context::Context;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{get_script_kind_from_file_name, CompilerOptions, ProjectReference, ScriptKind, Tristate, P};
+use tsrs_core::{
+    BreadthFirstSearchLevel, BreadthFirstSearchOptions, breadth_first_search_parallel_ex,
+};
+use tsrs_core::{
+    CompilerOptions, P, ProjectReference, ScriptKind, Tristate, get_script_kind_from_file_name,
+};
 use tsrs_diagnostics as diagnostics;
 use tsrs_ls::lsutil::UserPreferences;
 use tsrs_lsproto as lsproto;
@@ -18,7 +22,9 @@ use tsrs_tsoptions::{Mapper, ParsedCommandLine};
 use crate::client::Client;
 use crate::compilerhost::new_compiler_host;
 use crate::configfileregistry::ConfigFileRegistry;
-use crate::configfileregistrybuilder::{changeFileResult, configFileRegistryBuilder, new_config_file_registry_builder};
+use crate::configfileregistrybuilder::{
+    changeFileResult, configFileRegistryBuilder, new_config_file_registry_builder,
+};
 use crate::dirty::{self, Shared, SyncMapEntry, Value};
 use crate::extendedconfigcache::ExtendedConfigCache;
 use crate::filechange::FileChangeSummary;
@@ -26,13 +32,17 @@ use crate::logging::LogTree;
 use crate::overlayfs::{OverlayMap, ToPath};
 use crate::parsecache::{ContentMappedParseCache, ParseCache, ParseCacheJournal};
 use crate::project::{
-    inferred_project_id, new_configured_project, new_inferred_project, new_inferred_project_command_line, new_synthetic_project, new_synthetic_project_id,
-    ConfiguredProjectID, Kind, ModuleResolverFactoryRef, Project, ProgramUpdateKind, SyntheticProjectID, ID,
+    ConfiguredProjectID, ID, Kind, ModuleResolverFactoryRef, ProgramUpdateKind, Project,
+    SyntheticProjectID, inferred_project_id, new_configured_project, new_inferred_project,
+    new_inferred_project_command_line, new_synthetic_project, new_synthetic_project_id,
 };
-use crate::projectcollection::{apiOpenedFile, find_default_configured_project_from_program_inclusion, open_file_paths, APIState, ProjectCollection};
+use crate::projectcollection::{
+    APIState, ProjectCollection, apiOpenedFile,
+    find_default_configured_project_from_program_inclusion, open_file_paths,
+};
 use crate::session::SessionOptions;
 use crate::snapshot::{APISnapshotRequest, ATAStateChange, ProjectTreeRequest};
-use crate::snapshotfs::{snapshotFSBuilder, FileHandleSource};
+use crate::snapshotfs::{FileHandleSource, snapshotFSBuilder};
 use crate::watch::get_typings_locations_globs;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -57,7 +67,10 @@ pub struct ProjectCollectionBuilder {
     pub(crate) parse_cache: Arc<ParseCache>,
     /// The parse-cache references this clone's programs take (rolled back if the clone unwinds).
     pub(crate) parse_cache_journal: Arc<ParseCacheJournal>,
-    #[expect(dead_code, reason = "content mappers are not ported; Go reads it in compilerHost (compilerhost.go:130) and Project (project.go:535)")]
+    #[expect(
+        dead_code,
+        reason = "content mappers are not ported; Go reads it in compilerHost (compilerhost.go:130) and Project (project.go:535)"
+    )]
     content_mapped_parse_cache: Arc<ContentMappedParseCache>,
     pub(crate) to_path: ToPath,
 
@@ -117,7 +130,10 @@ pub(crate) fn new_project_collection_builder(
         parse_cache_journal: Arc::default(),
         content_mapped_parse_cache,
         config_file_registry_builder: Arc::new(new_config_file_registry_builder(
-            lsproto::get_client_capabilities(ctx).workspace.did_change_watched_files.relative_pattern_support,
+            lsproto::get_client_capabilities(ctx)
+                .workspace
+                .did_change_watched_files
+                .relative_pattern_support,
             Arc::clone(&fs),
             Box::new(move |path: &Path| is_open_overlays.contains_key(path)),
             old_config_file_registry,
@@ -135,8 +151,12 @@ pub(crate) fn new_project_collection_builder(
         default_projects_invalidated: Cell::new(false),
         open_files_changed: Cell::new(!open_files.equals(&old_project_collection.open_files)),
         file_default_projects: RefCell::new(None),
-        configured_projects: dirty::new_sync_map(Arc::clone(&old_project_collection.configured_projects)),
-        synthetic_projects: dirty::new_sync_map(Arc::clone(&old_project_collection.synthetic_projects)),
+        configured_projects: dirty::new_sync_map(Arc::clone(
+            &old_project_collection.configured_projects,
+        )),
+        synthetic_projects: dirty::new_sync_map(Arc::clone(
+            &old_project_collection.synthetic_projects,
+        )),
         inferred_project: dirty::new_box(old_project_collection.inferred_project.clone()),
         created_programs: RefCell::new(Vec::new()),
         api_state: RefCell::new(old_api_state.clone_state()),
@@ -147,7 +167,10 @@ pub(crate) fn new_project_collection_builder(
 
 // Go `reflect.DeepEqual` on compiler options (CompilerOptions has no PartialEq: its Debug rendering covers every
 // field).
-fn compiler_options_deep_equal(a: Option<P<CompilerOptions>>, b: Option<P<CompilerOptions>>) -> bool {
+fn compiler_options_deep_equal(
+    a: Option<P<CompilerOptions>>,
+    b: Option<P<CompilerOptions>>,
+) -> bool {
     match (a, b) {
         (None, None) => true,
         (Some(a), Some(b)) => a == b || format!("{:?}", *a) == format!("{:?}", *b),
@@ -183,7 +206,10 @@ impl ProjectCollectionBuilder {
     }
 
     fn set_file_default_project(&self, path: Path, id: ID) {
-        self.file_default_projects.borrow_mut().get_or_insert_with(FxHashMap::default).insert(path, id);
+        self.file_default_projects
+            .borrow_mut()
+            .get_or_insert_with(FxHashMap::default)
+            .insert(path, id);
     }
 
     // projectcollectionbuilder.go:113
@@ -192,7 +218,10 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:118
-    pub(crate) fn finalize(&self, _logger: &LogTree) -> (ProjectCollection, Arc<ConfigFileRegistry>) {
+    pub(crate) fn finalize(
+        &self,
+        _logger: &LogTree,
+    ) -> (ProjectCollection, Arc<ConfigFileRegistry>) {
         let mut new_project_collection: Option<ProjectCollection> = None;
         let base = &self.base;
         macro_rules! ensure_cloned {
@@ -201,7 +230,8 @@ impl ProjectCollectionBuilder {
             };
         }
 
-        let (configured_projects, configured_projects_changed) = self.configured_projects.finalize();
+        let (configured_projects, configured_projects_changed) =
+            self.configured_projects.finalize();
         if configured_projects_changed {
             ensure_cloned!().configured_projects = configured_projects;
         }
@@ -215,7 +245,8 @@ impl ProjectCollectionBuilder {
         }
 
         let file_default_projects = self.file_default_projects.borrow().clone();
-        let base_defaults = base.file_default_projects.as_ref().map(|m| (**m).clone()).unwrap_or_default();
+        let base_defaults =
+            base.file_default_projects.as_ref().map(|m| (**m).clone()).unwrap_or_default();
         if file_default_projects.clone().unwrap_or_default() != base_defaults {
             ensure_cloned!().file_default_projects = file_default_projects.map(Arc::new);
         }
@@ -261,30 +292,52 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:186
-    pub(crate) fn handle_api_request(&self, api_request: &APISnapshotRequest, logger: &LogTree) -> Result<(), lsproto::Error> {
+    pub(crate) fn handle_api_request(
+        &self,
+        api_request: &APISnapshotRequest,
+        logger: &LogTree,
+    ) -> Result<(), lsproto::Error> {
         let mut projects_to_close: Option<FxHashSet<Path>> = None;
         if let Some(close_projects) = &api_request.close_projects {
             let mut api_state = self.api_state.borrow_mut();
-            #[expect(clippy::iter_over_hash_type, reason = "each unique key adjusts only its own counter and set membership; Go ranges the set too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "each unique key adjusts only its own counter and set membership; Go ranges the set too"
+            )]
             for project_path in close_projects.keys() {
                 if let Some(count) = api_state.open_projects.get_mut(project_path) {
                     if *count > 1 {
                         *count -= 1;
                     } else if *count == 1 {
                         api_state.open_projects.remove(project_path);
-                        projects_to_close.get_or_insert_with(FxHashSet::default).insert(project_path.clone());
+                        projects_to_close
+                            .get_or_insert_with(FxHashSet::default)
+                            .insert(project_path.clone());
                     }
                 }
             }
         }
 
         if let Some(open_projects) = &api_request.open_projects {
-            #[expect(clippy::iter_over_hash_type, reason = "Go ranges the set too; the order only decides which error is returned when several projects are missing")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "Go ranges the set too; the order only decides which error is returned when several projects are missing"
+            )]
             for config_file_name in open_projects.keys() {
                 let config_path = (self.to_path)(config_file_name);
-                match self.find_or_create_project(config_file_name, &config_path, projectLoadKind::Create, logger) {
+                match self.find_or_create_project(
+                    config_file_name,
+                    &config_path,
+                    projectLoadKind::Create,
+                    logger,
+                ) {
                     Some(entry) => {
-                        *self.api_state.borrow_mut().open_projects.entry(config_path.clone()).or_insert(0) += 1;
+                        *self
+                            .api_state
+                            .borrow_mut()
+                            .open_projects
+                            .entry(config_path.clone())
+                            .or_insert(0) += 1;
                         // A project re-opened in the same request shouldn't be closed.
                         if let Some(p) = &mut projects_to_close {
                             p.remove(&config_path);
@@ -292,7 +345,9 @@ impl ProjectCollectionBuilder {
                         self.update_program(&projectEntry::Configured(entry), logger);
                     }
                     _ => {
-                        return Err(lsproto::Error::new(format!("project not found for open: {config_file_name}")));
+                        return Err(lsproto::Error::new(format!(
+                            "project not found for open: {config_file_name}"
+                        )));
                     }
                 }
             }
@@ -300,7 +355,10 @@ impl ProjectCollectionBuilder {
 
         if let Some(close_files) = &api_request.close_files {
             let mut api_state = self.api_state.borrow_mut();
-            #[expect(clippy::iter_over_hash_type, reason = "per-key refcount update on unique keys; Go ranges the set too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "per-key refcount update on unique keys; Go ranges the set too"
+            )]
             for path in close_files.keys() {
                 if let Some(entry) = api_state.open_files.get_mut(path) {
                     if entry.ref_count > 1 {
@@ -314,7 +372,10 @@ impl ProjectCollectionBuilder {
 
         if let Some(open_files) = &api_request.open_files {
             let mut api_state = self.api_state.borrow_mut();
-            #[expect(clippy::iter_over_hash_type, reason = "per-key upsert on unique keys; Go ranges the map too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "per-key upsert on unique keys; Go ranges the map too"
+            )]
             for (path, file_name) in open_files {
                 let entry = api_state.open_files.entry(path.clone()).or_default();
                 entry.file_name.clone_from(file_name);
@@ -322,9 +383,15 @@ impl ProjectCollectionBuilder {
             }
         }
 
-        #[expect(clippy::iter_over_hash_type, reason = "a cached lookup, then a delete from a set; commutes; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "a cached lookup, then a delete from a set; commutes; Go ranges the map too"
+        )]
         for overlay in self.overlays.values() {
-            if let Some(entry) = self.find_default_configured_project(overlay.base.file_name.as_str(), &(self.to_path)(&overlay.base.file_name)) {
+            if let Some(entry) = self.find_default_configured_project(
+                overlay.base.file_name.as_str(),
+                &(self.to_path)(&overlay.base.file_name),
+            ) {
                 if let Some(p) = &mut projects_to_close {
                     p.remove(&entry.value().unwrap().config_file_path);
                 }
@@ -332,9 +399,14 @@ impl ProjectCollectionBuilder {
         }
 
         if let Some(projects_to_close) = &projects_to_close {
-            #[expect(clippy::iter_over_hash_type, reason = "order-independent: deletes each closed project by its own key; Go ranges the set too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "order-independent: deletes each closed project by its own key; Go ranges the set too"
+            )]
             for project_path in projects_to_close {
-                if let Some(entry) = self.configured_projects.load(&ConfiguredProjectID(project_path.clone())) {
+                if let Some(entry) =
+                    self.configured_projects.load(&ConfiguredProjectID(project_path.clone()))
+                {
                     self.delete_project(&projectEntry::Configured(entry), logger);
                 }
             }
@@ -346,19 +418,29 @@ impl ProjectCollectionBuilder {
         if let Some(open_files) = &api_request.open_files {
             let mut retain: Set<Path> = Set::default();
             let mut ensure_inferred_project = false;
-            #[expect(clippy::iter_over_hash_type, reason = "Go ranges the map too; the order only decides which error is returned when several files have no project")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "Go ranges the map too; the order only decides which error is returned when several files have no project"
+            )]
             for (path, file_name) in open_files {
                 if self.is_open_file(path) {
-                    if self.find_default_configured_project(file_name, path).is_none() && !self.is_supported_in_inferred_project(file_name) {
-                        return Err(lsproto::Error::new(format!("no project found for opened file: {file_name}")));
+                    if self.find_default_configured_project(file_name, path).is_none()
+                        && !self.is_supported_in_inferred_project(file_name)
+                    {
+                        return Err(lsproto::Error::new(format!(
+                            "no project found for opened file: {file_name}"
+                        )));
                     }
                     continue;
                 }
-                let result = self.ensure_configured_project_and_ancestors_for_file(file_name, path, logger);
+                let result =
+                    self.ensure_configured_project_and_ancestors_for_file(file_name, path, logger);
                 retain.union(&result.retain);
                 if result.project.is_none() {
                     if !self.is_supported_in_inferred_project(file_name) {
-                        return Err(lsproto::Error::new(format!("no project found for opened file: {file_name}")));
+                        return Err(lsproto::Error::new(format!(
+                            "no project found for opened file: {file_name}"
+                        )));
                     }
                     ensure_inferred_project = true;
                 }
@@ -373,28 +455,42 @@ impl ProjectCollectionBuilder {
         let mut seen_reconfigured_programs: Set<SyntheticProjectID> = Set::default();
         for request in &api_request.reconfigure_programs {
             if seen_reconfigured_programs.has(&request.program_id) {
-                return Err(lsproto::Error::new(format!("synthetic program reconfigured more than once: {}", request.program_id.0)));
+                return Err(lsproto::Error::new(format!(
+                    "synthetic program reconfigured more than once: {}",
+                    request.program_id.0
+                )));
             }
             seen_reconfigured_programs.add(request.program_id.clone());
             if api_request.remove_programs.as_ref().is_some_and(|r| r.has(&request.program_id)) {
-                return Err(lsproto::Error::new(format!("synthetic program cannot be reconfigured and removed: {}", request.program_id.0)));
+                return Err(lsproto::Error::new(format!(
+                    "synthetic program cannot be reconfigured and removed: {}",
+                    request.program_id.0
+                )));
             }
             if self.synthetic_projects.load(&request.program_id).is_none() {
-                return Err(lsproto::Error::new(format!("synthetic program not found for reconfiguration: {}", request.program_id.0)));
+                return Err(lsproto::Error::new(format!(
+                    "synthetic program not found for reconfiguration: {}",
+                    request.program_id.0
+                )));
             }
         }
         if let Some(remove_programs) = &api_request.remove_programs {
-            #[expect(clippy::iter_over_hash_type, reason = "Go ranges the set too; the order only decides which error is returned when several programs are missing")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "Go ranges the set too; the order only decides which error is returned when several programs are missing"
+            )]
             for program_id in remove_programs.keys() {
                 let Some(project) = self.synthetic_projects.load(program_id) else {
-                    return Err(lsproto::Error::new(format!("synthetic program not found for removal: {}", program_id.0)));
+                    return Err(lsproto::Error::new(format!(
+                        "synthetic program not found for removal: {}",
+                        program_id.0
+                    )));
                 };
                 self.delete_project(&projectEntry::Synthetic(project), logger);
             }
         }
         let mut created_entries = Vec::with_capacity(api_request.create_programs.len());
         created_entries.extend(api_request.create_programs.iter().map(|request| {
-
             self.update_or_create_synthetic_project(
                 self.next_synthetic_project_id(),
                 request.root_file_names.clone(),
@@ -437,15 +533,26 @@ impl ProjectCollectionBuilder {
             }
         }
         *self.created_programs.borrow_mut() = created_programs;
-        #[expect(clippy::iter_over_hash_type, reason = "Go ranges the map too; the order only decides which error is returned when several files have no project")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "Go ranges the map too; the order only decides which error is returned when several files have no project"
+        )]
         for (path, file_name) in &api_request.ensure_files {
-            self.did_request_file_path(file_name, path, false /*configuredProjectsOnly*/, logger);
+            self.did_request_file_path(
+                file_name, path, false, /*configuredProjectsOnly*/
+                logger,
+            );
             if self.find_default_project(file_name, path).is_none() {
-                return Err(lsproto::Error::new(format!("no project found for opened file: {file_name}")));
+                return Err(lsproto::Error::new(format!(
+                    "no project found for opened file: {file_name}"
+                )));
             }
         }
         if let Some(ensure_programs) = &api_request.ensure_programs {
-            #[expect(clippy::iter_over_hash_type, reason = "order-independent: loads each requested project by its own ID; Go ranges the set too")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "order-independent: loads each requested project by its own ID; Go ranges the set too"
+            )]
             for project_id in ensure_programs.keys() {
                 self.did_request_project(project_id, logger);
             }
@@ -460,7 +567,8 @@ impl ProjectCollectionBuilder {
         self.for_each_project(|entry| {
             let project = self.value_of(entry).value().unwrap();
             if let Some(program) = project.program {
-                module_resolution_error = program.module_resolution_error().map(std::string::ToString::to_string);
+                module_resolution_error =
+                    program.module_resolution_error().map(std::string::ToString::to_string);
             }
             module_resolution_error.is_none()
         });
@@ -484,9 +592,15 @@ impl ProjectCollectionBuilder {
 
     // projectcollectionbuilder.go:388
     pub(crate) fn did_change_files(&self, summary: &FileChangeSummary, logger: &LogTree) {
-        self.open_files_changed.set(self.open_files_changed.get() || !summary.opened.0.is_empty() || !summary.closed.is_empty());
+        self.open_files_changed.set(
+            self.open_files_changed.get()
+                || !summary.opened.0.is_empty()
+                || !summary.closed.is_empty(),
+        );
 
-        let to_paths = |uris: &Set<lsproto::DocumentUri>| -> Vec<Path> { uris.keys().iter().map(|uri| (self.to_path)(&uri.file_name())).collect() };
+        let to_paths = |uris: &Set<lsproto::DocumentUri>| -> Vec<Path> {
+            uris.keys().iter().map(|uri| (self.to_path)(&uri.file_name())).collect()
+        };
         let changed_files = to_paths(&summary.changed);
         let deleted_files = to_paths(&summary.deleted);
         let created_files = to_paths(&summary.created);
@@ -494,10 +608,12 @@ impl ProjectCollectionBuilder {
         // projects for watch changes is skipped.)
 
         let config_change_logger = logger.fork("Checking for changes affecting config files");
-        let config_change_result = self.config_file_registry_builder.did_change_files(summary, &config_change_logger);
+        let config_change_result =
+            self.config_file_registry_builder.did_change_files(summary, &config_change_logger);
         log_change_file_result(&config_change_result, &config_change_logger);
 
-        self.program_structure_changed.set(self.mark_projects_affected_by_config_changes(&config_change_result, logger));
+        self.program_structure_changed
+            .set(self.mark_projects_affected_by_config_changes(&config_change_result, logger));
 
         self.for_each_project(|entry| {
             let value = self.value_of(entry);
@@ -551,10 +667,12 @@ impl ProjectCollectionBuilder {
 
         // Handle opened file
         if !summary.opened.0.is_empty() || !summary.reopened.0.is_empty() {
-            let opened = if !summary.opened.0.is_empty() { &summary.opened } else { &summary.reopened };
+            let opened =
+                if !summary.opened.0.is_empty() { &summary.opened } else { &summary.reopened };
             let file_name = opened.file_name();
             let path = (self.to_path)(&file_name);
-            let open_file_result = self.ensure_configured_project_and_ancestors_for_file(&file_name, &path, logger);
+            let open_file_result =
+                self.ensure_configured_project_and_ancestors_for_file(&file_name, &path, logger);
             self.cleanup_configured_projects(Some(&open_file_result.retain), logger);
         }
     }
@@ -581,7 +699,11 @@ impl ProjectCollectionBuilder {
             to_remove_projects.borrow_mut().delete(project.config_file_path());
             if let Some(program) = project.get_program() {
                 program.range_resolved_project_reference(|reference_path, _, _, _| {
-                    if self.configured_projects.load(&ConfiguredProjectID(reference_path.clone())).is_some() {
+                    if self
+                        .configured_projects
+                        .load(&ConfiguredProjectID(reference_path.clone()))
+                        .is_some()
+                    {
                         to_remove_projects.borrow_mut().delete(reference_path);
                     }
                     true
@@ -594,15 +716,26 @@ impl ProjectCollectionBuilder {
             retain_configured_project_and_references(project);
 
             // Retain all the ancestor projects
-            self.config_file_registry_builder.for_each_config_file_name_for(open_file_path, |config_file_name| {
-                if let Some(ancestor) = self.find_or_create_project(config_file_name, &(self.to_path)(config_file_name), projectLoadKind::Find, logger) {
-                    retain_configured_project_and_references(&ancestor.value().unwrap());
-                }
-            });
+            self.config_file_registry_builder.for_each_config_file_name_for(
+                open_file_path,
+                |config_file_name| {
+                    if let Some(ancestor) = self.find_or_create_project(
+                        config_file_name,
+                        &(self.to_path)(config_file_name),
+                        projectLoadKind::Find,
+                        logger,
+                    ) {
+                        retain_configured_project_and_references(&ancestor.value().unwrap());
+                    }
+                },
+            );
         };
 
         let mut inferred_project_files: Vec<String> = Vec::new();
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: retains projects in a set and collects inferred roots, which update_inferred_project sorts (as Go does); Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: retains projects in a set and collects inferred roots, which update_inferred_project sorts (as Go does); Go ranges the map too"
+        )]
         for overlay in self.overlays.values() {
             let open_file = overlay.base.file_name.clone();
             let open_file_path = (self.to_path)(&open_file);
@@ -617,7 +750,13 @@ impl ProjectCollectionBuilder {
         }
         // Treat API-opened files like open files: retain their configured project (so
         // an LSP-driven open doesn't close it), or keep them as inferred project roots.
-        let api_open_files: Vec<(Path, apiOpenedFile)> = self.api_state.borrow().open_files.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        let api_open_files: Vec<(Path, apiOpenedFile)> = self
+            .api_state
+            .borrow()
+            .open_files
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
         for (path, file) in &api_open_files {
             if self.is_open_file(path) {
                 continue;
@@ -653,7 +792,11 @@ impl ProjectCollectionBuilder {
         let mut inferred_project_files: Vec<String> = Vec::new();
         // order-independent: collects inferred roots, which update_inferred_project sorts (as Go does); Go ranges the map too
         inferred_project_files.extend(self.overlays.iter().filter_map(|(path, overlay)| {
-            if self.find_default_configured_project(&overlay.base.file_name, path).is_none() { Some(overlay.base.file_name.clone()) } else { None }
+            if self.find_default_configured_project(&overlay.base.file_name, path).is_none() {
+                Some(overlay.base.file_name.clone())
+            } else {
+                None
+            }
         }));
         self.append_api_opened_inferred_roots(inferred_project_files)
     }
@@ -662,13 +805,26 @@ impl ProjectCollectionBuilder {
     // appendAPIOpenedInferredRoots appends API-opened files that aren't open in an
     // overlay and have no configured project, so they're kept as inferred project
     // roots and persist across snapshots.
-    fn append_api_opened_inferred_roots(&self, mut inferred_project_files: Vec<String>) -> Vec<String> {
-        let api_open_files: Vec<(Path, apiOpenedFile)> = self.api_state.borrow().open_files.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    fn append_api_opened_inferred_roots(
+        &self,
+        mut inferred_project_files: Vec<String>,
+    ) -> Vec<String> {
+        let api_open_files: Vec<(Path, apiOpenedFile)> = self
+            .api_state
+            .borrow()
+            .open_files
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
         inferred_project_files.extend(api_open_files.iter().filter_map(|(path, file)| {
             if self.is_open_file(path) {
                 return None;
             }
-            if self.find_default_configured_project(&file.file_name, path).is_none() { Some(file.file_name.clone()) } else { None }
+            if self.find_default_configured_project(&file.file_name, path).is_none() {
+                Some(file.file_name.clone())
+            } else {
+                None
+            }
         }));
         inferred_project_files
     }
@@ -702,14 +858,25 @@ impl ProjectCollectionBuilder {
     // DidRequestFile ensures projects are loaded for the given URI.
     // If configuredProjectsOnly is true, only configured projects are loaded; no inferred project is created
     // and it is not guaranteed that there will be any project containing the file in the resulting snapshot.
-    pub(crate) fn did_request_file(&self, uri: &lsproto::DocumentUri, configured_projects_only: bool, logger: &LogTree) {
+    pub(crate) fn did_request_file(
+        &self,
+        uri: &lsproto::DocumentUri,
+        configured_projects_only: bool,
+        logger: &LogTree,
+    ) {
         let file_name = uri.file_name();
         let path = (self.to_path)(&file_name);
         self.did_request_file_path(&file_name, &path, configured_projects_only, logger);
     }
 
     // projectcollectionbuilder.go:645 (Go `didRequestFile`)
-    fn did_request_file_path(&self, file_name: &str, path: &Path, configured_projects_only: bool, logger: &LogTree) {
+    fn did_request_file_path(
+        &self,
+        file_name: &str,
+        path: &Path,
+        configured_projects_only: bool,
+        logger: &LogTree,
+    ) {
         let start_time = Instant::now();
         if self.default_projects_invalidated.get() {
             self.ensure_configured_project_and_ancestors_for_file(file_name, path, logger);
@@ -736,7 +903,9 @@ impl ProjectCollectionBuilder {
 
             // Make sure all projects we know about are up to date...
             self.configured_projects.range(|entry| {
-                has_changes = self.update_program(&projectEntry::Configured(Arc::clone(entry)), logger) || has_changes;
+                has_changes = self
+                    .update_program(&projectEntry::Configured(Arc::clone(entry)), logger)
+                    || has_changes;
                 true
             });
             if has_changes {
@@ -757,7 +926,8 @@ impl ProjectCollectionBuilder {
             // really even have an error condition until it tries to ask us language questions about
             // a non-TS-handleable file.
         } else {
-            let result = self.ensure_configured_project_and_ancestors_for_file(file_name, path, logger);
+            let result =
+                self.ensure_configured_project_and_ancestors_for_file(file_name, path, logger);
             if result.project.is_none() && !configured_projects_only {
                 // No configured project found for this closed file.
                 // Add it to the inferred project so language service requests can be served.
@@ -766,7 +936,11 @@ impl ProjectCollectionBuilder {
         }
 
         if !logger.is_nil() {
-            logger.log(&format!("Completed file request for {} in {:?}", file_name, start_time.elapsed()));
+            logger.log(&format!(
+                "Completed file request for {} in {:?}",
+                file_name,
+                start_time.elapsed()
+            ));
         }
     }
 
@@ -789,12 +963,20 @@ impl ProjectCollectionBuilder {
         }
 
         if !logger.is_nil() {
-            logger.log(&format!("Completed project update request for {} in {:?}", project_id, start_time.elapsed()));
+            logger.log(&format!(
+                "Completed project update request for {} in {:?}",
+                project_id,
+                start_time.elapsed()
+            ));
         }
     }
 
     // projectcollectionbuilder.go:730
-    pub(crate) fn did_request_project_trees(&self, project_tree_request: &ProjectTreeRequest, logger: &LogTree) {
+    pub(crate) fn did_request_project_trees(
+        &self,
+        project_tree_request: &ProjectTreeRequest,
+        logger: &LogTree,
+    ) {
         let start_time = Instant::now();
 
         let mut current_projects: Vec<ConfiguredProjectID> = Vec::new();
@@ -818,36 +1000,68 @@ impl ProjectCollectionBuilder {
                         // If this project has potential project reference for any of the project we are loading ancestor tree for
                         // load this project first
                         if let Some(project) = entry.value() {
-                            if project_tree_request.is_all_projects() || project.has_potential_project_reference(project_tree_request) {
-                                self.update_program(&projectEntry::Configured(Arc::clone(&entry)), logger);
+                            if project_tree_request.is_all_projects()
+                                || project.has_potential_project_reference(project_tree_request)
+                            {
+                                self.update_program(
+                                    &projectEntry::Configured(Arc::clone(&entry)),
+                                    logger,
+                                );
                             }
                         }
-                        Self::ensure_project_tree(&wg, &entry, project_tree_request, &seen_projects, logger);
+                        Self::ensure_project_tree(
+                            &wg,
+                            &entry,
+                            project_tree_request,
+                            &seen_projects,
+                            logger,
+                        );
                     }
                 }
                 Some(projectTreeWork::Child(program, child_config)) => {
                     if !project_tree_request.is_all_projects()
-                        && program.range_resolved_project_reference_in_child_config(Some(child_config), |reference_path, _config, _, _| {
-                            !project_tree_request.is_project_referenced(reference_path)
-                        })
+                        && program.range_resolved_project_reference_in_child_config(
+                            Some(child_config),
+                            |reference_path, _config, _, _| {
+                                !project_tree_request.is_project_referenced(reference_path)
+                            },
+                        )
                     {
                         continue;
                     }
 
                     // Load this child project since this is referenced
                     let child_project_entry = self
-                        .find_or_create_project(child_config.config_name(), child_config.config_file.unwrap().source_file.get().path(), projectLoadKind::Create, logger)
+                        .find_or_create_project(
+                            child_config.config_name(),
+                            child_config.config_file.unwrap().source_file.get().path(),
+                            projectLoadKind::Create,
+                            logger,
+                        )
                         .unwrap();
-                    self.update_program(&projectEntry::Configured(Arc::clone(&child_project_entry)), logger);
+                    self.update_program(
+                        &projectEntry::Configured(Arc::clone(&child_project_entry)),
+                        logger,
+                    );
 
                     // Ensure children for this project
-                    Self::ensure_project_tree(&wg, &child_project_entry, project_tree_request, &seen_projects, logger);
+                    Self::ensure_project_tree(
+                        &wg,
+                        &child_project_entry,
+                        project_tree_request,
+                        &seen_projects,
+                        logger,
+                    );
                 }
             }
         }
 
         if !logger.is_nil() {
-            logger.log(&format!("Completed project tree request for {:?} in {:?}", project_tree_request.projects(), start_time.elapsed()));
+            logger.log(&format!(
+                "Completed project tree request for {:?} in {:?}",
+                project_tree_request.projects(),
+                start_time.elapsed()
+            ));
         }
     }
 
@@ -872,16 +1086,31 @@ impl ProjectCollectionBuilder {
         };
 
         // If this project disables child load ignore it
-        if program.command_line().compiler_options().unwrap().disable_referenced_project_load.is_true() {
+        if program
+            .command_line()
+            .compiler_options()
+            .unwrap()
+            .disable_referenced_project_load
+            .is_true()
+        {
             return;
         }
 
         let children = program.get_resolved_project_references();
-        wg.borrow_mut().extend(children.into_iter().flatten().map(|child_config| projectTreeWork::Child(program, child_config)));
+        wg.borrow_mut().extend(
+            children
+                .into_iter()
+                .flatten()
+                .map(|child_config| projectTreeWork::Child(program, child_config)),
+        );
     }
 
     // projectcollectionbuilder.go:815
-    pub(crate) fn did_update_ata_state(&self, ata_changes: &FxHashMap<ID, Arc<ATAStateChange>>, logger: &LogTree) {
+    pub(crate) fn did_update_ata_state(
+        &self,
+        ata_changes: &FxHashMap<ID, Arc<ATAStateChange>>,
+        logger: &LogTree,
+    ) {
         let update_project = |project: &dyn Value<Project>, ata_change: &ATAStateChange| {
             project.change_if(
                 &mut |p: &Project| {
@@ -902,14 +1131,18 @@ impl ProjectCollectionBuilder {
                         &p.current_directory,
                         self.fs.fs.use_case_sensitive_file_names(),
                     );
-                    p.typings_watch = p.typings_watch.as_ref().map(|w| w.clone_with(typings_watch_globs));
+                    p.typings_watch =
+                        p.typings_watch.as_ref().map(|w| w.clone_with(typings_watch_globs));
                     p.dirty = true;
                     p.dirty_file_path = Path::default();
                 },
             );
         };
 
-        #[expect(clippy::iter_over_hash_type, reason = "order-independent: updates each project's ATA state by its own ID; the order only reaches log lines; Go ranges the map too")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "order-independent: updates each project's ATA state by its own ID; the order only reaches log lines; Go ranges the map too"
+        )]
         for (project_id, ata_change) in ata_changes {
             logger.embed(&ata_change.logs);
             if project_id.inferred().is_some() {
@@ -943,7 +1176,12 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:877
-    pub(crate) fn did_change_user_preferences(&self, old_preferences: &UserPreferences, new_preferences: &UserPreferences, logger: &LogTree) {
+    pub(crate) fn did_change_user_preferences(
+        &self,
+        old_preferences: &UserPreferences,
+        new_preferences: &UserPreferences,
+        logger: &LogTree,
+    ) {
         if old_preferences.locale == new_preferences.locale {
             return;
         }
@@ -951,27 +1189,39 @@ impl ProjectCollectionBuilder {
             self.value_of(entry).change(&mut |project: &mut Project| {
                 project.dirty = true;
                 project.dirty_file_path = Path::default();
-                logger.logf(format_args!("Marking project as dirty due to locale change: {}", project.id()));
+                logger.logf(format_args!(
+                    "Marking project as dirty due to locale change: {}",
+                    project.id()
+                ));
             });
             true
         });
     }
 
     // projectcollectionbuilder.go:893
-    fn mark_projects_affected_by_config_changes(&self, config_change_result: &changeFileResult, logger: &LogTree) -> bool {
+    fn mark_projects_affected_by_config_changes(
+        &self,
+        config_change_result: &changeFileResult,
+        logger: &LogTree,
+    ) -> bool {
         for project_id in config_change_result.affected_projects.iter().flatten() {
             let mut project: Option<projectEntry> = None;
             if project_id.inferred().is_some() {
                 project = Some(projectEntry::Inferred);
             } else {
                 if let Some(synthetic_project_id) = project_id.synthetic() {
-                    if let Some(synthetic_project) = self.synthetic_projects.load(&synthetic_project_id) {
+                    if let Some(synthetic_project) =
+                        self.synthetic_projects.load(&synthetic_project_id)
+                    {
                         project = Some(projectEntry::Synthetic(synthetic_project));
                     }
                 }
                 if project.is_none() {
                     if let Some(configured_id) = project_id.configured() {
-                        project = self.configured_projects.load(&configured_id).map(projectEntry::Configured);
+                        project = self
+                            .configured_projects
+                            .load(&configured_id)
+                            .map(projectEntry::Configured);
                     }
                 }
             }
@@ -984,7 +1234,9 @@ impl ProjectCollectionBuilder {
                 &mut |p: &mut Project| {
                     p.dirty = true;
                     p.dirty_file_path = Path::default();
-                    logger.logf(format_args!("Marking project {project_id} as dirty due to change affecting config"));
+                    logger.logf(format_args!(
+                        "Marking project {project_id} as dirty due to change affecting config"
+                    ));
                 },
             );
         }
@@ -1023,7 +1275,11 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:963
-    fn find_default_configured_project(&self, file_name: &str, path: &Path) -> Option<Arc<SyncMapEntry<ConfiguredProjectID, Project>>> {
+    fn find_default_configured_project(
+        &self,
+        file_name: &str,
+        path: &Path,
+    ) -> Option<Arc<SyncMapEntry<ConfiguredProjectID, Project>>> {
         if let Some(key) = self.file_default_project(path) {
             if let Some(configured_id) = key.configured() {
                 if let Some(entry) = self.configured_projects.load(&configured_id) {
@@ -1033,7 +1289,10 @@ impl ProjectCollectionBuilder {
         }
         // Sort configured projects so we can use a deterministic "first" as a last resort.
         let mut configured_project_paths: Vec<Path> = Vec::new();
-        let mut configured_projects: FxHashMap<Path, Arc<SyncMapEntry<ConfiguredProjectID, Project>>> = FxHashMap::default();
+        let mut configured_projects: FxHashMap<
+            Path,
+            Arc<SyncMapEntry<ConfiguredProjectID, Project>>,
+        > = FxHashMap::default();
         self.configured_projects.range(|entry| {
             let configured_path = entry.key().0;
             configured_project_paths.push(configured_path.clone());
@@ -1042,11 +1301,23 @@ impl ProjectCollectionBuilder {
         });
         configured_project_paths.sort();
 
-        let (project, multiple_candidates) =
-            find_default_configured_project_from_program_inclusion(file_name, path, &configured_project_paths, |path| configured_projects[path].value().unwrap());
+        let (project, multiple_candidates) = find_default_configured_project_from_program_inclusion(
+            file_name,
+            path,
+            &configured_project_paths,
+            |path| configured_projects[path].value().unwrap(),
+        );
 
         if multiple_candidates {
-            if let Some(p) = self.find_or_create_default_configured_project_for_file(file_name, path, projectLoadKind::Find, &LogTree::nil()).project {
+            if let Some(p) = self
+                .find_or_create_default_configured_project_for_file(
+                    file_name,
+                    path,
+                    projectLoadKind::Find,
+                    &LogTree::nil(),
+                )
+                .project
+            {
                 return Some(p);
             }
         }
@@ -1055,8 +1326,18 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:995
-    fn ensure_configured_project_and_ancestors_for_file(&self, file_name: &str, path: &Path, logger: &LogTree) -> searchResult {
-        let mut result = self.find_or_create_default_configured_project_for_file(file_name, path, projectLoadKind::Create, logger);
+    fn ensure_configured_project_and_ancestors_for_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+        logger: &LogTree,
+    ) -> searchResult {
+        let mut result = self.find_or_create_default_configured_project_for_file(
+            file_name,
+            path,
+            projectLoadKind::Create,
+            logger,
+        );
         if result.project.is_some() && self.is_open_file(path) {
             self.create_ancestor_tree(file_name, path, &mut result, logger);
         }
@@ -1064,7 +1345,13 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:1003
-    fn create_ancestor_tree(&self, file_name: &str, path: &Path, open_result: &mut searchResult, logger: &LogTree) {
+    fn create_ancestor_tree(
+        &self,
+        file_name: &str,
+        path: &Path,
+        open_result: &mut searchResult,
+        logger: &LogTree,
+    ) {
         let mut project = open_result.project.as_ref().unwrap().value().unwrap();
         loop {
             // Skip if project is not composite and we are only looking for solution
@@ -1076,14 +1363,21 @@ impl ProjectCollectionBuilder {
             }
 
             // Get config file name
-            let ancestor_config_name = self.config_file_registry_builder.get_ancestor_config_file_name(file_name, path, project.config_file_name(), logger);
+            let ancestor_config_name = self
+                .config_file_registry_builder
+                .get_ancestor_config_file_name(file_name, path, project.config_file_name(), logger);
             if ancestor_config_name.is_empty() {
                 return;
             }
 
             // find or delay load the project
             let ancestor_path = (self.to_path)(&ancestor_config_name);
-            let Some(ancestor) = self.find_or_create_project(&ancestor_config_name, &ancestor_path, projectLoadKind::Create, logger) else {
+            let Some(ancestor) = self.find_or_create_project(
+                &ancestor_config_name,
+                &ancestor_path,
+                projectLoadKind::Create,
+                logger,
+            ) else {
                 return;
             };
 
@@ -1093,7 +1387,9 @@ impl ProjectCollectionBuilder {
             // eg when invoking find all references or rename that could span multiple projects
             // we would make the current project as its potential project reference
             if ancestor.value().unwrap().command_line.is_none()
-                && project.command_line.is_none_or(|command_line| command_line.compiler_options().unwrap().composite.is_true())
+                && project.command_line.is_none_or(|command_line| {
+                    command_line.compiler_options().unwrap().composite.is_true()
+                })
             {
                 let config_file_path = project.config_file_path.clone();
                 ancestor.change(|ancestor_project| {
@@ -1119,42 +1415,64 @@ impl ProjectCollectionBuilder {
         let configs: SyncMap<Path, P<ParsedCommandLine>> = SyncMap::default();
         let visited = visited.unwrap_or_default();
 
-        let mut preprocess_level = |level: &mut BreadthFirstSearchLevel<'_, searchNodeKey, searchNode>| {
-            let mut to_delete: Vec<searchNodeKey> = Vec::new();
-            level.range(|node| {
-                if node.load_kind == projectLoadKind::Find
-                    && level.has(&searchNodeKey { config_file_name: node.config_file_name.clone(), load_kind: projectLoadKind::Create })
-                {
-                    // Remove find requests when a create request for the same project is already present.
-                    to_delete.push(searchNodeKey { config_file_name: node.config_file_name.clone(), load_kind: node.load_kind });
+        let mut preprocess_level =
+            |level: &mut BreadthFirstSearchLevel<'_, searchNodeKey, searchNode>| {
+                let mut to_delete: Vec<searchNodeKey> = Vec::new();
+                level.range(|node| {
+                    if node.load_kind == projectLoadKind::Find
+                        && level.has(&searchNodeKey {
+                            config_file_name: node.config_file_name.clone(),
+                            load_kind: projectLoadKind::Create,
+                        })
+                    {
+                        // Remove find requests when a create request for the same project is already present.
+                        to_delete.push(searchNodeKey {
+                            config_file_name: node.config_file_name.clone(),
+                            load_kind: node.load_kind,
+                        });
+                    }
+                    true
+                });
+                for key in &to_delete {
+                    level.delete(key);
                 }
-                true
-            });
-            for key in &to_delete {
-                level.delete(key);
-            }
-        };
+            };
         let search = breadth_first_search_parallel_ex(
-            searchNode { config_file_name: config_file_name.to_string(), load_kind, logger: logger.clone() },
+            searchNode {
+                config_file_name: config_file_name.to_string(),
+                load_kind,
+                logger: logger.clone(),
+            },
             |node: &searchNode| {
                 if let Some(config) = configs.load(&(self.to_path)(&node.config_file_name)) {
                     if !config.project_references().is_empty() {
                         let mut reference_load_kind = node.load_kind;
-                        if config.compiler_options().unwrap().disable_referenced_project_load.is_true() {
+                        if config
+                            .compiler_options()
+                            .unwrap()
+                            .disable_referenced_project_load
+                            .is_true()
+                        {
                             reference_load_kind = projectLoadKind::Find;
                         }
 
                         let mut ref_logger = LogTree::nil();
                         let references = config.resolved_project_reference_paths();
                         if !references.is_empty() && !node.logger.is_nil() {
-                            ref_logger = node.logger.fork(&format!("Searching {} project references of {}", references.len(), node.config_file_name));
+                            ref_logger = node.logger.fork(&format!(
+                                "Searching {} project references of {}",
+                                references.len(),
+                                node.config_file_name
+                            ));
                         }
                         return references
                             .iter()
                             .map(|config_file_name| searchNode {
                                 config_file_name: config_file_name.clone(),
                                 load_kind: reference_load_kind,
-                                logger: ref_logger.fork(&format!("Searching project reference {config_file_name}")),
+                                logger: ref_logger.fork(&format!(
+                                    "Searching project reference {config_file_name}"
+                                )),
                             })
                             .collect();
                     }
@@ -1163,13 +1481,15 @@ impl ProjectCollectionBuilder {
             },
             |node: &searchNode| {
                 let config_file_path = (self.to_path)(&node.config_file_name);
-                let Some(config) = self.config_file_registry_builder.find_or_acquire_config_for_file(
-                    &node.config_file_name,
-                    &config_file_path,
-                    path,
-                    node.load_kind,
-                    &node.logger.fork("Acquiring config for open file"),
-                ) else {
+                let Some(config) =
+                    self.config_file_registry_builder.find_or_acquire_config_for_file(
+                        &node.config_file_name,
+                        &config_file_path,
+                        path,
+                        node.load_kind,
+                        &node.logger.fork("Acquiring config for open file"),
+                    )
+                else {
                     node.logger.log("Config file for project does not already exist");
                     return (false, false);
                 };
@@ -1185,19 +1505,28 @@ impl ProjectCollectionBuilder {
                     // !!! what about declaration files in node_modules? wouldn't it be better to
                     //     check project inclusion if the project is already loaded?
                     if !config.file_names_by_path().contains_key(path) {
-                        node.logger.log("Project does not contain file (by composite config inclusion)");
+                        node.logger
+                            .log("Project does not contain file (by composite config inclusion)");
                         return (false, false);
                     }
                 }
 
-                let Some(project) = self.find_or_create_project(&node.config_file_name, &config_file_path, node.load_kind, &node.logger) else {
+                let Some(project) = self.find_or_create_project(
+                    &node.config_file_name,
+                    &config_file_path,
+                    node.load_kind,
+                    &node.logger,
+                ) else {
                     node.logger.log("Project does not already exist");
                     return (false, false);
                 };
 
                 if node.load_kind == projectLoadKind::Create {
                     // Ensure project is up to date before checking for file inclusion
-                    self.update_program(&projectEntry::Configured(Arc::clone(&project)), &node.logger);
+                    self.update_program(
+                        &projectEntry::Configured(Arc::clone(&project)),
+                        &node.logger,
+                    );
                 }
 
                 let value = project.value().unwrap();
@@ -1206,7 +1535,11 @@ impl ProjectCollectionBuilder {
                     if !node.logger.is_nil() {
                         node.logger.logf(format_args!(
                             "Project contains file {}",
-                            if is_direct_inclusion { "directly" } else { "as a source of a referenced project" }
+                            if is_direct_inclusion {
+                                "directly"
+                            } else {
+                                "as a source of a referenced project"
+                            }
                         ));
                     }
                     return (true, is_direct_inclusion);
@@ -1215,14 +1548,22 @@ impl ProjectCollectionBuilder {
                 node.logger.log("Project does not contain file");
                 (false, false)
             },
-            BreadthFirstSearchOptions { visited: Some(&visited), preprocess_level: Some(&mut preprocess_level) },
-            |node: &searchNode| searchNodeKey { config_file_name: node.config_file_name.clone(), load_kind: node.load_kind },
+            BreadthFirstSearchOptions {
+                visited: Some(&visited),
+                preprocess_level: Some(&mut preprocess_level),
+            },
+            |node: &searchNode| searchNodeKey {
+                config_file_name: node.config_file_name.clone(),
+                load_kind: node.load_kind,
+            },
         );
 
         let mut retain: Set<Path> = Set::default();
         let mut project: Option<Arc<SyncMapEntry<ConfiguredProjectID, Project>>> = None;
         if !search.path.is_empty() {
-            project = self.configured_projects.load(&ConfiguredProjectID((self.to_path)(&search.path[0].config_file_name)));
+            project = self
+                .configured_projects
+                .load(&ConfiguredProjectID((self.to_path)(&search.path[0].config_file_name)));
             // If we found a project, we retain each project along the BFS path.
             // We don't want to retain everything we visited since BFS can terminate
             // early, and we don't want to retain nondeterministically.
@@ -1250,7 +1591,12 @@ impl ProjectCollectionBuilder {
                 }
             }
         }
-        let ancestor_config_name = self.config_file_registry_builder.get_ancestor_config_file_name(file_name, path, config_file_name, logger);
+        let ancestor_config_name = self.config_file_registry_builder.get_ancestor_config_file_name(
+            file_name,
+            path,
+            config_file_name,
+            logger,
+        );
         if !ancestor_config_name.is_empty() {
             return self.find_or_create_default_configured_project_worker(
                 file_name,
@@ -1276,7 +1622,13 @@ impl ProjectCollectionBuilder {
     }
 
     // projectcollectionbuilder.go:1216
-    fn find_or_create_default_configured_project_for_file(&self, file_name: &str, path: &Path, load_kind: projectLoadKind, logger: &LogTree) -> searchResult {
+    fn find_or_create_default_configured_project_for_file(
+        &self,
+        file_name: &str,
+        path: &Path,
+        load_kind: projectLoadKind,
+        logger: &LogTree,
+    ) -> searchResult {
         if let Some(key) = self.file_default_project(path) {
             if key.inferred().is_some() {
                 // The file belongs to the inferred project
@@ -1286,7 +1638,9 @@ impl ProjectCollectionBuilder {
             let entry = self.configured_projects.load(&configured_id);
             return searchResult { project: entry, retain: Set::default() };
         }
-        let config_file_name = self.config_file_registry_builder.get_config_file_name_for_file(file_name, path, logger);
+        let config_file_name = self
+            .config_file_registry_builder
+            .get_config_file_name_for_file(file_name, path, logger);
         if !config_file_name.is_empty() {
             let start_time = Instant::now();
             let result = self.find_or_create_default_configured_project_worker(
@@ -1329,15 +1683,23 @@ impl ProjectCollectionBuilder {
         if load_kind == projectLoadKind::Find {
             return self.configured_projects.load(&ConfiguredProjectID(config_file_path.clone()));
         }
-        let (entry, _) = self
-            .configured_projects
-            .load_or_store(ConfiguredProjectID(config_file_path.clone()), Shared::new(new_configured_project(config_file_name, config_file_path, self, logger)));
+        let (entry, _) = self.configured_projects.load_or_store(
+            ConfiguredProjectID(config_file_path.clone()),
+            Shared::new(new_configured_project(config_file_name, config_file_path, self, logger)),
+        );
         entry
     }
 
     // projectcollectionbuilder.go:1275
-    fn update_inferred_project_roots(&self, root_file_names: Vec<String>, logger: &LogTree) -> bool {
-        let root_file_names: Vec<String> = root_file_names.into_iter().filter(|f| self.is_supported_in_inferred_project(f)).collect();
+    fn update_inferred_project_roots(
+        &self,
+        root_file_names: Vec<String>,
+        logger: &LogTree,
+    ) -> bool {
+        let root_file_names: Vec<String> = root_file_names
+            .into_iter()
+            .filter(|f| self.is_supported_in_inferred_project(f))
+            .collect();
         let mut project_references: Vec<ProjectReference> = Vec::new();
         let mut config_file_parsing_diagnostics: Vec<P<Diagnostic>> = Vec::new();
         if let Some(project) = self.inferred_project.value() {
@@ -1382,33 +1744,47 @@ impl ProjectCollectionBuilder {
             );
             synthetic_project.module_resolver_factory = module_resolver_factory;
             synthetic_project.module_resolver_id = module_resolver_id;
-            let (project, _) = self.synthetic_projects.load_or_store(project_id, Shared::new(synthetic_project));
+            let (project, _) =
+                self.synthetic_projects.load_or_store(project_id, Shared::new(synthetic_project));
             return project.unwrap();
         };
 
         let current_project = project.value().unwrap();
-        let compiler_options = compiler_options.unwrap_or_else(|| current_project.command_line.unwrap().compiler_options().unwrap());
+        let compiler_options = compiler_options
+            .unwrap_or_else(|| current_project.command_line.unwrap().compiler_options().unwrap());
         let new_command_line = new_inferred_project_command_line(
             compiler_options,
             root_file_names.clone(),
             project_references.clone(),
             content_mappers,
-            ComparePathsOptions { use_case_sensitive_file_names: self.fs.fs.use_case_sensitive_file_names(), current_directory: current_project.current_directory.clone() },
+            ComparePathsOptions {
+                use_case_sensitive_file_names: self.fs.fs.use_case_sensitive_file_names(),
+                current_directory: current_project.current_directory.clone(),
+            },
             config_file_parsing_diagnostics.clone(),
         );
         project.change_if(
             |p| {
                 let command_line = p.command_line.unwrap();
                 command_line.file_names() != new_command_line.file_names()
-                    || !compiler_options_deep_equal(command_line.compiler_options(), Some(compiler_options))
-                    || !project_references_equal(command_line.project_references(), &project_references)
+                    || !compiler_options_deep_equal(
+                        command_line.compiler_options(),
+                        Some(compiler_options),
+                    )
+                    || !project_references_equal(
+                        command_line.project_references(),
+                        &project_references,
+                    )
                     || !diagnostics_equal(&command_line.errors, &config_file_parsing_diagnostics)
                     || command_line.content_mappers() != new_command_line.content_mappers()
                     || p.module_resolver_id != module_resolver_id
             },
             |p| {
                 if !logger.is_nil() {
-                    logger.log(&format!("Updating synthetic project config with {} root files", root_file_names.len()));
+                    logger.log(&format!(
+                        "Updating synthetic project config with {} root files",
+                        root_file_names.len()
+                    ));
                 }
                 p.set_command_line(Some(new_command_line));
                 p.module_resolver_factory.clone_from(&module_resolver_factory);
@@ -1434,7 +1810,14 @@ impl ProjectCollectionBuilder {
         }
         let mut root_file_names = root_file_names;
         root_file_names.sort();
-        self.update_or_create_inferred_project(root_file_names, compiler_options, project_references, config_file_parsing_diagnostics, content_mappers, logger)
+        self.update_or_create_inferred_project(
+            root_file_names,
+            compiler_options,
+            project_references,
+            config_file_parsing_diagnostics,
+            content_mappers,
+            logger,
+        )
     }
 
     // projectcollectionbuilder.go:1354
@@ -1447,7 +1830,8 @@ impl ProjectCollectionBuilder {
         }
         if let Some(program) = project.program {
             program.range_resolved_project_reference(|reference_path, _, _, _| {
-                self.config_file_registry_builder.release_config_for_project(reference_path, &project.id());
+                self.config_file_registry_builder
+                    .release_config_for_project(reference_path, &project.id());
                 true
             });
         }
@@ -1482,27 +1866,40 @@ impl ProjectCollectionBuilder {
             return true;
         };
 
-        let compiler_options = compiler_options.unwrap_or_else(|| project.command_line.unwrap().compiler_options().unwrap());
+        let compiler_options = compiler_options
+            .unwrap_or_else(|| project.command_line.unwrap().compiler_options().unwrap());
         let new_command_line = new_inferred_project_command_line(
             compiler_options,
             root_file_names.clone(),
             project_references.clone(),
             content_mappers,
-            ComparePathsOptions { use_case_sensitive_file_names: self.fs.fs.use_case_sensitive_file_names(), current_directory: project.current_directory.clone() },
+            ComparePathsOptions {
+                use_case_sensitive_file_names: self.fs.fs.use_case_sensitive_file_names(),
+                current_directory: project.current_directory.clone(),
+            },
             config_file_parsing_diagnostics.clone(),
         );
         let changed = self.inferred_project.change_if(
             &mut |p: &Project| {
                 let command_line = p.command_line.unwrap();
                 command_line.file_names() != new_command_line.file_names()
-                    || !compiler_options_deep_equal(command_line.compiler_options(), Some(compiler_options))
-                    || !project_references_equal(command_line.project_references(), &project_references)
+                    || !compiler_options_deep_equal(
+                        command_line.compiler_options(),
+                        Some(compiler_options),
+                    )
+                    || !project_references_equal(
+                        command_line.project_references(),
+                        &project_references,
+                    )
                     || !diagnostics_equal(&command_line.errors, &config_file_parsing_diagnostics)
                     || command_line.content_mappers() != new_command_line.content_mappers()
             },
             &mut |p: &mut Project| {
                 if !logger.is_nil() {
-                    logger.log(&format!("Updating inferred project config with {} root files", root_file_names.len()));
+                    logger.log(&format!(
+                        "Updating inferred project config with {} root files",
+                        root_file_names.len()
+                    ));
                 }
                 p.set_command_line(Some(new_command_line));
             },
@@ -1515,15 +1912,23 @@ impl ProjectCollectionBuilder {
 
     // projectcollectionbuilder.go:1428
     fn is_supported_in_inferred_project(&self, file_name: &str) -> bool {
-        if tspath::is_dynamic_file_name(file_name) || get_script_kind_from_file_name(file_name) != ScriptKind::Unknown {
+        if tspath::is_dynamic_file_name(file_name)
+            || get_script_kind_from_file_name(file_name) != ScriptKind::Unknown
+        {
             return true;
         }
         if let Some(file) = self.fs.get_file(file_name) {
-            if file.is_overlay() && tspath::get_any_extension_from_path(file_name, &[], false).is_empty() {
+            if file.is_overlay()
+                && tspath::get_any_extension_from_path(file_name, &[], false).is_empty()
+            {
                 return true;
             }
         }
-        let extensions: Vec<&str> = self.inferred_content_mapper_extensions.iter().map(std::string::String::as_str).collect();
+        let extensions: Vec<&str> = self
+            .inferred_content_mapper_extensions
+            .iter()
+            .map(std::string::String::as_str)
+            .collect();
         tspath::file_extension_is_one_of(file_name, &extensions)
     }
 
@@ -1564,7 +1969,8 @@ impl ProjectCollectionBuilder {
                 update_program = entry.value().unwrap().dirty;
             }
             if update_program && self.client.is_some() {
-                display_name = entry.value().unwrap().display_name(&self.session_options.current_directory);
+                display_name =
+                    entry.value().unwrap().display_name(&self.session_options.current_directory);
                 notified_loading = true;
             }
         });
@@ -1586,31 +1992,58 @@ impl ProjectCollectionBuilder {
                     // snapshot build, which frees it (and its shared data). Found with AddressSanitizer.
                     let _old_program_owner = project.program_owner.clone();
                     let old_checker_pool = project.checker_pool.clone();
-                    project.host = Some(new_compiler_host(&project.current_directory.clone(), project, self, logger.fork("CompilerHost")));
+                    project.host = Some(new_compiler_host(
+                        &project.current_directory.clone(),
+                        project,
+                        self,
+                        logger.fork("CompilerHost"),
+                    ));
                     let result = project.create_program();
                     let mut watched_files: Vec<String> = Vec::new();
-                    watched_files.extend(project.command_line.unwrap().content_mappers().iter().filter_map(|mapper| {
-                        if !mapper.definition.package.is_empty() && mapper.contribution_id.is_empty() && !mapper.package_directory.is_empty() {
-                            Some(tspath::combine_paths(&mapper.package_directory, &["package.json"]))
-                        } else {
-                            None
-                        }
-                    }));
+                    watched_files.extend(
+                        project.command_line.unwrap().content_mappers().iter().filter_map(
+                            |mapper| {
+                                if !mapper.definition.package.is_empty()
+                                    && mapper.contribution_id.is_empty()
+                                    && !mapper.package_directory.is_empty()
+                                {
+                                    Some(tspath::combine_paths(
+                                        &mapper.package_directory,
+                                        &["package.json"],
+                                    ))
+                                } else {
+                                    None
+                                }
+                            },
+                        ),
+                    );
                     // (Content mappers are not ported: no source file is content-mapped, so there are no dynamic
                     // content mapper watched files.)
                     watched_files.sort();
                     watched_files.dedup();
-                    let mut content_mapper_watched_files = new_set_with_size_hint(watched_files.len());
-                    content_mapper_watched_files.m.extend(watched_files.iter().map(|file_name| (self.to_path)(file_name)));
-                    project.content_mapper_watch = project.content_mapper_watch.as_ref().map(|w| w.clone_with(watched_files.clone()));
-                    project.content_mapper_watched_files = Some(Arc::new(content_mapper_watched_files));
+                    let mut content_mapper_watched_files =
+                        new_set_with_size_hint(watched_files.len());
+                    content_mapper_watched_files
+                        .m
+                        .extend(watched_files.iter().map(|file_name| (self.to_path)(file_name)));
+                    project.content_mapper_watch = project
+                        .content_mapper_watch
+                        .as_ref()
+                        .map(|w| w.clone_with(watched_files.clone()));
+                    project.content_mapper_watched_files =
+                        Some(Arc::new(content_mapper_watched_files));
                     project.program = Some(result.program);
                     project.checker_pool.clone_from(&result.checker_pool);
                     project.program_owner = Some(Arc::clone(&result.owner));
                     project.program_update_kind = result.update_kind;
                     project.program_last_update = self.new_snapshot_id;
                     if result.update_kind == ProgramUpdateKind::Cloned {
-                        project.host.as_ref().unwrap().source_fs.set_seen_files(old_host.as_ref().unwrap().source_fs.seen_files());
+                        project
+                            .host
+                            .as_ref()
+                            .unwrap()
+                            .source_fs
+                            .set_seen_files(old_host.as_ref().unwrap().source_fs.seen_files());
                     }
                     if result.update_kind == ProgramUpdateKind::NewFiles {
                         files_changed = true;
@@ -1618,7 +2051,11 @@ impl ProjectCollectionBuilder {
                     }
                     project.dirty = false;
                     project.dirty_file_path = Path::default();
-                    self.release_dropped_project_references(old_program, Some(result.program), &project.id());
+                    self.release_dropped_project_references(
+                        old_program,
+                        Some(result.program),
+                        &project.id(),
+                    );
                     if let Some(old_checker_pool) = &old_checker_pool {
                         old_checker_pool.discard();
                     }
@@ -1631,13 +2068,23 @@ impl ProjectCollectionBuilder {
             }
         }
         if update_program && !logger.is_nil() {
-            logger.log(&format!("Program update for {} completed in {:?}", project_id, start_time.elapsed()));
+            logger.log(&format!(
+                "Program update for {} completed in {:?}",
+                project_id,
+                start_time.elapsed()
+            ));
         }
         files_changed
     }
 
     // projectcollectionbuilder.go:1543
-    fn mark_files_changed(&self, entry: &projectEntry, paths: &[Path], change_type: lsproto::FileChangeType, logger: &LogTree) {
+    fn mark_files_changed(
+        &self,
+        entry: &projectEntry,
+        paths: &[Path],
+        change_type: lsproto::FileChangeType,
+        logger: &LogTree,
+    ) {
         let dirty_file_path: RefCell<Path> = RefCell::new(Path::default());
         self.value_of(entry).change_if(
             &mut |p: &Project| {
@@ -1669,8 +2116,10 @@ impl ProjectCollectionBuilder {
                             break;
                         }
                     } else if let Some(host) = &p.host {
-                        if change_type == lsproto::FileChangeType::Created && host.source_fs.seen_file_or_missing_parent_directory(path)
-                            || change_type != lsproto::FileChangeType::Created && host.source_fs.seen_file(path)
+                        if change_type == lsproto::FileChangeType::Created
+                            && host.source_fs.seen_file_or_missing_parent_directory(path)
+                            || change_type != lsproto::FileChangeType::Created
+                                && host.source_fs.seen_file(path)
                         {
                             dirty = true;
                             *dirty_file_path = Path::default();
@@ -1686,7 +2135,11 @@ impl ProjectCollectionBuilder {
                 p.dirty_file_path = dirty_file_path.clone();
                 if !logger.is_nil() {
                     if !dirty_file_path.0.is_empty() {
-                        logger.logf(format_args!("Marking project {} as dirty due to changes in {}", p.id(), dirty_file_path.0));
+                        logger.logf(format_args!(
+                            "Marking project {} as dirty due to changes in {}",
+                            p.id(),
+                            dirty_file_path.0
+                        ));
                     } else {
                         logger.logf(format_args!("Marking project {} as dirty", p.id()));
                     }
@@ -1705,12 +2158,14 @@ impl ProjectCollectionBuilder {
         }
         if let Some(program) = value.program {
             program.range_resolved_project_reference(|reference_path, _, _, _| {
-                self.config_file_registry_builder.release_config_for_project(reference_path, &project_id);
+                self.config_file_registry_builder
+                    .release_config_for_project(reference_path, &project_id);
                 true
             });
         }
         if value.kind == Kind::Configured {
-            self.config_file_registry_builder.release_config_for_project(value.config_file_path(), &project_id);
+            self.config_file_registry_builder
+                .release_config_for_project(value.config_file_path(), &project_id);
         }
         entry.delete();
     }
@@ -1720,7 +2175,12 @@ impl ProjectCollectionBuilder {
     // that were present in oldProgram but are no longer referenced by newProgram. Creating
     // newProgram already re-acquires the config for every reference it still resolves, so
     // only the dropped references need to be released here.
-    fn release_dropped_project_references(&self, old_program: Option<&'static Program>, new_program: Option<&'static Program>, project_id: &ID) {
+    fn release_dropped_project_references(
+        &self,
+        old_program: Option<&'static Program>,
+        new_program: Option<&'static Program>,
+        project_id: &ID,
+    ) {
         let Some(old_program) = old_program else {
             return;
         };
@@ -1736,7 +2196,8 @@ impl ProjectCollectionBuilder {
         }
         old_program.range_resolved_project_reference(|reference_path, _, _, _| {
             if !new_references.has(reference_path) {
-                self.config_file_registry_builder.release_config_for_project(reference_path, project_id);
+                self.config_file_registry_builder
+                    .release_config_for_project(reference_path, project_id);
             }
             true
         });
@@ -1747,12 +2208,18 @@ impl ProjectCollectionBuilder {
 fn log_change_file_result(result: &changeFileResult, logger: &LogTree) {
     if let Some(affected_projects) = &result.affected_projects {
         if !affected_projects.is_empty() {
-            logger.logf(format_args!("Config file change affected projects: {:?}", affected_projects.iter().map(|p| p.0.as_str()).collect::<Vec<_>>()));
+            logger.logf(format_args!(
+                "Config file change affected projects: {:?}",
+                affected_projects.iter().map(|p| p.0.as_str()).collect::<Vec<_>>()
+            ));
         }
     }
     if let Some(affected_files) = &result.affected_files {
         if !affected_files.is_empty() {
-            logger.logf(format_args!("Config file change affected config file lookups for {} files", affected_files.len()));
+            logger.logf(format_args!(
+                "Config file change affected config file lookups for {} files",
+                affected_files.len()
+            ));
         }
     }
 }

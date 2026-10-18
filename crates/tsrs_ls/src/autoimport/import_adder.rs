@@ -3,18 +3,22 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
-use tsrs_ast::{self as ast, Node, NodeFactory, NodeFactoryHooks, NodeVisitor, NodeVisitorHooks, SourceFile, Symbol};
+use tsrs_ast::{
+    self as ast, Node, NodeFactory, NodeFactoryHooks, NodeVisitor, NodeVisitorHooks, SourceFile,
+    Symbol,
+};
 use tsrs_checker::{Checker, Flags, Type};
 use tsrs_compiler::Program;
+use tsrs_core::P;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::context::Context;
-use tsrs_core::P;
 use tsrs_lsproto as lsproto;
 
-use super::export::{symbol_to_export, Export};
+use super::export::{Export, symbol_to_export};
 use super::fix::{
-    add_import_type, add_namespace_qualifier, add_to_existing_import, get_add_to_existing_import_fix, get_new_imports, get_new_requires, insert_imports,
-    newImportBinding, Fix,
+    Fix, add_import_type, add_namespace_qualifier, add_to_existing_import,
+    get_add_to_existing_import_fix, get_new_imports, get_new_requires, insert_imports,
+    newImportBinding,
 };
 use super::util::get_default_like_export_name_from_declaration;
 use super::view::View;
@@ -27,7 +31,11 @@ pub type IdToSymbol = P<RefCell<FxHashMap<P<Node>, P<Symbol>>>>;
 // import_adder.go:24
 pub trait ImportAdder {
     fn has_fixes(&self) -> bool;
-    fn add_import_from_exported_symbol(&mut self, symbol: P<Symbol>, is_valid_type_only_use_site: bool);
+    fn add_import_from_exported_symbol(
+        &mut self,
+        symbol: P<Symbol>,
+        is_valid_type_only_use_site: bool,
+    );
     fn add_import_fix(&mut self, fix: &Fix);
     fn edits(&mut self) -> Vec<lsproto::TextEdit>;
 }
@@ -71,8 +79,8 @@ struct importAdder {
     import_type: Vec<Fix>,      // JSDoc type import fixes
     // Go maps (random iteration order); insertion order here.
     add_to_existing: OrderedMap<P<Node>, addToExistingState>, // importClauseOrBindingPattern -> default or named bindings
-    new_imports: OrderedMap<String, importsCollection>,         // module specifier + type only -> imports
-                                                                // !!! removeExisting, verbatimImports?
+    new_imports: OrderedMap<String, importsCollection>, // module specifier + type only -> imports
+                                                        // !!! removeExisting, verbatimImports?
 }
 
 // import_adder.go:70
@@ -103,12 +111,19 @@ pub fn new_import_adder(
 impl ImportAdder for importAdder {
     // import_adder.go:93
     fn has_fixes(&self) -> bool {
-        !self.add_to_namespace.is_empty() || !self.import_type.is_empty() || !self.add_to_existing.is_empty() || !self.new_imports.is_empty()
+        !self.add_to_namespace.is_empty()
+            || !self.import_type.is_empty()
+            || !self.add_to_existing.is_empty()
+            || !self.new_imports.is_empty()
     }
 
     // import_adder.go:101
     // !!! referenceImport
-    fn add_import_from_exported_symbol(&mut self, exported_symbol: P<Symbol>, is_valid_type_only_use_site: bool) {
+    fn add_import_from_exported_symbol(
+        &mut self,
+        exported_symbol: P<Symbol>,
+        is_valid_type_only_use_site: bool,
+    ) {
         let checker = self.view.checker();
         let skipped = checker.skip_alias(exported_symbol);
         let symbol = checker.get_merged_symbol(skipped);
@@ -138,18 +153,29 @@ impl ImportAdder for importAdder {
             lsproto::AutoImportFixKind::JsdocTypeImport => self.import_type.push(fix.clone()),
             lsproto::AutoImportFixKind::AddToExisting => {
                 let existing_fix = get_add_to_existing_import_fix(self.view.importing_file, fix);
-                let entry = self.add_to_existing.entry(existing_fix.import_clause_or_binding_pattern).or_insert_with(|| addToExistingState {
-                    default_import: None,
-                    named_imports: FxHashMap::default(),
-                });
+                let entry = self
+                    .add_to_existing
+                    .entry(existing_fix.import_clause_or_binding_pattern)
+                    .or_insert_with(|| addToExistingState {
+                        default_import: None,
+                        named_imports: FxHashMap::default(),
+                    });
 
                 if fix.import_kind == lsproto::ImportKind::Named {
                     let binding = entry.named_imports.entry(symbol_name.clone()).or_default();
                     *binding = newImportBinding {
                         kind: lsproto::ImportKind::Named,
                         name: symbol_name,
-                        add_as_type_only: reduce_add_as_type_only_values(binding.add_as_type_only, fix.add_as_type_only),
-                        property_name: existing_fix.named_import.as_ref().unwrap().property_name.clone(),
+                        add_as_type_only: reduce_add_as_type_only_values(
+                            binding.add_as_type_only,
+                            fix.add_as_type_only,
+                        ),
+                        property_name: existing_fix
+                            .named_import
+                            .as_ref()
+                            .unwrap()
+                            .property_name
+                            .clone(),
                     };
                 } else {
                     // Default import
@@ -157,19 +183,34 @@ impl ImportAdder for importAdder {
                         entry.default_import.as_ref().is_none_or(|d| d.name == symbol_name),
                         "(Add to Existing) Default import should be missing or match symbolName"
                     );
-                    let prev_type_only = entry.default_import.as_ref().map(|d| d.add_as_type_only).unwrap_or_default();
+                    let prev_type_only = entry
+                        .default_import
+                        .as_ref()
+                        .map(|d| d.add_as_type_only)
+                        .unwrap_or_default();
                     entry.default_import = Some(newImportBinding {
                         kind: lsproto::ImportKind::Default,
                         name: symbol_name,
-                        add_as_type_only: reduce_add_as_type_only_values(prev_type_only, fix.add_as_type_only),
+                        add_as_type_only: reduce_add_as_type_only_values(
+                            prev_type_only,
+                            fix.add_as_type_only,
+                        ),
                         ..Default::default()
                     });
                 }
             }
 
             lsproto::AutoImportFixKind::AddNew => {
-                let entry = self.get_new_import_entry(&fix.module_specifier, fix.import_kind, fix.use_require, fix.add_as_type_only);
-                assert!(entry.use_require == fix.use_require, "(Add new) Tried to add an `import` and a `require` for the same module");
+                let entry = self.get_new_import_entry(
+                    &fix.module_specifier,
+                    fix.import_kind,
+                    fix.use_require,
+                    fix.add_as_type_only,
+                );
+                assert!(
+                    entry.use_require == fix.use_require,
+                    "(Add new) Tried to add an `import` and a `require` for the same module"
+                );
 
                 match fix.import_kind {
                     lsproto::ImportKind::Default => {
@@ -177,11 +218,18 @@ impl ImportAdder for importAdder {
                             entry.default_import.as_ref().is_none_or(|d| d.name == symbol_name),
                             "(Add new) Default import should be missing or match symbolName"
                         );
-                        let prev_type_only = entry.default_import.as_ref().map(|d| d.add_as_type_only).unwrap_or_default();
+                        let prev_type_only = entry
+                            .default_import
+                            .as_ref()
+                            .map(|d| d.add_as_type_only)
+                            .unwrap_or_default();
                         entry.default_import = Some(newImportBinding {
                             kind: lsproto::ImportKind::Default,
                             name: symbol_name,
-                            add_as_type_only: reduce_add_as_type_only_values(prev_type_only, fix.add_as_type_only),
+                            add_as_type_only: reduce_add_as_type_only_values(
+                                prev_type_only,
+                                fix.add_as_type_only,
+                            ),
                             ..Default::default()
                         });
                     }
@@ -191,7 +239,10 @@ impl ImportAdder for importAdder {
                         *binding = newImportBinding {
                             kind: lsproto::ImportKind::Named,
                             name: symbol_name,
-                            add_as_type_only: reduce_add_as_type_only_values(binding.add_as_type_only, fix.add_as_type_only),
+                            add_as_type_only: reduce_add_as_type_only_values(
+                                binding.add_as_type_only,
+                                fix.add_as_type_only,
+                            ),
                             // !!! propertyName
                             ..Default::default()
                         };
@@ -199,17 +250,24 @@ impl ImportAdder for importAdder {
 
                     lsproto::ImportKind::CommonJS => {
                         if compiler_options.verbatim_module_syntax == tsrs_core::Tristate::True {
-                            let binding = entry.named_imports.entry(symbol_name.clone()).or_default();
+                            let binding =
+                                entry.named_imports.entry(symbol_name.clone()).or_default();
                             *binding = newImportBinding {
                                 kind: lsproto::ImportKind::CommonJS,
                                 name: symbol_name,
-                                add_as_type_only: reduce_add_as_type_only_values(binding.add_as_type_only, fix.add_as_type_only),
+                                add_as_type_only: reduce_add_as_type_only_values(
+                                    binding.add_as_type_only,
+                                    fix.add_as_type_only,
+                                ),
                                 // !!! propertyName
                                 ..Default::default()
                             };
                         } else {
                             assert!(
-                                entry.namespace_like_import.as_ref().is_none_or(|n| n.name == symbol_name),
+                                entry
+                                    .namespace_like_import
+                                    .as_ref()
+                                    .is_none_or(|n| n.name == symbol_name),
                                 "Namespacelike import should be missing or match symbolName"
                             );
                             entry.namespace_like_import = Some(newImportBinding {
@@ -223,7 +281,10 @@ impl ImportAdder for importAdder {
 
                     lsproto::ImportKind::Namespace => {
                         assert!(
-                            entry.namespace_like_import.as_ref().is_none_or(|n| n.name == symbol_name),
+                            entry
+                                .namespace_like_import
+                                .as_ref()
+                                .is_none_or(|n| n.name == symbol_name),
                             "Namespacelike import should be missing or match symbolName"
                         );
                         entry.namespace_like_import = Some(newImportBinding {
@@ -247,8 +308,14 @@ impl ImportAdder for importAdder {
     // import_adder.go:118
     fn edits(&mut self) -> Vec<lsproto::TextEdit> {
         // !!! organize imports?
-        let mut tracker = change::new_tracker(&self.ctx, &self.view.program.options(), self.format_options.clone(), Arc::clone(&self.converters));
-        let quote_preference = lsutil::get_quote_preference(self.view.importing_file, &self.preferences);
+        let mut tracker = change::new_tracker(
+            &self.ctx,
+            &self.view.program.options(),
+            self.format_options.clone(),
+            Arc::clone(&self.converters),
+        );
+        let quote_preference =
+            lsutil::get_quote_preference(self.view.importing_file, &self.preferences);
         for fix in &self.add_to_namespace {
             add_namespace_qualifier(fix, &mut tracker, self.view.importing_file);
         }
@@ -295,13 +362,21 @@ impl ImportAdder for importAdder {
         }));
 
         if !new_declarations.is_empty() {
-            insert_imports(&mut tracker, self.view.importing_file, &new_declarations, true /*blankLineBetween*/, &self.preferences);
+            insert_imports(
+                &mut tracker,
+                self.view.importing_file,
+                &new_declarations,
+                true, /*blankLineBetween*/
+                &self.preferences,
+            );
         }
 
         // Unmappable files are dropped by GetChanges, so a content-mapped importing file that cannot be
         // faithfully rewritten yields no edits rather than a corrupting one.
         let (mut changes, _) = tracker.get_changes();
-        changes.shift_remove(crate::lsconv::Script::original_file_name(&self.view.importing_file)).unwrap_or_default()
+        changes
+            .shift_remove(crate::lsconv::Script::original_file_name(&self.view.importing_file))
+            .unwrap_or_default()
     }
 }
 
@@ -319,7 +394,10 @@ fn sorted_named_imports(m: &FxHashMap<String, newImportBinding>) -> Vec<newImpor
 // Alternatively, if one addition is `Required` because it has no value meaning under `--preserveValueImports`
 // and `--isolatedModules`, it should be impossible for another addition to be `NotAllowed` since that would
 // mean a type is being referenced in a value location.
-fn reduce_add_as_type_only_values(prev_value: lsproto::AddAsTypeOnly, new_value: lsproto::AddAsTypeOnly) -> lsproto::AddAsTypeOnly {
+fn reduce_add_as_type_only_values(
+    prev_value: lsproto::AddAsTypeOnly,
+    new_value: lsproto::AddAsTypeOnly,
+) -> lsproto::AddAsTypeOnly {
     if new_value.0 > prev_value.0 {
         return new_value;
     }
@@ -343,14 +421,18 @@ impl importAdder {
         // require two separate import declarations, so we build this into the map key.
         let type_only_key = new_imports_key(module_specifier, true /*topLevelTypeOnly*/);
         let non_type_only_key = new_imports_key(module_specifier, false /*topLevelTypeOnly*/);
-        let key = if (import_kind == lsproto::ImportKind::Default && add_as_type_only == lsproto::AddAsTypeOnly::Required)
-            || (add_as_type_only == lsproto::AddAsTypeOnly::Allowed && self.new_imports.contains_key(&type_only_key))
+        let key = if (import_kind == lsproto::ImportKind::Default
+            && add_as_type_only == lsproto::AddAsTypeOnly::Required)
+            || (add_as_type_only == lsproto::AddAsTypeOnly::Allowed
+                && self.new_imports.contains_key(&type_only_key))
         {
             type_only_key
         } else {
             non_type_only_key
         };
-        self.new_imports.entry(key).or_insert_with(|| importsCollection { use_require, ..Default::default() })
+        self.new_imports
+            .entry(key)
+            .or_insert_with(|| importsCollection { use_require, ..Default::default() })
     }
 
     // import_adder.go:374
@@ -362,11 +444,22 @@ impl importAdder {
     }
 
     // import_adder.go:490
-    fn get_import_fix_for_symbol(&self, exports: &[Arc<Export>], is_valid_type_only_use_site: bool) -> Option<Fix> {
+    fn get_import_fix_for_symbol(
+        &self,
+        exports: &[Arc<Export>],
+        is_valid_type_only_use_site: bool,
+    ) -> Option<Fix> {
         let view = &self.view;
         let mut fixes: Vec<Arc<Fix>> = exports
             .iter()
-            .flat_map(|export| view.get_fixes(export, false /*forJSX*/, is_valid_type_only_use_site, None /*usagePosition*/))
+            .flat_map(|export| {
+                view.get_fixes(
+                    export,
+                    false, /*forJSX*/
+                    is_valid_type_only_use_site,
+                    None, /*usagePosition*/
+                )
+            })
             .collect();
         tsrs_core::goslices::sort_func(&mut fixes, |a, b| view.compare_fixes_for_ranking(a, b));
         fixes.first().map(|f| (**f).clone())
@@ -388,8 +481,13 @@ pub fn type_to_auto_importable_type_node(
 // import_adder.go:398
 // TypeNodeToAutoImportableTypeNode converts import type references in a type node to
 // simple type references and registers needed imports with the import adder.
-pub fn type_node_to_auto_importable_type_node(mut type_node: P<Node>, import_adder: Option<&mut (dyn ImportAdder + 'static)>, id_to_symbol: IdToSymbol) -> P<Node> {
-    let (reference_type_node, importable_symbols) = try_get_auto_importable_reference_from_type_node(Some(type_node), id_to_symbol);
+pub fn type_node_to_auto_importable_type_node(
+    mut type_node: P<Node>,
+    import_adder: Option<&mut (dyn ImportAdder + 'static)>,
+    id_to_symbol: IdToSymbol,
+) -> P<Node> {
+    let (reference_type_node, importable_symbols) =
+        try_get_auto_importable_reference_from_type_node(Some(type_node), id_to_symbol);
     if let Some(reference_type_node) = reference_type_node {
         if let Some(import_adder) = import_adder {
             import_symbols(import_adder, &importable_symbols);
@@ -415,13 +513,17 @@ fn import_symbols(import_adder: &mut dyn ImportAdder, symbols: &[P<Symbol>]) {
 // TryGetAutoImportableReferenceFromTypeNode converts import type references in a type node
 // to simple type references and returns the transformed type node and the symbols that need
 // to be imported.
-pub fn try_get_auto_importable_reference_from_type_node(import_type_node: Option<P<Node>>, id_to_symbol: IdToSymbol) -> (Option<P<Node>>, Vec<P<Symbol>>) {
+pub fn try_get_auto_importable_reference_from_type_node(
+    import_type_node: Option<P<Node>>,
+    id_to_symbol: IdToSymbol,
+) -> (Option<P<Node>>, Vec<P<Symbol>>) {
     let symbols: Rc<RefCell<Vec<P<Symbol>>>> = Rc::new(RefCell::new(Vec::new()));
     let factory = NodeFactory::new(NodeFactoryHooks::default());
     let visit_symbols = Rc::clone(&symbols);
     let visit_factory = factory.clone();
     let visit = move |visitor: &mut NodeVisitor, node: P<Node>| -> Option<P<Node>> {
-        if ast::is_literal_import_type_node(node) && node.as_import_type_node().qualifier.is_some() {
+        if ast::is_literal_import_type_node(node) && node.as_import_type_node().qualifier.is_some()
+        {
             let import_type_node = node.as_import_type_node();
             let qualifier_node = import_type_node.qualifier.unwrap();
             // Symbol for the left-most thing after the dot
@@ -435,7 +537,11 @@ pub fn try_get_auto_importable_reference_from_type_node(import_type_node: Option
             };
             let name = get_name_for_exported_symbol(symbol, false /*preferCapitalized*/);
             let qualifier = if name != first_identifier.text() {
-                replace_first_identifier_of_entity_name(&visit_factory, qualifier_node, visit_factory.new_identifier(tsrs_core::alloc_str(&name)))
+                replace_first_identifier_of_entity_name(
+                    &visit_factory,
+                    qualifier_node,
+                    visit_factory.new_identifier(tsrs_core::alloc_str(&name)),
+                )
             } else {
                 qualifier_node
             };
@@ -445,7 +551,8 @@ pub fn try_get_auto_importable_reference_from_type_node(import_type_node: Option
         }
         visitor.visit_each_child(Some(node))
     };
-    let mut visitor = ast::new_node_visitor(Some(Rc::new(visit)), Some(factory), NodeVisitorHooks::default());
+    let mut visitor =
+        ast::new_node_visitor(Some(Rc::new(visit)), Some(factory), NodeVisitorHooks::default());
 
     let type_node = visitor.visit_node(import_type_node);
     assert!(type_node.is_none() || ast::is_type_node(type_node.unwrap()), "expected a type node");
@@ -457,7 +564,9 @@ pub fn try_get_auto_importable_reference_from_type_node(import_type_node: Option
 // If a type checker and multiple files are available, consider using `forEachNameOfDefaultExport`
 // instead, which searches for names of re-exported defaults/namespaces in target files.
 fn get_name_for_exported_symbol(symbol: P<Symbol>, prefer_capitalized: bool) -> String {
-    if symbol.name() == ast::InternalSymbolNameExportEquals || symbol.name() == ast::InternalSymbolNameDefault {
+    if symbol.name() == ast::InternalSymbolNameExportEquals
+        || symbol.name() == ast::InternalSymbolNameDefault
+    {
         // Names for default exports:
         // - export default foo => foo
         // - export { foo as default } => foo
@@ -466,16 +575,33 @@ fn get_name_for_exported_symbol(symbol: P<Symbol>, prefer_capitalized: bool) -> 
         if !name.is_empty() {
             return name;
         }
-        assert!(symbol.parent().is_some(), "Expected exported symbol to have module symbol as parent");
-        return lsutil::module_symbol_to_valid_identifier(symbol.parent().unwrap(), prefer_capitalized);
+        assert!(
+            symbol.parent().is_some(),
+            "Expected exported symbol to have module symbol as parent"
+        );
+        return lsutil::module_symbol_to_valid_identifier(
+            symbol.parent().unwrap(),
+            prefer_capitalized,
+        );
     }
     symbol.name().to_string()
 }
 
 // import_adder.go:481
-fn replace_first_identifier_of_entity_name(factory: &NodeFactory, name: P<Node>, new_identifier: P<Node>) -> P<Node> {
+fn replace_first_identifier_of_entity_name(
+    factory: &NodeFactory,
+    name: P<Node>,
+    new_identifier: P<Node>,
+) -> P<Node> {
     if name.kind() == ast::Kind::Identifier {
         return new_identifier;
     }
-    factory.new_qualified_name(replace_first_identifier_of_entity_name(factory, name.as_qualified_name().left, new_identifier), name.as_qualified_name().right)
+    factory.new_qualified_name(
+        replace_first_identifier_of_entity_name(
+            factory,
+            name.as_qualified_name().left,
+            new_identifier,
+        ),
+        name.as_qualified_name().right,
+    )
 }

@@ -3,7 +3,7 @@
 use rustc_hash::FxHashSet;
 use tsrs_ast::{self as ast, Kind, Node, NodeFlags, SourceFile};
 use tsrs_core::context::Context;
-use tsrs_core::{TextRange, P};
+use tsrs_core::{P, TextRange};
 use tsrs_lsproto as lsproto;
 use tsrs_printer as printer;
 use tsrs_scanner as scanner;
@@ -16,8 +16,15 @@ use crate::utilities::is_in_comment;
 
 impl LanguageService {
     // folding.go:22
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_folding_range(&self, ctx: &Context, document_uri: &lsproto::DocumentUri) -> Result<lsproto::FoldingRangeResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_folding_range(
+        &self,
+        ctx: &Context,
+        document_uri: &lsproto::DocumentUri,
+    ) -> Result<lsproto::FoldingRangeResponse, lsproto::Error> {
         let (_, source_file) = self.get_program_and_file(document_uri);
         let mut projections = vec![source_file];
         projections.extend_from_slice(source_file.supplemental_source_files());
@@ -68,7 +75,11 @@ struct FoldingRangeKey {
 
 // folding.go:61
 fn key_for_folding_range(folding_range: &lsproto::FoldingRange) -> FoldingRangeKey {
-    let mut key = FoldingRangeKey { start_line: folding_range.start_line, end_line: folding_range.end_line, ..Default::default() };
+    let mut key = FoldingRangeKey {
+        start_line: folding_range.start_line,
+        end_line: folding_range.end_line,
+        ..Default::default()
+    };
     if let Some(start_character) = folding_range.start_character {
         key.start_character = start_character;
         key.has_start_character = true;
@@ -94,7 +105,11 @@ impl LanguageService {
     // When lineFoldingOnly is true, we hide lines from startLine+1 to endLine. And to keep closing
     // brackets/braces visible, we subtract 1 from endLine when the range ends with a closing pair character.
     // folding.go:86
-    fn adjust_folding_end(&self, ranges: Vec<lsproto::FoldingRange>, source_file: P<SourceFile>) -> Vec<lsproto::FoldingRange> {
+    fn adjust_folding_end(
+        &self,
+        ranges: Vec<lsproto::FoldingRange>,
+        source_file: P<SourceFile>,
+    ) -> Vec<lsproto::FoldingRange> {
         let source_text = source_file.text().as_bytes();
         let mut result = Vec::with_capacity(ranges.len());
         result.extend(ranges.into_iter().map(|mut r| {
@@ -104,12 +119,15 @@ impl LanguageService {
                     lsproto::Position { line: r.end_line, character: end_character },
                     Feature::FoldingRanges,
                 );
-                let position = positions.iter().find(|p| p.script == source_file && !p.fidelity.is_none());
+                let position =
+                    positions.iter().find(|p| p.script == source_file && !p.fidelity.is_none());
                 if let Some(position) = position {
                     if position.position > 0 && position.position as usize <= source_text.len() {
                         let end_offset = position.position;
                         let fold_end_char = source_text[end_offset as usize - 1];
-                        if matches!(fold_end_char, b'}' | b']' | b')' | b'`' | b'>') && r.end_line > r.start_line {
+                        if matches!(fold_end_char, b'}' | b']' | b')' | b'`' | b'>')
+                            && r.end_line > r.start_line
+                        {
                             r.end_line -= 1;
                         }
                     }
@@ -121,7 +139,11 @@ impl LanguageService {
     }
 
     // folding.go:117
-    fn add_node_outlining_spans(&self, ctx: &Context, source_file: P<SourceFile>) -> Vec<lsproto::FoldingRange> {
+    fn add_node_outlining_spans(
+        &self,
+        ctx: &Context,
+        source_file: P<SourceFile>,
+    ) -> Vec<lsproto::FoldingRange> {
         let depth_remaining = 40;
         let mut current = 0;
 
@@ -130,7 +152,13 @@ impl LanguageService {
         let mut folding_range = Vec::with_capacity(40);
         while current < n {
             while current < n && !ast::is_any_import_syntax(statements[current]) {
-                folding_range.extend(visit_node(ctx, statements[current], depth_remaining, source_file, self));
+                folding_range.extend(visit_node(
+                    ctx,
+                    statements[current],
+                    depth_remaining,
+                    source_file,
+                    self,
+                ));
                 current += 1;
             }
             if current == n {
@@ -138,7 +166,13 @@ impl LanguageService {
             }
             let first_import = current;
             while current < n && ast::is_any_import_syntax(statements[current]) {
-                folding_range.extend(visit_node(ctx, statements[current], depth_remaining, source_file, self));
+                folding_range.extend(visit_node(
+                    ctx,
+                    statements[current],
+                    depth_remaining,
+                    source_file,
+                    self,
+                ));
                 current += 1;
             }
             let last_import = current - 1;
@@ -147,7 +181,12 @@ impl LanguageService {
                 let imports = create_folding_range_from_bounds(
                     ctx,
                     astnav::get_start_of_node(
-                        astnav::find_child_of_kind(statements[first_import], Kind::ImportKeyword, source_file).unwrap(),
+                        astnav::find_child_of_kind(
+                            statements[first_import],
+                            Kind::ImportKeyword,
+                            source_file,
+                        )
+                        .unwrap(),
                         source_file,
                         false, /*includeJSDoc*/
                     ),
@@ -165,12 +204,22 @@ impl LanguageService {
         }
 
         // Visit the EOF Token so that comments which aren't attached to statements are included.
-        folding_range.extend(visit_node(ctx, source_file.end_of_file_token, depth_remaining, source_file, self));
+        folding_range.extend(visit_node(
+            ctx,
+            source_file.end_of_file_token,
+            depth_remaining,
+            source_file,
+            self,
+        ));
         folding_range
     }
 
     // folding.go:160
-    fn add_region_outlining_spans(&self, ctx: &Context, source_file: P<SourceFile>) -> Vec<lsproto::FoldingRange> {
+    fn add_region_outlining_spans(
+        &self,
+        ctx: &Context,
+        source_file: P<SourceFile>,
+    ) -> Vec<lsproto::FoldingRange> {
         struct RegionStart {
             position: u32,
             collapsed_text: Option<String>,
@@ -185,7 +234,13 @@ impl LanguageService {
             let Some(result) = result else {
                 continue;
             };
-            if is_in_comment(source_file, current_line_start, astnav::get_token_at_position(source_file, current_line_start)).is_some() {
+            if is_in_comment(
+                source_file,
+                current_line_start,
+                astnav::get_token_at_position(source_file, current_line_start),
+            )
+            .is_some()
+            {
                 continue;
             }
 
@@ -209,11 +264,13 @@ impl LanguageService {
                 }
                 regions.push(region);
             } else if let Some(region) = regions.pop() {
-                let (text_range, fidelity) = self.create_folding_range_from_bounds(region.position, line_end, source_file);
+                let (text_range, fidelity) =
+                    self.create_folding_range_from_bounds(region.position, line_end, source_file);
                 if fidelity.is_none() {
                     continue;
                 }
-                let mut folding_range = create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::Region, "");
+                let mut folding_range =
+                    create_folding_range(ctx, text_range, lsproto::FoldingRangeKind::Region, "");
                 folding_range.collapsed_text = region.collapsed_text;
                 out.push(folding_range);
             }
@@ -245,8 +302,15 @@ fn visit_node(
     }
     if ast::is_function_like(n) {
         if let Some(parent) = n.parent() {
-            if ast::is_binary_expression(parent) && ast::is_property_access_expression(parent.as_binary_expression().left) {
-                folding_range.extend(add_outlining_for_leading_comments_for_node(ctx, parent.as_binary_expression().left, source_file, l));
+            if ast::is_binary_expression(parent)
+                && ast::is_property_access_expression(parent.as_binary_expression().left)
+            {
+                folding_range.extend(add_outlining_for_leading_comments_for_node(
+                    ctx,
+                    parent.as_binary_expression().left,
+                    source_file,
+                    l,
+                ));
             }
         }
     }
@@ -286,11 +350,7 @@ fn visit_node(
         };
         folding_range.extend(add_outlining_for_leading_comments_for_pos(
             ctx,
-            members
-                .loc
-                .get()
-                .end()
-                .expect_source("parsed member lists have source positions"),
+            members.loc.get().end().expect_source("parsed member lists have source positions"),
             source_file,
             l,
         ));
@@ -303,18 +363,47 @@ fn visit_node(
     depth_remaining -= 1;
     if ast::is_call_expression(n) {
         depth_remaining += 1;
-        let expression_nodes = visit_node(ctx, n.expression().unwrap(), depth_remaining, source_file, l);
+        let expression_nodes =
+            visit_node(ctx, n.expression().unwrap(), depth_remaining, source_file, l);
         folding_range.extend(expression_nodes);
         depth_remaining -= 1;
-        folding_range.extend(n.arguments().iter().flat_map(|&arg| visit_node(ctx, arg, depth_remaining, source_file, l)));
-        folding_range.extend(n.type_arguments().iter().flat_map(|&type_arg| visit_node(ctx, type_arg, depth_remaining, source_file, l)));
-    } else if ast::is_if_statement(n) && n.as_if_statement().else_statement.is_some_and(ast::is_if_statement) {
+        folding_range.extend(
+            n.arguments()
+                .iter()
+                .flat_map(|&arg| visit_node(ctx, arg, depth_remaining, source_file, l)),
+        );
+        folding_range.extend(
+            n.type_arguments()
+                .iter()
+                .flat_map(|&type_arg| visit_node(ctx, type_arg, depth_remaining, source_file, l)),
+        );
+    } else if ast::is_if_statement(n)
+        && n.as_if_statement().else_statement.is_some_and(ast::is_if_statement)
+    {
         // Consider an 'else if' to be on the same depth as the 'if'.
         let if_statement = n.as_if_statement();
-        folding_range.extend(visit_node(ctx, n.expression().unwrap(), depth_remaining, source_file, l));
-        folding_range.extend(visit_node(ctx, if_statement.then_statement, depth_remaining, source_file, l));
+        folding_range.extend(visit_node(
+            ctx,
+            n.expression().unwrap(),
+            depth_remaining,
+            source_file,
+            l,
+        ));
+        folding_range.extend(visit_node(
+            ctx,
+            if_statement.then_statement,
+            depth_remaining,
+            source_file,
+            l,
+        ));
         depth_remaining += 1;
-        folding_range.extend(visit_node(ctx, if_statement.else_statement.unwrap(), depth_remaining, source_file, l));
+        folding_range.extend(visit_node(
+            ctx,
+            if_statement.else_statement.unwrap(),
+            depth_remaining,
+            source_file,
+            l,
+        ));
     } else {
         n.for_each_child(&mut |node| {
             folding_range.extend(visit_node(ctx, node, depth_remaining, source_file, l));
@@ -325,7 +414,12 @@ fn visit_node(
 }
 
 // folding.go:295
-fn add_outlining_for_leading_comments_for_node(ctx: &Context, n: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Vec<lsproto::FoldingRange> {
+fn add_outlining_for_leading_comments_for_node(
+    ctx: &Context,
+    n: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Vec<lsproto::FoldingRange> {
     if ast::is_jsx_text(n) {
         return Vec::new();
     }
@@ -370,14 +464,10 @@ fn add_outlining_for_leading_comments_for_pos(
 
     let source_text = source_file.text();
     for comment in scanner::get_leading_comment_ranges(source_text, pos) {
-        let comment_pos = comment
-            .text_range
-            .pos()
-            .expect_source("comment ranges have source positions");
-        let comment_end = comment
-            .text_range
-            .end()
-            .expect_source("comment ranges have source positions");
+        let comment_pos =
+            comment.text_range.pos().expect_source("comment ranges have source positions");
+        let comment_end =
+            comment.text_range.end().expect_source("comment ranges have source positions");
 
         if ctx.err().is_some() {
             return Vec::new();
@@ -387,9 +477,11 @@ fn add_outlining_for_leading_comments_for_pos(
                 // never fold region delimiters into single-line comment regions
                 let comment_text = &source_text[comment_pos as usize..comment_end as usize];
                 if parse_region_delimiter(comment_text).is_some() {
-                    if let Some(comments) =
-                        combine_and_add_multiple_single_line_comments(single_line_comment_count, first_single_line_comment_start, last_single_line_comment_end)
-                    {
+                    if let Some(comments) = combine_and_add_multiple_single_line_comments(
+                        single_line_comment_count,
+                        first_single_line_comment_start,
+                        last_single_line_comment_end,
+                    ) {
                         folding_range.push(comments);
                     }
                     single_line_comment_count = 0;
@@ -405,12 +497,21 @@ fn add_outlining_for_leading_comments_for_pos(
                 single_line_comment_count += 1;
             }
             Kind::MultiLineCommentTrivia => {
-                if let Some(comments) =
-                    combine_and_add_multiple_single_line_comments(single_line_comment_count, first_single_line_comment_start, last_single_line_comment_end)
-                {
+                if let Some(comments) = combine_and_add_multiple_single_line_comments(
+                    single_line_comment_count,
+                    first_single_line_comment_start,
+                    last_single_line_comment_end,
+                ) {
                     folding_range.push(comments);
                 }
-                if let Some(comment) = create_folding_range_from_bounds(ctx, comment_pos, comment_end, folding_range_kind_comment, source_file, l) {
+                if let Some(comment) = create_folding_range_from_bounds(
+                    ctx,
+                    comment_pos,
+                    comment_end,
+                    folding_range_kind_comment,
+                    source_file,
+                    l,
+                ) {
                     folding_range.push(comment);
                 }
                 single_line_comment_count = 0;
@@ -418,9 +519,11 @@ fn add_outlining_for_leading_comments_for_pos(
             k => panic!("Debug Failure. Illegal value: {k:?}"),
         }
     }
-    if let Some(added_comments) =
-        combine_and_add_multiple_single_line_comments(single_line_comment_count, first_single_line_comment_start, last_single_line_comment_end)
-    {
+    if let Some(added_comments) = combine_and_add_multiple_single_line_comments(
+        single_line_comment_count,
+        first_single_line_comment_start,
+        last_single_line_comment_end,
+    ) {
         folding_range.push(added_comments);
     }
     folding_range
@@ -451,7 +554,12 @@ fn parse_region_delimiter(line_text: &str) -> Option<RegionDelimiterResult> {
 }
 
 // folding.go:400
-fn get_outlining_span_for_node(ctx: &Context, n: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn get_outlining_span_for_node(
+    ctx: &Context,
+    n: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     match n.kind() {
         Kind::Block => {
             let parent = n.parent().unwrap();
@@ -470,15 +578,36 @@ fn get_outlining_span_for_node(ctx: &Context, n: P<Node>, source_file: P<SourceF
                 | Kind::WhileStatement
                 | Kind::WithStatement
                 | Kind::CatchClause => {
-                    return span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l);
+                    return span_for_node(
+                        ctx,
+                        n,
+                        Kind::OpenBraceToken,
+                        true, /*useFullStart*/
+                        source_file,
+                        l,
+                    );
                 }
                 Kind::TryStatement => {
                     // Could be the try-block, or the finally-block.
                     let try_statement = parent.as_try_statement();
                     if try_statement.try_block == n {
-                        return span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l);
+                        return span_for_node(
+                            ctx,
+                            n,
+                            Kind::OpenBraceToken,
+                            true, /*useFullStart*/
+                            source_file,
+                            l,
+                        );
                     } else if try_statement.finally_block == Some(n) {
-                        if let Some(span) = span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l) {
+                        if let Some(span) = span_for_node(
+                            ctx,
+                            n,
+                            Kind::OpenBraceToken,
+                            true, /*useFullStart*/
+                            source_file,
+                            l,
+                        ) {
                             return Some(span);
                         }
                     }
@@ -488,24 +617,38 @@ fn get_outlining_span_for_node(ctx: &Context, n: P<Node>, source_file: P<SourceF
             }
             // Block was a standalone block.  In this case we want to only collapse
             // the span of the block, independent of any parent span.
-            let (text_range, fidelity) = l.create_lsp_range_from_node_for_feature(n, source_file, Feature::FoldingRanges);
+            let (text_range, fidelity) =
+                l.create_lsp_range_from_node_for_feature(n, source_file, Feature::FoldingRanges);
             if fidelity.is_none() {
                 return None;
             }
             Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), ""))
         }
-        Kind::ModuleBlock => span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l),
+        Kind::ModuleBlock => {
+            span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l)
+        }
         Kind::ClassDeclaration
         | Kind::ClassExpression
         | Kind::InterfaceDeclaration
         | Kind::EnumDeclaration
         | Kind::CaseBlock
         | Kind::TypeLiteral
-        | Kind::ObjectBindingPattern => span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l),
-        Kind::TupleType => {
-            span_for_node(ctx, n, Kind::OpenBracketToken, !ast::is_tuple_type_node(n.parent().unwrap()) /*useFullStart*/, source_file, l)
+        | Kind::ObjectBindingPattern => {
+            span_for_node(ctx, n, Kind::OpenBraceToken, true /*useFullStart*/, source_file, l)
         }
-        Kind::CaseClause | Kind::DefaultClause => span_for_node_array(ctx, n.as_case_or_default_clause().statements, source_file, l),
+        Kind::TupleType => {
+            span_for_node(
+                ctx,
+                n,
+                Kind::OpenBracketToken,
+                !ast::is_tuple_type_node(n.parent().unwrap()), /*useFullStart*/
+                source_file,
+                l,
+            )
+        }
+        Kind::CaseClause | Kind::DefaultClause => {
+            span_for_node_array(ctx, n.as_case_or_default_clause().statements, source_file, l)
+        }
         Kind::ObjectLiteralExpression => {
             let parent = n.parent().unwrap();
             span_for_node(
@@ -529,21 +672,39 @@ fn get_outlining_span_for_node(ctx: &Context, n: P<Node>, source_file: P<SourceF
             )
         }
         Kind::JsxElement | Kind::JsxFragment => span_for_jsx_element(ctx, n, source_file, l),
-        Kind::JsxSelfClosingElement | Kind::JsxOpeningElement => span_for_jsx_attributes(ctx, n, source_file, l),
-        Kind::TemplateExpression | Kind::NoSubstitutionTemplateLiteral => span_for_template_literal(ctx, n, source_file, l),
+        Kind::JsxSelfClosingElement | Kind::JsxOpeningElement => {
+            span_for_jsx_attributes(ctx, n, source_file, l)
+        }
+        Kind::TemplateExpression | Kind::NoSubstitutionTemplateLiteral => {
+            span_for_template_literal(ctx, n, source_file, l)
+        }
         Kind::ArrayBindingPattern => {
-            span_for_node(ctx, n, Kind::OpenBracketToken, !ast::is_binding_element(n.parent().unwrap()) /*useFullStart*/, source_file, l)
+            span_for_node(
+                ctx,
+                n,
+                Kind::OpenBracketToken,
+                !ast::is_binding_element(n.parent().unwrap()), /*useFullStart*/
+                source_file,
+                l,
+            )
         }
         Kind::ArrowFunction => span_for_arrow_function(ctx, n, source_file, l),
         Kind::CallExpression => span_for_call_expression(ctx, n, source_file, l),
         Kind::ParenthesizedExpression => span_for_parenthesized_expression(ctx, n, source_file, l),
-        Kind::NamedImports | Kind::NamedExports | Kind::ImportAttributes => span_for_import_export_elements(ctx, n, source_file, l),
+        Kind::NamedImports | Kind::NamedExports | Kind::ImportAttributes => {
+            span_for_import_export_elements(ctx, n, source_file, l)
+        }
         _ => None,
     }
 }
 
 // folding.go:464
-fn span_for_import_export_elements(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_import_export_elements(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     let elements: Option<&'static [P<Node>]> = match node.kind() {
         Kind::NamedImports => Some(node.as_named_imports().elements.nodes()),
         Kind::NamedExports => Some(node.as_named_exports().elements.nodes()),
@@ -565,15 +726,19 @@ fn span_for_import_export_elements(ctx: &Context, node: P<Node>, source_file: P<
 }
 
 // folding.go:485
-fn span_for_parenthesized_expression(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_parenthesized_expression(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     let start = astnav::get_start_of_node(node, source_file, false /*includeJSDoc*/);
     if printer::positions_are_on_same_line(start.into(), node.end(), source_file) {
         return None;
     }
     let (text_range, fidelity) = l.create_folding_range_from_bounds(
         start,
-        node.end()
-            .expect_source("parsed nodes have source positions"),
+        node.end().expect_source("parsed nodes have source positions"),
         source_file,
     );
     if fidelity.is_none() {
@@ -583,7 +748,12 @@ fn span_for_parenthesized_expression(ctx: &Context, node: P<Node>, source_file: 
 }
 
 // folding.go:497
-fn span_for_call_expression(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_call_expression(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     if node.arguments().is_empty() {
         return None;
     }
@@ -600,16 +770,22 @@ fn span_for_call_expression(ctx: &Context, node: P<Node>, source_file: P<SourceF
 }
 
 // folding.go:510
-fn span_for_arrow_function(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_arrow_function(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     let body = node.body().unwrap();
-    if ast::is_block(body) || ast::is_parenthesized_expression(body) || printer::positions_are_on_same_line(body.pos(), body.end(), source_file) {
+    if ast::is_block(body)
+        || ast::is_parenthesized_expression(body)
+        || printer::positions_are_on_same_line(body.pos(), body.end(), source_file)
+    {
         return None;
     }
     let (text_range, fidelity) = l.create_folding_range_from_bounds(
-        body.pos()
-            .expect_source("parsed nodes have source positions"),
-        body.end()
-            .expect_source("parsed nodes have source positions"),
+        body.pos().expect_source("parsed nodes have source positions"),
+        body.end().expect_source("parsed nodes have source positions"),
         source_file,
     );
     if fidelity.is_none() {
@@ -619,15 +795,19 @@ fn span_for_arrow_function(ctx: &Context, node: P<Node>, source_file: P<SourceFi
 }
 
 // folding.go:522
-fn span_for_template_literal(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_template_literal(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     if node.kind() == Kind::NoSubstitutionTemplateLiteral && node.text().is_empty() {
         return None;
     }
     create_folding_range_from_bounds(
         ctx,
         astnav::get_start_of_node(node, source_file, false /*includeJSDoc*/),
-        node.end()
-            .expect_source("parsed nodes have source positions"),
+        node.end().expect_source("parsed nodes have source positions"),
         lsproto::FoldingRangeKind(""),
         source_file,
         l,
@@ -635,7 +815,12 @@ fn span_for_template_literal(ctx: &Context, node: P<Node>, source_file: P<Source
 }
 
 // folding.go:529
-fn span_for_jsx_element(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_jsx_element(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     if node.kind() == Kind::JsxElement {
         let jsx_element = node.as_jsx_element();
         let (text_range, fidelity) = l.create_folding_range_from_bounds(
@@ -655,7 +840,12 @@ fn span_for_jsx_element(ctx: &Context, node: P<Node>, source_file: P<SourceFile>
         }
         let tag_name = scanner::get_text_of_node(jsx_element.opening_element.tag_name());
         let banner_text = format!("<{tag_name}>...</{tag_name}>");
-        return Some(create_folding_range(ctx, text_range, lsproto::FoldingRangeKind(""), &banner_text));
+        return Some(create_folding_range(
+            ctx,
+            text_range,
+            lsproto::FoldingRangeKind(""),
+            &banner_text,
+        ));
     }
     // JsxFragment
     let jsx_fragment = node.as_jsx_fragment();
@@ -678,7 +868,12 @@ fn span_for_jsx_element(ctx: &Context, node: P<Node>, source_file: P<SourceFile>
 }
 
 // folding.go:549
-fn span_for_jsx_attributes(ctx: &Context, node: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_jsx_attributes(
+    ctx: &Context,
+    node: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     let attributes = if node.kind() == Kind::JsxSelfClosingElement {
         node.as_jsx_self_closing_element().attributes
     } else {
@@ -690,8 +885,7 @@ fn span_for_jsx_attributes(ctx: &Context, node: P<Node>, source_file: P<SourceFi
     create_folding_range_from_bounds(
         ctx,
         astnav::get_start_of_node(node, source_file, false /*includeJSDoc*/),
-        node.end()
-            .expect_source("parsed nodes have source positions"),
+        node.end().expect_source("parsed nodes have source positions"),
         lsproto::FoldingRangeKind(""),
         source_file,
         l,
@@ -699,7 +893,12 @@ fn span_for_jsx_attributes(ctx: &Context, node: P<Node>, source_file: P<SourceFi
 }
 
 // folding.go:562
-fn span_for_node_array(ctx: &Context, statements: P<ast::NodeList>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn span_for_node_array(
+    ctx: &Context,
+    statements: P<ast::NodeList>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     if !statements.nodes().is_empty() {
         let (text_range, fidelity) = l.create_folding_range_from_bounds(
             statements
@@ -723,8 +922,16 @@ fn span_for_node_array(ctx: &Context, statements: P<ast::NodeList>, source_file:
 }
 
 // folding.go:573
-fn span_for_node(ctx: &Context, node: P<Node>, open: Kind, use_full_start: bool, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
-    let close_brace = if open != Kind::OpenBraceToken { Kind::CloseBracketToken } else { Kind::CloseBraceToken };
+fn span_for_node(
+    ctx: &Context,
+    node: P<Node>,
+    open: Kind,
+    use_full_start: bool,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
+    let close_brace =
+        if open != Kind::OpenBraceToken { Kind::CloseBracketToken } else { Kind::CloseBraceToken };
     let open_token = astnav::find_child_of_kind(node, open, source_file);
     let close_token = astnav::find_child_of_kind(node, close_brace, source_file);
     if let (Some(open_token), Some(close_token)) = (open_token, close_token) {
@@ -744,20 +951,14 @@ fn range_between_tokens(
 ) -> Option<lsproto::FoldingRange> {
     let (text_range, fidelity) = if use_full_start {
         l.create_folding_range_from_bounds(
-            open_token
-                .pos()
-                .expect_source("parsed tokens have source positions"),
-            close_token
-                .end()
-                .expect_source("parsed tokens have source positions"),
+            open_token.pos().expect_source("parsed tokens have source positions"),
+            close_token.end().expect_source("parsed tokens have source positions"),
             source_file,
         )
     } else {
         l.create_folding_range_from_bounds(
             astnav::get_start_of_node(open_token, source_file, false /*includeJSDoc*/),
-            close_token
-                .end()
-                .expect_source("parsed tokens have source positions"),
+            close_token.end().expect_source("parsed tokens have source positions"),
             source_file,
         )
     };
@@ -773,7 +974,12 @@ fn supports_collapsed_text(ctx: &Context) -> bool {
 }
 
 // folding.go:604
-fn create_folding_range(ctx: &Context, text_range: lsproto::Range, folding_range_kind: lsproto::FoldingRangeKind, collapsed_text: &str) -> lsproto::FoldingRange {
+fn create_folding_range(
+    ctx: &Context,
+    text_range: lsproto::Range,
+    folding_range_kind: lsproto::FoldingRangeKind,
+    collapsed_text: &str,
+) -> lsproto::FoldingRange {
     let kind = if !folding_range_kind.0.is_empty() { Some(folding_range_kind) } else { None };
     let mut result = lsproto::FoldingRange {
         start_line: text_range.start.line,
@@ -822,19 +1028,38 @@ impl LanguageService {
 }
 
 // folding.go:634
-fn function_span(ctx: &Context, node: P<Node>, body: P<Node>, source_file: P<SourceFile>, l: &LanguageService) -> Option<lsproto::FoldingRange> {
+fn function_span(
+    ctx: &Context,
+    node: P<Node>,
+    body: P<Node>,
+    source_file: P<SourceFile>,
+    l: &LanguageService,
+) -> Option<lsproto::FoldingRange> {
     let open_token = try_get_function_open_token(node, body, source_file);
     let close_token = astnav::find_child_of_kind(body, Kind::CloseBraceToken, source_file);
     if let (Some(open_token), Some(close_token)) = (open_token, close_token) {
-        return range_between_tokens(ctx, open_token, close_token, source_file, true /*useFullStart*/, l);
+        return range_between_tokens(
+            ctx,
+            open_token,
+            close_token,
+            source_file,
+            true, /*useFullStart*/
+            l,
+        );
     }
     None
 }
 
 // folding.go:643
-fn try_get_function_open_token(node: P<Node>, body: P<Node>, source_file: P<SourceFile>) -> Option<P<Node>> {
+fn try_get_function_open_token(
+    node: P<Node>,
+    body: P<Node>,
+    source_file: P<SourceFile>,
+) -> Option<P<Node>> {
     if is_node_array_multi_line(node.parameters(), source_file) {
-        if let Some(open_paren_token) = astnav::find_child_of_kind(node, Kind::OpenParenToken, source_file) {
+        if let Some(open_paren_token) =
+            astnav::find_child_of_kind(node, Kind::OpenParenToken, source_file)
+        {
             return Some(open_paren_token);
         }
     }

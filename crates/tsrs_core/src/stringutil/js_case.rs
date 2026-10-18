@@ -1,11 +1,15 @@
 use super::js_case_generated::{
-    SpecialCasingCondition, SpecialCasingMapping, SPECIAL_CASING_MAPPINGS, UNICODE_CASED_RANGES, UNICODE_CASE_IGNORABLE_RANGES,
+    SPECIAL_CASING_MAPPINGS, SpecialCasingCondition, SpecialCasingMapping,
+    UNICODE_CASE_IGNORABLE_RANGES, UNICODE_CASED_RANGES,
 };
-use super::rangetable::{push_rune, unicode_is, Rune};
+use super::rangetable::{Rune, push_rune, unicode_is};
 use super::util::{decode_js_string_rune_bytes, encode_js_string_rune, is_surrogate};
 
 fn special_casing_mapping(r: Rune) -> Option<&'static SpecialCasingMapping> {
-    SPECIAL_CASING_MAPPINGS.binary_search_by_key(&r, |(k, _)| *k).ok().map(|i| &SPECIAL_CASING_MAPPINGS[i].1)
+    SPECIAL_CASING_MAPPINGS
+        .binary_search_by_key(&r, |(k, _)| *k)
+        .ok()
+        .map(|i| &SPECIAL_CASING_MAPPINGS[i].1)
 }
 
 /// Appends raw bytes that are known to be (possibly WTF-8) slices of a string.
@@ -35,7 +39,9 @@ pub fn to_lower_js(str: &str) -> String {
             // bytes because WriteRune would re-encode the surrogate as U+FFFD.
             push_bytes(&mut builder, encode_js_string_rune(r).as_bytes());
         } else if let Some(mapping) = special_casing_mapping(r) {
-            if mapping.condition == SpecialCasingCondition::FinalSigma && is_final_sigma_context(cased_before, bytes, i) {
+            if mapping.condition == SpecialCasingCondition::FinalSigma
+                && is_final_sigma_context(cased_before, bytes, i)
+            {
                 builder.push_str(mapping.conditional_lower);
             } else {
                 builder.push_str(mapping.lower);
@@ -78,7 +84,9 @@ pub fn to_upper_js(str: &str) -> String {
 
 fn to_lower_ascii(str: &str) -> Option<String> {
     let mut needs_mapping = false;
-    needs_mapping = str.bytes().try_fold(needs_mapping, |needs_mapping, ch| if ch >= 0x80 { None } else { Some(needs_mapping || ch.is_ascii_uppercase()) })?;
+    needs_mapping = str.bytes().try_fold(needs_mapping, |needs_mapping, ch| {
+        if ch >= 0x80 { None } else { Some(needs_mapping || ch.is_ascii_uppercase()) }
+    })?;
     if !needs_mapping {
         return Some(str.to_string());
     }
@@ -87,7 +95,9 @@ fn to_lower_ascii(str: &str) -> Option<String> {
 
 fn to_upper_ascii(str: &str) -> Option<String> {
     let mut needs_mapping = false;
-    needs_mapping = str.bytes().try_fold(needs_mapping, |needs_mapping, ch| if ch >= 0x80 { None } else { Some(needs_mapping || ch.is_ascii_lowercase()) })?;
+    needs_mapping = str.bytes().try_fold(needs_mapping, |needs_mapping, ch| {
+        if ch >= 0x80 { None } else { Some(needs_mapping || ch.is_ascii_lowercase()) }
+    })?;
     if !needs_mapping {
         return Some(str.to_string());
     }
@@ -143,24 +153,49 @@ mod tests {
             ("uppercase ligature", to_upper_js("ﬁoo"), "FIOO".into()),
             ("capitalize-style uppercase", to_upper_js("ß") + "foo", "SSfoo".into()),
             ("uncapitalize-style lowercase", to_lower_js("İ") + "foo", "i̇foo".into()),
-            ("final sigma after lowercase letter without uppercase mapping", to_lower_js("ʕΣ"), "ʕς".into()),
+            (
+                "final sigma after lowercase letter without uppercase mapping",
+                to_lower_js("ʕΣ"),
+                "ʕς".into(),
+            ),
             ("sigma after modifier letter", to_lower_js("ʰΣ"), "ʰσ".into()),
             ("sigma after case ignorable ypogegrammeni", to_lower_js("ͅΣ"), "ͅσ".into()),
             ("final sigma after feminine ordinal indicator", to_lower_js("ªΣ"), "ªς".into()),
             ("final sigma after masculine ordinal indicator", to_lower_js("ºΣ"), "ºς".into()),
             ("final sigma after roman numeral", to_lower_js("ⅠΣ"), "ⅰς".into()),
-            ("sigma after uppercase property added after unicode 15", to_lower_js("\u{1C89}Σ"), "\u{1C89}σ".into()),
+            (
+                "sigma after uppercase property added after unicode 15",
+                to_lower_js("\u{1C89}Σ"),
+                "\u{1C89}σ".into(),
+            ),
             ("sigma after uppercase property skewed", to_lower_js("\u{A7CB}Σ"), "\u{A7CB}σ".into()),
             ("sigma before immediate latin letter", to_lower_js("ΣA"), "σa".into()),
             ("sigma before immediate roman numeral letter", to_lower_js("ΣⅠ"), "σⅰ".into()),
             ("sigma before case ignorable then latin letter", to_lower_js("ΣͅA"), "σͅa".into()),
             ("uppercase lone surrogate", to_upper_js(&e(0xD800)), e(0xD800)),
-            ("lowercase lone surrogate", to_lower_js(&("A".to_string() + &e(0xD800) + "B")), "a".to_string() + &e(0xD800) + "b"),
-            ("uppercase lone low surrogate with text", to_upper_js(&(e(0xDC00) + "x")), e(0xDC00) + "X"),
-            ("lowercase lone surrogate before sigma", to_lower_js(&(e(0xD800) + "Σ")), e(0xD800) + "σ"),
+            (
+                "lowercase lone surrogate",
+                to_lower_js(&("A".to_string() + &e(0xD800) + "B")),
+                "a".to_string() + &e(0xD800) + "b",
+            ),
+            (
+                "uppercase lone low surrogate with text",
+                to_upper_js(&(e(0xDC00) + "x")),
+                e(0xDC00) + "X",
+            ),
+            (
+                "lowercase lone surrogate before sigma",
+                to_lower_js(&(e(0xD800) + "Σ")),
+                e(0xD800) + "σ",
+            ),
         ];
         for (name, got, want) in tests {
-            assert!(got.as_bytes() == want.as_bytes(), "{name}: got {:?}, want {:?}", got.as_bytes(), want.as_bytes());
+            assert!(
+                got.as_bytes() == want.as_bytes(),
+                "{name}: got {:?}, want {:?}",
+                got.as_bytes(),
+                want.as_bytes()
+            );
         }
     }
 }

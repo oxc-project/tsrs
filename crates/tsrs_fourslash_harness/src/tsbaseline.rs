@@ -22,8 +22,10 @@ pub struct TestFile {
 const HARNESS_NEW_LINE: &str = "\r\n";
 
 // error_baseline.go:30
-static DIAGNOSTICS_LOCATION_PREFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?im)^(lib.*\.d\.ts)\([0-9]+,[0-9]+\)").unwrap());
-static DIAGNOSTICS_LOCATION_PATTERN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)(lib.*\.d\.ts):[0-9]+:[0-9]+").unwrap());
+static DIAGNOSTICS_LOCATION_PREFIX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?im)^(lib.*\.d\.ts)\([0-9]+,[0-9]+\)").unwrap());
+static DIAGNOSTICS_LOCATION_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(lib.*\.d\.ts):[0-9]+:[0-9]+").unwrap());
 static LINE_DELIMITER: LazyLock<Regex> = LazyLock::new(|| Regex::new("\r?\n").unwrap());
 
 // error_baseline.go:51 (pretty=false: diagnosticwriter.WriteFormatDiagnostics)
@@ -68,7 +70,9 @@ fn iterate_error_baseline(
 
     let mut result = Vec::new();
 
-    let output_error_text = |output_lines: &mut String, new_line: &mut dyn FnMut() -> &'static str, diag: &FourslashDiagnostic| {
+    let output_error_text = |output_lines: &mut String,
+                             new_line: &mut dyn FnMut() -> &'static str,
+                             diag: &FourslashDiagnostic| {
         let message = flatten_diagnostic_message(diag);
 
         let mut err_lines = Vec::new();
@@ -84,7 +88,8 @@ fn iterate_error_baseline(
             let mut location = format!(" {}", format_location(info));
             location = remove_test_path_prefixes(&location);
             if !location.is_empty() && is_default_library_file(&info.file.file_name) {
-                location = DIAGNOSTICS_LOCATION_PATTERN.replace_all(&location, "$1:--:--").into_owned();
+                location =
+                    DIAGNOSTICS_LOCATION_PATTERN.replace_all(&location, "$1:--:--").into_owned();
             }
             format!("!!! related TS{}{}: {}", info.code, location, flatten_diagnostic_message(info))
         }));
@@ -122,7 +127,8 @@ fn iterate_error_baseline(
             .collect();
 
         // Header
-        write!(output_lines, "{}==== {} ({} errors) ====", new_line(), unit, file_errors.len()).unwrap();
+        write!(output_lines, "{}==== {} ({} errors) ====", new_line(), unit, file_errors.len())
+            .unwrap();
 
         // Make sure we emit something for every error
         let mut marked_error_count = 0;
@@ -170,10 +176,17 @@ fn iterate_error_baseline(
                         .expect("squiggle offset exceeds usize");
                     output_lines.push_str(new_line());
                     output_lines.push_str("    ");
-                    output_lines.push_str(&replace_non_whitespace(&line[..squiggle_start.min(line.len())]));
+                    output_lines
+                        .push_str(&replace_non_whitespace(&line[..squiggle_start.min(line.len())]));
                     // This was `new Array(count).join("~")`; which maps 0 to "", 1 to "", 2 to "~", 3 to "~~", etc.
-                    let squiggle_end = squiggle_start.max((squiggle_start as i64 + length as i64).min(line.len() as i64).max(0) as usize);
-                    let squiggle_slice = if squiggle_start <= line.len() { &line[squiggle_start..squiggle_end.min(line.len())] } else { &[][..] };
+                    let squiggle_end = squiggle_start
+                        .max((squiggle_start as i64 + length as i64).min(line.len() as i64).max(0)
+                            as usize);
+                    let squiggle_slice = if squiggle_start <= line.len() {
+                        &line[squiggle_start..squiggle_end.min(line.len())]
+                    } else {
+                        &[][..]
+                    };
                     output_lines.push_str(&"~".repeat(rune_count(squiggle_slice)));
                     // If the error ended here, or we're at the end of the file, emit its message
                     if line_index == lines.len() - 1 || next_line_start > end {
@@ -185,7 +198,11 @@ fn iterate_error_baseline(
         }
 
         // Verify we didn't miss any errors in this file
-        crate::go::assert::check(t, marked_error_count == file_errors.len(), &format!("count of errors in {}", input_file.unit_name));
+        crate::go::assert::check(
+            t,
+            marked_error_count == file_errors.len(),
+            &format!("count of errors in {}", input_file.unit_name),
+        );
         result.push(std::mem::take(&mut output_lines));
     }
 
@@ -214,18 +231,13 @@ fn replace_non_whitespace(bytes: &[u8]) -> String {
 fn format_location(diag: &FourslashDiagnostic) -> String {
     let (first_line, first_char) = get_ecma_line_and_utf16_character_of_position(
         diag,
-        diag.loc
-            .pos()
-            .expect_source("fourslash diagnostics have source positions"),
+        diag.loc.pos().expect_source("fourslash diagnostics have source positions"),
     );
-    let relative_file_name =
-        tspath::convert_to_relative_path(&diag.file.file_name, &tsrs_core::tspath::ComparePathsOptions::default());
-    format!(
-        "{}:{}:{}",
-        relative_file_name,
-        first_line + 1,
-        first_char + 1
-    )
+    let relative_file_name = tspath::convert_to_relative_path(
+        &diag.file.file_name,
+        &tsrs_core::tspath::ComparePathsOptions::default(),
+    );
+    format!("{}:{}:{}", relative_file_name, first_line + 1, first_char + 1)
 }
 
 // diagnosticwriter.GetECMALineAndUTF16CharacterOfPosition
@@ -238,9 +250,8 @@ fn get_ecma_line_and_utf16_character_of_position(
     let start = line_map[line] as usize;
     let text = &diag.file.content;
     let end = (pos as usize).min(text.len()).max(start);
-    let character = text
-        .get(start..end)
-        .map_or(0, |s| s.chars().map(|c| c.len_utf16() as u32).sum());
+    let character =
+        text.get(start..end).map_or(0, |s| s.chars().map(|c| c.len_utf16() as u32).sum());
     (line, character)
 }
 
@@ -253,23 +264,15 @@ fn flatten_diagnostic_message(diag: &FourslashDiagnostic) -> String {
 fn write_format_diagnostic(output: &mut String, diagnostic: &FourslashDiagnostic) {
     let (line, character) = get_ecma_line_and_utf16_character_of_position(
         diagnostic,
-        diagnostic
-            .loc
-            .pos()
-            .expect_source("fourslash diagnostics have source positions"),
+        diagnostic.loc.pos().expect_source("fourslash diagnostics have source positions"),
     );
     let relative_file_name = tspath::convert_to_relative_path(
         &diagnostic.file.file_name,
         &tsrs_core::tspath::ComparePathsOptions::default(),
     );
-    write!(output, "{}({},{}): ",
-        relative_file_name,
-        line + 1,
-        character + 1).unwrap();
+    write!(output, "{}({},{}): ", relative_file_name, line + 1, character + 1).unwrap();
 
-    write!(output, "{} TS{}: ",
-        diagnostic.category.name(),
-        diagnostic.code).unwrap();
+    write!(output, "{} TS{}: ", diagnostic.category.name(), diagnostic.code).unwrap();
     output.push_str(&flatten_diagnostic_message(diagnostic));
     output.push_str(HARNESS_NEW_LINE);
 }
@@ -293,7 +296,9 @@ fn remove_test_path_prefixes(text: &str) -> String {
     let mut i = 0;
     let mut last = 0;
     while i < bytes.len() {
-        if let Some((old, new)) = TEST_PATH_PREFIXES.iter().find(|(old, _)| bytes[i..].starts_with(old.as_bytes())) {
+        if let Some((old, new)) =
+            TEST_PATH_PREFIXES.iter().find(|(old, _)| bytes[i..].starts_with(old.as_bytes()))
+        {
             out.push_str(&text[last..i]);
             out.push_str(new);
             i += old.len();

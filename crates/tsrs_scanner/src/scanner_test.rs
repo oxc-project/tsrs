@@ -1,8 +1,8 @@
 use tsrs_ast::Kind;
 use tsrs_core::stringutil;
 
-use crate::utilities::normalize_jsdoc_type_source_text;
 use crate::Scanner;
+use crate::utilities::normalize_jsdoc_type_source_text;
 
 #[test]
 fn test_scan_string_preserves_lone_surrogates() {
@@ -21,7 +21,11 @@ fn test_scan_string_preserves_lone_surrogates() {
 fn test_normalize_jsdoc_type_source_text() {
     let tests: &[(&str, &str, &[&str])] = &[
         ("single line", " \t* \tFoo", &["Foo"]),
-        ("ECMAScript line breaks", "Foo\r\n * Bar\r\t* Baz\u{2028} * Qux\u{2029}* Quux", &["Foo", "Bar", "Baz", "Qux", "Quux"]),
+        (
+            "ECMAScript line breaks",
+            "Foo\r\n * Bar\r\t* Baz\u{2028} * Qux\u{2029}* Quux",
+            &["Foo", "Bar", "Baz", "Qux", "Quux"],
+        ),
         ("blank and trailing lines", "Foo\r\n *\r\n", &["Foo", "", ""]),
         ("line without marker", "Foo\n  Bar", &["Foo", "Bar"]),
         ("only leading marker", "**Foo", &["*Foo"]),
@@ -65,7 +69,10 @@ fn test_errors_are_buffered_in_report_order() {
     assert_eq!(s.token_value(), "12");
     let errors = s.take_errors();
     assert_eq!(errors.len(), 1);
-    assert_eq!(errors[0].message.code(), tsrs_diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted.code());
+    assert_eq!(
+        errors[0].message.code(),
+        tsrs_diagnostics::Multiple_consecutive_numeric_separators_are_not_permitted.code()
+    );
     assert!(!s.has_errors());
 }
 
@@ -73,7 +80,9 @@ fn test_errors_are_buffered_in_report_order() {
 fn test_is_jsdoc_type_expression_or_child() {
     use tsrs_ast::{NodeFactory, NodeFlags};
     let f = NodeFactory::default();
-    let with = |n: tsrs_core::P<tsrs_ast::Node>, flags: NodeFlags, parent: Option<tsrs_core::P<tsrs_ast::Node>>| {
+    let with = |n: tsrs_core::P<tsrs_ast::Node>,
+                flags: NodeFlags,
+                parent: Option<tsrs_core::P<tsrs_ast::Node>>| {
         n.set_flags(flags);
         n.set_parent(parent);
         n
@@ -88,7 +97,15 @@ fn test_is_jsdoc_type_expression_or_child() {
     let ordinary_type = f.new_type_reference_node(name, None);
     let (tag_name, param_name) = (f.new_identifier("param"), f.new_identifier("p"));
     let js_doc_tag = with(
-        f.new_jsdoc_parameter_or_property_tag(Kind::JSDocParameterTag, tag_name, param_name, false, None, false, None),
+        f.new_jsdoc_parameter_or_property_tag(
+            Kind::JSDocParameterTag,
+            tag_name,
+            param_name,
+            false,
+            None,
+            false,
+            None,
+        ),
         NodeFlags::JSDoc,
         None,
     );
@@ -117,10 +134,7 @@ fn test_get_text_of_node_from_jsdoc_type_preserves_asterisk_type() {
     let f = NodeFactory::default();
     let node = f.new_jsdoc_all_type();
     node.set_flags(NodeFlags::JSDoc);
-    node.set_loc(tsrs_core::TextRange::new(
-        0,
-        u32::try_from(source_text.len()).unwrap(),
-    ));
+    node.set_loc(tsrs_core::TextRange::new(0, u32::try_from(source_text.len()).unwrap()));
     assert_eq!(
         crate::get_text_of_node_from_source_text(&source_text, node, false /*includeTrivia*/),
         "*"

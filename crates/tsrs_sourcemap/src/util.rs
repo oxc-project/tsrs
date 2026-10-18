@@ -15,7 +15,11 @@ pub fn try_get_source_mapping_url(line_info: Option<&ECMALineInfo>) -> String {
                 continue;
             }
             let bytes = line.as_bytes();
-            if bytes.len() < 4 || !line.starts_with("//") || bytes[2] != b'#' && bytes[2] != b'@' || bytes[3] != b' ' {
+            if bytes.len() < 4
+                || !line.starts_with("//")
+                || bytes[2] != b'#' && bytes[2] != b'@'
+                || bytes[3] != b' '
+            {
                 break;
             }
             if let Some(url) = line[4..].strip_prefix("sourceMappingURL=") {

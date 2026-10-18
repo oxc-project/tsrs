@@ -25,9 +25,8 @@ pub fn dedent(text: &str) -> String {
             last_line = i;
         }
     }
-    let mut lines: Vec<String> = start_line.map_or_else(Vec::new, |start_line| {
-        lines[start_line..=last_line].to_vec()
-    });
+    let mut lines: Vec<String> =
+        start_line.map_or_else(Vec::new, |start_line| lines[start_line..=last_line].to_vec());
     let mut mapped_lines: Vec<&str> = Vec::with_capacity(lines.len());
     mapped_lines.extend(lines.iter().map(|line| if line.trim().is_empty() { "" } else { line }));
     let indentation = stringutil::guess_indentation(&mapped_lines);

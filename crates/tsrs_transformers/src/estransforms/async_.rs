@@ -32,7 +32,10 @@ pub struct asyncTransformer {
 }
 
 // async.go:37
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_async_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(asyncTransformer {
         base: Transformer::default(),
@@ -43,10 +46,18 @@ pub fn new_async_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
         async_body_visitor: OnceCell::new(),
         fallback_node_visitor: OnceCell::new(),
     });
-    let result = tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(opt.context));
+    let result = tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(opt.context),
+    );
     tx.get().super_access_state.init_super_access_visitor(tx.emit_context(), tx.factory());
-    let _ = tx.async_body_visitor.set(tx.emit_context().new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_async_body_node(n))));
-    let _ = tx.fallback_node_visitor.set(tx.emit_context().new_node_visitor(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit_fallback(n))));
+    let _ = tx.async_body_visitor.set(tx.emit_context().new_node_visitor(Rc::new(
+        move |_: &mut NodeVisitor, n: P<Node>| tx.visit_async_body_node(n),
+    )));
+    let _ =
+        tx.fallback_node_visitor.set(tx.emit_context().new_node_visitor(Rc::new(
+            move |_: &mut NodeVisitor, n: P<Node>| tx.visit_fallback(n),
+        )));
     Some(result)
 }
 
@@ -78,7 +89,10 @@ impl asyncTransformer {
     fn new_super_binding_name(&self, text: &str) -> P<Node> {
         self.factory().new_unique_name_ex(
             text,
-            printer::AutoGenerateOptions { flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel, ..Default::default() },
+            printer::AutoGenerateOptions {
+                flags: GeneratedIdentifierFlags::Optimistic | GeneratedIdentifierFlags::FileLevel,
+                ..Default::default()
+            },
         )
     }
 
@@ -120,7 +134,12 @@ impl asyncTransformer {
     }
 
     // async.go:79
-    fn do_with_context(&self, flags: asyncContextFlags, cb: fn(&asyncTransformer, P<Node>) -> Option<P<Node>>, node: P<Node>) -> Option<P<Node>> {
+    fn do_with_context(
+        &self,
+        flags: asyncContextFlags,
+        cb: fn(&asyncTransformer, P<Node>) -> Option<P<Node>>,
+        node: P<Node>,
+    ) -> Option<P<Node>> {
         let flags_to_set = flags & !self.context_flags.get();
         if flags_to_set != 0 {
             self.set_context_flag(flags_to_set, true);
@@ -138,12 +157,19 @@ impl asyncTransformer {
 
     // async.go:94
     fn fallback_visitor(&self, node: P<Node>) -> Option<P<Node>> {
-        if self.sas().captured_super_properties.borrow().is_none() && self.lexical_arguments.get().binding.is_none() {
+        if self.sas().captured_super_properties.borrow().is_none()
+            && self.lexical_arguments.get().binding.is_none()
+        {
             return Some(node);
         }
         self.sas().track_super_access(node);
         match node.kind() {
-            Kind::FunctionExpression | Kind::FunctionDeclaration | Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor | Kind::Constructor => {
+            Kind::FunctionExpression
+            | Kind::FunctionDeclaration
+            | Kind::MethodDeclaration
+            | Kind::GetAccessor
+            | Kind::SetAccessor
+            | Kind::Constructor => {
                 return Some(node);
             }
             Kind::Parameter | Kind::BindingElement | Kind::VariableDeclaration => {
@@ -151,8 +177,13 @@ impl asyncTransformer {
             }
             Kind::Identifier => {
                 let la = self.lexical_arguments.get();
-                if la.binding.is_some() && node.text() == "arguments" && !ast::is_identifier_name(node) && !ast::is_label_name(node) {
-                    self.lexical_arguments.set(lexicalArgumentsInfo { binding: la.binding, used: true });
+                if la.binding.is_some()
+                    && node.text() == "arguments"
+                    && !ast::is_identifier_name(node)
+                    && !ast::is_label_name(node)
+                {
+                    self.lexical_arguments
+                        .set(lexicalArgumentsInfo { binding: la.binding, used: true });
                     return la.binding;
                 }
             }
@@ -169,7 +200,9 @@ impl asyncTransformer {
     // async.go:126
     fn visit(&self, node: P<Node>) -> Option<P<Node>> {
         // Go: `defer tx.setContextFlag(asyncContextHasLexicalThis, true)`
-        if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalThis) && self.in_has_lexical_this_context() {
+        if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalThis)
+            && self.in_has_lexical_this_context()
+        {
             self.set_context_flag(asyncContextHasLexicalThis, false);
             let result = self.visit_worker(node);
             self.set_context_flag(asyncContextHasLexicalThis, true);
@@ -180,7 +213,10 @@ impl asyncTransformer {
 
     // async.go:126 (body of visit after the deferred restore is set up)
     fn visit_worker(&self, node: P<Node>) -> Option<P<Node>> {
-        if !node.subtree_facts().intersects(SubtreeFacts::ContainsAnyAwait | SubtreeFacts::ContainsAwait) {
+        if !node
+            .subtree_facts()
+            .intersects(SubtreeFacts::ContainsAnyAwait | SubtreeFacts::ContainsAwait)
+        {
             return self.fallback_visitor(node);
         }
         self.sas().track_super_access(node);
@@ -191,14 +227,46 @@ impl asyncTransformer {
             }
             Kind::SourceFile => Some(self.visit_source_file(node)),
             Kind::AwaitExpression => Some(self.visit_await_expression(node)),
-            Kind::MethodDeclaration => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_method_declaration, node),
-            Kind::FunctionDeclaration => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_function_declaration, node),
-            Kind::FunctionExpression => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_function_expression, node),
-            Kind::ArrowFunction => self.do_with_context(asyncContextNonTopLevel, asyncTransformer::visit_arrow_function, node),
-            Kind::GetAccessor => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_get_accessor_declaration, node),
-            Kind::SetAccessor => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_set_accessor_declaration, node),
-            Kind::Constructor => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_constructor_declaration, node),
-            Kind::ClassDeclaration | Kind::ClassExpression => self.do_with_context(asyncContextNonTopLevel | asyncContextHasLexicalThis, asyncTransformer::visit_default, node),
+            Kind::MethodDeclaration => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_method_declaration,
+                node,
+            ),
+            Kind::FunctionDeclaration => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_function_declaration,
+                node,
+            ),
+            Kind::FunctionExpression => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_function_expression,
+                node,
+            ),
+            Kind::ArrowFunction => self.do_with_context(
+                asyncContextNonTopLevel,
+                asyncTransformer::visit_arrow_function,
+                node,
+            ),
+            Kind::GetAccessor => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_get_accessor_declaration,
+                node,
+            ),
+            Kind::SetAccessor => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_set_accessor_declaration,
+                node,
+            ),
+            Kind::Constructor => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_constructor_declaration,
+                node,
+            ),
+            Kind::ClassDeclaration | Kind::ClassExpression => self.do_with_context(
+                asyncContextNonTopLevel | asyncContextHasLexicalThis,
+                asyncTransformer::visit_default,
+                node,
+            ),
             _ => self.visitor().visit_each_child(Some(node)),
         }
     }
@@ -207,10 +275,16 @@ impl asyncTransformer {
     fn visit_async_body_node(&self, node: P<Node>) -> Option<P<Node>> {
         if is_node_with_possible_hoisted_declaration(node) {
             match node.kind() {
-                Kind::VariableStatement => return self.visit_variable_statement_in_async_body(node),
+                Kind::VariableStatement => {
+                    return self.visit_variable_statement_in_async_body(node);
+                }
                 Kind::ForStatement => return Some(self.visit_for_statement_in_async_body(node)),
-                Kind::ForInStatement => return Some(self.visit_for_in_statement_in_async_body(node)),
-                Kind::ForOfStatement => return Some(self.visit_for_of_statement_in_async_body(node)),
+                Kind::ForInStatement => {
+                    return Some(self.visit_for_in_statement_in_async_body(node));
+                }
+                Kind::ForOfStatement => {
+                    return Some(self.visit_for_of_statement_in_async_body(node));
+                }
                 Kind::CatchClause => return self.visit_catch_clause_in_async_body(node),
                 Kind::Block
                 | Kind::SwitchStatement
@@ -222,7 +296,9 @@ impl asyncTransformer {
                 | Kind::WhileStatement
                 | Kind::IfStatement
                 | Kind::WithStatement
-                | Kind::LabeledStatement => return self.async_body_visitor().visit_each_child(Some(node)),
+                | Kind::LabeledStatement => {
+                    return self.async_body_visitor().visit_each_child(Some(node));
+                }
                 _ => {}
             }
         }
@@ -238,7 +314,10 @@ impl asyncTransformer {
 
         // names declared in a catch variable are block scoped
         let mut catch_clause_unshadowed_names: Option<FxHashSet<String>> = None;
-        #[expect(clippy::iter_over_hash_type, reason = "removes names from a set; the set it ends with does not depend on the order")]
+        #[expect(
+            clippy::iter_over_hash_type,
+            reason = "removes names from a set; the set it ends with does not depend on the order"
+        )]
         for escaped_name in &catch_clause_names {
             let enclosing = self.enclosing_function_parameter_names.borrow();
             if let Some(enclosing) = enclosing.as_ref() {
@@ -252,9 +331,12 @@ impl asyncTransformer {
         }
 
         if let Some(catch_clause_unshadowed_names) = catch_clause_unshadowed_names {
-            let saved_enclosing_function_parameter_names = self.enclosing_function_parameter_names.replace(Some(catch_clause_unshadowed_names));
+            let saved_enclosing_function_parameter_names = self
+                .enclosing_function_parameter_names
+                .replace(Some(catch_clause_unshadowed_names));
             let result = self.async_body_visitor().visit_each_child(Some(node));
-            *self.enclosing_function_parameter_names.borrow_mut() = saved_enclosing_function_parameter_names;
+            *self.enclosing_function_parameter_names.borrow_mut() =
+                saved_enclosing_function_parameter_names;
             return result;
         }
         self.async_body_visitor().visit_each_child(Some(node))
@@ -264,7 +346,8 @@ impl asyncTransformer {
     fn visit_variable_statement_in_async_body(&self, node: P<Node>) -> Option<P<Node>> {
         let decl_list = node.as_variable_statement().declaration_list;
         if self.is_variable_declaration_list_with_colliding_name(Some(decl_list)) {
-            let expression = self.visit_variable_declaration_list_with_colliding_names(decl_list, false);
+            let expression =
+                self.visit_variable_declaration_list_with_colliding_names(decl_list, false);
             if let Some(expression) = expression {
                 return Some(self.factory().new_expression_statement(expression));
             }
@@ -276,11 +359,12 @@ impl asyncTransformer {
     // async.go:237
     fn visit_for_in_statement_in_async_body(&self, node: P<Node>) -> P<Node> {
         let n = node.as_for_in_or_of_statement();
-        let visited_initializer = if self.is_variable_declaration_list_with_colliding_name(Some(n.initializer)) {
-            self.visit_variable_declaration_list_with_colliding_names(n.initializer, true)
-        } else {
-            self.visitor().visit_node(Some(n.initializer))
-        };
+        let visited_initializer =
+            if self.is_variable_declaration_list_with_colliding_name(Some(n.initializer)) {
+                self.visit_variable_declaration_list_with_colliding_names(n.initializer, true)
+            } else {
+                self.visitor().visit_node(Some(n.initializer))
+            };
 
         let expression = self.visitor().visit_node(Some(n.expression));
         let statement = self.async_body_visitor().visit_embedded_statement(Some(n.statement()));
@@ -296,23 +380,32 @@ impl asyncTransformer {
     // async.go:253
     fn visit_for_of_statement_in_async_body(&self, node: P<Node>) -> P<Node> {
         let n = node.as_for_in_or_of_statement();
-        let visited_initializer = if self.is_variable_declaration_list_with_colliding_name(Some(n.initializer)) {
-            self.visit_variable_declaration_list_with_colliding_names(n.initializer, true)
-        } else {
-            self.visitor().visit_node(Some(n.initializer))
-        };
+        let visited_initializer =
+            if self.is_variable_declaration_list_with_colliding_name(Some(n.initializer)) {
+                self.visit_variable_declaration_list_with_colliding_names(n.initializer, true)
+            } else {
+                self.visitor().visit_node(Some(n.initializer))
+            };
 
         let await_modifier = self.visitor().visit_node(n.await_modifier);
         let expression = self.visitor().visit_node(Some(n.expression));
         let statement = self.async_body_visitor().visit_embedded_statement(Some(n.statement()));
-        self.factory().update_for_in_or_of_statement(node, await_modifier, visited_initializer.unwrap(), expression.unwrap(), statement.unwrap())
+        self.factory().update_for_in_or_of_statement(
+            node,
+            await_modifier,
+            visited_initializer.unwrap(),
+            expression.unwrap(),
+            statement.unwrap(),
+        )
     }
 
     // async.go:269
     fn visit_for_statement_in_async_body(&self, node: P<Node>) -> P<Node> {
         let n = node.as_for_statement();
         let initializer = n.initializer;
-        let visited_initializer = if let Some(initializer) = initializer && self.is_variable_declaration_list_with_colliding_name(Some(initializer)) {
+        let visited_initializer = if let Some(initializer) = initializer
+            && self.is_variable_declaration_list_with_colliding_name(Some(initializer))
+        {
             self.visit_variable_declaration_list_with_colliding_names(initializer, false)
         } else {
             self.visitor().visit_node(n.initializer)
@@ -321,7 +414,13 @@ impl asyncTransformer {
         let condition = self.visitor().visit_node(n.condition);
         let incrementor = self.visitor().visit_node(n.incrementor);
         let statement = self.async_body_visitor().visit_embedded_statement(Some(n.statement()));
-        self.factory().update_for_statement(node, visited_initializer, condition, incrementor, statement.unwrap())
+        self.factory().update_for_statement(
+            node,
+            visited_initializer,
+            condition,
+            incrementor,
+            statement.unwrap(),
+        )
     }
 
     // visitAwaitExpression visits an AwaitExpression node.
@@ -343,11 +442,16 @@ impl asyncTransformer {
     }
 
     // async.go:304
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_constructor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+        let saved_lexical_arguments =
+            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
         let modifiers = self.visitor().visit_modifiers(node.modifiers());
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.transform_method_body(node);
         let updated = self.factory().update_constructor_declaration(
             node,
@@ -367,10 +471,14 @@ impl asyncTransformer {
     // This function will be called when one of the following conditions are met:
     // - The node is marked as async
     // async.go:325
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_method_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
-        let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+        let saved_lexical_arguments =
+            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
 
         let parameters;
         let body;
@@ -378,7 +486,8 @@ impl asyncTransformer {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = self.transform_async_function_body(node, parameters.unwrap());
         } else {
-            parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+            parameters =
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
             body = self.transform_method_body(node);
         }
 
@@ -400,11 +509,16 @@ impl asyncTransformer {
     }
 
     // async.go:358
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_get_accessor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+        let saved_lexical_arguments =
+            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
         let modifiers = self.visitor().visit_modifiers(node.modifiers());
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.transform_method_body(node);
         let updated = self.factory().update_get_accessor_declaration(
             node,
@@ -421,11 +535,16 @@ impl asyncTransformer {
     }
 
     // async.go:376
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_set_accessor_declaration(&self, node: P<Node>) -> Option<P<Node>> {
-        let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+        let saved_lexical_arguments =
+            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
         let modifiers = self.visitor().visit_modifiers(node.modifiers());
-        let parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+        let parameters =
+            self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         let body = self.transform_method_body(node);
         let updated = self.factory().update_set_accessor_declaration(
             node,
@@ -446,10 +565,14 @@ impl asyncTransformer {
     // This function will be called when one of the following conditions are met:
     // - The node is marked async
     // async.go:398
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_function_declaration(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
-        let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+        let saved_lexical_arguments =
+            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
 
         let parameters;
         let body;
@@ -457,7 +580,8 @@ impl asyncTransformer {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
-            parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+            parameters =
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
             body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         }
 
@@ -483,10 +607,14 @@ impl asyncTransformer {
     // This function will be called when one of the following conditions are met:
     // - The node is marked async
     // async.go:435
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_function_expression(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
-        let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+        let saved_lexical_arguments =
+            self.lexical_arguments.replace(lexicalArgumentsInfo::default());
 
         let parameters;
         let body;
@@ -494,7 +622,8 @@ impl asyncTransformer {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
-            parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+            parameters =
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
             body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         }
 
@@ -526,7 +655,8 @@ impl asyncTransformer {
         // returns false for `arguments` in static blocks (since the binding doesn't exist due to
         // the error), so the async transform leaves them untouched.
         if self.emit_context().emit_flags(node).intersects(EmitFlags::NoLexicalArguments) {
-            let saved_lexical_arguments = self.lexical_arguments.replace(lexicalArgumentsInfo::default());
+            let saved_lexical_arguments =
+                self.lexical_arguments.replace(lexicalArgumentsInfo::default());
             // Go: `defer func() { tx.lexicalArguments = savedLexicalArguments }()`
             let result = self.visit_arrow_function_worker(node);
             self.lexical_arguments.set(saved_lexical_arguments);
@@ -536,7 +666,10 @@ impl asyncTransformer {
     }
 
     // async.go:472 (body of visitArrowFunction after the deferred restore is set up)
-    #[expect(clippy::unnecessary_wraps, reason = "Visitor branches share an optional node result so sibling branches can remove a node.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Visitor branches share an optional node result so sibling branches can remove a node."
+    )]
     fn visit_arrow_function_worker(&self, node: P<Node>) -> Option<P<Node>> {
         let function_flags = ast::get_function_flags(Some(node));
 
@@ -546,7 +679,8 @@ impl asyncTransformer {
             parameters = Some(self.transform_async_function_parameter_list(node));
             body = Some(self.transform_async_function_body(node, parameters.unwrap()));
         } else {
-            parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+            parameters =
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
             body = self.emit_context().visit_function_body(node.body(), &mut self.visitor());
         }
 
@@ -586,33 +720,51 @@ impl asyncTransformer {
         };
         ast::is_variable_declaration_list(node)
             && !node.flags().intersects(NodeFlags::BlockScoped)
-            && node.as_variable_declaration_list().declarations.nodes().iter().any(|&d| self.collides_with_parameter_name(d))
+            && node
+                .as_variable_declaration_list()
+                .declarations
+                .nodes()
+                .iter()
+                .any(|&d| self.collides_with_parameter_name(d))
     }
 
     // async.go:531
-    fn visit_variable_declaration_list_with_colliding_names(&self, node: P<Node>, has_receiver: bool) -> Option<P<Node>> {
+    fn visit_variable_declaration_list_with_colliding_names(
+        &self,
+        node: P<Node>,
+        has_receiver: bool,
+    ) -> Option<P<Node>> {
         self.hoist_variable_declaration_list(node);
 
         let mut variables: Vec<P<Node>> = Vec::new();
         variables.extend(
-            node.as_variable_declaration_list()
-                .declarations
-                .nodes()
-                .iter()
-                .filter_map(|&decl| if decl.as_variable_declaration().initializer().is_some() { Some(decl) } else { None }),
+            node.as_variable_declaration_list().declarations.nodes().iter().filter_map(|&decl| {
+                if decl.as_variable_declaration().initializer().is_some() {
+                    Some(decl)
+                } else {
+                    None
+                }
+            }),
         );
 
         if variables.is_empty() {
             if has_receiver {
-                let name = node.as_variable_declaration_list().declarations.nodes()[0].name().unwrap();
-                let target = if ast::is_binding_pattern(name) { convert_binding_pattern_to_assignment_pattern(self.emit_context(), name) } else { name };
+                let name =
+                    node.as_variable_declaration_list().declarations.nodes()[0].name().unwrap();
+                let target = if ast::is_binding_pattern(name) {
+                    convert_binding_pattern_to_assignment_pattern(self.emit_context(), name)
+                } else {
+                    name
+                };
                 return self.visitor().visit_node(Some(target));
             }
             return None;
         }
 
         let mut expressions: Vec<P<Node>> = Vec::new();
-        expressions.extend(variables.into_iter().map(|variable| self.transform_initialized_variable(variable)));
+        expressions.extend(
+            variables.into_iter().map(|variable| self.transform_initialized_variable(variable)),
+        );
         self.factory().inline_expressions(&expressions)
     }
 
@@ -642,8 +794,15 @@ impl asyncTransformer {
     // async.go:585
     fn transform_initialized_variable(&self, node: P<Node>) -> P<Node> {
         let name = node.name().unwrap();
-        let target = if ast::is_binding_pattern(name) { convert_binding_pattern_to_assignment_pattern(self.emit_context(), name) } else { name };
-        let converted = self.factory().new_assignment_expression(target, node.as_variable_declaration().initializer().unwrap());
+        let target = if ast::is_binding_pattern(name) {
+            convert_binding_pattern_to_assignment_pattern(self.emit_context(), name)
+        } else {
+            name
+        };
+        let converted = self.factory().new_assignment_expression(
+            target,
+            node.as_variable_declaration().initializer().unwrap(),
+        );
         self.emit_context().set_source_map_range(converted, node.loc());
         self.visitor().visit_node(Some(converted)).unwrap()
     }
@@ -654,16 +813,16 @@ impl asyncTransformer {
             return false;
         };
         if ast::is_identifier(name) {
-            return self.enclosing_function_parameter_names.borrow().as_ref().is_some_and(|names| names.contains(name.text()));
+            return self
+                .enclosing_function_parameter_names
+                .borrow()
+                .as_ref()
+                .is_some_and(|names| names.contains(name.text()));
         }
         if ast::is_binding_pattern(name) {
-            if name
-                .as_binding_pattern()
-                .elements
-                .nodes()
-                .iter()
-                .any(|&element| !ast::is_omitted_expression(element) && self.collides_with_parameter_name(element))
-            {
+            if name.as_binding_pattern().elements.nodes().iter().any(|&element| {
+                !ast::is_omitted_expression(element) && self.collides_with_parameter_name(element)
+            }) {
                 return true;
             }
         }
@@ -673,38 +832,56 @@ impl asyncTransformer {
     // async.go:615
     fn transform_method_body(&self, node: P<Node>) -> P<Node> {
         let s = self.sas();
-        let saved_captured_super_properties = s.captured_super_properties.replace(Some(OrderedSet::default()));
+        let saved_captured_super_properties =
+            s.captured_super_properties.replace(Some(OrderedSet::default()));
         let saved_has_super_element_access = s.has_super_element_access.replace(false);
         let saved_has_super_property_assignment = s.has_super_property_assignment.replace(false);
-        let saved_super_binding = s.super_binding.replace(Some(self.new_super_binding_name("_super")));
-        let saved_super_index_binding = s.super_index_binding.replace(Some(self.new_super_binding_name("_superIndex")));
+        let saved_super_binding =
+            s.super_binding.replace(Some(self.new_super_binding_name("_super")));
+        let saved_super_index_binding =
+            s.super_index_binding.replace(Some(self.new_super_binding_name("_superIndex")));
 
         self.emit_context().start_variable_environment();
-        let mut updated = self.emit_context().visit_function_body(node.body(), &mut self.visitor()).unwrap();
+        let mut updated =
+            self.emit_context().visit_function_body(node.body(), &mut self.visitor()).unwrap();
 
         // Minor optimization, emit `_super` helper to capture `super` access in an arrow.
         let captured_size = s.captured_super_properties.borrow().as_ref().unwrap().len();
         let emit_super_helpers = (captured_size > 0 || s.has_super_element_access.get())
-            && !ast::get_function_flags(Some(self.get_original_if_function_like(node))).contains(FunctionFlags::AsyncGenerator);
+            && !ast::get_function_flags(Some(self.get_original_if_function_like(node)))
+                .contains(FunctionFlags::AsyncGenerator);
 
         if emit_super_helpers && captured_size > 0 {
-            self.emit_context().add_initialization_statement(s.create_super_access_variable_statement());
+            self.emit_context()
+                .add_initialization_statement(s.create_super_access_variable_statement());
         }
 
-        let merged_statements = self.emit_context().end_and_merge_variable_environment_list(updated.statement_list()).unwrap();
-        if emit_super_helpers && s.has_super_element_access.get() && !updated.as_block().multi_line {
+        let merged_statements = self
+            .emit_context()
+            .end_and_merge_variable_environment_list(updated.statement_list())
+            .unwrap();
+        if emit_super_helpers && s.has_super_element_access.get() && !updated.as_block().multi_line
+        {
             let new_block = self.factory().new_block(merged_statements, true);
             new_block.set_loc(updated.loc());
             updated = new_block;
         } else {
-            updated = self.factory().update_block(updated, merged_statements, updated.as_block().multi_line);
+            updated = self.factory().update_block(
+                updated,
+                merged_statements,
+                updated.as_block().multi_line,
+            );
         }
 
         if emit_super_helpers && s.has_super_element_access.get() {
             if s.has_super_property_assignment.get() {
-                self.emit_context().add_emit_helper(updated, &[SP::from_static(&printer::ADVANCED_ASYNC_SUPER_HELPER)]);
+                self.emit_context().add_emit_helper(
+                    updated,
+                    &[SP::from_static(&printer::ADVANCED_ASYNC_SUPER_HELPER)],
+                );
             } else {
-                self.emit_context().add_emit_helper(updated, &[SP::from_static(&printer::ASYNC_SUPER_HELPER)]);
+                self.emit_context()
+                    .add_emit_helper(updated, &[SP::from_static(&printer::ASYNC_SUPER_HELPER)]);
             }
         }
 
@@ -719,17 +896,27 @@ impl asyncTransformer {
     // async.go:667
     fn create_capture_arguments_statement(&self) -> P<Node> {
         let f = self.factory();
-        let variable = f.new_variable_declaration(self.lexical_arguments.get().binding.unwrap(), None, None, Some(f.new_identifier("arguments")));
-        let decl_list = f.new_variable_declaration_list(f.new_node_list(vec![variable]), NodeFlags::None);
+        let variable = f.new_variable_declaration(
+            self.lexical_arguments.get().binding.unwrap(),
+            None,
+            None,
+            Some(f.new_identifier("arguments")),
+        );
+        let decl_list =
+            f.new_variable_declaration_list(f.new_node_list(vec![variable]), NodeFlags::None);
         let statement = f.new_variable_statement(None, decl_list);
-        self.emit_context().add_emit_flags(statement, EmitFlags::StartOnNewLine | EmitFlags::CustomPrologue);
+        self.emit_context()
+            .add_emit_flags(statement, EmitFlags::StartOnNewLine | EmitFlags::CustomPrologue);
         statement
     }
 
     // async.go:680
     fn transform_async_function_parameter_list(&self, node: P<Node>) -> P<NodeList> {
         if is_simple_parameter_list(node.parameters()) {
-            return self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor()).unwrap();
+            return self
+                .emit_context()
+                .visit_parameters(node.parameter_list(), &mut self.visitor())
+                .unwrap();
         }
 
         let f = self.factory();
@@ -743,7 +930,13 @@ impl asyncTransformer {
                     let rest_parameter = f.new_parameter_declaration(
                         None,
                         Some(f.new_token(Kind::DotDotDotToken)),
-                        f.new_unique_name_ex("args", printer::AutoGenerateOptions { flags: GeneratedIdentifierFlags::ReservedInNestedScopes, ..Default::default() }),
+                        f.new_unique_name_ex(
+                            "args",
+                            printer::AutoGenerateOptions {
+                                flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
+                                ..Default::default()
+                            },
+                        ),
                         None,
                         None,
                         None,
@@ -757,7 +950,13 @@ impl asyncTransformer {
             let new_parameter = f.new_parameter_declaration(
                 None,
                 None,
-                f.new_generated_name_for_node_ex(param.name(), printer::AutoGenerateOptions { flags: GeneratedIdentifierFlags::ReservedInNestedScopes, ..Default::default() }),
+                f.new_generated_name_for_node_ex(
+                    param.name(),
+                    printer::AutoGenerateOptions {
+                        flags: GeneratedIdentifierFlags::ReservedInNestedScopes,
+                        ..Default::default()
+                    },
+                ),
                 None,
                 None,
                 None,
@@ -770,7 +969,11 @@ impl asyncTransformer {
     }
 
     // async.go:725
-    fn transform_async_function_body(&self, node: P<Node>, outer_parameters: P<NodeList>) -> P<Node> {
+    fn transform_async_function_body(
+        &self,
+        node: P<Node>,
+        outer_parameters: P<NodeList>,
+    ) -> P<Node> {
         let f = self.factory();
         let s = self.sas();
         let is_arrow = node.kind() == Kind::ArrowFunction;
@@ -780,7 +983,8 @@ impl asyncTransformer {
         let saved_super_binding = s.super_binding.get();
         let saved_super_index_binding = s.super_index_binding.get();
         if !is_arrow {
-            saved_captured_super_properties = s.captured_super_properties.replace(Some(OrderedSet::default()));
+            saved_captured_super_properties =
+                s.captured_super_properties.replace(Some(OrderedSet::default()));
             s.has_super_element_access.set(false);
             s.has_super_property_assignment.set(false);
             s.super_binding.set(Some(self.new_super_binding_name("_super")));
@@ -789,13 +993,17 @@ impl asyncTransformer {
 
         let mut inner_parameters: Option<P<NodeList>> = None;
         if !is_simple_parameter_list(node.parameters()) {
-            inner_parameters = self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
+            inner_parameters =
+                self.emit_context().visit_parameters(node.parameter_list(), &mut self.visitor());
         }
 
         let saved_lexical_arguments = self.lexical_arguments.get();
         let capture_lexical_arguments = self.lexical_arguments.get().binding.is_none();
         if capture_lexical_arguments {
-            self.lexical_arguments.set(lexicalArgumentsInfo { binding: Some(f.new_unique_name("arguments")), used: false });
+            self.lexical_arguments.set(lexicalArgumentsInfo {
+                binding: Some(f.new_unique_name("arguments")),
+                used: false,
+            });
         }
 
         let mut arguments_expression: Option<P<Node>> = None;
@@ -811,13 +1019,17 @@ impl asyncTransformer {
                     }
                     let original_parameter = param.as_parameter_declaration();
                     let outer_parameter = outer_parameters.nodes()[i].as_parameter_declaration();
-                    if original_parameter.initializer().is_some() || original_parameter.dot_dot_dot_token().is_some() {
+                    if original_parameter.initializer().is_some()
+                        || original_parameter.dot_dot_dot_token().is_some()
+                    {
                         parameter_bindings.push(f.new_spread_element(outer_parameter.name()));
                         break;
                     }
                     parameter_bindings.push(outer_parameter.name());
                 }
-                arguments_expression = Some(f.new_array_literal_expression(f.new_node_list(parameter_bindings), false));
+                arguments_expression = Some(
+                    f.new_array_literal_expression(f.new_node_list(parameter_bindings), false),
+                );
             } else {
                 arguments_expression = Some(f.new_identifier("arguments"));
             }
@@ -833,69 +1045,105 @@ impl asyncTransformer {
         for &parameter in node.parameters() {
             Self::record_declaration_name(parameter, &mut enclosing_function_parameter_names);
         }
-        let saved_enclosing_function_parameter_names = self.enclosing_function_parameter_names.replace(Some(enclosing_function_parameter_names));
+        let saved_enclosing_function_parameter_names = self
+            .enclosing_function_parameter_names
+            .replace(Some(enclosing_function_parameter_names));
 
         let has_lexical_this = self.in_has_lexical_this_context();
 
         let mut async_body = self.transform_async_function_body_worker(node.body().unwrap());
         async_body = f.update_block(
             async_body,
-            self.emit_context().end_and_merge_variable_environment_list(async_body.statement_list()).unwrap(),
+            self.emit_context()
+                .end_and_merge_variable_environment_list(async_body.statement_list())
+                .unwrap(),
             async_body.as_block().multi_line,
         );
 
         // Substitute super property accesses with _super/_superIndex helpers
-        let emit_super_helpers = s.captured_super_properties.borrow().as_ref().is_some_and(|c| !c.is_empty() || s.has_super_element_access.get());
+        let emit_super_helpers = s
+            .captured_super_properties
+            .borrow()
+            .as_ref()
+            .is_some_and(|c| !c.is_empty() || s.has_super_element_access.get());
         if emit_super_helpers {
-            inner_parameters = s.super_access_visitor.get().unwrap().clone().visit_nodes(inner_parameters);
+            inner_parameters =
+                s.super_access_visitor.get().unwrap().clone().visit_nodes(inner_parameters);
             async_body = s.substitute_super_accesses_in_body(async_body);
         }
-
 
         let result = if !is_arrow {
             self.emit_context().start_variable_environment();
 
             // Minor optimization, emit `_super` helper to capture `super` access in an arrow.
-            if emit_super_helpers && !s.captured_super_properties.borrow().as_ref().unwrap().is_empty() {
-                self.emit_context().add_initialization_statement(s.create_super_access_variable_statement());
+            if emit_super_helpers
+                && !s.captured_super_properties.borrow().as_ref().unwrap().is_empty()
+            {
+                self.emit_context()
+                    .add_initialization_statement(s.create_super_access_variable_statement());
             }
 
             if capture_lexical_arguments && self.lexical_arguments.get().used {
-                self.emit_context().add_initialization_statement(self.create_capture_arguments_statement());
+                self.emit_context()
+                    .add_initialization_statement(self.create_capture_arguments_statement());
             }
 
-            let statements = vec![f.new_return_statement(Some(f.new_awaiter_helper(has_lexical_this, arguments_expression, inner_parameters, async_body)))];
+            let statements = vec![f.new_return_statement(Some(f.new_awaiter_helper(
+                has_lexical_this,
+                arguments_expression,
+                inner_parameters,
+                async_body,
+            )))];
 
-            let block = f.new_block(self.emit_context().end_and_merge_variable_environment_list(Some(f.new_node_list(statements))).unwrap(), true);
+            let block = f.new_block(
+                self.emit_context()
+                    .end_and_merge_variable_environment_list(Some(f.new_node_list(statements)))
+                    .unwrap(),
+                true,
+            );
             block.set_loc(node.body().unwrap().loc());
 
             if emit_super_helpers && s.has_super_element_access.get() {
                 if s.has_super_property_assignment.get() {
-                    self.emit_context().add_emit_helper(block, &[SP::from_static(&printer::ADVANCED_ASYNC_SUPER_HELPER)]);
+                    self.emit_context().add_emit_helper(
+                        block,
+                        &[SP::from_static(&printer::ADVANCED_ASYNC_SUPER_HELPER)],
+                    );
                 } else {
-                    self.emit_context().add_emit_helper(block, &[SP::from_static(&printer::ASYNC_SUPER_HELPER)]);
+                    self.emit_context()
+                        .add_emit_helper(block, &[SP::from_static(&printer::ASYNC_SUPER_HELPER)]);
                 }
             }
 
             block
         } else {
-            let mut r = f.new_awaiter_helper(has_lexical_this, arguments_expression, inner_parameters, async_body);
+            let mut r = f.new_awaiter_helper(
+                has_lexical_this,
+                arguments_expression,
+                inner_parameters,
+                async_body,
+            );
 
             if capture_lexical_arguments && self.lexical_arguments.get().used {
-                let block = self.emit_context().convert_to_function_block(r, true /*multiLine*/);
+                let block =
+                    self.emit_context().convert_to_function_block(r, true /*multiLine*/);
                 if !ast::is_block(r) {
                     self.emit_context().set_original(block.statement_list().unwrap().nodes()[0], r);
                 }
                 r = f.update_block(
                     block,
-                    self.emit_context().merge_environment_list(block.statement_list().unwrap(), &[self.create_capture_arguments_statement()]),
+                    self.emit_context().merge_environment_list(
+                        block.statement_list().unwrap(),
+                        &[self.create_capture_arguments_statement()],
+                    ),
                     block.as_block().multi_line,
                 );
             }
             r
         };
 
-        *self.enclosing_function_parameter_names.borrow_mut() = saved_enclosing_function_parameter_names;
+        *self.enclosing_function_parameter_names.borrow_mut() =
+            saved_enclosing_function_parameter_names;
         if !is_arrow {
             *s.captured_super_properties.borrow_mut() = saved_captured_super_properties;
             s.has_super_element_access.set(saved_has_super_element_access);
@@ -920,7 +1168,11 @@ impl asyncTransformer {
     fn transform_async_function_body_worker(&self, body: P<Node>) -> P<Node> {
         let f = self.factory();
         if ast::is_block(body) {
-            return f.update_block(body, self.async_body_visitor().visit_nodes(body.statement_list()).unwrap(), body.as_block().multi_line);
+            return f.update_block(
+                body,
+                self.async_body_visitor().visit_nodes(body.statement_list()).unwrap(),
+                body.as_block().multi_line,
+            );
         }
         // Convert expression body to block body with return statement
         let visited = self.async_body_visitor().visit_node(Some(body));
@@ -952,14 +1204,29 @@ impl asyncTransformer {
 // async.go:909
 pub(crate) fn assignment_target_contains_super_property(node: P<Node>) -> bool {
     match node.kind() {
-        Kind::PropertyAccessExpression | Kind::ElementAccessExpression => return node.expression().unwrap().kind() == Kind::SuperKeyword,
-        Kind::ParenthesizedExpression => return assignment_target_contains_super_property(node.as_parenthesized_expression().expression()),
-        Kind::ArrayLiteralExpression => return node.as_array_literal_expression().elements.nodes().iter().any(|&e| assignment_target_contains_super_property(e)),
+        Kind::PropertyAccessExpression | Kind::ElementAccessExpression => {
+            return node.expression().unwrap().kind() == Kind::SuperKeyword;
+        }
+        Kind::ParenthesizedExpression => {
+            return assignment_target_contains_super_property(
+                node.as_parenthesized_expression().expression(),
+            );
+        }
+        Kind::ArrayLiteralExpression => {
+            return node
+                .as_array_literal_expression()
+                .elements
+                .nodes()
+                .iter()
+                .any(|&e| assignment_target_contains_super_property(e));
+        }
         Kind::ObjectLiteralExpression => {
             if node.as_object_literal_expression().properties.nodes().iter().any(|&prop| {
                 match prop.kind() {
                     Kind::PropertyAssignment => {
-                        if assignment_target_contains_super_property(prop.as_property_assignment().initializer()) {
+                        if assignment_target_contains_super_property(
+                            prop.as_property_assignment().initializer(),
+                        ) {
                             return true;
                         }
                     }
@@ -969,9 +1236,12 @@ pub(crate) fn assignment_target_contains_super_property(node: P<Node>) -> bool {
                         }
                     }
                     Kind::SpreadAssignment
-                        if assignment_target_contains_super_property(prop.as_spread_assignment().expression) => {
-                            return true;
-                        }
+                        if assignment_target_contains_super_property(
+                            prop.as_spread_assignment().expression,
+                        ) =>
+                    {
+                        return true;
+                    }
                     _ => {}
                 }
 
@@ -980,7 +1250,9 @@ pub(crate) fn assignment_target_contains_super_property(node: P<Node>) -> bool {
                 return true;
             }
         }
-        Kind::SpreadElement => return assignment_target_contains_super_property(node.as_spread_element().expression),
+        Kind::SpreadElement => {
+            return assignment_target_contains_super_property(node.as_spread_element().expression);
+        }
         _ => {}
     }
     false

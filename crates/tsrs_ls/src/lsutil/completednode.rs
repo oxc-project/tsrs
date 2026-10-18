@@ -9,14 +9,9 @@ use crate::astnav;
 // PositionBelongsToNode returns true if the position belongs to the node.
 // Assumes `candidate.Pos() <= position` holds.
 pub fn position_belongs_to_node(candidate: P<Node>, position: u32, file: P<SourceFile>) -> bool {
-    let candidate_pos = candidate
-        .pos()
-        .expect_source("parsed nodes have source positions");
+    let candidate_pos = candidate.pos().expect_source("parsed nodes have source positions");
     assert!(candidate_pos <= position, "Expected candidate.pos <= position");
-    position
-        < candidate
-            .end()
-            .expect_source("parsed nodes have source positions")
+    position < candidate.end().expect_source("parsed nodes have source positions")
         || !is_completed_node(Some(candidate), file)
 }
 
@@ -44,7 +39,10 @@ pub fn is_completed_node(n: Option<P<Node>>, source_file: P<SourceFile>) -> bool
 
         Kind::CatchClause => is_completed_node(Some(n.as_catch_clause().block), source_file),
 
-        Kind::NewExpression | Kind::CallExpression | Kind::ParenthesizedExpression | Kind::ParenthesizedType => {
+        Kind::NewExpression
+        | Kind::CallExpression
+        | Kind::ParenthesizedExpression
+        | Kind::ParenthesizedType => {
             if n.kind() == Kind::NewExpression && n.argument_list().is_none() {
                 return true;
             }
@@ -84,7 +82,8 @@ pub fn is_completed_node(n: Option<P<Node>>, source_file: P<SourceFile>) -> bool
         }
 
         Kind::ExpressionStatement => {
-            is_completed_node(n.expression(), source_file) || has_child_of_kind(n, Kind::SemicolonToken, source_file)
+            is_completed_node(n.expression(), source_file)
+                || has_child_of_kind(n, Kind::SemicolonToken, source_file)
         }
 
         Kind::ArrayLiteralExpression
@@ -116,26 +115,39 @@ pub fn is_completed_node(n: Option<P<Node>>, source_file: P<SourceFile>) -> bool
 
         Kind::TypeQuery => is_completed_node(Some(n.as_type_query_node().expr_name), source_file),
 
-        Kind::TypeOfExpression | Kind::DeleteExpression | Kind::VoidExpression | Kind::YieldExpression | Kind::SpreadElement => {
-            is_completed_node(n.expression(), source_file)
+        Kind::TypeOfExpression
+        | Kind::DeleteExpression
+        | Kind::VoidExpression
+        | Kind::YieldExpression
+        | Kind::SpreadElement => is_completed_node(n.expression(), source_file),
+
+        Kind::TaggedTemplateExpression => {
+            is_completed_node(Some(n.as_tagged_template_expression().template), source_file)
         }
 
-        Kind::TaggedTemplateExpression => is_completed_node(Some(n.as_tagged_template_expression().template), source_file),
-
         Kind::TemplateExpression => {
-            let last_span = tsrs_core::last_or_nil(n.as_template_expression().template_spans.nodes());
+            let last_span =
+                tsrs_core::last_or_nil(n.as_template_expression().template_spans.nodes());
             is_completed_node(last_span, source_file)
         }
 
         Kind::TemplateSpan => ast::node_is_present(n.as_template_span().literal),
 
-        Kind::ExportDeclaration | Kind::ImportDeclaration => ast::node_is_present(n.module_specifier()),
+        Kind::ExportDeclaration | Kind::ImportDeclaration => {
+            ast::node_is_present(n.module_specifier())
+        }
 
-        Kind::PrefixUnaryExpression => is_completed_node(Some(n.as_prefix_unary_expression().operand), source_file),
+        Kind::PrefixUnaryExpression => {
+            is_completed_node(Some(n.as_prefix_unary_expression().operand), source_file)
+        }
 
-        Kind::BinaryExpression => is_completed_node(Some(n.as_binary_expression().right()), source_file),
+        Kind::BinaryExpression => {
+            is_completed_node(Some(n.as_binary_expression().right()), source_file)
+        }
 
-        Kind::ConditionalExpression => is_completed_node(Some(n.as_conditional_expression().when_false), source_file),
+        Kind::ConditionalExpression => {
+            is_completed_node(Some(n.as_conditional_expression().when_false), source_file)
+        }
 
         _ => true,
     }
@@ -160,7 +172,13 @@ fn node_ends_with(n: P<Node>, expected_last_token: Kind, source_file: P<SourceFi
         let token_kind = scanner.token();
         let token_full_start = scanner.token_full_start();
         let token_end = scanner.token_end();
-        let token = source_file.get_or_create_token(token_kind, token_full_start, token_end, n, scanner.token_flags());
+        let token = source_file.get_or_create_token(
+            token_kind,
+            token_full_start,
+            token_end,
+            n,
+            scanner.token_flags(),
+        );
         last_node_and_tokens.push(token);
         start_pos = token_end;
         scanner.scan();

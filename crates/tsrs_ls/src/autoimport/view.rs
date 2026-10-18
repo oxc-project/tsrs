@@ -7,15 +7,15 @@ use rustc_hash::FxHashMap;
 use tsrs_ast::SourceFile;
 use tsrs_checker::Checker;
 use tsrs_compiler::Program;
-use tsrs_core::collections::{new_set_from_items, Set};
+use tsrs_core::collections::{Set, new_set_from_items};
 use tsrs_core::tspath::Path;
-use tsrs_core::{LanguageVariant, Tristate, P};
+use tsrs_core::{LanguageVariant, P, Tristate};
 use tsrs_lsproto as lsproto;
 use tsrs_modulespecifiers::{self as modulespecifiers, ModuleSpecifierEnding};
 use tsrs_scanner as scanner;
 
 use super::export::{Export, ExportID, ModuleID};
-use super::fix::{existingImport, Fix};
+use super::fix::{Fix, existingImport};
 use super::registry::{ProjectID, Registry, RegistryBucket};
 use super::util::add_package_json_dependencies;
 use crate::lsutil;
@@ -61,8 +61,14 @@ pub fn new_view(
         checker: NonNull::from(type_checker),
         project_id,
         preferences,
-        conditions: new_set_from_items(tsrs_module::get_conditions(&program.options(), program.get_default_resolution_mode_for_file(importing_file))),
-        should_use_uri_style_node_core_modules: lsutil::should_use_uri_style_node_core_modules(importing_file, program),
+        conditions: new_set_from_items(tsrs_module::get_conditions(
+            &program.options(),
+            program.get_default_resolution_mode_for_file(importing_file),
+        )),
+        should_use_uri_style_node_core_modules: lsutil::should_use_uri_style_node_core_modules(
+            importing_file,
+            program,
+        ),
         allowed_endings: OnceCell::new(),
         existing_imports: OnceCell::new(),
         should_use_require_for_fixes: OnceCell::new(),
@@ -71,7 +77,10 @@ pub fn new_view(
 
 impl View {
     // Go's `v.checker`.
-    #[expect(clippy::mut_from_ref, reason = "Go shares the checker pointer; the SAFETY comment states the one-user-at-a-time contract")]
+    #[expect(
+        clippy::mut_from_ref,
+        reason = "Go shares the checker pointer; the SAFETY comment states the one-user-at-a-time contract"
+    )]
     pub(crate) fn checker(&self) -> &mut Checker {
         // SAFETY: the checker outlives the view (the caller's pool lease covers the request that built the view),
         // and the view, the import adder and the caller use it on one thread, one call at a time, exactly as Go
@@ -87,8 +96,16 @@ impl View {
     // view.go:60
     pub(crate) fn get_allowed_endings(&self) -> &[ModuleSpecifierEnding] {
         self.allowed_endings.get_or_init(|| {
-            let resolution_mode = self.program.get_default_resolution_mode_for_file(self.importing_file);
-            modulespecifiers::get_allowed_endings_in_preferred_order(&self.preferences, self.program, &self.program.options(), self.importing_file, "", resolution_mode)
+            let resolution_mode =
+                self.program.get_default_resolution_mode_for_file(self.importing_file);
+            modulespecifiers::get_allowed_endings_in_preferred_order(
+                &self.preferences,
+                self.program,
+                &self.program.options(),
+                self.importing_file,
+                "",
+                resolution_mode,
+            )
         })
     }
 
@@ -121,7 +138,10 @@ impl View {
     }
 
     // view.go:110
-    fn search_worker(&self, search_fn: &dyn Fn(&RegistryBucket) -> Vec<Arc<Export>>) -> Vec<Arc<Export>> {
+    fn search_worker(
+        &self,
+        search_fn: &dyn Fn(&RegistryBucket) -> Vec<Arc<Export>>,
+    ) -> Vec<Arc<Export>> {
         let mut results: Vec<Arc<Export>> = Vec::new();
         let registry = self.registry();
 
@@ -142,17 +162,19 @@ impl View {
         // plus packages that are directly imported by the project's program files.
         // If no package.json is found, allowedPackages remains nil and all packages are allowed.
         let mut allowed_packages: Option<Set<String>> = None;
-        self.importing_file.path().get_directory_path().for_each_ancestor_directory(|dir_path| -> Option<()> {
-            if let Some(dir) = registry.directories.get(dir_path) {
-                let pj = dir.package_json;
-                if pj.exists() && pj.contents.unwrap().parseable {
-                    // Initialize to empty set if this is the first package.json we've seen
-                    let allowed = allowed_packages.get_or_insert_with(Set::new);
-                    add_package_json_dependencies(&pj.contents.unwrap(), allowed);
+        self.importing_file.path().get_directory_path().for_each_ancestor_directory(
+            |dir_path| -> Option<()> {
+                if let Some(dir) = registry.directories.get(dir_path) {
+                    let pj = dir.package_json;
+                    if pj.exists() && pj.contents.unwrap().parseable {
+                        // Initialize to empty set if this is the first package.json we've seen
+                        let allowed = allowed_packages.get_or_insert_with(Set::new);
+                        add_package_json_dependencies(&pj.contents.unwrap(), allowed);
+                    }
                 }
-            }
-            None
-        });
+                None
+            },
+        );
         // If we found at least one package.json, also include packages directly imported by the project
         if let Some(allowed) = &mut allowed_packages {
             if let Some(bucket) = registry.projects.get(&self.project_id) {
@@ -163,38 +185,48 @@ impl View {
         }
 
         let mut exclude_packages: Set<String> = Set::new();
-        self.importing_file.path().get_directory_path().for_each_ancestor_directory(|dir_path| -> Option<()> {
-            if let Some(node_modules_bucket) = registry.node_modules.get(dir_path) {
-                let exports = search_fn(node_modules_bucket);
-                results.reserve(exports.len());
-                results.extend(exports.into_iter().filter_map(|e| {
-                    // Exclude packages found in lower node_modules (shadowing)
-                    if exclude_packages.has(&e.package_name) {
-                        return None;
-                    }
-                    // If allowedPackages is nil, no package.json was found, so include all packages.
-                    // Otherwise, only include packages that are dependencies or directly imported.
-                    if let Some(allowed) = &allowed_packages {
-                        if !allowed.has(&e.package_name) {
+        self.importing_file.path().get_directory_path().for_each_ancestor_directory(
+            |dir_path| -> Option<()> {
+                if let Some(node_modules_bucket) = registry.node_modules.get(dir_path) {
+                    let exports = search_fn(node_modules_bucket);
+                    results.reserve(exports.len());
+                    results.extend(exports.into_iter().filter_map(|e| {
+                        // Exclude packages found in lower node_modules (shadowing)
+                        if exclude_packages.has(&e.package_name) {
                             return None;
                         }
-                    }
-                    Some(e)
-                }));
+                        // If allowedPackages is nil, no package.json was found, so include all packages.
+                        // Otherwise, only include packages that are dependencies or directly imported.
+                        if let Some(allowed) = &allowed_packages {
+                            if !allowed.has(&e.package_name) {
+                                return None;
+                            }
+                        }
+                        Some(e)
+                    }));
 
-                // As we go up the directory tree, exclude packages found in lower node_modules
-                if let Some(package_files) = &node_modules_bucket.package_files {
-                    // pure set inserts; Go ranges the map too
-                    exclude_packages.m.extend(package_files.keys().map(std::clone::Clone::clone));
+                    // As we go up the directory tree, exclude packages found in lower node_modules
+                    if let Some(package_files) = &node_modules_bucket.package_files {
+                        // pure set inserts; Go ranges the map too
+                        exclude_packages
+                            .m
+                            .extend(package_files.keys().map(std::clone::Clone::clone));
+                    }
                 }
-            }
-            None
-        });
+                None
+            },
+        );
         results
     }
 
     // view.go:180
-    pub fn get_completions(&self, prefix: &str, position: lsproto::Position, for_jsx: bool, is_type_only_location: bool) -> Vec<FixAndExport> {
+    pub fn get_completions(
+        &self,
+        prefix: &str,
+        position: lsproto::Position,
+        for_jsx: bool,
+        is_type_only_location: bool,
+    ) -> Vec<FixAndExport> {
         let results = self.search(prefix, QueryKind::WordPrefix);
 
         #[derive(Clone, PartialEq, Eq, Hash)]
@@ -204,13 +236,20 @@ impl View {
             ambient_module_or_package_name: String,
         }
         // Go map (random iteration order); groups are kept in first-seen order.
-        let mut grouped: indexmap::IndexMap<exportGroupKey, Vec<Arc<Export>>, rustc_hash::FxBuildHasher> = indexmap::IndexMap::default();
+        let mut grouped: indexmap::IndexMap<
+            exportGroupKey,
+            Vec<Arc<Export>>,
+            rustc_hash::FxBuildHasher,
+        > = indexmap::IndexMap::default();
         'outer: for e in results {
             let name = e.name().to_string();
             if !scanner::is_identifier_text(&name, LanguageVariant::Standard) {
                 continue;
             }
-            if for_jsx && !(tsrs_core::stringutil::unicode_is_upper(u32::from(name.as_bytes()[0])) || e.is_renameable()) {
+            if for_jsx
+                && !(tsrs_core::stringutil::unicode_is_upper(u32::from(name.as_bytes()[0]))
+                    || e.is_renameable())
+            {
                 continue;
             }
             let mut target = e.export_id.clone();
@@ -221,13 +260,18 @@ impl View {
             let mut key = exportGroupKey {
                 target,
                 name,
-                ambient_module_or_package_name: if !ambient.is_empty() { ambient.to_string() } else { e.package_name.clone() },
+                ambient_module_or_package_name: if !ambient.is_empty() {
+                    ambient.to_string()
+                } else {
+                    e.package_name.clone()
+                },
             };
             if e.package_name == "@types/node" || e.path.contains("/node_modules/@types/node/") {
                 if tsrs_core::is_unprefixed_node_core_module(&key.ambient_module_or_package_name) {
                     // Group URI-style and non-URI style node core modules together so the ranking logic
                     // is allowed to drop one if an explicit preference is detected.
-                    key.ambient_module_or_package_name = format!("node:{}", key.ambient_module_or_package_name);
+                    key.ambient_module_or_package_name =
+                        format!("node:{}", key.ambient_module_or_package_name);
                 }
             }
             if let Some(existing) = grouped.get_mut(&key) {
@@ -242,7 +286,8 @@ impl View {
                             syntax: e.syntax.min(ex.syntax),
                             flags: e.flags | ex.flags,
                             script_element_kind: e.script_element_kind.min(ex.script_element_kind),
-                            script_element_kind_modifiers: e.script_element_kind_modifiers | ex.script_element_kind_modifiers,
+                            script_element_kind_modifiers: e.script_element_kind_modifiers
+                                | ex.script_element_kind_modifiers,
                             local_name: e.local_name.clone(),
                             target: e.target.clone(),
                             path: e.path.clone(),
@@ -262,7 +307,9 @@ impl View {
         for exps in grouped.values() {
             let mut fixes_for_group: Vec<FixAndExport> = Vec::with_capacity(exps.len());
             fixes_for_group.extend(exps.iter().flat_map(|e| {
-                self.get_fixes(e, for_jsx, is_type_only_location, Some(position)).into_iter().map(move |fix| FixAndExport { fix, export: Arc::clone(e) })
+                self.get_fixes(e, for_jsx, is_type_only_location, Some(position))
+                    .into_iter()
+                    .map(move |fix| FixAndExport { fix, export: Arc::clone(e) })
             }));
             fixes.extend(tsrs_core::min_all_func(&fixes_for_group, compare_fixes));
         }
@@ -271,12 +318,16 @@ impl View {
         // need to consider the name in our sorting here; we only need to produce a
         // stable relative ordering between completions that the client will consider
         // equivalent.
-        tsrs_core::goslices::sort_func(&mut fixes, |a, b| self.compare_fixes_for_sorting(&a.fix, &b.fix));
+        tsrs_core::goslices::sort_func(&mut fixes, |a, b| {
+            self.compare_fixes_for_sorting(&a.fix, &b.fix)
+        });
 
         fixes
     }
 
-    pub(crate) fn existing_imports_cell(&self) -> &OnceCell<Rc<FxHashMap<ModuleID, Vec<existingImport>>>> {
+    pub(crate) fn existing_imports_cell(
+        &self,
+    ) -> &OnceCell<Rc<FxHashMap<ModuleID, Vec<existingImport>>>> {
         &self.existing_imports
     }
 

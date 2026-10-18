@@ -3,8 +3,8 @@ use std::sync::Mutex;
 
 use tsrs_core::json::Value;
 
-use crate::jsonrpc::{self, ResponseError, ID};
-use crate::{lock, Error, Message, Protocol};
+use crate::jsonrpc::{self, ID, ResponseError};
+use crate::{Error, Message, Protocol, lock};
 
 // protocol_jsonrpc.go:12
 // JSONRPCProtocol implements the Protocol interface using JSON-RPC 2.0
@@ -20,7 +20,10 @@ pub struct JSONRPCProtocol<R: Read, W: Write> {
 // NewJSONRPCProtocol creates a new JSON-RPC protocol handler.
 // Go reads and writes one io.ReadWriter; here the two halves of a ReadWriteCloser.
 pub fn new_jsonrpc_protocol<R: Read, W: Write>(r: R, w: W) -> JSONRPCProtocol<R, W> {
-    JSONRPCProtocol { reader: Mutex::new(jsonrpc::new_reader(r)), writer: Mutex::new(jsonrpc::new_writer(w)) }
+    JSONRPCProtocol {
+        reader: Mutex::new(jsonrpc::new_reader(r)),
+        writer: Mutex::new(jsonrpc::new_writer(w)),
+    }
 }
 
 impl<R: Read + Send, W: Write + Send> Protocol for JSONRPCProtocol<R, W> {

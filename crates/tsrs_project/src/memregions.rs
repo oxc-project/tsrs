@@ -32,7 +32,13 @@ pub(crate) struct programOwner {
 impl programOwner {
     // `full_build`: the program does not share data with an older version; `base` is then its own region, which
     // also becomes the owner of the shared processed-file data (`Program::get_symlink_cache` routes there).
-    pub(crate) fn new(program: &'static Program, checker_pool: Option<Arc<checkerPool>>, region: Region, base: Region, full_build: bool) -> programOwner {
+    pub(crate) fn new(
+        program: &'static Program,
+        checker_pool: Option<Arc<checkerPool>>,
+        region: Region,
+        base: Region,
+        full_build: bool,
+    ) -> programOwner {
         if full_build {
             base.adopt_owner(processed_files_addr(program));
             // The data shared by every version cloned from this build lives exactly as long as `base` (each
@@ -43,8 +49,18 @@ impl programOwner {
                 unsafe { shared.free() }
             }));
         }
-        let files = Region::containing_all(program.source_files().iter().map(|f| f.addr())).into_iter().flatten().collect();
-        log_region(|| format!("program {:p}: created (region {} KiB, base {} KiB)", program, region.allocated_bytes() >> 10, base.allocated_bytes() >> 10));
+        let files = Region::containing_all(program.source_files().iter().map(|f| f.addr()))
+            .into_iter()
+            .flatten()
+            .collect();
+        log_region(|| {
+            format!(
+                "program {:p}: created (region {} KiB, base {} KiB)",
+                program,
+                region.allocated_bytes() >> 10,
+                base.allocated_bytes() >> 10
+            )
+        });
         programOwner { program, checker_pool, region, base, files }
     }
 }
@@ -56,7 +72,14 @@ fn processed_files_addr(program: &'static Program) -> usize {
 
 impl Drop for programOwner {
     fn drop(&mut self) {
-        log_region(|| format!("program {:p}: freed ({} files, region {} KiB)", self.program, self.files.len(), self.region.allocated_bytes() >> 10));
+        log_region(|| {
+            format!(
+                "program {:p}: freed ({} files, region {} KiB)",
+                self.program,
+                self.files.len(),
+                self.region.allocated_bytes() >> 10
+            )
+        });
         if let Some(pool) = &self.checker_pool {
             pool.free_checkers();
         }

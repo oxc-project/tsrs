@@ -3,14 +3,16 @@
 // nested client request (issued from inside a client callback) is handled with the protocol lock
 // released, so callbacks can re-enter the API without deadlocking.
 
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
 use std::time::Instant;
 
-use crate::handler::{panic_message, Caller, CancellationToken, Handler, RequestContext};
+use crate::handler::{Caller, CancellationToken, Handler, RequestContext, panic_message};
 use crate::message::{Message, Response, ResponseError, TransportError};
 use crate::protocol::{ProtocolReader, ProtocolWriter};
-use crate::timing::{server_timing_snapshot, TimingCollector, METHOD_GET_SERVER_TIMING, METHOD_RESET_SERVER_TIMING};
+use crate::timing::{
+    METHOD_GET_SERVER_TIMING, METHOD_RESET_SERVER_TIMING, TimingCollector, server_timing_snapshot,
+};
 
 struct SyncIo {
     reader: Box<dyn ProtocolReader>,
@@ -32,7 +34,11 @@ pub struct ConnOptions {
 
 impl Default for ConnOptions {
     fn default() -> Self {
-        ConnOptions { collect_timing: false, reentrancy_grace: crate::reentrancy::DEFAULT_ASYNC_GRACE, shutdown: CancellationToken::new() }
+        ConnOptions {
+            collect_timing: false,
+            reentrancy_grace: crate::reentrancy::DEFAULT_ASYNC_GRACE,
+            shutdown: CancellationToken::new(),
+        }
     }
 }
 
@@ -56,7 +62,10 @@ impl SyncConn {
             handler,
             timing: options.collect_timing.then(TimingCollector::default),
             cancel: options.shutdown.child(),
-            callbacks: Arc::new(crate::reentrancy::CallbackState::new(true, options.reentrancy_grace)),
+            callbacks: Arc::new(crate::reentrancy::CallbackState::new(
+                true,
+                options.reentrancy_grace,
+            )),
         })
     }
 
@@ -100,24 +109,34 @@ impl SyncConn {
             } else if msg.is_notification() {
                 self.handle_notification(&msg, 0);
             } else {
-                return Err(TransportError::Unexpected("ipc: unexpected response message in sync connection".to_string()));
+                return Err(TransportError::Unexpected(
+                    "ipc: unexpected response message in sync connection".to_string(),
+                ));
             }
         }
     }
 
-    fn write_response(&self, msg: &Message, result: &Result<Response, ResponseError>) -> Result<(), TransportError> {
+    fn write_response(
+        &self,
+        msg: &Message,
+        result: &Result<Response, ResponseError>,
+    ) -> Result<(), TransportError> {
         let id = msg.id.as_ref().expect("requests have an id");
         let mut io = self.lock();
         let written = match result {
             Ok(response) => match io.writer.write_response(id, response) {
                 // An unencodable result (invalid JSON from the handler) becomes an error response
                 // instead of corrupting the stream.
-                Err(TransportError::Protocol(e)) => io.writer.write_error(id, &ResponseError::internal(e)),
+                Err(TransportError::Protocol(e)) => {
+                    io.writer.write_error(id, &ResponseError::internal(e))
+                }
                 other => other,
             },
             Err(err) => io.writer.write_error(id, err),
         };
-        written.map_err(|e| TransportError::Io(std::io::Error::other(format!("ipc: failed to write response: {e}"))))
+        written.map_err(|e| {
+            TransportError::Io(std::io::Error::other(format!("ipc: failed to write response: {e}")))
+        })
     }
 
     fn handle_request(&self, msg: &Message, depth: u32) -> Result<(), TransportError> {
@@ -136,9 +155,16 @@ impl SyncConn {
             _ => {}
         }
         let start = self.timing.as_ref().map(|_| Instant::now());
-        let cx = RequestContext { cancel: self.cancel.clone(), depth, callbacks: Arc::clone(&self.callbacks), state: std::sync::Arc::default() };
+        let cx = RequestContext {
+            cancel: self.cancel.clone(),
+            depth,
+            callbacks: Arc::clone(&self.callbacks),
+            state: std::sync::Arc::default(),
+        };
         let outcome = catch_unwind(AssertUnwindSafe(|| {
-            crate::reentrancy::with_request(&cx, || self.handler.handle_request(&cx, &msg.method, msg.params_bytes()))
+            crate::reentrancy::with_request(&cx, || {
+                self.handler.handle_request(&cx, &msg.method, msg.params_bytes())
+            })
         }));
         if let (Some(t), Some(start)) = (&self.timing, start) {
             t.record(&msg.method, start.elapsed());
@@ -152,8 +178,15 @@ impl SyncConn {
     }
 
     fn handle_notification(&self, msg: &Message, depth: u32) {
-        let cx = RequestContext { cancel: self.cancel.clone(), depth, callbacks: Arc::clone(&self.callbacks), state: std::sync::Arc::default() };
-        let _ = catch_unwind(AssertUnwindSafe(|| self.handler.handle_notification(&cx, &msg.method, msg.params_bytes())));
+        let cx = RequestContext {
+            cancel: self.cancel.clone(),
+            depth,
+            callbacks: Arc::clone(&self.callbacks),
+            state: std::sync::Arc::default(),
+        };
+        let _ = catch_unwind(AssertUnwindSafe(|| {
+            self.handler.handle_notification(&cx, &msg.method, msg.params_bytes());
+        }));
     }
 
     /// Call: serialized; the msgpack protocol uses the method name as the response ID.
@@ -169,7 +202,11 @@ impl SyncConn {
         loop {
             let msg = match io.reader.read_message() {
                 Ok(msg) => msg,
-                Err(TransportError::Eof) => return Err(TransportError::Closed(Some(format!("EOF while waiting for {method:?} response")))),
+                Err(TransportError::Eof) => {
+                    return Err(TransportError::Closed(Some(format!(
+                        "EOF while waiting for {method:?} response"
+                    ))));
+                }
                 Err(e) => return Err(e),
             };
             if msg.is_response() && msg.id.as_ref().is_some_and(|id| id.to_string() == method) {
@@ -191,7 +228,9 @@ impl SyncConn {
                 io = self.lock();
                 continue;
             }
-            return Err(TransportError::Unexpected(format!("ipc: unexpected message while waiting for {method:?} response")));
+            return Err(TransportError::Unexpected(format!(
+                "ipc: unexpected message while waiting for {method:?} response"
+            )));
         }
     }
 

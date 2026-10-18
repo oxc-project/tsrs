@@ -1,8 +1,8 @@
 // canonicalize_darwin.go and canonicalize_other.go (selected by `cfg` like Go's build tags).
 
-use crate::pathkey::PathComparer;
-use crate::watcher::{watcher, Error};
 use crate::pathcompare::pathComparer;
+use crate::pathkey::PathComparer;
+use crate::watcher::{Error, watcher};
 
 #[cfg(target_os = "macos")]
 pub(crate) use crate::fsevents_darwin_ffi::{fold_native_path, nativePathFolding};
@@ -68,7 +68,11 @@ pub(crate) fn canonicalize_path(p: &str) -> String {
 #[cfg(not(target_os = "macos"))]
 impl watcher {
     // canonicalize_other.go:16
-    #[expect(clippy::unused_self, clippy::unnecessary_wraps, reason = "Matches the macOS method, which reads the watcher backend and propagates volume query errors.")]
+    #[expect(
+        clippy::unused_self,
+        clippy::unnecessary_wraps,
+        reason = "Matches the macOS method, which reads the watcher backend and propagates volume query errors."
+    )]
     pub(crate) fn path_comparer(&self, _dir: &str) -> Result<pathComparer, Error> {
         Ok(pathComparer::default())
     }
@@ -78,7 +82,10 @@ impl watcher {
 // canonicalize_other.go:22
 // path_comparer_for_path returns exact comparison on platforms without native
 // Darwin watch aliases. It does not inspect the host filesystem.
-#[expect(clippy::unnecessary_wraps, reason = "Keeps the cross-platform API fallible because macOS volume queries can fail.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Keeps the cross-platform API fallible because macOS volume queries can fail."
+)]
 pub fn path_comparer_for_path(_path: &str) -> Result<PathComparer, Error> {
     Ok(PathComparer::default())
 }

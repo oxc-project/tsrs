@@ -81,7 +81,8 @@ struct flattener<'a> {
     hoist_temp_variables: bool,
 
     // Mode callbacks (set by FlattenDestructuringAssignment or FlattenDestructuringBinding)
-    emit_binding_or_assignment: fn(&mut flattener<'a>, P<Node>, P<Node>, TextRange, Option<P<Node>>),
+    emit_binding_or_assignment:
+        fn(&mut flattener<'a>, P<Node>, P<Node>, TextRange, Option<P<Node>>),
     create_array_binding_or_assignment_pattern: fn(&mut flattener<'a>, Vec<P<Node>>) -> P<Node>,
     create_object_binding_or_assignment_pattern: fn(&mut flattener<'a>, Vec<P<Node>>) -> P<Node>,
     create_array_binding_or_assignment_element: fn(&mut flattener<'a>, P<Node>) -> P<Node>,
@@ -134,17 +135,30 @@ impl flattener<'_> {
     }
 
     // destructuring.go:114
-    #[expect(clippy::unused_self, reason = "The binding and assignment element callbacks share a mutable flattener receiver.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "The binding and assignment element callbacks share a mutable flattener receiver."
+    )]
     fn create_array_assignment_element(&mut self, expr: P<Node>) -> P<Node> {
         expr
     }
 
     // destructuring.go:118
-    fn emit_assignment(&mut self, target: P<Node>, value: P<Node>, location: TextRange, original: Option<P<Node>>) {
+    fn emit_assignment(
+        &mut self,
+        target: P<Node>,
+        value: P<Node>,
+        location: TextRange,
+        original: Option<P<Node>>,
+    ) {
         let expression = match self.create_assignment_callback {
-            Some(callback) if ast::is_identifier(target) => callback(target, value, Some(&location)),
+            Some(callback) if ast::is_identifier(target) => {
+                callback(target, value, Some(&location))
+            }
             _ => {
-                let expression = self.factory().new_assignment_expression(self.visit_node(Some(target)).unwrap(), value);
+                let expression = self
+                    .factory()
+                    .new_assignment_expression(self.visit_node(Some(target)).unwrap(), value);
                 expression.set_loc(location);
                 expression
             }
@@ -175,14 +189,26 @@ impl flattener<'_> {
     }
 
     // destructuring.go:144
-    fn emit_binding(&mut self, target: P<Node>, value: P<Node>, location: TextRange, original: Option<P<Node>>) {
+    fn emit_binding(
+        &mut self,
+        target: P<Node>,
+        value: P<Node>,
+        location: TextRange,
+        original: Option<P<Node>>,
+    ) {
         let mut value = value;
         if !self.expressions.is_empty() {
             let mut expressions = std::mem::take(&mut self.expressions);
             expressions.push(value);
             value = self.factory().inline_expressions(&expressions).unwrap();
         }
-        self.declarations.push(pendingDecl { pending_expressions: Vec::new(), name: target, value, location, original });
+        self.declarations.push(pendingDecl {
+            pending_expressions: Vec::new(),
+            name: target,
+            value,
+            location,
+            original,
+        });
     }
 
     // --- Shared helpers ---
@@ -193,7 +219,12 @@ impl flattener<'_> {
     }
 
     // destructuring.go:164
-    fn ensure_identifier(&mut self, value: P<Node>, reuse_identifier_expressions: bool, location: TextRange) -> P<Node> {
+    fn ensure_identifier(
+        &mut self,
+        value: P<Node>,
+        reuse_identifier_expressions: bool,
+        location: TextRange,
+    ) -> P<Node> {
         if reuse_identifier_expressions && ast::is_identifier(value) {
             return value;
         }
@@ -211,20 +242,37 @@ impl flattener<'_> {
     }
 
     // destructuring.go:180
-    fn create_default_value_check(&mut self, value: P<Node>, default_value: P<Node>, location: TextRange) -> P<Node> {
+    fn create_default_value_check(
+        &mut self,
+        value: P<Node>,
+        default_value: P<Node>,
+        location: TextRange,
+    ) -> P<Node> {
         let value = self.ensure_identifier(value, true, location);
         let f = self.factory();
-        f.new_conditional_expression(f.new_type_check(value, "undefined"), f.new_token(Kind::QuestionToken), default_value, f.new_token(Kind::ColonToken), value)
+        f.new_conditional_expression(
+            f.new_type_check(value, "undefined"),
+            f.new_token(Kind::QuestionToken),
+            default_value,
+            f.new_token(Kind::ColonToken),
+            value,
+        )
     }
 
     // destructuring.go:191
-    fn create_destructuring_property_access(&mut self, value: P<Node>, property_name: P<Node>) -> P<Node> {
+    fn create_destructuring_property_access(
+        &mut self,
+        value: P<Node>,
+        property_name: P<Node>,
+    ) -> P<Node> {
         let f = self.factory();
         if ast::is_computed_property_name(property_name) {
             let visited = self.visit_node(property_name.expression()).unwrap();
             let argument_expression = self.ensure_identifier(visited, false, property_name.loc());
             f.new_element_access_expression(value, None, argument_expression, NodeFlags::None)
-        } else if ast::is_string_or_numeric_literal_like(property_name) || ast::is_big_int_literal(property_name) {
+        } else if ast::is_string_or_numeric_literal_like(property_name)
+            || ast::is_big_int_literal(property_name)
+        {
             let argument_expression = property_name.clone_node(f);
             f.new_element_access_expression(value, None, argument_expression, NodeFlags::None)
         } else {
@@ -242,7 +290,9 @@ impl flattener<'_> {
         let mut value: Option<P<Node>> = None;
         if ast::is_destructuring_assignment(node) {
             value = Some(node.as_binary_expression().right());
-            while is_empty_array_literal(node.as_binary_expression().left) || is_empty_object_literal(node.as_binary_expression().left) {
+            while is_empty_array_literal(node.as_binary_expression().left)
+                || is_empty_object_literal(node.as_binary_expression().left)
+            {
                 if ast::is_destructuring_assignment(value.unwrap()) {
                     node = value.unwrap();
                     location = node.loc();
@@ -255,7 +305,10 @@ impl flattener<'_> {
 
         if let Some(v) = value {
             let mut v = self.visit_node(Some(v)).unwrap();
-            if ast::is_identifier(v) && binding_or_assignment_element_assigns_to_name(node, v.text()) || binding_or_assignment_element_contains_non_literal_computed_name(node) {
+            if ast::is_identifier(v)
+                && binding_or_assignment_element_assigns_to_name(node, v.text())
+                || binding_or_assignment_element_contains_non_literal_computed_name(node)
+            {
                 v = self.ensure_identifier(v, false, location);
             } else if needs_value {
                 v = self.ensure_identifier(v, true, location);
@@ -265,7 +318,12 @@ impl flattener<'_> {
             value = Some(v);
         }
 
-        self.flatten_binding_or_assignment_element(node, value, location, ast::is_destructuring_assignment(node));
+        self.flatten_binding_or_assignment_element(
+            node,
+            value,
+            location,
+            ast::is_destructuring_assignment(node),
+        );
 
         if let Some(value) = value {
             if needs_value {
@@ -284,15 +342,29 @@ impl flattener<'_> {
     }
 
     // destructuring.go:246
-    fn flatten_destructuring_binding(&mut self, node: P<Node>, rval: Option<P<Node>>, skip_initializer: bool) -> Option<P<Node>> {
+    fn flatten_destructuring_binding(
+        &mut self,
+        node: P<Node>,
+        rval: Option<P<Node>>,
+        skip_initializer: bool,
+    ) -> Option<P<Node>> {
         let mut node = node;
         if ast::is_variable_declaration(node) {
             let initializer = get_initializer_of_binding_or_assignment_element(Some(node));
             if let Some(initializer) = initializer {
-                if ast::is_identifier(initializer) && binding_or_assignment_element_assigns_to_name(node, initializer.text()) || binding_or_assignment_element_contains_non_literal_computed_name(node) {
+                if ast::is_identifier(initializer)
+                    && binding_or_assignment_element_assigns_to_name(node, initializer.text())
+                    || binding_or_assignment_element_contains_non_literal_computed_name(node)
+                {
                     let visited = self.visit_node(Some(initializer)).unwrap();
                     let initializer = self.ensure_identifier(visited, false, initializer.loc());
-                    node = self.factory().update_variable_declaration(node, node.name().unwrap(), None, None, Some(initializer));
+                    node = self.factory().update_variable_declaration(
+                        node,
+                        node.name().unwrap(),
+                        None,
+                        None,
+                        Some(initializer),
+                    );
                 }
             }
         }
@@ -345,17 +417,27 @@ impl flattener<'_> {
     // --- Core flattening ---
 
     // destructuring.go:298
-    fn flatten_binding_or_assignment_element(&mut self, element: P<Node>, value: Option<P<Node>>, location: TextRange, skip_initializer: bool) {
+    fn flatten_binding_or_assignment_element(
+        &mut self,
+        element: P<Node>,
+        value: Option<P<Node>>,
+        location: TextRange,
+        skip_initializer: bool,
+    ) {
         let Some(binding_target) = ast::get_target_of_binding_or_assignment_element(element) else {
             return;
         };
         let mut value = value;
         if !skip_initializer {
-            let initializer = self.visit_node(get_initializer_of_binding_or_assignment_element(Some(element)));
+            let initializer =
+                self.visit_node(get_initializer_of_binding_or_assignment_element(Some(element)));
             if let Some(initializer) = initializer {
                 if let Some(v) = value {
                     let mut v = self.create_default_value_check(v, initializer, location);
-                    if !is_simple_copiable_expression(initializer) && (ast::is_binding_pattern(binding_target) || ast::is_assignment_pattern(binding_target)) {
+                    if !is_simple_copiable_expression(initializer)
+                        && (ast::is_binding_pattern(binding_target)
+                            || ast::is_assignment_pattern(binding_target))
+                    {
                         v = self.ensure_identifier(v, true, location);
                     }
                     value = Some(v);
@@ -368,74 +450,158 @@ impl flattener<'_> {
         }
 
         if is_object_binding_or_assignment_pattern(Some(binding_target)) {
-            self.flatten_object_binding_or_assignment_pattern(element, binding_target, value.unwrap(), location);
+            self.flatten_object_binding_or_assignment_pattern(
+                element,
+                binding_target,
+                value.unwrap(),
+                location,
+            );
         } else if is_array_binding_or_assignment_pattern(Some(binding_target)) {
-            self.flatten_array_binding_or_assignment_pattern(element, binding_target, value.unwrap(), location);
+            self.flatten_array_binding_or_assignment_pattern(
+                element,
+                binding_target,
+                value.unwrap(),
+                location,
+            );
         } else {
-            (self.emit_binding_or_assignment)(self, binding_target, value.unwrap(), location, Some(element));
+            (self.emit_binding_or_assignment)(
+                self,
+                binding_target,
+                value.unwrap(),
+                location,
+                Some(element),
+            );
         }
     }
 
     // destructuring.go:327
-    fn flatten_object_binding_or_assignment_pattern(&mut self, parent: P<Node>, pattern: P<Node>, value: P<Node>, location: TextRange) {
+    fn flatten_object_binding_or_assignment_pattern(
+        &mut self,
+        parent: P<Node>,
+        pattern: P<Node>,
+        value: P<Node>,
+        location: TextRange,
+    ) {
         let elements = ast::get_elements_of_binding_or_assignment_pattern(pattern);
         let num_elements = elements.len();
         let mut value = value;
         if num_elements != 1 {
-            let reuse_identifier_expressions = !ast::is_declaration_binding_element(parent) || num_elements != 0;
+            let reuse_identifier_expressions =
+                !ast::is_declaration_binding_element(parent) || num_elements != 0;
             value = self.ensure_identifier(value, reuse_identifier_expressions, location);
         }
         let mut binding_elements: Vec<P<Node>> = Vec::new();
         let mut computed_temp_variables: Vec<P<Node>> = Vec::new();
         for (i, &element) in elements.iter().enumerate() {
             if get_rest_indicator_of_binding_or_assignment_element(element).is_none() {
-                let property_name = try_get_property_name_of_binding_or_assignment_element(element).unwrap();
+                let property_name =
+                    try_get_property_name_of_binding_or_assignment_element(element).unwrap();
                 if self.level >= FlattenLevel::ObjectRest
-                    && !element.subtree_facts().intersects(SubtreeFacts::ContainsRestOrSpread | SubtreeFacts::ContainsObjectRestOrSpread)
-                    && !ast::get_target_of_binding_or_assignment_element(element).unwrap().subtree_facts().intersects(SubtreeFacts::ContainsRestOrSpread | SubtreeFacts::ContainsObjectRestOrSpread)
+                    && !element.subtree_facts().intersects(
+                        SubtreeFacts::ContainsRestOrSpread
+                            | SubtreeFacts::ContainsObjectRestOrSpread,
+                    )
+                    && !ast::get_target_of_binding_or_assignment_element(element)
+                        .unwrap()
+                        .subtree_facts()
+                        .intersects(
+                            SubtreeFacts::ContainsRestOrSpread
+                                | SubtreeFacts::ContainsObjectRestOrSpread,
+                        )
                     && !ast::is_computed_property_name(property_name)
                 {
                     binding_elements.push(self.visit_node(Some(element)).unwrap());
                 } else {
                     if !binding_elements.is_empty() {
-                        let pattern_node = (self.create_object_binding_or_assignment_pattern)(self, std::mem::take(&mut binding_elements));
-                        (self.emit_binding_or_assignment)(self, pattern_node, value, location, Some(pattern));
+                        let pattern_node = (self.create_object_binding_or_assignment_pattern)(
+                            self,
+                            std::mem::take(&mut binding_elements),
+                        );
+                        (self.emit_binding_or_assignment)(
+                            self,
+                            pattern_node,
+                            value,
+                            location,
+                            Some(pattern),
+                        );
                     }
                     let rhs_value = self.create_destructuring_property_access(value, property_name);
                     if ast::is_computed_property_name(property_name) {
-                        computed_temp_variables.push(rhs_value.as_element_access_expression().argument_expression);
+                        computed_temp_variables
+                            .push(rhs_value.as_element_access_expression().argument_expression);
                     }
-                    self.flatten_binding_or_assignment_element(element, Some(rhs_value), element.loc(), false);
+                    self.flatten_binding_or_assignment_element(
+                        element,
+                        Some(rhs_value),
+                        element.loc(),
+                        false,
+                    );
                 }
             } else if i == num_elements - 1 {
                 if !binding_elements.is_empty() {
-                    let pattern_node = (self.create_object_binding_or_assignment_pattern)(self, std::mem::take(&mut binding_elements));
-                    (self.emit_binding_or_assignment)(self, pattern_node, value, location, Some(pattern));
+                    let pattern_node = (self.create_object_binding_or_assignment_pattern)(
+                        self,
+                        std::mem::take(&mut binding_elements),
+                    );
+                    (self.emit_binding_or_assignment)(
+                        self,
+                        pattern_node,
+                        value,
+                        location,
+                        Some(pattern),
+                    );
                 }
-                let rhs_value = self.factory().new_rest_helper(value, elements, if computed_temp_variables.is_empty() { None } else { Some(&computed_temp_variables) }, pattern.loc());
-                self.flatten_binding_or_assignment_element(element, Some(rhs_value), element.loc(), false);
+                let rhs_value = self.factory().new_rest_helper(
+                    value,
+                    elements,
+                    if computed_temp_variables.is_empty() {
+                        None
+                    } else {
+                        Some(&computed_temp_variables)
+                    },
+                    pattern.loc(),
+                );
+                self.flatten_binding_or_assignment_element(
+                    element,
+                    Some(rhs_value),
+                    element.loc(),
+                    false,
+                );
             }
         }
         if !binding_elements.is_empty() {
-            let pattern_node = (self.create_object_binding_or_assignment_pattern)(self, binding_elements);
+            let pattern_node =
+                (self.create_object_binding_or_assignment_pattern)(self, binding_elements);
             (self.emit_binding_or_assignment)(self, pattern_node, value, location, Some(pattern));
         }
     }
 
     // destructuring.go:379
-    fn flatten_array_binding_or_assignment_pattern(&mut self, parent: P<Node>, pattern: P<Node>, value: P<Node>, location: TextRange) {
+    fn flatten_array_binding_or_assignment_pattern(
+        &mut self,
+        parent: P<Node>,
+        pattern: P<Node>,
+        value: P<Node>,
+        location: TextRange,
+    ) {
         let elements = ast::get_elements_of_binding_or_assignment_pattern(pattern);
         let num_elements = elements.len();
         let mut value = value;
-        if num_elements != 1 && (self.level < FlattenLevel::ObjectRest || num_elements == 0) || elements.iter().all(|&e| ast::is_omitted_expression(e)) {
-            let reuse_identifier_expressions = !ast::is_declaration_binding_element(parent) || num_elements != 0;
+        if num_elements != 1 && (self.level < FlattenLevel::ObjectRest || num_elements == 0)
+            || elements.iter().all(|&e| ast::is_omitted_expression(e))
+        {
+            let reuse_identifier_expressions =
+                !ast::is_declaration_binding_element(parent) || num_elements != 0;
             value = self.ensure_identifier(value, reuse_identifier_expressions, location);
         }
         let mut binding_elements: Vec<P<Node>> = Vec::new();
         let mut rest_containing_elements: Vec<restIdElemPair> = Vec::new();
         for (i, &element) in elements.iter().enumerate() {
             if self.level >= FlattenLevel::ObjectRest {
-                if element.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread) || self.has_transformed_prior_element && !is_simple_binding_or_assignment_element(element) {
+                if element.subtree_facts().intersects(SubtreeFacts::ContainsObjectRestOrSpread)
+                    || self.has_transformed_prior_element
+                        && !is_simple_binding_or_assignment_element(element)
+                {
                     self.has_transformed_prior_element = true;
                     let temp = self.factory().new_temp_variable();
                     if self.hoist_temp_variables {
@@ -450,21 +616,42 @@ impl flattener<'_> {
             } else if !ast::is_omitted_expression(element) {
                 if get_rest_indicator_of_binding_or_assignment_element(element).is_none() {
                     let f = self.factory();
-                    let rhs_value = f.new_element_access_expression(value, None, f.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None), NodeFlags::None);
-                    self.flatten_binding_or_assignment_element(element, Some(rhs_value), element.loc(), false);
+                    let rhs_value = f.new_element_access_expression(
+                        value,
+                        None,
+                        f.new_numeric_literal(alloc_str(&i.to_string()), TokenFlags::None),
+                        NodeFlags::None,
+                    );
+                    self.flatten_binding_or_assignment_element(
+                        element,
+                        Some(rhs_value),
+                        element.loc(),
+                        false,
+                    );
                 } else if i == num_elements - 1 {
                     let rhs_value = self.factory().new_array_slice_call(value, i);
-                    self.flatten_binding_or_assignment_element(element, Some(rhs_value), element.loc(), false);
+                    self.flatten_binding_or_assignment_element(
+                        element,
+                        Some(rhs_value),
+                        element.loc(),
+                        false,
+                    );
                 }
             }
         }
         if !binding_elements.is_empty() {
-            let pattern_node = (self.create_array_binding_or_assignment_pattern)(self, binding_elements);
+            let pattern_node =
+                (self.create_array_binding_or_assignment_pattern)(self, binding_elements);
             (self.emit_binding_or_assignment)(self, pattern_node, value, location, Some(pattern));
         }
         if !rest_containing_elements.is_empty() {
             for pair in rest_containing_elements {
-                self.flatten_binding_or_assignment_element(pair.element, Some(pair.id), pair.element.loc(), false);
+                self.flatten_binding_or_assignment_element(
+                    pair.element,
+                    Some(pair.id),
+                    pair.element.loc(),
+                    false,
+                );
             }
         }
     }
@@ -497,13 +684,18 @@ fn binding_or_assignment_pattern_assigns_to_name(pattern: P<Node>, name: &str) -
 pub fn binding_or_assignment_element_contains_non_literal_computed_name(element: P<Node>) -> bool {
     let property_name = try_get_property_name_of_binding_or_assignment_element(element);
     if let Some(property_name) = property_name {
-        if ast::is_computed_property_name(property_name) && !ast::is_literal_expression(property_name.expression().unwrap()) {
+        if ast::is_computed_property_name(property_name)
+            && !ast::is_literal_expression(property_name.expression().unwrap())
+        {
             return true;
         }
     }
     let target = ast::get_target_of_binding_or_assignment_element(element);
     match target {
-        Some(target) => (ast::is_binding_pattern(target) || ast::is_assignment_pattern(target)) && binding_or_assignment_pattern_contains_non_literal_computed_name(target),
+        Some(target) => {
+            (ast::is_binding_pattern(target) || ast::is_assignment_pattern(target))
+                && binding_or_assignment_pattern_contains_non_literal_computed_name(target)
+        }
         None => false,
     }
 }
@@ -516,7 +708,9 @@ fn binding_or_assignment_pattern_contains_non_literal_computed_name(pattern: P<N
 
 // GetInitializerOfBindingOrAssignmentElement returns the initializer/default value of a binding or assignment element.
 // destructuring.go:467
-pub fn get_initializer_of_binding_or_assignment_element(binding_element: Option<P<Node>>) -> Option<P<Node>> {
+pub fn get_initializer_of_binding_or_assignment_element(
+    binding_element: Option<P<Node>>,
+) -> Option<P<Node>> {
     let binding_element = binding_element?;
     if ast::is_declaration_binding_element(binding_element) {
         return binding_element.initializer();
@@ -572,7 +766,9 @@ fn is_simple_binding_or_assignment_element(element: P<Node>) -> bool {
         }
     }
     if ast::is_binding_pattern(target) || ast::is_assignment_pattern(target) {
-        return ast::get_elements_of_binding_or_assignment_pattern(target).iter().all(|&e| is_simple_binding_or_assignment_element(e));
+        return ast::get_elements_of_binding_or_assignment_pattern(target)
+            .iter()
+            .all(|&e| is_simple_binding_or_assignment_element(e));
     }
     ast::is_identifier(target)
 }

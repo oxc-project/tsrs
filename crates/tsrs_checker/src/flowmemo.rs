@@ -59,13 +59,21 @@ fn mode_from_env() -> FlowMemoMode {
 
 fn stats_from_env() -> bool {
     static STATS: OnceLock<bool> = OnceLock::new();
-    *STATS.get_or_init(|| std::env::var("TSRS_FLOW_MEMO_STATS").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *STATS.get_or_init(|| {
+        std::env::var("TSRS_FLOW_MEMO_STATS").is_ok_and(|v| !v.is_empty() && v != "0")
+    })
 }
 
 /// log2 of the slot count (32 bytes each).
 fn table_bits() -> u32 {
     static BITS: OnceLock<u32> = OnceLock::new();
-    *BITS.get_or_init(|| std::env::var("TSRS_FLOW_MEMO_BITS").ok().and_then(|v| v.parse().ok()).filter(|b| (8..=24).contains(b)).unwrap_or(12))
+    *BITS.get_or_init(|| {
+        std::env::var("TSRS_FLOW_MEMO_BITS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .filter(|b| (8..=24).contains(b))
+            .unwrap_or(12)
+    })
 }
 
 #[derive(Clone, Copy, Default)]
@@ -105,7 +113,8 @@ pub(crate) struct MemoHit {
 impl MemoHit {
     /// The flags a frame that uses this answer takes on (those of the walk it stands for).
     pub fn flags(self) -> u8 {
-        (if self.epoch != 0 { FLAG_TYPE_CACHE } else { 0 }) | if self.count_reset { FLAG_COUNT_RESET } else { 0 }
+        (if self.epoch != 0 { FLAG_TYPE_CACHE } else { 0 })
+            | if self.count_reset { FLAG_COUNT_RESET } else { 0 }
     }
 }
 
@@ -228,8 +237,21 @@ impl FlowMemo {
     }
 
     #[inline]
-    fn begin(&mut self, instantiation_count: u32, total_instantiation_count: u32, created: u32, in_instantiation: bool) -> FlowFrame {
-        let frame = FlowFrame { start: self.next_serial(), saved: self.regs, instantiation_count, total_instantiation_count, created, in_instantiation };
+    fn begin(
+        &mut self,
+        instantiation_count: u32,
+        total_instantiation_count: u32,
+        created: u32,
+        in_instantiation: bool,
+    ) -> FlowFrame {
+        let frame = FlowFrame {
+            start: self.next_serial(),
+            saved: self.regs,
+            instantiation_count,
+            total_instantiation_count,
+            created,
+            in_instantiation,
+        };
         self.regs = FRESH_REGS;
         frame
     }
@@ -264,7 +286,12 @@ impl FlowMemo {
             flags: r.flags,
         };
         let p = frame.saved;
-        self.regs = Regs { transient: r.transient.min(p.transient), reference: r.reference.min(p.reference), height: p.height.max(r.height), flags: r.flags | p.flags };
+        self.regs = Regs {
+            transient: r.transient.min(p.transient),
+            reference: r.reference.min(p.reference),
+            height: p.height.max(r.height),
+            flags: r.flags | p.flags,
+        };
         (taint, r.height, r.flags)
     }
 
@@ -311,7 +338,9 @@ impl FlowMemo {
     }
 
     fn slot_index(&self, flow: P<FlowNode>, key: u128) -> usize {
-        let h = (flow.key() as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ (key as u64) ^ ((key >> 64) as u64).rotate_left(29);
+        let h = (flow.key() as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
+            ^ (key as u64)
+            ^ ((key >> 64) as u64).rotate_left(29);
         (h.wrapping_mul(0xFF51_AFD7_ED55_8CCD) >> 32) as usize & (self.slots.len() - 1)
     }
 
@@ -322,12 +351,25 @@ impl FlowMemo {
         }
         let slot = &self.slots[self.slot_index(flow, key)];
         if slot.flow == Some(flow) && slot.key == key {
-            return slot.t.map(|t| MemoHit { t, height: slot.height, epoch: slot.epoch, count_reset: slot.count_reset });
+            return slot.t.map(|t| MemoHit {
+                t,
+                height: slot.height,
+                epoch: slot.epoch,
+                count_reset: slot.count_reset,
+            });
         }
         None
     }
 
-    pub(crate) fn store(&mut self, flow: P<FlowNode>, key: u128, t: P<Type>, height: u16, epoch: u32, count_reset: bool) {
+    pub(crate) fn store(
+        &mut self,
+        flow: P<FlowNode>,
+        key: u128,
+        t: P<Type>,
+        height: u16,
+        epoch: u32,
+        count_reset: bool,
+    ) {
         if self.slots.is_empty() {
             self.slots = vec![Slot::default(); 1 << table_bits()];
             if self.mode == FlowMemoMode::Shadow {
@@ -346,7 +388,12 @@ impl FlowMemo {
     /// Shadow mode: the answer `lookup` found, with what its slot holds now.
     pub(crate) fn shadow_hit(&self, flow: P<FlowNode>, key: u128, hit: MemoHit) -> ShadowHit {
         let i = self.slot_index(flow, key);
-        ShadowHit { flow, hit, full_key: self.shadow_keys.get(i).cloned().flatten(), origin: self.shadow_origin.get(i).copied().unwrap_or((None, 0)) }
+        ShadowHit {
+            flow,
+            hit,
+            full_key: self.shadow_keys.get(i).cloned().flatten(),
+            origin: self.shadow_origin.get(i).copied().unwrap_or((None, 0)),
+        }
     }
 
     pub fn report(&self) -> Option<String> {
@@ -425,7 +472,12 @@ impl Default for FlowMemo {
 impl Checker {
     #[inline]
     pub(crate) fn flow_frame_begin(&mut self) -> FlowFrame {
-        self.flow_memo.begin(self.instantiation_count, self.total_instantiation_count, self.flow_memo_created(), !self.active_mappers.is_empty())
+        self.flow_memo.begin(
+            self.instantiation_count,
+            self.total_instantiation_count,
+            self.flow_memo_created(),
+            !self.active_mappers.is_empty(),
+        )
     }
 
     /// Ends a frame that computed its result, adding what it did to the instantiation counters to its flags. With no
@@ -452,7 +504,10 @@ impl Checker {
 
     #[inline]
     fn flow_frame_counters(&mut self, frame: FlowFrame) {
-        if self.total_instantiation_count != frame.total_instantiation_count || frame.in_instantiation || self.flow_memo_created() != frame.created {
+        if self.total_instantiation_count != frame.total_instantiation_count
+            || frame.in_instantiation
+            || self.flow_memo_created() != frame.created
+        {
             self.flow_memo.add_flags(FLAG_EFFECTS);
         }
         if frame.instantiation_count == 0 || self.instantiation_count != frame.instantiation_count {
@@ -475,7 +530,9 @@ impl Checker {
 
     #[cold]
     fn flow_memo_consume_transient(&mut self, source: u32) {
-        let live = source != 0 && (self.flow_loop_stack.iter().any(|info| info.serial == source) || self.type_resolutions.iter().any(|r| r.serial == source));
+        let live = source != 0
+            && (self.flow_loop_stack.iter().any(|info| info.serial == source)
+                || self.type_resolutions.iter().any(|r| r.serial == source));
         self.flow_memo.taint(if live { source } else { 0 });
     }
 
@@ -516,7 +573,12 @@ impl Checker {
             _ => return self.compute_hashed_flow_memo_key(f),
         };
         if declared < 1 << 31 {
-            Some(((root as u128) << 96) | ((declared as u128) << 64) | ((initial as u128) << 32) | container as u128)
+            Some(
+                ((root as u128) << 96)
+                    | ((declared as u128) << 64)
+                    | ((initial as u128) << 32)
+                    | container as u128,
+            )
         } else {
             self.compute_hashed_flow_memo_key(f)
         }
@@ -529,7 +591,9 @@ impl Checker {
         }
         // Not a key, or longer than the stack buffer.
         let mut buf = std::mem::take(&mut self.flow_memo.key_buf);
-        let key = self.serialize_flow_memo_key(&mut buf, f).then(|| xxhash_rust::xxh3::xxh3_128(&buf) | (1 << 63));
+        let key = self
+            .serialize_flow_memo_key(&mut buf, f)
+            .then(|| xxhash_rust::xxh3::xxh3_128(&buf) | (1 << 63));
         self.flow_memo.key_buf = buf;
         key
     }
@@ -547,8 +611,13 @@ impl Checker {
     /// The symbol an identifier reference resolved to, if it is cached (no side effects), and the identifier is not
     /// `this` in a type query (Go keys and matches those like `this`).
     fn flow_memo_root_symbol(&self, node: P<Node>) -> Option<P<Symbol>> {
-        let symbol = self.symbol_node_links.try_get_if_id_assigned(node).and_then(|links| links.resolved_symbol.get())?;
-        if symbol == self.unknown_symbol || node.as_identifier().text() == "this" && ast::is_this_in_type_query(node) {
+        let symbol = self
+            .symbol_node_links
+            .try_get_if_id_assigned(node)
+            .and_then(|links| links.resolved_symbol.get())?;
+        if symbol == self.unknown_symbol
+            || node.as_identifier().text() == "this" && ast::is_this_in_type_query(node)
+        {
             return None;
         }
         Some(symbol)
@@ -562,11 +631,15 @@ impl Checker {
             },
             Kind::ThisKeyword => sink.put(b"T"),
             Kind::PropertyAccessExpression => {
-                if node.flags().intersects(NodeFlags::OptionalChain) || !self.write_flow_memo_reference(sink, node.expression().unwrap()) {
+                if node.flags().intersects(NodeFlags::OptionalChain)
+                    || !self.write_flow_memo_reference(sink, node.expression().unwrap())
+                {
                     return false;
                 }
                 let name = node.name().unwrap().text();
-                sink.put(b"P") && sink.put(&(name.len() as u32).to_le_bytes()) && sink.put(name.as_bytes())
+                sink.put(b"P")
+                    && sink.put(&(name.len() as u32).to_le_bytes())
+                    && sink.put(name.as_bytes())
             }
             _ => false,
         }
@@ -578,8 +651,13 @@ impl Checker {
     #[inline]
     pub(crate) fn flow_memo_consult_ok(&mut self, f: P<FlowState>, hit: MemoHit) -> bool {
         let cache_ok = hit.epoch == 0 || hit.epoch == self.flow_memo.type_cache_epoch;
-        let counters_ok = self.active_mappers.is_empty() && (!hit.count_reset || self.instantiation_count == 0);
-        let ok = !f.memo_faithful.get() && self.flow_loop_stack.is_empty() && cache_ok && counters_ok && f.impure_shared.get() == 0;
+        let counters_ok =
+            self.active_mappers.is_empty() && (!hit.count_reset || self.instantiation_count == 0);
+        let ok = !f.memo_faithful.get()
+            && self.flow_loop_stack.is_empty()
+            && cache_ok
+            && counters_ok
+            && f.impure_shared.get() == 0;
         if !ok && stats_from_env() {
             let s = &mut self.flow_memo.stats;
             if !self.flow_loop_stack.is_empty() {
@@ -597,7 +675,10 @@ impl Checker {
 
     /// Go's `saveFlowTypeCache := c.flowTypeCache; c.flowTypeCache = nil`, with the memo's bookkeeping.
     pub(crate) fn take_flow_type_cache(&mut self) -> SavedFlowTypeCache {
-        let saved = SavedFlowTypeCache { cache: self.flow_type_cache.take(), epoch: self.flow_memo.type_cache_epoch };
+        let saved = SavedFlowTypeCache {
+            cache: self.flow_type_cache.take(),
+            epoch: self.flow_memo.type_cache_epoch,
+        };
         self.flow_memo.type_cache_epoch = self.flow_memo.next_serial();
         saved
     }

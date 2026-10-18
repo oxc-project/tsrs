@@ -36,7 +36,10 @@ pub(crate) fn match_numeric_component(text: &str) -> Option<usize> {
 // Every group is deterministic and anything a skipped optional group would have consumed
 // must then be matched by `$`, so a greedy parse followed by an end check is equivalent.
 // Non-participating groups are "", as in Go's FindStringSubmatch.
-pub(crate) fn find_version_like_submatch(text: &str, component: fn(&str) -> Option<usize>) -> Option<[&str; 6]> {
+pub(crate) fn find_version_like_submatch(
+    text: &str,
+    component: fn(&str) -> Option<usize>,
+) -> Option<[&str; 6]> {
     let mut m: [&str; 6] = [""; 6];
     let n = component(text)?;
     m[1] = &text[..n];
@@ -90,7 +93,9 @@ fn is_prerelease_part(part: &str) -> bool {
     let mut chars = part.chars();
     match chars.next() {
         Some('1'..='9') => chars.all(is_digit),
-        Some(c) if is_letter_fold(c) || c == '-' => chars.all(|c| is_letter_fold(c) || is_digit(c) || c == '-'),
+        Some(c) if is_letter_fold(c) || c == '-' => {
+            chars.all(|c| is_letter_fold(c) || is_digit(c) || c == '-')
+        }
         _ => false,
     }
 }
@@ -135,10 +140,8 @@ pub struct Version {
     pub(crate) build: Vec<String>,
 }
 
-pub(crate) static VERSION_ZERO: LazyLock<Version> = LazyLock::new(|| Version {
-    prerelease: vec!["0".to_string()],
-    ..Default::default()
-});
+pub(crate) static VERSION_ZERO: LazyLock<Version> =
+    LazyLock::new(|| Version { prerelease: vec!["0".to_string()], ..Default::default() });
 
 impl Version {
     pub(crate) fn increment_major(&self) -> Version {
@@ -150,7 +153,12 @@ impl Version {
     }
 
     pub(crate) fn increment_patch(&self) -> Version {
-        Version { major: self.major, minor: self.minor, patch: self.patch + 1, ..Default::default() }
+        Version {
+            major: self.major,
+            minor: self.minor,
+            patch: self.patch + 1,
+            ..Default::default()
+        }
     }
 }
 
@@ -257,7 +265,9 @@ pub(crate) fn compare_pre_release_identifier(left: &str, right: &str) -> Orderin
         // > identifiers consisting of only digits are compared numerically
         let left_as_number = get_uint_component(left);
         let right_as_number = get_uint_component(right);
-        if let (Ok(l), Ok(r)) = (left_as_number, right_as_number) { return cmp_compare(l, r) }
+        if let (Ok(l), Ok(r)) = (left_as_number, right_as_number) {
+            return cmp_compare(l, r);
+        }
         // This should only happen in the event of an overflow.
         // If so, use the lengths or fall back to string comparison.
         let left_len = left.len();
@@ -352,7 +362,8 @@ pub(crate) fn get_uint_component(text: &str) -> Result<u32, String> {
     if text.is_empty() || !text.bytes().all(|b| b.is_ascii_digit()) {
         return Err(format!("strconv.ParseUint: parsing {text:?}: invalid syntax"));
     }
-    text.parse::<u32>().map_err(|_| format!("strconv.ParseUint: parsing {text:?}: value out of range"))
+    text.parse::<u32>()
+        .map_err(|_| format!("strconv.ParseUint: parsing {text:?}: value out of range"))
 }
 
 #[cfg(test)]
@@ -364,9 +375,15 @@ mod tests {
         assert_eq!(get_uint_component("4294967295"), Ok(u32::MAX));
         assert_eq!(get_uint_component("00042"), Ok(42));
         for text in ["", "+1", "-1", "1_0", "١", "999999999999x"] {
-            assert_eq!(get_uint_component(text), Err(format!("strconv.ParseUint: parsing {text:?}: invalid syntax")));
+            assert_eq!(
+                get_uint_component(text),
+                Err(format!("strconv.ParseUint: parsing {text:?}: invalid syntax"))
+            );
         }
-        assert_eq!(get_uint_component("4294967296"), Err("strconv.ParseUint: parsing \"4294967296\": value out of range".to_string()));
+        assert_eq!(
+            get_uint_component("4294967296"),
+            Err("strconv.ParseUint: parsing \"4294967296\": value out of range".to_string())
+        );
     }
 
     fn v(major: u32, minor: u32, patch: u32, prerelease: &[&str], build: &[&str]) -> Version {
@@ -485,9 +502,18 @@ mod tests {
 
     #[test]
     fn test_parse_errors() {
-        assert_eq!(try_parse_version("1.02").unwrap_err(), "Could not parse version string from \"1.02\"");
-        assert_eq!(try_parse_version("1.2.3-").unwrap_err(), "Could not parse version string from \"1.2.3-\"");
-        assert_eq!(try_parse_version("1.2.3-a..b").unwrap_err(), "Could not parse version string from \"1.2.3-a..b\"");
+        assert_eq!(
+            try_parse_version("1.02").unwrap_err(),
+            "Could not parse version string from \"1.02\""
+        );
+        assert_eq!(
+            try_parse_version("1.2.3-").unwrap_err(),
+            "Could not parse version string from \"1.2.3-\""
+        );
+        assert_eq!(
+            try_parse_version("1.2.3-a..b").unwrap_err(),
+            "Could not parse version string from \"1.2.3-a..b\""
+        );
         assert_eq!(
             try_parse_version("99999999999").unwrap_err(),
             "strconv.ParseUint: parsing \"99999999999\": value out of range"

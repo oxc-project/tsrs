@@ -26,12 +26,20 @@ struct timerThread {
     wake: Condvar,
 }
 
-#[expect(clippy::infinite_loop, reason = "the process-wide timer thread waits for deadlines until process exit")]
+#[expect(
+    clippy::infinite_loop,
+    reason = "the process-wide timer thread waits for deadlines until process exit"
+)]
 fn timer_thread() -> &'static timerThread {
     static TIMERS: OnceLock<&'static timerThread> = OnceLock::new();
     TIMERS.get_or_init(|| {
         let t: &'static timerThread = Box::leak(Box::new(timerThread {
-            st: Mutex::new(timerState { heap: BinaryHeap::new(), pending: FxHashMap::default(), next_id: 0, next_generation: 0 }),
+            st: Mutex::new(timerState {
+                heap: BinaryHeap::new(),
+                pending: FxHashMap::default(),
+                next_id: 0,
+                next_generation: 0,
+            }),
             wake: Condvar::new(),
         }));
         std::thread::Builder::new()

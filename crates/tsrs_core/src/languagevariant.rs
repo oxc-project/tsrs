@@ -3,7 +3,10 @@
 pub enum LanguageVariant {
     #[default]
     Standard = 0,
-    #[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+    #[expect(
+        clippy::upper_case_acronyms,
+        reason = "The name matches the upstream Go or protocol vocabulary."
+    )]
     JSX = 1,
 }
 

@@ -76,7 +76,10 @@ pub fn valid_path(name: &str) -> bool {
 
     // No element is empty, "." or "..": the first and last are not empty (an empty name is one empty element), and
     // no element is "." or ".." or empty between two slashes (one scan instead of a search per element).
-    !name.is_empty() && !name.starts_with('/') && !name.ends_with('/') && !tspath::has_relative_path_segment(name)
+    !name.is_empty()
+        && !name.starts_with('/')
+        && !name.ends_with('/')
+        && !tspath::has_relative_path_segment(name)
 }
 
 pub type RootForFn = Box<dyn Fn(&str) -> Option<Box<dyn IoFS>> + Send + Sync>;
@@ -135,7 +138,12 @@ impl Common {
         let mut result = Entries::default();
         let mut symlinks = FxHashSet::default();
 
-        let add_to_result = |result: &mut Entries, symlinks: &mut FxHashSet<String>, name: &str, mode: FileMode, is_link: bool| -> bool {
+        let add_to_result = |result: &mut Entries,
+                             symlinks: &mut FxHashSet<String>,
+                             name: &str,
+                             mode: FileMode,
+                             is_link: bool|
+         -> bool {
             if mode.is_dir() {
                 result.directories.push(name.to_string());
             } else if mode.is_regular() {
@@ -230,11 +238,7 @@ pub fn decode_bytes(mut s: Vec<u8>) -> String {
 
 fn decode_utf16(s: &[u8], big_endian: bool) -> String {
     let ints = s.as_chunks::<2>().0.iter().map(|c| {
-        if big_endian {
-            u16::from_be_bytes([c[0], c[1]])
-        } else {
-            u16::from_le_bytes([c[0], c[1]])
-        }
+        if big_endian { u16::from_be_bytes([c[0], c[1]]) } else { u16::from_le_bytes([c[0], c[1]]) }
     });
     char::decode_utf16(ints).map(|r| r.unwrap_or(char::REPLACEMENT_CHARACTER)).collect()
 }
@@ -247,18 +251,22 @@ mod tests {
     fn valid_path_matches_element_split() {
         // Every name of up to 9 bytes over '/', '.', 'a', against fs.ValidPath's element loop.
         fn by_elements(name: &str) -> bool {
-            name == "." || name.split('/').all(|elem| !elem.is_empty() && elem != "." && elem != "..")
+            name == "."
+                || name.split('/').all(|elem| !elem.is_empty() && elem != "." && elem != "..")
         }
         let alphabet = *b"/.a";
         let mut bytes = Vec::new();
         for len in 0..=9 {
             for mut code in 0..3usize.pow(len) {
                 bytes.clear();
-                bytes.extend(std::iter::repeat_with(|| {
-                    let byte = alphabet[code % 3];
-                    code /= 3;
-                    byte
-                }).take(len as usize));
+                bytes.extend(
+                    std::iter::repeat_with(|| {
+                        let byte = alphabet[code % 3];
+                        code /= 3;
+                        byte
+                    })
+                    .take(len as usize),
+                );
                 let name = std::str::from_utf8(&bytes).unwrap();
                 assert_eq!(valid_path(name), by_elements(name), "{name}");
             }

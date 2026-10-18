@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use tsrs_ast::{self as ast, SourceFile, Symbol, SymbolFlags};
 use tsrs_checker::{self as checker, Checker};
-use tsrs_core::tspath::{self, Path};
 use tsrs_core::P;
+use tsrs_core::tspath::{self, Path};
 
 use super::extract::new_symbol_extractor;
 use super::util::try_get_module_id_and_file_name_of_module_symbol;
@@ -46,7 +46,10 @@ pub enum ExportSyntax {
     // export = x
     Equals,
     // export as namespace x
-    #[expect(clippy::upper_case_acronyms, reason = "The name matches the upstream Go or protocol vocabulary.")]
+    #[expect(
+        clippy::upper_case_acronyms,
+        reason = "The name matches the upstream Go or protocol vocabulary."
+    )]
     UMD,
     // export * from "module"
     Star,
@@ -108,7 +111,8 @@ impl Export {
 
     // export.go:81
     pub fn is_renameable(&self) -> bool {
-        self.export_name == ast::InternalSymbolNameExportEquals || self.export_name == ast::InternalSymbolNameDefault
+        self.export_name == ast::InternalSymbolNameExportEquals
+            || self.export_name == ast::InternalSymbolNameDefault
     }
 
     // export.go:85
@@ -135,8 +139,16 @@ impl super::index::Named for Arc<Export> {
 pub fn symbol_to_export(symbol: P<Symbol>, ch: &mut Checker) -> Option<Arc<Export>> {
     if let Some(parent) = symbol.parent() {
         if checker::is_external_module_symbol(parent) {
-            if let Some((module_id, module_file_name)) = try_get_module_id_and_file_name_of_module_symbol(parent) {
-                return extract_first_export(symbol, ch, &module_id, &module_file_name, ast::get_source_file_of_module(parent).unwrap());
+            if let Some((module_id, module_file_name)) =
+                try_get_module_id_and_file_name_of_module_symbol(parent)
+            {
+                return extract_first_export(
+                    symbol,
+                    ch,
+                    &module_id,
+                    &module_file_name,
+                    ast::get_source_file_of_module(parent).unwrap(),
+                );
             }
             return None;
         }
@@ -153,13 +165,37 @@ pub fn symbol_to_export(symbol: P<Symbol>, ch: &mut Checker) -> Option<Arc<Expor
     let skipped = ch.skip_alias(symbol);
     let target = ch.get_merged_symbol(skipped);
 
-    if let Some(export) = try_get_module_export(ast::InternalSymbolNameDefault, target, module_symbol, ch, &module_id, &module_file_name, file) {
+    if let Some(export) = try_get_module_export(
+        ast::InternalSymbolNameDefault,
+        target,
+        module_symbol,
+        ch,
+        &module_id,
+        &module_file_name,
+        file,
+    ) {
         return Some(export);
     }
-    if let Some(export) = try_get_module_export(ast::InternalSymbolNameExportEquals, target, module_symbol, ch, &module_id, &module_file_name, file) {
+    if let Some(export) = try_get_module_export(
+        ast::InternalSymbolNameExportEquals,
+        target,
+        module_symbol,
+        ch,
+        &module_id,
+        &module_file_name,
+        file,
+    ) {
         return Some(export);
     }
-    try_get_module_export(symbol.name(), target, module_symbol, ch, &module_id, &module_file_name, file)
+    try_get_module_export(
+        symbol.name(),
+        target,
+        module_symbol,
+        ch,
+        &module_id,
+        &module_file_name,
+        file,
+    )
 }
 
 // export.go:125
@@ -183,9 +219,22 @@ fn try_get_module_export(
 }
 
 // export.go:133
-fn extract_first_export(symbol: P<Symbol>, ch: &mut Checker, module_id: &ModuleID, module_file_name: &str, file: P<SourceFile>) -> Option<Arc<Export>> {
+fn extract_first_export(
+    symbol: P<Symbol>,
+    ch: &mut Checker,
+    module_id: &ModuleID,
+    module_file_name: &str,
+    file: P<SourceFile>,
+) -> Option<Arc<Export>> {
     let mut exports: Vec<Arc<Export>> = Vec::new();
     let mut extractor = new_symbol_extractor("", ch, None, None);
-    extractor.extract_from_symbol(symbol.name(), symbol, module_id, module_file_name, file, &mut exports);
+    extractor.extract_from_symbol(
+        symbol.name(),
+        symbol,
+        module_id,
+        module_file_name,
+        file,
+        &mut exports,
+    );
     exports.into_iter().next()
 }

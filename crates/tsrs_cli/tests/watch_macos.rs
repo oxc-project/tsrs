@@ -5,7 +5,7 @@
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::sync::mpsc::{channel, Receiver};
+use std::sync::mpsc::{Receiver, channel};
 use std::sync::{RwLock, RwLockReadGuard};
 use std::time::Duration;
 
@@ -62,7 +62,10 @@ impl Watch {
     fn next_cycle(&mut self) -> Vec<String> {
         let mut errors = Vec::new();
         loop {
-            let line = self.lines.recv_timeout(Duration::from_secs(15)).unwrap_or_else(|_| panic!("no cycle; watch log:\n{}", self.log.join("\n")));
+            let line = self
+                .lines
+                .recv_timeout(Duration::from_secs(15))
+                .unwrap_or_else(|_| panic!("no cycle; watch log:\n{}", self.log.join("\n")));
             if line.starts_with("[watch] ") {
                 if !line.contains("watching directory") && !line.contains("resolved ") {
                     self.log.push(line);
@@ -88,7 +91,11 @@ impl Watch {
         while let Some(left) = deadline.checked_duration_since(std::time::Instant::now()) {
             match self.lines.recv_timeout(left) {
                 Ok(line) if line.starts_with("[watch] ") => self.log.push(line),
-                Ok(line) => assert!(!line.contains("File change detected"), "a cycle started by itself: {line}; watch log:\n{}", self.log.join("\n")),
+                Ok(line) => assert!(
+                    !line.contains("File change detected"),
+                    "a cycle started by itself: {line}; watch log:\n{}",
+                    self.log.join("\n")
+                ),
                 Err(_) => return,
             }
         }
@@ -107,8 +114,17 @@ fn fresh(dir: &Path) -> Vec<String> {
 }
 
 fn fresh_with(dir: &Path, project: &str) -> Vec<String> {
-    let out = Command::new(env!("CARGO_BIN_EXE_tsrs")).args(["-p", project, "--pretty", "false", "--noEmit"]).current_dir(dir).output().unwrap();
-    let mut errors: Vec<String> = String::from_utf8(out.stdout).unwrap().lines().filter(|l| l.contains("error TS")).map(str::to_string).collect();
+    let out = Command::new(env!("CARGO_BIN_EXE_tsrs"))
+        .args(["-p", project, "--pretty", "false", "--noEmit"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    let mut errors: Vec<String> = String::from_utf8(out.stdout)
+        .unwrap()
+        .lines()
+        .filter(|l| l.contains("error TS"))
+        .map(str::to_string)
+        .collect();
     errors.sort();
     errors
 }
@@ -133,7 +149,14 @@ const TSCONFIG: &str = r#"{ "compilerOptions": { "strict": true, "noEmit": true,
 #[test]
 fn a_case_only_rename_reports_what_a_fresh_build_does() {
     let _shared = shared();
-    let dir = project("case", &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n"), ("src/b.ts", "import { a } from './a';\nexport const b: number = a;\n")]);
+    let dir = project(
+        "case",
+        &[
+            ("tsconfig.json", TSCONFIG),
+            ("src/a.ts", "export const a = 1;\n"),
+            ("src/b.ts", "import { a } from './a';\nexport const b: number = a;\n"),
+        ],
+    );
     let mut watch = Watch::start(&dir);
     std::thread::sleep(Duration::from_millis(600));
 
@@ -157,7 +180,11 @@ fn a_project_under_tmp_sees_edits() {
     let _shared = shared();
     // /tmp is a symlink to /private/tmp, and FSEvents reports /private/tmp paths. The project is named through /tmp
     // (`-p /tmp/...`, from another directory: a process's working directory is always the resolved one).
-    let real = project_in(Path::new("/private/tmp"), "tmp", &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")]);
+    let real = project_in(
+        Path::new("/private/tmp"),
+        "tmp",
+        &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")],
+    );
     let logical = Path::new("/tmp").join(real.strip_prefix("/private/tmp").unwrap());
     let config = logical.join("tsconfig.json");
     let mut watch = Watch::start_with(Path::new("/"), &["--watch", "-p", config.to_str().unwrap()]);
@@ -190,7 +217,13 @@ fn edits_through_a_symlinked_directory(args: &[&str]) {
     // src/shared is a symlink to a directory outside the project; edits made through either path are seen.
     let mode = args[0].trim_start_matches('-');
     let shared = project(&format!("shared-target-{mode}"), &[("s.ts", "export const s = 1;\n")]);
-    let dir = project(&format!("symlink-{mode}"), &[("tsconfig.json", TSCONFIG), ("src/a.ts", "import { s } from './shared/s';\nexport const a: number = s;\n")]);
+    let dir = project(
+        &format!("symlink-{mode}"),
+        &[
+            ("tsconfig.json", TSCONFIG),
+            ("src/a.ts", "import { s } from './shared/s';\nexport const a: number = s;\n"),
+        ],
+    );
     std::os::unix::fs::symlink(&shared, dir.join("src/shared")).unwrap();
     let mut watch = Watch::start_with(&dir, args);
     std::thread::sleep(Duration::from_millis(600));
@@ -222,7 +255,11 @@ fn outputs_inside_the_watched_tree_start_no_cycle() {
     assert!(dir.join("dist/f0.js").exists() && dir.join("dist/tsconfig.tsbuildinfo").exists());
 
     for round in 0..3 {
-        std::fs::write(dir.join("f0.ts"), format!("export const f0 = {round};\nexport const g{round} = 1;\n")).unwrap();
+        std::fs::write(
+            dir.join("f0.ts"),
+            format!("export const f0 = {round};\nexport const g{round} = 1;\n"),
+        )
+        .unwrap();
         assert_eq!(watch.next_cycle(), Vec::<String>::new());
         watch.assert_idle(Duration::from_secs(2));
     }
@@ -232,7 +269,10 @@ fn outputs_inside_the_watched_tree_start_no_cycle() {
 
 // A project whose build is mostly checking: its files are read within the first few percent of the build.
 fn slow_to_check_project(name: &str) -> PathBuf {
-    let mut files = vec![("tsconfig.json".to_string(), TSCONFIG.to_string()), ("src/a.ts".to_string(), "export const a = 1;\n".to_string())];
+    let mut files = vec![
+        ("tsconfig.json".to_string(), TSCONFIG.to_string()),
+        ("src/a.ts".to_string(), "export const a = 1;\n".to_string()),
+    ];
     files.extend((0..1500).map(|i| {
         (format!("src/f{i}.ts"), format!("type T{i}<N extends number, A extends any[] = []> = A[\"length\"] extends N ? A : T{i}<N, [...A, 0]>;\nexport const x{i}: T{i}<900>[\"length\"] = 900;\n"))
     }));
@@ -283,10 +323,15 @@ fn an_edit_during_the_first_build_is_seen_by_build_watch() {
 fn a_metadata_change_starts_no_cycle() {
     let _shared = shared();
     // chmod changes no content and no modification time; FSEvents still reports the file.
-    let dir = project("chmod", &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")]);
+    let dir =
+        project("chmod", &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")]);
     let mut watch = Watch::start(&dir);
     watch.assert_idle(Duration::from_millis(600));
-    std::fs::set_permissions(dir.join("src/a.ts"), std::os::unix::fs::PermissionsExt::from_mode(0o600)).unwrap();
+    std::fs::set_permissions(
+        dir.join("src/a.ts"),
+        std::os::unix::fs::PermissionsExt::from_mode(0o600),
+    )
+    .unwrap();
     watch.assert_idle(Duration::from_secs(1));
     // An edit after it is still seen.
     std::fs::write(dir.join("src/a.ts"), format!("export const a = 1;{ERR}")).unwrap();
@@ -299,7 +344,9 @@ fn a_metadata_change_starts_no_cycle() {
 fn wakeups(pid: u32) -> u64 {
     let mut info = std::mem::MaybeUninit::<libc::rusage_info_v4>::zeroed();
     // SAFETY: `info` is a rusage_info_v4, the struct RUSAGE_INFO_V4 fills.
-    let r = unsafe { libc::proc_pid_rusage(pid as i32, libc::RUSAGE_INFO_V4, info.as_mut_ptr().cast()) };
+    let r = unsafe {
+        libc::proc_pid_rusage(pid as i32, libc::RUSAGE_INFO_V4, info.as_mut_ptr().cast())
+    };
     assert_eq!(r, 0, "proc_pid_rusage");
     // SAFETY: filled above.
     unsafe { info.assume_init() }.ri_interrupt_wkups
@@ -309,7 +356,8 @@ fn wakeups(pid: u32) -> u64 {
 fn an_idle_watch_does_not_wake_up() {
     // Alone: the other tests' writes under the same temporary directory reach this watch's streams too.
     let _alone = EXCLUSIVE.write().unwrap_or_else(std::sync::PoisonError::into_inner);
-    let dir = project("idle", &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")]);
+    let dir =
+        project("idle", &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")]);
     let mut watch = Watch::start(&dir);
     watch.assert_idle(Duration::from_millis(500));
     let before = wakeups(watch.child.id());
@@ -335,10 +383,14 @@ fn a_new_directory_beside_the_project_starts_no_cycle_in_build_watch() {
 fn a_new_directory_beside_the_project_starts_no_cycle(args: &[&str]) {
     // The project's parent is watched for node_modules lookups; a directory made there that no lookup goes through
     // changes nothing.
-    let dir = project(&format!("beside-{}", args[0].trim_start_matches('-')), &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")]);
+    let dir = project(
+        &format!("beside-{}", args[0].trim_start_matches('-')),
+        &[("tsconfig.json", TSCONFIG), ("src/a.ts", "export const a = 1;\n")],
+    );
     let mut watch = Watch::start_with(&dir, args);
     watch.assert_idle(Duration::from_millis(500));
-    let beside = dir.with_file_name(format!("{}-sibling", dir.file_name().unwrap().to_str().unwrap()));
+    let beside =
+        dir.with_file_name(format!("{}-sibling", dir.file_name().unwrap().to_str().unwrap()));
     std::fs::create_dir(&beside).unwrap();
     std::fs::write(beside.join("x.txt"), "x").unwrap();
     watch.assert_idle(Duration::from_secs(1));
@@ -361,7 +413,11 @@ fn a_watch_that_cannot_watch_says_so() {
     let files: Vec<(&str, &str)> = files.iter().map(|(p, c)| (p.as_str(), c.as_str())).collect();
     let dir = project("nofds", &files);
     let mut command = Command::new(env!("CARGO_BIN_EXE_tsrs"));
-    command.args(["--watch", "-p", ".", "--pretty", "false"]).current_dir(&dir).env("TSRS_WATCH_BACKEND", "kqueue").stdout(Stdio::piped());
+    command
+        .args(["--watch", "-p", ".", "--pretty", "false"])
+        .current_dir(&dir)
+        .env("TSRS_WATCH_BACKEND", "kqueue")
+        .stdout(Stdio::piped());
     // SAFETY: setrlimit is async-signal-safe; the closure touches nothing else.
     unsafe {
         std::os::unix::process::CommandExt::pre_exec(&mut command, || {
@@ -399,13 +455,23 @@ fn a_watch_that_cannot_watch_says_so() {
 
 fn installing_a_package_resolves_its_import(args: &[&str]) {
     // node_modules does not exist when the watch starts; the import resolves once the package is installed.
-    let dir = project(&format!("install-{}", args[0].trim_start_matches('-')), &[("tsconfig.json", TSCONFIG), ("src/a.ts", "import type { N } from 'pkg';\nexport const n: N = 42;\n")]);
+    let dir = project(
+        &format!("install-{}", args[0].trim_start_matches('-')),
+        &[
+            ("tsconfig.json", TSCONFIG),
+            ("src/a.ts", "import type { N } from 'pkg';\nexport const n: N = 42;\n"),
+        ],
+    );
     let mut watch = Watch::start_with(&dir, args);
     std::thread::sleep(Duration::from_millis(600));
     let pkg = dir.join("node_modules/pkg");
     std::fs::create_dir_all(&pkg).unwrap();
     std::fs::write(pkg.join("index.d.ts"), "export type N = 42;\n").unwrap();
-    std::fs::write(pkg.join("package.json"), r#"{ "name": "pkg", "version": "1.0.0", "types": "index.d.ts" }"#).unwrap();
+    std::fs::write(
+        pkg.join("package.json"),
+        r#"{ "name": "pkg", "version": "1.0.0", "types": "index.d.ts" }"#,
+    )
+    .unwrap();
     let mut errors = watch.next_cycle();
     // The files may come in two batches.
     while !errors.is_empty() {
@@ -434,10 +500,24 @@ fn edits_after_the_first_build_are_seen(args: &[&str]) {
     // The outputs go outside the watched tree (as vscode's ../out), so that no cycle for them runs between the edits.
     let name = format!("edits-{}", args[0].trim_start_matches('-'));
     let out = std::env::temp_dir().join(format!("tsrs-watch-{}-{name}-out", std::process::id()));
-    let config = format!(r#"{{ "compilerOptions": {{ "strict": true, "types": [], "incremental": true, "outDir": "{}", "rootDir": "src" }}, "include": ["src"] }}"#, out.display());
-    let dir = project(&name, &[("tsconfig.json", &config), ("src/a.ts", "export const a = 1;\n"), ("src/b.ts", "export const b = 1;\n")]);
+    let config = format!(
+        r#"{{ "compilerOptions": {{ "strict": true, "types": [], "incremental": true, "outDir": "{}", "rootDir": "src" }}, "include": ["src"] }}"#,
+        out.display()
+    );
+    let dir = project(
+        &name,
+        &[
+            ("tsconfig.json", &config),
+            ("src/a.ts", "export const a = 1;\n"),
+            ("src/b.ts", "export const b = 1;\n"),
+        ],
+    );
     let mut watch = Watch::start_with(&dir, args);
-    for (file, content, count) in [("src/a.ts", format!("export const a = 1;{ERR}"), 1), ("src/b.ts", format!("export const b = 1;{ERR}"), 2), ("src/a.ts", "export const a = 1;\n".to_string(), 1)] {
+    for (file, content, count) in [
+        ("src/a.ts", format!("export const a = 1;{ERR}"), 1),
+        ("src/b.ts", format!("export const b = 1;{ERR}"), 2),
+        ("src/a.ts", "export const a = 1;\n".to_string(), 1),
+    ] {
         std::fs::write(dir.join(file), content).unwrap();
         let errors = watch.next_cycle();
         assert_eq!(errors.len(), count, "{errors:?}; watch log:\n{}", watch.log.join("\n"));

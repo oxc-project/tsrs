@@ -84,11 +84,23 @@ fn mimalloc_heap_stats() -> tsrs_core::memsplit::HeapStats {
         fn mi_heap_visit_blocks(
             heap: *mut std::ffi::c_void,
             visit_blocks: bool,
-            visitor: extern "C" fn(*const std::ffi::c_void, *const HeapArea, *mut std::ffi::c_void, usize, *mut std::ffi::c_void) -> bool,
+            visitor: extern "C" fn(
+                *const std::ffi::c_void,
+                *const HeapArea,
+                *mut std::ffi::c_void,
+                usize,
+                *mut std::ffi::c_void,
+            ) -> bool,
             arg: *mut std::ffi::c_void,
         ) -> bool;
     }
-    extern "C" fn visit(_heap: *const std::ffi::c_void, area: *const HeapArea, _block: *mut std::ffi::c_void, _size: usize, arg: *mut std::ffi::c_void) -> bool {
+    extern "C" fn visit(
+        _heap: *const std::ffi::c_void,
+        area: *const HeapArea,
+        _block: *mut std::ffi::c_void,
+        _size: usize,
+        arg: *mut std::ffi::c_void,
+    ) -> bool {
         // SAFETY: mimalloc passes a valid area and our `arg`, a `HeapStats`.
         let (area, stats) = unsafe { (&*area, &mut *arg.cast::<tsrs_core::memsplit::HeapStats>()) };
         stats.pages += 1;
@@ -96,7 +108,8 @@ fn mimalloc_heap_stats() -> tsrs_core::memsplit::HeapStats {
         stats.used += area.used * area.full_block_size;
         // The page's header lies in front of its blocks, inside the same 4 KiB page.
         let start = area.blocks.addr() & !4095;
-        stats.resident += tsrs_core::memsplit::resident(start, area.blocks.addr() + area.reserved - start);
+        stats.resident +=
+            tsrs_core::memsplit::resident(start, area.blocks.addr() + area.reserved - start);
         true
     }
     let mut stats = tsrs_core::memsplit::HeapStats::default();
@@ -112,7 +125,9 @@ fn mimalloc_collect(force: bool) {
     }
     // SAFETY: collects the calling thread's heap; no arguments to get wrong.
     #[cfg(not(miri))]
-    unsafe { mi_collect(force) };
+    unsafe {
+        mi_collect(force);
+    };
     #[cfg(miri)]
     let _ = force;
 }
@@ -148,7 +163,12 @@ fn main() {
         // Checking recurses deeply; serve requests on a large stack like the command line below.
         let rest = args[1..].to_vec();
         signals::notify_interrupts();
-        let status = std::thread::Builder::new().stack_size(512 << 20).spawn(move || api::run_api(&rest)).unwrap().join().unwrap_or(1);
+        let status = std::thread::Builder::new()
+            .stack_size(512 << 20)
+            .spawn(move || api::run_api(&rest))
+            .unwrap()
+            .join()
+            .unwrap_or(1);
         std::process::exit(status);
     }
     // Type checking recurses deeply; run on a thread with a large stack

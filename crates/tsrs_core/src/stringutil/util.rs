@@ -1,6 +1,6 @@
 // Package stringutil Exports common rune utilities for parsing and emitting javascript
 
-use super::rangetable::{decode_last_rune, decode_rune, push_rune, unicode_to_lower, Rune};
+use super::rangetable::{Rune, decode_last_rune, decode_rune, push_rune, unicode_to_lower};
 
 pub fn is_white_space_like(ch: Rune) -> bool {
     is_white_space_single_line(ch) || is_line_break(ch)
@@ -66,7 +66,9 @@ pub fn is_octal_digit(ch: Rune) -> bool {
 }
 
 pub fn is_hex_digit(ch: Rune) -> bool {
-    ch >= '0' as Rune && ch <= '9' as Rune || ch >= 'A' as Rune && ch <= 'F' as Rune || ch >= 'a' as Rune && ch <= 'f' as Rune
+    ch >= '0' as Rune && ch <= '9' as Rune
+        || ch >= 'A' as Rune && ch <= 'F' as Rune
+        || ch >= 'a' as Rune && ch <= 'f' as Rune
 }
 
 pub fn is_ascii_letter(ch: Rune) -> bool {
@@ -114,7 +116,11 @@ pub fn encode_uri(s: &str) -> String {
     builder.extend(s.bytes().flat_map(|b| {
         {
             if should_escape_for_encode_uri(b) {
-                [Some('%'), Some(UPPERHEX[(b >> 4) as usize] as char), Some(UPPERHEX[(b & 0x0f) as usize] as char)]
+                [
+                    Some('%'),
+                    Some(UPPERHEX[(b >> 4) as usize] as char),
+                    Some(UPPERHEX[(b & 0x0f) as usize] as char),
+                ]
             } else {
                 [Some(b as char), None, None]
             }
@@ -133,7 +139,25 @@ fn should_escape_for_encode_uri(b: u8) -> bool {
     }
     !matches!(
         b,
-        b';' | b'/' | b'?' | b':' | b'@' | b'&' | b'=' | b'+' | b'$' | b',' | b'#' | b'-' | b'_' | b'.' | b'!' | b'~' | b'*' | b'\'' | b'(' | b')'
+        b';' | b'/'
+            | b'?'
+            | b':'
+            | b'@'
+            | b'&'
+            | b'='
+            | b'+'
+            | b'$'
+            | b','
+            | b'#'
+            | b'-'
+            | b'_'
+            | b'.'
+            | b'!'
+            | b'~'
+            | b'*'
+            | b'\''
+            | b'('
+            | b')'
     )
 }
 
@@ -183,7 +207,9 @@ pub fn strip_quotes(name: &str) -> &str {
     }
     let (first_char, _) = decode_rune(name.as_bytes());
     let (last_char, _) = decode_last_rune(name.as_bytes());
-    if first_char == last_char && (first_char == '\'' as Rune || first_char == '"' as Rune || first_char == '`' as Rune) {
+    if first_char == last_char
+        && (first_char == '\'' as Rune || first_char == '"' as Rune || first_char == '`' as Rune)
+    {
         return &name[1..name.len() - 1];
     }
     name
@@ -321,7 +347,12 @@ pub fn decode_js_string_rune_bytes(s: &[u8]) -> (Rune, usize) {
         && s[2] >= UTF8_CONT_MARKER
         && s[2] <= UTF8_CONT_MAX
     {
-        return (SURROGATE_UTF8_LEAD_BITS | (((s[1] & UTF8_CONT_MASK) as Rune) << 6) | (s[2] & UTF8_CONT_MASK) as Rune, 3);
+        return (
+            SURROGATE_UTF8_LEAD_BITS
+                | (((s[1] & UTF8_CONT_MASK) as Rune) << 6)
+                | (s[2] & UTF8_CONT_MASK) as Rune,
+            3,
+        );
     }
     decode_rune(s)
 }
@@ -369,7 +400,10 @@ mod tests {
     fn test_encode_uri() {
         assert_eq!(encode_uri("a b"), "a%20b");
         assert_eq!(encode_uri(";/?:@&=+$,#"), ";/?:@&=+$,#");
-        assert_eq!(encode_uri("①Ⅻㄨㄩ U1[abc]"), "%E2%91%A0%E2%85%AB%E3%84%A8%E3%84%A9%20U1%5Babc%5D");
+        assert_eq!(
+            encode_uri("①Ⅻㄨㄩ U1[abc]"),
+            "%E2%91%A0%E2%85%AB%E3%84%A8%E3%84%A9%20U1%5Babc%5D"
+        );
     }
 
     #[test]

@@ -97,11 +97,9 @@ impl TextPos {
     pub const fn offset_by(self, offset: u32) -> TextPos {
         match self {
             TextPos::Synthetic => TextPos::Synthetic,
-            TextPos::Source(pos) => TextPos::source(
-                pos.get()
-                    .checked_add(offset)
-                    .expect("source position overflow"),
-            ),
+            TextPos::Source(pos) => {
+                TextPos::source(pos.get().checked_add(offset).expect("source position overflow"))
+            }
         }
     }
 }
@@ -185,10 +183,7 @@ pub struct TextRange {
 impl TextRange {
     #[inline]
     pub const fn new(pos: u32, end: u32) -> TextRange {
-        TextRange {
-            pos: TextPos::source(pos),
-            end: TextPos::source(end),
-        }
+        TextRange { pos: TextPos::source(pos), end: TextPos::source(end) }
     }
 
     #[inline]
@@ -198,10 +193,7 @@ impl TextRange {
 
     #[inline]
     pub const fn synthetic() -> TextRange {
-        TextRange {
-            pos: TextPos::Synthetic,
-            end: TextPos::Synthetic,
-        }
+        TextRange { pos: TextPos::Synthetic, end: TextPos::Synthetic }
     }
 
     #[inline]
@@ -225,7 +217,10 @@ impl TextRange {
     }
 
     #[inline]
-    #[expect(clippy::len_without_is_empty, reason = "This accessor reports a position or optional diagnostic length, not a container size.")]
+    #[expect(
+        clippy::len_without_is_empty,
+        reason = "This accessor reports a position or optional diagnostic length, not a container size."
+    )]
     pub fn len(self) -> Option<u32> {
         let TextPos::Source(pos) = self.pos else {
             return None;
@@ -235,12 +230,7 @@ impl TextRange {
         };
         // The +1 encoding cancels in the difference; decoding both positions
         // first needlessly adjusts the operands of the checked subtraction.
-        Some(
-            end.0
-                .get()
-                .checked_sub(pos.0.get())
-                .expect("text range ends before it starts"),
-        )
+        Some(end.0.get().checked_sub(pos.0.get()).expect("text range ends before it starts"))
     }
 
     pub const fn is_valid(self) -> bool {
@@ -314,10 +304,7 @@ mod tests {
         assert_eq!(std::mem::size_of::<TextRange>(), 8);
         assert!(TextPos::Synthetic < TextPos::source(0));
         assert!(TextPos::source(2) < TextPos::source(10));
-        assert_eq!(
-            TextPos::source(SourcePos::MAX).source_offset(),
-            Some(SourcePos::MAX)
-        );
+        assert_eq!(TextPos::source(SourcePos::MAX).source_offset(), Some(SourcePos::MAX));
 
         let ordered = [
             TextPos::Synthetic,
@@ -347,22 +334,10 @@ mod tests {
 
     #[test]
     fn lengths_cover_source_boundaries_and_mixed_ranges() {
-        assert_eq!(
-            TextRange::new(0, SourcePos::MAX).len(),
-            Some(SourcePos::MAX)
-        );
-        assert_eq!(
-            TextRange::new(SourcePos::MAX, SourcePos::MAX).len(),
-            Some(0)
-        );
-        assert_eq!(
-            TextRange::from_text_pos(TextPos::Synthetic, TextPos::source(1)).len(),
-            None
-        );
-        assert_eq!(
-            TextRange::from_text_pos(TextPos::source(1), TextPos::Synthetic).len(),
-            None
-        );
+        assert_eq!(TextRange::new(0, SourcePos::MAX).len(), Some(SourcePos::MAX));
+        assert_eq!(TextRange::new(SourcePos::MAX, SourcePos::MAX).len(), Some(0));
+        assert_eq!(TextRange::from_text_pos(TextPos::Synthetic, TextPos::source(1)).len(), None);
+        assert_eq!(TextRange::from_text_pos(TextPos::source(1), TextPos::Synthetic).len(), None);
     }
 
     #[test]

@@ -8,13 +8,26 @@ pub struct ConstEnumInliningTransformer {
 }
 
 // constenum.go:22
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_const_enum_inlining_transformer(opt: &TransformOptions) -> Option<P<Transformer>> {
     let compiler_options = opt.compiler_options;
     let emit_context = opt.context;
-    assert!(!compiler_options.get_isolated_modules(), "const enums are not inlined under isolated modules");
-    let tx = P::new(ConstEnumInliningTransformer { base: Transformer::default(), compiler_options, emit_resolver: opt.emit_resolver });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)), Some(emit_context)))
+    assert!(
+        !compiler_options.get_isolated_modules(),
+        "const enums are not inlined under isolated modules"
+    );
+    let tx = P::new(ConstEnumInliningTransformer {
+        base: Transformer::default(),
+        compiler_options,
+        emit_resolver: opt.emit_resolver,
+    });
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| tx.visit(n)),
+        Some(emit_context),
+    ))
 }
 
 impl ConstEnumInliningTransformer {
@@ -35,14 +48,25 @@ impl ConstEnumInliningTransformer {
                             if v.abs() == v {
                                 replacement = Some(f.new_identifier("Infinity"));
                             } else {
-                                replacement = Some(f.new_prefix_unary_expression(Kind::MinusToken, f.new_identifier("Infinity")));
+                                replacement = Some(f.new_prefix_unary_expression(
+                                    Kind::MinusToken,
+                                    f.new_identifier("Infinity"),
+                                ));
                             }
                         } else if v.is_nan() {
                             replacement = Some(f.new_identifier("NaN"));
                         } else if v.abs() == v {
-                            replacement = Some(f.new_numeric_literal(alloc_str(&v.string()), TokenFlags::None));
+                            replacement = Some(
+                                f.new_numeric_literal(alloc_str(&v.string()), TokenFlags::None),
+                            );
                         } else {
-                            replacement = Some(f.new_prefix_unary_expression(Kind::MinusToken, f.new_numeric_literal(alloc_str(&v.abs().string()), TokenFlags::None)));
+                            replacement = Some(f.new_prefix_unary_expression(
+                                Kind::MinusToken,
+                                f.new_numeric_literal(
+                                    alloc_str(&v.abs().string()),
+                                    TokenFlags::None,
+                                ),
+                            ));
                         }
                     }
                     LiteralValue::String(v) => {
@@ -53,9 +77,13 @@ impl ConstEnumInliningTransformer {
                         if v == jsnum::PseudoBigInt::default() {
                             replacement = Some(f.new_big_int_literal("0", TokenFlags::None));
                         } else if !v.negative {
-                            replacement = Some(f.new_big_int_literal(v.base10_value, TokenFlags::None));
+                            replacement =
+                                Some(f.new_big_int_literal(v.base10_value, TokenFlags::None));
                         } else {
-                            replacement = Some(f.new_prefix_unary_expression(Kind::MinusToken, f.new_big_int_literal(v.base10_value, TokenFlags::None)));
+                            replacement = Some(f.new_prefix_unary_expression(
+                                Kind::MinusToken,
+                                f.new_big_int_literal(v.base10_value, TokenFlags::None),
+                            ));
                         }
                     }
                     LiteralValue::Boolean(_) => {}
@@ -68,7 +96,12 @@ impl ConstEnumInliningTransformer {
                             let original_text = scanner::get_text_of_node(original);
                             let escaped_text = safe_multi_line_comment(&original_text);
                             // Go dereferences a nil replacement here (a boolean constant value cannot occur).
-                            emit_context.add_synthetic_trailing_comment(replacement.unwrap(), Kind::MultiLineCommentTrivia, &escaped_text, false);
+                            emit_context.add_synthetic_trailing_comment(
+                                replacement.unwrap(),
+                                Kind::MultiLineCommentTrivia,
+                                &escaped_text,
+                                false,
+                            );
                         }
                     }
                 }
@@ -84,7 +117,9 @@ impl ConstEnumInliningTransformer {
 fn safe_multi_line_comment(text: &str) -> String {
     let mut b = String::with_capacity(text.len() + 2);
     b.push(' ');
-    b.extend(text.split("*/").enumerate().flat_map(|(i, part)| [if i == 0 { "" } else { "*_/" }, part]));
+    b.extend(
+        text.split("*/").enumerate().flat_map(|(i, part)| [if i == 0 { "" } else { "*_/" }, part]),
+    );
     b.push(' ');
     b
 }

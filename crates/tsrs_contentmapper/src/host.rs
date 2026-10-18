@@ -124,11 +124,21 @@ impl ProjectError {
     // the named constants, which the Rust enum cannot hold.)
     pub fn error(self) -> String {
         match self.kind {
-            ProjectErrorKind::MalformedResponse => "content mapper returned a malformed project response",
-            ProjectErrorKind::MissingConfigIdentity => "content mapper did not return configIdentity for dynamic configuration",
-            ProjectErrorKind::NonAbsoluteWatchedFile => "content mapper returned a non-absolute path in watchedFiles",
-            ProjectErrorKind::UnexpectedConfigIdentity => "content mapper returned configIdentity without declaring dynamicConfig",
-            ProjectErrorKind::UnexpectedWatchedFiles => "content mapper returned watchedFiles without declaring dynamicConfig",
+            ProjectErrorKind::MalformedResponse => {
+                "content mapper returned a malformed project response"
+            }
+            ProjectErrorKind::MissingConfigIdentity => {
+                "content mapper did not return configIdentity for dynamic configuration"
+            }
+            ProjectErrorKind::NonAbsoluteWatchedFile => {
+                "content mapper returned a non-absolute path in watchedFiles"
+            }
+            ProjectErrorKind::UnexpectedConfigIdentity => {
+                "content mapper returned configIdentity without declaring dynamicConfig"
+            }
+            ProjectErrorKind::UnexpectedWatchedFiles => {
+                "content mapper returned watchedFiles without declaring dynamicConfig"
+            }
         }
         .to_string()
     }
@@ -184,22 +194,38 @@ impl InitializeError {
     pub fn error(&self) -> String {
         match self.kind {
             InitializeErrorKind::ProcessStart => {
-                format!("could not start content mapper command {}: {}", quote(&self.command), self.detail)
+                format!(
+                    "could not start content mapper command {}: {}",
+                    quote(&self.command),
+                    self.detail
+                )
             }
             InitializeErrorKind::ProcessExit => {
-                format!("content mapper process exited before initialization with code {}", self.exit_code)
+                format!(
+                    "content mapper process exited before initialization with code {}",
+                    self.exit_code
+                )
             }
-            InitializeErrorKind::NoResponse => "content mapper did not respond to the initialize request".to_string(),
+            InitializeErrorKind::NoResponse => {
+                "content mapper did not respond to the initialize request".to_string()
+            }
             InitializeErrorKind::InvalidResponse => {
                 format!("content mapper returned an invalid initialize response: {}", self.detail)
             }
-            InitializeErrorKind::Request => format!("content mapper initialize request failed: {}", self.detail),
+            InitializeErrorKind::Request => {
+                format!("content mapper initialize request failed: {}", self.detail)
+            }
             InitializeErrorKind::PositionEncoding => {
                 format!("unsupported position encoding {}", quote(&self.position_encoding.0))
             }
-            InitializeErrorKind::EmptyDiagnosticSource => "diagnostic source must not be empty".to_string(),
+            InitializeErrorKind::EmptyDiagnosticSource => {
+                "diagnostic source must not be empty".to_string()
+            }
             InitializeErrorKind::ReservedDiagnosticSource => {
-                format!("diagnostic source {} is reserved by TypeScript", quote(&self.diagnostic_source))
+                format!(
+                    "diagnostic source {} is reserved by TypeScript",
+                    quote(&self.diagnostic_source)
+                )
             }
         }
     }
@@ -302,7 +328,10 @@ impl Timings {
     #[must_use]
     pub fn since(&self, previous: &Timings) -> Timings {
         let mut result = Timings {
-            mappers: OrderedMap::with_capacity_and_hasher(self.mappers.len(), rustc_hash::FxBuildHasher),
+            mappers: OrderedMap::with_capacity_and_hasher(
+                self.mappers.len(),
+                rustc_hash::FxBuildHasher,
+            ),
             request_wait: self.request_wait.saturating_sub(previous.request_wait),
         };
         result.mappers.extend(self.mappers.iter().map(|(identity, current)| {
@@ -313,7 +342,10 @@ impl Timings {
                     spawn: operation_timing_since(current.spawn, before.spawn),
                     initialize: operation_timing_since(current.initialize, before.initialize),
                     open_project: operation_timing_since(current.open_project, before.open_project),
-                    close_project: operation_timing_since(current.close_project, before.close_project),
+                    close_project: operation_timing_since(
+                        current.close_project,
+                        before.close_project,
+                    ),
                     transform: operation_timing_since(current.transform, before.transform),
                 },
             )
@@ -356,7 +388,11 @@ pub trait Project: Send + Sync {
     fn diagnostics(&self) -> Vec<OptionDiagnostic>;
     // Transform transforms one content-mapped source file using mapper in this project's configuration.
     // host.go:288
-    fn transform(&self, mapper: &Mapper, request: Request<'_>) -> Result<TransformResultFiles, Error>;
+    fn transform(
+        &self,
+        mapper: &Mapper,
+        request: Request<'_>,
+    ) -> Result<TransformResultFiles, Error>;
     // Close releases this project reference and closes mapper project handles when no references remain.
     // host.go:290
     fn close(&self) -> Result<(), Error>;
@@ -388,7 +424,11 @@ pub trait Host: Send + Sync {
     // A non-nil error indicates the mapper itself failed to produce a result — for example the
     // host hit a broken pipe, a process crash, or could not deserialize the mapper's response.
     // host.go:312
-    fn transform(&self, mapper: &'static Mapper, request: Request<'_>) -> Result<TransformResultFiles, Error>;
+    fn transform(
+        &self,
+        mapper: &'static Mapper,
+        request: Request<'_>,
+    ) -> Result<TransformResultFiles, Error>;
     // Close shuts down every mapper process the host spawned.
     // host.go:314
     fn close(&self) -> Result<(), Error>;
@@ -403,7 +443,10 @@ pub const ERR_PROJECT_UNAVAILABLE: &str = "content mapper project is unavailable
 // operands here never are one of the typed errors), is `Other` with Go's text; an error from the mapper
 // connection is `Ipc`, which keeps the ipc sentinels (`ipc::ErrorTag`) for errors.Is.
 #[derive(Clone, Debug)]
-#[expect(clippy::error_impl_error, reason = "the public name mirrors Go's package-level content-mapper error value")]
+#[expect(
+    clippy::error_impl_error,
+    reason = "the public name mirrors Go's package-level content-mapper error value"
+)]
 pub enum Error {
     // *TransformError
     Transform(TransformError),

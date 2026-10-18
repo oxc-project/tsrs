@@ -2,20 +2,24 @@ use std::cell::OnceCell;
 use std::collections::hash_map::Entry;
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_ast::{self as ast, Kind, ModifierFlags, Node, NodeFlags, NodeId, SourceFile, Symbol, SymbolFlags};
+use tsrs_ast::{
+    self as ast, Kind, ModifierFlags, Node, NodeFlags, NodeId, SourceFile, Symbol, SymbolFlags,
+};
 use tsrs_checker::Checker;
 use tsrs_compiler::Program;
 use tsrs_core::collections::{OrderedMap, Set};
 use tsrs_core::context::Context;
-use tsrs_core::{TextPos, TextRange, P};
+use tsrs_core::{P, TextPos, TextRange};
 use tsrs_lsproto as lsproto;
 use tsrs_printer::{self as printer, EmitTextWriter as _};
 use tsrs_scanner as scanner;
 
 use crate::astnav;
-use crate::crossproject::{combine_incoming_calls, CrossProjectOrchestrator};
+use crate::crossproject::{CrossProjectOrchestrator, combine_incoming_calls};
 use crate::definition::lsp_range_contains;
-use crate::findallreferences::{EntryKind, ReferenceEntry, SymbolAndEntriesData, SymbolEntryTransformOptions};
+use crate::findallreferences::{
+    EntryKind, ReferenceEntry, SymbolAndEntriesData, SymbolEntryTransformOptions,
+};
 use crate::languageservice::LanguageService;
 use crate::lsconv;
 use crate::spanmap::Feature;
@@ -55,7 +59,10 @@ fn is_assigned_expression(node: Option<P<Node>>) -> bool {
     let Some(node) = node else {
         return false;
     };
-    if !(ast::is_function_expression(node) || ast::is_arrow_function(node) || ast::is_class_expression(node)) {
+    if !(ast::is_function_expression(node)
+        || ast::is_arrow_function(node)
+        || ast::is_class_expression(node))
+    {
         return false;
     }
     if node.name().is_some() {
@@ -76,7 +83,8 @@ fn is_assigned_expression(node: Option<P<Node>>) -> bool {
         return false;
     }
 
-    ast::get_combined_node_flags(parent).intersects(NodeFlags::Const) || ast::is_property_declaration(parent)
+    ast::get_combined_node_flags(parent).intersects(NodeFlags::Const)
+        || ast::is_property_declaration(parent)
 }
 
 // Indicates whether a node could possibly be a call hierarchy declaration.
@@ -146,7 +154,11 @@ fn get_call_hierarchy_declaration_reference_node(node: Option<P<Node>>) -> Optio
     }
 
     if let Some(modifiers) = node.modifiers() {
-        if let Some(result) = modifiers.nodes().iter().find_map(|&m| if m.kind() == Kind::DefaultKeyword { Some(Some(m)) } else { None }) {
+        if let Some(result) = modifiers
+            .nodes()
+            .iter()
+            .find_map(|&m| if m.kind() == Kind::DefaultKeyword { Some(Some(m)) } else { None })
+        {
             return result;
         }
     }
@@ -172,21 +184,21 @@ fn get_call_hierarchy_item_name(program: &'static Program, node: P<Node>) -> (St
         return (source_file.file_name().to_string(), 0, 0);
     }
 
-    if (ast::is_function_declaration(node) || ast::is_class_declaration(node)) && node.name().is_none() {
+    if (ast::is_function_declaration(node) || ast::is_class_declaration(node))
+        && node.name().is_none()
+    {
         if let Some(modifiers) = node.modifiers() {
             if let Some(result) = modifiers.nodes().iter().find_map(|&m| {
                 if m.kind() == Kind::DefaultKeyword {
                     let source_file = ast::get_source_file_of_node(node).unwrap();
                     let start = scanner::skip_trivia(
                         source_file.text(),
-                        m.pos()
-                            .expect_source("parsed modifiers have source positions"),
+                        m.pos().expect_source("parsed modifiers have source positions"),
                     );
                     return Some((
                         "default".to_string(),
                         start,
-                        m.end()
-                            .expect_source("parsed modifiers have source positions"),
+                        m.end().expect_source("parsed modifiers have source positions"),
                     ));
                 }
 
@@ -216,7 +228,11 @@ fn get_call_hierarchy_item_name(program: &'static Program, node: P<Node>) -> (St
         return (prefix + "static {}", pos, end);
     }
 
-    let decl_name = if is_assigned_expression(Some(node)) { node.parent().unwrap().name() } else { ast::get_name_of_declaration(Some(node)) };
+    let decl_name = if is_assigned_expression(Some(node)) {
+        node.parent().unwrap().name()
+    } else {
+        ast::get_name_of_declaration(Some(node))
+    };
 
     if decl_name.is_none_or(|decl_name| !ast::node_is_present(Some(decl_name))) {
         let source_file = ast::get_source_file_of_node(node).unwrap();
@@ -246,22 +262,23 @@ fn get_call_hierarchy_item_name(program: &'static Program, node: P<Node>) -> (St
     let source_file = ast::get_source_file_of_node(node).unwrap();
     let name_pos = scanner::skip_trivia(
         source_file.text(),
-        decl_name
-            .pos()
-            .expect_source("parsed declaration names have source positions"),
+        decl_name.pos().expect_source("parsed declaration names have source positions"),
     );
 
     (
         text,
         name_pos,
-        decl_name
-            .end()
-            .expect_source("parsed declaration names have source positions"),
+        decl_name.end().expect_source("parsed declaration names have source positions"),
     )
 }
 
 // callhierarchy.go:221
-fn get_text_of_call_hierarchy_name(program: &'static Program, source_node: P<Node>, name: P<Node>, print_node: P<Node>) -> String {
+fn get_text_of_call_hierarchy_name(
+    program: &'static Program,
+    source_node: P<Node>,
+    name: P<Node>,
+    print_node: P<Node>,
+) -> String {
     if ast::is_identifier(name) || ast::is_string_or_numeric_literal_like(name) {
         return name.text().to_string();
     }
@@ -273,7 +290,10 @@ fn get_text_of_call_hierarchy_name(program: &'static Program, source_node: P<Nod
     }
 
     {
-        let mut c = program.get_type_checker_for_file(&Context::background(), ast::get_source_file_of_node(source_node).unwrap());
+        let mut c = program.get_type_checker_for_file(
+            &Context::background(),
+            ast::get_source_file_of_node(source_node).unwrap(),
+        );
         let c: &mut Checker = &mut c;
         let symbol = c.get_symbol_at_location_exported(name);
         if let Some(symbol) = symbol {
@@ -286,7 +306,11 @@ fn get_text_of_call_hierarchy_name(program: &'static Program, source_node: P<Nod
 
     let source_file = ast::get_source_file_of_node(source_node).unwrap();
     let (mut writer, put_writer) = printer::get_single_line_string_writer();
-    let mut p = printer::new_printer(printer::PrinterOptions { remove_comments: true, ..Default::default() }, printer::PrintHandlers::default(), None);
+    let mut p = printer::new_printer(
+        printer::PrinterOptions { remove_comments: true, ..Default::default() },
+        printer::PrintHandlers::default(),
+        None,
+    );
     p.write(print_node, Some(source_file), &mut *writer, None);
     let result = writer.string();
     put_writer();
@@ -301,13 +325,21 @@ fn get_call_hierarchy_item_container_name(program: &'static Program, node: P<Nod
         if ast::is_property_declaration(parent) && ast::is_class_like(parent_parent) {
             if ast::is_class_expression(parent_parent) {
                 if let Some(assigned_name) = ast::get_assigned_name(parent_parent) {
-                    return get_text_of_call_hierarchy_name(program, node, assigned_name, assigned_name);
+                    return get_text_of_call_hierarchy_name(
+                        program,
+                        node,
+                        assigned_name,
+                        assigned_name,
+                    );
                 }
             } else if let Some(name) = parent_parent.name() {
                 return get_text_of_call_hierarchy_name(program, node, name, name);
             }
         }
-        if let Some(ppp) = parent_parent.parent().and_then(|ppp| ppp.parent().filter(|&p4| ast::is_module_block(p4)).map(|_| ppp)) {
+        if let Some(ppp) = parent_parent
+            .parent()
+            .and_then(|ppp| ppp.parent().filter(|&p4| ast::is_module_block(p4)).map(|_| ppp))
+        {
             let mod_parent = ppp.parent().unwrap().parent();
             if let Some(mod_parent) = mod_parent.filter(|&m| ast::is_module_declaration(m)) {
                 if let Some(name) = mod_parent.name().filter(|&n| ast::is_identifier(n)) {
@@ -323,7 +355,12 @@ fn get_call_hierarchy_item_container_name(program: &'static Program, node: P<Nod
             let parent = node.parent().unwrap();
             if parent.kind() == Kind::ObjectLiteralExpression {
                 if let Some(assigned_name) = ast::get_assigned_name(parent) {
-                    return get_text_of_call_hierarchy_name(program, node, assigned_name, assigned_name);
+                    return get_text_of_call_hierarchy_name(
+                        program,
+                        node,
+                        assigned_name,
+                        assigned_name,
+                    );
                 }
             }
             if let Some(name) = ast::get_name_of_declaration(Some(parent)) {
@@ -377,7 +414,9 @@ fn find_implementation(c: &mut Checker, node: Option<P<Node>>) -> Option<P<Node>
     if ast::is_function_declaration(node) || ast::is_method_declaration(node) {
         let symbol = get_symbol_of_call_hierarchy_declaration(c, node);
         if let Some(value_declaration) = symbol.and_then(|s| s.value_declaration()) {
-            if ast::is_function_like_declaration(Some(value_declaration)) && value_declaration.body().is_some() {
+            if ast::is_function_like_declaration(Some(value_declaration))
+                && value_declaration.body().is_some()
+            {
                 return Some(value_declaration);
             }
         }
@@ -407,8 +446,13 @@ fn find_all_initial_declarations(c: &mut Checker, node: P<Node>) -> Option<Vec<P
     }
 
     let mut indices: Vec<usize> = (0..symbol_declarations.len()).collect();
-    let keys: Vec<declKey> =
-        symbol_declarations.iter().map(|&decl| declKey { file: ast::get_source_file_of_node(decl).unwrap().file_name().to_string(), pos: decl.pos() }).collect();
+    let keys: Vec<declKey> = symbol_declarations
+        .iter()
+        .map(|&decl| declKey {
+            file: ast::get_source_file_of_node(decl).unwrap().file_name().to_string(),
+            pos: decl.pos(),
+        })
+        .collect();
 
     indices.sort_by(|&a, &b| {
         if keys[a].file != keys[b].file {
@@ -442,7 +486,10 @@ fn find_all_initial_declarations(c: &mut Checker, node: P<Node>) -> Option<Vec<P
 
 // Find the implementation or the first declaration for a call hierarchy declaration.
 // callhierarchy.go:388
-fn find_implementation_or_all_initial_declarations(c: &mut Checker, node: P<Node>) -> CallHierarchyDeclarations {
+fn find_implementation_or_all_initial_declarations(
+    c: &mut Checker,
+    node: P<Node>,
+) -> CallHierarchyDeclarations {
     if ast::is_class_static_block_declaration(node) {
         return CallHierarchyDeclarations::Node(node);
     }
@@ -465,7 +512,10 @@ fn find_implementation_or_all_initial_declarations(c: &mut Checker, node: P<Node
 
 // Resolves the call hierarchy declaration for a node.
 // callhierarchy.go:410
-pub(crate) fn resolve_call_hierarchy_declaration(program: &'static Program, location: P<Node>) -> Option<CallHierarchyDeclarations> {
+pub(crate) fn resolve_call_hierarchy_declaration(
+    program: &'static Program,
+    location: P<Node>,
+) -> Option<CallHierarchyDeclarations> {
     // A call hierarchy item must refer to either a SourceFile, Module Declaration, Class Static Block, or something intrinsically callable that has a name:
     // - Class Declarations
     // - Class Expressions (with a name)
@@ -492,7 +542,9 @@ pub(crate) fn resolve_call_hierarchy_declaration(program: &'static Program, loca
         }
 
         if is_possible_call_hierarchy_declaration(Some(location)) {
-            let ancestor = ast::find_ancestor(Some(location), |n| is_valid_call_hierarchy_declaration(Some(n)));
+            let ancestor = ast::find_ancestor(Some(location), |n| {
+                is_valid_call_hierarchy_declaration(Some(n))
+            });
             if let Some(ancestor) = ancestor {
                 return Some(find_implementation_or_all_initial_declarations(c, ancestor));
             }
@@ -504,14 +556,16 @@ pub(crate) fn resolve_call_hierarchy_declaration(program: &'static Program, loca
                 return Some(find_implementation_or_all_initial_declarations(c, parent.unwrap()));
             }
             if is_possible_call_hierarchy_declaration(parent) {
-                let ancestor = ast::find_ancestor(parent, |n| is_valid_call_hierarchy_declaration(Some(n)));
+                let ancestor =
+                    ast::find_ancestor(parent, |n| is_valid_call_hierarchy_declaration(Some(n)));
                 if let Some(ancestor) = ancestor {
                     return Some(find_implementation_or_all_initial_declarations(c, ancestor));
                 }
             }
             if is_variable_like(parent) {
                 let initializer = parent.unwrap().initializer();
-                if let Some(initializer) = initializer.filter(|&i| is_assigned_expression(Some(i))) {
+                if let Some(initializer) = initializer.filter(|&i| is_assigned_expression(Some(i)))
+                {
                     return Some(CallHierarchyDeclarations::Node(initializer));
                 }
             }
@@ -525,14 +579,18 @@ pub(crate) fn resolve_call_hierarchy_declaration(program: &'static Program, loca
             return None;
         }
 
-        if location.kind() == Kind::StaticKeyword && ast::is_class_static_block_declaration(location.parent().unwrap()) {
+        if location.kind() == Kind::StaticKeyword
+            && ast::is_class_static_block_declaration(location.parent().unwrap())
+        {
             location = location.parent().unwrap();
             continue;
         }
 
         // #39453
         if ast::is_variable_declaration(location) {
-            if let Some(initializer) = location.initializer().filter(|&i| is_assigned_expression(Some(i))) {
+            if let Some(initializer) =
+                location.initializer().filter(|&i| is_assigned_expression(Some(i)))
+            {
                 return Some(CallHierarchyDeclarations::Node(initializer));
             }
         }
@@ -558,7 +616,11 @@ pub(crate) fn resolve_call_hierarchy_declaration(program: &'static Program, loca
 impl LanguageService {
     // Creates a `CallHierarchyItem` for a call hierarchy declaration.
     // callhierarchy.go:501
-    fn create_call_hierarchy_item(&self, program: &'static Program, node: P<Node>) -> Option<lsproto::CallHierarchyItem> {
+    fn create_call_hierarchy_item(
+        &self,
+        program: &'static Program,
+        node: P<Node>,
+    ) -> Option<lsproto::CallHierarchyItem> {
         let source_file = ast::get_source_file_of_node(node).unwrap();
         let (name_text, name_pos, name_end) = get_call_hierarchy_item_name(program, node);
         let container_name = get_call_hierarchy_item_container_name(program, node);
@@ -567,19 +629,14 @@ impl LanguageService {
 
         let full_start = scanner::skip_trivia_ex(
             source_file.text(),
-            node.pos()
-                .expect_source("call-hierarchy declarations have source positions"),
-            Some(&scanner::SkipTriviaOptions {
-                stop_at_comments: true,
-                ..Default::default()
-            }),
+            node.pos().expect_source("call-hierarchy declarations have source positions"),
+            Some(&scanner::SkipTriviaOptions { stop_at_comments: true, ..Default::default() }),
         );
         let (mut span, span_fidelity) = self.converters.to_lsp_range_for_feature(
             &source_file,
             TextRange::new(
                 full_start,
-                node.end()
-                    .expect_source("call-hierarchy declarations have source positions"),
+                node.end().expect_source("call-hierarchy declarations have source positions"),
             ),
             Feature::CallHierarchy,
         );
@@ -591,7 +648,9 @@ impl LanguageService {
         if !selection_fidelity.is_single_segment() {
             return None;
         }
-        if span_fidelity.is_none() || !source_file.content_mapper().is_empty() && !lsp_range_contains(span, selection_span) {
+        if span_fidelity.is_none()
+            || !source_file.content_mapper().is_empty() && !lsp_range_contains(span, selection_span)
+        {
             span = selection_span;
         }
 
@@ -626,8 +685,10 @@ fn convert_entry_to_call_site(entry: &ReferenceEntry) -> Option<callSite> {
     }
 
     let node = entry.node.unwrap();
-    if !ast::is_call_or_new_expression_target(node, true /*includeElementAccess*/, true /*skipPastOuterExpressions*/)
-        && !ast::is_tagged_template_tag(node, true, true)
+    if !ast::is_call_or_new_expression_target(
+        node, true, /*includeElementAccess*/
+        true, /*skipPastOuterExpressions*/
+    ) && !ast::is_tagged_template_tag(node, true, true)
         && !ast::is_decorator_target(node, true, true)
         && !ast::is_jsx_opening_like_element_tag_name(node, true, true)
         && !ast::is_right_side_of_property_access(node)
@@ -637,7 +698,8 @@ fn convert_entry_to_call_site(entry: &ReferenceEntry) -> Option<callSite> {
     }
 
     let source_file = ast::get_source_file_of_node(node).unwrap();
-    let ancestor = ast::find_ancestor(Some(node), |n| is_valid_call_hierarchy_declaration(Some(n))).unwrap_or_else(|| source_file.as_node());
+    let ancestor = ast::find_ancestor(Some(node), |n| is_valid_call_hierarchy_declaration(Some(n)))
+        .unwrap_or_else(|| source_file.as_node());
 
     let start = scanner::skip_trivia(
         source_file.text(),
@@ -660,11 +722,19 @@ fn get_call_site_group_key(site: &callSite) -> NodeId {
 
 impl LanguageService {
     // callhierarchy.go:572
-    fn convert_call_site_group_to_incoming_call(&self, program: &'static Program, entries: &[callSite]) -> Option<lsproto::CallHierarchyIncomingCall> {
+    fn convert_call_site_group_to_incoming_call(
+        &self,
+        program: &'static Program,
+        entries: &[callSite],
+    ) -> Option<lsproto::CallHierarchyIncomingCall> {
         let mut from_ranges: Vec<lsproto::Range> = Vec::with_capacity(entries.len());
         from_ranges.extend(entries.iter().filter_map(|entry| {
             let source_file = entry.source_file.as_source_file_p();
-            let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(&source_file, entry.text_range, Feature::CallHierarchy);
+            let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
+                &source_file,
+                entry.text_range,
+                Feature::CallHierarchy,
+            );
             if !fidelity.is_none() { Some(lsp_range) } else { None }
         }));
         let from = self.create_call_hierarchy_item(program, entries[0].declaration);
@@ -702,7 +772,9 @@ impl incomingEntry<'_> {
 // callhierarchy.go:616
 impl lsproto::HasTextDocumentURI for incomingEntry<'_> {
     fn text_document_uri(&self) -> &lsproto::DocumentUri {
-        self.document_uri.get_or_init(|| lsconv::file_name_to_document_uri(self.get_source_file().original_file_name()))
+        self.document_uri.get_or_init(|| {
+            lsconv::file_name_to_document_uri(self.get_source_file().original_file_name())
+        })
     }
 }
 
@@ -710,7 +782,11 @@ impl lsproto::HasTextDocumentURI for incomingEntry<'_> {
 impl lsproto::HasTextDocumentPosition for incomingEntry<'_> {
     fn text_document_position(&self) -> lsproto::Position {
         *self.position.get_or_init(|| {
-            let start = scanner::get_token_pos_of_node(self.node, self.get_source_file(), false /*includeJsDoc*/);
+            let start = scanner::get_token_pos_of_node(
+                self.node,
+                self.get_source_file(),
+                false, /*includeJsDoc*/
+            );
             let (position, _) = self.ls.create_lsp_position(start, self.get_source_file());
             position
         })
@@ -728,11 +804,15 @@ impl LanguageService {
         orchestrator: Option<&dyn CrossProjectOrchestrator>,
     ) -> Result<lsproto::CallHierarchyIncomingCallsResponse, lsproto::Error> {
         // Source files and modules have no incoming calls.
-        if ast::is_source_file(declaration) || ast::is_module_declaration(declaration) || ast::is_class_static_block_declaration(declaration) {
+        if ast::is_source_file(declaration)
+            || ast::is_module_declaration(declaration)
+            || ast::is_class_static_block_declaration(declaration)
+        {
             return Ok(lsproto::CallHierarchyIncomingCallsOrNull::default());
         }
 
-        let Some(location) = get_call_hierarchy_declaration_reference_node(Some(declaration)) else {
+        let Some(location) = get_call_hierarchy_declaration_reference_node(Some(declaration))
+        else {
             return Ok(lsproto::CallHierarchyIncomingCallsOrNull::default());
         };
         let location_file = ast::get_source_file_of_node(location).unwrap();
@@ -747,7 +827,13 @@ impl LanguageService {
             return Ok(lsproto::CallHierarchyIncomingCallsOrNull::default());
         }
 
-        let incoming_entry = incomingEntry { ls: self, node: location, source_file: OnceCell::new(), document_uri: OnceCell::new(), position: OnceCell::new() };
+        let incoming_entry = incomingEntry {
+            ls: self,
+            node: location,
+            source_file: OnceCell::new(),
+            document_uri: OnceCell::new(),
+            position: OnceCell::new(),
+        };
 
         let mut result = self.handle_cross_project(
             ctx,
@@ -779,7 +865,10 @@ impl LanguageService {
 
     // Go groups the call sites in a map keyed by node id (random iteration order); the port keeps first-seen order.
     // callhierarchy.go:678
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
     fn symbol_and_entries_to_incoming_calls(
         &self,
         _ctx: &Context,
@@ -789,7 +878,11 @@ impl LanguageService {
     ) -> Result<lsproto::CallHierarchyIncomingCallsResponse, lsproto::Error> {
         let program = self.get_program();
         let mut ref_entries = Vec::new();
-        ref_entries.extend(data.symbols_and_entries.iter().flat_map(|symbol_and_entry| symbol_and_entry.references.iter().cloned()));
+        ref_entries.extend(
+            data.symbols_and_entries
+                .iter()
+                .flat_map(|symbol_and_entry| symbol_and_entry.references.iter().cloned()),
+        );
 
         let mut call_sites: Vec<callSite> = Vec::new();
         call_sites.extend(ref_entries.iter().filter_map(|entry| convert_entry_to_call_site(entry)));
@@ -808,7 +901,9 @@ impl LanguageService {
         result.extend(grouped.iter().filter_map(|(_, sites)| {
             self.convert_call_site_group_to_incoming_call(program, sites)
         }));
-        Ok(lsproto::CallHierarchyIncomingCallsOrNull { call_hierarchy_incoming_calls: Some(result) })
+        Ok(lsproto::CallHierarchyIncomingCallsOrNull {
+            call_hierarchy_incoming_calls: Some(result),
+        })
     }
 }
 
@@ -825,9 +920,15 @@ impl callSiteCollector {
             Some(node.as_tagged_template_expression().tag)
         } else if ast::is_jsx_opening_element(node) || ast::is_jsx_self_closing_element(node) {
             Some(node.tag_name())
-        } else if ast::is_property_access_expression(node) || ast::is_element_access_expression(node) || ast::is_class_static_block_declaration(node) {
+        } else if ast::is_property_access_expression(node)
+            || ast::is_element_access_expression(node)
+            || ast::is_class_static_block_declaration(node)
+        {
             Some(node)
-        } else if ast::is_call_expression(node) || ast::is_new_expression(node) || ast::is_decorator(node) {
+        } else if ast::is_call_expression(node)
+            || ast::is_new_expression(node)
+            || ast::is_decorator(node)
+        {
             node.expression()
         } else {
             None
@@ -844,23 +945,25 @@ impl callSiteCollector {
         let source_file = ast::get_source_file_of_node(target).unwrap();
         let start = scanner::skip_trivia(
             source_file.text(),
-            target
-                .pos()
-                .expect_source("call targets have source positions"),
+            target.pos().expect_source("call targets have source positions"),
         );
-        let text_range = TextRange::new(
-            start,
-            target
-                .end()
-                .expect_source("call targets have source positions"),
-        );
+        let text_range =
+            TextRange::new(start, target.end().expect_source("call targets have source positions"));
 
         match declaration {
             CallHierarchyDeclarations::Node(decl) => {
-                self.call_sites.push(callSite { declaration: decl, text_range, source_file: source_file.as_node() });
+                self.call_sites.push(callSite {
+                    declaration: decl,
+                    text_range,
+                    source_file: source_file.as_node(),
+                });
             }
             CallHierarchyDeclarations::Nodes(decls) => {
-                self.call_sites.extend(decls.into_iter().map(|d| callSite { declaration: d, text_range, source_file: source_file.as_node() }));
+                self.call_sites.extend(decls.into_iter().map(|d| callSite {
+                    declaration: d,
+                    text_range,
+                    source_file: source_file.as_node(),
+                }));
             }
         }
     }
@@ -985,14 +1088,22 @@ fn collect_call_sites(program: &'static Program, c: &mut Checker, node: P<Node>)
 
         Kind::ModuleDeclaration => {
             let body = node.body();
-            if let Some(body) = body.filter(|&body| !ast::has_syntactic_modifier(node, ModifierFlags::Ambient) && ast::is_module_block(body)) {
+            if let Some(body) = body.filter(|&body| {
+                !ast::has_syntactic_modifier(node, ModifierFlags::Ambient)
+                    && ast::is_module_block(body)
+            }) {
                 for &stmt in body.statements() {
                     collector.collect(Some(stmt));
                 }
             }
         }
 
-        Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::ArrowFunction | Kind::MethodDeclaration | Kind::GetAccessor | Kind::SetAccessor => {
+        Kind::FunctionDeclaration
+        | Kind::FunctionExpression
+        | Kind::ArrowFunction
+        | Kind::MethodDeclaration
+        | Kind::GetAccessor
+        | Kind::SetAccessor => {
             let implementation = find_implementation(c, Some(node));
             if let Some(implementation) = implementation {
                 for &param in implementation.parameters() {
@@ -1051,11 +1162,19 @@ fn collect_call_sites(program: &'static Program, c: &mut Checker, node: P<Node>)
 
 impl LanguageService {
     // callhierarchy.go:942
-    fn convert_call_site_group_to_outgoing_call(&self, program: &'static Program, entries: &[callSite]) -> Option<lsproto::CallHierarchyOutgoingCall> {
+    fn convert_call_site_group_to_outgoing_call(
+        &self,
+        program: &'static Program,
+        entries: &[callSite],
+    ) -> Option<lsproto::CallHierarchyOutgoingCall> {
         let mut from_ranges: Vec<lsproto::Range> = Vec::with_capacity(entries.len());
         from_ranges.extend(entries.iter().filter_map(|entry| {
             let source_file = entry.source_file.as_source_file_p();
-            let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(&source_file, entry.text_range, Feature::CallHierarchy);
+            let (lsp_range, fidelity) = self.converters.to_lsp_range_for_feature(
+                &source_file,
+                entry.text_range,
+                Feature::CallHierarchy,
+            );
             if !fidelity.is_none() { Some(lsp_range) } else { None }
         }));
         let to = self.create_call_hierarchy_item(program, entries[0].declaration);
@@ -1072,8 +1191,14 @@ impl LanguageService {
     // Gets the call sites that call out of the provided call hierarchy declaration.
     // Go groups the call sites in a map keyed by node id (random iteration order); the port keeps first-seen order.
     // callhierarchy.go:964
-    fn get_outgoing_calls(&self, program: &'static Program, declaration: P<Node>) -> Vec<lsproto::CallHierarchyOutgoingCall> {
-        if declaration.flags().intersects(NodeFlags::Ambient) || ast::is_method_signature_declaration(declaration) {
+    fn get_outgoing_calls(
+        &self,
+        program: &'static Program,
+        declaration: P<Node>,
+    ) -> Vec<lsproto::CallHierarchyOutgoingCall> {
+        if declaration.flags().intersects(NodeFlags::Ambient)
+            || ast::is_method_signature_declaration(declaration)
+        {
             return Vec::new();
         }
 
@@ -1112,7 +1237,10 @@ impl LanguageService {
     }
 
     // callhierarchy.go:1004
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
     pub fn provide_prepare_call_hierarchy(
         &self,
         _ctx: &Context,
@@ -1125,7 +1253,8 @@ impl LanguageService {
         let mut seen: Set<lsproto::Location> = Set::new();
         items.extend(declarations.into_iter().filter_map(|declaration| {
             if let Some(item) = self.create_call_hierarchy_item(program, declaration) {
-                let location = lsproto::Location { uri: item.uri.clone(), range: item.selection_range };
+                let location =
+                    lsproto::Location { uri: item.uri.clone(), range: item.selection_range };
                 if seen.add_if_absent(location) { Some(item) } else { None }
             } else {
                 None
@@ -1151,14 +1280,18 @@ impl LanguageService {
             return Ok(lsproto::CallHierarchyIncomingCallsOrNull::default());
         };
 
-        let declarations = self.call_hierarchy_declarations(file, item.selection_range.start, program, true);
+        let declarations =
+            self.call_hierarchy_declarations(file, item.selection_range.start, program, true);
         let mut calls: Vec<lsproto::CallHierarchyIncomingCall> = Vec::new();
         let mut seen: FxHashMap<lsproto::Location, usize> = FxHashMap::default();
         for declaration in declarations {
             let response = self.get_incoming_calls(ctx, program, declaration, orchestrator)?;
             if let Some(response_calls) = response.call_hierarchy_incoming_calls {
                 for call in response_calls {
-                    let location = lsproto::Location { uri: call.from.uri.clone(), range: call.from.selection_range };
+                    let location = lsproto::Location {
+                        uri: call.from.uri.clone(),
+                        range: call.from.selection_range,
+                    };
                     match seen.entry(location) {
                         Entry::Occupied(entry) => {
                             let existing = *entry.get();
@@ -1183,20 +1316,29 @@ impl LanguageService {
     }
 
     // callhierarchy.go:1070
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_call_hierarchy_outgoing_calls(&self, _ctx: &Context, item: &lsproto::CallHierarchyItem) -> Result<lsproto::CallHierarchyOutgoingCallsResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_call_hierarchy_outgoing_calls(
+        &self,
+        _ctx: &Context,
+        item: &lsproto::CallHierarchyItem,
+    ) -> Result<lsproto::CallHierarchyOutgoingCallsResponse, lsproto::Error> {
         let program = self.get_program();
         let file_name = item.uri.file_name();
         let Some(file) = program.get_source_file(&file_name) else {
             return Ok(lsproto::CallHierarchyOutgoingCallsOrNull::default());
         };
 
-        let declarations = self.call_hierarchy_declarations(file, item.selection_range.start, program, true);
+        let declarations =
+            self.call_hierarchy_declarations(file, item.selection_range.start, program, true);
         let mut calls: Vec<lsproto::CallHierarchyOutgoingCall> = Vec::new();
         let mut seen: FxHashMap<lsproto::Location, usize> = FxHashMap::default();
         for declaration in declarations {
             for call in self.get_outgoing_calls(program, declaration) {
-                let location = lsproto::Location { uri: call.to.uri.clone(), range: call.to.selection_range };
+                let location =
+                    lsproto::Location { uri: call.to.uri.clone(), range: call.to.selection_range };
                 match seen.entry(location) {
                     Entry::Occupied(entry) => {
                         let existing = *entry.get();
@@ -1220,8 +1362,18 @@ impl LanguageService {
     }
 
     // callhierarchy.go:1105
-    fn call_hierarchy_declarations(&self, file: P<SourceFile>, position: lsproto::Position, program: &'static Program, allow_source_file: bool) -> Vec<P<Node>> {
-        let positions = self.converters.from_lsp_position_for_source_file(file, position, Feature::CallHierarchy);
+    fn call_hierarchy_declarations(
+        &self,
+        file: P<SourceFile>,
+        position: lsproto::Position,
+        program: &'static Program,
+        allow_source_file: bool,
+    ) -> Vec<P<Node>> {
+        let positions = self.converters.from_lsp_position_for_source_file(
+            file,
+            position,
+            Feature::CallHierarchy,
+        );
         let mut declarations: Vec<P<Node>> = Vec::new();
         let mut seen: FxHashSet<P<Node>> = FxHashSet::default();
         for mapped in positions {
@@ -1244,7 +1396,8 @@ impl LanguageService {
                     }
                 }
                 Some(CallHierarchyDeclarations::Nodes(decls)) => {
-                    declarations.extend(decls.into_iter().filter(|&declaration| seen.insert(declaration)));
+                    declarations
+                        .extend(decls.into_iter().filter(|&declaration| seen.insert(declaration)));
                 }
                 None => {}
             }

@@ -16,8 +16,14 @@ pub(crate) static EMBEDDED_CONTENTS: &[(&str, &str)] = &[
     ("libs/lib.es2015.proxy.d.ts", include_str!("../../libs/lib.es2015.proxy.d.ts")),
     ("libs/lib.es2015.reflect.d.ts", include_str!("../../libs/lib.es2015.reflect.d.ts")),
     ("libs/lib.es2015.symbol.d.ts", include_str!("../../libs/lib.es2015.symbol.d.ts")),
-    ("libs/lib.es2015.symbol.wellknown.d.ts", include_str!("../../libs/lib.es2015.symbol.wellknown.d.ts")),
-    ("libs/lib.es2016.array.include.d.ts", include_str!("../../libs/lib.es2016.array.include.d.ts")),
+    (
+        "libs/lib.es2015.symbol.wellknown.d.ts",
+        include_str!("../../libs/lib.es2015.symbol.wellknown.d.ts"),
+    ),
+    (
+        "libs/lib.es2016.array.include.d.ts",
+        include_str!("../../libs/lib.es2016.array.include.d.ts"),
+    ),
     ("libs/lib.es2016.d.ts", include_str!("../../libs/lib.es2016.d.ts")),
     ("libs/lib.es2016.full.d.ts", include_str!("../../libs/lib.es2016.full.d.ts")),
     ("libs/lib.es2016.intl.d.ts", include_str!("../../libs/lib.es2016.intl.d.ts")),
@@ -30,8 +36,14 @@ pub(crate) static EMBEDDED_CONTENTS: &[(&str, &str)] = &[
     ("libs/lib.es2017.sharedmemory.d.ts", include_str!("../../libs/lib.es2017.sharedmemory.d.ts")),
     ("libs/lib.es2017.string.d.ts", include_str!("../../libs/lib.es2017.string.d.ts")),
     ("libs/lib.es2017.typedarrays.d.ts", include_str!("../../libs/lib.es2017.typedarrays.d.ts")),
-    ("libs/lib.es2018.asyncgenerator.d.ts", include_str!("../../libs/lib.es2018.asyncgenerator.d.ts")),
-    ("libs/lib.es2018.asynciterable.d.ts", include_str!("../../libs/lib.es2018.asynciterable.d.ts")),
+    (
+        "libs/lib.es2018.asyncgenerator.d.ts",
+        include_str!("../../libs/lib.es2018.asyncgenerator.d.ts"),
+    ),
+    (
+        "libs/lib.es2018.asynciterable.d.ts",
+        include_str!("../../libs/lib.es2018.asynciterable.d.ts"),
+    ),
     ("libs/lib.es2018.d.ts", include_str!("../../libs/lib.es2018.d.ts")),
     ("libs/lib.es2018.full.d.ts", include_str!("../../libs/lib.es2018.full.d.ts")),
     ("libs/lib.es2018.intl.d.ts", include_str!("../../libs/lib.es2018.intl.d.ts")),
@@ -53,7 +65,10 @@ pub(crate) static EMBEDDED_CONTENTS: &[(&str, &str)] = &[
     ("libs/lib.es2020.promise.d.ts", include_str!("../../libs/lib.es2020.promise.d.ts")),
     ("libs/lib.es2020.sharedmemory.d.ts", include_str!("../../libs/lib.es2020.sharedmemory.d.ts")),
     ("libs/lib.es2020.string.d.ts", include_str!("../../libs/lib.es2020.string.d.ts")),
-    ("libs/lib.es2020.symbol.wellknown.d.ts", include_str!("../../libs/lib.es2020.symbol.wellknown.d.ts")),
+    (
+        "libs/lib.es2020.symbol.wellknown.d.ts",
+        include_str!("../../libs/lib.es2020.symbol.wellknown.d.ts"),
+    ),
     ("libs/lib.es2021.d.ts", include_str!("../../libs/lib.es2021.d.ts")),
     ("libs/lib.es2021.full.d.ts", include_str!("../../libs/lib.es2021.full.d.ts")),
     ("libs/lib.es2021.intl.d.ts", include_str!("../../libs/lib.es2021.intl.d.ts")),
@@ -110,8 +125,14 @@ pub(crate) static EMBEDDED_CONTENTS: &[(&str, &str)] = &[
     ("libs/lib.esnext.sharedmemory.d.ts", include_str!("../../libs/lib.esnext.sharedmemory.d.ts")),
     ("libs/lib.esnext.temporal.d.ts", include_str!("../../libs/lib.esnext.temporal.d.ts")),
     ("libs/lib.scripthost.d.ts", include_str!("../../libs/lib.scripthost.d.ts")),
-    ("libs/lib.webworker.asynciterable.d.ts", include_str!("../../libs/lib.webworker.asynciterable.d.ts")),
+    (
+        "libs/lib.webworker.asynciterable.d.ts",
+        include_str!("../../libs/lib.webworker.asynciterable.d.ts"),
+    ),
     ("libs/lib.webworker.d.ts", include_str!("../../libs/lib.webworker.d.ts")),
-    ("libs/lib.webworker.importscripts.d.ts", include_str!("../../libs/lib.webworker.importscripts.d.ts")),
+    (
+        "libs/lib.webworker.importscripts.d.ts",
+        include_str!("../../libs/lib.webworker.importscripts.d.ts"),
+    ),
     ("libs/lib.webworker.iterable.d.ts", include_str!("../../libs/lib.webworker.iterable.d.ts")),
 ];

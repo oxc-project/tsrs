@@ -1,5 +1,8 @@
 use rustc_hash::FxHashSet;
-use tsrs_ast::{self as ast, CheckFlags, FindAncestorResult, Kind, ModifierFlags, Node, NodeFlags, Symbol, SymbolFlags};
+use tsrs_ast::{
+    self as ast, CheckFlags, FindAncestorResult, Kind, ModifierFlags, Node, NodeFlags, Symbol,
+    SymbolFlags,
+};
 use tsrs_checker::Checker;
 use tsrs_core::P;
 
@@ -141,7 +144,11 @@ impl ScriptElementKindModifier {
     // symbol_display.go:135
     pub fn strings(self) -> FxHashSet<&'static str> {
         let mut result = FxHashSet::default();
-        result.extend(SCRIPT_ELEMENT_KIND_MODIFIER_NAMES.iter().filter_map(|&(flag, name)| if self.intersects(flag) { Some(name) } else { None }));
+        result.extend(
+            SCRIPT_ELEMENT_KIND_MODIFIER_NAMES
+                .iter()
+                .filter_map(|&(flag, name)| if self.intersects(flag) { Some(name) } else { None }),
+        );
         result
     }
 }
@@ -161,8 +168,16 @@ pub const FILE_EXTENSION_KIND_MODIFIERS: ScriptElementKindModifier = ScriptEleme
     .union(ScriptElementKindModifier::Cjs);
 
 // symbol_display.go:159
-pub fn get_symbol_kind(type_checker: Option<&mut Checker>, symbol: P<Symbol>, location: P<Node>) -> ScriptElementKind {
-    let result = get_symbol_kind_of_constructor_property_method_accessor_function_or_var(type_checker, symbol, location);
+pub fn get_symbol_kind(
+    type_checker: Option<&mut Checker>,
+    symbol: P<Symbol>,
+    location: P<Node>,
+) -> ScriptElementKind {
+    let result = get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
+        type_checker,
+        symbol,
+        location,
+    );
     if result != ScriptElementKind::Unknown {
         return result;
     }
@@ -233,7 +248,9 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
         if c.is_arguments_symbol(symbol) {
             return ScriptElementKind::LocalVariableElement;
         }
-        if location.kind() == Kind::ThisKeyword && ast::is_expression(location) || ast::is_this_in_type_query(location) {
+        if location.kind() == Kind::ThisKeyword && ast::is_expression(location)
+            || ast::is_this_in_type_query(location)
+        {
             return ScriptElementKind::ParameterElement;
         }
     }
@@ -282,16 +299,23 @@ fn get_symbol_kind_of_constructor_property_method_accessor_function_or_var(
 
     if flags.intersects(SymbolFlags::Property) {
         if let Some(c) = type_checker {
-            if flags.intersects(SymbolFlags::Transient) && symbol.check_flags().intersects(CheckFlags::Synthetic) {
+            if flags.intersects(SymbolFlags::Transient)
+                && symbol.check_flags().intersects(CheckFlags::Synthetic)
+            {
                 // If union property is result of union of non method (property/accessors/variables), it is labeled as property
                 let mut union_property_kind = ScriptElementKind::Unknown;
-                if roots.iter().any(|root_symbol| root_symbol.flags().intersects(SymbolFlags::PropertyOrAccessor | SymbolFlags::Variable)) {
+                if roots.iter().any(|root_symbol| {
+                    root_symbol
+                        .flags()
+                        .intersects(SymbolFlags::PropertyOrAccessor | SymbolFlags::Variable)
+                }) {
                     union_property_kind = ScriptElementKind::MemberVariableElement;
                 }
                 if union_property_kind == ScriptElementKind::Unknown {
                     // If this was union of all methods,
                     // make sure it has call signatures before we can label it as method.
-                    let type_of_union_property = c.get_type_of_symbol_at_location(symbol, Some(location)).unwrap();
+                    let type_of_union_property =
+                        c.get_type_of_symbol_at_location(symbol, Some(location)).unwrap();
                     if !c.get_call_signatures(type_of_union_property).is_empty() {
                         return ScriptElementKind::MemberFunctionElement;
                     }
@@ -314,7 +338,10 @@ fn is_first_declaration_of_symbol_parameter(symbol: P<Symbol>) -> bool {
         if ast::is_parameter_declaration(n) {
             return FindAncestorResult::True;
         }
-        if ast::is_binding_element(n) || ast::is_object_binding_pattern(n) || ast::is_array_binding_pattern(n) {
+        if ast::is_binding_element(n)
+            || ast::is_object_binding_pattern(n)
+            || ast::is_array_binding_pattern(n)
+        {
             return FindAncestorResult::False;
         }
         FindAncestorResult::Quit
@@ -358,7 +385,10 @@ fn is_local_variable_or_function(symbol: P<Symbol>) -> bool {
 }
 
 // symbol_display.go:350
-pub fn get_symbol_modifiers(mut type_checker: Option<&mut Checker>, symbol: Option<P<Symbol>>) -> ScriptElementKindModifier {
+pub fn get_symbol_modifiers(
+    mut type_checker: Option<&mut Checker>,
+    symbol: Option<P<Symbol>>,
+) -> ScriptElementKindModifier {
     let Some(symbol) = symbol else {
         return ScriptElementKindModifier::None;
     };
@@ -380,7 +410,10 @@ pub fn get_symbol_modifiers(mut type_checker: Option<&mut Checker>, symbol: Opti
 }
 
 // symbol_display.go:369
-fn get_normalized_symbol_modifiers(mut type_checker: Option<&mut Checker>, symbol: P<Symbol>) -> ScriptElementKindModifier {
+fn get_normalized_symbol_modifiers(
+    mut type_checker: Option<&mut Checker>,
+    symbol: P<Symbol>,
+) -> ScriptElementKindModifier {
     let mut modifier_set = ScriptElementKindModifier::None;
     if !symbol.declarations().is_empty() {
         let declaration = symbol.declarations()[0];
@@ -409,7 +442,11 @@ fn is_deprecated_declaration(type_checker: Option<&mut Checker>, declaration: P<
 }
 
 // symbol_display.go:397
-fn get_node_modifiers(type_checker: Option<&mut Checker>, node: P<Node>, exclude_flags: ModifierFlags) -> ScriptElementKindModifier {
+fn get_node_modifiers(
+    type_checker: Option<&mut Checker>,
+    node: P<Node>,
+    exclude_flags: ModifierFlags,
+) -> ScriptElementKindModifier {
     let mut result = ScriptElementKindModifier::None;
     let mut flags = ModifierFlags::None;
     if ast::is_declaration(node) {

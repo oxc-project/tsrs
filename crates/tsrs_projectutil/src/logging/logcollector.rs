@@ -3,7 +3,7 @@ use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, UNIX_EPOCH};
 
-use super::logger::{format_time, logger, Logger};
+use super::logger::{Logger, format_time, logger};
 
 // Go `LogCollector`: a Logger whose output can be read back (`String()`).
 pub trait LogCollector: Logger {

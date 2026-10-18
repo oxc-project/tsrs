@@ -13,13 +13,22 @@ pub struct MapBuilder<K, VBase, VBuilder> {
 }
 
 // mapbuilder.go:14
-#[expect(clippy::implicit_hasher, reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy.")]
+#[expect(
+    clippy::implicit_hasher,
+    reason = "The API deliberately accepts only FxHashMap, as required by the workspace hashing policy."
+)]
 pub fn new_map_builder<K, VBase, VBuilder>(
     base: Arc<FxHashMap<K, VBase>>,
     to_builder: impl Fn(&VBase) -> VBuilder + Send + Sync + 'static,
     build: impl Fn(VBuilder) -> VBase + Send + Sync + 'static,
 ) -> MapBuilder<K, VBase, VBuilder> {
-    MapBuilder { base, dirty: FxHashMap::default(), deleted: None, to_builder: Box::new(to_builder), build: Box::new(build) }
+    MapBuilder {
+        base,
+        dirty: FxHashMap::default(),
+        deleted: None,
+        to_builder: Box::new(to_builder),
+        build: Box::new(build),
+    }
 }
 
 impl<K: Hash + Eq + Clone, VBase: Clone, VBuilder: Clone> MapBuilder<K, VBase, VBuilder> {
@@ -41,7 +50,8 @@ impl<K: Hash + Eq + Clone, VBase: Clone, VBuilder: Clone> MapBuilder<K, VBase, V
     // copies the keys into a set
     pub fn clear(&mut self) {
         self.dirty = FxHashMap::default();
-        let mut deleted = FxHashSet::with_capacity_and_hasher(self.base.len(), rustc_hash::FxBuildHasher);
+        let mut deleted =
+            FxHashSet::with_capacity_and_hasher(self.base.len(), rustc_hash::FxBuildHasher);
         deleted.extend(self.base.keys().map(std::clone::Clone::clone));
         self.deleted = Some(deleted);
     }
@@ -69,7 +79,9 @@ impl<K: Hash + Eq + Clone, VBase: Clone, VBuilder: Clone> MapBuilder<K, VBase, V
                 result.remove(key);
             }
         }
-        result.extend(self.dirty.iter().map(|(key, value)| (key.clone(), (self.build)(value.clone()))));
+        result.extend(
+            self.dirty.iter().map(|(key, value)| (key.clone(), (self.build)(value.clone()))),
+        );
         Arc::new(result)
     }
 

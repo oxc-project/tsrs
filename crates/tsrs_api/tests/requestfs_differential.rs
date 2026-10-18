@@ -5,11 +5,11 @@
 
 use std::sync::Arc;
 
-use serde_json::{json, Value};
-use tsrs_api::requestfs::{new_for_update, RequestFileSystem, RequestParams};
+use serde_json::{Value, json};
+use tsrs_api::requestfs::{RequestFileSystem, RequestParams, new_for_update};
 use tsrs_project::FileChangeSummary;
-use tsrs_vfs::vfstest::{self, MapFile};
 use tsrs_vfs::FS;
+use tsrs_vfs::vfstest::{self, MapFile};
 
 fn decode_params(value: &Value) -> Result<RequestParams, String> {
     let value = tsrs_core::json::unmarshal(&value.to_string())?;
@@ -19,11 +19,7 @@ fn decode_params(value: &Value) -> Result<RequestParams, String> {
 fn sorted_uris(set: &tsrs_core::collections::Set<tsrs_lsproto::DocumentUri>) -> Value {
     let mut v: Vec<String> = set.keys().iter().map(|u| u.0.clone()).collect();
     v.sort();
-    if v.is_empty() {
-        Value::Null
-    } else {
-        json!(v)
-    }
+    if v.is_empty() { Value::Null } else { json!(v) }
 }
 
 fn query(fs: &dyn FS, q: &str) -> Value {
@@ -47,7 +43,9 @@ fn normalize(v: &Value) -> Value {
     match v {
         Value::Array(a) if a.is_empty() => Value::Null,
         Value::Array(a) => Value::Array(a.iter().map(normalize).collect()),
-        Value::Object(o) => Value::Object(o.iter().map(|(k, v)| (k.clone(), normalize(v))).collect()),
+        Value::Object(o) => {
+            Value::Object(o.iter().map(|(k, v)| (k.clone(), normalize(v))).collect())
+        }
         Value::String(s) if s.is_empty() => Value::String(String::new()),
         other => other.clone(),
     }
@@ -55,7 +53,8 @@ fn normalize(v: &Value) -> Value {
 
 #[test]
 fn request_filesystem_matches_pinned_go() {
-    let scenarios: Vec<Value> = serde_json::from_str(include_str!("fixtures/requestfs_scenarios.json")).unwrap();
+    let scenarios: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/requestfs_scenarios.json")).unwrap();
     let expected: Value = serde_json::from_str(include_str!("fixtures/requestfs_go.json")).unwrap();
     let mut compared = 0;
     for sc in &scenarios {
@@ -63,34 +62,54 @@ fn request_filesystem_matches_pinned_go() {
         let case_sensitive = sc["caseSensitive"].as_bool().unwrap();
         let cwd = sc["cwd"].as_str().unwrap();
         let mut host: Vec<(String, MapFile)> = Vec::new();
-        host.extend(sc["host"]["files"].as_object().unwrap().into_iter().map(|(k, v)| (k.clone(), MapFile::from(v.as_str().unwrap()))));
+        host.extend(
+            sc["host"]["files"]
+                .as_object()
+                .unwrap()
+                .into_iter()
+                .map(|(k, v)| (k.clone(), MapFile::from(v.as_str().unwrap()))),
+        );
         if let Some(links) = sc["host"]["symlinks"].as_object() {
-            host.extend(links.into_iter().map(|(k, v)| (k.clone(), vfstest::symlink(v.as_str().unwrap()))));
+            host.extend(
+                links.into_iter().map(|(k, v)| (k.clone(), vfstest::symlink(v.as_str().unwrap()))),
+            );
         }
         let base: Arc<dyn FS> = Arc::new(vfstest::from_map(host, case_sensitive));
         let mut fs: Option<RequestFileSystem> = None;
-        let queries: Vec<&str> = sc["queries"].as_array().unwrap().iter().map(|q| q.as_str().unwrap()).collect();
-        let go_steps = expected[name].as_array().unwrap_or_else(|| panic!("no Go result for {name}"));
+        let queries: Vec<&str> =
+            sc["queries"].as_array().unwrap().iter().map(|q| q.as_str().unwrap()).collect();
+        let go_steps =
+            expected[name].as_array().unwrap_or_else(|| panic!("no Go result for {name}"));
         for (i, step) in sc["steps"].as_array().unwrap().iter().enumerate() {
             let params = decode_params(step);
             let mut changes = FileChangeSummary::default();
             let mut out = json!({"error": "", "changed": null, "created": null, "deleted": null, "includesOutside": false});
-            match params.and_then(|params| new_for_update(&params, Arc::clone(&base), fs.as_ref(), cwd, &mut changes)) {
+            match params.and_then(|params| {
+                new_for_update(&params, Arc::clone(&base), fs.as_ref(), cwd, &mut changes)
+            }) {
                 Ok(next) => {
                     fs = Some(next);
                     out["changed"] = sorted_uris(&changes.changed);
                     out["created"] = sorted_uris(&changes.created);
                     out["deleted"] = sorted_uris(&changes.deleted);
-                    out["includesOutside"] = json!(changes.includes_watch_change_outside_node_modules);
+                    out["includesOutside"] =
+                        json!(changes.includes_watch_change_outside_node_modules);
                 }
                 Err(e) => out["error"] = json!(e),
             }
-            out["queries"] = json!(queries.iter().map(|q| query(fs.as_ref().map_or(base.as_ref(), |fs| fs as &dyn FS), q)).collect::<Vec<_>>());
+            out["queries"] = json!(
+                queries
+                    .iter()
+                    .map(|q| query(fs.as_ref().map_or(base.as_ref(), |fs| fs as &dyn FS), q))
+                    .collect::<Vec<_>>()
+            );
             let go = &go_steps[i];
             for key in ["error", "changed", "created", "deleted", "includesOutside"] {
                 assert_eq!(normalize(&out[key]), normalize(&go[key]), "{name} step {i}: {key}");
             }
-            for (q, (ours, theirs)) in queries.iter().zip(out["queries"].as_array().unwrap().iter().zip(go["queries"].as_array().unwrap())) {
+            for (q, (ours, theirs)) in queries.iter().zip(
+                out["queries"].as_array().unwrap().iter().zip(go["queries"].as_array().unwrap()),
+            ) {
                 assert_eq!(normalize(ours), normalize(theirs), "{name} step {i}: query {q}");
                 compared += 1;
             }
@@ -123,7 +142,8 @@ fn request_filesystem_layers_over_real_os_files() {
         "kind": "layer",
         "files": {"src/a.ts": "request a", "src/new.ts": "new"},
         "removedPaths": ["src/b.ts"],
-    })).unwrap();
+    }))
+    .unwrap();
     let mut changes = FileChangeSummary::default();
     let layered = new_for_update(&params, Arc::clone(&host), None, &root, &mut changes).unwrap();
     let fs = &layered;
@@ -149,7 +169,9 @@ fn request_filesystem_layers_over_real_os_files() {
     fs.write_file(&p("src/out.js"), "emitted").unwrap();
     assert_eq!(std::fs::read_to_string(dir.join("src/out.js")).unwrap(), "emitted");
     let full = decode_params(&json!({"kind": "full", "files": {"src/a.ts": "x"}})).unwrap();
-    let full = new_for_update(&full, host, Some(&layered), &root, &mut FileChangeSummary::default()).unwrap();
+    let full =
+        new_for_update(&full, host, Some(&layered), &root, &mut FileChangeSummary::default())
+            .unwrap();
     assert_eq!(full.read_file(&p("src/lib/l.ts")), None, "full replaces the host");
     assert_eq!(full.write_file(&p("src/out2.js"), "x"), Err("invalid argument".to_string()));
     assert!(!dir.join("src/out2.js").exists());

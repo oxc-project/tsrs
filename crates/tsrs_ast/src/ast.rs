@@ -8,8 +8,9 @@ use rustc_hash::FxHashMap;
 use tsrs_core::collections::Set;
 use tsrs_core::tspath::Path;
 use tsrs_core::{
-    alloc_slice, alloc_str, alloc_vec, compute_ecma_line_starts, undefined_text_range, LanguageVariant, ResolutionMode,
-    FrozenCell, OwnedCell, ScriptKind, TextPos, TextRange, ThinSlice, Tristate, P,
+    FrozenCell, LanguageVariant, OwnedCell, P, ResolutionMode, ScriptKind, TextPos, TextRange,
+    ThinSlice, Tristate, alloc_slice, alloc_str, alloc_vec, compute_ecma_line_starts,
+    undefined_text_range,
 };
 use tsrs_diagnostics as diagnostics;
 use tsrs_spanmap::SpanMap;
@@ -40,12 +41,18 @@ pub(crate) fn visit<V: FnMut(P<Node>) -> bool + ?Sized>(v: &mut V, node: Option<
 }
 
 #[inline]
-pub(crate) fn visit_nodes<V: FnMut(P<Node>) -> bool + ?Sized>(v: &mut V, nodes: &[P<Node>]) -> bool {
+pub(crate) fn visit_nodes<V: FnMut(P<Node>) -> bool + ?Sized>(
+    v: &mut V,
+    nodes: &[P<Node>],
+) -> bool {
     nodes.iter().any(|&node| v(node))
 }
 
 #[inline]
-pub(crate) fn visit_node_list<V: FnMut(P<Node>) -> bool + ?Sized>(v: &mut V, node_list: Option<P<NodeList>>) -> bool {
+pub(crate) fn visit_node_list<V: FnMut(P<Node>) -> bool + ?Sized>(
+    v: &mut V,
+    node_list: Option<P<NodeList>>,
+) -> bool {
     match node_list {
         Some(list) => visit_nodes(v, list.nodes()),
         None => false,
@@ -53,7 +60,10 @@ pub(crate) fn visit_node_list<V: FnMut(P<Node>) -> bool + ?Sized>(v: &mut V, nod
 }
 
 #[inline]
-pub(crate) fn visit_modifiers<V: FnMut(P<Node>) -> bool + ?Sized>(v: &mut V, modifiers: Option<P<ModifierList>>) -> bool {
+pub(crate) fn visit_modifiers<V: FnMut(P<Node>) -> bool + ?Sized>(
+    v: &mut V,
+    modifiers: Option<P<ModifierList>>,
+) -> bool {
     match modifiers {
         Some(list) => visit_nodes(v, list.list.nodes()),
         None => false,
@@ -73,9 +83,9 @@ pub type NodeUpdateHook = Rc<dyn Fn(P<Node>, P<Node>)>;
 
 #[derive(Default, Clone)]
 pub struct NodeFactoryHooks {
-    pub on_create: Option<NodeHook>,       // Hooks the creation of a node.
+    pub on_create: Option<NodeHook>, // Hooks the creation of a node.
     pub on_update: Option<NodeUpdateHook>, // Hooks the updating of a node.
-    pub on_clone: Option<NodeUpdateHook>,  // Hooks the cloning of a node.
+    pub on_clone: Option<NodeUpdateHook>, // Hooks the cloning of a node.
 }
 
 /// Go `*ast.NodeFactory`.
@@ -110,7 +120,13 @@ pub fn new_node_factory(hooks: NodeFactoryHooks) -> NodeFactory {
 /// `new_node_factory`; `scratch`: see `NodeFactory::scratch`.
 pub fn new_node_factory_ex(hooks: NodeFactoryHooks, scratch: bool) -> NodeFactory {
     let plain_create = !scratch && hooks.on_create.is_none();
-    NodeFactory { hooks, node_count: Rc::default(), text_count: Rc::default(), scratch, plain_create }
+    NodeFactory {
+        hooks,
+        node_count: Rc::default(),
+        text_count: Rc::default(),
+        scratch,
+        plain_create,
+    }
 }
 
 fn node_header(kind: Kind, data_tag: NodeDataTag) -> Node {
@@ -148,7 +164,9 @@ fn new_node_hooked<T: NodePayload>(kind: Kind, data: T, hooks: &NodeFactoryHooks
 #[inline]
 fn new_node_scratch<T: NodePayload>(kind: Kind, data: T, hooks: &NodeFactoryHooks) -> P<Node> {
     // SAFETY: as in `new_node_hooked`, but this allocation is owned by the active scratch region.
-    let n = unsafe { P::new_scratch(NodeAlloc { node: node_header(kind, T::TAG), data }).cast::<Node>() };
+    let n = unsafe {
+        P::new_scratch(NodeAlloc { node: node_header(kind, T::TAG), data }).cast::<Node>()
+    };
     if let Some(on_create) = &hooks.on_create {
         on_create(n);
     }
@@ -157,7 +175,12 @@ fn new_node_scratch<T: NodePayload>(kind: Kind, data: T, hooks: &NodeFactoryHook
 
 /// Creates a node whose data struct `data` is followed by its rare tail `rare` (`NodeAllocRare`; the header's
 /// rare bit says the tail is there). The factory uses it when one of the struct's rare fields is set.
-fn new_node_with_rare_hooked<T: NodeRareTail>(kind: Kind, data: T, rare: T::Rare, hooks: &NodeFactoryHooks) -> P<Node> {
+fn new_node_with_rare_hooked<T: NodeRareTail>(
+    kind: Kind,
+    data: T,
+    rare: T::Rare,
+    hooks: &NodeFactoryHooks,
+) -> P<Node> {
     let () = T::SAME_OFFSET;
     let mut header = node_header(kind, T::TAG);
     header.header = OwnedCell::new(header.header.get().with_rare_tail());
@@ -170,7 +193,12 @@ fn new_node_with_rare_hooked<T: NodeRareTail>(kind: Kind, data: T, rare: T::Rare
 }
 
 #[inline]
-fn new_node_with_rare_scratch<T: NodeRareTail>(kind: Kind, data: T, rare: T::Rare, hooks: &NodeFactoryHooks) -> P<Node> {
+fn new_node_with_rare_scratch<T: NodeRareTail>(
+    kind: Kind,
+    data: T,
+    rare: T::Rare,
+    hooks: &NodeFactoryHooks,
+) -> P<Node> {
     let () = T::SAME_OFFSET;
     let mut header = node_header(kind, T::TAG);
     header.header = OwnedCell::new(header.header.get().with_rare_tail());
@@ -197,11 +225,14 @@ pub(crate) fn rare_tail<T: NodeRareTail>(data: &T) -> Option<&'static T::Rare> {
     let () = T::SAME_OFFSET;
     // SAFETY: data structs are created only inside a `NodeAlloc<T>` or `NodeAllocRare<T, _>` (both `repr(C)`, header
     // first, data at the same offset: asserted in `NodeRareTail`), which is never moved or freed while reachable.
-    let node: &Node = unsafe { tsrs_core::ptr::arena_neighbor(data, -(std::mem::offset_of!(NodeAlloc<T>, data) as isize)) };
+    let node: &Node = unsafe {
+        tsrs_core::ptr::arena_neighbor(data, -(std::mem::offset_of!(NodeAlloc<T>, data) as isize))
+    };
     if !node.header.get().has_rare_tail() {
         return None;
     }
-    let off = std::mem::offset_of!(NodeAllocRare<T, T::Rare>, rare) - std::mem::offset_of!(NodeAllocRare<T, T::Rare>, data);
+    let off = std::mem::offset_of!(NodeAllocRare<T, T::Rare>, rare)
+        - std::mem::offset_of!(NodeAllocRare<T, T::Rare>, data);
     // SAFETY: the rare bit is set only by `new_node_with_rare`, which allocated the tail at this offset.
     Some(unsafe { tsrs_core::ptr::arena_neighbor(data, off as isize) })
 }
@@ -247,7 +278,12 @@ impl NodeFactory {
     }
 
     #[inline]
-    pub(crate) fn new_node_with_rare<T: NodeRareTail>(&self, kind: Kind, data: T, rare: T::Rare) -> P<Node> {
+    pub(crate) fn new_node_with_rare<T: NodeRareTail>(
+        &self,
+        kind: Kind,
+        data: T,
+        rare: T::Rare,
+    ) -> P<Node> {
         self.node_count.set(self.node_count.get() + 1);
         if self.plain_create {
             new_node_with_rare_plain(kind, data, rare)
@@ -292,33 +328,25 @@ impl NodeFactory {
     /// scratch factory, like the node.
     #[inline]
     pub fn alloc_text(&self, s: &str) -> &'static str {
-        if self.scratch {
-            tsrs_core::alloc_str_scratch(s)
-        } else {
-            alloc_str(s)
-        }
+        if self.scratch { tsrs_core::alloc_str_scratch(s) } else { alloc_str(s) }
     }
 
     #[inline]
     fn alloc_nodes_vec(&self, nodes: Vec<P<Node>>) -> &'static [P<Node>] {
-        if self.scratch {
-            tsrs_core::alloc_vec_scratch(nodes)
-        } else {
-            alloc_vec(nodes)
-        }
+        if self.scratch { tsrs_core::alloc_vec_scratch(nodes) } else { alloc_vec(nodes) }
     }
 
     #[inline]
     fn alloc_nodes_slice(&self, nodes: &[P<Node>]) -> &'static [P<Node>] {
-        if self.scratch {
-            tsrs_core::alloc_slice_scratch(nodes)
-        } else {
-            alloc_slice(nodes)
-        }
+        if self.scratch { tsrs_core::alloc_slice_scratch(nodes) } else { alloc_slice(nodes) }
     }
 }
 
-pub(crate) fn update_node(updated: P<Node>, original: P<Node>, hooks: &NodeFactoryHooks) -> P<Node> {
+pub(crate) fn update_node(
+    updated: P<Node>,
+    original: P<Node>,
+    hooks: &NodeFactoryHooks,
+) -> P<Node> {
     if updated != original {
         updated.flags.set(original.flags.get());
         updated.loc.set(original.loc.get());
@@ -364,7 +392,11 @@ impl NodeFactory {
     }
 
     /// A member list parsed on first use (`lazylist`).
-    pub fn new_lazy_node_list(&self, loc: TextRange, record: &'static crate::lazylist::LazyNodeList) -> P<NodeList> {
+    pub fn new_lazy_node_list(
+        &self,
+        loc: TextRange,
+        record: &'static crate::lazylist::LazyNodeList,
+    ) -> P<NodeList> {
         P::new_in(self.scratch, NodeList::new_lazy(loc, record))
     }
 }
@@ -403,7 +435,8 @@ impl NodeList {
     pub fn lazy_record(&self) -> Option<&'static crate::lazylist::LazyNodeList> {
         let head = self.nodes.long_ref()?;
         // SAFETY: a long-form slice whose data is the lazy head was made by `new_lazy` from a record's `head`.
-        crate::lazylist::is_lazy_head(head).then(|| unsafe { crate::lazylist::LazyNodeList::from_head(head) })
+        crate::lazylist::is_lazy_head(head)
+            .then(|| unsafe { crate::lazylist::LazyNodeList::from_head(head) })
     }
     #[inline]
     pub fn loc(&self) -> TextRange {
@@ -449,10 +482,13 @@ impl NodeFactory {
     }
 
     fn new_modifier_list_from_static(&self, nodes: &'static [P<Node>]) -> P<ModifierList> {
-        P::new_in(self.scratch, ModifierList {
-            list: NodeList::new(undefined_text_range(), nodes),
-            modifier_flags: modifiers_to_flags(nodes),
-        })
+        P::new_in(
+            self.scratch,
+            ModifierList {
+                list: NodeList::new(undefined_text_range(), nodes),
+                modifier_flags: modifiers_to_flags(nodes),
+            },
+        )
     }
 }
 
@@ -479,10 +515,13 @@ impl ModifierList {
     }
 
     pub fn clone_list(&self, f: &NodeFactory) -> P<ModifierList> {
-        P::new_in(f.scratch, ModifierList {
-            list: NodeList::new(self.list.loc.get(), self.list.nodes()),
-            modifier_flags: self.modifier_flags,
-        })
+        P::new_in(
+            f.scratch,
+            ModifierList {
+                list: NodeList::new(self.list.loc.get(), self.list.nodes()),
+                modifier_flags: self.modifier_flags,
+            },
+        )
     }
 }
 
@@ -525,7 +564,10 @@ impl NodeHeaderWord {
 
     #[inline]
     fn new(kind: Kind, data_tag: NodeDataTag) -> NodeHeaderWord {
-        NodeHeaderWord(((kind as u16 as u64) << Self::KIND_SHIFT) | ((data_tag as u8 as u64) << Self::TAG_SHIFT))
+        NodeHeaderWord(
+            ((kind as u16 as u64) << Self::KIND_SHIFT)
+                | ((data_tag as u8 as u64) << Self::TAG_SHIFT),
+        )
     }
 
     #[inline]
@@ -604,8 +646,10 @@ pub(crate) struct NodeAllocRare<T, R> {
 pub(crate) trait NodeRareTail: NodePayload {
     type Rare: 'static;
     /// Compile-time check that the data struct sits at the same offset in both allocations.
-    const SAME_OFFSET: () =
-        assert!(std::mem::offset_of!(NodeAlloc<Self>, data) == std::mem::offset_of!(NodeAllocRare<Self, Self::Rare>, data));
+    const SAME_OFFSET: () = assert!(
+        std::mem::offset_of!(NodeAlloc<Self>, data)
+            == std::mem::offset_of!(NodeAllocRare<Self, Self::Rare>, data)
+    );
 }
 
 // Node accessors. Accessors that dispatch over the node data (name(), modifiers(), *_data(), as_*(),
@@ -629,7 +673,9 @@ impl Node {
         debug_assert_eq!(self.data_tag(), T::TAG);
         // SAFETY: a node tagged `T::TAG` was allocated by `new_node::<T>` as a `NodeAlloc<T>` whose header is
         // `self`, so its data struct lives at this offset from the header, for the rest of the process.
-        unsafe { tsrs_core::ptr::arena_neighbor(self, std::mem::offset_of!(NodeAlloc<T>, data) as isize) }
+        unsafe {
+            tsrs_core::ptr::arena_neighbor(self, std::mem::offset_of!(NodeAlloc<T>, data) as isize)
+        }
     }
 
     /// The arena pointer for this node. Every `Node` is created by `NodeFactory`/`new_node` in the leak
@@ -723,7 +769,9 @@ impl Node {
     pub fn decorators(&self) -> Vec<P<Node>> {
         match self.modifiers() {
             None => Vec::new(),
-            Some(modifiers) => modifiers.nodes().iter().copied().filter(|&m| is_decorator(m)).collect(),
+            Some(modifiers) => {
+                modifiers.nodes().iter().copied().filter(|&m| is_decorator(m)).collect()
+            }
         }
     }
 
@@ -811,7 +859,9 @@ impl Node {
             Kind::NumericLiteral => self.as_numeric_literal().text(),
             Kind::BigIntLiteral => self.as_big_int_literal().text(),
             Kind::MetaProperty => self.as_meta_property().name.text(),
-            Kind::NoSubstitutionTemplateLiteral => self.as_no_substitution_template_literal().text(),
+            Kind::NoSubstitutionTemplateLiteral => {
+                self.as_no_substitution_template_literal().text()
+            }
             Kind::TemplateHead => self.as_template_head().text(),
             Kind::TemplateMiddle => self.as_template_middle().text(),
             Kind::TemplateTail => self.as_template_tail().text(),
@@ -830,12 +880,20 @@ impl Node {
 
     pub fn expression(&self) -> Option<P<Node>> {
         match self.data_tag() {
-            NodeDataTag::PropertyAccessExpression => Some(self.as_property_access_expression().expression),
-            NodeDataTag::ElementAccessExpression => Some(self.as_element_access_expression().expression),
-            NodeDataTag::ParenthesizedExpression => Some(self.as_parenthesized_expression().expression.get()),
+            NodeDataTag::PropertyAccessExpression => {
+                Some(self.as_property_access_expression().expression)
+            }
+            NodeDataTag::ElementAccessExpression => {
+                Some(self.as_element_access_expression().expression)
+            }
+            NodeDataTag::ParenthesizedExpression => {
+                Some(self.as_parenthesized_expression().expression.get())
+            }
             NodeDataTag::CallExpression => Some(self.as_call_expression().expression),
             NodeDataTag::NewExpression => Some(self.as_new_expression().expression),
-            NodeDataTag::ExpressionWithTypeArguments => Some(self.as_expression_with_type_arguments().expression),
+            NodeDataTag::ExpressionWithTypeArguments => {
+                Some(self.as_expression_with_type_arguments().expression)
+            }
             NodeDataTag::ComputedPropertyName => Some(self.as_computed_property_name().expression),
             NodeDataTag::NonNullExpression => Some(self.as_non_null_expression().expression),
             NodeDataTag::TypeAssertion => Some(self.as_type_assertion().expression),
@@ -849,18 +907,28 @@ impl Node {
             NodeDataTag::VoidExpression => Some(self.as_void_expression().expression),
             NodeDataTag::AwaitExpression => Some(self.as_await_expression().expression),
             NodeDataTag::YieldExpression => self.as_yield_expression().expression,
-            NodeDataTag::PartiallyEmittedExpression => Some(self.as_partially_emitted_expression().expression),
+            NodeDataTag::PartiallyEmittedExpression => {
+                Some(self.as_partially_emitted_expression().expression)
+            }
             NodeDataTag::IfStatement => Some(self.as_if_statement().expression),
             NodeDataTag::DoStatement => Some(self.as_do_statement().expression),
             NodeDataTag::WhileStatement => Some(self.as_while_statement().expression),
             NodeDataTag::WithStatement => Some(self.as_with_statement().expression),
-            NodeDataTag::ForInOrOfStatement if matches!(self.kind(), Kind::ForInStatement | Kind::ForOfStatement) => Some(self.as_for_in_or_of_statement().expression),
+            NodeDataTag::ForInOrOfStatement
+                if matches!(self.kind(), Kind::ForInStatement | Kind::ForOfStatement) =>
+            {
+                Some(self.as_for_in_or_of_statement().expression)
+            }
             NodeDataTag::SwitchStatement => Some(self.as_switch_statement().expression),
-            NodeDataTag::CaseOrDefaultClause if self.kind() == Kind::CaseClause => self.as_case_or_default_clause().expression,
+            NodeDataTag::CaseOrDefaultClause if self.kind() == Kind::CaseClause => {
+                self.as_case_or_default_clause().expression
+            }
             NodeDataTag::ExpressionStatement => Some(self.as_expression_statement().expression),
             NodeDataTag::ReturnStatement => self.as_return_statement().expression.get(),
             NodeDataTag::ThrowStatement => Some(self.as_throw_statement().expression),
-            NodeDataTag::ExternalModuleReference => Some(self.as_external_module_reference().expression),
+            NodeDataTag::ExternalModuleReference => {
+                Some(self.as_external_module_reference().expression)
+            }
             NodeDataTag::ExportAssignment => Some(self.as_export_assignment().expression.get()),
             NodeDataTag::Decorator => Some(self.as_decorator().expression),
             NodeDataTag::JsxExpression => self.as_jsx_expression().expression,
@@ -882,7 +950,9 @@ impl Node {
     /// field in this port; the other Go cases panic.
     pub fn set_expression(&self, expr: P<Node>) {
         match self.kind() {
-            Kind::ParenthesizedExpression => self.as_parenthesized_expression().expression.set(expr),
+            Kind::ParenthesizedExpression => {
+                self.as_parenthesized_expression().expression.set(expr);
+            }
             Kind::ReturnStatement => self.as_return_statement().expression.set(Some(expr)),
             Kind::ExportAssignment => self.as_export_assignment().expression.set(expr),
             _ => panic!("Unhandled case in mutableNode.SetExpression: {:?}", self.kind()),
@@ -910,7 +980,9 @@ impl Node {
             Kind::NewExpression => self.as_new_expression().type_arguments(),
             Kind::TaggedTemplateExpression => self.as_tagged_template_expression().type_arguments,
             Kind::TypeReference => self.as_type_reference_node().type_arguments(),
-            Kind::ExpressionWithTypeArguments => self.as_expression_with_type_arguments().type_arguments.get(),
+            Kind::ExpressionWithTypeArguments => {
+                self.as_expression_with_type_arguments().type_arguments.get()
+            }
             Kind::ImportType => self.as_import_type_node().type_arguments(),
             Kind::TypeQuery => self.as_type_query_node().type_arguments(),
             Kind::JsxOpeningElement => self.as_jsx_opening_element().type_arguments,
@@ -931,7 +1003,9 @@ impl Node {
             Kind::ClassDeclaration => self.as_class_declaration().type_parameters(),
             Kind::ClassExpression => self.as_class_expression().type_parameters(),
             Kind::InterfaceDeclaration => self.as_interface_declaration().type_parameters,
-            Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => self.as_type_alias_declaration().type_parameters.get(),
+            Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => {
+                self.as_type_alias_declaration().type_parameters.get()
+            }
             Kind::JSDocTemplateTag => Some(self.as_jsdoc_template_tag().type_parameters),
             _ => {
                 if let Some(func_like) = self.function_like_data() {
@@ -968,13 +1042,18 @@ impl Node {
         }
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "Node list accessors share an optional-list interface with nullable member, argument and parameter lists.")]
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Node list accessors share an optional-list interface with nullable member, argument and parameter lists."
+    )]
     pub fn statement_list(&self) -> Option<P<NodeList>> {
         match self.kind() {
             Kind::SourceFile => Some(self.as_source_file().statements),
             Kind::Block => Some(self.as_block().statements),
             Kind::ModuleBlock => Some(self.as_module_block().statements),
-            Kind::CaseClause | Kind::DefaultClause => Some(self.as_case_or_default_clause().statements),
+            Kind::CaseClause | Kind::DefaultClause => {
+                Some(self.as_case_or_default_clause().statements)
+            }
             _ => panic!("Unhandled case in Node.StatementList: {:?}", self.kind()),
         }
     }
@@ -987,7 +1066,14 @@ impl Node {
     }
 
     pub fn can_have_statements(&self) -> bool {
-        matches!(self.kind(), Kind::SourceFile | Kind::Block | Kind::ModuleBlock | Kind::CaseClause | Kind::DefaultClause)
+        matches!(
+            self.kind(),
+            Kind::SourceFile
+                | Kind::Block
+                | Kind::ModuleBlock
+                | Kind::CaseClause
+                | Kind::DefaultClause
+        )
     }
 
     pub fn modifier_flags(&self) -> ModifierFlags {
@@ -1009,10 +1095,14 @@ impl Node {
         match self.data_tag() {
             NodeDataTag::VariableDeclaration => self.as_variable_declaration().type_.get(),
             NodeDataTag::ParameterDeclaration => self.as_parameter_declaration().type_.get(),
-            NodeDataTag::PropertySignatureDeclaration => self.as_property_signature_declaration().type_.get(),
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.as_property_signature_declaration().type_.get()
+            }
             NodeDataTag::PropertyDeclaration => self.as_property_declaration().type_.get(),
             NodeDataTag::PropertyAssignment => self.as_property_assignment().type_.get(),
-            NodeDataTag::ShorthandPropertyAssignment => self.as_shorthand_property_assignment().type_.get(),
+            NodeDataTag::ShorthandPropertyAssignment => {
+                self.as_shorthand_property_assignment().type_.get()
+            }
             NodeDataTag::TypePredicateNode => self.as_type_predicate_node().type_,
             NodeDataTag::ParenthesizedTypeNode => Some(self.as_parenthesized_type_node().type_),
             NodeDataTag::TypeOperatorNode => Some(self.as_type_operator_node().type_),
@@ -1024,9 +1114,13 @@ impl Node {
             NodeDataTag::NamedTupleMember => Some(self.as_named_tuple_member().type_),
             NodeDataTag::OptionalTypeNode => Some(self.as_optional_type_node().type_),
             NodeDataTag::RestTypeNode => Some(self.as_rest_type_node().type_),
-            NodeDataTag::TemplateLiteralTypeSpan => Some(self.as_template_literal_type_span().type_),
+            NodeDataTag::TemplateLiteralTypeSpan => {
+                Some(self.as_template_literal_type_span().type_)
+            }
             NodeDataTag::JSDocTypeExpression => Some(self.as_jsdoc_type_expression().type_),
-            NodeDataTag::JSDocParameterOrPropertyTag => self.as_jsdoc_parameter_or_property_tag().type_expression,
+            NodeDataTag::JSDocParameterOrPropertyTag => {
+                self.as_jsdoc_parameter_or_property_tag().type_expression
+            }
             NodeDataTag::JSDocNullableType => Some(self.as_jsdoc_nullable_type().type_),
             NodeDataTag::JSDocNonNullableType => Some(self.as_jsdoc_non_nullable_type().type_),
             NodeDataTag::JSDocOptionalType => Some(self.as_jsdoc_optional_type().type_),
@@ -1050,8 +1144,12 @@ impl Node {
             Kind::PropertySignature => self.as_property_signature_declaration().type_.set(t),
             Kind::PropertyDeclaration => self.as_property_declaration().type_.set(t),
             Kind::PropertyAssignment => self.as_property_assignment().type_.set(t),
-            Kind::ShorthandPropertyAssignment => self.as_shorthand_property_assignment().type_.set(t),
-            Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => self.as_type_alias_declaration().type_.set(t),
+            Kind::ShorthandPropertyAssignment => {
+                self.as_shorthand_property_assignment().type_.set(t);
+            }
+            Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration => {
+                self.as_type_alias_declaration().type_.set(t);
+            }
             Kind::ExportAssignment => self.as_export_assignment().type_.set(t),
             Kind::BinaryExpression => self.as_binary_expression().type_.set(t),
             _ => {
@@ -1070,11 +1168,19 @@ impl Node {
             NodeDataTag::ParameterDeclaration => self.as_parameter_declaration().initializer(),
             NodeDataTag::BindingElement => self.as_binding_element().initializer(),
             NodeDataTag::PropertyDeclaration => self.as_property_declaration().initializer.get(),
-            NodeDataTag::PropertySignatureDeclaration => self.as_property_signature_declaration().initializer(),
-            NodeDataTag::PropertyAssignment => Some(self.as_property_assignment().initializer.get()),
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.as_property_signature_declaration().initializer()
+            }
+            NodeDataTag::PropertyAssignment => {
+                Some(self.as_property_assignment().initializer.get())
+            }
             NodeDataTag::EnumMember => self.as_enum_member().initializer,
             NodeDataTag::ForStatement => self.as_for_statement().initializer,
-            NodeDataTag::ForInOrOfStatement if matches!(self.kind(), Kind::ForInStatement | Kind::ForOfStatement) => Some(self.as_for_in_or_of_statement().initializer),
+            NodeDataTag::ForInOrOfStatement
+                if matches!(self.kind(), Kind::ForInStatement | Kind::ForOfStatement) =>
+            {
+                Some(self.as_for_in_or_of_statement().initializer)
+            }
             NodeDataTag::JsxAttribute => self.as_jsx_attribute().initializer,
             _ => panic!("Unhandled case in Node.Initializer"),
         }
@@ -1083,8 +1189,12 @@ impl Node {
     /// Go `MutableNode.SetInitializer`. Only the kinds the reparser mutates are supported.
     pub fn set_initializer(&self, initializer: P<Node>) {
         match self.kind() {
-            Kind::VariableDeclaration => self.as_variable_declaration().initializer.set(Some(initializer)),
-            Kind::PropertyDeclaration => self.as_property_declaration().initializer.set(Some(initializer)),
+            Kind::VariableDeclaration => {
+                self.as_variable_declaration().initializer.set(Some(initializer));
+            }
+            Kind::PropertyDeclaration => {
+                self.as_property_declaration().initializer.set(Some(initializer));
+            }
             Kind::PropertyAssignment => self.as_property_assignment().initializer.set(initializer),
             _ => panic!("Unhandled case in mutableNode.SetInitializer"),
         }
@@ -1241,7 +1351,9 @@ impl Node {
 
     pub fn module_specifier(&self) -> Option<P<Node>> {
         match self.kind() {
-            Kind::ImportDeclaration | Kind::JSImportDeclaration => Some(self.as_import_declaration().module_specifier),
+            Kind::ImportDeclaration | Kind::JSImportDeclaration => {
+                Some(self.as_import_declaration().module_specifier)
+            }
             Kind::ExportDeclaration => self.as_export_declaration().module_specifier,
             Kind::JSDocImportTag => Some(self.as_jsdoc_import_tag().module_specifier),
             _ => panic!("Unhandled case in Node.ModuleSpecifier: {:?}", self.kind()),
@@ -1250,7 +1362,9 @@ impl Node {
 
     pub fn import_clause(&self) -> Option<P<Node>> {
         match self.kind() {
-            Kind::ImportDeclaration | Kind::JSImportDeclaration => self.as_import_declaration().import_clause,
+            Kind::ImportDeclaration | Kind::JSImportDeclaration => {
+                self.as_import_declaration().import_clause
+            }
             Kind::JSDocImportTag => self.as_jsdoc_import_tag().import_clause,
             _ => panic!("Unhandled case in Node.ImportClause: {:?}", self.kind()),
         }
@@ -1261,7 +1375,9 @@ impl Node {
             Kind::DoStatement => self.as_do_statement().statement(),
             Kind::WhileStatement => self.as_while_statement().statement(),
             Kind::ForStatement => self.as_for_statement().statement(),
-            Kind::ForInStatement | Kind::ForOfStatement => self.as_for_in_or_of_statement().statement,
+            Kind::ForInStatement | Kind::ForOfStatement => {
+                self.as_for_in_or_of_statement().statement
+            }
             Kind::WithStatement => self.as_with_statement().statement,
             Kind::LabeledStatement => self.as_labeled_statement().statement,
             _ => panic!("Unhandled case in Node.Statement: {:?}", self.kind()),
@@ -1284,7 +1400,9 @@ impl Node {
         match self.kind() {
             Kind::NamedImports => self.as_named_imports().elements,
             Kind::NamedExports => self.as_named_exports().elements,
-            Kind::ObjectBindingPattern | Kind::ArrayBindingPattern => self.as_binding_pattern().elements,
+            Kind::ObjectBindingPattern | Kind::ArrayBindingPattern => {
+                self.as_binding_pattern().elements
+            }
             Kind::ArrayLiteralExpression => self.as_array_literal_expression().elements,
             Kind::TupleType => self.as_tuple_type_node().elements,
             _ => panic!("Unhandled case in Node.ElementList: {:?}", self.kind()),
@@ -1298,22 +1416,36 @@ impl Node {
     pub fn postfix_token(&self) -> Option<P<Node>> {
         match self.data_tag() {
             NodeDataTag::MethodDeclaration => self.as_method_declaration().postfix_token(),
-            NodeDataTag::ShorthandPropertyAssignment => self.as_shorthand_property_assignment().postfix_token(),
-            NodeDataTag::MethodSignatureDeclaration => self.as_method_signature_declaration().postfix_token(),
-            NodeDataTag::PropertySignatureDeclaration => self.as_property_signature_declaration().postfix_token(),
+            NodeDataTag::ShorthandPropertyAssignment => {
+                self.as_shorthand_property_assignment().postfix_token()
+            }
+            NodeDataTag::MethodSignatureDeclaration => {
+                self.as_method_signature_declaration().postfix_token()
+            }
+            NodeDataTag::PropertySignatureDeclaration => {
+                self.as_property_signature_declaration().postfix_token()
+            }
             NodeDataTag::PropertyAssignment => self.as_property_assignment().postfix_token(),
             NodeDataTag::PropertyDeclaration => self.as_property_declaration().postfix_token(),
             NodeDataTag::EnumMember => self.as_enum_member().postfix_token(),
-            NodeDataTag::GetAccessorDeclaration => self.as_get_accessor_declaration().postfix_token(),
-            NodeDataTag::SetAccessorDeclaration => self.as_set_accessor_declaration().postfix_token(),
+            NodeDataTag::GetAccessorDeclaration => {
+                self.as_get_accessor_declaration().postfix_token()
+            }
+            NodeDataTag::SetAccessorDeclaration => {
+                self.as_set_accessor_declaration().postfix_token()
+            }
             _ => None,
         }
     }
 
     pub fn question_token(&self) -> Option<P<Node>> {
         match self.data_tag() {
-            NodeDataTag::ParameterDeclaration => return self.as_parameter_declaration().question_token.get(),
-            NodeDataTag::ConditionalExpression => return Some(self.as_conditional_expression().question_token),
+            NodeDataTag::ParameterDeclaration => {
+                return self.as_parameter_declaration().question_token.get();
+            }
+            NodeDataTag::ConditionalExpression => {
+                return Some(self.as_conditional_expression().question_token);
+            }
             NodeDataTag::MappedTypeNode => return self.as_mapped_type_node().question_token,
             NodeDataTag::NamedTupleMember => return self.as_named_tuple_member().question_token,
             _ => {}
@@ -1329,17 +1461,25 @@ impl Node {
 
     pub fn question_dot_token(&self) -> Option<P<Node>> {
         match self.kind() {
-            Kind::ElementAccessExpression => self.as_element_access_expression().question_dot_token(),
-            Kind::PropertyAccessExpression => self.as_property_access_expression().question_dot_token(),
+            Kind::ElementAccessExpression => {
+                self.as_element_access_expression().question_dot_token()
+            }
+            Kind::PropertyAccessExpression => {
+                self.as_property_access_expression().question_dot_token()
+            }
             Kind::CallExpression => self.as_call_expression().question_dot_token(),
-            Kind::TaggedTemplateExpression => self.as_tagged_template_expression().question_dot_token,
+            Kind::TaggedTemplateExpression => {
+                self.as_tagged_template_expression().question_dot_token
+            }
             _ => panic!("Unhandled case in Node.QuestionDotToken: {:?}", self.kind()),
         }
     }
 
     pub fn type_expression(&self) -> Option<P<Node>> {
         match self.kind() {
-            Kind::JSDocParameterTag | Kind::JSDocPropertyTag => self.as_jsdoc_parameter_or_property_tag().type_expression,
+            Kind::JSDocParameterTag | Kind::JSDocPropertyTag => {
+                self.as_jsdoc_parameter_or_property_tag().type_expression
+            }
             Kind::JSDocReturnTag => self.as_jsdoc_return_tag().type_expression,
             Kind::JSDocTypeTag => Some(self.as_jsdoc_type_tag().type_expression),
             Kind::JSDocTypedefTag => self.as_jsdoc_typedef_tag().type_expression,
@@ -1433,7 +1573,9 @@ pub fn is_write_access(node: P<Node>) -> bool {
 
 pub fn is_write_access_for_reference(node: P<Node>) -> bool {
     let decl = get_declaration_from_name(Some(node));
-    (decl.is_some() && declaration_is_write_access(decl)) || node.kind() == Kind::DefaultKeyword || is_write_access(node)
+    (decl.is_some() && declaration_is_write_access(decl))
+        || node.kind() == Kind::DefaultKeyword
+        || is_write_access(node)
 }
 
 pub fn get_declaration_from_name(name: Option<P<Node>>) -> Option<P<Node>> {
@@ -1448,10 +1590,9 @@ pub fn get_declaration_from_name(name: Option<P<Node>>) -> Option<P<Node>> {
             fallthrough = true;
         }
         Kind::Identifier => fallthrough = true,
-        Kind::PrivateIdentifier
-            if is_declaration(parent) && parent.name() == Some(name) => {
-                return Some(parent);
-            }
+        Kind::PrivateIdentifier if is_declaration(parent) && parent.name() == Some(name) => {
+            return Some(parent);
+        }
         _ => {}
     }
     if fallthrough {
@@ -1472,7 +1613,9 @@ pub fn get_declaration_from_name(name: Option<P<Node>>) -> Option<P<Node>> {
         }
         let bin_exp = parent.parent();
         if let Some(bin_exp) = bin_exp {
-            if is_binary_expression(bin_exp) && get_assignment_declaration_kind(bin_exp) != JSDeclarationKind::None {
+            if is_binary_expression(bin_exp)
+                && get_assignment_declaration_kind(bin_exp) != JSDeclarationKind::None
+            {
                 // (binExp.left as BindableStaticNameExpression).symbol || binExp.symbol
                 let left_has_symbol = bin_exp.as_binary_expression().left.symbol().is_some();
                 if left_has_symbol || bin_exp.symbol().is_some() {
@@ -1628,7 +1771,9 @@ fn access_kind(node: P<Node>) -> AccessKind {
         }
         Kind::ShorthandPropertyAssignment => {
             // Assume it's the local variable being accessed, since we don't check public properties for --noUnusedLocals.
-            if Some(node) == parent.as_shorthand_property_assignment().object_assignment_initializer.get() {
+            if Some(node)
+                == parent.as_shorthand_property_assignment().object_assignment_initializer.get()
+            {
                 return AccessKind::Read;
             }
             access_kind(parent.parent().unwrap())
@@ -1690,11 +1835,21 @@ impl ImportAttributes {
     /// Go `(*ImportAttributesNode).GetResolutionModeOverride`; `node` is the `ImportAttributes` node or None.
     pub fn get_resolution_mode_override(
         node: Option<P<Node>>,
-        mut grammar_error_on_node: Option<&mut dyn FnMut(P<Node>, &'static diagnostics::Message, &[&dyn std::fmt::Display]) -> bool>,
+        mut grammar_error_on_node: Option<
+            &mut dyn FnMut(
+                P<Node>,
+                &'static diagnostics::Message,
+                &[&dyn std::fmt::Display],
+            ) -> bool,
+        >,
     ) -> Option<ResolutionMode> {
         let node = node?;
         let attributes = node.as_import_attributes().attributes;
-        let attribute = attributes.nodes().iter().copied().find(|attribute| attribute.name().unwrap().text() == "resolution-mode")?;
+        let attribute = attributes
+            .nodes()
+            .iter()
+            .copied()
+            .find(|attribute| attribute.name().unwrap().text() == "resolution-mode")?;
         let elem = attribute.as_import_attribute();
         if !is_string_literal_like(elem.value) {
             return None;
@@ -1702,7 +1857,11 @@ impl ImportAttributes {
         let text = elem.value.text();
         if text != "import" && text != "require" {
             if let Some(f) = grammar_error_on_node.as_mut() {
-                f(elem.value, &diagnostics::X_resolution_mode_should_be_either_require_or_import, &[]);
+                f(
+                    elem.value,
+                    &diagnostics::X_resolution_mode_should_be_either_require_or_import,
+                    &[],
+                );
             }
             return None;
         }
@@ -1718,7 +1877,9 @@ impl ImportAttributes {
 /// `*ImportAttributesNode`).
 pub fn get_resolution_mode_override(
     node: Option<P<Node>>,
-    grammar_error_on_node: Option<&mut dyn FnMut(P<Node>, &'static diagnostics::Message, &[&dyn std::fmt::Display]) -> bool>,
+    grammar_error_on_node: Option<
+        &mut dyn FnMut(P<Node>, &'static diagnostics::Message, &[&dyn std::fmt::Display]) -> bool,
+    >,
 ) -> Option<ResolutionMode> {
     ImportAttributes::get_resolution_mode_override(node, grammar_error_on_node)
 }
@@ -1775,7 +1936,7 @@ pub struct SourceFile {
     text: &'static str,
     // Written once by the file loader (SetContentMapperInfo) before the file is published.
     content_mapper_info: OwnedCell<Option<P<ContentMapperSourceFileInfo>>>,
-    pub statements: P<NodeList>,       // NodeList[*Statement]
+    pub statements: P<NodeList>,    // NodeList[*Statement]
     pub end_of_file_token: P<Node>, // TokenNode[*EndOfFileToken]
 
     // Fields set by parser
@@ -1788,7 +1949,7 @@ pub struct SourceFile {
     pub uses_uri_style_node_core_modules: OwnedCell<Tristate>,
     pub identifier_count: OwnedCell<usize>,
     pub text_index: OwnedCell<u32>, // `register_source_text` index of `text` (compact identifiers, identifier.rs)
-    pub imports: OwnedCell<&'static [P<Node>]>,              // []LiteralLikeNode
+    pub imports: OwnedCell<&'static [P<Node>]>, // []LiteralLikeNode
     pub module_augmentations: OwnedCell<&'static [P<Node>]>, // []ModuleName
     pub ambient_module_names: OwnedCell<&'static [&'static str]>,
     pub comment_directives: OwnedCell<&'static [CommentDirective]>,
@@ -1861,57 +2022,63 @@ impl NodeFactory {
         {
             panic!("fileName should be normalized and absolute: {:?}", opts.file_name);
         }
-        let node = self.new_node(Kind::SourceFile, SourceFile {
-            node: OwnedCell::new(None),
-            declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
-            locals_container_base: LocalsContainerBase { locals: OwnedCell::new(None), next_container: OwnedCell::new(None) },
-            parse_options: opts,
-            text,
-            content_mapper_info: OwnedCell::new(None),
-            statements,
-            end_of_file_token,
-            diagnostics: OwnedCell::new(&[]),
-            js_diagnostics: OwnedCell::new(&[]),
-            jsdoc_diagnostics: OwnedCell::new(&[]),
-            language_variant: OwnedCell::new(LanguageVariant::default()),
-            script_kind: OwnedCell::new(ScriptKind::default()),
-            is_declaration_file: OwnedCell::new(false),
-            uses_uri_style_node_core_modules: OwnedCell::new(Tristate::Unknown),
-            identifier_count: OwnedCell::new(0),
-            text_index: OwnedCell::new(crate::identifier::NO_SOURCE_TEXT),
-            imports: OwnedCell::new(&[]),
-            module_augmentations: OwnedCell::new(&[]),
-            ambient_module_names: OwnedCell::new(&[]),
-            comment_directives: OwnedCell::new(&[]),
-            jsdoc_cache: FrozenCell::new(FxHashMap::default()),
-            jsdoc_mu: RwLock::new(()),
-            has_lazy_jsdoc: OwnedCell::new(false),
-            identifiers: OnceLock::new(),
-            name_table: OnceLock::new(),
-            reparsed_clones: OwnedCell::new(&[]),
-            lazy_lists: OwnedCell::new(&[]),
-            pragmas: OwnedCell::new(&[]),
-            referenced_files: OwnedCell::new(&[]),
-            type_reference_directives: OwnedCell::new(&[]),
-            lib_reference_directives: OwnedCell::new(&[]),
-            check_js_directive: OwnedCell::new(None),
-            node_count: OwnedCell::new(0),
-            text_count: OwnedCell::new(0),
-            hash: OwnedCell::new(0),
-            common_js_module_indicator: OwnedCell::new(None),
-            external_module_indicator: OwnedCell::new(None),
-            is_bound: AtomicBool::new(false),
-            bind_once: Once::new(),
-            bind_diagnostics: OwnedCell::new(&[]),
-            symbol_count: OwnedCell::new(0),
-            pattern_ambient_modules: OwnedCell::new(&[]),
-            global_exports: OwnedCell::new(None),
-            check_leaf: AtomicBool::new(false),
-            ecma_line_map: OnceLock::new(),
-            position_map: OnceLock::new(),
-            token_cache: std::sync::Mutex::new(FxHashMap::default()),
-            declaration_map: OnceLock::new(),
-        });
+        let node = self.new_node(
+            Kind::SourceFile,
+            SourceFile {
+                node: OwnedCell::new(None),
+                declaration_base: DeclarationBase { symbol: OwnedCell::new(None) },
+                locals_container_base: LocalsContainerBase {
+                    locals: OwnedCell::new(None),
+                    next_container: OwnedCell::new(None),
+                },
+                parse_options: opts,
+                text,
+                content_mapper_info: OwnedCell::new(None),
+                statements,
+                end_of_file_token,
+                diagnostics: OwnedCell::new(&[]),
+                js_diagnostics: OwnedCell::new(&[]),
+                jsdoc_diagnostics: OwnedCell::new(&[]),
+                language_variant: OwnedCell::new(LanguageVariant::default()),
+                script_kind: OwnedCell::new(ScriptKind::default()),
+                is_declaration_file: OwnedCell::new(false),
+                uses_uri_style_node_core_modules: OwnedCell::new(Tristate::Unknown),
+                identifier_count: OwnedCell::new(0),
+                text_index: OwnedCell::new(crate::identifier::NO_SOURCE_TEXT),
+                imports: OwnedCell::new(&[]),
+                module_augmentations: OwnedCell::new(&[]),
+                ambient_module_names: OwnedCell::new(&[]),
+                comment_directives: OwnedCell::new(&[]),
+                jsdoc_cache: FrozenCell::new(FxHashMap::default()),
+                jsdoc_mu: RwLock::new(()),
+                has_lazy_jsdoc: OwnedCell::new(false),
+                identifiers: OnceLock::new(),
+                name_table: OnceLock::new(),
+                reparsed_clones: OwnedCell::new(&[]),
+                lazy_lists: OwnedCell::new(&[]),
+                pragmas: OwnedCell::new(&[]),
+                referenced_files: OwnedCell::new(&[]),
+                type_reference_directives: OwnedCell::new(&[]),
+                lib_reference_directives: OwnedCell::new(&[]),
+                check_js_directive: OwnedCell::new(None),
+                node_count: OwnedCell::new(0),
+                text_count: OwnedCell::new(0),
+                hash: OwnedCell::new(0),
+                common_js_module_indicator: OwnedCell::new(None),
+                external_module_indicator: OwnedCell::new(None),
+                is_bound: AtomicBool::new(false),
+                bind_once: Once::new(),
+                bind_diagnostics: OwnedCell::new(&[]),
+                symbol_count: OwnedCell::new(0),
+                pattern_ambient_modules: OwnedCell::new(&[]),
+                global_exports: OwnedCell::new(None),
+                check_leaf: AtomicBool::new(false),
+                ecma_line_map: OnceLock::new(),
+                position_map: OnceLock::new(),
+                token_cache: std::sync::Mutex::new(FxHashMap::default()),
+                declaration_map: OnceLock::new(),
+            },
+        );
         node.as_source_file().node.set(Some(node));
         node
     }
@@ -2052,7 +2219,10 @@ impl SourceFile {
     // SetContentMapperInfo initializes all content-mapper metadata before the source file is published.
     // ast.go:2644
     pub fn set_content_mapper_info(&self, info: ContentMapperSourceFileInfo) {
-        assert!(self.content_mapper_info.get().is_none(), "content mapper source file info already set");
+        assert!(
+            self.content_mapper_info.get().is_none(),
+            "content mapper source file info already set"
+        );
         self.content_mapper_info.set(Some(P::new(info)));
     }
 
@@ -2111,7 +2281,8 @@ impl SourceFile {
                     let text = node.text();
                     // Go stores Pos() unchanged, so a reparsed name without a position (the `this` parameter
                     // a JSDoc `@this` tag adds) stores -1, the same value as "appears more than once".
-                    name_table.entry(text)
+                    name_table
+                        .entry(text)
                         .and_modify(|entry| *entry = NameTableEntry::Multiple)
                         .or_insert_with(|| match node.pos().source_offset() {
                             Some(pos) => NameTableEntry::Unique(pos),
@@ -2136,7 +2307,10 @@ impl SourceFile {
             return ids.keys().contains(name);
         }
         let _region = self.owner_region();
-        self.identifiers.get_or_init(|| collect_identifiers_for_source_file(self)).keys().contains(name)
+        self.identifiers
+            .get_or_init(|| collect_identifiers_for_source_file(self))
+            .keys()
+            .contains(name)
     }
 
     // Lazily filled shared data of the file lives in the file's own region in the language server (docs/LSP.md
@@ -2193,7 +2367,9 @@ impl SourceFile {
 
     pub(crate) fn resolve_jsdoc(&'static self, n: P<Node>) -> &'static [P<Node>] {
         let Some(parse) = PARSE_JSDOC_FOR_NODE.get() else {
-            panic!("resolveJSDoc called but parseJSDocForNode is not registered; ensure the parser package is imported");
+            panic!(
+                "resolveJSDoc called but parseJSDocForNode is not registered; ensure the parser package is imported"
+            );
         };
         // Fast path: check cache under read lock
         {
@@ -2260,7 +2436,12 @@ impl SourceFile {
     }
 
     pub fn clone_node(&self, node: P<Node>, f: &NodeFactory) -> P<Node> {
-        let updated = f.new_source_file(self.parse_options.clone(), self.text, self.statements, self.end_of_file_token);
+        let updated = f.new_source_file(
+            self.parse_options.clone(),
+            self.text,
+            self.statements,
+            self.end_of_file_token,
+        );
         let new_file = updated.as_source_file();
         new_file.copy_from(self);
         clone_node(updated, node, &f.hooks)
@@ -2442,10 +2623,20 @@ fn collect_identifiers_for_source_file(source_file: &SourceFile) -> Set<&'static
 }
 
 impl NodeFactory {
-    pub fn update_source_file(&self, node: P<Node>, statements: P<NodeList>, end_of_file_token: P<Node>) -> P<Node> {
+    pub fn update_source_file(
+        &self,
+        node: P<Node>,
+        statements: P<NodeList>,
+        end_of_file_token: P<Node>,
+    ) -> P<Node> {
         let file = node.as_source_file();
         if statements != file.statements || end_of_file_token != file.end_of_file_token {
-            let updated = self.new_source_file(file.parse_options.clone(), file.text, statements, end_of_file_token);
+            let updated = self.new_source_file(
+                file.parse_options.clone(),
+                file.text,
+                statements,
+                end_of_file_token,
+            );
             updated.as_source_file().copy_from(file);
             return update_node(updated, node, &self.hooks);
         }
@@ -2477,11 +2668,20 @@ impl SourceFile {
         match token_cache.entry(key) {
             Entry::Occupied(entry) => {
                 let token = *entry.get();
-                assert!(token.kind() == kind, "Token cache mismatch: {:?} != {:?}", token.kind(), kind);
+                assert!(
+                    token.kind() == kind,
+                    "Token cache mismatch: {:?} != {:?}",
+                    token.kind(),
+                    kind
+                );
                 token
             }
             Entry::Vacant(entry) => {
-                assert!(!parent.flags().intersects(NodeFlags::Reparsed), "Cannot create token from reparsed node of kind {:?}", parent.kind());
+                assert!(
+                    !parent.flags().intersects(NodeFlags::Reparsed),
+                    "Cannot create token from reparsed node of kind {:?}",
+                    parent.kind()
+                );
                 let token = create_token(kind, self, pos, end, flags);
                 token.set_loc(loc);
                 token.set_parent(Some(parent));
@@ -2515,13 +2715,18 @@ impl SourceFile {
 
         fn visit(result: &mut FxHashMap<String, Vec<P<Node>>>, node: P<Node>) -> bool {
             match node.kind() {
-                Kind::FunctionDeclaration | Kind::FunctionExpression | Kind::MethodDeclaration | Kind::MethodSignature => {
+                Kind::FunctionDeclaration
+                | Kind::FunctionExpression
+                | Kind::MethodDeclaration
+                | Kind::MethodSignature => {
                     let declaration_name = get_declaration_name(node);
                     if !declaration_name.is_empty() {
                         let declarations = result.entry(declaration_name).or_default();
                         let last_declaration = declarations.last().copied();
                         // Check whether this declaration belongs to an "overload group".
-                        if let Some(last_declaration) = last_declaration.filter(|l| node.parent() == l.parent() && node.symbol() == l.symbol()) {
+                        if let Some(last_declaration) = last_declaration
+                            .filter(|l| node.parent() == l.parent() && node.symbol() == l.symbol())
+                        {
                             // Overwrite the last declaration if it was an overload and this one is an implementation.
                             if node.body().is_some() && last_declaration.body().is_none() {
                                 *declarations.last_mut().unwrap() = node;
@@ -2554,7 +2759,9 @@ impl SourceFile {
                 }
                 Kind::Parameter | Kind::VariableDeclaration | Kind::BindingElement => {
                     // Only consider parameter properties
-                    if node.kind() == Kind::Parameter && !has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier) {
+                    if node.kind() == Kind::Parameter
+                        && !has_syntactic_modifier(node, ModifierFlags::ParameterPropertyModifier)
+                    {
                         return false;
                     }
                     if let Some(name) = node.name() {
@@ -2594,7 +2801,9 @@ impl SourceFile {
                         // Handle named bindings in imports e.g.:
                         //    import * as NS from "mod";
                         //    import {a, b as B} from "mod";
-                        if let Some(named_bindings) = import_clause.as_import_clause().named_bindings {
+                        if let Some(named_bindings) =
+                            import_clause.as_import_clause().named_bindings
+                        {
                             if named_bindings.kind() == Kind::NamespaceImport {
                                 add_declaration(result, named_bindings);
                             } else {
@@ -2608,7 +2817,9 @@ impl SourceFile {
                 Kind::BinaryExpression => {
                     if matches!(
                         get_assignment_declaration_kind(node),
-                        JSDeclarationKind::ExportsProperty | JSDeclarationKind::ThisProperty | JSDeclarationKind::Property
+                        JSDeclarationKind::ExportsProperty
+                            | JSDeclarationKind::ThisProperty
+                            | JSDeclarationKind::Property
                     ) {
                         add_declaration(result, node);
                     }
@@ -2637,9 +2848,13 @@ fn create_token(kind: Kind, file: &SourceFile, pos: u32, end: u32, flags: TokenF
         Kind::NumericLiteral => token_factory.new_numeric_literal(text, flags),
         Kind::BigIntLiteral => token_factory.new_big_int_literal(text, flags),
         Kind::StringLiteral => token_factory.new_string_literal(text, flags),
-        Kind::JsxText | Kind::JsxTextAllWhiteSpaces => token_factory.new_jsx_text(text, kind == Kind::JsxTextAllWhiteSpaces),
+        Kind::JsxText | Kind::JsxTextAllWhiteSpaces => {
+            token_factory.new_jsx_text(text, kind == Kind::JsxTextAllWhiteSpaces)
+        }
         Kind::RegularExpressionLiteral => token_factory.new_regular_expression_literal(text, flags),
-        Kind::NoSubstitutionTemplateLiteral => token_factory.new_no_substitution_template_literal(text, flags),
+        Kind::NoSubstitutionTemplateLiteral => {
+            token_factory.new_no_substitution_template_literal(text, flags)
+        }
         Kind::TemplateHead => token_factory.new_template_head(text, "" /*rawText*/, flags),
         Kind::TemplateMiddle => token_factory.new_template_middle(text, "" /*rawText*/, flags),
         Kind::TemplateTail => token_factory.new_template_tail(text, "" /*rawText*/, flags),
@@ -2673,20 +2888,19 @@ pub struct CommentRange {
 impl CommentRange {
     #[inline]
     pub fn pos(&self) -> u32 {
-        self.text_range
-            .pos()
-            .expect_source("comments have source positions")
+        self.text_range.pos().expect_source("comments have source positions")
     }
     #[inline]
     pub fn end(&self) -> u32 {
-        self.text_range
-            .end()
-            .expect_source("comments have source positions")
+        self.text_range.end().expect_source("comments have source positions")
     }
 }
 
 impl NodeFactory {
-    #[expect(clippy::unused_self, reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations."
+    )]
     pub fn new_comment_range(
         &self,
         kind: Kind,
@@ -2694,11 +2908,7 @@ impl NodeFactory {
         end: u32,
         has_trailing_new_line: bool,
     ) -> CommentRange {
-        CommentRange {
-            text_range: TextRange::new(pos, end),
-            kind,
-            has_trailing_new_line,
-        }
+        CommentRange { text_range: TextRange::new(pos, end), kind, has_trailing_new_line }
     }
 }
 
@@ -2713,15 +2923,11 @@ pub struct FileReference {
 impl FileReference {
     #[inline]
     pub fn pos(&self) -> u32 {
-        self.text_range
-            .pos()
-            .expect_source("file references have source positions")
+        self.text_range.pos().expect_source("file references have source positions")
     }
     #[inline]
     pub fn end(&self) -> u32 {
-        self.text_range
-            .end()
-            .expect_source("file references have source positions")
+        self.text_range.end().expect_source("file references have source positions")
     }
 }
 
@@ -2745,7 +2951,8 @@ pub const PragmaKindTripleSlashXML: PragmaKindFlags = 1 << 0;
 pub const PragmaKindSingleLine: PragmaKindFlags = 1 << 1;
 pub const PragmaKindMultiLine: PragmaKindFlags = 1 << 2;
 pub const PragmaKindFlagsNone: PragmaKindFlags = 0;
-pub const PragmaKindAll: PragmaKindFlags = PragmaKindTripleSlashXML | PragmaKindSingleLine | PragmaKindMultiLine;
+pub const PragmaKindAll: PragmaKindFlags =
+    PragmaKindTripleSlashXML | PragmaKindSingleLine | PragmaKindMultiLine;
 pub const PragmaKindDefault: PragmaKindFlags = PragmaKindAll;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -2770,23 +2977,41 @@ impl PragmaSpecification {
 // Hand-written visitor implementations for nodes with runtime-dependent
 // child ordering. Generated code in generated.rs delegates to these.
 
-pub(crate) fn for_each_child_jsdoc_parameter_or_property_tag<V: FnMut(P<Node>) -> bool + ?Sized>(node: &JSDocParameterOrPropertyTag, v: &mut V) -> bool {
+pub(crate) fn for_each_child_jsdoc_parameter_or_property_tag<V: FnMut(P<Node>) -> bool + ?Sized>(
+    node: &JSDocParameterOrPropertyTag,
+    v: &mut V,
+) -> bool {
     v(node.tag_name())
         || (node.is_name_first && (v(node.name) || visit(v, node.type_expression)))
         || (!node.is_name_first && (visit(v, node.type_expression) || v(node.name)))
         || visit_node_list(v, node.comment())
 }
 
-pub(crate) fn visit_each_child_jsdoc_parameter_or_property_tag(node: &JSDocParameterOrPropertyTag, n: P<Node>, v: &mut NodeVisitor) -> P<Node> {
+pub(crate) fn visit_each_child_jsdoc_parameter_or_property_tag(
+    node: &JSDocParameterOrPropertyTag,
+    n: P<Node>,
+    v: &mut NodeVisitor,
+) -> P<Node> {
     let tag_name = v.visit_node_hooked(Some(node.tag_name())).unwrap();
     let name = v.visit_node_hooked(Some(node.name)).unwrap();
     let type_expression = v.visit_node_hooked(node.type_expression);
     let comment = v.visit_nodes_hooked(node.comment());
-    v.factory.update_jsdoc_parameter_or_property_tag(n, tag_name, name, node.is_bracketed, type_expression, node.is_name_first, comment)
+    v.factory.update_jsdoc_parameter_or_property_tag(
+        n,
+        tag_name,
+        name,
+        node.is_bracketed,
+        type_expression,
+        node.is_name_first,
+        comment,
+    )
 }
 
 impl NodeFactory {
-    #[expect(clippy::unused_self, reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "The factory keeps the same instance API for node construction, hooks and arena lifecycle operations."
+    )]
     pub fn release_arenas(&self) {}
 }
 
@@ -2794,7 +3019,7 @@ impl NodeFactory {
 mod tests {
     use std::rc::Rc;
 
-    use tsrs_core::{TextRange, P};
+    use tsrs_core::{P, TextRange};
 
     use crate::*;
 
@@ -2920,13 +3145,19 @@ mod tests {
         assert_eq!(copy.as_binary_expression().left(), a);
 
         // Identity visitor: nothing changes.
-        let mut v = new_node_visitor(Some(Rc::new(|_: &mut NodeVisitor, n: P<Node>| Some(n))), None, NodeVisitorHooks::default());
+        let mut v = new_node_visitor(
+            Some(Rc::new(|_: &mut NodeVisitor, n: P<Node>| Some(n))),
+            None,
+            NodeVisitorHooks::default(),
+        );
         assert_eq!(v.visit_each_child(Some(bin)), Some(bin));
 
         // Replacing a child produces an updated node with the original's location.
         let c: P<Node> = v.factory.new_identifier("c");
         let mut v = new_node_visitor(
-            Some(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| if n == a { Some(c) } else { Some(n) })),
+            Some(Rc::new(
+                move |_: &mut NodeVisitor, n: P<Node>| if n == a { Some(c) } else { Some(n) },
+            )),
             Some(std::mem::take(&mut f)),
             NodeVisitorHooks::default(),
         );
@@ -2962,8 +3193,10 @@ mod tests {
     // binder/checker miss or duplicate members).
     #[test]
     fn symbol_table_indexed_order_and_delete() {
-        let names: Vec<&'static str> = (0..20).map(|i| &*Box::leak(format!("n{i}").into_boxed_str())).collect();
-        let syms: Vec<P<Symbol>> = names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
+        let names: Vec<&'static str> =
+            (0..20).map(|i| &*Box::leak(format!("n{i}").into_boxed_str())).collect();
+        let syms: Vec<P<Symbol>> =
+            names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
         let table = SymbolTable::with_capacity(2);
         for (n, s) in names.iter().zip(&syms) {
             table.set(n, *s);
@@ -3004,9 +3237,13 @@ mod tests {
     #[test]
     fn symbol_table_long_names_share_the_capped_length() {
         // Entries store the key length capped at 63: keys longer than that are told apart by hash and text.
-        let long = |c: char, n: usize| -> &'static str { Box::leak(format!("{}{c}", "x".repeat(n)).into_boxed_str()) };
-        let names: Vec<&'static str> = (0..40).map(|i| long(char::from(b'a' + (i % 26) as u8), 63 + i / 26)).collect();
-        let syms: Vec<P<Symbol>> = names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
+        let long = |c: char, n: usize| -> &'static str {
+            Box::leak(format!("{}{c}", "x".repeat(n)).into_boxed_str())
+        };
+        let names: Vec<&'static str> =
+            (0..40).map(|i| long(char::from(b'a' + (i % 26) as u8), 63 + i / 26)).collect();
+        let syms: Vec<P<Symbol>> =
+            names.iter().map(|n| Symbol::new(SymbolFlags::Property, n)).collect();
         for count in [5, 40] {
             let table = SymbolTable::new();
             for i in 0..count {
@@ -3031,7 +3268,10 @@ mod tests {
         assert!(is_assignment_operator(Kind::PlusEqualsToken));
         assert_eq!(NodeFlags::BlockScoped, NodeFlags::Let | NodeFlags::Const | NodeFlags::Using);
         assert!(SymbolFlags::Value.contains(SymbolFlags::Function));
-        assert!(!SymbolFlags::FunctionScopedVariableExcludes.intersects(SymbolFlags::FunctionScopedVariable));
+        assert!(
+            !SymbolFlags::FunctionScopedVariableExcludes
+                .intersects(SymbolFlags::FunctionScopedVariable)
+        );
         assert_eq!(std::mem::size_of::<Node>(), 24);
     }
 
@@ -3040,10 +3280,19 @@ mod tests {
         let f = NodeFactory::default();
         let parent = f.new_keyword_expression(Kind::ThisKeyword);
         let child = f.new_token(Kind::Count);
-        assert_eq!((child.kind(), child.data_tag(), child.parent()), (Kind::Count, NodeDataTag::Token, None));
+        assert_eq!(
+            (child.kind(), child.data_tag(), child.parent()),
+            (Kind::Count, NodeDataTag::Token, None)
+        );
         child.set_parent(Some(parent));
-        assert_eq!((child.kind(), child.data_tag(), child.parent()), (Kind::Count, NodeDataTag::Token, Some(parent)));
-        assert_eq!((parent.kind(), parent.data_tag()), (Kind::ThisKeyword, NodeDataTag::KeywordExpression));
+        assert_eq!(
+            (child.kind(), child.data_tag(), child.parent()),
+            (Kind::Count, NodeDataTag::Token, Some(parent))
+        );
+        assert_eq!(
+            (parent.kind(), parent.data_tag()),
+            (Kind::ThisKeyword, NodeDataTag::KeywordExpression)
+        );
         child.set_parent(None);
         assert_eq!((child.kind(), child.parent()), (Kind::Count, None));
     }

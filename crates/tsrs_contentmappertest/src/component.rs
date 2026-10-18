@@ -1,9 +1,15 @@
-use tsrs_contentmapper::{MappedOutput, ProtocolJson, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedOutput, ProtocolJson, TransformParams,
+    TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
-use crate::protocol::{initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    initialize_result, marshal_span_map, no_notifications, testHandler, unexpected_method,
+    unmarshal_params,
+};
 
 // component.go:15
 pub(crate) struct componentHandler;
@@ -19,7 +25,12 @@ impl ipc::Handler for componentHandler {
                 let p: TransformParams = unmarshal_params(params)?;
                 let (text, mappings) = transform_component(&p.content)?;
                 Ok(TransformResult {
-                    mapped_output: MappedOutput { text, extension: ".ts".to_string(), mappings: Some(mappings), ..Default::default() },
+                    mapped_output: MappedOutput {
+                        text,
+                        extension: ".ts".to_string(),
+                        mappings: Some(mappings),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 }
                 .marshal_json())
@@ -28,7 +39,11 @@ impl ipc::Handler for componentHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }
@@ -88,7 +103,12 @@ fn transform_component(content: &str) -> Result<(String, Value), ipc::Error> {
             return Err(ipc::Error::new("contentmappertest: missing </script> tag"));
         };
         let script_end = script_start + close_rel;
-        w.write_mapped(&content[script_start..script_end], script_start, script_end, Kind::Verbatim);
+        w.write_mapped(
+            &content[script_start..script_end],
+            script_start,
+            script_end,
+            Kind::Verbatim,
+        );
     }
 
     w.write_synthesized("\nfunction __render() {\n");

@@ -17,7 +17,10 @@ fn test_get_wildcard_directories_dot_prefixed_include_with_dot_dir_exclude() {
     let result = get_wildcard_directories(
         &strings(&["./app/**/*.ts", "./app/**/*.tsx"]),
         &strings(&["**/node_modules", "**/.*/", "./build"]),
-        &ComparePathsOptions { current_directory: "/home/projects/monorepo/apps/web".to_string(), use_case_sensitive_file_names: true },
+        &ComparePathsOptions {
+            current_directory: "/home/projects/monorepo/apps/web".to_string(),
+            use_case_sensitive_file_names: true,
+        },
     );
     let mut expected = OrderedMap::default();
     expected.insert("/home/projects/monorepo/apps/web/app".to_string(), true);
@@ -34,9 +37,21 @@ fn test_get_wildcard_directories_non_ascii_characters() {
             "C:/Users/TobiasLægreid/dev/app/frontend/packages/react",
             false,
         ),
-        ("Japanese characters in path", &["src/**/*.ts"], &["テスト"], "/Users/ユーザー/プロジェクト", true),
+        (
+            "Japanese characters in path",
+            &["src/**/*.ts"],
+            &["テスト"],
+            "/Users/ユーザー/プロジェクト",
+            true,
+        ),
         ("Chinese characters in path", &["源代码/**/*.js"], &["节点模块"], "/home/用户/项目", true),
-        ("Various Unicode characters", &["src/**/*.ts"], &["node_modules"], "/Users/Müller/café/naïve/résumé", false),
+        (
+            "Various Unicode characters",
+            &["src/**/*.ts"],
+            &["node_modules"],
+            "/Users/Müller/café/naïve/résumé",
+            false,
+        ),
     ];
 
     for (name, include, exclude, current_directory, use_case_sensitive_file_names) in tests {
@@ -44,7 +59,8 @@ fn test_get_wildcard_directories_non_ascii_characters() {
             current_directory: current_directory.to_string(),
             use_case_sensitive_file_names: *use_case_sensitive_file_names,
         };
-        let result = get_wildcard_directories(&strings(include), &strings(exclude), &compare_paths_options);
+        let result =
+            get_wildcard_directories(&strings(include), &strings(exclude), &compare_paths_options);
         assert!(result.is_some(), "{name}: expected non-nil result");
     }
 }

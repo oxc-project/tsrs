@@ -3,12 +3,12 @@ use std::time::SystemTime;
 
 use rustc_hash::FxHashMap;
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{compute_ecma_line_starts, get_script_kind_from_file_name, ScriptKind, TextChange};
+use tsrs_core::{ScriptKind, TextChange, compute_ecma_line_starts, get_script_kind_from_file_name};
 use tsrs_ls::lsconv::{self, LSPLineMap, Script};
-use tsrs_ls::sourcemap::{create_ecma_line_info, ECMALineInfo};
+use tsrs_ls::sourcemap::{ECMALineInfo, create_ecma_line_info};
 use tsrs_ls::spanmap::{self, SpanMap};
 use tsrs_lsproto as lsproto;
-use tsrs_vfs::{Entries, FileInfo, FileMode, FS};
+use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 
 use crate::filechange::{FileChange, FileChangeExpander, FileChangeKind, FileChangeSummary};
 use crate::snapshotfs::FileHandleSource;
@@ -69,11 +69,10 @@ impl fileBase {
 
     // overlayfs.go:68
     fn ecma_line_info(&self) -> Arc<ECMALineInfo> {
-        Arc::clone(self.line_info
-            .get_or_init(|| {
-                let line_starts = compute_ecma_line_starts(&self.content);
-                create_ecma_line_info(self.content.clone(), line_starts)
-            }))
+        Arc::clone(self.line_info.get_or_init(|| {
+            let line_starts = compute_ecma_line_starts(&self.content);
+            create_ecma_line_info(self.content.clone(), line_starts)
+        }))
     }
 }
 
@@ -89,7 +88,11 @@ pub(crate) struct cachedFile {
 // overlayfs.go:82
 pub(crate) fn new_cached_file(file_name: String, content: String) -> cachedFile {
     let hash = hash_string_128(&content);
-    cachedFile { base: fileBase::new(file_name, content, hash), needs_reload: false, realpath_path: Path::default() }
+    cachedFile {
+        base: fileBase::new(file_name, content, hash),
+        needs_reload: false,
+        realpath_path: Path::default(),
+    }
 }
 
 // overlayfs.go:90
@@ -148,7 +151,11 @@ impl crate::dirty::Cloneable for cachedFile {
     fn clone_value(&self) -> cachedFile {
         cachedFile {
             realpath_path: self.realpath_path.clone(),
-            base: fileBase::new(self.base.file_name.clone(), self.base.content.clone(), self.base.hash),
+            base: fileBase::new(
+                self.base.file_name.clone(),
+                self.base.content.clone(),
+                self.base.hash,
+            ),
             needs_reload: false,
         }
     }
@@ -162,9 +169,19 @@ pub struct Overlay {
 }
 
 // overlayfs.go:130
-pub(crate) fn new_overlay(file_name: String, content: String, version: i32, kind: ScriptKind) -> Overlay {
+pub(crate) fn new_overlay(
+    file_name: String,
+    content: String,
+    version: i32,
+    kind: ScriptKind,
+) -> Overlay {
     let hash = hash_string_128(&content);
-    Overlay { base: fileBase::new(file_name, content, hash), version, kind, matches_disk_text: false }
+    Overlay {
+        base: fileBase::new(file_name, content, hash),
+        version,
+        kind,
+        matches_disk_text: false,
+    }
 }
 
 impl Overlay {
@@ -182,7 +199,10 @@ impl Overlay {
     // SpanMap and OriginalText satisfy lsconv.Script. An overlay holds the editor's raw text (for a
     // content-mapped file, that is the original foreign text, not the transformed output), so it never
     // carries a span map and its original text is its own text.
-    #[expect(clippy::unused_self, reason = "Span mapping is an optional property of the overlay instance, matching the host interface.")]
+    #[expect(
+        clippy::unused_self,
+        reason = "Span mapping is an optional property of the overlay instance, matching the host interface."
+    )]
     pub fn span_map(&self) -> Option<&SpanMap> {
         None
     }
@@ -352,9 +372,19 @@ pub trait RebasableFileSystem {
 }
 
 // overlayfs.go:204
-pub(crate) fn new_overlay_fs(fs: FsRef, overlays: OverlayMap, position_encoding: lsproto::PositionEncodingKind, to_path: ToPath) -> overlayFS {
+pub(crate) fn new_overlay_fs(
+    fs: FsRef,
+    overlays: OverlayMap,
+    position_encoding: lsproto::PositionEncodingKind,
+    to_path: ToPath,
+) -> overlayFS {
     let overlay_directories = create_overlay_directories(&overlays);
-    overlayFS { host: fs, position_encoding, mu: RwLock::new(overlayFSState { overlays, overlay_directories }), to_path }
+    overlayFS {
+        host: fs,
+        position_encoding,
+        mu: RwLock::new(overlayFSState { overlays, overlay_directories }),
+        to_path,
+    }
 }
 
 impl LayeredFileSystem for overlayFS {
@@ -389,7 +419,8 @@ pub(crate) fn layer_overlay_file_system(
             base = host;
         }
     }
-    let overlay: Arc<dyn LayeredFileSystem> = Arc::new(new_overlay_fs(base, overlays, position_encoding, to_path));
+    let overlay: Arc<dyn LayeredFileSystem> =
+        Arc::new(new_overlay_fs(base, overlays, position_encoding, to_path));
     match layer {
         None => overlay,
         Some(layer) => layer.with_base_file_system(FsRef::Layered(overlay)),
@@ -479,19 +510,31 @@ impl FS for overlayFS {
         let (file, directory, overlays) = {
             let st = self.mu.read().unwrap();
             let path = (self.to_path)(directory_name);
-            (st.overlays.contains_key(&path), st.overlay_directories.get(&path).cloned(), Arc::clone(&st.overlays))
+            (
+                st.overlays.contains_key(&path),
+                st.overlay_directories.get(&path).cloned(),
+                Arc::clone(&st.overlays),
+            )
         };
         if file {
             return Entries::default();
         }
         let host_entries = self.host.fs().get_accessible_entries(directory_name);
-        let mut entries = Entries { files: host_entries.files.clone(), directories: host_entries.directories.clone(), symlinks: host_entries.symlinks };
+        let mut entries = Entries {
+            files: host_entries.files.clone(),
+            directories: host_entries.directories.clone(),
+            symlinks: host_entries.symlinks,
+        };
         let use_case_sensitive_file_names = self.use_case_sensitive_file_names();
         let equal_name = |left: &str, right: &str| {
-            tspath::get_canonical_file_name(left, use_case_sensitive_file_names) == tspath::get_canonical_file_name(right, use_case_sensitive_file_names)
+            tspath::get_canonical_file_name(left, use_case_sensitive_file_names)
+                == tspath::get_canonical_file_name(right, use_case_sensitive_file_names)
         };
         if let Some(directory) = directory {
-            #[expect(clippy::iter_over_hash_type, reason = "Go ranges the overlay directory map too, so overlay-only children are appended in map order there as well")]
+            #[expect(
+                clippy::iter_over_hash_type,
+                reason = "Go ranges the overlay directory map too, so overlay-only children are appended in map order there as well"
+            )]
             for (child_path, child_name) in &directory {
                 entries.files.retain(|name| !equal_name(name, child_name));
                 entries.directories.retain(|name| !equal_name(name, child_name));
@@ -513,7 +556,10 @@ impl FS for overlayFS {
         let (overlay, directory) = {
             let st = self.mu.read().unwrap();
             let canonical_path = (self.to_path)(path);
-            (st.overlays.get(&canonical_path).cloned(), st.overlay_directories.contains_key(&canonical_path))
+            (
+                st.overlays.get(&canonical_path).cloned(),
+                st.overlay_directories.contains_key(&canonical_path),
+            )
         };
         if let Some(overlay) = overlay {
             return Some(overlay_file_info(&overlay));
@@ -542,13 +588,23 @@ fn overlay_file_info(overlay: &Overlay) -> FileInfo {
 
 // overlayfs.go:373 (Go `overlayDirectoryInfo`: mode ModeDir | 0o555)
 fn overlay_directory_info(name: &str) -> FileInfo {
-    FileInfo { name: name.to_string(), size: 0, mode: FileMode::Dir | FileMode::from_bits_retain(0o555), mod_time: None }
+    FileInfo {
+        name: name.to_string(),
+        size: 0,
+        mode: FileMode::Dir | FileMode::from_bits_retain(0o555),
+        mod_time: None,
+    }
 }
 
 // overlayfs.go:384
-fn create_overlay_directories(overlays: &FxHashMap<Path, Arc<Overlay>>) -> FxHashMap<Path, FxHashMap<Path, String>> {
+fn create_overlay_directories(
+    overlays: &FxHashMap<Path, Arc<Overlay>>,
+) -> FxHashMap<Path, FxHashMap<Path, String>> {
     let mut overlay_directories: FxHashMap<Path, FxHashMap<Path, String>> = FxHashMap::default();
-    #[expect(clippy::iter_over_hash_type, reason = "builds nested maps keyed by path; Go ranges the map too")]
+    #[expect(
+        clippy::iter_over_hash_type,
+        reason = "builds nested maps keyed by path; Go ranges the map too"
+    )]
     for (path, overlay) in overlays {
         let mut child_path = path.clone();
         let mut child = overlay.base.file_name().to_string();
@@ -558,7 +614,10 @@ fn create_overlay_directories(overlays: &FxHashMap<Path, Arc<Overlay>>) -> FxHas
             if child_path == parent_path {
                 break;
             }
-            overlay_directories.entry(parent_path.clone()).or_default().insert(child_path.clone(), tspath::get_base_file_name(&child));
+            overlay_directories
+                .entry(parent_path.clone())
+                .or_default()
+                .insert(child_path.clone(), tspath::get_base_file_name(&child));
             child_path = parent_path;
             child = parent;
         }
@@ -580,7 +639,10 @@ struct fileEvents {
 
 impl overlayFS {
     // overlayfs.go:407
-    pub(crate) fn process_changes(&self, changes: &[FileChange]) -> (FileChangeSummary, OverlayMap) {
+    pub(crate) fn process_changes(
+        &self,
+        changes: &[FileChange],
+    ) -> (FileChangeSummary, OverlayMap) {
         let mut st = self.mu.write().unwrap();
 
         let mut result = FileChangeSummary::default();
@@ -599,7 +661,10 @@ impl overlayFS {
                 file_event_map.entry(uri.clone()).or_default()
             };
 
-            if !result.includes_watch_change_outside_node_modules && change.kind.is_watch_kind() && !uri.0.contains("/node_modules/") {
+            if !result.includes_watch_change_outside_node_modules
+                && change.kind.is_watch_kind()
+                && !uri.0.contains("/node_modules/")
+            {
                 result.includes_watch_change_outside_node_modules = true;
             }
 
@@ -670,7 +735,10 @@ impl overlayFS {
             let mut o = new_overlays.get(&path).cloned();
 
             if let Some(open_change) = &events.open_change {
-                assert!(!(!result.opened.0.is_empty() || !result.reopened.0.is_empty()), "can only process one file open event at a time");
+                assert!(
+                    !(!result.opened.0.is_empty() || !result.reopened.0.is_empty()),
+                    "can only process one file open event at a time"
+                );
                 match &o {
                     Some(existing) if existing.content() != open_change.content => {
                         result.changed.add(uri.clone());
@@ -678,11 +746,20 @@ impl overlayFS {
                     None => result.opened = uri.clone(),
                     Some(_) => result.reopened = uri.clone(),
                 }
-                let mut script_kind = lsconv::language_kind_to_script_kind(open_change.language_kind);
+                let mut script_kind =
+                    lsconv::language_kind_to_script_kind(open_change.language_kind);
                 if script_kind == ScriptKind::Unknown {
                     script_kind = get_script_kind_from_file_name(&uri.file_name());
                 }
-                new_overlays.insert(path, Arc::new(new_overlay(uri.file_name(), open_change.content.clone(), open_change.version, script_kind)));
+                new_overlays.insert(
+                    path,
+                    Arc::new(new_overlay(
+                        uri.file_name(),
+                        open_change.content.clone(),
+                        open_change.version,
+                        script_kind,
+                    )),
+                );
                 continue;
             }
 
@@ -696,9 +773,15 @@ impl overlayFS {
                 match &o {
                     None => result.changed.add(uri.clone()),
                     Some(existing) if !events.saved => {
-                        let (matches_disk_text, _) = existing.compute_matches_disk_text(self.host.fs());
+                        let (matches_disk_text, _) =
+                            existing.compute_matches_disk_text(self.host.fs());
                         if matches_disk_text != existing.matches_disk_text() {
-                            let mut updated = new_overlay(existing.base.file_name.clone(), existing.content().to_string(), existing.version(), existing.kind);
+                            let mut updated = new_overlay(
+                                existing.base.file_name.clone(),
+                                existing.content().to_string(),
+                                existing.version(),
+                                existing.kind,
+                            );
                             updated.matches_disk_text = matches_disk_text;
                             let updated = Arc::new(updated);
                             new_overlays.insert(path.clone(), Arc::clone(&updated));
@@ -716,20 +799,48 @@ impl overlayFS {
                     for text_change in &change.changes {
                         if let Some(partial_change) = &text_change.partial {
                             let line_map = current.lsp_line_map();
-                            let converters = lsconv::new_converters(self.position_encoding, move |_file_name: &str| Some(Arc::clone(&line_map)));
-                            let ranges = converters.from_lsp_range(&*current, partial_change.range, spanmap::Feature::All);
-                            assert!(ranges.len() == 1, "expected exactly one range for partial change");
-                            let text_change = TextChange { text_range: ranges[0].span, new_text: partial_change.text.clone() };
+                            let converters = lsconv::new_converters(
+                                self.position_encoding,
+                                move |_file_name: &str| Some(Arc::clone(&line_map)),
+                            );
+                            let ranges = converters.from_lsp_range(
+                                &*current,
+                                partial_change.range,
+                                spanmap::Feature::All,
+                            );
+                            assert!(
+                                ranges.len() == 1,
+                                "expected exactly one range for partial change"
+                            );
+                            let text_change = TextChange {
+                                text_range: ranges[0].span,
+                                new_text: partial_change.text.clone(),
+                            };
                             let new_content = text_change.apply_to(&current.base.content);
-                            let next = new_overlay(current.base.file_name.clone(), new_content, change.version, current.kind);
+                            let next = new_overlay(
+                                current.base.file_name.clone(),
+                                new_content,
+                                change.version,
+                                current.kind,
+                            );
                             current = Arc::new(next);
                         } else if let Some(whole_change) = &text_change.whole_document {
-                            current = Arc::new(new_overlay(current.base.file_name.clone(), whole_change.text.clone(), change.version, current.kind));
+                            current = Arc::new(new_overlay(
+                                current.base.file_name.clone(),
+                                whole_change.text.clone(),
+                                change.version,
+                                current.kind,
+                            ));
                         }
                     }
                     // Go then sets version, hash and matchesDiskText on that overlay in place.
                     if !change.changes.is_empty() {
-                        let mut next = new_overlay(current.base.file_name.clone(), current.base.content.clone(), change.version, current.kind);
+                        let mut next = new_overlay(
+                            current.base.file_name.clone(),
+                            current.base.content.clone(),
+                            change.version,
+                            current.kind,
+                        );
                         next.base.hash = hash_string_128(&next.base.content);
                         next.matches_disk_text = false;
                         current = Arc::new(next);
@@ -741,7 +852,12 @@ impl overlayFS {
 
             if events.saved {
                 if let Some(existing) = &o {
-                    let mut updated = new_overlay(existing.base.file_name.clone(), existing.content().to_string(), existing.version(), existing.kind);
+                    let mut updated = new_overlay(
+                        existing.base.file_name.clone(),
+                        existing.content().to_string(),
+                        existing.version(),
+                        existing.kind,
+                    );
                     updated.matches_disk_text = true;
                     let updated = Arc::new(updated);
                     new_overlays.insert(path.clone(), Arc::clone(&updated));

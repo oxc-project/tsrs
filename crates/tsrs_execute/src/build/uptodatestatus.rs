@@ -102,12 +102,21 @@ impl upToDateStatus {
 
     // uptodatestatus.go:83
     pub(crate) fn is_error(&self) -> bool {
-        matches!(self.kind, upToDateStatusType::ConfigFileNotFound | upToDateStatusType::BuildErrors | upToDateStatusType::UpstreamErrors)
+        matches!(
+            self.kind,
+            upToDateStatusType::ConfigFileNotFound
+                | upToDateStatusType::BuildErrors
+                | upToDateStatusType::UpstreamErrors
+        )
     }
 
     // uptodatestatus.go:94
     pub(crate) fn is_pseudo_build(&self) -> bool {
-        matches!(self.kind, upToDateStatusType::UpToDateWithUpstreamTypes | upToDateStatusType::UpToDateWithInputFileText)
+        matches!(
+            self.kind,
+            upToDateStatusType::UpToDateWithUpstreamTypes
+                | upToDateStatusType::UpToDateWithInputFileText
+        )
     }
 
     // uptodatestatus.go:104
@@ -128,7 +137,10 @@ impl upToDateStatus {
 
     // uptodatestatus.go:120
     pub(crate) fn oldest_output_file_name(&self) -> String {
-        assert!(self.is_pseudo_build() || self.kind == upToDateStatusType::UpToDate, "only valid for up to date status of pseudo-build or up to date");
+        assert!(
+            self.is_pseudo_build() || self.kind == upToDateStatusType::UpToDate,
+            "only valid for up to date status of pseudo-build or up to date"
+        );
 
         if let Some(input_output_file_and_time) = self.input_output_file_and_time() {
             return input_output_file_and_time.output.file.clone();

@@ -1,7 +1,7 @@
 use rustc_hash::FxHashSet;
 use tsrs_core::tspath;
 
-use crate::{FileInfo, FileMode, FsError, FS};
+use crate::{FS, FileInfo, FileMode, FsError};
 
 // The result of a WalkDir callback: Go's fs.SkipDir / fs.SkipAll sentinels or a real error.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -35,11 +35,8 @@ pub fn walk_dir(
     let use_case_sensitive_file_names = file_system.use_case_sensitive_file_names();
     let root_prefix = root[..tspath::get_root_length(root)].to_string();
 
-    let mut w = WalkState {
-        use_case_sensitive_file_names,
-        root_prefix,
-        visited: FxHashSet::default(),
-    };
+    let mut w =
+        WalkState { use_case_sensitive_file_names, root_prefix, visited: FxHashSet::default() };
 
     let mut root_entry = DirEntry {
         path: root.to_string(),
@@ -50,7 +47,10 @@ pub fn walk_dir(
     let root_realpath = file_system.realpath(root);
     if tspath::get_root_length(root) != root.len() {
         let parent = tspath::get_directory_path(root);
-        let expected_realpath = tspath::combine_paths(&file_system.realpath(&parent), &[&tspath::get_base_file_name(root)]);
+        let expected_realpath = tspath::combine_paths(
+            &file_system.realpath(&parent),
+            &[&tspath::get_base_file_name(root)],
+        );
         if !w.equivalent(&root_realpath, &expected_realpath) {
             root_entry = DirEntry {
                 path: root.to_string(),
@@ -96,13 +96,20 @@ impl WalkState {
     }
 
     fn canonicalize(&self, path: &str) -> String {
-        tspath::get_canonical_file_name(&tspath::normalize_path(path), self.use_case_sensitive_file_names)
+        tspath::get_canonical_file_name(
+            &tspath::normalize_path(path),
+            self.use_case_sensitive_file_names,
+        )
     }
 
     fn visit(
         &mut self,
         file_system: &dyn FS,
-        walk_fn: &mut dyn FnMut(&str, Option<&DirEntry>, Option<&FsError>) -> Result<(), WalkDirError>,
+        walk_fn: &mut dyn FnMut(
+            &str,
+            Option<&DirEntry>,
+            Option<&FsError>,
+        ) -> Result<(), WalkDirError>,
         path: &str,
         entry: &DirEntry,
         realpath: &str,
@@ -128,7 +135,8 @@ impl WalkState {
         let entries = file_system.get_accessible_entries(path);
         let mut directories: FxHashSet<&str> = FxHashSet::default();
         directories.extend(entries.directories.iter().map(std::string::String::as_str));
-        let mut names: Vec<&str> = entries.directories.iter().map(std::string::String::as_str).collect();
+        let mut names: Vec<&str> =
+            entries.directories.iter().map(std::string::String::as_str).collect();
         names.extend(entries.files.iter().map(std::string::String::as_str));
         names.sort_unstable();
         for name in names {
@@ -150,17 +158,14 @@ impl WalkState {
                 }
             } else {
                 child_realpath = file_system.realpath(&child_path);
-                is_symlink = !self.equivalent(&child_realpath, &tspath::combine_paths(realpath, &[name]));
+                is_symlink =
+                    !self.equivalent(&child_realpath, &tspath::combine_paths(realpath, &[name]));
             }
             if is_symlink {
                 mode = FileMode::Symlink;
             }
-            let child_entry = DirEntry {
-                path: child_path.clone(),
-                name: name.to_string(),
-                mode,
-                info: None,
-            };
+            let child_entry =
+                DirEntry { path: child_path.clone(), name: name.to_string(), mode, info: None };
             if !mode.is_dir() {
                 if let Err(err) = self.visit(file_system, walk_fn, &child_path, &child_entry, "") {
                     if err == WalkDirError::SkipDir {
@@ -174,7 +179,9 @@ impl WalkState {
             if child_realpath.is_empty() {
                 child_realpath = file_system.realpath(&child_path);
             }
-            if let Err(err) = self.visit(file_system, walk_fn, &child_path, &child_entry, &child_realpath) {
+            if let Err(err) =
+                self.visit(file_system, walk_fn, &child_path, &child_entry, &child_realpath)
+            {
                 if err == WalkDirError::SkipDir {
                     return Ok(());
                 }

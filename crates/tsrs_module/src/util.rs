@@ -10,7 +10,8 @@ use tsrs_diagnostics::Message;
 use crate::resolver::move_to_next_directory_separator_if_available;
 use crate::types::ResolvedModule;
 
-pub(crate) static TYPE_SCRIPT_VERSION: LazyLock<semver::Version> = LazyLock::new(|| semver::must_parse(tsrs_core::version()));
+pub(crate) static TYPE_SCRIPT_VERSION: LazyLock<semver::Version> =
+    LazyLock::new(|| semver::must_parse(tsrs_core::version()));
 
 pub const INFERRED_TYPES_CONTAINING_FILE: &str = "__inferred type names__.ts";
 
@@ -31,9 +32,14 @@ pub fn parse_node_module_from_path(resolved: &str, is_folder: bool) -> String {
     };
 
     let index_after_node_modules = idx + "/node_modules/".len();
-    let mut index_after_package_name = move_to_next_directory_separator_if_available(&path, index_after_node_modules, is_folder);
+    let mut index_after_package_name =
+        move_to_next_directory_separator_if_available(&path, index_after_node_modules, is_folder);
     if path.as_bytes()[index_after_node_modules] == b'@' {
-        index_after_package_name = move_to_next_directory_separator_if_available(&path, index_after_package_name, is_folder);
+        index_after_package_name = move_to_next_directory_separator_if_available(
+            &path,
+            index_after_package_name,
+            is_folder,
+        );
     }
     path[..index_after_package_name].to_string()
 }
@@ -118,7 +124,11 @@ pub fn compare_pattern_keys(a: &str, b: &str) -> std::cmp::Ordering {
 // Returns a DiagnosticMessage if we won't include a resolved module due to its extension.
 // The DiagnosticMessage's parameters are the imported module name, and the filename it resolved to.
 // This returns a diagnostic even if the module will be an untyped module.
-pub fn get_resolution_diagnostic(options: &CompilerOptions, resolved_module: &ResolvedModule, file: P<SourceFile>) -> Option<&'static Message> {
+pub fn get_resolution_diagnostic(
+    options: &CompilerOptions,
+    resolved_module: &ResolvedModule,
+    file: P<SourceFile>,
+) -> Option<&'static Message> {
     let need_jsx = || -> Option<&'static Message> {
         if options.jsx != JsxEmit::None {
             return None;
@@ -127,7 +137,9 @@ pub fn get_resolution_diagnostic(options: &CompilerOptions, resolved_module: &Re
     };
 
     let need_allow_js = || -> Option<&'static Message> {
-        if options.get_allow_js() || !options.no_implicit_any.default_if_unknown(options.strict).is_true() {
+        if options.get_allow_js()
+            || !options.no_implicit_any.default_if_unknown(options.strict).is_true()
+        {
             return None;
         }
         Some(&diagnostics::Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type)
@@ -152,7 +164,12 @@ pub fn get_resolution_diagnostic(options: &CompilerOptions, resolved_module: &Re
     }
 
     match resolved_module.extension {
-        tspath::EXTENSION_TS | tspath::EXTENSION_DTS | tspath::EXTENSION_MTS | tspath::EXTENSION_DMTS | tspath::EXTENSION_CTS | tspath::EXTENSION_DCTS => {
+        tspath::EXTENSION_TS
+        | tspath::EXTENSION_DTS
+        | tspath::EXTENSION_MTS
+        | tspath::EXTENSION_DMTS
+        | tspath::EXTENSION_CTS
+        | tspath::EXTENSION_DCTS => {
             // These are always allowed.
             None
         }
@@ -182,8 +199,12 @@ pub fn try_get_js_extension_for_file(file_name: &str, options: &CompilerOptions)
             tspath::EXTENSION_JS
         }
         tspath::EXTENSION_JS | tspath::EXTENSION_JSX | tspath::EXTENSION_JSON => ext,
-        tspath::EXTENSION_DMTS | tspath::EXTENSION_MTS | tspath::EXTENSION_MJS => tspath::EXTENSION_MJS,
-        tspath::EXTENSION_DCTS | tspath::EXTENSION_CTS | tspath::EXTENSION_CJS => tspath::EXTENSION_CJS,
+        tspath::EXTENSION_DMTS | tspath::EXTENSION_MTS | tspath::EXTENSION_MJS => {
+            tspath::EXTENSION_MJS
+        }
+        tspath::EXTENSION_DCTS | tspath::EXTENSION_CTS | tspath::EXTENSION_CJS => {
+            tspath::EXTENSION_CJS
+        }
         _ => "",
     }
 }

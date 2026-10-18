@@ -14,10 +14,21 @@ const JSX_TAG_WORD_PATTERN: &str = "[a-zA-Z0-9:\\-\\._$]*";
 
 impl LanguageService {
     // linkedediting.go:18
-    #[expect(clippy::unnecessary_wraps, reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch.")]
-    pub fn provide_linked_editing_range(&self, _ctx: &Context, params: &lsproto::LinkedEditingRangeParams) -> Result<lsproto::LinkedEditingRangeResponse, lsproto::Error> {
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "Language service operations share the fallible response signature used by LSP and cross-project dispatch."
+    )]
+    pub fn provide_linked_editing_range(
+        &self,
+        _ctx: &Context,
+        params: &lsproto::LinkedEditingRangeParams,
+    ) -> Result<lsproto::LinkedEditingRangeResponse, lsproto::Error> {
         let (_, mut source_file) = self.get_program_and_file(&params.text_document.uri);
-        let positions = self.converters.from_lsp_position_for_source_file(source_file, params.position, Feature::LinkedEditing);
+        let positions = self.converters.from_lsp_position_for_source_file(
+            source_file,
+            params.position,
+            Feature::LinkedEditing,
+        );
         if positions.len() != 1 || !positions[0].fidelity.is_exact() {
             return Ok(lsproto::LinkedEditingRangeResponse::default());
         }
@@ -33,7 +44,9 @@ impl LanguageService {
             let fragment = token.parent().unwrap().parent().unwrap().as_jsx_fragment();
             let open_fragment = fragment.opening_fragment;
             let close_fragment = fragment.closing_fragment;
-            if open_fragment.flags().intersects(NodeFlags::ThisNodeOrAnySubNodesHasError) || close_fragment.flags().intersects(NodeFlags::ThisNodeOrAnySubNodesHasError) {
+            if open_fragment.flags().intersects(NodeFlags::ThisNodeOrAnySubNodesHasError)
+                || close_fragment.flags().intersects(NodeFlags::ThisNodeOrAnySubNodesHasError)
+            {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
             }
 
@@ -71,11 +84,16 @@ impl LanguageService {
             })
         } else {
             // determines if the cursor is in an element tag
-            let tag = ast::find_ancestor(token.parent(), |n| ast::is_jsx_opening_element(n) || ast::is_jsx_closing_element(n));
+            let tag = ast::find_ancestor(token.parent(), |n| {
+                ast::is_jsx_opening_element(n) || ast::is_jsx_closing_element(n)
+            });
             let Some(tag) = tag else {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
             };
-            assert!(ast::is_jsx_opening_element(tag) || ast::is_jsx_closing_element(tag), "tag should be opening or closing element");
+            assert!(
+                ast::is_jsx_opening_element(tag) || ast::is_jsx_closing_element(tag),
+                "tag should be opening or closing element"
+            );
 
             let jsx_element = tag.parent().unwrap().as_jsx_element();
             let open_tag = jsx_element.opening_element;
@@ -97,13 +115,9 @@ impl LanguageService {
             if open_tag_name_start == astnav::get_start_of_node(open_tag, source_file, false)
                 || close_tag_name_start == astnav::get_start_of_node(close_tag, source_file, false)
                 || open_tag_name_end
-                    == open_tag
-                        .end()
-                        .expect_source("parsed JSX tags have source positions")
+                    == open_tag.end().expect_source("parsed JSX tags have source positions")
                 || close_tag_name_end
-                    == close_tag
-                        .end()
-                        .expect_source("parsed JSX tags have source positions")
+                    == close_tag.end().expect_source("parsed JSX tags have source positions")
             {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
             }
@@ -120,14 +134,25 @@ impl LanguageService {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
             }
 
-            let (open_range, open_fidelity) = self.converters.to_lsp_range_for_feature(&source_file, TextRange::new(open_tag_name_start, open_tag_name_end), Feature::LinkedEditing);
-            let (close_range, close_fidelity) = self.converters.to_lsp_range_for_feature(&source_file, TextRange::new(close_tag_name_start, close_tag_name_end), Feature::LinkedEditing);
+            let (open_range, open_fidelity) = self.converters.to_lsp_range_for_feature(
+                &source_file,
+                TextRange::new(open_tag_name_start, open_tag_name_end),
+                Feature::LinkedEditing,
+            );
+            let (close_range, close_fidelity) = self.converters.to_lsp_range_for_feature(
+                &source_file,
+                TextRange::new(close_tag_name_start, close_tag_name_end),
+                Feature::LinkedEditing,
+            );
             if !open_fidelity.is_exact() || !close_fidelity.is_exact() {
                 return Ok(lsproto::LinkedEditingRangeResponse::default());
             }
 
             Ok(lsproto::LinkedEditingRangeResponse {
-                linked_editing_ranges: Some(lsproto::LinkedEditingRanges { ranges: vec![open_range, close_range], word_pattern: Some(JSX_TAG_WORD_PATTERN.to_string()) }),
+                linked_editing_ranges: Some(lsproto::LinkedEditingRanges {
+                    ranges: vec![open_range, close_range],
+                    word_pattern: Some(JSX_TAG_WORD_PATTERN.to_string()),
+                }),
             })
         }
     }

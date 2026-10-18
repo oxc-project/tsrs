@@ -71,11 +71,7 @@ impl Number {
 }
 
 pub fn inf(sign: i32) -> Number {
-    if sign >= 0 {
-        Number(f64::INFINITY)
-    } else {
-        Number(f64::NEG_INFINITY)
-    }
+    if sign >= 0 { Number(f64::INFINITY) } else { Number(f64::NEG_INFINITY) }
 }
 
 impl Number {
@@ -98,7 +94,10 @@ impl Number {
     }
 
     // https://tc39.es/ecma262/2024/multipage/abstract-operations.html#sec-toint32
-    #[expect(clippy::float_cmp, reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values.")]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
+    )]
     pub(crate) fn to_int32(self) -> i32 {
         let mut x = self.0;
 
@@ -204,10 +203,15 @@ impl Number {
 
     // https://tc39.es/ecma262/2024/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate
     #[must_use]
-    #[expect(clippy::float_cmp, reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values.")]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact equality preserves JavaScript numeric identity; an epsilon comparison would merge distinct values."
+    )]
     pub fn exponentiate(self, exponent: Number) -> Number {
         let base = self;
-        if ((base == Number(1.0) || base == Number(-1.0)) && exponent.is_inf()) || (base == Number(1.0) && exponent.is_nan()) {
+        if ((base == Number(1.0) || base == Number(-1.0)) && exponent.is_inf())
+            || (base == Number(1.0) && exponent.is_nan())
+        {
             return nan();
         }
 

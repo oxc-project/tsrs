@@ -1,4 +1,4 @@
-use crate::{PSlot, P};
+use crate::{P, PSlot};
 use rustc_hash::FxHashMap;
 use std::cell::RefCell;
 
@@ -60,12 +60,15 @@ const MAX_PAGE_COUNT: u64 = 65536;
 // page indices and a map for higher valued page indices.
 pub struct PagedLinkStore<V: 'static> {
     page_map: RefCell<FxHashMap<u64, &'static [PSlot<V>]>>, // Page map for page indices above maxPageCount
-    page_list: RefCell<Vec<Option<&'static [PSlot<V>]>>>,  // Page table for page indices below maxPageCount
+    page_list: RefCell<Vec<Option<&'static [PSlot<V>]>>>, // Page table for page indices below maxPageCount
 }
 
 impl<V> Default for PagedLinkStore<V> {
     fn default() -> Self {
-        PagedLinkStore { page_map: RefCell::new(FxHashMap::default()), page_list: RefCell::new(Vec::new()) }
+        PagedLinkStore {
+            page_map: RefCell::new(FxHashMap::default()),
+            page_list: RefCell::new(Vec::new()),
+        }
     }
 }
 
@@ -82,7 +85,9 @@ impl<V: Default> PagedLinkStore<V> {
                 // Grow the length of the list to pageIndex+1
                 list.resize(page_index as usize + 1, None);
             }
-            if let Some(page) = list[page_index as usize] { page } else {
+            if let Some(page) = list[page_index as usize] {
+                page
+            } else {
                 let page = Self::new_page();
                 list[page_index as usize] = Some(page);
                 page

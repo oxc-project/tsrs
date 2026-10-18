@@ -1,11 +1,13 @@
 use bitflags::bitflags;
 use tsrs_ast::{self as ast, DiagnosticExt, Kind, Node, NodeFlags, NodeList, SourceFile};
-use tsrs_core::{alloc_slice, alloc_str, alloc_vec, stringutil, TextRange, P};
+use tsrs_core::{P, TextRange, alloc_slice, alloc_str, alloc_vec, stringutil};
 use tsrs_diagnostics::{self as diagnostics, Message};
 
-use crate::parser_1::{new_parser, JSDocInfo, JsdocScannerInfo, Parser, ParsingContext};
+use crate::parser_1::{JSDocInfo, JsdocScannerInfo, Parser, ParsingContext, new_parser};
 use crate::parser_3::is_reserved_word;
-use crate::utilities::{get_jsdoc_comment_ranges, is_jsdoc_like_text, token_is_identifier_or_keyword};
+use crate::utilities::{
+    get_jsdoc_comment_ranges, is_jsdoc_like_text, token_is_identifier_or_keyword,
+};
 
 static INIT: std::sync::Once = std::sync::Once::new();
 
@@ -19,23 +21,23 @@ pub(crate) fn init() {
 // Called on first access to Node.JSDoc() for non-JS source files.
 fn parse_jsdoc_for_node(source_file: &'static SourceFile, node: P<Node>) -> Vec<P<Node>> {
     let mut p = new_parser();
-    p.initialize_state_static(source_file.parse_options().clone(), source_file.text(), source_file.script_kind());
+    p.initialize_state_static(
+        source_file.parse_options().clone(),
+        source_file.text(),
+        source_file.script_kind(),
+    );
     p.source_text_index = source_file.text_index.get();
     let ranges = get_jsdoc_comment_ranges(&mut p.factory, &[], node, source_file.text());
     if ranges.is_empty() {
         return Vec::new();
     }
     let mut jsdoc = Vec::with_capacity(ranges.len());
-    let mut pos = node
-        .pos()
-        .expect_source("parsed nodes have source positions");
+    let mut pos = node.pos().expect_source("parsed nodes have source positions");
     jsdoc = ranges.iter().fold(jsdoc, |mut jsdoc, comment| {
         if let Some(parsed) = p.parse_jsdoc_comment(node, comment.pos(), comment.end(), pos) {
             parsed.set_parent(Some(node));
             jsdoc.push(parsed);
-            pos = parsed
-                .end()
-                .expect_source("parsed nodes have source positions");
+            pos = parsed.end().expect_source("parsed nodes have source positions");
         }
 
         jsdoc
@@ -62,7 +64,11 @@ bitflags! {
 
 impl Parser {
     #[inline]
-    pub(crate) fn with_jsdoc(&mut self, node: P<Node>, info: JsdocScannerInfo) -> &'static [P<Node>] {
+    pub(crate) fn with_jsdoc(
+        &mut self,
+        node: P<Node>,
+        info: JsdocScannerInfo,
+    ) -> &'static [P<Node>] {
         if !info.intersects(JsdocScannerInfo::HasJSDoc) {
             return &[];
         }
@@ -70,7 +76,6 @@ impl Parser {
     }
 
     fn with_jsdoc_worker(&mut self, node: P<Node>, info: JsdocScannerInfo) -> &'static [P<Node>] {
-
         // For TS/TSX files, defer JSDoc parsing to first access, unless the comment
         // contains @see/@link (needed for unused-identifier checks).
         // @deprecated is detected via cheap text scan to set PossiblyContainsDeprecatedTag;
@@ -91,16 +96,13 @@ impl Parser {
         // Should only be called once per node
         self.has_deprecated_tag = false;
         let mut jsdoc: Vec<P<Node>> = Vec::with_capacity(ranges.len());
-        let mut pos = node
-            .pos()
-            .expect_source("parsed nodes have source positions");
+        let mut pos = node.pos().expect_source("parsed nodes have source positions");
         jsdoc = ranges.iter().fold(jsdoc, |mut jsdoc, comment| {
-            if let Some(parsed) = self.parse_jsdoc_comment(node, comment.pos(), comment.end(), pos) {
+            if let Some(parsed) = self.parse_jsdoc_comment(node, comment.pos(), comment.end(), pos)
+            {
                 parsed.set_parent(Some(node));
                 jsdoc.push(parsed);
-                pos = parsed
-                    .end()
-                    .expect_source("parsed nodes have source positions");
+                pos = parsed.end().expect_source("parsed nodes have source positions");
             }
 
             jsdoc
@@ -179,9 +181,7 @@ impl Parser {
         let save_has_await_identifier = self.statement_has_await_identifier;
 
         // initial indent is start+4 to account for leading `/** `
-        let line_start = self.source_text[..start as usize]
-            .rfind('\n')
-            .map_or(0, |i| i + 1) as u32;
+        let line_start = self.source_text[..start as usize].rfind('\n').map_or(0, |i| i + 1) as u32;
         let initial_indent = start + 4 - line_start;
         // -2 for trailing `*/`
         self.source_text = &self.source_text[..(end - 2) as usize];
@@ -279,15 +279,11 @@ impl Parser {
                         }
                         let tag = self.parse_tag(&tags, indent);
                         if tags_pos.is_none() {
-                            tags_pos = Some(
-                                tag.pos()
-                                    .expect_source("parsed nodes have source positions"),
-                            );
+                            tags_pos =
+                                Some(tag.pos().expect_source("parsed nodes have source positions"));
                         }
                         tags.push(tag);
-                        tags_end = tag
-                            .end()
-                            .expect_source("parsed nodes have source positions");
+                        tags_end = tag.end().expect_source("parsed nodes have source positions");
                         // NOTE: According to usejsdoc.org, a tag goes to end of line, except the last tag.
                         // Real-world comments may break this rule, so "BeginningOfLine" will not be a real line beginning
                         // for malformed examples like `/** @param {string} x @returns {number} the length */`
@@ -307,14 +303,21 @@ impl Parser {
                         state = JsdocState::SavingComments;
                         push_comment!(asterisk);
                     } else {
-                        assert!(state == JsdocState::BeginningOfLine, "state must be BeginningOfLine");
+                        assert!(
+                            state == JsdocState::BeginningOfLine,
+                            "state must be BeginningOfLine"
+                        );
                         // Ignore the first asterisk on a line
                         state = JsdocState::SawAsterisk;
                         indent += asterisk.len() as u32;
                     }
                 }
                 Kind::WhitespaceTrivia => {
-                    assert!(!(state == JsdocState::SavingComments || state == JsdocState::SavingBackticks), "whitespace shouldn't come from the scanner while saving top-level comment text");
+                    assert!(
+                        !(state == JsdocState::SavingComments
+                            || state == JsdocState::SavingBackticks),
+                        "whitespace shouldn't come from the scanner while saving top-level comment text"
+                    );
                     // only collect whitespace if we're already saving comments or have just crossed the comment indent margin
                     let whitespace = self.scanner.token_text();
                     let whitespace_len = whitespace.len() as u32;
@@ -465,11 +468,7 @@ impl Parser {
             }
             self.next_token_jsdoc();
         }
-        if seen_line_break {
-            indents.concat()
-        } else {
-            String::new()
-        }
+        if seen_line_break { indents.concat() } else { String::new() }
     }
 
     pub(crate) fn parse_tag(&mut self, tags: &[P<Node>], margin: u32) -> P<Node> {
@@ -480,10 +479,11 @@ impl Parser {
         let tag_name = self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected));
         let indent_text = self.skip_whitespace_or_asterisk();
 
-
         match tag_name.text() {
             "implements" => self.parse_implements_tag(start, tag_name, margin, &indent_text),
-            "augments" | "extends" => self.parse_augments_tag(start, tag_name, margin, &indent_text),
+            "augments" | "extends" => {
+                self.parse_augments_tag(start, tag_name, margin, &indent_text)
+            }
             "public" => self.parse_simple_tag(
                 start,
                 |p, tag_name, comments| p.factory.new_jsdoc_public_tag(tag_name, comments),
@@ -530,10 +530,15 @@ impl Parser {
                 )
             }
             "this" => self.parse_this_tag(start, tag_name, margin, &indent_text),
-            "arg" | "argument" | "param" => {
-                self.parse_parameter_or_property_tag(start, tag_name, PropertyLikeParse::Parameter, margin)
+            "arg" | "argument" | "param" => self.parse_parameter_or_property_tag(
+                start,
+                tag_name,
+                PropertyLikeParse::Parameter,
+                margin,
+            ),
+            "return" | "returns" => {
+                self.parse_return_tag(tags, start, tag_name, margin, &indent_text)
             }
-            "return" | "returns" => self.parse_return_tag(tags, start, tag_name, margin, &indent_text),
             "template" => self.parse_template_tag(start, tag_name, margin, &indent_text),
             "type" => self.parse_type_tag(tags, start, tag_name, Some(margin), &indent_text),
             "typedef" => self.parse_typedef_tag(start, tag_name, margin, &indent_text),
@@ -634,7 +639,11 @@ impl Parser {
                     break;
                 }
                 Kind::WhitespaceTrivia => {
-                    assert!(!(state == JsdocState::SavingComments || state == JsdocState::SavingBackticks), "whitespace shouldn't come from the scanner while saving comment text");
+                    assert!(
+                        !(state == JsdocState::SavingComments
+                            || state == JsdocState::SavingBackticks),
+                        "whitespace shouldn't come from the scanner while saving comment text"
+                    );
                     let whitespace = self.scanner.token_text();
                     // if the whitespace crosses the margin, take only the whitespace that passes the margin
                     let whitespace_len = whitespace.len() as u32;
@@ -754,7 +763,10 @@ impl Parser {
         self.skip_whitespace();
         let name = self.parse_jsdoc_link_name();
         let mut text: Vec<&'static str> = Vec::new();
-        while self.token != Kind::CloseBraceToken && self.token != Kind::NewLineTrivia && self.token != Kind::EndOfFile {
+        while self.token != Kind::CloseBraceToken
+            && self.token != Kind::NewLineTrivia
+            && self.token != Kind::EndOfFile
+        {
             text.push(self.scanner.token_text());
             self.next_token_jsdoc(); // Couldn't this be nextTokenCommentJSDoc?
         }
@@ -830,7 +842,10 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse_bracket_name_in_property_and_param_tag(&mut self, target: PropertyLikeParse) -> (P<Node>, bool) {
+    pub(crate) fn parse_bracket_name_in_property_and_param_tag(
+        &mut self,
+        target: PropertyLikeParse,
+    ) -> (P<Node>, bool) {
         // Looking for something like '[foo]', 'foo', '[foo.bar]' or 'foo.bar'
         let is_bracketed = self.parse_optional_jsdoc(Kind::OpenBracketToken);
         if is_bracketed {
@@ -880,12 +895,17 @@ impl Parser {
         let pos = self.node_pos();
         let comment = self.parse_trailing_tag_comments(start, pos, indent, &indent_text);
 
-        let nested_type_literal = self.parse_nested_type_literal(type_expression, name, target, indent);
+        let nested_type_literal =
+            self.parse_nested_type_literal(type_expression, name, target, indent);
         if nested_type_literal.is_some() {
             type_expression = nested_type_literal;
             is_name_first = true;
         }
-        let kind = if target == PropertyLikeParse::Property { Kind::JSDocPropertyTag } else { Kind::JSDocParameterTag };
+        let kind = if target == PropertyLikeParse::Property {
+            Kind::JSDocPropertyTag
+        } else {
+            Kind::JSDocParameterTag
+        };
         let result = self.factory.new_jsdoc_parameter_or_property_tag(
             kind,
             tag_name,
@@ -911,7 +931,8 @@ impl Parser {
                 let mut children: Option<Vec<P<Node>>> = None;
                 loop {
                     let state = self.mark();
-                    let child = self.parse_child_parameter_or_property_tag(target, indent, Some(name));
+                    let child =
+                        self.parse_child_parameter_or_property_tag(target, indent, Some(name));
                     let Some(child) = child else {
                         self.rewind(state);
                         break;
@@ -931,8 +952,10 @@ impl Parser {
                     }
                 }
                 if let Some(children) = children {
-                    let is_array_type = type_expression.type_node().unwrap().kind() == Kind::ArrayType;
-                    let literal = self.factory.new_jsdoc_type_literal(alloc_vec(children), is_array_type);
+                    let is_array_type =
+                        type_expression.type_node().unwrap().kind() == Kind::ArrayType;
+                    let literal =
+                        self.factory.new_jsdoc_type_literal(alloc_vec(children), is_array_type);
                     let literal = self.finish_node(literal, pos);
                     let node = self.factory.new_jsdoc_type_expression(literal);
                     return Some(self.finish_node(node, pos));
@@ -953,9 +976,7 @@ impl Parser {
         if previous_tags.iter().any(|t| ast::is_jsdoc_return_tag(*t)) {
             let end = self.scanner.token_start();
             self.parse_error_at(
-                tag_name
-                    .pos()
-                    .expect_source("parsed nodes have source positions"),
+                tag_name.pos().expect_source("parsed nodes have source positions"),
                 end,
                 &diagnostics::X_0_tag_already_specified,
                 &[&tag_name.text()],
@@ -980,9 +1001,7 @@ impl Parser {
         if previous_tags.iter().any(|t| ast::is_jsdoc_type_tag(*t)) {
             let end = self.scanner.token_start();
             self.parse_error_at(
-                tag_name
-                    .pos()
-                    .expect_source("parsed nodes have source positions"),
+                tag_name.pos().expect_source("parsed nodes have source positions"),
                 end,
                 &diagnostics::X_0_tag_already_specified,
                 &[&tag_name.text()],
@@ -1008,7 +1027,8 @@ impl Parser {
     ) -> P<Node> {
         let has_name_reference = self.is_identifier()
             && !self.source_text[self.scanner.token_end() as usize..].starts_with("://")
-            || self.token == Kind::OpenBraceToken && self.look_ahead(Parser::next_token_is_identifier_or_keyword);
+            || self.token == Kind::OpenBraceToken
+                && self.look_ahead(Parser::next_token_is_identifier_or_keyword);
         let mut name_expression = None;
         if has_name_reference {
             name_expression = Some(self.parse_jsdoc_name_reference());
@@ -1089,14 +1109,24 @@ impl Parser {
             identifier = Some(self.parse_identifier());
         }
 
-        let import_clause =
-            self.try_parse_import_clause(identifier, after_import_tag_pos, Kind::TypeKeyword, true /*skipJSDocLeadingAsterisks*/);
+        let import_clause = self.try_parse_import_clause(
+            identifier,
+            after_import_tag_pos,
+            Kind::TypeKeyword,
+            true, /*skipJSDocLeadingAsterisks*/
+        );
         let module_specifier = self.parse_module_specifier();
         let attributes = self.try_parse_import_attributes();
 
         let pos = self.node_pos();
         let comments = self.parse_trailing_tag_comments(start, pos, margin, indent_text);
-        let node = self.factory.new_jsdoc_import_tag(tag_name, import_clause, module_specifier, attributes, comments);
+        let node = self.factory.new_jsdoc_import_tag(
+            tag_name,
+            import_clause,
+            module_specifier,
+            attributes,
+            comments,
+        );
         self.finish_node(node, start)
     }
 
@@ -1121,7 +1151,8 @@ impl Parser {
         let mut node = self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected));
         while self.parse_optional(Kind::DotToken) {
             let name = self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected));
-            let access = self.factory.new_property_access_expression(node, None, name, NodeFlags::None);
+            let access =
+                self.factory.new_property_access_expression(node, None, name, NodeFlags::None);
             node = self.finish_node(access, pos);
         }
         node
@@ -1165,19 +1196,22 @@ impl Parser {
         if self.parse_optional_jsdoc(Kind::DotToken) {
             let body = self.parse_jsdoc_type_name_with_namespace(true /*nested*/);
             let jsdoc_namespace_node = self.factory.new_module_declaration(
-                None,                  /*modifiers*/
+                None,                   /*modifiers*/
                 Kind::NamespaceKeyword, /*keyword*/
                 type_name_or_namespace_name,
                 None, /*attributes*/
                 body,
             );
             if nested {
-                jsdoc_namespace_node.set_flags(jsdoc_namespace_node.flags() | NodeFlags::NestedNamespace);
+                jsdoc_namespace_node
+                    .set_flags(jsdoc_namespace_node.flags() | NodeFlags::NestedNamespace);
             }
             return Some(self.finish_node(jsdoc_namespace_node, start));
         }
         if nested {
-            type_name_or_namespace_name.set_flags(type_name_or_namespace_name.flags() | NodeFlags::IdentifierIsInJSDocNamespace);
+            type_name_or_namespace_name.set_flags(
+                type_name_or_namespace_name.flags() | NodeFlags::IdentifierIsInJSDocNamespace,
+            );
         }
         Some(type_name_or_namespace_name)
     }
@@ -1193,14 +1227,19 @@ impl Parser {
         self.skip_whitespace_or_asterisk();
         let mut full_name = self.parse_jsdoc_type_name_with_namespace(false /*nested*/);
         if full_name.is_none() {
-            full_name = Some(self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected)));
+            full_name =
+                Some(self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected)));
         }
         self.skip_whitespace();
         let mut comment = self.parse_tag_comments(indent, None);
 
         let mut end = None;
         let mut has_children = false;
-        if type_expression.is_none() || is_object_or_object_array_type_reference(type_expression.unwrap().type_node().unwrap()) {
+        if type_expression.is_none()
+            || is_object_or_object_array_type_reference(
+                type_expression.unwrap().type_node().unwrap(),
+            )
+        {
             let mut child_type_tag: Option<P<Node>> = None;
             let mut jsdoc_property_tags: Vec<P<Node>> = Vec::new();
             loop {
@@ -1277,17 +1316,11 @@ impl Parser {
             } else if comment.is_some() {
                 self.node_pos()
             } else if let Some(full_name) = full_name {
-                full_name
-                    .end()
-                    .expect_source("parsed nodes have source positions")
+                full_name.end().expect_source("parsed nodes have source positions")
             } else if let Some(type_expression) = type_expression {
-                type_expression
-                    .end()
-                    .expect_source("parsed nodes have source positions")
+                type_expression.end().expect_source("parsed nodes have source positions")
             } else {
-                tag_name
-                    .end()
-                    .expect_source("parsed nodes have source positions")
+                tag_name.end().expect_source("parsed nodes have source positions")
             }
         });
 
@@ -1295,7 +1328,8 @@ impl Parser {
             comment = self.parse_trailing_tag_comments(start, end, indent, indent_text);
         }
 
-        let typedef_tag = self.factory.new_jsdoc_typedef_tag(tag_name, type_expression, full_name, comment);
+        let typedef_tag =
+            self.factory.new_jsdoc_typedef_tag(tag_name, type_expression, full_name, comment);
         let typedef_tag = self.finish_node_with_end(typedef_tag, start, end);
         if let Some(type_expression) = type_expression {
             type_expression.set_parent(Some(typedef_tag)); // forcibly overwrite parent potentially set by inner type expression parse
@@ -1308,7 +1342,11 @@ impl Parser {
         let pos = self.node_pos();
         loop {
             let state = self.mark();
-            let child = self.parse_child_parameter_or_property_tag(PropertyLikeParse::CallbackParameter, indent, None);
+            let child = self.parse_child_parameter_or_property_tag(
+                PropertyLikeParse::CallbackParameter,
+                indent,
+                None,
+            );
             let Some(child) = child else {
                 self.rewind(state);
                 break;
@@ -1353,7 +1391,8 @@ impl Parser {
     ) -> P<Node> {
         let mut full_name = self.parse_jsdoc_type_name_with_namespace(false /*nested*/);
         if full_name.is_none() {
-            full_name = Some(self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected)));
+            full_name =
+                Some(self.parse_jsdoc_identifier_name(Some(&diagnostics::Identifier_expected)));
         }
         self.skip_whitespace();
         let mut comment = self.parse_tag_comments(indent, None);
@@ -1366,13 +1405,10 @@ impl Parser {
         let end = if comment.is_some() {
             self.node_pos()
         } else {
-            type_expression
-                .end()
-                .expect_source("parsed nodes have source positions")
+            type_expression.end().expect_source("parsed nodes have source positions")
         };
         let node =
-            self.factory
-                .new_jsdoc_callback_tag(tag_name, type_expression, full_name, comment);
+            self.factory.new_jsdoc_callback_tag(tag_name, type_expression, full_name, comment);
         self.finish_node_with_end(node, start, end)
     }
 
@@ -1393,13 +1429,9 @@ impl Parser {
         let end = if comment.is_some() {
             self.node_pos()
         } else {
-            type_expression
-                .end()
-                .expect_source("parsed nodes have source positions")
+            type_expression.end().expect_source("parsed nodes have source positions")
         };
-        let node = self
-            .factory
-            .new_jsdoc_overload_tag(tag_name, type_expression, comment);
+        let node = self.factory.new_jsdoc_overload_tag(tag_name, type_expression, comment);
         self.finish_node_with_end(node, start, end)
     }
 
@@ -1421,9 +1453,13 @@ impl Parser {
                     if can_parse_tag && self.scanner.can_follow_jsdoc_at() {
                         let child = self.try_parse_child_tag(target, indent);
                         if let (Some(child), Some(name)) = (child, name) {
-                            if (child.kind() == Kind::JSDocParameterTag || child.kind() == Kind::JSDocPropertyTag)
+                            if (child.kind() == Kind::JSDocParameterTag
+                                || child.kind() == Kind::JSDocPropertyTag)
                                 && (ast::is_identifier(child.name().unwrap())
-                                    || !texts_equal(name, child.name().unwrap().as_qualified_name().left))
+                                    || !texts_equal(
+                                        name,
+                                        child.name().unwrap().as_qualified_name().left,
+                                    ))
                             {
                                 return None;
                             }
@@ -1516,7 +1552,13 @@ impl Parser {
         if ast::node_is_missing(Some(name)) {
             return None;
         }
-        let node = self.factory.new_type_parameter_declaration(modifiers, name, None /*constraint*/, None /*expression*/, default_type);
+        let node = self.factory.new_type_parameter_declaration(
+            modifiers,
+            name,
+            None, /*constraint*/
+            None, /*expression*/
+            default_type,
+        );
         Some(self.finish_node(node, type_parameter_pos))
     }
 
@@ -1563,7 +1605,8 @@ impl Parser {
         let type_parameters = self.parse_template_tag_type_parameters();
         let pos = self.node_pos();
         let comments = self.parse_trailing_tag_comments(start, pos, indent, indent_text);
-        let result = self.factory.new_jsdoc_template_tag(tag_name, constraint, type_parameters, comments);
+        let result =
+            self.factory.new_jsdoc_template_tag(tag_name, constraint, type_parameters, comments);
         self.finish_node(result, start)
     }
 
@@ -1575,7 +1618,10 @@ impl Parser {
         false
     }
 
-    pub(crate) fn parse_jsdoc_entity_name(&mut self, diagnostic_message: Option<&'static Message>) -> P<Node> {
+    pub(crate) fn parse_jsdoc_entity_name(
+        &mut self,
+        diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
         let mut entity = self.parse_jsdoc_identifier_name(diagnostic_message);
         if self.parse_optional(Kind::OpenBracketToken) {
             self.parse_expected(Kind::CloseBracketToken);
@@ -1588,22 +1634,26 @@ impl Parser {
             if self.parse_optional(Kind::OpenBracketToken) {
                 self.parse_expected(Kind::CloseBracketToken);
             }
-            let pos = entity
-                .pos()
-                .expect_source("parsed nodes have source positions");
+            let pos = entity.pos().expect_source("parsed nodes have source positions");
             let qualified = self.factory.new_qualified_name(entity, name);
             entity = self.finish_node(qualified, pos);
         }
         entity
     }
 
-    pub(crate) fn parse_jsdoc_identifier_name(&mut self, diagnostic_message: Option<&'static Message>) -> P<Node> {
+    pub(crate) fn parse_jsdoc_identifier_name(
+        &mut self,
+        diagnostic_message: Option<&'static Message>,
+    ) -> P<Node> {
         if !token_is_identifier_or_keyword(self.token) {
             if let Some(diagnostic_message) = diagnostic_message {
                 self.parse_error_at_current_token(diagnostic_message, &[]);
             } else if is_reserved_word(self.token) {
                 let text = self.scanner.token_text();
-                self.parse_error_at_current_token(&diagnostics::Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, &[&text]);
+                self.parse_error_at_current_token(
+                    &diagnostics::Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here,
+                    &[&text],
+                );
             }
             let identifier = self.new_identifier("");
             let pos = self.node_pos();
@@ -1620,7 +1670,9 @@ impl Parser {
 
 fn remove_leading_newlines(comments: &mut Vec<&'static str>) {
     let mut i = 0;
-    i += (i..comments.len()).take_while(|&i| comments[i].trim_start_matches(['\r', '\n']).is_empty()).count();
+    i += (i..comments.len())
+        .take_while(|&i| comments[i].trim_start_matches(['\r', '\n']).is_empty())
+        .count();
     comments.drain(..i);
 }
 
@@ -1649,11 +1701,15 @@ fn is_jsdoc_link_tag(kind: &str) -> bool {
 fn is_object_or_object_array_type_reference(node: P<Node>) -> bool {
     match node.kind() {
         Kind::ObjectKeyword => true,
-        Kind::ArrayType => is_object_or_object_array_type_reference(node.as_array_type_node().element_type),
+        Kind::ArrayType => {
+            is_object_or_object_array_type_reference(node.as_array_type_node().element_type)
+        }
         _ => {
             if ast::is_type_reference_node(node) {
                 let ref_ = node.as_type_reference_node();
-                return ast::is_identifier(ref_.type_name) && ref_.type_name.text() == "Object" && ref_.type_arguments().is_none();
+                return ast::is_identifier(ref_.type_name)
+                    && ref_.type_name.text() == "Object"
+                    && ref_.type_arguments().is_none();
             }
             false
         }
@@ -1664,7 +1720,10 @@ fn texts_equal(a: P<Node>, b: P<Node>) -> bool {
     let mut a = a;
     let mut b = b;
     while !ast::is_identifier(a) || !ast::is_identifier(b) {
-        if !ast::is_identifier(a) && !ast::is_identifier(b) && a.as_qualified_name().right.text() == b.as_qualified_name().right.text() {
+        if !ast::is_identifier(a)
+            && !ast::is_identifier(b)
+            && a.as_qualified_name().right.text() == b.as_qualified_name().right.text()
+        {
             a = a.as_qualified_name().left;
             b = b.as_qualified_name().left;
         } else {

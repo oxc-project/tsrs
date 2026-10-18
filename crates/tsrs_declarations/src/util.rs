@@ -2,13 +2,21 @@ use crate::*;
 
 // util.go:9
 pub(crate) fn needs_scope_marker(result: P<Node>) -> bool {
-    !ast::is_any_import_or_re_export(result) && !ast::is_export_assignment(result) && !ast::has_syntactic_modifier(result, ModifierFlags::Export) && !ast::is_ambient_module(result)
+    !ast::is_any_import_or_re_export(result)
+        && !ast::is_export_assignment(result)
+        && !ast::has_syntactic_modifier(result, ModifierFlags::Export)
+        && !ast::is_ambient_module(result)
 }
 
 // util.go:13
-pub(crate) fn can_have_literal_initializer(host: &'static dyn DeclarationEmitHost, node: P<Node>) -> bool {
+pub(crate) fn can_have_literal_initializer(
+    host: &'static dyn DeclarationEmitHost,
+    node: P<Node>,
+) -> bool {
     match node.kind() {
-        Kind::PropertyDeclaration | Kind::PropertySignature => host.get_effective_declaration_flags(node, ModifierFlags::Private).is_empty(),
+        Kind::PropertyDeclaration | Kind::PropertySignature => {
+            host.get_effective_declaration_flags(node, ModifierFlags::Private).is_empty()
+        }
         Kind::Parameter | Kind::VariableDeclaration => true,
         _ => false,
     }
@@ -39,24 +47,38 @@ pub(crate) fn can_produce_diagnostics(node: P<Node>) -> bool {
         || ast::is_element_access_expression(node)
         || ast::is_binary_expression(node)
         || ast::is_call_expression(node) // || // !!! TODO: JSDoc support
-                                         /* ast.IsJSDocTypeAlias(node); */
+    // ast.IsJSDocTypeAlias(node);
 }
 
 // util.go:52
 pub(crate) fn can_reuse_modifier_nodes(nodes: &[P<Node>]) -> bool {
-    !(nodes.iter().any(|&node| ast::is_modifier(node) && node.flags().intersects(NodeFlags::Reparsed)))
+    !(nodes
+        .iter()
+        .any(|&node| ast::is_modifier(node) && node.flags().intersects(NodeFlags::Reparsed)))
 }
 
 // util.go:61
-pub(crate) fn is_declaration_and_not_visible(emit_context: P<EmitContext>, resolver: Resolver, node: P<Node>) -> bool {
+pub(crate) fn is_declaration_and_not_visible(
+    emit_context: P<EmitContext>,
+    resolver: Resolver,
+    node: P<Node>,
+) -> bool {
     let node = emit_context.parse_node(Some(node)).unwrap();
     match node.kind() {
-        Kind::FunctionDeclaration | Kind::ModuleDeclaration | Kind::InterfaceDeclaration | Kind::ClassDeclaration | Kind::TypeAliasDeclaration | Kind::JSTypeAliasDeclaration | Kind::EnumDeclaration => {
-            !resolver.is_declaration_visible(node)
-        }
+        Kind::FunctionDeclaration
+        | Kind::ModuleDeclaration
+        | Kind::InterfaceDeclaration
+        | Kind::ClassDeclaration
+        | Kind::TypeAliasDeclaration
+        | Kind::JSTypeAliasDeclaration
+        | Kind::EnumDeclaration => !resolver.is_declaration_visible(node),
         // The following should be doing their own visibility checks based on filtering their members
         Kind::VariableDeclaration => !get_binding_name_visible(resolver, node),
-        Kind::ImportEqualsDeclaration | Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::ExportDeclaration | Kind::ExportAssignment => false,
+        Kind::ImportEqualsDeclaration
+        | Kind::ImportDeclaration
+        | Kind::JSImportDeclaration
+        | Kind::ExportDeclaration
+        | Kind::ExportAssignment => false,
         Kind::ClassStaticBlockDeclaration => true,
         _ => false,
     }
@@ -103,7 +125,11 @@ pub(crate) fn is_always_type(node: P<Node>) -> bool {
 }
 
 // util.go:129
-pub(crate) fn mask_modifier_flags(node: P<Node>, modifier_mask: ModifierFlags, modifier_additions: ModifierFlags) -> ModifierFlags {
+pub(crate) fn mask_modifier_flags(
+    node: P<Node>,
+    modifier_mask: ModifierFlags,
+    modifier_additions: ModifierFlags,
+) -> ModifierFlags {
     let mut flags = (ast::get_combined_modifier_flags(node) & modifier_mask) | modifier_additions;
     if flags.intersects(ModifierFlags::Default) && !flags.intersects(ModifierFlags::Export) {
         // A non-exported default is a nonsequitor - we usually try to remove all export modifiers
@@ -126,9 +152,13 @@ pub(crate) fn unwrap_parenthesized_expression(o: P<Node>) -> P<Node> {
 }
 
 // util.go:149
-pub(crate) fn is_private_method_type_parameter(host: &'static dyn DeclarationEmitHost, node: P<Node>) -> bool {
+pub(crate) fn is_private_method_type_parameter(
+    host: &'static dyn DeclarationEmitHost,
+    node: P<Node>,
+) -> bool {
     let parent = node.parent().unwrap();
-    parent.kind() == Kind::MethodDeclaration && !host.get_effective_declaration_flags(parent, ModifierFlags::Private).is_empty()
+    parent.kind() == Kind::MethodDeclaration
+        && !host.get_effective_declaration_flags(parent, ModifierFlags::Private).is_empty()
 }
 
 // util.go:153
@@ -139,7 +169,10 @@ pub(crate) fn should_emit_function_properties(input: P<Node>) -> bool {
         return true;
     }
     let symbol = input.symbol().unwrap();
-    !symbol.declarations().iter().all(|&decl| !ast::is_function_declaration(decl) || decl.body().is_none())
+    !symbol
+        .declarations()
+        .iter()
+        .all(|&decl| !ast::is_function_declaration(decl) || decl.body().is_none())
 }
 
 // util.go:164

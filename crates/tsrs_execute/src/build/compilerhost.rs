@@ -5,8 +5,8 @@ use std::sync::Arc;
 use tsrs_ast::{SourceFile, SourceFileParseOptions};
 use tsrs_compiler::CompilerHost;
 use tsrs_contentmapper::{self as contentmapper, Mapper, Project};
-use tsrs_core::tspath::Path;
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_diagnostics::Message;
 use tsrs_tsoptions::ParsedCommandLine;
 use tsrs_vfs::FS;
@@ -41,8 +41,17 @@ impl CompilerHost for compilerHost {
     }
 
     // compilerHost.go:41
-    fn get_content_mapped_source_files(&self, parse_options: SourceFileParseOptions, mapper: &Mapper) -> Result<contentmapper::SourceFiles, contentmapper::Error> {
-        tsrs_compiler::get_content_mapped_source_files_with(self.fs(), self.content_mapper_project.as_deref(), parse_options, mapper)
+    fn get_content_mapped_source_files(
+        &self,
+        parse_options: SourceFileParseOptions,
+        mapper: &Mapper,
+    ) -> Result<contentmapper::SourceFiles, contentmapper::Error> {
+        tsrs_compiler::get_content_mapped_source_files_with(
+            self.fs(),
+            self.content_mapper_project.as_deref(),
+            parse_options,
+            mapper,
+        )
     }
 
     // compilerHost.go:56
@@ -50,7 +59,11 @@ impl CompilerHost for compilerHost {
         self.content_mapper_project.clone()
     }
 
-    fn get_resolved_project_reference(&self, file_name: &str, path: Path) -> Option<P<ParsedCommandLine>> {
+    fn get_resolved_project_reference(
+        &self,
+        file_name: &str,
+        path: Path,
+    ) -> Option<P<ParsedCommandLine>> {
         self.host.get_resolved_project_reference(file_name, path)
     }
 }

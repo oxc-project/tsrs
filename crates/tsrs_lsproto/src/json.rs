@@ -62,12 +62,19 @@ impl JsonError {
 
     // An error returned by a v1-style `UnmarshalJSON` method; json/v2 reports the JSON kind too.
     pub fn method_v1(kind: u8, go_type: &str, err: impl Into<String>) -> JsonError {
-        SemanticError { go_type: go_type.to_string(), json_kind: kind, err: err.into(), ..Default::default() }.into()
+        SemanticError {
+            go_type: go_type.to_string(),
+            json_kind: kind,
+            err: err.into(),
+            ..Default::default()
+        }
+        .into()
     }
 
     // json/v2: a JSON value of the wrong kind for the Go type.
     pub fn mismatch(v: &Value, go_type: &str) -> JsonError {
-        SemanticError { go_type: go_type.to_string(), json_kind: kind(v), ..Default::default() }.into()
+        SemanticError { go_type: go_type.to_string(), json_kind: kind(v), ..Default::default() }
+            .into()
     }
 
     // json/v2: a JSON number that does not fit the Go number type.
@@ -233,7 +240,8 @@ pub fn marshal<T: Json>(v: &T) -> Result<String, String> {
 
 // Go `json.Unmarshal(data, &v)`.
 pub fn unmarshal<T: Json>(data: &[u8]) -> Result<T, JsonError> {
-    let text = tsrs_core::utf8::basic::from_utf8(data).map_err(|_| JsonError::plain("jsontext: invalid UTF-8"))?;
+    let text = tsrs_core::utf8::basic::from_utf8(data)
+        .map_err(|_| JsonError::plain("jsontext: invalid UTF-8"))?;
     let v = tsrs_core::json::unmarshal(text).map_err(JsonError::plain)?;
     T::from_json(&v)
 }
@@ -495,12 +503,20 @@ impl Json for [u32; 2] {
                 let mut out = [0u32; 2];
                 for (i, item) in items.iter().enumerate() {
                     if i >= 2 {
-                        return Err(JsonError::method_v1(b'[', Self::GO_TYPE, "too many array elements"));
+                        return Err(JsonError::method_v1(
+                            b'[',
+                            Self::GO_TYPE,
+                            "too many array elements",
+                        ));
                     }
                     out[i] = u32::from_json(item).map_err(|e| e.within_index(i))?;
                 }
                 if items.len() < 2 {
-                    return Err(JsonError::method_v1(b'[', Self::GO_TYPE, "too few array elements"));
+                    return Err(JsonError::method_v1(
+                        b'[',
+                        Self::GO_TYPE,
+                        "too few array elements",
+                    ));
                 }
                 Ok(out)
             }
@@ -535,7 +551,12 @@ impl<K: JsonKey, V: Json> Json for OrderedMap<K, V> {
     const GO_TYPE: &'static str = "map";
 
     fn go_type_name() -> String {
-        format!("map[{}]{}{}", K::GO_KEY_TYPE, if V::GO_POINTER { "*" } else { "" }, V::go_type_name())
+        format!(
+            "map[{}]{}{}",
+            K::GO_KEY_TYPE,
+            if V::GO_POINTER { "*" } else { "" },
+            V::go_type_name()
+        )
     }
 
     fn to_json(&self) -> Value {

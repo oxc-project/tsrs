@@ -51,8 +51,8 @@
 //! `TSRS_INFER_MEMO_MIN_STEPS=<n>` sets the shortest walk that is stored (default `MIN_STEPS`).
 
 use crate::*;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum InferMemoMode {
@@ -82,7 +82,9 @@ fn infer_memo_mode() -> InferMemoMode {
 
 fn stats_on() -> bool {
     static STATS: OnceLock<bool> = OnceLock::new();
-    *STATS.get_or_init(|| std::env::var("TSRS_INFER_MEMO_STATS").is_ok_and(|v| !v.is_empty() && v != "0"))
+    *STATS.get_or_init(|| {
+        std::env::var("TSRS_INFER_MEMO_STATS").is_ok_and(|v| !v.is_empty() && v != "0")
+    })
 }
 
 /// Calls with more inference infos than this are not memoized.
@@ -92,7 +94,12 @@ const MAX_INFOS: usize = 8;
 const MIN_STEPS: u32 = 16;
 fn min_steps() -> u32 {
     static V: OnceLock<u32> = OnceLock::new();
-    *V.get_or_init(|| std::env::var("TSRS_INFER_MEMO_MIN_STEPS").ok().and_then(|v| v.parse().ok()).unwrap_or(MIN_STEPS))
+    *V.get_or_init(|| {
+        std::env::var("TSRS_INFER_MEMO_MIN_STEPS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(MIN_STEPS)
+    })
 }
 
 static LOOKUPS: AtomicU64 = AtomicU64::new(0);
@@ -137,7 +144,14 @@ pub(crate) struct InferMemo {
 impl InferMemo {
     pub(crate) fn new() -> Self {
         let mode = infer_memo_mode();
-        InferMemo { mode, entries: FxHashMap::default(), long_targets: FxHashSet::default(), key_pool: Vec::new(), steps: 0, stats: mode != InferMemoMode::Off && (stats_on() || mode == InferMemoMode::Shadow) }
+        InferMemo {
+            mode,
+            entries: FxHashMap::default(),
+            long_targets: FxHashSet::default(),
+            key_pool: Vec::new(),
+            steps: 0,
+            stats: mode != InferMemoMode::Off && (stats_on() || mode == InferMemoMode::Shadow),
+        }
     }
 }
 
@@ -180,7 +194,10 @@ fn info_outcomes(n: P<InferenceState>) -> Box<[InfoOutcome]> {
 impl Checker {
     fn infer_memo_effects(&self) -> Effects {
         Effects {
-            created: self.type_count.wrapping_add(self.symbol_count).wrapping_add(self.signature_count),
+            created: self
+                .type_count
+                .wrapping_add(self.symbol_count)
+                .wrapping_add(self.signature_count),
             instantiation_count: self.instantiation_count,
             total_instantiation_count: self.total_instantiation_count,
             diagnostics: self.diagnostic_adds,
@@ -189,8 +206,16 @@ impl Checker {
     }
 
     /// `inferFromTypes(n, source, target)` for the walk at the top of `inferTypes`, through the memo.
-    #[expect(clippy::set_contains_or_insert, reason = "a target is marked only after the walk to it turned out long")]
-    pub(crate) fn infer_from_types_memo(&mut self, n: P<InferenceState>, source: P<Type>, target: P<Type>) {
+    #[expect(
+        clippy::set_contains_or_insert,
+        reason = "a target is marked only after the walk to it turned out long"
+    )]
+    pub(crate) fn infer_from_types_memo(
+        &mut self,
+        n: P<InferenceState>,
+        source: P<Type>,
+        target: P<Type>,
+    ) {
         if self.infer_memo.mode == InferMemoMode::Off {
             self.infer_from_types(n, source, target);
             return;
@@ -259,11 +284,24 @@ impl Checker {
         let steps = self.infer_memo.steps.wrapping_sub(steps_before);
         let after = self.infer_memo_effects();
         let hidden_reset = count_zero && self.expression_checks != expression_checks;
-        let effects = in_instantiation || hidden_reset || after != before || flags & (crate::flowmemo::FLAG_EFFECTS | crate::flowmemo::FLAG_TYPE_CACHE) != 0;
+        let effects = in_instantiation
+            || hidden_reset
+            || after != before
+            || flags & (crate::flowmemo::FLAG_EFFECTS | crate::flowmemo::FLAG_TYPE_CACHE) != 0;
         let tainted = !taint.is_pure() || !self.skip_direct_inference_nodes.is_empty();
         if steps < min_steps() || effects || tainted {
-            count(stats && steps >= min_steps() && after.created != before.created, &NOT_STORED_CREATED, 1);
-            count(stats && steps >= min_steps() && after.total_instantiation_count != before.total_instantiation_count, &NOT_STORED_INSTANTIATED, 1);
+            count(
+                stats && steps >= min_steps() && after.created != before.created,
+                &NOT_STORED_CREATED,
+                1,
+            );
+            count(
+                stats
+                    && steps >= min_steps()
+                    && after.total_instantiation_count != before.total_instantiation_count,
+                &NOT_STORED_INSTANTIATED,
+                1,
+            );
             count(stats && steps >= min_steps() && effects, &NOT_STORED_EFFECTS, 1);
             count(stats && steps >= min_steps() && tainted, &NOT_STORED_TAINT, 1);
             self.infer_memo.key_pool.push(key);
@@ -275,12 +313,24 @@ impl Checker {
         // walk did flow work.
         let flowed = self.flow_memo.source_now() != serial_before;
         let flags = if flowed { flags | crate::flowmemo::FLAG_COUNT_RESET } else { flags };
-        let entry = Entry { infos: info_outcomes(n), cleared: n.cleared_inferences.get(), height, flags, steps };
+        let entry = Entry {
+            infos: info_outcomes(n),
+            cleared: n.cleared_inferences.get(),
+            height,
+            flags,
+            steps,
+        };
         self.infer_memo.entries.insert(key.into_boxed_slice(), entry);
     }
 
     /// Builds the walk's key in `key`; false when the call is not memoized.
-    fn infer_memo_key(&self, key: &mut Vec<u32>, n: P<InferenceState>, source: P<Type>, target: P<Type>) -> bool {
+    fn infer_memo_key(
+        &self,
+        key: &mut Vec<u32>,
+        n: P<InferenceState>,
+        source: P<Type>,
+        target: P<Type>,
+    ) -> bool {
         if !self.skip_direct_inference_nodes.is_empty() {
             return false;
         }
@@ -301,9 +351,7 @@ impl Checker {
                 info.type_parameter.get().map_or(0, |t| t.id.0),
                 info.priority.get().memo_bits(),
                 u32::from(info.top_level.get()) | (u32::from(info.is_fixed.get()) << 1),
-                info.implied_arity
-                    .get()
-                    .map_or(u32::MAX, |arity| arity as u32),
+                info.implied_arity.get().map_or(u32::MAX, |arity| arity as u32),
             ]);
             for list in [&info.candidates, &info.contra_candidates] {
                 list.with_slice(|types| {
@@ -317,7 +365,13 @@ impl Checker {
 
     /// Shadow mode: walks a hit for real and panics unless the walk has no effects and ends in the stored outcome.
     #[cold]
-    fn infer_memo_shadow(&mut self, n: P<InferenceState>, source: P<Type>, target: P<Type>, key: &[u32]) {
+    fn infer_memo_shadow(
+        &mut self,
+        n: P<InferenceState>,
+        source: P<Type>,
+        target: P<Type>,
+        key: &[u32],
+    ) {
         n.cleared_inferences.set(false);
         let before = self.infer_memo_effects();
         let lazy_before = self.lazy_member_stats.member_table_declared_instantiated;
@@ -329,12 +383,21 @@ impl Checker {
         // path a relation takes can depend on whether the other side's members are resolved yet: the walk made again
         // may instantiate member symbols the stored walk did not need, as any later caller could. Those are the only
         // creations it may make.
-        let lazy_created = (self.lazy_member_stats.member_table_declared_instantiated - lazy_before) as u32;
-        let effects = Effects { created: before.created.wrapping_add(lazy_created), ..before } != after;
+        let lazy_created =
+            (self.lazy_member_stats.member_table_declared_instantiated - lazy_before) as u32;
+        let effects =
+            Effects { created: before.created.wrapping_add(lazy_created), ..before } != after;
         let outcome = info_outcomes(n);
         let entry = &self.infer_memo.entries[key];
-        let flags_covered = flags & !entry.flags == 0 && (flags ^ entry.flags) & !crate::flowmemo::FLAG_COUNT_RESET == 0;
-        assert!(!(effects || !taint.is_pure() || outcome != entry.infos || n.cleared_inferences.get() != entry.cleared || height != entry.height || !flags_covered),
+        let flags_covered = flags & !entry.flags == 0
+            && (flags ^ entry.flags) & !crate::flowmemo::FLAG_COUNT_RESET == 0;
+        assert!(
+            !(effects
+                || !taint.is_pure()
+                || outcome != entry.infos
+                || n.cleared_inferences.get() != entry.cleared
+                || height != entry.height
+                || !flags_covered),
             "TSRS_INFER_MEMO=shadow: inferring from type {} to type {} (priority {:?}): the walk again has effects {effects} ({before:?} -> {after:?}; types/symbols/signatures now {}/{}/{}), pure {}, outcome {:?} (stored {:?}), cleared {} (stored {}), height {height} (stored {}), flags {flags} (stored {})",
             source.id.0,
             target.id.0,

@@ -12,22 +12,33 @@ use crate::*;
 // names. `printer::NodeFactory` is deliberately not re-exported (it would clash with `tsrs_ast::NodeFactory` in the stub
 // files' glob imports); reach it as `e.factory`.
 pub use tsrs_printer::{
-    escape_string, get_single_line_string_writer, new_emit_context, new_printer, new_text_writer, EmitContext,
-    EmitFlags, EmitTextWriter, PrintHandlers, Printer, PrinterOptions, QuoteChar,
+    EmitContext, EmitFlags, EmitTextWriter, PrintHandlers, Printer, PrinterOptions, QuoteChar,
+    escape_string, get_single_line_string_writer, new_emit_context, new_printer, new_text_writer,
 };
 
 // nodebuilder/types.go
 
 /// Go `nodebuilder.SymbolTracker`.
 pub trait SymbolTracker {
-    fn track_symbol(&self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool;
+    fn track_symbol(
+        &self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool;
     fn report_inaccessible_this_error(&self);
     fn report_private_in_base_of_class_expression(&self, property_name: &str);
     fn report_inaccessible_unique_symbol_error(&self);
     fn report_cyclic_structure_error(&self);
     fn report_likely_unsafe_import_required_error(&self, specifier: &str, symbol_name: &str);
     fn report_truncation_error(&self);
-    fn report_nonlocal_augmentation(&self, containing_file: P<SourceFile>, parent_symbol: P<Symbol>, augmenting_symbol: P<Symbol>);
+    fn report_nonlocal_augmentation(
+        &self,
+        containing_file: P<SourceFile>,
+        parent_symbol: P<Symbol>,
+        augmenting_symbol: P<Symbol>,
+    );
     fn report_non_serializable_property(&self, property_name: &str);
     fn report_inference_fallback(&self, c: &mut Checker, node: P<Node>);
     fn push_error_fallback_node(&self, node: Option<P<Node>>);
@@ -145,8 +156,8 @@ pub enum TypeReferenceSerializationKind {
 pub struct SymbolAccessibilityResult {
     pub accessibility: SymbolAccessibility,
     pub aliases_to_make_visible: Vec<P<Node>>, // aliases that need to have this symbol visible
-    pub error_symbol_name: String, // Optional - symbol name that results in error
-    pub error_node: Option<P<Node>>, // Optional - node that results in error
+    pub error_symbol_name: String,             // Optional - symbol name that results in error
+    pub error_node: Option<P<Node>>,           // Optional - node that results in error
     pub error_module_name: String, // Optional - If the symbol is not visible from module, module's name
 }
 
@@ -171,7 +182,8 @@ pub struct accessibleSymbolChainContext {
     pub enclosing_declaration: Option<P<Node>>,
     pub meaning: SymbolFlags,
     pub use_only_external_aliasing: bool,
-    pub visited_symbol_tables_map: std::rc::Rc<RefCell<FxHashMap<SymbolId, FxHashSet<symbolTableID>>>>,
+    pub visited_symbol_tables_map:
+        std::rc::Rc<RefCell<FxHashMap<SymbolId, FxHashSet<symbolTableID>>>>,
 }
 
 // checker/symboltracker.go
@@ -185,7 +197,13 @@ pub struct SymbolTrackerImpl {
 }
 
 impl SymbolTracker for SymbolTrackerImpl {
-    fn track_symbol(&self, c: &mut Checker, symbol: P<Symbol>, enclosing_declaration: Option<P<Node>>, meaning: SymbolFlags) -> bool {
+    fn track_symbol(
+        &self,
+        c: &mut Checker,
+        symbol: P<Symbol>,
+        enclosing_declaration: Option<P<Node>>,
+        meaning: SymbolFlags,
+    ) -> bool {
         SymbolTrackerImpl::track_symbol(self, c, symbol, enclosing_declaration, meaning)
     }
     fn report_inaccessible_this_error(&self) {
@@ -206,8 +224,18 @@ impl SymbolTracker for SymbolTrackerImpl {
     fn report_truncation_error(&self) {
         SymbolTrackerImpl::report_truncation_error(self);
     }
-    fn report_nonlocal_augmentation(&self, containing_file: P<SourceFile>, parent_symbol: P<Symbol>, augmenting_symbol: P<Symbol>) {
-        SymbolTrackerImpl::report_nonlocal_augmentation(self, containing_file, parent_symbol, augmenting_symbol);
+    fn report_nonlocal_augmentation(
+        &self,
+        containing_file: P<SourceFile>,
+        parent_symbol: P<Symbol>,
+        augmenting_symbol: P<Symbol>,
+    ) {
+        SymbolTrackerImpl::report_nonlocal_augmentation(
+            self,
+            containing_file,
+            parent_symbol,
+            augmenting_symbol,
+        );
     }
     fn report_non_serializable_property(&self, property_name: &str) {
         SymbolTrackerImpl::report_non_serializable_property(self, property_name);

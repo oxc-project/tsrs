@@ -63,7 +63,13 @@ impl<T: Named + Clone> Index<T> {
         results.extend(candidates.iter().filter_map(|&entry_index| {
             let entry = &self.entries[entry_index];
             let entry_name = entry.name();
-            if (case_sensitive && entry_name == name) || (!case_sensitive && stringutil::equal_fold(entry_name, name)) { Some(entry.clone()) } else { None }
+            if (case_sensitive && entry_name == name)
+                || (!case_sensitive && stringutil::equal_fold(entry_name, name))
+            {
+                Some(entry.clone())
+            } else {
+                None
+            }
         }));
 
         results
@@ -156,7 +162,8 @@ impl<T: Named + Clone> Index<T> {
     // Clone creates a new Index containing only entries for which filter returns true.
     #[must_use]
     pub fn clone_filtered(&self, filter: impl Fn(&T) -> bool) -> Index<T> {
-        let mut new_idx = Index { entries: Vec::with_capacity(self.entries.len()), index: FxHashMap::default() };
+        let mut new_idx =
+            Index { entries: Vec::with_capacity(self.entries.len()), index: FxHashMap::default() };
 
         // Build mapping from old index to new index for filtered entries
         let mut old_to_new: FxHashMap<usize, usize> = FxHashMap::default();
@@ -172,8 +179,13 @@ impl<T: Named + Clone> Index<T> {
         // each key is re-inserted into a new map with its Vec order kept; Go ranges the map too
         new_idx.index.extend(self.index.iter().filter_map(|(&r, old_indices)| {
             let mut new_indices = Vec::with_capacity(old_indices.len());
-            new_indices
-                .extend(old_indices.iter().filter_map(|old_index| if let Some(&new_index) = old_to_new.get(old_index) { Some(new_index) } else { None }));
+            new_indices.extend(old_indices.iter().filter_map(|old_index| {
+                if let Some(&new_index) = old_to_new.get(old_index) {
+                    Some(new_index)
+                } else {
+                    None
+                }
+            }));
             if !new_indices.is_empty() { Some((r, new_indices)) } else { None }
         }));
 

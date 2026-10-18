@@ -22,19 +22,19 @@ pub mod outputpaths;
 pub mod tsoptionstest;
 
 #[cfg(test)]
-mod testutil;
-#[cfg(test)]
 mod commandlineparser_test;
+#[cfg(test)]
+mod contentmappers_test;
+#[cfg(test)]
+mod decls_test;
+#[cfg(test)]
+mod parsinghelpers_test;
+#[cfg(test)]
+mod testutil;
 #[cfg(test)]
 mod tsconfigparsing_test;
 #[cfg(test)]
 mod wildcarddirectories_test;
-#[cfg(test)]
-mod parsinghelpers_test;
-#[cfg(test)]
-mod decls_test;
-#[cfg(test)]
-mod contentmappers_test;
 
 pub use commandlineoption::*;
 pub use commandlineparser::*;

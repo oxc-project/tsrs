@@ -314,7 +314,7 @@ function genRecordExtendedData() {
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
         if (info.dataType !== "extended") continue;
-        w(`        ${kindPat(node)} => record_extended_data_${snake(node.name)}(node, cx)?,`);
+        w(`        ${kindPat(node)} => { record_extended_data_${snake(node.name)}(node, cx)?; },`);
     }
     w(`        k => unreachable!("record_extended_data: {k:?} is not an extended data node"),`);
     w("    }");

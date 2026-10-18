@@ -1,8 +1,8 @@
 use std::sync::Mutex;
 
 use rustc_hash::FxHashMap;
-use tsrs_core::tspath::Path;
 use tsrs_core::P;
+use tsrs_core::tspath::Path;
 use tsrs_tsoptions::{self as tsoptions, ExtendedConfigCacheEntry, ParseConfigHost};
 
 // extendedConfigCache is a minimal implementation of tsoptions.ExtendedConfigCache.
@@ -24,7 +24,13 @@ impl tsoptions::ExtendedConfigCache for ExtendedConfigCache {
             return *entry;
         }
         // Parsing may recurse into this cache for nested `extends`, so it runs without the lock held.
-        let entry = tsoptions::parse_extended_config(file_name, path.clone(), resolution_stack, host, Some(self));
+        let entry = tsoptions::parse_extended_config(
+            file_name,
+            path.clone(),
+            resolution_stack,
+            host,
+            Some(self),
+        );
         *self.m.lock().unwrap().entry(path.clone()).or_insert(entry)
     }
 }

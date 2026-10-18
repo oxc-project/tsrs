@@ -204,11 +204,7 @@ pub fn decode_rune(s: &[u8]) -> (Rune, usize) {
     }
     let cont = |i: usize, lo: u8, hi: u8| -> Option<u32> {
         let b = *s.get(i)?;
-        if b < lo || b > hi {
-            None
-        } else {
-            Some((b & 0x3F) as u32)
-        }
+        if b < lo || b > hi { None } else { Some((b & 0x3F) as u32) }
     };
     if (0xC2..=0xDF).contains(&b0) {
         if let Some(c1) = cont(1, 0x80, 0xBF) {
@@ -233,7 +229,9 @@ pub fn decode_rune(s: &[u8]) -> (Rune, usize) {
             0xF4 => (0x80, 0x8F),
             _ => (0x80, 0xBF),
         };
-        if let (Some(c1), Some(c2), Some(c3)) = (cont(1, lo, hi), cont(2, 0x80, 0xBF), cont(3, 0x80, 0xBF)) {
+        if let (Some(c1), Some(c2), Some(c3)) =
+            (cont(1, lo, hi), cont(2, 0x80, 0xBF), cont(3, 0x80, 0xBF))
+        {
             return ((((b0 & 0x07) as u32) << 18) | (c1 << 12) | (c2 << 6) | c3, 4);
         }
         return (RUNE_ERROR, 1);

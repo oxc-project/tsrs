@@ -3,11 +3,11 @@
 // binary, so that the busy threads do not slow the crate's unit tests.
 #![cfg(target_os = "macos")]
 
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
-use tsrs_fswatch::{fsevents, ErrOverflow};
+use tsrs_fswatch::{ErrOverflow, fsevents};
 
 #[test]
 fn a_burst_under_load_drops_no_events() {
@@ -35,15 +35,16 @@ fn a_burst_under_load_drops_no_events() {
     // Twice the cores, so that the busy threads cover the efficiency cores too.
     let stop = Arc::new(AtomicBool::new(false));
     let spinners: Vec<_> = std::iter::repeat_with(|| {
-            let stop = Arc::clone(&stop);
-            std::thread::spawn(move || {
-                let mut x = 0u64;
-                while !stop.load(Ordering::Relaxed) {
-                    x = std::hint::black_box(x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1));
-                }
-            })
-        }).take(2 * std::thread::available_parallelism().map_or(8, std::num::NonZero::get))
-        .collect();
+        let stop = Arc::clone(&stop);
+        std::thread::spawn(move || {
+            let mut x = 0u64;
+            while !stop.load(Ordering::Relaxed) {
+                x = std::hint::black_box(x.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1));
+            }
+        })
+    })
+    .take(2 * std::thread::available_parallelism().map_or(8, std::num::NonZero::get))
+    .collect();
 
     const FILES: usize = 10_000;
     for i in 0..FILES {
@@ -51,7 +52,10 @@ fn a_burst_under_load_drops_no_events() {
     }
     // Wait until the events have arrived (or an overflow said they will not).
     let deadline = Instant::now() + Duration::from_secs(20);
-    while events.load(Ordering::SeqCst) < FILES && overflows.load(Ordering::SeqCst) == 0 && Instant::now() < deadline {
+    while events.load(Ordering::SeqCst) < FILES
+        && overflows.load(Ordering::SeqCst) == 0
+        && Instant::now() < deadline
+    {
         std::thread::sleep(Duration::from_millis(20));
     }
     stop.store(true, Ordering::Relaxed);
@@ -62,5 +66,9 @@ fn a_burst_under_load_drops_no_events() {
     let _ = std::fs::remove_dir_all(&dir);
 
     assert_eq!(overflows.load(Ordering::SeqCst), 0, "fseventsd dropped events");
-    assert!(events.load(Ordering::SeqCst) >= FILES, "{} of {FILES} events", events.load(Ordering::SeqCst));
+    assert!(
+        events.load(Ordering::SeqCst) >= FILES,
+        "{} of {FILES} events",
+        events.load(Ordering::SeqCst)
+    );
 }

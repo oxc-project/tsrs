@@ -39,7 +39,9 @@ fn produce(name: &str) -> Vec<u8> {
     if let Some(case) = name.strip_prefix("msgpack/") {
         let mut w = MessagePackWriter::new(&mut out);
         match case {
-            "call_readFile" => w.write_request(&Id::string("readFile"), "readFile", Some(&json_str(ASTRAL))),
+            "call_readFile" => {
+                w.write_request(&Id::string("readFile"), "readFile", Some(&json_str(ASTRAL)))
+            }
             "call_nil" => w.write_request(&Id::string("x"), "x", None),
             "call_writeFile" => {
                 #[derive(serde::Serialize)]
@@ -48,15 +50,28 @@ fn produce(name: &str) -> Vec<u8> {
                     data: &'a str,
                 }
                 let payload = P { path: ASTRAL, data: "a<b>&\"\\\n\u{2028}" };
-                w.write_request(&Id::string("writeFile"), "writeFile", Some(&serde_json::to_vec(&payload).unwrap()))
+                w.write_request(
+                    &Id::string("writeFile"),
+                    "writeFile",
+                    Some(&serde_json::to_vec(&payload).unwrap()),
+                )
             }
-            "response_json" => w.write_response(&Id::string("ping"), &Response::Json(b"\"pong\"".to_vec())),
+            "response_json" => {
+                w.write_response(&Id::string("ping"), &Response::Json(b"\"pong\"".to_vec()))
+            }
             "response_nil" => w.write_response(&Id::string("release"), &Response::null()),
-            "response_binary_astral" => w.write_response(&Id::string("echo"), &Response::Binary(ASTRAL.as_bytes().to_vec())),
-            "response_binary_empty" => w.write_response(&Id::string("getSourceFile"), &Response::Binary(Vec::new())),
+            "response_binary_astral" => {
+                w.write_response(&Id::string("echo"), &Response::Binary(ASTRAL.as_bytes().to_vec()))
+            }
+            "response_binary_empty" => {
+                w.write_response(&Id::string("getSourceFile"), &Response::Binary(Vec::new()))
+            }
             "response_bin16" => w.write_response(&Id::string("echo"), &Response::Binary(big)),
             "response_bin32" => w.write_response(&Id::string("echo"), &Response::Binary(huge)),
-            "error" => w.write_error(&Id::string("getSymbol"), &internal("api: client error: symbol \u{1F600} not found")),
+            "error" => w.write_error(
+                &Id::string("getSymbol"),
+                &internal("api: client error: symbol \u{1F600} not found"),
+            ),
             "error_empty_id" => w.write_error(&Id::string(""), &internal("x")),
             other => panic!("unmapped case {other}"),
         }
@@ -66,13 +81,21 @@ fn produce(name: &str) -> Vec<u8> {
         let case = name.strip_prefix("jsonrpc/").unwrap();
         let mut w = FrameWriter::new(&mut out);
         match case {
-            "request_readFile" => w.write_request(&Id::string("api1"), "readFile", Some(&json_str(ASTRAL))),
+            "request_readFile" => {
+                w.write_request(&Id::string("api1"), "readFile", Some(&json_str(ASTRAL)))
+            }
             "request_nil_params" => w.write_request(&Id::string("api2"), "x", None),
             "notification" => w.write_notification("note", Some(b"{\"a\":1}")),
-            "response_int_id" => w.write_response(&Id::Int(7), &Response::Json(b"{\"b\":[1,2]}".to_vec())),
-            "response_str_id" => w.write_response(&Id::string("q"), &Response::Json(json_str(ASTRAL))),
+            "response_int_id" => {
+                w.write_response(&Id::Int(7), &Response::Json(b"{\"b\":[1,2]}".to_vec()))
+            }
+            "response_str_id" => {
+                w.write_response(&Id::string("q"), &Response::Json(json_str(ASTRAL)))
+            }
             "response_nil" => w.write_response(&Id::Int(3), &Response::null()),
-            "response_binary" => w.write_response(&Id::Int(4), &Response::Binary(ASTRAL.as_bytes().to_vec())),
+            "response_binary" => {
+                w.write_response(&Id::Int(4), &Response::Binary(ASTRAL.as_bytes().to_vec()))
+            }
             "error" => w.write_error(&Id::Int(9), &internal("boom \u{1F600}")),
             other => panic!("unmapped case {other}"),
         }
@@ -91,7 +114,12 @@ fn writers_match_go_bytes() {
         let name = case["name"].as_str().unwrap();
         let expected = hex(case["hex"].as_str().unwrap());
         let actual = produce(name);
-        assert!(actual == expected, "{name}: rust={:?}\n go={:?}", String::from_utf8_lossy(&actual), String::from_utf8_lossy(&expected));
+        assert!(
+            actual == expected,
+            "{name}: rust={:?}\n go={:?}",
+            String::from_utf8_lossy(&actual),
+            String::from_utf8_lossy(&expected)
+        );
     }
 }
 
@@ -147,7 +175,13 @@ fn readers_match_go_interpretation() {
         } else {
             read_all(&mut FrameReader::new(&input[..]))
         };
-        let go_msgs: Vec<Value> = case["messages"].as_array().cloned().unwrap_or_default().into_iter().map(normalize_go).collect();
+        let go_msgs: Vec<Value> = case["messages"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .map(normalize_go)
+            .collect();
         assert_eq!(msgs, go_msgs, "{name}: messages");
         let go_eof = case["eof"].as_bool().unwrap();
         let go_err = case["error"].as_str().unwrap();
@@ -156,10 +190,16 @@ fn readers_match_go_interpretation() {
             // io error text (and a clean io.EOF for a tuple truncated between fields). We always report
             // a truncated frame as an explicit UnexpectedEof error.
             "msgpack/truncated_payload" | "msgpack/eof_in_header" | "jsonrpc/truncated_body" => {
-                assert!(matches!(result, Err(TransportError::UnexpectedEof(_))), "{name}: {result:?}");
+                assert!(
+                    matches!(result, Err(TransportError::UnexpectedEof(_))),
+                    "{name}: {result:?}"
+                );
             }
             // JSON syntax errors: both reject; the error text comes from different JSON libraries.
-            "jsonrpc/invalid_json" | "jsonrpc/float_id" | "jsonrpc/duplicate_key" | "jsonrpc/bad_version" => {
+            "jsonrpc/invalid_json"
+            | "jsonrpc/float_id"
+            | "jsonrpc/duplicate_key"
+            | "jsonrpc/bad_version" => {
                 assert_ne!(go_err, "");
                 assert!(matches!(result, Err(TransportError::Protocol(_))), "{name}: {result:?}");
             }

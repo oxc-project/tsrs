@@ -32,7 +32,11 @@ thread_local! {
 
 fn get_slots() -> &'static slots {
     static SLOTS: OnceLock<slots> = OnceLock::new();
-    SLOTS.get_or_init(|| slots { in_use: Mutex::new(0), freed: Condvar::new(), capacity: std::thread::available_parallelism().map_or(1, std::num::NonZero::get) })
+    SLOTS.get_or_init(|| slots {
+        in_use: Mutex::new(0),
+        freed: Condvar::new(),
+        capacity: std::thread::available_parallelism().map_or(1, std::num::NonZero::get),
+    })
 }
 
 /// Runs `f` once a slot is free, holding it while `f` runs (outside of `blocking` calls). A nested `run` keeps the

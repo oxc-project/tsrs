@@ -110,7 +110,10 @@ impl eventList {
     }
 
     // event.go:113
-    #[expect(dead_code, reason = "its only Go caller, windows.go (windowsSubscription.processOne), is not ported")]
+    #[expect(
+        dead_code,
+        reason = "its only Go caller, windows.go (windowsSubscription.processOne), is not ported"
+    )]
     pub(crate) fn remove_and_get_sequence(&self, path: &str) -> u64 {
         let mut el = self.mu.lock().unwrap();
         let seq = el.next_seq_locked();
@@ -164,7 +167,10 @@ impl eventList {
 
     // event.go:187
     #[cfg(test)] // only its ported test calls it: trigger_callbacks makes the snapshots outside the lock (`drain_entries`)
-    pub(crate) fn drain_for_sequences(&self, start_seqs: &[u64]) -> (Vec<Vec<Event>>, Option<Error>) {
+    pub(crate) fn drain_for_sequences(
+        &self,
+        start_seqs: &[u64],
+    ) -> (Vec<Vec<Event>>, Option<Error>) {
         let mut el = self.mu.lock().unwrap();
         let out = start_seqs.iter().map(|&start_seq| el.snapshot_since_locked(start_seq)).collect();
         let err = el.err.take();
@@ -299,7 +305,10 @@ impl eventEntry {
 
     fn kind_since(&self, start_seq: u64) -> Option<EventKind> {
         if self.deleted_seq > start_seq {
-            if self.created_seq > start_seq && self.created_seq < self.deleted_seq && self.updated_seq < self.deleted_seq {
+            if self.created_seq > start_seq
+                && self.created_seq < self.deleted_seq
+                && self.updated_seq < self.deleted_seq
+            {
                 return None;
             }
             return Some(EventKind::Delete);

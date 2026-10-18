@@ -1,9 +1,15 @@
-use tsrs_contentmapper::{MappedOutput, ProtocolJson, TransformParams, TransformResult, METHOD_INITIALIZE, METHOD_TRANSFORM};
+use tsrs_contentmapper::{
+    METHOD_INITIALIZE, METHOD_TRANSFORM, MappedOutput, ProtocolJson, TransformParams,
+    TransformResult,
+};
 use tsrs_core::json::Value;
 use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment};
 
-use crate::protocol::{initialize_result, marshal_span_map, no_notifications, quote, testHandler, unexpected_method, unmarshal_params};
+use crate::protocol::{
+    initialize_result, marshal_span_map, no_notifications, quote, testHandler, unexpected_method,
+    unmarshal_params,
+};
 
 // lisp.go:13
 pub(crate) struct lispHandler;
@@ -18,16 +24,20 @@ impl ipc::Handler for lispHandler {
             METHOD_TRANSFORM => {
                 let p: TransformParams = unmarshal_params(params)?;
                 if p.content.strip_suffix('\n').unwrap_or(&p.content) != r#"(+ 1 2 "oops")"# {
-                    return Err(ipc::Error::new(format!("contentmappertest: unsupported Lisp expression {}", quote(&p.content))));
+                    return Err(ipc::Error::new(format!(
+                        "contentmappertest: unsupported Lisp expression {}",
+                        quote(&p.content)
+                    )));
                 }
-                let segment = |virtual_start, virtual_end, original_start, original_end, kind| Segment {
-                    virtual_start,
-                    virtual_end,
-                    original_start,
-                    original_end,
-                    kind,
-                    features: Feature::All,
-                };
+                let segment =
+                    |virtual_start, virtual_end, original_start, original_end, kind| Segment {
+                        virtual_start,
+                        virtual_end,
+                        original_start,
+                        original_end,
+                        kind,
+                        features: Feature::All,
+                    };
                 let mappings = marshal_span_map(&[
                     segment(0, 3, 1, 2, Kind::Alias),
                     segment(4, 5, 3, 4, Kind::Verbatim),
@@ -49,7 +59,11 @@ impl ipc::Handler for lispHandler {
         }
     }
 
-    fn handle_notification(&self, _method: &str, _params: Option<&Value>) -> Result<(), ipc::Error> {
+    fn handle_notification(
+        &self,
+        _method: &str,
+        _params: Option<&Value>,
+    ) -> Result<(), ipc::Error> {
         no_notifications()
     }
 }

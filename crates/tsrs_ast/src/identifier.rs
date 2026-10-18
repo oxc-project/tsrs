@@ -17,11 +17,11 @@ use std::sync::atomic::{AtomicPtr, AtomicU32, AtomicUsize, Ordering::Relaxed};
 use std::sync::{LazyLock, Mutex};
 
 use rustc_hash::FxHashMap;
-use tsrs_core::{OwnedCell, PackedStr, TextRange, P};
+use tsrs_core::{OwnedCell, P, PackedStr, TextRange};
 
-use crate::ast::{clone_node, Node, NodeAlloc, NodeFactory, NodePayload};
-use crate::generated::NodeDataTag;
+use crate::ast::{Node, NodeAlloc, NodeFactory, NodePayload, clone_node};
 use crate::flow::FlowNode;
+use crate::generated::NodeDataTag;
 use crate::kind::Kind;
 
 /// No source text: the text index of flow nodes the checker makes, and of parses whose text is not registered.
@@ -37,16 +37,17 @@ struct SourceTextSlot {
 // Zero-initialized, so untouched pages cost nothing. A text is registered by the thread that parses it, before any
 // identifier of it exists; other threads reach those identifiers only through the synchronization that hands them
 // the AST (end of the parse phase, `jsdoc_mu`), so relaxed accesses suffice.
-static SOURCE_TEXTS: [SourceTextSlot; SOURCE_TEXTS_CAP] =
-    [const { SourceTextSlot { ptr: AtomicPtr::new(std::ptr::null_mut()), len: AtomicUsize::new(0) } }; SOURCE_TEXTS_CAP];
+static SOURCE_TEXTS: [SourceTextSlot; SOURCE_TEXTS_CAP] = [const {
+    SourceTextSlot { ptr: AtomicPtr::new(std::ptr::null_mut()), len: AtomicUsize::new(0) }
+}; SOURCE_TEXTS_CAP];
 static SOURCE_TEXT_COUNT: AtomicU32 = AtomicU32::new(0);
 
 /// Registers a file's text for compact identifiers; `NO_SOURCE_TEXT` once the table is full (identifiers of later
 /// files then store their text).
 pub fn register_source_text(text: &'static str) -> u32 {
-    let Ok(index) = SOURCE_TEXT_COUNT.try_update(Relaxed, Relaxed, |n| {
-        ((n as usize) < SOURCE_TEXTS_CAP).then(|| n + 1)
-    }) else {
+    let Ok(index) = SOURCE_TEXT_COUNT
+        .try_update(Relaxed, Relaxed, |n| ((n as usize) < SOURCE_TEXTS_CAP).then(|| n + 1))
+    else {
         return NO_SOURCE_TEXT;
     };
     let slot = &SOURCE_TEXTS[index as usize];
@@ -78,7 +79,13 @@ fn source_text_ptr(index: u32) -> *const u8 {
 fn source_text(index: u32) -> &'static str {
     let slot = &SOURCE_TEXTS[index as usize];
     // SAFETY: the slot was stored from a `&'static str` by `register_source_text` (see the static's comment).
-    unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(slot.ptr.load(Relaxed), slot.len.load(Relaxed))) }
+    unsafe {
+        std::str::from_utf8_unchecked(std::slice::from_raw_parts(
+            // Relaxed: the source text is published before readers run (see the static's comment).
+            slot.ptr.load(Relaxed),
+            slot.len.load(Relaxed),
+        ))
+    }
 }
 
 // The word: bits 0..45 the flow node (`P::pack`, like the node header's parent) or the text index, bits 45..62 the text length, bits 62..64 the mode.
@@ -132,7 +139,12 @@ impl Identifier {
     fn node(&self) -> &Node {
         // SAFETY: identifiers are created only by `new_node` inside a `NodeAlloc` (`repr(C)`, header first), so the
         // header lies at this offset before the data struct.
-        unsafe { tsrs_core::ptr::arena_neighbor(self, -(std::mem::offset_of!(NodeAlloc<Identifier>, data) as isize)) }
+        unsafe {
+            tsrs_core::ptr::arena_neighbor(
+                self,
+                -(std::mem::offset_of!(NodeAlloc<Identifier>, data) as isize),
+            )
+        }
     }
 
     #[inline]
@@ -151,22 +163,28 @@ impl Identifier {
     }
 
     #[inline]
-    #[expect(clippy::disallowed_methods, reason = "from_utf8 here: +1.6% instructions, one checker (notes/lint-paydown-compiler.md)")]
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "from_utf8 here: +1.6% instructions, one checker (notes/lint-paydown-compiler.md)"
+    )]
     pub fn text(&self) -> &'static str {
         let word = self.word.get();
         if Self::mode(word) == MODE_TEXT {
             return self.stored_text();
         }
         let len = ((word >> LEN_SHIFT) & LEN_MAX) as usize;
-        let end = self
-            .node()
-            .end()
-            .expect_source("source identifiers have source positions") as usize;
+        let end =
+            self.node().end().expect_source("source identifiers have source positions") as usize;
         debug_assert!(end <= source_text(Self::text_index(word)).len() && len <= end);
         // SAFETY: `new_source_identifier` checked that `end - len..end` is the token's text inside the registered
         // text (so in bounds and on char boundaries), and `Node::set_loc` keeps the end from changing (the range of a
         // node is written only there, or by the factory when it creates a node).
-        unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(source_text_ptr(Self::text_index(word)).add(end - len), len)) }
+        unsafe {
+            std::str::from_utf8_unchecked(std::slice::from_raw_parts(
+                source_text_ptr(Self::text_index(word)).add(end - len),
+                len,
+            ))
+        }
     }
 
     /// `text().len()`, without forming the text (a compact identifier keeps its length in the word).
@@ -214,9 +232,15 @@ impl Identifier {
         }
         let word = match flow {
             None => (MODE_SOURCE << MODE_SHIFT) | len | index as u64,
-            Some(f) if f.text_index() == index => (MODE_SOURCE_FLOW << MODE_SHIFT) | len | flow_slot(flow),
+            Some(f) if f.text_index() == index => {
+                (MODE_SOURCE_FLOW << MODE_SHIFT) | len | flow_slot(flow)
+            }
             Some(f) => {
-                match SIDE_FLOW.lock().unwrap().entry(std::ptr::from_ref::<Identifier>(self) as usize) {
+                match SIDE_FLOW
+                    .lock()
+                    .unwrap()
+                    .entry(std::ptr::from_ref::<Identifier>(self) as usize)
+                {
                     Entry::Occupied(mut e) => *e.get_mut() = f,
                     Entry::Vacant(e) => {
                         e.insert(f);
@@ -244,7 +268,10 @@ impl NodeFactory {
         self.text_count.set(self.text_count.get() + 1);
         self.new_node(
             Kind::Identifier,
-            IdentifierWithText { identifier: Identifier { word: OwnedCell::new(MODE_TEXT << MODE_SHIFT) }, text: PackedStr::new(text) },
+            IdentifierWithText {
+                identifier: Identifier { word: OwnedCell::new(MODE_TEXT << MODE_SHIFT) },
+                text: PackedStr::new(text),
+            },
         )
     }
 
@@ -257,12 +284,12 @@ impl NodeFactory {
         text_index: u32,
         loc: TextRange,
     ) -> P<Node> {
-        let end = loc
-            .end()
-            .expect_source("source identifiers have source positions") as usize;
+        let end = loc.end().expect_source("source identifiers have source positions") as usize;
         let from_source = text_index != NO_SOURCE_TEXT && text.len() as u64 <= LEN_MAX && {
             let file = source_text(text_index);
-            end <= file.len() && text.len() <= end && std::ptr::eq(file.as_ptr().wrapping_add(end - text.len()), text.as_ptr())
+            end <= file.len()
+                && text.len() <= end
+                && std::ptr::eq(file.as_ptr().wrapping_add(end - text.len()), text.as_ptr())
         };
         if !from_source {
             let node = self.new_identifier(text);
@@ -272,7 +299,13 @@ impl NodeFactory {
         self.text_count.set(self.text_count.get() + 1);
         let node = self.new_node(
             Kind::Identifier,
-            Identifier { word: OwnedCell::new((MODE_SOURCE << MODE_SHIFT) | ((text.len() as u64) << LEN_SHIFT) | text_index as u64) },
+            Identifier {
+                word: OwnedCell::new(
+                    (MODE_SOURCE << MODE_SHIFT)
+                        | ((text.len() as u64) << LEN_SHIFT)
+                        | text_index as u64,
+                ),
+            },
         );
         node.loc.set(loc);
         node
@@ -282,7 +315,8 @@ impl NodeFactory {
 /// `Node::set_loc` of an identifier to a range with another end.
 #[cold]
 pub(crate) fn check_source_identifier_loc(node: &Node, loc: TextRange) {
-    assert!(!node.as_identifier().is_source_text(),
+    assert!(
+        !node.as_identifier().is_source_text(),
         "the range end of identifier {:?} cannot change ({:?} -> {:?})",
         node.as_identifier().text(),
         node.end(),

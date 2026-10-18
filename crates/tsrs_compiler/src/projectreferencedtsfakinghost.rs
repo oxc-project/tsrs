@@ -1,10 +1,10 @@
 use std::time::SystemTime;
 
 use tsrs_core::tspath::{self, Path};
-use tsrs_core::{Tristate, P};
+use tsrs_core::{P, Tristate};
 use tsrs_module::symlinks::{KnownDirectoryLink, KnownSymlinks};
 use tsrs_module::{self as module, ResolutionHost};
-use tsrs_vfs::{cachedvfs, Entries, FileInfo, FS};
+use tsrs_vfs::{Entries, FS, FileInfo, cachedvfs};
 
 use crate::projectreferencefilemapper::projectReferenceFileMapper;
 
@@ -122,7 +122,11 @@ impl FS for projectReferenceDtsFakingVfs {
 impl projectReferenceDtsFakingVfs {
     // projectreferencedtsfakinghost.go:123
     fn to_path(&self, path: &str) -> Path {
-        tspath::to_path(path, self.host.get_current_directory(), self.use_case_sensitive_file_names())
+        tspath::to_path(
+            path,
+            self.host.get_current_directory(),
+            self.use_case_sensitive_file_names(),
+        )
     }
 
     // projectreferencedtsfakinghost.go:127
@@ -136,7 +140,9 @@ impl projectReferenceDtsFakingVfs {
             return;
         }
 
-        let directory_path = Path::new(tspath::ensure_trailing_directory_separator(self.to_path(directory).as_str()));
+        let directory_path = Path::new(tspath::ensure_trailing_directory_separator(
+            self.to_path(directory).as_str(),
+        ));
         if self.known_symlinks.directories().load(&directory_path).is_some() {
             return;
         }
@@ -146,18 +152,24 @@ impl projectReferenceDtsFakingVfs {
             // not symlinked
             return;
         }
-        let real_path = Path::new(tspath::ensure_trailing_directory_separator(self.to_path(&real_directory).as_str()));
+        let real_path = Path::new(tspath::ensure_trailing_directory_separator(
+            self.to_path(&real_directory).as_str(),
+        ));
         if real_path == directory_path {
             // not symlinked
             return;
         }
         // The host lives with the project reference file mapper, which every program version cloned from this build
         // shares; a lookup can come from a checker or a later version's region (docs/LSP.md "Memory management").
-        let _owner = tsrs_core::arena::enter_table_owner(std::ptr::from_ref(&self.known_symlinks) as usize);
+        let _owner =
+            tsrs_core::arena::enter_table_owner(std::ptr::from_ref(&self.known_symlinks) as usize);
         self.known_symlinks.set_directory(
             directory,
             directory_path,
-            Some(P::new(KnownDirectoryLink { real: tspath::ensure_trailing_directory_separator(&real_directory), real_path })),
+            Some(P::new(KnownDirectoryLink {
+                real: tspath::ensure_trailing_directory_separator(&real_directory),
+                real_path,
+            })),
         );
     }
 
@@ -170,7 +182,11 @@ impl projectReferenceDtsFakingVfs {
     }
 
     // projectreferencedtsfakinghost.go:160
-    fn file_or_directory_exists_using_source(&self, file_or_directory: &str, is_file: bool) -> bool {
+    fn file_or_directory_exists_using_source(
+        &self,
+        file_or_directory: &str,
+        is_file: bool,
+    ) -> bool {
         // Check current directory or file
         let result = self.exists_using_source(file_or_directory, is_file);
         if result != Tristate::Unknown {
@@ -182,7 +198,8 @@ impl projectReferenceDtsFakingVfs {
             return false;
         }
         // Check if the directory or file is a symlinked package
-        let package_root = module::parse_node_module_from_path(file_or_directory, true /*isFolder*/);
+        let package_root =
+            module::parse_node_module_from_path(file_or_directory, true /*isFolder*/);
         if !package_root.is_empty() {
             self.handle_directory_could_be_symlink(&package_root);
         }
@@ -197,23 +214,40 @@ impl projectReferenceDtsFakingVfs {
         // If it contains node_modules check if its one of the symlinked path we know of
         let mut exists = false;
         known_directory_links.range(|directory_path, known_directory_link| {
-            let Some(relative) = file_or_directory_path.as_str().strip_prefix(directory_path.as_str()) else {
+            let Some(relative) =
+                file_or_directory_path.as_str().strip_prefix(directory_path.as_str())
+            else {
                 return true;
             };
             let Some(known_directory_link) = known_directory_link else {
                 return true;
             };
-            exists = self.exists_using_source(&format!("{}{}", known_directory_link.real_path.as_str(), relative), is_file).is_true();
+            exists = self
+                .exists_using_source(
+                    &format!("{}{}", known_directory_link.real_path.as_str(), relative),
+                    is_file,
+                )
+                .is_true();
             if exists {
                 if is_file {
                     // Store the real path for the file
-                    let absolute_path = tspath::get_normalized_absolute_path(file_or_directory, self.host.get_current_directory());
+                    let absolute_path = tspath::get_normalized_absolute_path(
+                        file_or_directory,
+                        self.host.get_current_directory(),
+                    );
                     // As in `handle_directory_could_be_symlink`.
-                    let _owner = tsrs_core::arena::enter_table_owner(std::ptr::from_ref(&self.known_symlinks) as usize);
+                    let _owner = tsrs_core::arena::enter_table_owner(std::ptr::from_ref(
+                        &self.known_symlinks,
+                    )
+                        as usize);
                     self.known_symlinks.set_file(
                         &absolute_path,
                         file_or_directory_path.clone(),
-                        &format!("{}{}", known_directory_link.real, &absolute_path[directory_path.as_str().len()..]),
+                        &format!(
+                            "{}{}",
+                            known_directory_link.real,
+                            &absolute_path[directory_path.as_str().len()..]
+                        ),
                     );
                 }
                 return false;
@@ -225,8 +259,15 @@ impl projectReferenceDtsFakingVfs {
 
     // projectreferencedtsfakinghost.go:209
     fn file_exists_if_project_reference_dts(&self, file: &str) -> Tristate {
-        if let Some(source) = self.project_reference_file_mapper.get_project_reference_from_output_dts(&self.to_path(file)) {
-            return if self.host.fs().file_exists(&source.source) { Tristate::True } else { Tristate::False };
+        if let Some(source) = self
+            .project_reference_file_mapper
+            .get_project_reference_from_output_dts(&self.to_path(file))
+        {
+            return if self.host.fs().file_exists(&source.source) {
+                Tristate::True
+            } else {
+                Tristate::False
+            };
         }
         Tristate::Unknown
     }
@@ -237,7 +278,11 @@ impl projectReferenceDtsFakingVfs {
         // returns True if any entry matches; the order does not matter
         if let Some(result) =
             self.project_reference_file_mapper.dts_directories.iter().find_map(|decl_dir_path| {
-                if dir_path.contains_path(decl_dir_path) || decl_dir_path.contains_path(&dir_path) { Some(Tristate::True) } else { None }
+                if dir_path.contains_path(decl_dir_path) || decl_dir_path.contains_path(&dir_path) {
+                    Some(Tristate::True)
+                } else {
+                    None
+                }
             })
         {
             return result;
@@ -254,7 +299,7 @@ mod region_tests {
     use tsrs_core::tspath::Path;
     use tsrs_core::{CompilerOptions, P};
     use tsrs_module::symlinks::KnownSymlinks;
-    use tsrs_vfs::{vfstest, FS};
+    use tsrs_vfs::{FS, vfstest};
 
     use super::projectReferenceDtsFakingVfs;
     use crate::projectreferencefilemapper::{projectReferenceFileMapper, resolution_host_for};
@@ -265,23 +310,45 @@ mod region_tests {
     #[test]
     fn symlinked_directory_first_seen_in_a_region_is_not_kept_there() {
         let fs: Arc<dyn FS> = Arc::new(vfstest::from_map(
-            [("/lib/src/deep/thing.ts", vfstest::MapFile::from("export {};")), ("/app/node_modules/@x/lib", vfstest::symlink("/lib"))],
+            [
+                ("/lib/src/deep/thing.ts", vfstest::MapFile::from("export {};")),
+                ("/app/node_modules/@x/lib", vfstest::symlink("/lib")),
+            ],
             true,
         ));
         let host = resolution_host_for(crate::new_compiler_host("/", fs, "", None, None, None));
-        let config = P::new(tsrs_tsoptions::new_parsed_command_line(P::new(CompilerOptions::default()), Vec::new(), Vec::new(), tsrs_core::tspath::ComparePathsOptions::default()));
-        let mapper: &'static projectReferenceFileMapper = Box::leak(Box::new(projectReferenceFileMapper::new(config, true)));
-        let vfs = projectReferenceDtsFakingVfs { host, project_reference_file_mapper: mapper, known_symlinks: KnownSymlinks::default() };
+        let config = P::new(tsrs_tsoptions::new_parsed_command_line(
+            P::new(CompilerOptions::default()),
+            Vec::new(),
+            Vec::new(),
+            tsrs_core::tspath::ComparePathsOptions::default(),
+        ));
+        let mapper: &'static projectReferenceFileMapper =
+            Box::leak(Box::new(projectReferenceFileMapper::new(config, true)));
+        let vfs = projectReferenceDtsFakingVfs {
+            host,
+            project_reference_file_mapper: mapper,
+            known_symlinks: KnownSymlinks::default(),
+        };
         let region = Region::new(1 << 20);
         {
             let _scope = region.enter();
             assert!(vfs.directory_exists("/app/node_modules/@x/lib/src/deep"));
         }
         let in_region = |addr: usize| Region::containing(addr).is_some_and(|r| r.ptr_eq(&region));
-        let link = vfs.known_symlinks.directories().load(&Path::from("/app/node_modules/@x/lib/src/deep/")).flatten().expect("the link is recorded");
+        let link = vfs
+            .known_symlinks
+            .directories()
+            .load(&Path::from("/app/node_modules/@x/lib/src/deep/"))
+            .flatten()
+            .expect("the link is recorded");
         assert_eq!(link.real_path.as_str(), "/lib/src/deep/");
         assert!(!in_region(link.addr()), "directory link allocated in the region");
-        let set = vfs.known_symlinks.directories_by_realpath().load(&link.real_path).expect("the realpath's symlink set is recorded");
+        let set = vfs
+            .known_symlinks
+            .directories_by_realpath()
+            .load(&link.real_path)
+            .expect("the realpath's symlink set is recorded");
         assert!(!in_region(set.addr()), "symlink set allocated in the region");
     }
 }

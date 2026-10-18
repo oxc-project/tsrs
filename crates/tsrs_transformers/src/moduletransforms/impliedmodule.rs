@@ -1,4 +1,3 @@
-
 use super::*;
 
 // impliedmodule.go:10
@@ -12,7 +11,10 @@ pub struct ImpliedModuleTransformer {
 }
 
 // impliedmodule.go:19
-#[expect(clippy::unnecessary_wraps, reason = "Transformer factories share an optional result so disabled transforms can return None.")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Transformer factories share an optional result so disabled transforms can return None."
+)]
 pub fn new_implied_module_transformer(opts: &TransformOptions) -> Option<P<Transformer>> {
     let tx = P::new(ImpliedModuleTransformer {
         base: Transformer::default(),
@@ -22,7 +24,10 @@ pub fn new_implied_module_transformer(opts: &TransformOptions) -> Option<P<Trans
         cjs_transformer: Cell::new(None),
         esm_transformer: Cell::new(None),
     });
-    Some(tx.get().base.new_transformer(Rc::new(move |_: &mut NodeVisitor, n: P<Node>| Some(tx.visit(n))), Some(opts.context)))
+    Some(tx.get().base.new_transformer(
+        Rc::new(move |_: &mut NodeVisitor, n: P<Node>| Some(tx.visit(n))),
+        Some(opts.context),
+    ))
 }
 
 impl ImpliedModuleTransformer {

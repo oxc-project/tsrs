@@ -7,13 +7,13 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use std::time::Instant;
 use tsrs_api_transport::jsonrpc::{FrameReader, FrameWriter};
 use tsrs_api_transport::msgpack::{MessagePackReader, MessagePackWriter, MessageType};
-use std::time::Instant;
 
 use tsrs_api_transport::{
-    current_request, lock_for_request, ApiError, AsyncConn, Caller, ConnOptions, Handler, LateCaller, RequestContext, Response,
-    SyncConn, TransportError,
+    ApiError, AsyncConn, Caller, ConnOptions, Handler, LateCaller, RequestContext, Response,
+    SyncConn, TransportError, current_request, lock_for_request,
 };
 
 struct SimSession {
@@ -22,7 +22,12 @@ struct SimSession {
 }
 
 impl Handler for SimSession {
-    fn handle_request(&self, _cx: &RequestContext, method: &str, params: &[u8]) -> Result<Response, ApiError> {
+    fn handle_request(
+        &self,
+        _cx: &RequestContext,
+        method: &str,
+        params: &[u8],
+    ) -> Result<Response, ApiError> {
         let ms = || serde_json::from_slice::<u64>(params).unwrap_or(100);
         match method {
             // Holds the lock for `params` ms (no client call).
@@ -35,21 +40,28 @@ impl Handler for SimSession {
             // file during a program build): an unattributed call.
             "callbackFromWorker" => {
                 let caller = std::sync::Arc::clone(&self.caller);
-                let r = thread::spawn(move || caller.call("cb", Some(b"\"/worker.ts\""))).join().unwrap();
+                let r = thread::spawn(move || caller.call("cb", Some(b"\"/worker.ts\"")))
+                    .join()
+                    .unwrap();
                 Ok(Response::Json(r.map_err(|e| ApiError::internal(e.to_string()))?))
             }
             // Same, but the worker carries the request's identity (how core can attribute file reads).
             "callbackFromScopedWorker" => {
                 let caller = std::sync::Arc::clone(&self.caller);
                 let scope = tsrs_api_transport::RequestScope::current().unwrap();
-                let r = thread::spawn(move || scope.enter(|| caller.call("cb", Some(b"\"/worker.ts\"")))).join().unwrap();
+                let r = thread::spawn(move || {
+                    scope.enter(|| caller.call("cb", Some(b"\"/worker.ts\"")))
+                })
+                .join()
+                .unwrap();
                 Ok(Response::Json(r.map_err(|e| ApiError::internal(e.to_string()))?))
             }
             // Holds the lock while a worker thread waits on the client (genuine re-entry setup).
             "outerWorker" => {
                 let _g = lock_for_request(&self.registry, "the snapshot registry")?;
                 let caller = std::sync::Arc::clone(&self.caller);
-                let r = thread::spawn(move || caller.call("cb", Some(b"\"/held.ts\""))).join().unwrap();
+                let r =
+                    thread::spawn(move || caller.call("cb", Some(b"\"/held.ts\""))).join().unwrap();
                 Ok(Response::Json(r.map_err(|e| ApiError::internal(e.to_string()))?))
             }
             // Two sequential contended acquisitions of a checker-like gate within one request: the first
@@ -74,7 +86,11 @@ impl Handler for SimSession {
                         if gate.try_lock().is_ok() {
                             break Ok(start.elapsed());
                         }
-                        let stuck = if legacy { tsrs_api_transport::blocking_may_deadlock() } else { wait.may_deadlock() };
+                        let stuck = if legacy {
+                            tsrs_api_transport::blocking_may_deadlock()
+                        } else {
+                            wait.may_deadlock()
+                        };
                         if stuck {
                             break Err(format!("{}", start.elapsed().as_millis()));
                         }
@@ -93,7 +109,10 @@ impl Handler for SimSession {
             "outer" => {
                 let mut g = lock_for_request(&self.registry, "the snapshot registry")?;
                 *g += 1;
-                let r = self.caller.call("cb", Some(b"\"/f.ts\"")).map_err(|e| ApiError::internal(e.to_string()))?;
+                let r = self
+                    .caller
+                    .call("cb", Some(b"\"/f.ts\""))
+                    .map_err(|e| ApiError::internal(e.to_string()))?;
                 Ok(Response::Json(r))
             }
             "needsLock" => {
@@ -108,7 +127,10 @@ impl Handler for SimSession {
             "free" => Response::json(&current_request().unwrap().depth),
             // Waits on the client without holding the lock (an unrelated slow callback).
             "callbackNoLock" => {
-                let r = self.caller.call("cb", Some(b"\"/slow.ts\"")).map_err(|e| ApiError::internal(e.to_string()))?;
+                let r = self
+                    .caller
+                    .call("cb", Some(b"\"/slow.ts\""))
+                    .map_err(|e| ApiError::internal(e.to_string()))?;
                 Ok(Response::Json(r))
             }
             _ => Err(ApiError::internal("unknown")),
@@ -132,7 +154,10 @@ fn sync_nested_request_gets_a_deliberate_error_not_a_hang() {
         let (server_r, client_w) = std::io::pipe().unwrap();
         let (client_r, server_w) = std::io::pipe().unwrap();
         let late = LateCaller::new();
-        let session = Arc::new(SimSession { caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late), registry: Mutex::new(0) });
+        let session = Arc::new(SimSession {
+            caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late),
+            registry: Mutex::new(0),
+        });
         let conn = SyncConn::new(
             Box::new(MessagePackReader::new(server_r)),
             Box::new(MessagePackWriter::new(server_w)),
@@ -145,7 +170,11 @@ fn sync_nested_request_gets_a_deliberate_error_not_a_hang() {
         let mut r = MessagePackReader::new(client_r);
         let mut recv = || {
             let t = r.read_tuple().unwrap();
-            (t.msg_type, String::from_utf8(t.method).unwrap(), String::from_utf8(t.payload).unwrap())
+            (
+                t.msg_type,
+                String::from_utf8(t.method).unwrap(),
+                String::from_utf8(t.payload).unwrap(),
+            )
         };
         w.write_tuple(MessageType::Request, b"outer", b"").unwrap();
         assert_eq!(recv(), (MessageType::Call, "cb".into(), "\"/f.ts\"".into()));
@@ -156,7 +185,10 @@ fn sync_nested_request_gets_a_deliberate_error_not_a_hang() {
         w.write_tuple(MessageType::Request, b"free", b"").unwrap();
         assert_eq!(recv(), (MessageType::Response, "free".into(), "1".into()));
         w.write_tuple(MessageType::CallResponse, b"cb", b"{\"kind\":\"missing\"}").unwrap();
-        assert_eq!(recv(), (MessageType::Response, "outer".into(), "{\"kind\":\"missing\"}".into()));
+        assert_eq!(
+            recv(),
+            (MessageType::Response, "outer".into(), "{\"kind\":\"missing\"}".into())
+        );
         // After the callback returns the lock is free again.
         w.write_tuple(MessageType::Request, b"needsLock", b"").unwrap();
         assert_eq!(recv(), (MessageType::Response, "needsLock".into(), "1".into()));
@@ -165,17 +197,28 @@ fn sync_nested_request_gets_a_deliberate_error_not_a_hang() {
     });
 }
 
-fn start_async() -> (FrameWriter<std::io::PipeWriter>, FrameReader<std::io::PipeReader>, thread::JoinHandle<Result<(), TransportError>>) {
+fn start_async() -> (
+    FrameWriter<std::io::PipeWriter>,
+    FrameReader<std::io::PipeReader>,
+    thread::JoinHandle<Result<(), TransportError>>,
+) {
     start_async_with(ConnOptions::default())
 }
 
 fn start_async_with(
     options: ConnOptions,
-) -> (FrameWriter<std::io::PipeWriter>, FrameReader<std::io::PipeReader>, thread::JoinHandle<Result<(), TransportError>>) {
+) -> (
+    FrameWriter<std::io::PipeWriter>,
+    FrameReader<std::io::PipeReader>,
+    thread::JoinHandle<Result<(), TransportError>>,
+) {
     let (server_r, client_w) = std::io::pipe().unwrap();
     let (client_r, server_w) = std::io::pipe().unwrap();
     let late = LateCaller::new();
-    let session = Arc::new(SimSession { caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late), registry: Mutex::new(0) });
+    let session = Arc::new(SimSession {
+        caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late),
+        registry: Mutex::new(0),
+    });
     let conn = AsyncConn::new(
         Box::new(FrameReader::new(server_r)),
         Box::new(FrameWriter::new(server_w)),
@@ -196,17 +239,28 @@ fn json(r: &mut FrameReader<std::io::PipeReader>) -> serde_json::Value {
 fn async_nested_request_gets_a_deliberate_error_after_the_grace_period_not_a_hang() {
     bounded("async re-entry", || {
         let grace = Duration::from_millis(300);
-        let (mut w, mut r, run) = start_async_with(ConnOptions { reentrancy_grace: grace, ..ConnOptions::default() });
+        let (mut w, mut r, run) =
+            start_async_with(ConnOptions { reentrancy_grace: grace, ..ConnOptions::default() });
         w.write_frame(br#"{"jsonrpc":"2.0","id":1,"method":"outer"}"#).unwrap();
         let call = json(&mut r);
         assert_eq!(call["method"], "cb");
         let start = std::time::Instant::now();
         w.write_frame(br#"{"jsonrpc":"2.0","id":2,"method":"needsLock"}"#).unwrap();
-        assert_eq!(json(&mut r), serde_json::json!({"jsonrpc": "2.0", "id": 2, "error": {"code": -32603, "message": REENTRANT}}));
-        assert!(start.elapsed() >= grace, "async conflicts wait out the grace period: {:?}", start.elapsed());
+        assert_eq!(
+            json(&mut r),
+            serde_json::json!({"jsonrpc": "2.0", "id": 2, "error": {"code": -32603, "message": REENTRANT}})
+        );
+        assert!(
+            start.elapsed() >= grace,
+            "async conflicts wait out the grace period: {:?}",
+            start.elapsed()
+        );
         w.write_frame(br#"{"jsonrpc":"2.0","id":3,"method":"free"}"#).unwrap();
         assert_eq!(json(&mut r)["result"], 0);
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"done"}}"#, call["id"]).as_bytes()).unwrap();
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"done"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r), serde_json::json!({"jsonrpc": "2.0", "id": 1, "result": "done"}));
         drop(w);
         assert!(run.join().unwrap().is_ok());
@@ -246,7 +300,10 @@ fn closing_while_a_handler_waits_on_a_callback_is_bounded() {
         let (server_r, client_w) = std::io::pipe().unwrap();
         let (client_r, server_w) = std::io::pipe().unwrap();
         let late = LateCaller::new();
-        let session = Arc::new(SimSession { caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late), registry: Mutex::new(0) });
+        let session = Arc::new(SimSession {
+            caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late),
+            registry: Mutex::new(0),
+        });
         let conn = SyncConn::new(
             Box::new(MessagePackReader::new(server_r)),
             Box::new(MessagePackWriter::new(server_w)),
@@ -284,7 +341,10 @@ fn async_unrelated_slow_callback_does_not_reject_ordinary_contention() {
         got.sort_by_key(|v| v["id"].as_i64());
         assert_eq!(got[0]["result"], "held", "{got:?}");
         assert_eq!(got[1]["result"], 0, "{got:?}");
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes()).unwrap();
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r)["result"], "late");
         drop(w);
         assert!(run.join().unwrap().is_ok());
@@ -317,7 +377,10 @@ fn async_unrelated_attributed_callback_longer_than_grace_does_not_reject_a_waite
         assert_eq!(got[0]["result"], "held", "{got:?}");
         assert_eq!(got[1]["result"], 0, "waiter must not be rejected: {got:?}");
         assert!(start.elapsed() >= Duration::from_millis(300), "waited for the holder");
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes()).unwrap();
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r)["result"], "late");
         drop(w);
         assert!(run.join().unwrap().is_ok());
@@ -341,9 +404,15 @@ fn async_unattributed_callback_longer_than_grace_rejects_after_grace_documented_
         let elapsed = start.elapsed();
         assert_eq!(first["id"], 3, "{first}");
         assert_eq!(error_message(&first).as_deref(), Some(REENTRANT));
-        assert!(elapsed >= Duration::from_millis(100) && elapsed < Duration::from_millis(380), "{elapsed:?}");
+        assert!(
+            elapsed >= Duration::from_millis(100) && elapsed < Duration::from_millis(380),
+            "{elapsed:?}"
+        );
         assert_eq!(json(&mut r)["result"], "held");
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes()).unwrap();
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r)["result"], "late");
         drop(w);
         assert!(run.join().unwrap().is_ok());
@@ -364,7 +433,10 @@ fn genuine_reentry_through_a_worker_callback_still_fails_boundedly() {
         let v = json(&mut r);
         assert_eq!(error_message(&v).as_deref(), Some(REENTRANT));
         assert!(start.elapsed() >= Duration::from_millis(100));
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"ok"}}"#, call["id"]).as_bytes()).unwrap();
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"ok"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r)["result"], "ok");
         drop(w);
         assert!(run.join().unwrap().is_ok());
@@ -373,8 +445,16 @@ fn genuine_reentry_through_a_worker_callback_still_fails_boundedly() {
         let (server_r, client_w) = std::io::pipe().unwrap();
         let (client_r, server_w) = std::io::pipe().unwrap();
         let late = LateCaller::new();
-        let session = Arc::new(SimSession { caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late), registry: Mutex::new(0) });
-        let conn = SyncConn::new(Box::new(MessagePackReader::new(server_r)), Box::new(MessagePackWriter::new(server_w)), session, grace_opts());
+        let session = Arc::new(SimSession {
+            caller: std::sync::Arc::<tsrs_api_transport::LateCaller>::clone(&late),
+            registry: Mutex::new(0),
+        });
+        let conn = SyncConn::new(
+            Box::new(MessagePackReader::new(server_r)),
+            Box::new(MessagePackWriter::new(server_w)),
+            session,
+            grace_opts(),
+        );
         late.set(conn.caller());
         let run = thread::spawn(move || conn.run());
         let mut w = MessagePackWriter::new(client_w);
@@ -384,8 +464,14 @@ fn genuine_reentry_through_a_worker_callback_still_fails_boundedly() {
         let start = Instant::now();
         w.write_tuple(MessageType::Request, b"needsLock", b"").unwrap();
         let t = r.read_tuple().unwrap();
-        assert_eq!((t.msg_type, String::from_utf8(t.payload).unwrap()), (MessageType::Error, REENTRANT.to_string()));
-        assert!(start.elapsed() < Duration::from_millis(100), "sync re-entry is reported immediately");
+        assert_eq!(
+            (t.msg_type, String::from_utf8(t.payload).unwrap()),
+            (MessageType::Error, REENTRANT.to_string())
+        );
+        assert!(
+            start.elapsed() < Duration::from_millis(100),
+            "sync re-entry is reported immediately"
+        );
         w.write_tuple(MessageType::CallResponse, b"cb", b"\"ok\"").unwrap();
         assert_eq!(r.read_tuple().unwrap().msg_type, MessageType::Response);
         drop(w);
@@ -407,12 +493,22 @@ fn sequential_acquisitions_do_not_inherit_a_previous_wait() {
         let v = json(&mut r);
         assert!(v["result"]["first"]["Ok"].as_u64().is_some(), "{v}");
         let second = v["result"]["secondRejectedAfterMs"].as_u64().unwrap();
-        assert!(second >= 100, "ContentionWait: second acquisition rejected after {second} ms (< grace)");
-        w.write_frame(br#"{"jsonrpc":"2.0","id":3,"method":"gateTwiceLegacy","params":80}"#).unwrap();
+        assert!(
+            second >= 100,
+            "ContentionWait: second acquisition rejected after {second} ms (< grace)"
+        );
+        w.write_frame(br#"{"jsonrpc":"2.0","id":3,"method":"gateTwiceLegacy","params":80}"#)
+            .unwrap();
         let v = json(&mut r);
         let legacy = v["result"]["secondRejectedAfterMs"].as_u64().unwrap();
-        assert!(legacy < 100, "legacy blocking_may_deadlock inherits the previous wait: {legacy} ms");
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes()).unwrap();
+        assert!(
+            legacy < 100,
+            "legacy blocking_may_deadlock inherits the previous wait: {legacy} ms"
+        );
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r)["result"], "late");
         drop(w);
         assert!(run.join().unwrap().is_ok());
@@ -433,7 +529,10 @@ fn scoped_worker_callback_is_attributed_and_does_not_reject_an_unrelated_waiter(
         let mut got = vec![json(&mut r), json(&mut r)];
         got.sort_by_key(|v| v["id"].as_i64());
         assert_eq!(got[1]["result"], 0, "{got:?}");
-        w.write_frame(format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes()).unwrap();
+        w.write_frame(
+            format!(r#"{{"jsonrpc":"2.0","id":{},"result":"late"}}"#, call["id"]).as_bytes(),
+        )
+        .unwrap();
         assert_eq!(json(&mut r)["result"], "late");
         drop(w);
         assert!(run.join().unwrap().is_ok());

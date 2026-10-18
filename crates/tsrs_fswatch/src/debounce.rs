@@ -69,7 +69,10 @@ impl debounce {
             writes: Mutex::new(writeState::default()),
         });
         let looper = Arc::clone(&d);
-        std::thread::Builder::new().name("fswatch-debounce".to_string()).spawn(move || looper.loop_()).expect("failed to spawn fswatch debounce thread");
+        std::thread::Builder::new()
+            .name("fswatch-debounce".to_string())
+            .spawn(move || looper.loop_())
+            .expect("failed to spawn fswatch debounce thread");
         d
     }
 
@@ -142,7 +145,8 @@ impl debounce {
         let mut writes = self.writes.lock().unwrap();
         let writeState { open, long_lived } = &mut *writes;
         open.retain(|path, &mut (first, last)| {
-            let settling = now.duration_since(last) < settleIdleTime && now.duration_since(first) < settleMaxTime;
+            let settling = now.duration_since(last) < settleIdleTime
+                && now.duration_since(first) < settleMaxTime;
             if !settling {
                 long_lived.insert(path.clone());
             }
@@ -189,7 +193,8 @@ impl debounce {
     fn coalesce_wait(&self) {
         let l = self.latch_mu.lock().unwrap();
         let r#gen = l.trigger_gen;
-        let (l, timeout) = self.latch_cv.wait_timeout_while(l, minWaitTime, |l| l.trigger_gen == r#gen).unwrap();
+        let (l, timeout) =
+            self.latch_cv.wait_timeout_while(l, minWaitTime, |l| l.trigger_gen == r#gen).unwrap();
         drop(l);
         if timeout.timed_out() {
             self.fire_callbacks();

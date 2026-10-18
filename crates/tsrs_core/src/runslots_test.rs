@@ -1,5 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{mpsc, Arc};
+use std::sync::{Arc, mpsc};
 use std::time::Duration;
 
 use super::*;
@@ -13,18 +13,18 @@ fn run_limits_concurrency_and_blocking_gives_the_slot_back() {
     let running = Arc::new(AtomicUsize::new(0));
     let peak = Arc::new(AtomicUsize::new(0));
     let threads: Vec<_> = std::iter::repeat_with(|| {
-            let (running, peak) = (Arc::clone(&running), Arc::clone(&peak));
-            std::thread::spawn(move || {
-                run(|| {
-                    let now = running.fetch_add(1, Ordering::SeqCst) + 1;
-                    peak.fetch_max(now, Ordering::SeqCst);
-                    std::thread::sleep(Duration::from_millis(20));
-                    running.fetch_sub(1, Ordering::SeqCst);
-                });
-            })
+        let (running, peak) = (Arc::clone(&running), Arc::clone(&peak));
+        std::thread::spawn(move || {
+            run(|| {
+                let now = running.fetch_add(1, Ordering::SeqCst) + 1;
+                peak.fetch_max(now, Ordering::SeqCst);
+                std::thread::sleep(Duration::from_millis(20));
+                running.fetch_sub(1, Ordering::SeqCst);
+            });
         })
-        .take(3 * n)
-        .collect();
+    })
+    .take(3 * n)
+    .collect();
     for t in threads {
         t.join().unwrap();
     }
@@ -35,16 +35,22 @@ fn run_limits_concurrency_and_blocking_gives_the_slot_back() {
     let go_rx = Arc::new(Mutex::new(go_rx));
     let (done_tx, done_rx) = mpsc::channel::<()>();
     let waiters: Vec<_> = std::iter::repeat_with(|| {
-            let (go_rx, done_tx) = (Arc::clone(&go_rx), done_tx.clone());
-            std::thread::spawn(move || {
-                run(|| {
-                    blocking(|| go_rx.lock().unwrap().recv_timeout(Duration::from_secs(10)).expect("the releasing job ran"));
-                    done_tx.send(()).unwrap();
+        let (go_rx, done_tx) = (Arc::clone(&go_rx), done_tx.clone());
+        std::thread::spawn(move || {
+            run(|| {
+                blocking(|| {
+                    go_rx
+                        .lock()
+                        .unwrap()
+                        .recv_timeout(Duration::from_secs(10))
+                        .expect("the releasing job ran");
                 });
-            })
+                done_tx.send(()).unwrap();
+            });
         })
-        .take(n)
-        .collect();
+    })
+    .take(n)
+    .collect();
     std::thread::sleep(Duration::from_millis(50));
     let releaser = std::thread::spawn(move || {
         run(|| {
@@ -81,23 +87,25 @@ fn run_limits_concurrency_and_blocking_gives_the_slot_back() {
     locked_rx.recv().unwrap();
     let in_run = Arc::new(AtomicUsize::new(0));
     let contenders: Vec<_> = std::iter::repeat_with(|| {
-            let (lock, in_run, done_tx) = (Arc::clone(&lock), Arc::clone(&in_run), done_tx.clone());
-            std::thread::spawn(move || {
-                run(|| {
-                    in_run.fetch_add(1, Ordering::SeqCst);
-                    drop(lock.lock().unwrap());
-                });
-                done_tx.send(()).unwrap();
-            })
+        let (lock, in_run, done_tx) = (Arc::clone(&lock), Arc::clone(&in_run), done_tx.clone());
+        std::thread::spawn(move || {
+            run(|| {
+                in_run.fetch_add(1, Ordering::SeqCst);
+                drop(lock.lock().unwrap());
+            });
+            done_tx.send(()).unwrap();
         })
-        .take(n)
-        .collect();
+    })
+    .take(n)
+    .collect();
     while in_run.load(Ordering::SeqCst) < n {
         std::thread::sleep(Duration::from_millis(1));
     }
     wake_tx.send(()).unwrap();
     for _ in 0..=n {
-        done_rx.recv_timeout(Duration::from_secs(10)).expect("the lock holder got its slot back while every slot was held");
+        done_rx
+            .recv_timeout(Duration::from_secs(10))
+            .expect("the lock holder got its slot back while every slot was held");
     }
     holder.join().unwrap();
     for t in contenders {

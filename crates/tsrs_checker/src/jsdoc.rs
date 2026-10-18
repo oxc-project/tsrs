@@ -1,6 +1,6 @@
 use crate::*;
-use tsrs_core::*;
 use tsrs_ast as ast;
+use tsrs_core::*;
 use tsrs_diagnostics as diagnostics;
 
 impl Checker {
@@ -44,7 +44,9 @@ impl Checker {
                 if !ast::is_identifier(last_jsdoc_param.name()) {
                     return;
                 }
-                if excluded_parameters.has(&last_jsdoc_param_index) || parameters.has(&last_jsdoc_param.name().text().to_string()) {
+                if excluded_parameters.has(&last_jsdoc_param_index)
+                    || parameters.has(&last_jsdoc_param.name().text().to_string())
+                {
                     return;
                 }
                 let Some(type_expression) = last_jsdoc_param.type_expression else {

@@ -1,12 +1,17 @@
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsrs_ast::{self as ast, FileReference, Kind, ModifierFlags, Node, SourceFile, Symbol, SymbolFlags};
+use tsrs_ast::{
+    self as ast, FileReference, Kind, ModifierFlags, Node, SourceFile, Symbol, SymbolFlags,
+};
 use tsrs_checker::Checker;
 use tsrs_compiler::Program;
+use tsrs_core::P;
 use tsrs_core::collections::Set;
 use tsrs_core::context::Context;
-use tsrs_core::P;
 
-use crate::utilities::{get_property_symbol_of_object_binding_pattern_without_property_name, is_source_file_with_global_exports};
+use crate::utilities::{
+    get_property_symbol_of_object_binding_pattern_without_property_name,
+    is_source_file_with_global_exports,
+};
 
 // importTracker.go:15
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -93,16 +98,39 @@ pub(crate) fn create_import_tracker<'a>(
 
 impl ImportTracker<'_> {
     // The closure returned by createImportTracker (importTracker.go:76).
-    pub(crate) fn call(&self, checker: &mut Checker, export_symbol: P<Symbol>, export_info: ExportInfo, is_for_rename: bool) -> ImportsResult {
-        let (direct_imports, indirect_users) = get_importers_for_export(self.source_files, self.source_files_set, &self.all_direct_imports, export_info, checker);
-        let (import_searches, single_references) = get_searches_from_direct_imports(&direct_imports, export_symbol, export_info.export_kind, checker, is_for_rename);
+    pub(crate) fn call(
+        &self,
+        checker: &mut Checker,
+        export_symbol: P<Symbol>,
+        export_info: ExportInfo,
+        is_for_rename: bool,
+    ) -> ImportsResult {
+        let (direct_imports, indirect_users) = get_importers_for_export(
+            self.source_files,
+            self.source_files_set,
+            &self.all_direct_imports,
+            export_info,
+            checker,
+        );
+        let (import_searches, single_references) = get_searches_from_direct_imports(
+            &direct_imports,
+            export_symbol,
+            export_info.export_kind,
+            checker,
+            is_for_rename,
+        );
         ImportsResult { import_searches, single_references, indirect_users }
     }
 }
 
 // Returns a map from a module symbol to all import statements that directly reference the module
 // importTracker.go:84
-pub(crate) fn get_direct_imports_map(ctx: &Context, program: &'static Program, source_files: &[P<SourceFile>], checker: &mut Checker) -> FxHashMap<P<Symbol>, Vec<P<Node>>> {
+pub(crate) fn get_direct_imports_map(
+    ctx: &Context,
+    program: &'static Program,
+    source_files: &[P<SourceFile>],
+    checker: &mut Checker,
+) -> FxHashMap<P<Symbol>, Vec<P<Node>>> {
     let mut result: FxHashMap<P<Symbol>, Vec<P<Node>>> = FxHashMap::default();
     for &source_file in source_files {
         if ctx.err().is_some() {
@@ -119,7 +147,11 @@ pub(crate) fn get_direct_imports_map(ctx: &Context, program: &'static Program, s
 
 // Calls `action` for each import, re-export, or require() in a file
 // importTracker.go:100
-pub(crate) fn for_each_import(program: &'static Program, source_file: P<SourceFile>, action: &mut dyn FnMut(P<Node> /*importStatement*/, P<Node> /*imported*/)) {
+pub(crate) fn for_each_import(
+    program: &'static Program,
+    source_file: P<SourceFile>,
+    action: &mut dyn FnMut(P<Node> /*importStatement*/, P<Node> /*imported*/),
+) {
     let mut implicit_imports: Vec<P<Node>> = Vec::new();
     let (_, jsx_specifier) = program.get_jsx_runtime_import_specifier(source_file.path());
     if let Some(jsx_specifier) = jsx_specifier {
@@ -129,7 +161,9 @@ pub(crate) fn for_each_import(program: &'static Program, source_file: P<SourceFi
     if let Some(import_helpers_specifier) = import_helpers_specifier {
         implicit_imports.push(import_helpers_specifier);
     }
-    if source_file.external_module_indicator.get().is_some() || source_file.imports().len() + implicit_imports.len() != 0 {
+    if source_file.external_module_indicator.get().is_some()
+        || source_file.imports().len() + implicit_imports.len() != 0
+    {
         for &i in source_file.imports() {
             action(ast::import_from_module_specifier(i), i);
         }
@@ -146,10 +180,12 @@ pub(crate) fn for_each_import(program: &'static Program, source_file: P<SourceFi
                         }
                     }
                 }
-                Kind::ImportEqualsDeclaration
-                    if is_external_module_import_equals(node) => {
-                        action(node, node.as_import_equals_declaration().module_reference.expression().unwrap());
-                    }
+                Kind::ImportEqualsDeclaration if is_external_module_import_equals(node) => {
+                    action(
+                        node,
+                        node.as_import_equals_declaration().module_reference.expression().unwrap(),
+                    );
+                }
                 _ => {}
             }
             false
@@ -158,10 +194,15 @@ pub(crate) fn for_each_import(program: &'static Program, source_file: P<SourceFi
 }
 
 // importTracker.go:134
-pub(crate) fn for_each_possible_import_or_export_statement(source_file_like: P<Node>, action: &mut dyn FnMut(P<Node>) -> bool) -> bool {
-    get_statements_of_source_file_like(source_file_like)
-        .iter()
-        .any(|&statement| action(statement) || is_ambient_module_declaration(statement) && for_each_possible_import_or_export_statement(statement, action))
+pub(crate) fn for_each_possible_import_or_export_statement(
+    source_file_like: P<Node>,
+    action: &mut dyn FnMut(P<Node>) -> bool,
+) -> bool {
+    get_statements_of_source_file_like(source_file_like).iter().any(|&statement| {
+        action(statement)
+            || is_ambient_module_declaration(statement)
+                && for_each_possible_import_or_export_statement(statement, action)
+    })
 }
 
 // importTracker.go:143
@@ -173,7 +214,9 @@ pub(crate) fn get_source_file_like_for_import_declaration(node: P<Node>) -> P<No
     if ast::is_source_file(parent) {
         return parent;
     }
-    assert!(ast::is_module_block(parent) && is_ambient_module_declaration(parent.parent().unwrap()));
+    assert!(
+        ast::is_module_block(parent) && is_ambient_module_declaration(parent.parent().unwrap())
+    );
     parent.parent().unwrap()
 }
 
@@ -212,7 +255,12 @@ impl importersForExport<'_> {
     }
 
     // Adds a module and all of its transitive dependencies as possible indirect users
-    fn add_indirect_user(&mut self, checker: &mut Checker, source_file_like: P<Node>, add_transitive_dependencies: bool) {
+    fn add_indirect_user(
+        &mut self,
+        checker: &mut Checker,
+        source_file_like: P<Node>,
+        add_transitive_dependencies: bool,
+    ) {
         // When isAvailableThroughGlobal, getIndirectUsers already returns all source files,
         // so indirectUserDeclarations is never consulted. Nothing to do here.
         if self.is_available_through_global {
@@ -225,13 +273,19 @@ impl importersForExport<'_> {
         if !add_transitive_dependencies {
             return;
         }
-        let Some(module_symbol) = source_file_like.symbol().map(|s| checker.get_merged_symbol_exported(s)) else {
+        let Some(module_symbol) =
+            source_file_like.symbol().map(|s| checker.get_merged_symbol_exported(s))
+        else {
             return;
         };
         assert!(module_symbol.flags().intersects(SymbolFlags::Module));
         for direct_import in self.get_direct_imports(module_symbol) {
             if !ast::is_import_type_node(direct_import) {
-                self.add_indirect_user(checker, get_source_file_like_for_import_declaration(direct_import), true /*addTransitiveDependencies*/);
+                self.add_indirect_user(
+                    checker,
+                    get_source_file_like_for_import_declaration(direct_import),
+                    true, /*addTransitiveDependencies*/
+                );
             }
         }
     }
@@ -251,12 +305,20 @@ impl importersForExport<'_> {
     }
 
     fn handle_import_call(&mut self, checker: &mut Checker, import_call: P<Node>) {
-        let top = ast::find_ancestor(Some(import_call), is_ambient_module_declaration).unwrap_or_else(|| ast::get_source_file_of_node(import_call).unwrap().as_node());
+        let top = ast::find_ancestor(Some(import_call), is_ambient_module_declaration)
+            .unwrap_or_else(|| ast::get_source_file_of_node(import_call).unwrap().as_node());
         let exported = Self::is_exported(import_call, true /*stopAtAmbientModule*/);
         self.add_indirect_user(checker, top, exported);
     }
 
-    fn handle_namespace_import(&mut self, checker: &mut Checker, import_declaration: P<Node>, name: P<Node>, is_re_export: bool, already_added_direct: bool) {
+    fn handle_namespace_import(
+        &mut self,
+        checker: &mut Checker,
+        import_declaration: P<Node>,
+        name: P<Node>,
+        is_re_export: bool,
+        already_added_direct: bool,
+    ) {
         if self.export_info.export_kind == ExportKind::ExportEquals {
             // This is a direct import, not import-as-namespace.
             if !already_added_direct {
@@ -264,8 +326,12 @@ impl importersForExport<'_> {
             }
         } else if !self.is_available_through_global {
             let source_file_like = get_source_file_like_for_import_declaration(import_declaration);
-            assert!(ast::is_source_file(source_file_like) || ast::is_module_declaration(source_file_like));
-            let add_transitive_dependencies = is_re_export || find_namespace_re_exports(source_file_like, name, checker);
+            assert!(
+                ast::is_source_file(source_file_like)
+                    || ast::is_module_declaration(source_file_like)
+            );
+            let add_transitive_dependencies =
+                is_re_export || find_namespace_re_exports(source_file_like, name, checker);
             self.add_indirect_user(checker, source_file_like, add_transitive_dependencies);
         }
     }
@@ -283,7 +349,9 @@ impl importersForExport<'_> {
                         self.handle_import_call(checker, direct);
                     } else if !self.is_available_through_global {
                         let parent = direct.parent().unwrap();
-                        if self.export_info.export_kind == ExportKind::ExportEquals && ast::is_variable_declaration(parent) {
+                        if self.export_info.export_kind == ExportKind::ExportEquals
+                            && ast::is_variable_declaration(parent)
+                        {
                             let name = parent.name().unwrap();
                             if ast::is_identifier(name) {
                                 self.direct_imports.push(name);
@@ -295,20 +363,38 @@ impl importersForExport<'_> {
                     // Nothing
                 }
                 Kind::ImportEqualsDeclaration => {
-                    self.handle_namespace_import(checker, direct, direct.name().unwrap(), ast::has_syntactic_modifier(direct, ModifierFlags::Export), false /*alreadyAddedDirect*/);
+                    self.handle_namespace_import(
+                        checker,
+                        direct,
+                        direct.name().unwrap(),
+                        ast::has_syntactic_modifier(direct, ModifierFlags::Export),
+                        false, /*alreadyAddedDirect*/
+                    );
                 }
                 Kind::ImportDeclaration | Kind::JSImportDeclaration | Kind::JSDocImportTag => {
                     self.direct_imports.push(direct);
                     if let Some(import_clause) = direct.import_clause() {
-                        if let Some(named_bindings) = import_clause.as_import_clause().named_bindings {
+                        if let Some(named_bindings) =
+                            import_clause.as_import_clause().named_bindings
+                        {
                             if ast::is_namespace_import(named_bindings) {
-                                self.handle_namespace_import(checker, direct, named_bindings.name().unwrap(), false /*isReExport*/, true /*alreadyAddedDirect*/);
+                                self.handle_namespace_import(
+                                    checker,
+                                    direct,
+                                    named_bindings.name().unwrap(),
+                                    false, /*isReExport*/
+                                    true,  /*alreadyAddedDirect*/
+                                );
                                 continue;
                             }
                         }
                     }
                     if !self.is_available_through_global && ast::is_default_import(direct) {
-                        self.add_indirect_user(checker, get_source_file_like_for_import_declaration(direct), false);
+                        self.add_indirect_user(
+                            checker,
+                            get_source_file_like_for_import_declaration(direct),
+                            false,
+                        );
                         // Add a check for indirect uses to handle synthetic default imports
                     }
                 }
@@ -322,7 +408,11 @@ impl importersForExport<'_> {
                         }
                         Some(export_clause) if ast::is_namespace_export(export_clause) => {
                             // `export * as foo from "foo"` add to indirect uses
-                            self.add_indirect_user(checker, get_source_file_like_for_import_declaration(direct), true /*addTransitiveDependencies*/);
+                            self.add_indirect_user(
+                                checker,
+                                get_source_file_like_for_import_declaration(direct),
+                                true, /*addTransitiveDependencies*/
+                            );
                         }
                         Some(_) => {
                             // This is `export { foo } from "foo"` and creates an alias symbol, so recursive search will get handle re-exports.
@@ -333,8 +423,16 @@ impl importersForExport<'_> {
                 Kind::ImportType => {
                     // Only check for typeof import('xyz')
                     let import_type = direct.as_import_type_node();
-                    if !self.is_available_through_global && import_type.is_type_of && import_type.qualifier.is_none() && Self::is_exported(direct, false) {
-                        self.add_indirect_user(checker, ast::get_source_file_of_node(direct).unwrap().as_node(), true /*addTransitiveDependencies*/);
+                    if !self.is_available_through_global
+                        && import_type.is_type_of
+                        && import_type.qualifier.is_none()
+                        && Self::is_exported(direct, false)
+                    {
+                        self.add_indirect_user(
+                            checker,
+                            ast::get_source_file_of_node(direct).unwrap().as_node(),
+                            true, /*addTransitiveDependencies*/
+                        );
                     }
                     self.direct_imports.push(direct);
                 }
@@ -350,12 +448,19 @@ impl importersForExport<'_> {
         }
         // Module augmentations may use this module's exports without importing it.
         for &decl in self.export_info.exporting_module_symbol.declarations() {
-            if ast::is_external_module_augmentation(decl) && self.source_files_set.has(&ast::get_source_file_of_node(decl).unwrap().file_name().to_string()) {
+            if ast::is_external_module_augmentation(decl)
+                && self
+                    .source_files_set
+                    .has(&ast::get_source_file_of_node(decl).unwrap().file_name().to_string())
+            {
                 self.add_indirect_user(checker, decl, false);
             }
         }
         // This may return duplicates (if there are multiple module declarations in a single source file, all importing the same thing as a namespace), but `State.markSearchedSymbol` will handle that.
-        self.indirect_user_declarations.iter().map(|&d| ast::get_source_file_of_node(d).unwrap()).collect()
+        self.indirect_user_declarations
+            .iter()
+            .map(|&d| ast::get_source_file_of_node(d).unwrap())
+            .collect()
     }
 }
 
@@ -376,7 +481,9 @@ pub(crate) fn get_importers_for_export(
         indirect_user_declarations: Vec::new(),
         mark_seen_direct_import: FxHashSet::default(),
         mark_seen_indirect_user: FxHashSet::default(),
-        is_available_through_global: is_source_file_with_global_exports(export_info.exporting_module_symbol.value_declaration()),
+        is_available_through_global: is_source_file_with_global_exports(
+            export_info.exporting_module_symbol.value_declaration(),
+        ),
     };
 
     state.handle_direct_imports(checker, export_info.exporting_module_symbol);
@@ -386,12 +493,18 @@ pub(crate) fn get_importers_for_export(
 
 // importTracker.go:324
 pub(crate) fn get_containing_module_symbol(importer: P<Node>, checker: &mut Checker) -> P<Symbol> {
-    checker.get_merged_symbol_exported(get_source_file_like_for_import_declaration(importer).symbol().unwrap())
+    checker.get_merged_symbol_exported(
+        get_source_file_like_for_import_declaration(importer).symbol().unwrap(),
+    )
 }
 
 // Returns 'true' is the namespace 'name' is re-exported from this module, and 'false' if it is only used locally
 // importTracker.go:329
-pub(crate) fn find_namespace_re_exports(source_file_like: P<Node>, name: P<Node>, checker: &mut Checker) -> bool {
+pub(crate) fn find_namespace_re_exports(
+    source_file_like: P<Node>,
+    name: P<Node>,
+    checker: &mut Checker,
+) -> bool {
     let namespace_import_symbol = checker.get_symbol_at_location_exported(name);
     for_each_possible_import_or_export_statement(source_file_like, &mut |statement| {
         if !ast::is_export_declaration(statement) {
@@ -402,7 +515,10 @@ pub(crate) fn find_namespace_re_exports(source_file_like: P<Node>, name: P<Node>
         module_specifier.is_none()
             && export_clause.is_some_and(|export_clause| {
                 ast::is_named_exports(export_clause)
-                    && export_clause.elements().iter().any(|&element| checker.get_export_specifier_local_target_symbol(element) == namespace_import_symbol)
+                    && export_clause.elements().iter().any(|&element| {
+                        checker.get_export_specifier_local_target_symbol(element)
+                            == namespace_import_symbol
+                    })
             })
     })
 }
@@ -418,12 +534,14 @@ struct searchesFromDirectImports {
 
 impl searchesFromDirectImports {
     fn add_search(&mut self, location: P<Node>, symbol: Option<P<Symbol>>) {
-        self.import_searches.push(LocationAndSymbol { import_location: location, import_symbol: symbol });
+        self.import_searches
+            .push(LocationAndSymbol { import_location: location, import_symbol: symbol });
     }
 
     fn is_name_match(&self, name: &str) -> bool {
         // Use name of "default" even in `export =` case because we may have allowSyntheticDefaultImports
-        name == self.export_symbol.name() || self.export_kind != ExportKind::Named && name == ast::InternalSymbolNameDefault
+        name == self.export_symbol.name()
+            || self.export_kind != ExportKind::Named && name == ast::InternalSymbolNameDefault
     }
 
     // `import x = require("./x")` or `import * as x from "./x"`.
@@ -431,7 +549,9 @@ impl searchesFromDirectImports {
     // If it's not a direct import, it will be in `indirectUsers`, so we don't have to do anything here.
     fn handle_namespace_import_like(&mut self, checker: &mut Checker, import_name: P<Node>) {
         // Don't rename an import that already has a different name than the export.
-        if self.export_kind == ExportKind::ExportEquals && (!self.is_for_rename || self.is_name_match(import_name.text())) {
+        if self.export_kind == ExportKind::ExportEquals
+            && (!self.is_for_rename || self.is_name_match(import_name.text()))
+        {
             let symbol = checker.get_symbol_at_location_exported(import_name);
             self.add_search(import_name, symbol);
         }
@@ -458,11 +578,12 @@ impl searchesFromDirectImports {
                     self.add_search(name, symbol);
                 }
             } else {
-                let local_symbol = if ast::is_export_specifier(element) && element.property_name().is_some() {
-                    checker.get_export_specifier_local_target_symbol(element)
-                } else {
-                    checker.get_symbol_at_location_exported(name)
-                };
+                let local_symbol =
+                    if ast::is_export_specifier(element) && element.property_name().is_some() {
+                        checker.get_export_specifier_local_target_symbol(element)
+                    } else {
+                        checker.get_symbol_at_location_exported(name)
+                    };
                 self.add_search(name, local_symbol);
             }
         }
@@ -486,7 +607,8 @@ impl searchesFromDirectImports {
                     self.single_references.push(first_identifier);
                 }
             } else if self.export_kind == ExportKind::ExportEquals {
-                self.single_references.push(decl.as_import_type_node().argument.as_literal_type_node().literal);
+                self.single_references
+                    .push(decl.as_import_type_node().argument.as_literal_type_node().literal);
             }
             return;
         }
@@ -518,8 +640,10 @@ impl searchesFromDirectImports {
             // If a default import has the same name as the default export, allow to rename it.
             // Given `import f` and `export default function f`, we will rename both, but for `import g` we will rename just that.
             if let Some(name) = import_clause.name() {
-                if (self.export_kind == ExportKind::Default || self.export_kind == ExportKind::ExportEquals)
-                    && (!self.is_for_rename || name.text() == symbol_name_no_default(self.export_symbol))
+                if (self.export_kind == ExportKind::Default
+                    || self.export_kind == ExportKind::ExportEquals)
+                    && (!self.is_for_rename
+                        || name.text() == symbol_name_no_default(self.export_symbol))
                 {
                     let default_import_alias = checker.get_symbol_at_location_exported(name);
                     self.add_search(name, default_import_alias);
@@ -537,7 +661,13 @@ pub(crate) fn get_searches_from_direct_imports(
     checker: &mut Checker,
     is_for_rename: bool,
 ) -> (Vec<LocationAndSymbol>, Vec<P<Node>>) {
-    let mut state = searchesFromDirectImports { import_searches: Vec::new(), single_references: Vec::new(), export_symbol, export_kind, is_for_rename };
+    let mut state = searchesFromDirectImports {
+        import_searches: Vec::new(),
+        single_references: Vec::new(),
+        export_symbol,
+        export_kind,
+        is_for_rename,
+    };
     for &decl in direct_imports {
         state.handle_import(checker, decl);
     }
@@ -545,10 +675,23 @@ pub(crate) fn get_searches_from_direct_imports(
 }
 
 // importTracker.go:462
-pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, checker: &mut Checker, coming_from_export: bool) -> Option<ImportExportSymbol> {
-    fn export_info(symbol: P<Symbol>, kind: ExportKind, checker: &mut Checker) -> Option<ImportExportSymbol> {
+pub(crate) fn get_import_or_export_symbol(
+    node: P<Node>,
+    symbol: P<Symbol>,
+    checker: &mut Checker,
+    coming_from_export: bool,
+) -> Option<ImportExportSymbol> {
+    fn export_info(
+        symbol: P<Symbol>,
+        kind: ExportKind,
+        checker: &mut Checker,
+    ) -> Option<ImportExportSymbol> {
         if let Some(export_info) = get_export_info(symbol, kind, checker) {
-            return Some(ImportExportSymbol { kind: ImpExpKind::Export, symbol: Some(symbol), export_info: Some(export_info) });
+            return Some(ImportExportSymbol {
+                kind: ImpExpKind::Export,
+                symbol: Some(symbol),
+                export_info: Some(export_info),
+            });
         }
         None
     }
@@ -557,7 +700,11 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
         let get_export_assignment_export = |ex: P<Node>| -> Option<ImportExportSymbol> {
             // Get the symbol for the `export =` node; its parent is the module it's the export of.
             let ex_parent = ex.symbol().unwrap().parent()?;
-            let export_kind = if ex.as_export_assignment().is_export_equals { ExportKind::ExportEquals } else { ExportKind::Default };
+            let export_kind = if ex.as_export_assignment().is_export_equals {
+                ExportKind::ExportEquals
+            } else {
+                ExportKind::Default
+            };
             Some(ImportExportSymbol {
                 kind: ImpExpKind::Export,
                 symbol: Some(symbol),
@@ -573,7 +720,10 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
             ExportKind::Named
         };
 
-        let get_special_property_export = |checker: &mut Checker, node: P<Node>, use_lhs_symbol: bool| -> Option<ImportExportSymbol> {
+        let get_special_property_export = |checker: &mut Checker,
+                                           node: P<Node>,
+                                           use_lhs_symbol: bool|
+         -> Option<ImportExportSymbol> {
             let kind = match ast::get_assignment_declaration_kind(node) {
                 ast::JSDeclarationKind::ExportsProperty => ExportKind::Named,
                 ast::JSDeclarationKind::ModuleExports => ExportKind::ExportEquals,
@@ -593,8 +743,14 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
             if ast::is_property_access_expression(parent) {
                 // When accessing an export of a JS module, there's no alias. The symbol will still be flagged as an export even though we're at the use.
                 // So check that we are at the declaration.
-                if grandparent.is_some_and(ast::is_binary_expression) && symbol.declarations().contains(&parent) {
-                    return get_special_property_export(checker, grandparent.unwrap(), false /*useLhsSymbol*/);
+                if grandparent.is_some_and(ast::is_binary_expression)
+                    && symbol.declarations().contains(&parent)
+                {
+                    return get_special_property_export(
+                        checker,
+                        grandparent.unwrap(),
+                        false, /*useLhsSymbol*/
+                    );
                 }
                 return None;
             }
@@ -602,15 +758,23 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
         }
         let export_node = get_export_node(parent, node);
         if let Some(export_node) = export_node.filter(|&export_node| {
-            ast::has_syntactic_modifier(export_node, ModifierFlags::Export) || ast::is_implicitly_exported_jsdoc_declaration(export_node)
+            ast::has_syntactic_modifier(export_node, ModifierFlags::Export)
+                || ast::is_implicitly_exported_jsdoc_declaration(export_node)
         }) {
-            if ast::is_import_equals_declaration(export_node) && export_node.as_import_equals_declaration().module_reference == node {
+            if ast::is_import_equals_declaration(export_node)
+                && export_node.as_import_equals_declaration().module_reference == node
+            {
                 // We're at `Y` in `export import X = Y`. This is not the exported symbol, the left-hand-side is. So treat this as an import statement.
                 if coming_from_export {
                     return None;
                 }
-                let lhs_symbol = checker.get_symbol_at_location_exported(export_node.name().unwrap());
-                return Some(ImportExportSymbol { kind: ImpExpKind::Import, symbol: lhs_symbol, export_info: None });
+                let lhs_symbol =
+                    checker.get_symbol_at_location_exported(export_node.name().unwrap());
+                return Some(ImportExportSymbol {
+                    kind: ImpExpKind::Import,
+                    symbol: lhs_symbol,
+                    export_info: None,
+                });
             }
             return export_info(symbol, get_export_kind_for_declaration(export_node), checker);
         } else if ast::is_namespace_export(parent) {
@@ -622,7 +786,11 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
         } else if ast::is_binary_expression(parent) {
             return get_special_property_export(checker, parent, true /*useLhsSymbol*/);
         } else if grandparent.is_some_and(ast::is_binary_expression) {
-            return get_special_property_export(checker, grandparent.unwrap(), true /*useLhsSymbol*/);
+            return get_special_property_export(
+                checker,
+                grandparent.unwrap(),
+                true, /*useLhsSymbol*/
+            );
         } else if ast::is_jsdoc_typedef_tag(parent) || ast::is_jsdoc_callback_tag(parent) {
             return export_info(symbol, ExportKind::Named, checker);
         }
@@ -651,8 +819,15 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
         // If `importedName` is undefined, do continue searching as the export is anonymous.
         // (All imports returned from this function will be ignored anyway if we are in rename and this is a not a named export.)
         let imported_name = symbol_name_no_default(imported_symbol);
-        if imported_name.is_empty() || imported_name == ast::InternalSymbolNameDefault || imported_name == symbol.name() {
-            return Some(ImportExportSymbol { kind: ImpExpKind::Import, symbol: Some(imported_symbol), export_info: None });
+        if imported_name.is_empty()
+            || imported_name == ast::InternalSymbolNameDefault
+            || imported_name == symbol.name()
+        {
+            return Some(ImportExportSymbol {
+                kind: ImpExpKind::Import,
+                symbol: Some(imported_symbol),
+                export_info: None,
+            });
         }
         None
     };
@@ -665,7 +840,11 @@ pub(crate) fn get_import_or_export_symbol(node: P<Node>, symbol: P<Symbol>, chec
 }
 
 // importTracker.go:611
-pub(crate) fn get_export_info(export_symbol: P<Symbol>, export_kind: ExportKind, c: &mut Checker) -> Option<ExportInfo> {
+pub(crate) fn get_export_info(
+    export_symbol: P<Symbol>,
+    export_kind: ExportKind,
+    c: &mut Checker,
+) -> Option<ExportInfo> {
     // Parent can be nil if an `export` is not at the top-level (which is a compile error).
     if let Some(parent) = export_symbol.parent() {
         let exporting_module_symbol = c.get_merged_symbol_exported(parent);
@@ -689,7 +868,10 @@ pub(crate) fn get_export_node(parent: P<Node>, node: P<Node>) -> Option<P<Node>>
     }
     if let Some(declaration) = declaration {
         let declaration_parent = declaration.parent().unwrap();
-        if parent.name() == Some(node) && !ast::is_catch_clause(declaration_parent) && ast::is_variable_statement(declaration_parent.parent().unwrap()) {
+        if parent.name() == Some(node)
+            && !ast::is_catch_clause(declaration_parent)
+            && ast::is_variable_statement(declaration_parent.parent().unwrap())
+        {
             return declaration_parent.parent();
         }
         return None;
@@ -701,7 +883,9 @@ pub(crate) fn get_export_node(parent: P<Node>, node: P<Node>) -> Option<P<Node>>
 pub(crate) fn is_node_import(node: P<Node>) -> bool {
     let parent = node.parent().unwrap();
     match parent.kind() {
-        Kind::ImportEqualsDeclaration => parent.name() == Some(node) && is_external_module_import_equals(parent),
+        Kind::ImportEqualsDeclaration => {
+            parent.name() == Some(node) && is_external_module_import_equals(parent)
+        }
         Kind::ImportSpecifier => {
             // For a rename import `{ foo as bar }`, don't search for the imported symbol. Just find local uses of `bar`.
             parent.property_name().is_none()
@@ -710,7 +894,12 @@ pub(crate) fn is_node_import(node: P<Node>) -> bool {
             assert_eq!(parent.name(), Some(node));
             true
         }
-        Kind::BindingElement => ast::is_in_js_file(Some(node)) && ast::is_variable_declaration_initialized_to_bare_or_accessed_require(parent.parent().unwrap().parent().unwrap()),
+        Kind::BindingElement => {
+            ast::is_in_js_file(Some(node))
+                && ast::is_variable_declaration_initialized_to_bare_or_accessed_require(
+                    parent.parent().unwrap().parent().unwrap(),
+                )
+        }
         _ => false,
     }
 }
@@ -718,19 +907,25 @@ pub(crate) fn is_node_import(node: P<Node>) -> bool {
 // importTracker.go:662
 pub(crate) fn is_external_module_import_equals(node: P<Node>) -> bool {
     let module_reference = node.as_import_equals_declaration().module_reference;
-    ast::is_external_module_reference(module_reference) && module_reference.expression().unwrap().kind() == Kind::StringLiteral
+    ast::is_external_module_reference(module_reference)
+        && module_reference.expression().unwrap().kind() == Kind::StringLiteral
 }
 
 // If at an export specifier, go to the symbol it refers to. */
 // importTracker.go:668
-pub(crate) fn skip_export_specifier_symbol(symbol: P<Symbol>, checker: &mut Checker) -> Option<P<Symbol>> {
+pub(crate) fn skip_export_specifier_symbol(
+    symbol: P<Symbol>,
+    checker: &mut Checker,
+) -> Option<P<Symbol>> {
     // For `export { foo } from './bar", there's nothing to skip, because it does not create a new alias. But `export { foo } does.
     if let Some(result) = symbol.declarations().iter().find_map(|&declaration| {
         if ast::is_export_specifier(declaration)
             && declaration.property_name().is_none()
             && declaration.parent().unwrap().parent().unwrap().module_specifier().is_none()
         {
-            return Some(Some(checker.get_export_specifier_local_target_symbol(declaration).unwrap_or(symbol)));
+            return Some(Some(
+                checker.get_export_specifier_local_target_symbol(declaration).unwrap_or(symbol),
+            ));
         } else if ast::is_property_access_expression(declaration)
             && ast::is_module_exports_access_expression(declaration.expression().unwrap())
             && !ast::is_private_identifier(declaration.name().unwrap())
@@ -739,9 +934,12 @@ pub(crate) fn skip_export_specifier_symbol(symbol: P<Symbol>, checker: &mut Chec
             return Some(checker.get_symbol_at_location_exported(declaration));
         } else if ast::is_shorthand_property_assignment(declaration)
             && ast::is_binary_expression(declaration.parent().unwrap().parent().unwrap())
-            && ast::get_assignment_declaration_kind(declaration.parent().unwrap().parent().unwrap()) == ast::JSDeclarationKind::ModuleExports
+            && ast::get_assignment_declaration_kind(declaration.parent().unwrap().parent().unwrap())
+                == ast::JSDeclarationKind::ModuleExports
         {
-            return Some(checker.get_export_specifier_local_target_symbol(declaration.name().unwrap()));
+            return Some(
+                checker.get_export_specifier_local_target_symbol(declaration.name().unwrap()),
+            );
         }
 
         None
@@ -752,7 +950,10 @@ pub(crate) fn skip_export_specifier_symbol(symbol: P<Symbol>, checker: &mut Chec
 }
 
 // importTracker.go:684
-pub(crate) fn get_export_equals_local_symbol(imported_symbol: P<Symbol>, checker: &mut Checker) -> Option<P<Symbol>> {
+pub(crate) fn get_export_equals_local_symbol(
+    imported_symbol: P<Symbol>,
+    checker: &mut Checker,
+) -> Option<P<Symbol>> {
     if imported_symbol.flags().intersects(SymbolFlags::Alias) {
         return checker.get_immediate_aliased_symbol_exported(imported_symbol);
     }
@@ -793,16 +994,30 @@ pub(crate) fn symbol_name_no_default(symbol: P<Symbol>) -> &'static str {
 // findModuleReferences finds all references to a module symbol across the given source files.
 // This includes import statements, <reference> directives, and implicit references (e.g., JSX runtime imports).
 // importTracker.go:716
-pub(crate) fn find_module_references(program: &'static Program, source_files: &[P<SourceFile>], search_module_symbol: P<Symbol>, checker: &mut Checker) -> Vec<ModuleReference> {
+pub(crate) fn find_module_references(
+    program: &'static Program,
+    source_files: &[P<SourceFile>],
+    search_module_symbol: P<Symbol>,
+    checker: &mut Checker,
+) -> Vec<ModuleReference> {
     let mut refs: Vec<ModuleReference> = Vec::new();
 
     for &referencing_file in source_files {
         let search_source_file = search_module_symbol.value_declaration();
-        if let Some(search_source_file) = search_source_file.filter(|d| d.kind() == Kind::SourceFile) {
+        if let Some(search_source_file) =
+            search_source_file.filter(|d| d.kind() == Kind::SourceFile)
+        {
             // Check <reference path> directives
             refs.extend(referencing_file.referenced_files().iter().filter_map(|&r| {
-                if program.get_source_file_from_reference(referencing_file, r) == Some(search_source_file.as_source_file_p()) {
-                    Some(ModuleReference { kind: ModuleReferenceKind::Reference, literal: None, referencing_file: Some(referencing_file), ref_: Some(r) })
+                if program.get_source_file_from_reference(referencing_file, r)
+                    == Some(search_source_file.as_source_file_p())
+                {
+                    Some(ModuleReference {
+                        kind: ModuleReferenceKind::Reference,
+                        literal: None,
+                        referencing_file: Some(referencing_file),
+                        ref_: Some(r),
+                    })
                 } else {
                     None
                 }
@@ -810,10 +1025,21 @@ pub(crate) fn find_module_references(program: &'static Program, source_files: &[
 
             // Check <reference types> directives
             refs.extend(referencing_file.type_reference_directives().iter().filter_map(|&r| {
-                let referenced = program.get_resolved_type_reference_directive_from_type_reference_directive(r, referencing_file);
+                let referenced = program
+                    .get_resolved_type_reference_directive_from_type_reference_directive(
+                        r,
+                        referencing_file,
+                    );
                 if let Some(referenced) = referenced {
-                    if referenced.resolved_file_name == search_source_file.as_source_file().file_name() {
-                        Some(ModuleReference { kind: ModuleReferenceKind::Reference, literal: None, referencing_file: Some(referencing_file), ref_: Some(r) })
+                    if referenced.resolved_file_name
+                        == search_source_file.as_source_file().file_name()
+                    {
+                        Some(ModuleReference {
+                            kind: ModuleReferenceKind::Reference,
+                            literal: None,
+                            referencing_file: Some(referencing_file),
+                            ref_: Some(r),
+                        })
                     } else {
                         None
                     }
@@ -828,9 +1054,19 @@ pub(crate) fn find_module_references(program: &'static Program, source_files: &[
             let module_symbol = checker.get_symbol_at_location_exported(module_specifier);
             if module_symbol == Some(search_module_symbol) {
                 if ast::node_is_synthesized(import_decl) {
-                    refs.push(ModuleReference { kind: ModuleReferenceKind::Implicit, literal: Some(module_specifier), referencing_file: Some(referencing_file), ref_: None });
+                    refs.push(ModuleReference {
+                        kind: ModuleReferenceKind::Implicit,
+                        literal: Some(module_specifier),
+                        referencing_file: Some(referencing_file),
+                        ref_: None,
+                    });
                 } else {
-                    refs.push(ModuleReference { kind: ModuleReferenceKind::Import, literal: Some(module_specifier), referencing_file: None, ref_: None });
+                    refs.push(ModuleReference {
+                        kind: ModuleReferenceKind::Import,
+                        literal: Some(module_specifier),
+                        referencing_file: None,
+                        ref_: None,
+                    });
                 }
             }
         });

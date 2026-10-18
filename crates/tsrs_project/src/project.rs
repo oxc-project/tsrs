@@ -2,11 +2,17 @@ use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
 use tsrs_ast::Diagnostic;
-use tsrs_compiler::{new_program, sort_and_deduplicate_diagnostics, CheckerPool, CreateCheckerPool, CreateModuleResolver, Program, ProgramOptions};
+use tsrs_compiler::{
+    CheckerPool, CreateCheckerPool, CreateModuleResolver, Program, ProgramOptions, new_program,
+    sort_and_deduplicate_diagnostics,
+};
 use tsrs_core::collections::{Set, SyncSet};
 use tsrs_core::context::Context;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
-use tsrs_core::{CompilerOptions, JsxEmit, ModuleKind, ModuleResolutionKind, ProjectReference, ScriptTarget, Tristate, TypeAcquisition, P};
+use tsrs_core::{
+    CompilerOptions, JsxEmit, ModuleKind, ModuleResolutionKind, P, ProjectReference, ScriptTarget,
+    Tristate, TypeAcquisition,
+};
 use tsrs_ls as ls;
 use tsrs_lsproto as lsproto;
 use tsrs_module::{self as module, Resolver, ResolverOptions};
@@ -18,11 +24,14 @@ use crate::compilerhost::compilerHost;
 use crate::dirty::Cloneable;
 use crate::logging::LogTree;
 use crate::memregions::programOwner;
-use tsrs_core::arena::Region;
 use crate::parsecache::{parse_cache_key_for_duplicate, parse_cache_key_for_file};
 use crate::projectcollectionbuilder::ProjectCollectionBuilder;
 use crate::snapshot::{ModuleResolverFactory, ProjectTreeRequest};
-use crate::watch::{allWatchKinds, create_resolution_lookup_glob_mapper, new_watched_files, new_watched_files_for_paths, PatternsAndIgnored, WatchedFiles};
+use crate::watch::{
+    PatternsAndIgnored, WatchedFiles, allWatchKinds, create_resolution_lookup_glob_mapper,
+    new_watched_files, new_watched_files_for_paths,
+};
+use tsrs_core::arena::Region;
 
 pub(crate) const inferredProjectName: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
 const syntheticProjectPrefix: &str = "/dev/null/synthetic/";
@@ -97,11 +106,7 @@ impl ID {
 
     // project.go:76
     pub fn inferred(&self) -> Option<InferredProjectID> {
-        if *self == inferred_project_id().as_id() {
-            Some(inferred_project_id())
-        } else {
-            None
-        }
+        if *self == inferred_project_id().as_id() { Some(inferred_project_id()) } else { None }
     }
 
     // project.go:80
@@ -224,11 +229,22 @@ pub struct Project {
 }
 
 // project.go:180
-pub fn new_configured_project(config_file_name: &str, config_file_path: &Path, builder: &ProjectCollectionBuilder, logger: &LogTree) -> Project {
+pub fn new_configured_project(
+    config_file_name: &str,
+    config_file_path: &Path,
+    builder: &ProjectCollectionBuilder,
+    logger: &LogTree,
+) -> Project {
     let Some(configured_project_id) = parse_configured_project_id(config_file_path) else {
         panic!("invalid configured project ID: {}", config_file_path.0);
     };
-    let mut project = new_project(configured_project_id.as_id(), Kind::Configured, &tspath::get_directory_path(config_file_name), builder, logger);
+    let mut project = new_project(
+        configured_project_id.as_id(),
+        Kind::Configured,
+        &tspath::get_directory_path(config_file_name),
+        builder,
+        logger,
+    );
     project.config_file_name = config_file_name.to_string();
     project.config_file_path = config_file_path.clone();
     project
@@ -245,7 +261,13 @@ pub fn new_inferred_project(
     builder: &ProjectCollectionBuilder,
     logger: &LogTree,
 ) -> Project {
-    let mut p = new_project(inferred_project_id().as_id(), Kind::Inferred, current_directory, builder, logger);
+    let mut p = new_project(
+        inferred_project_id().as_id(),
+        Kind::Inferred,
+        current_directory,
+        builder,
+        logger,
+    );
     let compiler_options = compiler_options.unwrap_or_else(|| {
         P::new(CompilerOptions {
             allow_js: Tristate::True,
@@ -267,7 +289,10 @@ pub fn new_inferred_project(
         root_file_names,
         project_references,
         content_mappers,
-        ComparePathsOptions { use_case_sensitive_file_names: builder.fs.fs.use_case_sensitive_file_names(), current_directory: current_directory.to_string() },
+        ComparePathsOptions {
+            use_case_sensitive_file_names: builder.fs.fs.use_case_sensitive_file_names(),
+            current_directory: current_directory.to_string(),
+        },
         errors,
     ));
     p
@@ -291,7 +316,10 @@ pub(crate) fn new_synthetic_project(
         root_file_names,
         project_references,
         content_mappers,
-        ComparePathsOptions { use_case_sensitive_file_names: builder.fs.fs.use_case_sensitive_file_names(), current_directory: current_directory.to_string() },
+        ComparePathsOptions {
+            use_case_sensitive_file_names: builder.fs.fs.use_case_sensitive_file_names(),
+            current_directory: current_directory.to_string(),
+        },
         errors,
     ));
     project
@@ -308,18 +336,37 @@ pub(crate) fn new_inferred_project_command_line(
     compare_paths_options: ComparePathsOptions,
     errors: Vec<P<Diagnostic>>,
 ) -> P<ParsedCommandLine> {
-    let mut command_line = tsoptions::new_parsed_command_line(compiler_options, root_file_names, project_references, compare_paths_options);
+    let mut command_line = tsoptions::new_parsed_command_line(
+        compiler_options,
+        root_file_names,
+        project_references,
+        compare_paths_options,
+    );
     command_line.parsed_config.content_mappers = content_mappers.into();
     command_line.errors = errors;
     P::new(command_line)
 }
 
 // project.go:270
-pub fn new_project(id: ID, kind: Kind, current_directory: &str, builder: &ProjectCollectionBuilder, logger: &LogTree) -> Project {
+pub fn new_project(
+    id: ID,
+    kind: Kind,
+    current_directory: &str,
+    builder: &ProjectCollectionBuilder,
+    logger: &LogTree,
+) -> Project {
     if !logger.is_nil() {
-        logger.log(&format!("Creating {}Project: {}, currentDirectory: {}", kind.string(), id, current_directory));
+        logger.log(&format!(
+            "Creating {}Project: {}, currentDirectory: {}",
+            kind.string(),
+            id,
+            current_directory
+        ));
     }
-    let relative_pattern_support = lsproto::get_client_capabilities(&builder.ctx).workspace.did_change_watched_files.relative_pattern_support;
+    let relative_pattern_support = lsproto::get_client_capabilities(&builder.ctx)
+        .workspace
+        .did_change_watched_files
+        .relative_pattern_support;
     let use_case_sensitive_file_names = builder.fs.fs.use_case_sensitive_file_names();
     let program_files_watch = new_watched_files(
         format!("program files for {}", id.0),
@@ -407,7 +454,13 @@ impl Project {
         if self.kind == Kind::Configured {
             name = self.config_file_name().to_string();
         }
-        tspath::convert_to_relative_path(&name, &ComparePathsOptions { current_directory: cwd.to_string(), use_case_sensitive_file_names: false })
+        tspath::convert_to_relative_path(
+            &name,
+            &ComparePathsOptions {
+                current_directory: cwd.to_string(),
+                use_case_sensitive_file_names: false,
+            },
+        )
     }
 
     // project.go:333
@@ -508,7 +561,8 @@ impl Project {
         Some(*self.command_line_with_typings_files.get_or_init(|| {
             // Create an augmented command line that includes typing files
             let original_root_names = command_line.file_names();
-            let mut new_root_names = Vec::with_capacity(original_root_names.len() + self.typings_files.len());
+            let mut new_root_names =
+                Vec::with_capacity(original_root_names.len() + self.typings_files.len());
             new_root_names.extend(original_root_names.iter().cloned());
             new_root_names.extend(self.typings_files.iter().cloned());
 
@@ -527,14 +581,25 @@ impl Project {
     }
 
     // project.go:477
-    pub(crate) fn has_potential_project_reference(&self, project_tree_request: &ProjectTreeRequest) -> bool {
+    pub(crate) fn has_potential_project_reference(
+        &self,
+        project_tree_request: &ProjectTreeRequest,
+    ) -> bool {
         if let Some(command_line) = self.command_line {
-            if command_line.resolved_project_reference_paths().iter().any(|path| project_tree_request.is_project_referenced(&self.to_path(path))) {
+            if command_line
+                .resolved_project_reference_paths()
+                .iter()
+                .any(|path| project_tree_request.is_project_referenced(&self.to_path(path)))
+            {
                 return true;
             }
         } else if let Some(potential_project_references) = &self.potential_project_references {
             // pure membership any(); Go ranges the set too
-            if potential_project_references.keys().iter().any(|path| project_tree_request.is_project_referenced(path)) {
+            if potential_project_references
+                .keys()
+                .iter()
+                .any(|path| project_tree_request.is_project_referenced(path))
+            {
                 return true;
             }
         }
@@ -558,7 +623,8 @@ impl Project {
                 Box::new(checkerPoolHandle(pool))
             })
         };
-        let cleanup_module_resolver: Arc<Mutex<Option<Box<dyn FnOnce() + Send>>>> = Arc::new(Mutex::new(None));
+        let cleanup_module_resolver: Arc<Mutex<Option<Box<dyn FnOnce() + Send>>>> =
+            Arc::new(Mutex::new(None));
         let create_module_resolver: CreateModuleResolver = {
             let factory = self.module_resolver_factory.clone();
             let cleanup_module_resolver = Arc::clone(&cleanup_module_resolver);
@@ -579,11 +645,16 @@ impl Project {
         // command line above is memoized in the project and outlives the program, so it is made before.
         let region = Region::new(1 << 20);
         let region_scope = region.enter();
-        let reuse = !self.dirty_file_path.0.is_empty() && self.program.is_some_and(|program| Some(program.command_line()) == command_line);
+        let reuse = !self.dirty_file_path.0.is_empty()
+            && self.program.is_some_and(|program| Some(program.command_line()) == command_line);
         if reuse {
             let old_program = self.program.unwrap();
-            let (program, dirty_file, cloned) =
-                old_program.update_program(&self.dirty_file_path, Arc::<compilerHost>::clone(&host), Some(create_checker_pool), Some(create_module_resolver));
+            let (program, dirty_file, cloned) = old_program.update_program(
+                &self.dirty_file_path,
+                Arc::<compilerHost>::clone(&host),
+                Some(create_checker_pool),
+                Some(create_module_resolver),
+            );
             new_program_result = program;
             program_cloned = cloned;
             let (parse_cache, journal) = host.builder_parse_cache_journal();
@@ -624,7 +695,9 @@ impl Project {
             cleanup();
         }
 
-        if !program_cloned && self.program.is_some_and(|program| program.has_same_file_names(new_program_result)) {
+        if !program_cloned
+            && self.program.is_some_and(|program| program.has_same_file_names(new_program_result))
+        {
             update_kind = ProgramUpdateKind::SameFileNames;
         }
 
@@ -636,7 +709,13 @@ impl Project {
             (Some(old), true) => old.base.clone(),
             _ => region.clone(),
         };
-        let owner = Arc::new(programOwner::new(new_program_result, checker_pool.clone(), region, base, !program_cloned));
+        let owner = Arc::new(programOwner::new(
+            new_program_result,
+            checker_pool.clone(),
+            region,
+            base,
+            !program_cloned,
+        ));
         if let Some(pool) = &checker_pool {
             pool.set_owner(Arc::downgrade(&owner));
         }
@@ -650,19 +729,35 @@ impl Project {
     }
 
     // project.go:593
-    #[expect(dead_code, reason = "Go passes p.log to newCheckerPool (project.go:505); with this no-op body the Rust passes None")]
-    #[expect(clippy::unused_self, reason = "The Go project logging callback retains its receiver when logging is disabled.")]
+    #[expect(
+        dead_code,
+        reason = "Go passes p.log to newCheckerPool (project.go:505); with this no-op body the Rust passes None"
+    )]
+    #[expect(
+        clippy::unused_self,
+        reason = "The Go project logging callback retains its receiver when logging is disabled."
+    )]
     fn log(&self, _msg: &str) {
         // !!!
     }
 
     // project.go:597
     pub(crate) fn to_path(&self, file_name: &str) -> Path {
-        tspath::to_path(file_name, &self.current_directory, tsrs_compiler::CompilerHost::fs(&**self.host.as_ref().unwrap()).use_case_sensitive_file_names())
+        tspath::to_path(
+            file_name,
+            &self.current_directory,
+            tsrs_compiler::CompilerHost::fs(&**self.host.as_ref().unwrap())
+                .use_case_sensitive_file_names(),
+        )
     }
 
     // project.go:601
-    pub(crate) fn print(&self, write_file_names: bool, _write_file_explanation: bool, builder: &mut String) -> String {
+    pub(crate) fn print(
+        &self,
+        write_file_names: bool,
+        _write_file_explanation: bool,
+        builder: &mut String,
+    ) -> String {
         let _ = write!(builder, "\nProject '{}'\n", self.id());
         match self.program {
             None => builder.push_str("\tFiles (0) NoProgram\n"),
@@ -670,7 +765,11 @@ impl Project {
                 let source_files = program.get_source_files();
                 let _ = writeln!(builder, "\tFiles ({})", source_files.len());
                 if write_file_names {
-                    builder.extend(source_files.iter().flat_map(|source_file| ["\t\t", source_file.file_name(), "\n"]));
+                    builder.extend(
+                        source_files
+                            .iter()
+                            .flat_map(|source_file| ["\t\t", source_file.file_name(), "\n"]),
+                    );
                     // !!!
                     // if writeFileExplanation {}
                 }
@@ -685,7 +784,12 @@ impl Project {
     pub fn get_type_acquisition(&self) -> Option<TypeAcquisition> {
         if self.kind == Kind::Inferred || self.kind == Kind::Synthetic {
             // For inferred and synthetic projects, use default settings.
-            return Some(TypeAcquisition { enable: Tristate::True, include: None, exclude: None, disable_filename_based_type_acquisition: Tristate::False });
+            return Some(TypeAcquisition {
+                enable: Tristate::True,
+                include: None,
+                exclude: None,
+                disable_filename_based_type_acquisition: Tristate::False,
+            });
         }
 
         if let Some(command_line) = self.command_line {
@@ -717,7 +821,9 @@ impl Project {
         let Some(installed_typings_info) = &self.installed_typings_info else {
             return true;
         };
-        if self.program_last_update == snapshot_id && self.program_update_kind == ProgramUpdateKind::NewFiles {
+        if self.program_last_update == snapshot_id
+            && self.program_update_kind == ProgramUpdateKind::NewFiles
+        {
             return true;
         }
 

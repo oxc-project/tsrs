@@ -28,10 +28,7 @@ impl programCounter {
         let Entry::Occupied(mut entry) = refs.entry(key(program)) else {
             return false;
         };
-        let count = entry
-            .get()
-            .checked_sub(1)
-            .expect("program reference count went below zero");
+        let count = entry.get().checked_sub(1).expect("program reference count went below zero");
         if count == 0 {
             entry.remove();
             return true;

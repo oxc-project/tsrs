@@ -37,18 +37,25 @@ pub struct PanicInfo {
 pub fn install_panic_hook(quiet: bool) {
     panic::set_hook(Box::new(move |info| {
         let message = info.payload_as_str().unwrap_or("<non-string panic payload>").to_string();
-        let location = info.location().map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column())).unwrap_or_default();
+        let location = info
+            .location()
+            .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+            .unwrap_or_default();
         if !quiet {
             eprintln!("panic: {message} at {location}");
         }
         // Debug aid: TSRS_TEST_BACKTRACE=<file> appends every panic's backtrace to <file>.
         if let Some(path) = std::env::var_os("TSRS_TEST_BACKTRACE") {
-            let trace = format!("panic: {message} at {location}\n{}\n", std::backtrace::Backtrace::force_capture());
+            let trace = format!(
+                "panic: {message} at {location}\n{}\n",
+                std::backtrace::Backtrace::force_capture()
+            );
             if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
                 let _ = f.write_all(trace.as_bytes());
             }
         }
-        *ANY_THREAD_PANIC.lock().unwrap() = Some(PanicInfo { message: message.clone(), location: location.clone() });
+        *ANY_THREAD_PANIC.lock().unwrap() =
+            Some(PanicInfo { message: message.clone(), location: location.clone() });
         LAST_PANIC.with(|p| *p.borrow_mut() = Some(PanicInfo { message, location }));
     }));
 }
@@ -86,9 +93,18 @@ impl ExtraResult {
         match generated {
             Err(panic) => ExtraResult::plain(Class::Crash, format!("panic: {panic}")),
             Ok(actual) => {
-                let expected = compiler_runner::read_reference_extra_baseline(&item.suite, &item.name, ext);
-                let class = if baseline::baseline_matches(expected.as_deref(), actual) { Class::Pass } else { Class::Fail };
-                let diff = if class == Class::Pass { String::new() } else { baseline::first_difference(expected.as_deref(), actual) };
+                let expected =
+                    compiler_runner::read_reference_extra_baseline(&item.suite, &item.name, ext);
+                let class = if baseline::baseline_matches(expected.as_deref(), actual) {
+                    Class::Pass
+                } else {
+                    Class::Fail
+                };
+                let diff = if class == Class::Pass {
+                    String::new()
+                } else {
+                    baseline::first_difference(expected.as_deref(), actual)
+                };
                 ExtraResult { class, diff, expected, actual: Some(actual.clone()) }
             }
         }
@@ -135,42 +151,71 @@ pub fn run_item(table: &OptionTable, item: &TestItem) -> ItemResult {
     match outcome {
         Err(_) => {
             r.class = Class::Crash;
-            r.panic = Some(take_panic_info().unwrap_or(PanicInfo { message: "<unknown panic>".into(), location: String::new() }));
-            extras.extend(EXTRA_KINDS.into_iter().map(|(ext, _)| (ext, ExtraResult::plain(Class::Crash, "errors phase panicked".to_string()))));
+            r.panic = Some(take_panic_info().unwrap_or(PanicInfo {
+                message: "<unknown panic>".into(),
+                location: String::new(),
+            }));
+            extras.extend(EXTRA_KINDS.into_iter().map(|(ext, _)| {
+                (ext, ExtraResult::plain(Class::Crash, "errors phase panicked".to_string()))
+            }));
         }
         Ok(Outcome::Skip(reason)) => {
             r.class = Class::Skip;
-            extras.extend(EXTRA_KINDS.into_iter().map(|(ext, _)| (ext, ExtraResult::plain(Class::Skip, reason.clone()))));
+            extras.extend(
+                EXTRA_KINDS
+                    .into_iter()
+                    .map(|(ext, _)| (ext, ExtraResult::plain(Class::Skip, reason.clone()))),
+            );
             r.skip = reason;
         }
         Ok(Outcome::Error(e)) => {
             r.class = Class::Fail;
             r.diff = format!("harness error: {e}");
-            extras.extend(EXTRA_KINDS.into_iter().map(|(ext, _)| (ext, ExtraResult::plain(Class::Fail, r.diff.clone()))));
+            extras.extend(
+                EXTRA_KINDS
+                    .into_iter()
+                    .map(|(ext, _)| (ext, ExtraResult::plain(Class::Fail, r.diff.clone()))),
+            );
         }
         Ok(Outcome::Baseline(actual, types_and_symbols, js, maps)) => {
             match &js {
-                None => extras.push(("js", ExtraResult::plain(Class::Skip, "no js output".to_string()))),
+                None => {
+                    extras
+                        .push(("js", ExtraResult::plain(Class::Skip, "no js output".to_string())));
+                }
                 Some(js) => extras.push(("js", ExtraResult::classify(item, "js", js))),
             }
             // `.js.map` / `.sourcemap.txt`: a test whose generated baseline is `NoContent` and that has no reference
             // passes trivially in Go; it is reported as a skip so the pass counts mean something.
             extras.extend(
-                ([("js.map", maps.as_ref().and_then(|m| m.js_map.as_ref())), ("sourcemap.txt", maps.as_ref().and_then(|m| m.sourcemap.as_ref()))])
-                    .into_iter()
-                    .map(|(ext, generated)| match generated {
-                        None => (ext, ExtraResult::plain(Class::Skip, "no source map baseline".to_string())),
-                        Some(Ok(actual))
-                            if actual == baseline::NO_CONTENT && compiler_runner::read_reference_extra_baseline(&item.suite, &item.name, ext).is_none() =>
-                        {
-                            (ext, ExtraResult::plain(Class::Skip, "no source maps".to_string()))
-                        }
-                        Some(generated) => (ext, ExtraResult::classify(item, ext, generated)),
-                    }),
+                ([
+                    ("js.map", maps.as_ref().and_then(|m| m.js_map.as_ref())),
+                    ("sourcemap.txt", maps.as_ref().and_then(|m| m.sourcemap.as_ref())),
+                ])
+                .into_iter()
+                .map(|(ext, generated)| match generated {
+                    None => {
+                        (ext, ExtraResult::plain(Class::Skip, "no source map baseline".to_string()))
+                    }
+                    Some(Ok(actual))
+                        if actual == baseline::NO_CONTENT
+                            && compiler_runner::read_reference_extra_baseline(
+                                &item.suite,
+                                &item.name,
+                                ext,
+                            )
+                            .is_none() =>
+                    {
+                        (ext, ExtraResult::plain(Class::Skip, "no source maps".to_string()))
+                    }
+                    Some(generated) => (ext, ExtraResult::classify(item, ext, generated)),
+                }),
             );
             match &types_and_symbols {
                 None => {
-                    extras.extend((["types", "symbols"]).into_iter().map(|ext| (ext, ExtraResult::plain(Class::Skip, "noTypesAndSymbols".to_string()))));
+                    extras.extend((["types", "symbols"]).into_iter().map(|ext| {
+                        (ext, ExtraResult::plain(Class::Skip, "noTypesAndSymbols".to_string()))
+                    }));
                 }
                 Some(t) => {
                     extras.push(("types", ExtraResult::classify(item, "types", &t.types)));
@@ -222,7 +267,14 @@ pub fn write_artifacts(item: &TestItem, r: &ItemResult) {
     let _ = std::fs::create_dir_all(&dir);
     if let Some(actual) = &r.actual {
         let _ = std::fs::write(&actual_path, actual);
-        let _ = std::fs::write(&diff_path, baseline::unified_diff(r.expected.as_deref(), actual, &format!("{}.errors.txt", item.name)));
+        let _ = std::fs::write(
+            &diff_path,
+            baseline::unified_diff(
+                r.expected.as_deref(),
+                actual,
+                &format!("{}.errors.txt", item.name),
+            ),
+        );
     } else if let Some(p) = &r.panic {
         let _ = std::fs::write(&diff_path, format!("panic: {}\n  at {}\n", p.message, p.location));
     } else if !r.diff.is_empty() {
@@ -241,14 +293,23 @@ pub fn write_extra_artifacts(item: &TestItem, r: &ItemResult) {
         let diff_path = dir.join(format!("{}.{ext}.diff", item.name));
         let _ = std::fs::remove_file(&actual_path);
         let _ = std::fs::remove_file(&diff_path);
-        let Some(e) = extra_result(r, ext) else { continue };
+        let Some(e) = extra_result(r, ext) else {
+            continue;
+        };
         if e.class == Class::Pass || e.class == Class::Skip {
             continue;
         }
         let _ = std::fs::create_dir_all(&dir);
         if let Some(actual) = &e.actual {
             let _ = std::fs::write(&actual_path, actual);
-            let _ = std::fs::write(&diff_path, baseline::unified_diff(e.expected.as_deref(), actual, &format!("{}.{ext}", item.name)));
+            let _ = std::fs::write(
+                &diff_path,
+                baseline::unified_diff(
+                    e.expected.as_deref(),
+                    actual,
+                    &format!("{}.{ext}", item.name),
+                ),
+            );
         } else if !e.diff.is_empty() {
             let _ = std::fs::write(&diff_path, format!("{}\n", e.diff));
         }
@@ -316,5 +377,8 @@ pub fn worker_main() {
 /// The message of the last panic caught on this thread (for panics caught inside a test, like Go's
 /// `RecoverAndFail`).
 pub fn take_last_panic_message() -> String {
-    take_panic_info().map_or_else(|| "<unknown panic>".to_string(), |p| format!("{} at {}", p.message, p.location))
+    take_panic_info().map_or_else(
+        || "<unknown panic>".to_string(),
+        |p| format!("{} at {}", p.message, p.location),
+    )
 }

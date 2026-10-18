@@ -863,7 +863,7 @@ function genNodeImpl() {
     w();
     w(`    pub(crate) fn set_modifiers_data(&self, modifiers: Option<P<ModifierList>>) {`);
     w(`        match self.data_tag() {`);
-    for (const n of withField("modifiers")) w(arm(n.name, `d.set_modifiers(modifiers)`));
+    for (const n of withField("modifiers")) w(arm(n.name, `{ d.set_modifiers(modifiers); }`));
     w(`            _ => {}`);
     w(`        }`);
     w(`    }`);

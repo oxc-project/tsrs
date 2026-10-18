@@ -3,14 +3,16 @@ use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::{Diagnostic, SourceFile};
-use tsrs_compiler::{sort_and_deduplicate_diagnostics, Checker, CheckerHandle, CheckerPool, PooledChecker, Program};
-use tsrs_core::context::{get_checker_lifetime, get_request_id, CheckerLifetime, Context};
+use tsrs_compiler::{
+    Checker, CheckerHandle, CheckerPool, PooledChecker, Program, sort_and_deduplicate_diagnostics,
+};
 use tsrs_core::arena::{Region, RegionScope};
+use tsrs_core::context::{CheckerLifetime, Context, get_checker_lifetime, get_request_id};
 
 use crate::memregions::{log_region, programOwner};
 use tsrs_core::P;
 
-use crate::background::{after_func, Timer};
+use crate::background::{Timer, after_func};
 
 // checkerHeldAnonymous is a sentinel stored in heldBy when a checker is held
 // by a caller that has no request ID (e.g., context.Background()). This
@@ -113,7 +115,7 @@ struct checkerPoolState {
     checkers: Vec<Option<PooledChecker>>,
     held_by: Vec<String>, // heldBy[i] is the requestID holding checker i, checkerHeldAnonymous, or "" if not held
     file_associations: FxHashMap<P<SourceFile>, usize>, // file → query checker index (1+)
-    request_associations: FxHashMap<String, usize>,    // requestID → checker index
+    request_associations: FxHashMap<String, usize>, // requestID → checker index
 
     // lastReleased tracks when each checker was last released.
     last_released: Vec<Option<Instant>>,
@@ -210,7 +212,11 @@ fn accumulate_global_diagnostics(all: &[P<Diagnostic>]) -> Vec<P<Diagnostic>> {
 }
 
 // checkerpool.go:84
-pub(crate) fn new_checker_pool(mut opts: CheckerPoolOptions, program: &'static Program, log: Option<Box<dyn Fn(&str) + Send + Sync>>) -> Arc<checkerPool> {
+pub(crate) fn new_checker_pool(
+    mut opts: CheckerPoolOptions,
+    program: &'static Program,
+    log: Option<Box<dyn Fn(&str) + Send + Sync>>,
+) -> Arc<checkerPool> {
     if opts.max_checkers == 0 {
         opts.max_checkers = 4;
     } else if opts.max_checkers < 2 {
@@ -258,7 +264,6 @@ fn hold_tag(request_id: &str) -> String {
     request_id.to_string()
 }
 
-
 // The `CheckerPool` the program calls (Go: `*checkerPool` itself).
 pub(crate) struct checkerPoolHandle(pub(crate) Arc<checkerPool>);
 
@@ -276,17 +281,26 @@ impl checkerPool {
             let _scope = region.enter();
             PooledChecker::new(tsrs_checker::new_checker(self.program))
         };
-        self.instances.lock().unwrap().insert(checker.as_non_null().as_ptr() as usize, checkerInstance { disposed: None, region, leases: 0, pinned });
+        self.instances.lock().unwrap().insert(
+            checker.as_non_null().as_ptr() as usize,
+            checkerInstance { disposed: None, region, leases: 0, pinned },
+        );
         checker
     }
 
     // Region hook: while a checker is held, its region is the holder's allocation target and the program's owner
     // is kept alive. The holder's request takes a lease on the checker's data (`checkerDataLease`, from `ctx` or the
     // thread); a holder without one pins the checker. `ctx` is None for the API checker, which is always pinned.
-    fn enter_checker_region(&self, ctx: Option<&Context>, c: std::ptr::NonNull<Checker>) -> (Option<RegionScope>, Option<Arc<programOwner>>) {
+    fn enter_checker_region(
+        &self,
+        ctx: Option<&Context>,
+        c: std::ptr::NonNull<Checker>,
+    ) -> (Option<RegionScope>, Option<Arc<programOwner>>) {
         let key = c.as_ptr() as usize;
         let lease = ctx.and_then(|ctx| {
-            ctx.value::<checkerDataLeaseKey>().map(|k| Arc::clone(&k.0)).or_else(|| THREAD_LEASE.with(|l| l.borrow().clone()))
+            ctx.value::<checkerDataLeaseKey>()
+                .map(|k| Arc::clone(&k.0))
+                .or_else(|| THREAD_LEASE.with(|l| l.borrow().clone()))
         });
         let region = {
             let mut instances = self.instances.lock().unwrap();
@@ -295,7 +309,10 @@ impl checkerPool {
                 match lease {
                     Some(lease) => {
                         let mut held = lease.held.lock().unwrap();
-                        if !held.iter().any(|(pool, k)| *k == key && std::ptr::eq(pool.as_ptr(), self)) {
+                        if !held
+                            .iter()
+                            .any(|(pool, k)| *k == key && std::ptr::eq(pool.as_ptr(), self))
+                        {
                             held.push((Weak::clone(&self.self_ref), key));
                             instance.leases += 1;
                         }
@@ -329,12 +346,24 @@ impl checkerPool {
     // from longer-lived structures (see `parked`).
     fn free_or_park(&self, key: usize, mut instance: checkerInstance) {
         if instance.pinned || instance.region.escaped() {
-            log_region(|| format!("checker {key:#x}: parked (pinned {}, escaped {})", instance.pinned, instance.region.escaped()));
+            log_region(|| {
+                format!(
+                    "checker {key:#x}: parked (pinned {}, escaped {})",
+                    instance.pinned,
+                    instance.region.escaped()
+                )
+            });
             self.parked.lock().unwrap().extend(instance.disposed.take());
             self.instances.lock().unwrap().insert(key, instance);
             return;
         }
-        log_region(|| format!("checker {key:#x}: freed (region {} KiB, {} KiB used)", instance.region.allocated_bytes() >> 10, instance.region.used_bytes() >> 10));
+        log_region(|| {
+            format!(
+                "checker {key:#x}: freed (region {} KiB, {} KiB used)",
+                instance.region.allocated_bytes() >> 10,
+                instance.region.used_bytes() >> 10
+            )
+        });
         drop(instance);
     }
 
@@ -343,7 +372,9 @@ impl checkerPool {
     }
 
     fn live_owner(&self) -> Option<Arc<programOwner>> {
-        (*self.owner.lock().unwrap()).as_ref().map(|w| w.upgrade().expect("checker pool used after its program was freed"))
+        (*self.owner.lock().unwrap())
+            .as_ref()
+            .map(|w| w.upgrade().expect("checker pool used after its program was freed"))
     }
 
     // Region hook: frees every checker of the pool and their regions. Called when the program is freed (nothing
@@ -401,7 +432,13 @@ impl checkerPool {
     // Returns (nil, nil, false) if the caller must proceed with
     // normal acquisition — in this case, a semaphore slot has already been claimed.
     // Must NOT be called with p.mu held.
-    fn try_reacquire_for_request(&self, ctx: &Context, request_id: &str, sem: &semaphore, is_diag: bool) -> Option<CheckerHandle> {
+    fn try_reacquire_for_request(
+        &self,
+        ctx: &Context,
+        request_id: &str,
+        sem: &semaphore,
+        is_diag: bool,
+    ) -> Option<CheckerHandle> {
         sem.acquire();
         if request_id.is_empty() {
             return None;
@@ -436,7 +473,8 @@ impl checkerPool {
     fn get_diagnostics_checker(&self, ctx: &Context, request_id: &str) -> CheckerHandle {
         const diagIndex: usize = 0;
 
-        if let Some(handle) = self.try_reacquire_for_request(ctx, request_id, &self.diag_sem, true) {
+        if let Some(handle) = self.try_reacquire_for_request(ctx, request_id, &self.diag_sem, true)
+        {
             return handle;
         }
 
@@ -449,7 +487,10 @@ impl checkerPool {
         }
 
         st.held_by[diagIndex] = hold_tag(request_id);
-        (self.log)(&format!("checkerpool: Acquired diagnostics checker for request {}", hold_tag(request_id)));
+        (self.log)(&format!(
+            "checkerpool: Acquired diagnostics checker for request {}",
+            hold_tag(request_id)
+        ));
         if !request_id.is_empty() && !st.request_associations.contains_key(request_id) {
             st.request_associations.insert(request_id.to_string(), diagIndex);
             self.register_request_cleanup(ctx, request_id);
@@ -461,8 +502,15 @@ impl checkerPool {
     // getQueryChecker returns an ephemeral query checker from indices 1+.
     // Uses request affinity, then file affinity, then finds/creates.
     // Blocks on querySem if all query slots are in use.
-    fn get_query_checker(&self, ctx: &Context, request_id: &str, file: Option<P<SourceFile>>) -> CheckerHandle {
-        if let Some(handle) = self.try_reacquire_for_request(ctx, request_id, &self.query_sem, false) {
+    fn get_query_checker(
+        &self,
+        ctx: &Context,
+        request_id: &str,
+        file: Option<P<SourceFile>>,
+    ) -> CheckerHandle {
+        if let Some(handle) =
+            self.try_reacquire_for_request(ctx, request_id, &self.query_sem, false)
+        {
             return handle;
         }
 
@@ -486,7 +534,11 @@ impl checkerPool {
         // Find any available query checker or create one.
         let index = self.find_or_create_query_checker_locked(&mut st);
         st.held_by[index] = hold_tag(request_id);
-        (self.log)(&format!("checkerpool: Acquired query checker {} for request {}", index, hold_tag(request_id)));
+        (self.log)(&format!(
+            "checkerpool: Acquired query checker {} for request {}",
+            index,
+            hold_tag(request_id)
+        ));
         if !request_id.is_empty() && !st.request_associations.contains_key(request_id) {
             st.request_associations.insert(request_id.to_string(), index);
             self.register_request_cleanup(ctx, request_id);
@@ -541,7 +593,10 @@ impl checkerPool {
             let _owner = owner;
             let mut st = p.mu.lock().unwrap();
             st.persistent_held = false;
-            let canceled = st.persistent_checker.as_mut().is_some_and(|pc| pc.as_non_null() == c && pc.was_canceled());
+            let canceled = st
+                .persistent_checker
+                .as_mut()
+                .is_some_and(|pc| pc.as_non_null() == c && pc.was_canceled());
             if canceled {
                 // A canceled checker panics on reuse, so drop it; the next API
                 // acquisition will create a fresh persistent checker.
@@ -562,7 +617,13 @@ impl checkerPool {
     }
 
     // checkerpool.go:319 (`ctx`: the holder's context, for its lease)
-    fn create_release(&self, ctx: &Context, st: &mut checkerPoolState, request_id: &str, index: usize) -> CheckerHandle {
+    fn create_release(
+        &self,
+        ctx: &Context,
+        st: &mut checkerPoolState,
+        request_id: &str,
+        index: usize,
+    ) -> CheckerHandle {
         let c = st.checkers[index].as_mut().unwrap().as_non_null();
         let (region_scope, owner) = self.enter_checker_region(Some(ctx), c);
         let p = self.arc();
@@ -576,7 +637,11 @@ impl checkerPool {
             let mut disposed = None;
             if was_canceled {
                 // Canceled checkers must be disposed.
-                (p.log)(&format!("checkerpool: Checker {} for request {} was canceled, disposing", index, hold_tag(&request_id)));
+                (p.log)(&format!(
+                    "checkerpool: Checker {} for request {} was canceled, disposing",
+                    index,
+                    hold_tag(&request_id)
+                ));
                 disposed = checkerPool::dispose_checker_locked(&mut st, index, c);
             } else {
                 // Query checkers can produce incidental errors while serializing types.
@@ -718,7 +783,11 @@ impl checkerPool {
     // (file and request) that reference it. Must be called with p.mu held.
     // Region hook: returns the checker, for `dispose_checker` once p.mu is released.
     #[must_use]
-    fn dispose_checker_locked(st: &mut checkerPoolState, index: usize, c: std::ptr::NonNull<Checker>) -> Option<PooledChecker> {
+    fn dispose_checker_locked(
+        st: &mut checkerPoolState,
+        index: usize,
+        c: std::ptr::NonNull<Checker>,
+    ) -> Option<PooledChecker> {
         assert!(st.checkers[index].as_mut().is_some_and(|pc| pc.as_non_null() == c));
         let old = st.checkers[index].take();
         st.held_by[index] = String::new();
@@ -804,7 +873,11 @@ impl checkerPool {
     #[cfg(test)]
     pub(crate) fn region_counts(&self) -> (usize, usize, usize) {
         let instances = self.instances.lock().unwrap();
-        (instances.len(), instances.values().filter(|i| i.disposed.is_some()).count(), self.parked.lock().unwrap().len())
+        (
+            instances.len(),
+            instances.values().filter(|i| i.disposed.is_some()).count(),
+            self.parked.lock().unwrap().len(),
+        )
     }
 
     #[cfg(test)]
@@ -827,14 +900,20 @@ impl checkerPool {
 #[cfg(test)]
 pub(crate) struct checkerPoolTestView {
     pub(crate) checkers: Vec<bool>,
-    #[expect(dead_code, reason = "Retained in the Go-shaped pool test view; the currently ported cases inspect other fields.")]
+    #[expect(
+        dead_code,
+        reason = "Retained in the Go-shaped pool test view; the currently ported cases inspect other fields."
+    )]
     pub(crate) held_by: Vec<String>,
     pub(crate) file_associations: FxHashMap<P<SourceFile>, usize>,
     pub(crate) request_associations: FxHashMap<String, usize>,
     pub(crate) has_cleanup_timer: bool,
     pub(crate) discarded: bool,
     pub(crate) persistent: bool,
-    #[expect(dead_code, reason = "Retained in the Go-shaped pool test view; the currently ported cases inspect other fields.")]
+    #[expect(
+        dead_code,
+        reason = "Retained in the Go-shaped pool test view; the currently ported cases inspect other fields."
+    )]
     pub(crate) persistent_held: bool,
 }
 

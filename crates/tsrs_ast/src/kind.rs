@@ -441,7 +441,9 @@ impl std::fmt::Debug for Kind {
             Kind::MinusMinusToken => "MinusMinusToken",
             Kind::LessThanLessThanToken => "LessThanLessThanToken",
             Kind::GreaterThanGreaterThanToken => "GreaterThanGreaterThanToken",
-            Kind::GreaterThanGreaterThanGreaterThanToken => "GreaterThanGreaterThanGreaterThanToken",
+            Kind::GreaterThanGreaterThanGreaterThanToken => {
+                "GreaterThanGreaterThanGreaterThanToken"
+            }
             Kind::AmpersandToken => "AmpersandToken",
             Kind::BarToken => "BarToken",
             Kind::CaretToken => "CaretToken",
@@ -464,7 +466,9 @@ impl std::fmt::Debug for Kind {
             Kind::PercentEqualsToken => "PercentEqualsToken",
             Kind::LessThanLessThanEqualsToken => "LessThanLessThanEqualsToken",
             Kind::GreaterThanGreaterThanEqualsToken => "GreaterThanGreaterThanEqualsToken",
-            Kind::GreaterThanGreaterThanGreaterThanEqualsToken => "GreaterThanGreaterThanGreaterThanEqualsToken",
+            Kind::GreaterThanGreaterThanGreaterThanEqualsToken => {
+                "GreaterThanGreaterThanGreaterThanEqualsToken"
+            }
             Kind::AmpersandEqualsToken => "AmpersandEqualsToken",
             Kind::BarEqualsToken => "BarEqualsToken",
             Kind::BarBarEqualsToken => "BarBarEqualsToken",

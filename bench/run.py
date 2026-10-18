@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmarks tsrs against tsgo (typescript@7.0.2) on the typescript-benchmarking projects.
+"""Benchmarks tsrs against the pinned TypeScript nightly on the typescript-benchmarking projects.
 
 See bench/README.md. Typical use:
 
@@ -477,7 +477,7 @@ def errors_summary(result: dict, mode: str, with_bun: bool) -> list[str]:
     if locations:
         text += f" **Same count, different locations (a tsrs bug):** {', '.join(locations)}."
     if bun_differs:
-        text += f" bun check, which follows TypeScript 7.0 like tsgo, differs from tsgo on {', '.join(bun_differs)}."
+        text += f" bun check differs from tsgo on {', '.join(bun_differs)}."
     return [text, ""]
 
 
@@ -916,8 +916,7 @@ def main() -> None:
             pr[mode] = {"tsgo": g, "tsrs": t, "errors_match": match if gk and tk else None,
                         "error_locations_match": (gk == tk) if gk and tk else None}
             if bun:
-                # Recorded, not compared: bun check follows TypeScript 7.0 (its errors equal tsgo 7.0.2's on vscode),
-                # tsrs the 7.1-dev commit it ports.
+                # Recorded, not compared: bun check, the nightly and tsrs may follow different TypeScript commits.
                 pr[mode]["bun"] = summarize(runs[mode]["bun"])
             if gk and tk and gk != tk:
                 only_g = sorted(set().union(*gk) - set().union(*tk))[:20]

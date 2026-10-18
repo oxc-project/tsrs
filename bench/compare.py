@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Head-to-head type-check benchmark on one machine: tsgo 7.0.2, the TypeScript 7.1-dev nightly tsrs ports, tsrs and
+"""Head-to-head type-check benchmark on one machine: TypeScript nightly, the reference nightly tsrs ports, tsrs and
 `bun check`, at the same thread counts.
 
 bench/run.py is the fixed-spec regression benchmark (tsgo vs tsrs). This script answers a different question:
@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run as rb  # noqa: E402  (bench/run.py: project setup, compiler install, output parsing)
 
 COMPILERS = ("tsgo", "tsgo-dev", "tsrs", "bun")
-LABELS = {"tsgo": "tsgo 7.0.2", "tsgo-dev": "tsgo 7.1-dev", "tsrs": "tsrs", "bun": "bun check"}
+LABELS = {"tsgo": "tsgo", "tsgo-dev": "tsgo reference", "tsrs": "tsrs", "bun": "bun check"}
 # bun's summary line: "checked N files" with errors, "No type errors in N files" without.
 BUN_FILES_RE = re.compile(r"(?:checked|No type errors in) ([\d,]+) files?")
 # The Files row of tsgo's and tsrs's --extendedDiagnostics, which only the untimed warm-up prints.
@@ -140,7 +140,7 @@ def markdown(result: dict) -> str:
     m = result["machine"]
     v = result["versions"]
     lines = [
-        f"## Head-to-head on {m['cpus']} threads: tsgo, tsgo 7.1-dev, tsrs, bun check",
+        f"## Head-to-head on {m['cpus']} threads: tsgo, tsgo reference, tsrs, bun check",
         "",
         f"Machine: {m['label']}. Date: {result['date']}. Mean of {result['reps']} interleaved runs per cell (the "
         f"compiler order rotates every rep), after one untimed warm-up per compiler and project. The timed runs pass "
@@ -156,8 +156,8 @@ def markdown(result: dict) -> str:
     base = "tsgo"
     for name, pr in result["projects"].items():
         lines += [f"### {name}", "",
-                  "| threads | compiler | wall mean ± sd (s) | median | min | peak RSS (mean) | vs tsgo 7.0.2 default | "
-                  "vs tsgo 7.0.2 same threads | errors | = 7.1-dev errors |",
+                  "| threads | compiler | wall mean ± sd (s) | median | min | peak RSS (mean) | vs tsgo default | "
+                  "vs tsgo same threads | errors | = reference errors |",
                   "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |"]
         base_default = pr.get("default", {}).get(base, {}).get("wall_s", {}).get("mean")
         for threads in result["threads"]:
@@ -178,8 +178,8 @@ def markdown(result: dict) -> str:
         files = {c: pr.get("files", {}).get(c) or pr.get("default", {}).get(c, {}).get("files") for c in result["compilers"]}
         lines += ["", "Files: " + ", ".join(f"{LABELS[c]} {'/'.join(map(str, f))}" for c, f in files.items() if f)
                   + " (tsgo/tsrs: files in the program; bun: its own \"checked N files\" count, not comparable).", ""]
-    lines += ["vs tsgo 7.0.2: tsgo 7.0.2's mean wall divided by this row's (above 1 = faster). = 7.1-dev errors: the "
-              "(file, line, column, code) list equals tsgo 7.1-dev's at default threads, the TypeScript commit tsrs "
+    lines += ["vs tsgo: tsgo's mean wall divided by this row's (above 1 = faster). = reference errors: the "
+              "(file, line, column, code) list equals the reference compiler's at default threads, the TypeScript commit tsrs "
               "ports. Peak RSS: `ru_maxrss` from `wait4`. Wall: process wall clock including startup."]
     return "\n".join(lines) + "\n"
 

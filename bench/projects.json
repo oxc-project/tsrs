@@ -5,7 +5,7 @@
   },
   "tsgo": {
     "package": "typescript",
-    "version": "7.0.2"
+    "version": "7.1.0-dev.20261018.1"
   },
   "reference": {
     "package": "typescript",

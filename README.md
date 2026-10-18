@@ -38,6 +38,8 @@ for supported features and known gaps.
   </picture>
 </a>
 
+Renovate tracks TypeScript nightly for the benchmarks; `oxc-guard` proposes regenerated charts in a pull request.
+
 ## Extra features
 
 [`@tsrs/wasm`](https://github.com/oxc-project/tsrs/blob/main/npm/tsrs-wasm/README.md) provides WebAssembly support

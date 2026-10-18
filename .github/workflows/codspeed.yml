@@ -30,7 +30,7 @@ env:
 jobs:
   build:
     name: Build benchmarks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
       contents: read
@@ -65,7 +65,7 @@ jobs:
   benchmarks:
     name: Benchmark (${{ matrix.project }})
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
       contents: read

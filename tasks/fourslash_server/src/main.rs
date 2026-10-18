@@ -1,7 +1,6 @@
 // Test-only subprocess entry point for tools/go-fourslash. The Go harness owns the VFS.
 
 #[cfg(unix)]
-#[path = "fourslash_server/unix.rs"]
 mod unix;
 
 fn main() {

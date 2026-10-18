@@ -180,7 +180,7 @@ jobs:
           # The same as the final build's: profile settings are part of every symbol name, and the profile only
           # applies to functions whose names match (notes/perf-pgo.md, 2026-10-09).
           CARGO_PROFILE_RELEASE_STRIP: none
-        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server --target x86_64-unknown-linux-gnu
+        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins --target x86_64-unknown-linux-gnu
 
       - name: PGO training run
         run: .github/scripts/pgo-train.sh target/x86_64-unknown-linux-gnu/release /tmp/tsrs-pgo/raw bench/.work

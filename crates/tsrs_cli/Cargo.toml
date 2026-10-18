@@ -24,9 +24,6 @@ tsrs_execute = { path = "../tsrs_execute" }
 libmimalloc-sys2 = { version = "0.1.63", features = ["v3", "no_thp"] }
 libc = "0.2"
 
-[dev-dependencies]
-tsrs_project.workspace = true
-
 [features]
 noembed = ["tsrs_vfs/noembed"]
 # The system allocator instead of mimalloc, for sanitizer builds (AddressSanitizer and ThreadSanitizer track only its
@@ -36,7 +33,3 @@ system-alloc = []
 [[bin]]
 name = "tsrs"
 path = "src/main.rs"
-
-[[example]]
-name = "fourslash_server"
-test = true

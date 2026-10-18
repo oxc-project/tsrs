@@ -843,7 +843,6 @@ dependencies = [
  "tsrs_core",
  "tsrs_execute",
  "tsrs_lsp",
- "tsrs_project",
  "tsrs_tsoptions",
  "tsrs_vfs",
 ]
@@ -957,6 +956,17 @@ dependencies = [
  "tsrs_fswatch",
  "tsrs_incremental",
  "tsrs_ipc",
+ "tsrs_tsoptions",
+ "tsrs_vfs",
+]
+
+[[package]]
+name = "tsrs_fourslash_server"
+version = "0.16.0"
+dependencies = [
+ "tsrs_core",
+ "tsrs_lsp",
+ "tsrs_project",
  "tsrs_tsoptions",
  "tsrs_vfs",
 ]

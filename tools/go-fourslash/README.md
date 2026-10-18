@@ -30,7 +30,8 @@ Go test body → upstream Go Fourslash assertions → LSP Unix socket → Rust l
                     └──── original Go virtual filesystem ← Unix socket ─┘
 ```
 
-The Rust process is the `tsrs_cli` example `fourslash_server`, a test-only entry point around `tsrs_lsp::new_server`.
+The Rust process is the `fourslash_server` binary in `tasks/fourslash_server` (package `tsrs_fourslash_server`),
+a test-only entry point around `tsrs_lsp::new_server`.
 It is not the production `tsrs --lsp -stdio` executable. Standard LSP has no operation for installing a virtual
 filesystem, and the pinned Go harness also sets inferred-project compiler options and waits for initialization
 through internal calls. A private Unix socket carries those setup operations and filesystem callbacks; all
@@ -51,7 +52,7 @@ existing `GetFileMapWithBuild` helper, then the Rust server reads the resulting 
 
 The Go filesystem remains authoritative, including bundled libraries, symlinks, case sensitivity, writes, and
 renames. Paths are not relocated or rewritten. Compiler options use the existing Go-compatible options codec.
-The example selects Go checker-history mode for baseline compatibility, including its environment overrides.
+The task server selects Go checker-history mode for baseline compatibility, including its environment overrides.
 File reads send a JSON byte count followed by raw UTF-8, avoiding JSON escaping of library contents. Missing
 files remain distinct from empty files, and invalid UTF-8 uses the same replacement behavior as Go's JSON encoder.
 Cleanup sends LSP shutdown, closes state inspection, and waits for the worker's completion acknowledgement
@@ -65,8 +66,8 @@ before reuse. Failed or timed-out workers are killed and discarded; `TestMain` r
 - Windows transport and production CLI startup are not covered by this prototype.
 
 The Go runner supplies the Linux CI gate and current compatibility count. PGO training drives the instrumented
-`examples/fourslash_server`; BOLT training and release verification use the corresponding instrumented and
-optimized examples. These workflows install Go and Python 3.12+ and check out the pinned `tsc` source and fixtures.
+`fourslash_server`; BOLT training and release verification use the corresponding instrumented and
+optimized binaries. These workflows install Go and Python 3.12+ and check out the pinned `tsc` source and fixtures.
 The translated Rust suite has been removed. Release-profile PGO/BOLT verification was not run locally for this migration.
 
 The summary counts a parent with only skipped subtests as skipped: Go itself reports such a parent as passing.
@@ -74,10 +75,10 @@ The summary counts a parent with only skipped subtests as skipped: Go itself rep
 ## CI gate
 
 The active Linux test job in `.github/workflows/ci.yml` checks out the pinned `tsc` source and fixtures, installs
-Go from its `go.mod` and Python 3.12, builds the server example with the dev profile, and runs:
+Go from its `go.mod` and Python 3.12, builds the task server with the dev profile, and runs:
 
 ```sh
-cargo build --profile dev --locked -p tsrs_cli --example fourslash_server
+cargo build --profile dev --locked -p tsrs_fourslash_server
 PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh
 ```
 
@@ -138,6 +139,6 @@ run that binary from the extracted `tsc` directory with `TSRS_FOURSLASH_SERVER=<
 and every Rust child separately in macOS `/usr/bin/time -l`, summing instructions and taking the maximum RSS;
 its wall times were 64.08 s and 26.10 s. Timing a Python launcher alone does not count child instructions.
 
-The framing checks run with `cargo test -p tsrs_cli` in the existing CI job. Local lifecycle checks additionally
+The framing checks run with `cargo test -p tsrs_fourslash_server` in the existing CI job. Local lifecycle checks additionally
 repeat hover, cross-project call hierarchy, and auto-import cases 40 times under Go's race detector to cross the
 worker restart boundary, and verify that an immediate child failure is reported and the next case can launch a healthy worker.

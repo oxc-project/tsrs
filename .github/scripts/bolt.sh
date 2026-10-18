@@ -3,7 +3,7 @@
 #
 #   bolt.sh <dist dir> <work dir> <bench work dir>
 #
-# <dist dir> holds tsrs, tsrs-test and examples/fourslash_server from the final PGO build, linked with -Wl,--emit-relocs. Each
+# <dist dir> holds tsrs, tsrs-test and fourslash_server from the final PGO build, linked with -Wl,--emit-relocs. Each
 # binary is instrumented (llvm-bolt -instrument), runs its part of the PGO training workload (pgo-train.sh: tsrs on
 # xstate-main and webpack, tsrs-test on the conformance suite, fourslash_server driven by the Go suite), and is
 # rewritten with the profile. The BOLT-optimized tsrs-test and fourslash_server then run the conformance and fourslash
@@ -28,7 +28,7 @@ flags=(-reorder-blocks=ext-tsp -reorder-functions=cdsort -split-functions -split
 # binaries therefore carry no 843419 workaround; it only matters on Cortex-A53 r0p0-r0p4 cores.
 arch_flags=()
 [ "$(uname -m)" = aarch64 ] && arch_flags=(--drop-cortex-a53-843419-veneers)
-bins=(tsrs tsrs-test examples/fourslash_server)
+bins=(tsrs tsrs-test fourslash_server)
 [ "${BOLT_TSRS_ONLY:-}" = 1 ] && bins=(tsrs)
 
 for b in "${bins[@]}"; do
@@ -50,7 +50,7 @@ if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST_RESULTS="$work/train-test-results" "$work/tsrs-test.inst" run --suite all --timeout 300 > /dev/null \
     && status=0 || status=$?
   check_exit "$status" "instrumented tsrs-test run --suite all"
-  TSRS_FOURSLASH_SERVER="$work/examples/fourslash_server.inst" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \
+  TSRS_FOURSLASH_SERVER="$work/fourslash_server.inst" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \
     .github/scripts/go-fourslash-gate.sh
 fi
 
@@ -65,7 +65,7 @@ done
 # Gates on the BOLT-optimized binaries (same thresholds as ci.yml).
 if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST="$work/tsrs-test.bolt" TSRS_TEST_RESULTS="$work/test-results" .github/scripts/conformance-gate.sh | tail -1
-  TSRS_FOURSLASH_SERVER="$work/examples/fourslash_server.bolt" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \
+  TSRS_FOURSLASH_SERVER="$work/fourslash_server.bolt" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \
     .github/scripts/go-fourslash-gate.sh | tail -1
 fi
 for p in xstate-main webpack; do

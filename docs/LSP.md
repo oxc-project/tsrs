@@ -69,7 +69,7 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 | `project/dirty`, `project/logging` | `tsrs_projectutil` (re-exported as `tsrs_project::{dirty, logging}`) | leaf packages that `ls/autoimport` imports too |
 | `ls` (+ `lsconv`, `lsutil`, `change`, `autoimport`) | `tsrs_ls` (`tsrs_ls::lsconv`, `::lsutil`, `::change`, `::autoimport`, …) | one Rust file per Go file, same base names |
 | `astnav`, `format`, `sourcemap` | `tsrs_astnav` and `tsrs_sourcemap` (crates of their own, re-exported as `tsrs_ls::astnav` / `::sourcemap`), `tsrs_ls::format` | `tsrs_astnav` is also used by the checker and the API, `tsrs_sourcemap` by emit; `format` is used by the language service and by the API's `formatNodeForInsertion` (`tsrs_api/src/printing.rs`) |
-| `fourslash` (+ the tests in `fourslash/tests`) | upstream Go, `tools/go-fourslash`, `tsrs_cli` example | unchanged Go assertions driving Rust LSP subprocesses |
+| `fourslash` (+ the tests in `fourslash/tests`) | upstream Go, `tools/go-fourslash`, `tasks/fourslash_server` | unchanged Go assertions driving Rust LSP subprocesses |
 | `checker/services.go`, `checker/exports.go` | `tsrs_checker` (`services.rs`, `exports.rs`) | the checker API the language service calls |
 | `compiler` (program reuse, pluggable checker pool) | `tsrs_compiler` | `UpdateProgram` / `ReuseProgram`, `ProgramOptions.CreateCheckerPool`, the `CheckerPool` interface |
 | `cmd/tsc/lsp.go` | `tsrs_cli` (`lsp.rs`) | `tsrs --lsp -stdio` |
@@ -240,11 +240,11 @@ the former translated harness; their LSP requests run against Rust. See the [run
 for commands and comparison results.
 
 Run the suite with `PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh` after building
-`cargo build --profile dev -p tsrs_cli --example fourslash_server`. To select cases, use
+`cargo build --profile dev -p tsrs_fourslash_server`. To select cases, use
 `python3.12 tools/go-fourslash/run.py -- -run '^TestQuickInfoAlias$' -v`.
 
 The generated Rust suite and its translator have been removed. CI, PGO training, and BOLT release gates use
-the Go harness against the appropriate Rust server example. The [port log](history/LSP.md#fourslash)
+the Go harness against the appropriate Rust task binary. The [port log](history/LSP.md#fourslash)
 retains the translated runner's historical results and verify-family breakdown.
 
 ## Known gaps

@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 120
     env:
       TSRS_TEST: target/ci/tsrs-test
-      TSRS_FOURSLASH_SERVER: target/ci/examples/fourslash_server
+      TSRS_FOURSLASH_SERVER: target/ci/fourslash_server
     steps:
       - name: Free disk space for builds and benchmark checkouts
         run: |
@@ -91,11 +91,11 @@ jobs:
           -p tsrs_core -p tsrs_spanmap -p tsrs_ipc -p tsrs_contentmapper -p tsrs_contentmappertest -p tsrs_ast -p tsrs_scanner
           -p tsrs_diagnostics -p tsrs_vfs -p tsrs_module
           -p tsrs_tsoptions -p tsrs_printer -p tsrs_modulespecifiers -p tsrs_compiler -p tsrs_incremental -p tsrs_execute
-          -p tsrs_testrunner -p tsrs_cli
+          -p tsrs_testrunner -p tsrs_cli -p tsrs_fourslash_server
 
       # Correctness gates use release optimization without LTO; release.yml checks the PGO release binaries.
       - name: Build correctness binaries
-        run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server
+        run: cargo build --profile ci --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins
 
       # Errors, .types and .symbols baselines, in tsgo's check history (`--checkerAssignment go`, tsrs_core::compat),
       # which the reference baselines need for byte-identity.
@@ -319,7 +319,7 @@ jobs:
             target/wasm-diff/*/*/fail/**
           if-no-files-found: ignore
 
-  # docs/RUST.md: every enabled Clippy lint is denied across the full workspace, including test-only server examples.
+  # docs/RUST.md: every enabled Clippy lint is denied across the full workspace, including the Fourslash task package.
   lint-ratchet:
     runs-on: ubuntu-24.04
     timeout-minutes: 30

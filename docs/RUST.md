@@ -32,7 +32,7 @@ Details:
 
 - Findings depend on the Clippy version, so `rust-toolchain.toml` pins it everywhere.
 - Run from the repository root, where Cargo selects every workspace crate by default. The command covers all
-  targets, including tests and examples. The Fourslash server example is included; the upstream Go suite runs
+  targets, including tests and examples. The Fourslash task package is included; the upstream Go suite runs
   through `tools/go-fourslash` without generating Rust fixtures.
 - Also check `--all-features` when changing lint policy. It enables `plain-ptrs`, so check optional features with
   compressed pointers separately. These scopes include profiling tools and both pointer representations.
@@ -78,7 +78,7 @@ clippy cannot express:
   baseline. The `arena-safety` job saved in `.github/workflows/ci.yml.bak` adds Miri on the arena tests and conformance on a
   `panic = "abort"` build for the forms a source check cannot see; that job is disabled for now.
 
-Test files and generated files are not scanned.
+Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
 
 ## What the lints check
 

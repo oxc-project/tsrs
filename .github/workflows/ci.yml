@@ -106,7 +106,7 @@ jobs:
         run: cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner
 
       - name: Build Go Fourslash server
-        run: cargo build --profile dev --locked -p tsrs_cli --example fourslash_server
+        run: cargo build --profile dev --locked -p tsrs_fourslash_server
 
       - name: Go Fourslash suite
         run: .github/scripts/go-fourslash-gate.sh

@@ -43,7 +43,7 @@ and single codegen unit are what ships.
 The language-server test server and WebAssembly module have separate builds:
 
 ```sh
-cargo build --profile dev -p tsrs_cli --example fourslash_server
+cargo build --profile dev -p tsrs_fourslash_server
 tools/wasm/build.sh  # requires the wasm32-wasip1 target and wasm-opt
 ```
 

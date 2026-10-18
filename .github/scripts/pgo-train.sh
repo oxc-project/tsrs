@@ -4,7 +4,7 @@
 # raw profiles (*.profraw) in <raw-dir>. Compiler workload exit codes are ignored (the suite has known failures
 # and the bench projects have type errors); crashes and missing profiles fail. Go Fourslash must pass its gate.
 #
-#   pgo-train.sh <dir with instrumented tsrs + tsrs-test + examples/fourslash_server> <raw-dir> <bench work dir>
+#   pgo-train.sh <dir with instrumented tsrs + tsrs-test + fourslash_server> <raw-dir> <bench work dir>
 #
 # Workload: the conformance suite (in-process in tsrs-test, which links the same crate builds as tsrs, so its
 # profile counts apply to the checker code in tsrs), the Go fourslash suite (Rust language-server workers,
@@ -31,7 +31,7 @@ LLVM_PROFILE_FILE="$raw/suite-%m.profraw" TSRS_TEST_RESULTS="$work/test-results"
 check_exit "$status" "tsrs-test run --suite all"
 
 # Workers exit normally at the end of their batch, so each writes its counts; %m merges them per binary.
-LLVM_PROFILE_FILE="$raw/fourslash-%m.profraw" TSRS_FOURSLASH_SERVER="$bin/examples/fourslash_server" \
+LLVM_PROFILE_FILE="$raw/fourslash-%m.profraw" TSRS_FOURSLASH_SERVER="$bin/fourslash_server" \
   TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" .github/scripts/go-fourslash-gate.sh
 
 for p in xstate-main webpack; do

@@ -192,7 +192,7 @@ jobs:
         env:
           # Override rustc's LTO, not Cargo's profile: Cargo hashes profile settings into the symbols PGO matches.
           RUSTFLAGS: -Cprofile-generate=/tmp/tsrs-pgo/raw -Clto=thin
-        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server --target x86_64-unknown-linux-gnu
+        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins --target x86_64-unknown-linux-gnu
 
       - name: PGO training run
         run: .github/scripts/pgo-train.sh target/x86_64-unknown-linux-gnu/release /tmp/tsrs-pgo/raw bench/.work

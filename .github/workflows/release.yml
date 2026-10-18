@@ -168,9 +168,9 @@ jobs:
           RUSTFLAGS: -Cprofile-generate=${{ runner.temp }}/pgo/raw -Clto=thin
           CFLAGS: ${{ runner.os == 'macOS' && '-fno-profile-generate' || '' }}
           CARGO_TARGET_DIR: ${{ runner.temp }}/pgo/target
-        # tsrs-test embeds libraries, Go supplies the example's VFS, and the CLI uses disk libraries.
+        # tsrs-test embeds libraries, Go supplies the task server's VFS, and the CLI uses disk libraries.
         # Build together so their compiler symbols match for PGO.
-        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+        run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
       - name: Training run
         shell: bash
         env:
@@ -197,7 +197,7 @@ jobs:
           CFLAGS: ${{ runner.os == 'macOS' && '-fno-profile-use' || '' }}
         run: |
           targets=(-p tsrs_cli)
-          [ "$RUNNER_OS" = Linux ] && targets+=(-p tsrs_testrunner --bins --example fourslash_server)
+          [ "$RUNNER_OS" = Linux ] && targets+=(-p tsrs_testrunner -p tsrs_fourslash_server --bins)
           cargo build --release --locked "${targets[@]}" --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
       # BOLT from the LLVM release that matches rustc's LLVM. The tarball's tools need glibc 2.34 (22.04 has 2.35).
       - name: Install BOLT

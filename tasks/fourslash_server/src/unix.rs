@@ -9,7 +9,6 @@ use tsrs_core::context::Context;
 use tsrs_core::json::{self, Value};
 use tsrs_vfs::{Entries, FS, FileInfo, FileMode};
 
-#[path = "state.rs"]
 mod state;
 
 struct RemoteFS {

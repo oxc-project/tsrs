@@ -112,7 +112,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference", type=Path, default=ROOT / "ts-ref", help="Git checkout containing the pinned TypeScript commit (read only)")
     parser.add_argument("--work", type=Path, default=ROOT / "target/go-fourslash", help="isolated reference snapshot, Go cache, and overlay directory")
-    parser.add_argument("--server", type=Path, help="prebuilt fourslash_server example; otherwise build it")
+    parser.add_argument("--server", type=Path, help="prebuilt fourslash_server binary; otherwise build it")
     parser.add_argument("go_args", nargs=argparse.REMAINDER, help="go test flags after -- (default: full suite)")
     args = parser.parse_args()
     work = args.work.resolve()
@@ -123,8 +123,8 @@ def main():
         server = args.server.resolve()
     else:
         env["CARGO_TARGET_DIR"] = str(work / "cargo")
-        subprocess.run(["cargo", "build", "--profile", "dev", "-p", "tsrs_cli", "--example", "fourslash_server"], cwd=ROOT, env=env, check=True)
-        server = work / "cargo/debug/examples/fourslash_server"
+        subprocess.run(["cargo", "build", "--profile", "dev", "-p", "tsrs_fourslash_server"], cwd=ROOT, env=env, check=True)
+        server = work / "cargo/debug/fourslash_server"
     if not server.is_file():
         parser.error(f"server does not exist: {server}")
     env["TSRS_FOURSLASH_SERVER"] = str(server)

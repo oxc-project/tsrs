@@ -94,7 +94,7 @@ jobs:
           # Keep profile settings identical between builds so PGO matches their symbol names.
           export CARGO_PROFILE_RELEASE_STRIP=none
           RUSTFLAGS="-Cprofile-generate=$work/raw -Clto=thin" \
-            cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --example fourslash_server --target "$target"
+            cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins --target "$target"
           .github/scripts/pgo-train.sh "target/$target/release" "$work/raw" bench/.work
 
           profdata="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/^host: //p')/bin/llvm-profdata"

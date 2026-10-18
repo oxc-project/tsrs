@@ -74,6 +74,11 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 | `compiler` (program reuse, pluggable checker pool) | `tsrs_compiler` | `UpdateProgram` / `ReuseProgram`, `ProgramOptions.CreateCheckerPool`, the `CheckerPool` interface |
 | `cmd/tsc/lsp.go` | `tsrs_cli` (`lsp.rs`) | `tsrs --lsp -stdio` |
 
+An experimental [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
+and assertions and drives the Rust language server over stdio. It uses a test-only server entry point and a
+filesystem bridge; internal project-state baselines and Go content-mapper callbacks are not covered. The
+translated Rust suite remains the default and supplies the compatibility counts above.
+
 ## Protocol types and JSON
 
 Go generates `lsp_generated.go` from the LSP meta model with `generate.mts`; tsrs generates `lsp_generated.rs` the same

@@ -72,6 +72,7 @@ def prepare(reference, work):
     c.Server.SetCompilerOptionsForInferredProjects(c.ctx, options)""")
     overlay(client_path, client)
     overlay("internal/testutil/lsptestutil/tsrs_subprocess.go", (HERE / "subprocess.go").read_text())
+    overlay("internal/testutil/lsptestutil/tsrs_subprocess_test.go", (HERE / "subprocess_test.go").read_text())
     overlay("internal/testutil/lsptestutil/tsrs_worker.go", (HERE / "worker.go").read_text())
     main_path = "internal/fourslash/tests/testmain_test.go"
     main = (module / main_path).read_text()
@@ -208,6 +209,13 @@ def main():
     if not server.is_file():
         parser.error(f"server does not exist: {server}")
     env["TSRS_FOURSLASH_SERVER"] = str(server)
+    print("Checking subprocess bridge shutdown...", file=sys.stderr, flush=True)
+    bridge = subprocess.run(
+        ["go", "test", f"-overlay={manifest}", "./internal/testutil/lsptestutil", "-count=1"],
+        cwd=module, env=env, stdout=sys.stderr,
+    )
+    if bridge.returncode:
+        raise SystemExit(bridge.returncode)
     flags = args.go_args
     if flags[:1] == ["--"]:
         flags = flags[1:]

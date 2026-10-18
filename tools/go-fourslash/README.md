@@ -60,8 +60,9 @@ renames. Paths are not relocated or rewritten. Compiler options use the existing
 The task server selects Go checker-history mode for baseline compatibility, including its environment overrides.
 File reads send a JSON byte count followed by raw UTF-8, avoiding JSON escaping of library contents. Missing
 files remain distinct from empty files, and invalid UTF-8 uses the same replacement behavior as Go's JSON encoder.
-Cleanup sends LSP shutdown, closes state inspection, and waits for the worker's completion acknowledgement
-before reuse. Failed or timed-out workers are killed and discarded; `TestMain` reaps idle workers at suite exit.
+Cleanup sends LSP shutdown, half-closes state requests and drains the final response, then waits for the worker's
+completion acknowledgement before reuse. Failed or timed-out workers are killed and discarded; `TestMain` reaps
+idle workers at suite exit.
 
 ## Remaining scope
 
@@ -89,7 +90,8 @@ PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh
 
 The gate requires a completed, successful Go package result, zero failing tests, and at least **4,074 exercised
 groups**. It excludes parents whose subtests all skipped, including nested groups, so additional skips cannot
-silently reduce coverage. CI also runs the summary's regression checks. Go's build cache is shared with
+silently reduce coverage. The runner first checks bridge shutdown with a deliberately delayed response terminator;
+CI also runs the summary's regression checks. Go's build cache is shared with
 `actions/setup-go` through `GOCACHE` at `target/go-fourslash/go-cache`.
 
 On failure, CI uploads `results.jsonl`, `runner.log`, and baseline differences as the `go-fourslash-results`

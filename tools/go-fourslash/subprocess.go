@@ -29,7 +29,7 @@ type subprocessClient struct {
 	stateListener net.Listener
 	stateEncoder  *stdjson.Encoder
 	stateDecoder  *stdjson.Decoder
-	stateConn     net.Conn
+	stateConn     *net.UnixConn
 }
 
 func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerRequest ServerRequestHandler) (*LSPClient, func() error) {
@@ -129,7 +129,9 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 			select {
 			case <-state.ready:
 				closeErr = client.shutdownSubprocess()
-				state.stateConn.Close()
+				if err := state.closeState(); closeErr == nil {
+					closeErr = err
+				}
 			default:
 			}
 			lspConn.CloseWrite()
@@ -168,6 +170,17 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 		}
 	})
 	return client, closeClient
+}
+
+func (s *subprocessClient) closeState() error {
+	defer s.stateConn.Close()
+	// Decode can finish before Rust writes the response's trailing newline.
+	// Send request EOF, then drain the response so Rust can finish and close cleanly.
+	if err := s.stateConn.CloseWrite(); err != nil {
+		return err
+	}
+	_, err := io.Copy(io.Discard, s.stateConn)
+	return err
 }
 
 func (c *LSPClient) WaitForSubprocessInit(t *testing.T) {
@@ -258,7 +271,7 @@ func (s *subprocessClient) serveFS(ctx context.Context, conn net.Conn, opts lsp.
 			defer stateConn.Close()
 			stop := context.AfterFunc(ctx, func() { stateConn.Close() })
 			defer stop()
-			s.stateConn = stateConn
+			s.stateConn = stateConn.(*net.UnixConn)
 			s.stateEncoder, s.stateDecoder = stdjson.NewEncoder(stateConn), stdjson.NewDecoder(stateConn)
 			close(s.ready)
 		default:

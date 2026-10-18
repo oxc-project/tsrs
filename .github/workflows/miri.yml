@@ -1,0 +1,38 @@
+name: Miri
+
+permissions: {}
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  miri:
+    name: Miri
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: nightly-2026-10-04
+          components: miri, rust-src
+
+      - name: Arena safety
+        env:
+          # Thread arenas intentionally retain their chunks until process exit.
+          MIRIFLAGS: -Zmiri-ignore-leaks
+        run: |
+          # Miri cannot model the compressed pointers' PROT_NONE reservation.
+          cargo +nightly-2026-10-04 miri test --locked -p tsrs_core --features plain-ptrs --lib arena::tests
+          # Require the known protected-borrow violation, not just any command failure.
+          if cargo +nightly-2026-10-04 miri test --locked -p tsrs_core --features plain-ptrs --lib \
+              arena::tests::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > target/miri-negative.log 2>&1; then
+            cat target/miri-negative.log
+            echo "::error::Miri accepted a free of a protected reference parameter"
+            exit 1
+          fi
+          cat target/miri-negative.log
+          grep -q 'error: Undefined Behavior:.*strongly protected' target/miri-negative.log

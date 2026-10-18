@@ -6,8 +6,6 @@ on:
     paths:
       - bench/projects.json
       - .github/workflows/update-benchmarks.yml
-      - .github/scripts/build-benchmark.sh
-      - .github/scripts/benchmark-pr.py
   workflow_dispatch:
 
 concurrency:
@@ -86,7 +84,48 @@ jobs:
           key: bench-training-${{ runner.os }}-${{ steps.plan.outputs['xstate-main'] }}-${{ steps.plan.outputs.webpack }}
 
       - name: Build benchmark compilers
-        run: bash .github/scripts/build-benchmark.sh
+        run: |
+          # Build the same PGO + BOLT tsrs binary used by releases, and share one Bun canary across all measuring jobs.
+          set -euo pipefail
+
+          target=x86_64-unknown-linux-gnu
+          work="$RUNNER_TEMP/benchmark-build"
+          mkdir -p "$work/raw" "$work/dist" "$work/llvm"
+          rustup target add "$target"
+          python3 bench/run.py --setup-only --projects xstate-main,webpack
+
+          # Keep profile settings identical between builds so PGO matches their symbol names.
+          export CARGO_PROFILE_RELEASE_STRIP=none
+          RUSTFLAGS="-Cprofile-generate=$work/raw -Clto=thin" \
+            cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash --target "$target"
+          .github/scripts/pgo-train.sh "target/$target/release" "$work/raw" bench/.work
+
+          profdata="$(rustc --print sysroot)/lib/rustlib/$(rustc -vV | sed -n 's/^host: //p')/bin/llvm-profdata"
+          "$profdata" merge -o "$work/merged.profdata" "$work"/raw/*.profraw
+          sum=$(shasum -a 256 "$work/merged.profdata" | cut -c1-16)
+          mv "$work/merged.profdata" "$work/$sum.profdata"
+          RUSTFLAGS="-Cprofile-use=$work/$sum.profdata -Clink-arg=-Wl,--emit-relocs" CARGO_TARGET_DIR="$work/target" \
+            cargo build --release --locked -p tsrs_cli --target "$target"
+
+          llvm=$(rustc -vV | sed -n 's/^LLVM version: //p')
+          name="LLVM-$llvm-Linux-X64"
+          curl -fsSL --retry 3 --retry-all-errors \
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-$llvm/$name.tar.zst" -o "$work/llvm.tar.zst"
+          tar -xf "$work/llvm.tar.zst" --zstd -C "$work/llvm" --strip-components=1 --wildcards \
+            "$name/bin/llvm-bolt" "$name/bin/merge-fdata" "$name/lib/libbolt_rt_instr.a"
+          PATH="$work/llvm/bin:$PATH" BOLT_TSRS_ONLY=1 \
+            .github/scripts/bolt.sh "$work/target/$target/release" "$work/bolt" bench/.work
+
+          cp "$work/target/$target/release/tsrs" "$work/dist/tsrs"
+          rustc -V > "$work/dist/rustc.txt"
+          curl -fsSL --retry 3 --retry-all-errors \
+            https://github.com/oven-sh/bun/releases/download/canary/bun-linux-x64.zip -o "$work/bun.zip"
+          unzip -oq "$work/bun.zip" -d "$work"
+          cp "$work/bun-linux-x64/bun" "$work/dist/bun"
+          "$work/dist/tsrs" --version
+          "$work/dist/bun" --revision
+          "$work/dist/bun" check --help > /dev/null
+          sha256sum "$work/dist/tsrs" "$work/dist/bun"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -214,4 +253,74 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: python3 .github/scripts/benchmark-pr.py "$RUNNER_TEMP"/bench-merged/*.json
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+
+          ROOT = Path.cwd()
+
+
+          def command(*args: str, input: str | None = None) -> str:
+              return subprocess.check_output(args, cwd=ROOT, input=input, text=True).strip()
+
+
+          def api(endpoint: str, payload: dict) -> dict:
+              return json.loads(command("gh", "api", "--method", "POST", f"repos/{os.environ['GH_REPO']}/{endpoint}",
+                                        "--input", "-", input=json.dumps(payload)))
+
+
+          def main(result_path: Path) -> None:
+              result_path = result_path.resolve()
+              result = json.loads(result_path.read_text())
+              measured = command("git", "rev-parse", "--verify", f"{result['tsrs']['commit']}^{{commit}}")
+              command("git", "fetch", "-q", "origin", "main")
+              on_main = subprocess.run(["git", "merge-base", "--is-ancestor", measured, "origin/main"], cwd=ROOT).returncode == 0
+              if result["tsrs"]["dirty"] or not on_main:
+                  print("Keeping results as an artifact: the measured commit is not a clean commit on main.")
+                  return
+
+              command("git", "checkout", "-q", "-f", "-B", "main", "origin/main")
+              destination = ROOT / "bench/results"
+              destination.mkdir(parents=True, exist_ok=True)
+              for path in (result_path, result_path.with_suffix(".md")):
+                  shutil.copyfile(path, destination / path.name)
+              subprocess.run([sys.executable, str(ROOT / "bench/publish.py"), str(result_path)], cwd=ROOT, check=True)
+              command("git", "add", "bench/RESULTS.md", "bench/large-projects*.svg", "bench/per-project-*.svg")
+              command("git", "add", "-f", *(str(destination / name) for name in (result_path.name, result_path.with_suffix(".md").name)))
+              if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT).returncode == 0:
+                  return
+
+              command("gh", "auth", "setup-git")
+              branch = f"bench/results-{measured}"
+              title = f"chore(bench): update results for {measured[:12]}"
+              previous = command("git", "ls-remote", "--heads", "origin", f"refs/heads/{branch}").split("\t")[0]
+              paths = command("git", "diff", "--cached", "--name-only", "-z").split("\0")
+              # Read staged contents without trimming whitespace; GitHub supplies commit attribution from the app token.
+              entries = [{"path": path, "mode": "100644", "type": "blob",
+                          "content": subprocess.check_output(["git", "show", f":{path}"], cwd=ROOT, text=True)}
+                         for path in paths if path]
+              tree = api("git/trees", {"base_tree": command("git", "rev-parse", "HEAD^{tree}"), "tree": entries})
+              commit = api("git/commits", {"message": title, "tree": tree["sha"],
+                                           "parents": [command("git", "rev-parse", "HEAD")]})["sha"]
+              command("git", "fetch", "-q", "origin", commit)
+              command("git", "push", f"--force-with-lease=refs/heads/{branch}:{previous}", "origin", f"{commit}:refs/heads/{branch}")
+
+              prs = json.loads(command("gh", "pr", "list", "--base", "main", "--head", branch, "--state", "open", "--json", "number"))
+              body = (f"Regenerate benchmark reports and README charts for `{measured[:12]}` "
+                      f"against TypeScript `{result['tsgo']['version']}`.\n\n[Benchmark run]({os.environ['RUN_URL']}).\n")
+              with tempfile.NamedTemporaryFile(mode="w", suffix=".md") as description:
+                  description.write(body)
+                  description.flush()
+                  args = ["edit", str(prs[0]["number"])] if prs else ["create", "--draft", "--base", "main", "--head", branch]
+                  print(command("gh", "pr", *args, "--title", title, "--body-file", description.name))
+
+
+          if __name__ == "__main__":
+              result_path, = (Path(os.environ["RUNNER_TEMP"]) / "bench-merged").glob("*.json")
+              main(result_path)

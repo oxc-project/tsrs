@@ -1,6 +1,5 @@
 # GitHub Actions benchmark: tsrs against tsgo and Bun on the projects in bench/projects.json.
-# Opens a PR for bench/RESULTS.md and the README charts; see bench/README.md.
-# Uses the same APP_ID and APP_PRIVATE_KEY secrets as triage.yml (Contents and Pull requests write access).
+# Publishes bench/RESULTS.md and the README charts; see bench/README.md.
 #
 # Five jobs (bench/README.md "CI"): `build` makes the PGO dist binary once; `measure` is one job per project of
 # bench/projects.json, each on its own machine of the fixed spec, so the projects are measured at the same time
@@ -9,24 +8,20 @@
 # `--checkers` 4, 8 and 16 (the README chart's points) on standard GitHub-hosted machines, two jobs with half the projects each, with
 # `bun check` as a third column; `measure-watch` measures --watch on vscode
 # (bench/watch.py); `merge` joins the partial results into one result file (bench/run.py --merge), flags regressions and
-# opens a results PR.
+# commits.
 #
-# Renovate updates the TypeScript nightly in bench/projects.json. After it lands, refresh the README charts.
+# Automatic CPU and memory measurements are temporarily paused because they are not working.
+# Keep manual dispatch available until measurements are working again.
 
 name: Bench
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - bench/projects.json
-      - .github/workflows/bench.yml
   workflow_dispatch:
     inputs:
       commit:
         description: >-
           commit to measure instead of the ref's head (backfill: a commit whose bench was skipped or cancelled);
-          its results are proposed in a PR and the tables/chart update only if no newer commit's report is there
+          its results file is committed and the tables/chart update only if no newer commit's report is there
         default: ""
 
 # One bench per measured commit, never cancelled: a dispatch for another commit starts its own run (the
@@ -34,7 +29,7 @@ on:
 # same commit replaces a queued twin. Until 2026-10-07 the group was shared and a push replaced the queued bench, so
 # bursts of merges left most commits without a results file (25 of 48 non-skip commits on 2026-10-06/07) and the
 # regression flag could only name "one of N merges". The results commit and the summary table handle overlapping
-# runs: see the "Prepare results" step. Each measured commit has its own PR branch, reused on reruns.
+# runs: see the "Commit results" step.
 concurrency:
   group: bench-${{ inputs.commit || github.sha }} # the measured commit, so backfills of different commits run side by side
   cancel-in-progress: false
@@ -56,7 +51,7 @@ jobs:
   # up here (bench/.work). The measuring jobs get the binary as the `tsrs-pgo-dist` artifact, with the `rustc -V` that
   # built it (results record the compiler; bench/regressions.py reads it).
   build:
-    # Honor explicit CI skip markers (null on workflow_dispatch, which then runs).
+    # Second loop guard: the results commit says [skip ci] (null on workflow_dispatch, which then runs).
     if: github.repository == 'oxc-project/tsrs' && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-24.04
     timeout-minutes: 180
@@ -680,19 +675,23 @@ jobs:
           if-no-files-found: ignore
 
   # Joins the per-project results into bench/results/<date>-<commit>.{json,md} and the summary table, flags
-  # regressions, and opens a PR. Runs only when every fixed-spec measuring job succeeded: the regression flag reads them.
+  # regressions, and commits. Runs only when every fixed-spec measuring job succeeded: the regression flag reads them.
   # bench/RESULTS.md shows the Bun comparison modes (`wide` and `--checkers` 4, 8 and 16, with bun check);
   # bench/results/<...>.md has every mode. The results commit also draws bench/large-projects.svg and its dark-theme
-  # twin. Both wide jobs must succeed so every project's chart measurements are present.
+  # twin. If either wide job failed or was cancelled, the results file has the Bun comparison sections of the other one only,
+  # and the summary tables and chart are left as they were (bench/publish.py needs every project's Bun comparison cells).
   merge:
     needs: [build, measure, measure-wide, measure-watch]
-    if: ${{ !cancelled() && needs.build.result == 'success' && needs.measure.result == 'success' && needs.measure-wide.result == 'success' }}
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.measure.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: write # pushes the results commit
+      pull-requests: write # comments on pull requests that regress instruction counts (bench/regressions.py)
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          fetch-depth: 0 # full history: regressions.py lists the merges since the previous run; the results PR starts from the latest main
+          fetch-depth: 0 # full history: regressions.py lists the merges since the previous run; the results commit goes on the latest main
           persist-credentials: false
 
       - name: Download the per-project results
@@ -706,7 +705,6 @@ jobs:
           echo "ref=$GITHUB_REF event=$GITHUB_EVENT_NAME sha=$GITHUB_SHA"
           ls -R /tmp/bench-partials
           python3 bench/run.py --merge /tmp/bench-partials/*/*.json --out-dir /tmp/bench-merged
-          mkdir -p bench/results
           cp /tmp/bench-merged/* bench/results/
 
       - name: Upload the merged result
@@ -715,8 +713,8 @@ jobs:
           name: bench-result
           path: /tmp/bench-merged
 
-      # Only a bench of a commit on main, measured without local changes, gets a results PR.
-      # A dispatch from a branch (`gh workflow run bench.yml --ref <branch>`) ends with the
+      # Only a bench of a commit on main, measured without local changes, is published (the results commit and the
+      # regression comments). A dispatch from a branch (`gh workflow run bench.yml --ref <branch>`) ends with the
       # `bench-result` artifact when the measured commit is not on main.
       - name: Decide whether to publish
         id: publish
@@ -731,7 +729,7 @@ jobs:
           fi
 
       # Flag only (bench/README.md "Regression flag"): compares tsrs instruction counts and peak memory with the previous
-      # run and prints regressions in the job log. Never fails the job.
+      # run and, on a regression, comments on the pull requests merged in between. Never fails the job.
       - name: Flag bench regressions
         continue-on-error: true
         env:
@@ -739,75 +737,31 @@ jobs:
         # This run's result (copied into bench/results by "Merge results"), not the newest file by date: runs of
         # different commits overlap and finish in any order. regressions.py compares it with the nearest earlier
         # benchmarked ancestor of its commit.
-        run: python3 bench/regressions.py "bench/results/$(basename /tmp/bench-merged/*.json)"
+        run: python3 bench/regressions.py "bench/results/$(basename /tmp/bench-merged/*.json)" ${{ steps.publish.outputs.publish == 'true' && '--comment' || '' }}
 
-      - name: Prepare results
-        id: results
+      - name: Commit results
         if: steps.publish.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          gh auth setup-git
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # The measured commit: the ref's head on a push, the `commit` input on a backfill dispatch.
           measured=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["tsrs"]["commit"])' /tmp/bench-merged/*.json)
           measured=$(git rev-parse --verify "$measured^{commit}")
-          echo "commit=$measured" >> "$GITHUB_OUTPUT"
-          echo "typescript=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["tsgo"]["version"])' /tmp/bench-merged/*.json)" >> "$GITHUB_OUTPUT"
-          # Render against current main so older backfills preserve a newer published report and chart.
-          git fetch -q origin main
-          git checkout -q -f -B main origin/main
-          mkdir -p bench/results
-          cp /tmp/bench-merged/* bench/results/
-          python3 bench/publish.py /tmp/bench-merged/*.json
-          git add bench/RESULTS.md bench/large-projects.svg bench/large-projects-dark.svg bench/per-project-*.svg
-          # Raw results are ignored for local runs, but must accompany the charts in the PR.
-          git add -f bench/results/*.json bench/results/*.md
-
-      - name: Create GitHub App token
-        if: steps.publish.outputs.publish == 'true'
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        id: app-token
-        with:
-          client-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Create results PR
-        if: steps.publish.outputs.publish == 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          GH_REPO: ${{ github.repository }}
-          MEASURED_COMMIT: ${{ steps.results.outputs.commit }}
-          TYPESCRIPT_VERSION: ${{ steps.results.outputs.typescript }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          git diff --cached --quiet && exit 0
-          gh auth setup-git
-          branch="bench/results-$MEASURED_COMMIT"
-          title="chore(bench): update results for ${MEASURED_COMMIT::12}"
-          # Reruns replace only this measured commit's results branch, guarded by its current remote SHA.
-          previous=$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)
-          # Let GitHub attribute the commit to the authenticated app.
-          python3 - "$RUNNER_TEMP/bench-tree.json" <<'PY'
-          import json, subprocess, sys
-          def git(*args):
-              return subprocess.check_output(["git", *args], text=True)
-          paths = git("diff", "--cached", "--name-only", "-z").split("\0")
-          tree = [{"path": path, "mode": "100644", "type": "blob", "content": git("show", f":{path}")}
-                  for path in paths if path]
-          with open(sys.argv[1], "w") as out:
-              json.dump({"base_tree": git("rev-parse", "HEAD^{tree}").strip(), "tree": tree}, out)
-          PY
-          tree=$(gh api --method POST "repos/$GH_REPO/git/trees" --input "$RUNNER_TEMP/bench-tree.json" --jq .sha)
-          commit=$(gh api --method POST "repos/$GH_REPO/git/commits" \
-            -f message="$title" -f tree="$tree" -f "parents[]=$(git rev-parse HEAD)" --jq .sha)
-          git fetch -q origin "$commit"
-          git push --force-with-lease="refs/heads/$branch:$previous" origin "$commit:refs/heads/$branch"
-
-          body_file="$RUNNER_TEMP/bench-pr-body.md"
-          printf 'Regenerate benchmark reports and README charts for `%s` against TypeScript `%s`.\n\n[Benchmark run](%s).\n' \
-            "${MEASURED_COMMIT::12}" "$TYPESCRIPT_VERSION" "$RUN_URL" > "$body_file"
-          pr=$(gh pr list --base main --head "$branch" --state open --json number --jq '.[0].number // empty')
-          if [ -n "$pr" ]; then
-            gh pr edit "$pr" --title "$title" --body-file "$body_file"
-          else
-            gh pr create --base main --head "$branch" --title "$title" --body-file "$body_file"
-          fi
+          # The results commit is re-created on top of the latest main instead of rebased: bench/RESULTS.md can be edited
+          # while a bench runs, and rebasing the table commit over such edits conflicts.
+          for attempt in 1 2 3 4 5; do
+            git fetch -q origin main
+            git checkout -q -f -B main origin/main
+            cp /tmp/bench-merged/* bench/results/
+            # Render both the tables and SVG after fetching main on every retry. Older runs and missing wide
+            # results preserve the latest report and chart together.
+            python3 bench/publish.py /tmp/bench-merged/*.json
+            git add bench/RESULTS.md bench/large-projects.svg bench/large-projects-dark.svg bench/per-project-*.svg bench/results
+            git commit -q -m "bench: results for ${measured::12} [skip ci]"
+            git push -q origin HEAD:main && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1

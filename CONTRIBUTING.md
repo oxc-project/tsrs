@@ -83,9 +83,8 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
-- The benchmark workflow regenerates the README charts when `bench/projects.json` or its workflow changes on `main`,
-  or by manual dispatch, and opens a PR with the results. CodSpeed runs instruction benchmarks on pushes and pull requests.
-  CI has two independent Linux jobs with separate Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and unit tests, compiler conformance in
+- Only CI, autofix, release, security and triage workflows are active. CI has two independent Linux jobs with separate
+  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and unit tests, compiler conformance in
   both checker modes, and regressions. Source checks overlap Rust setup and Clippy in `lint`. In `test`, Node and
   Rust setup run in parallel, and the TypeScript fixture checkout overlaps Rust checks, with an explicit wait before tests.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.

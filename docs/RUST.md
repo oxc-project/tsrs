@@ -53,8 +53,8 @@ An upgrade is a pull request of its own:
 2. Fix what the new compiler rejects (CI sets Cargo's `build.warnings=deny`).
 3. Run the full Clippy command above on macOS and Linux and fix every new finding.
 4. Measure the instruction and peak-memory change per project before and after the upgrade and put it in the pull
-   request. Use the local tools or manually dispatch the published benchmark workflow (`bench/README.md`, "CI")
-   to collect the measurements (`bench/regressions.py` sees the rustc change and flags nothing).
+   request. The published benchmark workflow is disabled (`bench/README.md`, "CI"); use the local tools or restore the saved
+   workflow to collect the measurements (`bench/regressions.py` sees the rustc change and flags nothing).
 5. Release builds use the same version; run the `Release` workflow by hand (`dry_run` on) to check them.
 
 ## Source checks
@@ -153,7 +153,7 @@ In place:
 | Fx hashing everywhere | `notes/perf-checker-cpu2.md` | oxc, Rolldown, Ruff, rust-analyzer |
 | Lazy members, line maps and rare-field tails | `notes/lazy-members.md`, `notes/mem-lazy.md` | |
 | `#[cold]` slow-path splits | `notes/perf-parse.md` changes 6 to 8: parse instructions 16.66 G -> 15.07 G | oxc, Bun |
-| Instruction counts and peak memory, with regression reporting | `bench/README.md` "Regression flag": single-threaded tsrs repeats to about 0.001% (instructions) and under 0.4% (peak RSS); benchmark pin updates and manual dispatch run the measurements and log regressions | CodSpeed in oxc, Rolldown, Ruff, Biome, swc (simulated counts); Ruff's PR memory report |
+| Instruction counts and peak memory, with regression reporting (automation disabled) | `bench/README.md` "Regression flag": single-threaded tsrs repeats to about 0.001% (instructions) and under 0.4% (peak RSS); the local tools remain available, but the saved `.yml.bak` workflows do not measure commits or comment on PRs | CodSpeed in oxc, Rolldown, Ruff, Biome, swc (simulated counts); Ruff's PR memory report |
 | Generated-code freshness check | `tools/gen-check.sh` (the `generated-code` job is disabled in `.github/workflows/ci.yml.bak`) re-runs the eight generators and fails on a diff; it found two hand edits the generators no longer reproduced | oxc, Ruff, rust-analyzer |
 | Unused-dependency checks in CI | `.github/workflows/autofix.yml` runs cargo-shear, updates the lock file after fixes, and rejects pending fixes in merge groups | oxc, Rolldown, Ruff, rust-analyzer |
 | Differential parser fuzzing | `tools/fuzz/parser.py` mutates conformance files and compares the AST hashes of the Go and Rust oracles (`tools/oracle/ast`); the nightly 200,000-mutant workflow is disabled as [fuzz.yml.bak](../.github/workflows/fuzz.yml.bak), while the local tool remains available. First 320,000 mutants: no divergence, no crash (inputs kept valid UTF-8; invalid UTF-8 is read lossily on purpose) | Ruff (`cargo fuzz` on its parser) |

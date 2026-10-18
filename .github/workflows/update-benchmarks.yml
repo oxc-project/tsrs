@@ -246,74 +246,47 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        shell: python
+        shell: bash
         run: |
-          import json
-          import os
-          from pathlib import Path
-          import shutil
-          import subprocess
-          import sys
-          import tempfile
+          set -euo pipefail
+          results=("$RUNNER_TEMP"/bench-merged/*.json)
+          [ "${#results[@]}" -eq 1 ]
+          result="${results[0]}"
+          measured=$(git rev-parse --verify "$(jq -r '.tsrs.commit' "$result")^{commit}")
+          git fetch -q origin main
+          if ! jq -e '.tsrs.dirty == false' "$result" > /dev/null || ! git merge-base --is-ancestor "$measured" origin/main; then
+            echo "Keeping results as an artifact: the measured commit is not a clean commit on main."
+            exit 0
+          fi
 
-          ROOT = Path.cwd()
+          git checkout -q -f -B main origin/main
+          mkdir -p bench/results
+          cp "$result" "${result%.json}.md" bench/results/
+          python3 bench/publish.py "$result"
+          git add bench/RESULTS.md 'bench/large-projects*.svg' 'bench/per-project-*.svg'
+          git add -f "bench/results/$(basename "$result")" "bench/results/$(basename "${result%.json}.md")"
+          git diff --cached --quiet && exit 0
 
+          gh auth setup-git
+          branch="bench/results-$measured"
+          title="chore(bench): update results for ${measured:0:12}"
+          previous=$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)
+          # Create the commit through GitHub so the app token supplies its attribution.
+          while IFS= read -r -d '' path; do
+            git show ":$path" | jq -Rs --arg path "$path" '{path: $path, mode: "100644", type: "blob", content: .}'
+          done < <(git diff --cached --name-only -z) |
+            jq -s --arg base_tree "$(git rev-parse 'HEAD^{tree}')" '{base_tree: $base_tree, tree: .}' > "$RUNNER_TEMP/bench-tree.json"
+          tree=$(gh api --method POST "repos/$GH_REPO/git/trees" --input "$RUNNER_TEMP/bench-tree.json" --jq .sha)
+          commit=$(gh api "repos/$GH_REPO/git/commits" -f message="$title" -f tree="$tree" \
+            -f "parents[]=$(git rev-parse HEAD)" --jq .sha)
+          git fetch -q origin "$commit"
+          git push "--force-with-lease=refs/heads/$branch:$previous" origin "$commit:refs/heads/$branch"
 
-          def command(*args: str, input: str | None = None) -> str:
-              return subprocess.check_output(args, cwd=ROOT, input=input, text=True).strip()
-
-
-          def api(endpoint: str, payload: dict) -> dict:
-              return json.loads(command("gh", "api", "--method", "POST", f"repos/{os.environ['GH_REPO']}/{endpoint}",
-                                        "--input", "-", input=json.dumps(payload)))
-
-
-          def main(result_path: Path) -> None:
-              result_path = result_path.resolve()
-              result = json.loads(result_path.read_text())
-              measured = command("git", "rev-parse", "--verify", f"{result['tsrs']['commit']}^{{commit}}")
-              command("git", "fetch", "-q", "origin", "main")
-              on_main = subprocess.run(["git", "merge-base", "--is-ancestor", measured, "origin/main"], cwd=ROOT).returncode == 0
-              if result["tsrs"]["dirty"] or not on_main:
-                  print("Keeping results as an artifact: the measured commit is not a clean commit on main.")
-                  return
-
-              command("git", "checkout", "-q", "-f", "-B", "main", "origin/main")
-              destination = ROOT / "bench/results"
-              destination.mkdir(parents=True, exist_ok=True)
-              for path in (result_path, result_path.with_suffix(".md")):
-                  shutil.copyfile(path, destination / path.name)
-              subprocess.run([sys.executable, str(ROOT / "bench/publish.py"), str(result_path)], cwd=ROOT, check=True)
-              command("git", "add", "bench/RESULTS.md", "bench/large-projects*.svg", "bench/per-project-*.svg")
-              command("git", "add", "-f", *(str(destination / name) for name in (result_path.name, result_path.with_suffix(".md").name)))
-              if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT).returncode == 0:
-                  return
-
-              command("gh", "auth", "setup-git")
-              branch = f"bench/results-{measured}"
-              title = f"chore(bench): update results for {measured[:12]}"
-              previous = command("git", "ls-remote", "--heads", "origin", f"refs/heads/{branch}").split("\t")[0]
-              paths = command("git", "diff", "--cached", "--name-only", "-z").split("\0")
-              # Read staged contents without trimming whitespace; GitHub supplies commit attribution from the app token.
-              entries = [{"path": path, "mode": "100644", "type": "blob",
-                          "content": subprocess.check_output(["git", "show", f":{path}"], cwd=ROOT, text=True)}
-                         for path in paths if path]
-              tree = api("git/trees", {"base_tree": command("git", "rev-parse", "HEAD^{tree}"), "tree": entries})
-              commit = api("git/commits", {"message": title, "tree": tree["sha"],
-                                           "parents": [command("git", "rev-parse", "HEAD")]})["sha"]
-              command("git", "fetch", "-q", "origin", commit)
-              command("git", "push", f"--force-with-lease=refs/heads/{branch}:{previous}", "origin", f"{commit}:refs/heads/{branch}")
-
-              prs = json.loads(command("gh", "pr", "list", "--base", "main", "--head", branch, "--state", "open", "--json", "number"))
-              body = (f"Regenerate benchmark reports and README charts for `{measured[:12]}` "
-                      f"against TypeScript `{result['tsgo']['version']}`.\n\n[Benchmark run]({os.environ['RUN_URL']}).\n")
-              with tempfile.NamedTemporaryFile(mode="w", suffix=".md") as description:
-                  description.write(body)
-                  description.flush()
-                  args = ["edit", str(prs[0]["number"])] if prs else ["create", "--draft", "--base", "main", "--head", branch]
-                  print(command("gh", "pr", *args, "--title", title, "--body-file", description.name))
-
-
-          if __name__ == "__main__":
-              result_path, = (Path(os.environ["RUNNER_TEMP"]) / "bench-merged").glob("*.json")
-              main(result_path)
+          printf 'Regenerate benchmark reports and README charts for `%s` against TypeScript `%s`.\n\n[Benchmark run](%s).\n' \
+            "${measured:0:12}" "$(jq -r '.tsgo.version' "$result")" "$RUN_URL" > "$RUNNER_TEMP/bench-pr.md"
+          pr=$(gh pr list --base main --head "$branch" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
+          else
+            gh pr create --draft --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
+          fi

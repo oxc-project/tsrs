@@ -31,7 +31,7 @@
 	},
 	"devDependencies": {
 		"@types/msgpack-lite": "^0.1.12",
-		"msgpack-lite": "^0.1.26"
+		"msgpack-lite": "^0.2.0"
 	},
 	"scripts": {
 		"prepublishOnly": "echo \"⛔ Can only publish from a secure pipeline ⛔\" && node ../build/npm/fail",

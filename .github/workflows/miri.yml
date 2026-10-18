@@ -14,8 +14,6 @@ jobs:
     timeout-minutes: 10
     env:
       RUSTUP_TOOLCHAIN: nightly-2026-10-04
-      # Keep the sysroot outside target/, which rust-cache prunes before saving.
-      MIRI_SYSROOT: ${{ runner.temp }}/miri/sysroot
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -28,6 +26,8 @@ jobs:
 
       - name: Arena safety
         env:
+          # Keep the sysroot outside target/, which rust-cache prunes before saving.
+          MIRI_SYSROOT: ${{ runner.temp }}/miri/sysroot
           # Thread arenas intentionally retain their chunks until process exit.
           MIRIFLAGS: -Zmiri-ignore-leaks
         run: |

@@ -682,7 +682,10 @@ impl BuildTask {
         compile_times.config_time =
             host.config_times.lock().unwrap().get(path).copied().unwrap_or_default();
         let sys = orchestrator.opts.sys;
-        let build_info_read_start = sys.now();
+        let build_info_read_start = tsc::DiagnosticTimer::new(
+            sys,
+            self.resolved().compiler_options().unwrap().diagnostics_enabled(),
+        );
         let (content_mapper_project, err) = self.get_content_mapper_project(orchestrator);
         if let Some(err) = err {
             self.report_diagnostic(tsrs_compiler::content_mapper_project_diagnostic(&err));
@@ -720,8 +723,11 @@ impl BuildTask {
                 ),
             };
         }
-        compile_times.build_info_read_time = sys.now() - build_info_read_start;
-        let parse_start = sys.now();
+        compile_times.build_info_read_time = build_info_read_start.elapsed();
+        let parse_start = tsc::DiagnosticTimer::new(
+            sys,
+            self.resolved().compiler_options().unwrap().diagnostics_enabled(),
+        );
         let reused = previous
             .and_then(|previous| self.reuse_watch_program(orchestrator, previous, &compiler_host));
         let mut regions = None;
@@ -745,8 +751,11 @@ impl BuildTask {
             // and later cycles reuse the parsed files (host.rs `get_watch_source_file`).
             program.bind_source_files();
         }
-        compile_times.parse_time = sys.now() - parse_start;
-        let changes_compute_start = sys.now();
+        compile_times.parse_time = parse_start.elapsed();
+        let changes_compute_start = tsc::DiagnosticTimer::new(
+            sys,
+            self.resolved().compiler_options().unwrap().diagnostics_enabled(),
+        );
         // The harness reads the old snapshot's diagnostics, which the new one shares (`copy_diagnostics`).
         let snapshot_diagnostics =
             (watch && orchestrator.opts.testing.is_none()).then(|| Region::new_scratch(64 << 10));
@@ -778,7 +787,7 @@ impl BuildTask {
             }
         }
         self.result.lock().unwrap().as_mut().unwrap().program = Some(incremental_program);
-        compile_times.changes_compute_time = sys.now() - changes_compute_start;
+        compile_times.changes_compute_time = changes_compute_start.elapsed();
         if watch {
             // After the incremental program is made: its snapshot reads the program it replaces.
             self.replace_watch_program(

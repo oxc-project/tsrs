@@ -787,7 +787,8 @@ impl checkerPool {
             let recycle = program.checker_recycling && !self.single_threaded && max_memory() > 0;
             let shared = crate::sharedgraph::enabled() && !program.single_threaded();
             let create_and_assign = || {
-                let create_start = std::time::Instant::now();
+                let create_start =
+                    tsrs_core::phases::Timer::new(program.options().diagnostics_enabled());
                 tsrs_checker::links::set_multiple_checkers(self.checker_count > 1);
                 let slots: Vec<Mutex<Option<CheckerSlot>>> =
                     std::iter::repeat_with(|| Mutex::new(None)).take(self.checker_count).collect();
@@ -807,12 +808,14 @@ impl checkerPool {
                         .collect::<Vec<_>>()
                         .into_boxed_slice(),
                 );
-                tsrs_core::phases::record("Checkers: create", create_start.elapsed());
+                create_start.record("Checkers: create");
                 let associations = match &self.inherited_associations {
                     Some(associations) => associations.clone(),
-                    None => tsrs_core::phases::time("Checkers: assign files", || {
-                        compute_associations(program, self.checker_count)
-                    }),
+                    None => tsrs_core::phases::time(
+                        program.options().diagnostics_enabled(),
+                        "Checkers: assign files",
+                        || compute_associations(program, self.checker_count),
+                    ),
                 };
                 (checkers, associations)
             };
@@ -1133,8 +1136,9 @@ impl checkerPool {
             }
         };
         run_work_group(single, active.len(), |k| run(active[k]));
-        if allow_steal && state.recycle {
+        if allow_steal && state.recycle && self.program.options().diagnostics_enabled() {
             tsrs_core::phases::count(
+                true,
                 "Checkers: retired",
                 state.retired.lock().unwrap().count as u64,
             );

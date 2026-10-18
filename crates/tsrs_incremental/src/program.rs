@@ -70,7 +70,7 @@ pub fn new_program(
         program: Some(program),
         host: Some(host),
         testing_data,
-        nested_emit_now,
+        nested_emit_now: nested_emit_now.filter(|_| program.options().diagnostics_enabled()),
         nested_emit: Mutex::new(nestedEmitState::default()),
     })
 }
@@ -157,6 +157,9 @@ impl Program {
 
     // program.go:105
     pub fn take_nested_emit_time(&self) -> Duration {
+        if self.nested_emit_now.is_none() {
+            return Duration::ZERO;
+        }
         let mut state = self.nested_emit.lock().unwrap();
         std::mem::take(&mut state.time)
     }
@@ -481,9 +484,13 @@ impl Program {
             return None;
         }
         if self.snapshot.has_errors.get() == Tristate::Unknown {
-            tsrs_core::phases::time("BuildInfo: has errors", || {
-                self.ensure_has_errors_for_state(ctx, program);
-            });
+            tsrs_core::phases::time(
+                program.options().diagnostics_enabled(),
+                "BuildInfo: has errors",
+                || {
+                    self.ensure_has_errors_for_state(ctx, program);
+                },
+            );
             if self.snapshot.has_errors.get() != self.snapshot.has_errors_from_old_state.get()
                 || self.snapshot.has_semantic_errors.get()
                     != self.snapshot.has_semantic_errors_from_old_state.get()
@@ -492,9 +499,13 @@ impl Program {
             }
         }
         if self.snapshot.package_jsons.borrow().is_none() {
-            tsrs_core::phases::time("BuildInfo: package.jsons", || {
-                self.ensure_package_jsons_for_state();
-            });
+            tsrs_core::phases::time(
+                program.options().diagnostics_enabled(),
+                "BuildInfo: package.jsons",
+                || {
+                    self.ensure_package_jsons_for_state();
+                },
+            );
             if self.snapshot.package_jsons.borrow().as_deref().unwrap_or_default()
                 != self
                     .snapshot
@@ -519,9 +530,11 @@ impl Program {
         if ctx.err().is_some() {
             return None;
         }
-        let build_info = match tsrs_core::phases::time("BuildInfo: from snapshot", || {
-            snapshot_to_build_info(&self.snapshot, program, &build_info_file_name)
-        }) {
+        let build_info = match tsrs_core::phases::time(
+            program.options().diagnostics_enabled(),
+            "BuildInfo: from snapshot",
+            || snapshot_to_build_info(&self.snapshot, program, &build_info_file_name),
+        ) {
             Ok(build_info) => build_info,
             Err(err) => {
                 return Some(EmitResult {
@@ -531,8 +544,12 @@ impl Program {
                 });
             }
         };
-        let text = tsrs_core::phases::time("BuildInfo: marshal", || build_info.marshal());
-        let write_start = std::time::Instant::now();
+        let text = tsrs_core::phases::time(
+            program.options().diagnostics_enabled(),
+            "BuildInfo: marshal",
+            || build_info.marshal(),
+        );
+        let write_start = tsrs_core::phases::Timer::new(program.options().diagnostics_enabled());
         let err = match options.write_file {
             Some(write_file) => {
                 let mut data = WriteFileData {
@@ -543,7 +560,7 @@ impl Program {
             }
             None => program.host().fs().write_file(&build_info_file_name, &text),
         };
-        tsrs_core::phases::record("BuildInfo: write", write_start.elapsed());
+        write_start.record("BuildInfo: write");
         if let Err(err) = err {
             return Some(EmitResult {
                 emit_skipped: true,

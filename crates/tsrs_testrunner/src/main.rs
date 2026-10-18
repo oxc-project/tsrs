@@ -534,27 +534,13 @@ fn main() {
     }
     EXTRA_BASELINES.store(extra, std::sync::atomic::Ordering::Relaxed);
     match cmd.as_str() {
-        "run" => {
-            cmd_run(args);
-            if std::env::var_os("TSRS_LAZY_DTS").is_some_and(|v| v == "force") {
-                eprint!("{}", tsrs_ast::lazylist::stats_line());
-            }
-        }
+        "run" => cmd_run(args),
         "show" => cmd_show(args),
         "crashes" => cmd_crashes(args),
         "list" => cmd_list(args),
         "materialize" => cmd_materialize(args),
         "types-dump" => cmd_types_dump(args),
-        "__worker" => {
-            worker::worker_main();
-            if let Some(path) = std::env::var_os("TSRS_LAZY_DTS_STATS_FILE") {
-                use std::io::Write as _;
-                if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path)
-                {
-                    let _ = f.write_all(tsrs_ast::lazylist::stats_line().as_bytes());
-                }
-            }
-        }
+        "__worker" => worker::worker_main(),
         "-h" | "--help" | "help" => println!("{USAGE}"),
         _ => {
             eprintln!("unknown command {cmd}\n{USAGE}");

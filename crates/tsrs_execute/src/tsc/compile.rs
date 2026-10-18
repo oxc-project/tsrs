@@ -49,6 +49,22 @@ pub trait System: Sync {
     }
 }
 
+/// Uses the command's clock only when compilation statistics were requested.
+pub(crate) struct DiagnosticTimer<'a> {
+    sys: &'a dyn System,
+    start: Option<Instant>,
+}
+
+impl<'a> DiagnosticTimer<'a> {
+    pub(crate) fn new(sys: &'a dyn System, enabled: bool) -> Self {
+        Self { sys, start: enabled.then(|| sys.now()) }
+    }
+
+    pub(crate) fn elapsed(self) -> Duration {
+        self.start.map_or(Duration::ZERO, |start| self.sys.now() - start)
+    }
+}
+
 // compile.go:37
 fn new_content_mapper_logger(sys: &'static dyn System) -> Option<contentmapper::Logger> {
     if sys.get_environment_variable("TS_CONTENT_MAPPER_DEBUG").unwrap_or_default().is_empty() {

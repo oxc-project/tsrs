@@ -577,7 +577,9 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
     // Go initializes the checker pool before verifying options; the pool factory takes the program by
     // `&'static`, so here it runs after verification, once the program is leaked. Neither pool reads anything
     // verification writes (checkers are created lazily).
-    tsrs_core::phases::time("Program: verify options", || p.verify_compiler_options());
+    tsrs_core::phases::time(p.options().diagnostics_enabled(), "Program: verify options", || {
+        p.verify_compiler_options();
+    });
     p.collect_content_mapper_option_diagnostics();
     let p: &'static Program = Box::leak(Box::new(p));
     p.init_checker_pool(opts.create_checker_pool, None);
@@ -1453,9 +1455,11 @@ impl Program {
             None => {
                 // tsrs-only: the CLI's `--noEmit` check frees a leaf's tree and binder output once its diagnostics are
                 // collected (fileregions.rs).
-                let free_leaves = tsrs_core::phases::time("Checkers: leaf files", || {
-                    crate::fileregions::classify(self)
-                });
+                let free_leaves = tsrs_core::phases::time(
+                    self.options().diagnostics_enabled(),
+                    "Checkers: leaf files",
+                    || crate::fileregions::classify(self),
+                );
                 let collect = |ctx: &Context, c: &mut Checker, file: P<SourceFile>| {
                     let diagnostics = collect(ctx, c, file);
                     if free_leaves && file.is_check_leaf() {
@@ -3760,11 +3764,11 @@ pub fn get_diagnostics_of_any_program(
     };
 
     let mut syntactic_diagnostics = Vec::new();
-    let start = std::time::Instant::now();
+    let start = tsrs_core::phases::Timer::new(program.options().diagnostics_enabled());
     append_diagnostics_for_all_files(&mut syntactic_diagnostics, &mut |ctx, f| {
         program.get_syntactic_diagnostics(ctx, f)
     });
-    tsrs_core::phases::record("Diagnostics: syntactic", start.elapsed());
+    start.record("Diagnostics: syntactic");
     if !syntactic_diagnostics.is_empty() {
         // Per-file content mapper failures are syntactic diagnostics, but the locationless diagnostic
         // that disables a repeatedly failing mapper must still be reported.
@@ -3775,26 +3779,31 @@ pub fn get_diagnostics_of_any_program(
     // If we didn't have any syntactic errors, then also try getting the program (options),
     // global and semantic errors.
     if all_diagnostics.len() == config_file_parsing_diagnostics_length {
-        all_diagnostics.extend(tsrs_core::phases::time("Diagnostics: program", || {
-            program.get_program_diagnostics()
-        }));
+        all_diagnostics.extend(tsrs_core::phases::time(
+            program.options().diagnostics_enabled(),
+            "Diagnostics: program",
+            || program.get_program_diagnostics(),
+        ));
 
         // Do binding early so we can track the time.
         append_diagnostics_for_all_files(&mut Vec::new(), get_bind_diagnostics);
 
         if program.options().list_files_only.is_false_or_unknown() {
-            all_diagnostics.extend(tsrs_core::phases::time("Diagnostics: global (first)", || {
-                program.get_global_diagnostics(ctx)
-            }));
+            all_diagnostics.extend(tsrs_core::phases::time(
+                program.options().diagnostics_enabled(),
+                "Diagnostics: global (first)",
+                || program.get_global_diagnostics(ctx),
+            ));
 
             if all_diagnostics.len() == config_file_parsing_diagnostics_length {
                 append_diagnostics_for_all_files(&mut all_diagnostics, get_semantic_diagnostics);
                 // Incremental programs cache checking globals with file diagnostics;
                 // a late sweep would also collect incidental signature-generation globals.
-                all_diagnostics
-                    .extend(tsrs_core::phases::time("Diagnostics: global (after)", || {
-                        program.get_global_diagnostics(ctx)
-                    }));
+                all_diagnostics.extend(tsrs_core::phases::time(
+                    program.options().diagnostics_enabled(),
+                    "Diagnostics: global (after)",
+                    || program.get_global_diagnostics(ctx),
+                ));
                 crate::checkerpool::write_file_times(program);
             }
 

@@ -103,7 +103,7 @@ unsafe impl Send for Base {}
 unsafe impl Sync for Base {}
 
 /// What the seed thread hands over: the seed checker, its region's chunks (to freeze) and when it started.
-struct SeedOut(&'static tsrs_checker::Checker, Vec<(usize, usize)>, std::time::Instant);
+struct SeedOut(&'static tsrs_checker::Checker, Vec<(usize, usize)>, tsrs_core::phases::Timer);
 // SAFETY: the checker is handed from the seed thread, which ends, to the thread that freezes it; nothing else refers
 // to it until then.
 unsafe impl Send for SeedOut {}
@@ -122,7 +122,7 @@ pub(crate) fn note_fresh_checker(c: &crate::checkerpool::Checker) {
 /// Starts checking the seed files on a thread of its own (at the start of the type-check pass, once the leaves are
 /// classified, so that the leaf guard also keeps the seed from reading another leaf).
 pub(crate) fn start_seed(program: &'static Program, weights: Vec<i64>, recycle: bool) {
-    let start = std::time::Instant::now();
+    let start = tsrs_core::phases::Timer::new(program.options().diagnostics_enabled());
     let handle = std::thread::Builder::new()
         .name("checker-seed".into())
         .stack_size(crate::checkerpool::CHECKER_STACK_SIZE)
@@ -175,7 +175,7 @@ fn wait_base() -> Base {
             let chunks: Vec<String> = out.1.iter().map(|&(s, n)| format!("{s:x}+{n:x}")).collect();
             eprintln!("dbg-seed chunks={}", chunks.join(","));
         }
-        tsrs_core::phases::record("Checkers: seed", out.2.elapsed());
+        out.2.record("Checkers: seed");
         Base(out.0)
     })
 }

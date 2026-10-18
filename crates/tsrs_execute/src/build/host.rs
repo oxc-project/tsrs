@@ -221,7 +221,10 @@ impl CompilerHost for host {
             &path,
             |path| {
                 let o = self.o();
-                let config_start = o.opts.sys.now();
+                let config_start = crate::tsc::DiagnosticTimer::new(
+                    o.opts.sys,
+                    o.opts.command.compiler_options.diagnostics_enabled(),
+                );
                 // Wrap command line options in "compilerOptions" key to match tsconfig.json structure
                 let command_line_raw = match &o.opts.command.raw {
                     CompilerOptionsValue::Object(_) => {
@@ -241,7 +244,7 @@ impl CompilerHost for host {
                     this,
                     Some(&*extended_config_cache),
                 );
-                let config_time = o.opts.sys.now() - config_start;
+                let config_time = config_start.elapsed();
                 self.config_times.lock().unwrap().insert(path.clone(), config_time);
                 command_line.map(P::new)
             },

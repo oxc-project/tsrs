@@ -267,6 +267,13 @@ the type. Use one checker: with several, each checker's spans are merged and wal
 about 18% instructions; its span cost is calibrated and subtracted, but patterns made of many short spans (unions,
 relations, indexed access) still read a little high.
 
+## Compilation statistics
+
+Compilation timings are collected only when `--diagnostics` or `--extendedDiagnostics` is enabled. Config-read
+timing requires the flag on the command line, before the config is read. The report-only flow-memo, lazy-list,
+filesystem-call and reclaimed-page counters have been removed; their old statistics switches no longer report
+those counts.
+
 ## The flow memo and its shadow mode
 
 Control flow analysis keeps the result of a sub-walk (the type at a flow node for one reference) across walks
@@ -279,10 +286,6 @@ output. Environment switches, read once per process:
   panics with the reference, the flow node, and where the stored answer came from. Output equals `TSRS_FLOW_MEMO=0`.
   Run it over the suite (`TSRS_FLOW_MEMO=shadow tsrs-test run --suite all --baselines types,symbols --panic-summary`)
   and the corpora after any change to the checker that could affect what a flow walk reads.
-- `TSRS_FLOW_MEMO_STATS=1` with `--extendedDiagnostics`: one line per checker on stderr: walks, consults, answers
-  found / blocked (by an active loop analysis, the instantiation counters, another `flowTypeCache`, transient
-  `sharedFlows` values) / used, height misses (answers not used near the depth limit), stores, frames not stored and
-  why, walks redone after the depth limit (`aborts`), shadow checks.
 - `TSRS_FLOW_MEMO_BITS=<8..24>`: log2 of the table's slots (default 12, 32 bytes each).
 
 testdata/flow-memo holds the hazard cases (each with tsgo's output); `cargo test -p tsrs_cli --test flow_memo` runs
@@ -356,7 +359,7 @@ saved. Asking a program for one freed leaf's diagnostics after the pass panics (
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_FREE_LEAVES` | a comma list of: unset (free with at most 16 checkers), `1` (free at any count), `0`, `keep`, `stats`, `all` | `0`: no file regions (the layout before). `keep` (any count): file regions and the leaf marks, nothing freed (what the regions alone cost). `all` (any count): every TypeScript root file gets a region, not only the predicted ones (frees every leaf, but moves every tree out of the huge-page thread arenas: +6-9% wall time on vscode at 32 checkers on Linux against +2.5-5% predicted). `stats`: one line on stderr: the leaves freed and the ones the prediction missed (with their share of the leaves' nodes), the bytes their regions used, all file regions' bytes, the pages given back and in how many system calls, and the arena address space the run used. Example: `TSRS_FREE_LEAVES=all,stats` |
+| `TSRS_FREE_LEAVES` | a comma list of: unset (free with at most 16 checkers), `1` (free at any count), `0`, `keep`, `stats`, `all` | `0`: no file regions (the layout before). `keep` (any count): file regions and the leaf marks, nothing freed (what the regions alone cost). `all` (any count): every TypeScript root file gets a region, not only the predicted ones (frees every leaf, but moves every tree out of the huge-page thread arenas: +6-9% wall time on vscode at 32 checkers on Linux against +2.5-5% predicted). `stats`: one line on stderr: the leaves freed and the ones the prediction missed (with their share of the leaves' nodes), the bytes their regions used, all file regions' bytes, and the arena address space the run used. Example: `TSRS_FREE_LEAVES=all,stats` |
 
 After a change that reads a file after the check pass (a new report, a new whole-program loop in the checker, such as
 `getAlternativeContainingModules`'s), run a corpus with `TSRS_ARENA_POISON=1`: a freed region is then filled with
@@ -379,7 +382,7 @@ API and the test harnesses, and under `TSRS_CHECK_SHARED=1`.
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_LAZY_DTS` | unset (on when it applies), `0`/`off`, `stats`, `force` (`tsrs-test` only) | `stats`: one line on stderr: lists made lazy, deferred by the binder, never reached by it, parsed again (and how many while their file was bound). `force` in `tsrs-test`: every declaration file's lists are lazy, checked files included, so the checker and the `.types` / `.symbols` walks force them all: the result trees must equal a run without it (`TSRS_LAZY_DTS_STATS_FILE=<file>` collects the workers' counts) |
+| `TSRS_LAZY_DTS` | unset (on when it applies), `0`/`off`, `force` (`tsrs-test` only) | `force` in `tsrs-test`: every declaration file's lists are lazy, checked files included, so the checker and the `.types` / `.symbols` walks force them all: the result trees must equal a run without it |
 
 After a change to what the binder does for members of interfaces, classes or type literals, or to what a member list
 can contain, run the suite with `TSRS_LAZY_DTS=force` (also with `TS_TEST_PROGRAM_SINGLE_THREADED=false`) and a corpus

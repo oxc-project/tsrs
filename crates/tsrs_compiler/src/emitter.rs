@@ -549,7 +549,7 @@ mod emit {
                 ));
             }
 
-            let print_start = std::time::Instant::now();
+            let print_start = self.times.start();
             printer_.write(
                 source_file.as_node(),
                 Some(source_file),
@@ -560,7 +560,7 @@ mod emit {
 
             let mut source_map_url_pos = None;
             if let Some(source_map_generator) = &mut source_map_generator {
-                let source_map_start = std::time::Instant::now();
+                let source_map_start = self.times.start();
                 if map_options.source_map.is_true() || map_options.inline_source_map.is_true() {
                     self.emit_result.source_maps.push(SourceMapEmitResult {
                         input_source_file_names: source_map_generator.sources().to_vec(),

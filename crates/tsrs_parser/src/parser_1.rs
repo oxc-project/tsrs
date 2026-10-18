@@ -764,9 +764,6 @@ impl Parser {
         }
         if !self.lazy_lists.is_empty() {
             result.lazy_lists.set(alloc_slice(&self.lazy_lists));
-            // Relaxed: a statistics counter, read at exit.
-            tsrs_ast::lazylist::STATS[0]
-                .fetch_add(self.lazy_lists.len() as u64, std::sync::atomic::Ordering::Relaxed);
         }
         collect_external_module_references(result);
         if ast::is_in_js_file(Some(node)) {

@@ -28,12 +28,19 @@ impl BuildInfoReader for buildInfoReader {
         }
 
         // Read build info file
-        let data = tsrs_core::phases::time("BuildInfo read: read file", || {
-            self.host.fs().read_file(&build_info_file_name)
-        })?;
-        tsrs_core::phases::time("BuildInfo read: unmarshal", || {
-            BuildInfo::unmarshal_with_canonical_diagnostics(&data, self.canonical_diagnostics).ok()
-        })
+        let data = tsrs_core::phases::time(
+            config.compiler_options().unwrap().diagnostics_enabled(),
+            "BuildInfo read: read file",
+            || self.host.fs().read_file(&build_info_file_name),
+        )?;
+        tsrs_core::phases::time(
+            config.compiler_options().unwrap().diagnostics_enabled(),
+            "BuildInfo read: unmarshal",
+            || {
+                BuildInfo::unmarshal_with_canonical_diagnostics(&data, self.canonical_diagnostics)
+                    .ok()
+            },
+        )
     }
 }
 
@@ -77,7 +84,9 @@ pub fn read_build_info_program(
     }
 
     // Convert to information that can be used to create incremental program
-    Some(Program::new_from_snapshot(tsrs_core::phases::time("BuildInfo read: to snapshot", || {
-        build_info_to_snapshot(&build_info, &config, host)
-    })))
+    Some(Program::new_from_snapshot(tsrs_core::phases::time(
+        config.compiler_options().unwrap().diagnostics_enabled(),
+        "BuildInfo read: to snapshot",
+        || build_info_to_snapshot(&build_info, &config, host),
+    )))
 }

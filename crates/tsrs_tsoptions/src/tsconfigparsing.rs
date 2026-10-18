@@ -2941,17 +2941,21 @@ pub(crate) fn get_file_names_from_config_specs(
                 !tspath::ALL_SUPPORTED_EXTENSIONS_WITH_JSON.iter().any(|group| group.contains(ext))
             })
             .collect();
-        let files = tsrs_core::phases::time("Config: include glob", || {
-            vfsmatch::read_directory(
-                host,
-                &base_path,
-                &base_path,
-                &flat_extensions,
-                validated_exclude_specs,
-                validated_include_specs,
-                vfsmatch::UNLIMITED_DEPTH,
-            )
-        });
+        let files = tsrs_core::phases::time(
+            options.is_some_and(CompilerOptions::diagnostics_enabled),
+            "Config: include glob",
+            || {
+                vfsmatch::read_directory(
+                    host,
+                    &base_path,
+                    &base_path,
+                    &flat_extensions,
+                    validated_exclude_specs,
+                    validated_include_specs,
+                    vfsmatch::UNLIMITED_DEPTH,
+                )
+            },
+        );
         for file in files {
             if tspath::file_extension_is(&file, tspath::EXTENSION_JSON) {
                 let matchers = json_only_include_matchers.get_or_insert_with(|| {

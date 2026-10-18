@@ -175,7 +175,6 @@ impl Checker {
         let census_span = self.census_begin(crate::workcensus::Cat::Flow, || {
             crate::workcensus::CKey::OptNode(census_container)
         });
-        self.flow_memo.stats.walks += 1;
         if self.flow_memo.mode != FlowMemoMode::Off {
             self.flow_memo_key(f);
         }
@@ -185,7 +184,6 @@ impl Checker {
         if f.memo_aborted.get() {
             // The walk used memo results and then reached the depth limit. Go's walk computes those sub-walks and
             // keeps their shared nodes in sharedFlows, so it may not be this deep here: walk again without the memo.
-            self.flow_memo.stats.aborts += 1;
             self.shared_flows.truncate(f.shared_flow_start.get());
             f.memo_aborted.set(false);
             f.memo_used.set(false);
@@ -531,25 +529,21 @@ impl Checker {
     }
 
     fn flow_memo_lookup(
-        &mut self,
+        &self,
         f: P<FlowState>,
         flow: P<FlowNode>,
         key: u128,
         entry_depth: u32,
     ) -> Option<MemoHit> {
-        self.flow_memo.stats.consults += 1;
         let hit = self.flow_memo.lookup(flow, key)?;
         if !self.flow_memo_consult_ok(f, hit) {
-            self.flow_memo.stats.blocked += 1;
             return None;
         }
         // Go's walk of this sub-graph reaches at most `height` levels below here: it must not reach the limit, or Go
         // would report TS2563 inside it.
         if entry_depth + u32::from(hit.height) >= FLOW_DEPTH_LIMIT {
-            self.flow_memo.stats.height_misses += 1;
             return None;
         }
-        self.flow_memo.stats.hits += 1;
         Some(hit)
     }
 
@@ -571,11 +565,9 @@ impl Checker {
         self.flow_memo_shadow_settle(f, memo, entry_depth, t, taint);
         let key = memo.key;
         if !taint.is_pure() {
-            self.flow_memo.stats.tainted += 1;
             return;
         }
         if taint.flags & FLAG_EFFECTS != 0 {
-            self.flow_memo.stats.counters += 1;
             return;
         }
         if t.incomplete || self.flow_analysis_disabled {
@@ -605,7 +597,6 @@ impl Checker {
                 self.flow_memo.store(checkpoint, key, t, height, epoch, count_reset);
             }
         }
-        self.flow_memo.stats.fills += 1;
     }
 
     /// Shadow mode: checks the answers the memo had for this frame's nodes against what the frame computed.
@@ -635,7 +626,6 @@ impl Checker {
         taint: FrameTaint,
         shadow_hit: ShadowHit,
     ) {
-        self.flow_memo.stats.shadow_checks += 1;
         self.flow_memo_shadow_key_bytes(f);
         let ShadowHit { flow, hit, full_key, origin: (origin, origin_depth) } = shadow_hit;
         let same_key = full_key.as_deref() == Some(self.flow_memo.key_buf.as_slice());

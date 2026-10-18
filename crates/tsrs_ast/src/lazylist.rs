@@ -113,25 +113,6 @@ fn wait_stripe(record: &LazyNodeList) -> &'static (Mutex<()>, Condvar) {
     &WAIT[(std::ptr::from_ref(record).addr() >> 6) % WAIT.len()]
 }
 
-/// `TSRS_LAZY_DTS=stats`: lists made lazy, deferred by the binder, parsed again (all, and while their file was
-/// bound), never reached by the binder.
-pub static STATS: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
-
-pub fn note(i: usize) {
-    // Relaxed: a statistics counter, read once at exit.
-    STATS[i].fetch_add(1, Ordering::Relaxed);
-}
-
-/// One line for `TSRS_LAZY_DTS=stats`.
-pub fn stats_line() -> String {
-    // Relaxed: statistics counters, read at exit.
-    let v: Vec<u64> = STATS.iter().map(|c| c.load(Ordering::Relaxed)).collect();
-    format!(
-        "lazy-dts: {} lists lazy, {} deferred by the binder, {} never reached by it, {} parsed again ({} while their file was bound)\n",
-        v[0], v[1], v[4], v[2], v[3]
-    )
-}
-
 fn thread_token() -> u64 {
     thread_local! {
         static TOKEN: u8 = const { 0 };
@@ -197,7 +178,6 @@ impl LazyNodeList {
 
     /// Binder: the list was skipped in this state; the next reader parses and binds it.
     pub fn defer(&self, ctx: P<LazyBindContext>) {
-        note(1);
         self.bind.set(Some(ctx));
         // Release: publishes `bind` with the state (the program is also shared only after binding).
         self.state.store(DEFERRED, Ordering::Release);
@@ -207,7 +187,6 @@ impl LazyNodeList {
     pub fn mark_unbound(&self) {
         // Relaxed: this thread (the file's binder) made every earlier transition of a list still `PENDING`.
         if self.state.load(Ordering::Relaxed) == PENDING {
-            note(4);
             // Release: as in `defer`.
             self.state.store(UNBOUND, Ordering::Release);
         }
@@ -220,8 +199,6 @@ impl LazyNodeList {
     /// Binder (while the file is bound, in a state the record cannot replay): parse the list now; the caller binds it
     /// right where it is, as if it had never been lazy.
     pub fn parse_now(&self, file: P<SourceFile>) -> &'static [P<Node>] {
-        note(2);
-        note(3);
         let nodes = (PARSE_HOOK.get().expect("lazy list parse hook"))(self, file);
         self.nodes.set(nodes);
         // Release: pairs with the Acquire loads of readers (the program is also shared only after binding).
@@ -279,7 +256,6 @@ impl LazyNodeList {
     }
 
     fn force(&self, bind: bool) -> &'static [P<Node>] {
-        note(2);
         let file = crate::utilities_1::get_source_file_of_node(Some(self.owner()))
             .expect("a lazy list's file");
         // The reader may be inside a scratch region or another allocation scope: the tree is shared and permanent.
@@ -321,8 +297,6 @@ impl LazyNodeList {
         }
         // Relaxed: as in `force_nodes`.
         self.forcer.store(thread_token(), Ordering::Relaxed);
-        note(2);
-        note(3);
         let nodes = (PARSE_HOOK.get().expect("lazy list parse hook"))(self, file);
         self.nodes.set(nodes);
         bind(nodes);

@@ -997,9 +997,7 @@ fn match_files(
         .map(|base_path| tspath::combine_paths(&current_directory, &[base_path]))
         .collect();
     let extension_strs: Vec<&str> = extensions.iter().map(AsRef::as_ref).collect();
-    tsrs_core::phases::time("Config:   listing prefetch", || {
-        v.prefetch_listings(host, &extension_strs, &absolute_base_paths, depth);
-    });
+    v.prefetch_listings(host, &extension_strs, &absolute_base_paths, depth);
     for (base_path, abs) in base_paths.iter().zip(&absolute_base_paths) {
         v.visit(host, extensions, base_path, abs, depth, "");
     }

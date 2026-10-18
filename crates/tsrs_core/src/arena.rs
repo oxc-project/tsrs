@@ -1411,7 +1411,6 @@ impl Drop for RegionInner {
 mod retired {
     use std::collections::BTreeMap;
     use std::sync::Mutex;
-    use std::sync::atomic::{AtomicUsize, Ordering};
 
     /// Bytes retired before a batch is given back.
     const BATCH: usize = 16 << 20;
@@ -1426,13 +1425,10 @@ mod retired {
 
     static STATE: Mutex<State> =
         Mutex::new(State { spans: BTreeMap::new(), pending: Vec::new(), pending_bytes: 0 });
-    /// `stats`: calls that gave pages back, and their bytes.
-    static CALLS: AtomicUsize = AtomicUsize::new(0);
-    static BYTES: AtomicUsize = AtomicUsize::new(0);
 
     /// Retires `start .. start + len` (nothing uses it any more, and it is never handed out again).
     pub(super) fn retire(start: usize, len: usize) {
-        let (pages, calls) = {
+        let calls = {
             let mut s = STATE.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             s.pending.push((start, start + len));
             s.pending_bytes += len;
@@ -1440,20 +1436,18 @@ mod retired {
                 return;
             }
             let pages = take_pages(&mut s);
-            let calls = spans_of(&s, &pages);
-            (pages, calls)
+            spans_of(&s, &pages)
         };
-        give_back(&pages, &calls);
+        give_back(&calls);
     }
 
     pub(super) fn flush() {
-        let (pages, calls) = {
+        let calls = {
             let mut s = STATE.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             let pages = take_pages(&mut s);
-            let calls = spans_of(&s, &pages);
-            (pages, calls)
+            spans_of(&s, &pages)
         };
-        give_back(&pages, &calls);
+        give_back(&calls);
     }
 
     /// The whole pages of each span that `pages` (from `take_pages`) lie in: a span's pages are all retired, and the
@@ -1474,11 +1468,6 @@ mod retired {
             }
         }
         out
-    }
-
-    pub(super) fn stats() -> (usize, usize) {
-        // Relaxed: counters, read after the threads that retire joined.
-        (CALLS.load(Ordering::Relaxed), BYTES.load(Ordering::Relaxed))
     }
 
     /// Merges the pending ranges into the spans and returns the pages that became wholly retired: for each pending
@@ -1537,9 +1526,8 @@ mod retired {
         merged
     }
 
-    /// Gives back `calls` (whole pages of retired spans, `spans_of`); `pages`, the ones not given back before, are
-    /// what `stats` counts.
-    fn give_back(pages: &[(usize, usize)], calls: &[(usize, usize)]) {
+    /// Gives back `calls` (whole pages of retired spans, `spans_of`).
+    fn give_back(calls: &[(usize, usize)]) {
         for &(first, last) in calls {
             // SAFETY: whole pages inside retired spans: chunks and slabs nothing uses any more, never handed out
             // again; `first` is page aligned (and so is `last - first`).
@@ -1550,13 +1538,6 @@ mod retired {
                 );
             };
         }
-        // Relaxed: counters (see `stats`).
-        CALLS.fetch_add(calls.len(), Ordering::Relaxed);
-        BYTES.fetch_add(
-            pages.iter().map(|&(first, last)| last - first).sum(),
-            // Relaxed: counters (see `stats`).
-            Ordering::Relaxed,
-        );
     }
 
     #[cfg(test)]
@@ -1607,14 +1588,6 @@ mod retired {
 pub fn flush_retired() {
     #[cfg(all(compressed_ptrs, unix))]
     retired::flush();
-}
-
-/// (calls that gave pages of retired regions back to the system, bytes given back), for `TSRS_FREE_LEAVES=stats`.
-pub fn retired_stats() -> (usize, usize) {
-    #[cfg(all(compressed_ptrs, unix))]
-    return retired::stats();
-    #[cfg(not(all(compressed_ptrs, unix)))]
-    (0, 0)
 }
 
 #[cfg(test)]

@@ -193,7 +193,7 @@ pub(crate) fn force_shared_lists(program: &crate::program::Program) {
             .flatten(),
     );
     use rayon::prelude::*;
-    tsrs_core::phases::time("Lazy lists: shared", || {
+    tsrs_core::phases::time(program.options().diagnostics_enabled(), "Lazy lists: shared", || {
         crate::program::worker_pool().install(|| lists.par_iter().for_each(|l| l.ensure()));
     });
 }
@@ -696,9 +696,8 @@ pub fn stats_report() -> Option<String> {
     let reserve = tsrs_core::ptr::reserve_stats()
         .map(|(_, high)| format!("; arena address space used {:.1} MB", mb(high)))
         .unwrap_or_default();
-    let (calls, bytes) = tsrs_core::arena::retired_stats();
     Some(format!(
-        "tsrs: leaf files: {} of {} checked files ({} more not predicted, {:.1}% of the leaves' nodes), {:.1} MB of the {:.1} MB used by {} file regions ({:.1} MB reserved); freed {} ({:.1} MB reserved, {:.1} MB of pages given back in {calls} calls){reserve}\n",
+        "tsrs: leaf files: {} of {} checked files ({} more not predicted, {:.1}% of the leaves' nodes), {:.1} MB of the {:.1} MB used by {} file regions ({:.1} MB reserved); freed {} ({:.1} MB reserved){reserve}\n",
         load(&LEAVES),
         load(&CHECKED_FILES),
         load(&MISSED),
@@ -710,6 +709,5 @@ pub fn stats_report() -> Option<String> {
         mb(load(&REGION_BYTES)),
         load(&FREED),
         mb(load(&FREED_BYTES)),
-        mb(bytes),
     ))
 }

@@ -685,16 +685,23 @@ impl filesParser {
             if round.is_empty() {
                 break;
             }
-            tsrs_core::phases::count("Program:   loader rounds", 1);
+            tsrs_core::phases::count(
+                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
+                "Program:   loader rounds",
+                1,
+            );
             Self::prefetch(loader, &round);
-            let start = std::time::Instant::now();
+            let start = tsrs_core::phases::Timer::new(
+                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
+            );
             for item in round {
                 Self::run_queued(loader, item);
             }
-            tsrs_core::phases::record("Program:   sequential load", start.elapsed());
+            start.record("Program:   sequential load");
         }
         if loader.files_parser.speculated && !loader.files_parser.speculative.is_empty() {
             tsrs_core::phases::count(
+                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
                 "Program:   parsed ahead, unused",
                 loader.files_parser.speculative.len() as u64,
             );
@@ -902,8 +909,9 @@ impl filesParser {
         let (opts, host, resolver, project_references) =
             (ctx.opts, ctx.host, ctx.resolver, ctx.project_references);
         let file_parser = ctx.source_file_parser();
-        let parse_start = std::time::Instant::now();
         let stats = tsrs_core::festats::enabled();
+        let timings = loader.opts.config.compiler_options().unwrap().diagnostics_enabled() || stats;
+        let parse_start = tsrs_core::phases::Timer::new(timings);
         let cpu_before: Vec<f64> = if stats {
             crate::program::worker_pool().broadcast(|_| crate::checkerpool::thread_cpu_seconds())
         } else {
@@ -971,7 +979,9 @@ impl filesParser {
             })
         });
         let parse_elapsed = parse_start.elapsed();
-        tsrs_core::phases::record("Program:   parallel parse + resolve", parse_elapsed);
+        if timings {
+            tsrs_core::phases::record("Program:   parallel parse + resolve", parse_elapsed);
+        }
         if stats {
             let pool = crate::program::worker_pool();
             let cpu_after: Vec<f64> = pool.broadcast(|_| crate::checkerpool::thread_cpu_seconds());
@@ -1011,7 +1021,7 @@ impl filesParser {
             ];
             for (i, (row, v)) in ROWS.iter().zip(sum).enumerate() {
                 if tsrs_core::festats::is_count(i) {
-                    tsrs_core::phases::count(row, v);
+                    tsrs_core::phases::count(true, row, v);
                 } else {
                     tsrs_core::phases::record(row, std::time::Duration::from_nanos(v));
                 }
@@ -1019,7 +1029,11 @@ impl filesParser {
         }
         let speculative = spec.results.into_inner().unwrap();
         if speculate {
-            tsrs_core::phases::count("Program:   parsed ahead", speculative.len() as u64);
+            tsrs_core::phases::count(
+                loader.opts.config.compiler_options().unwrap().diagnostics_enabled(),
+                "Program:   parsed ahead",
+                speculative.len() as u64,
+            );
         }
         loader.files_parser.speculative.extend(speculative);
         for (t, metadata, file, resolutions) in prefetched {

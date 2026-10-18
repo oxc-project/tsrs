@@ -277,7 +277,10 @@ fn tsc_compilation(
         _ => None,
     };
     if !config_file_name.is_empty() {
-        let config_start = sys.now();
+        let config_start = tsc::DiagnosticTimer::new(
+            sys,
+            compiler_options_from_command_line.diagnostics_enabled(),
+        );
         // tsrs-only: parsed on the compiler's worker pool, so that the include glob's parallel listing prefetch runs on
         // the pool program construction uses next instead of starting rayon's global pool (one thread per vCPU, which
         // nothing else in a run needs).
@@ -290,7 +293,7 @@ fn tsc_compilation(
                 Some(&*extended_config_cache),
             )
         });
-        compile_times.config_time = sys.now() - config_start;
+        compile_times.config_time = config_start.elapsed();
         if !errors.is_empty() {
             // these are unrecoverable errors--exit to report them as diagnostics
             for e in errors {
@@ -444,9 +447,10 @@ fn perform_compilation(
     program_options.checker_recycling = leaf_freeing_allowed;
 
     start_tracing_if_needed(sys, &config);
-    let parse_start = sys.now();
+    let parse_start =
+        tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
     let program = new_program(program_options);
-    compile_times.parse_time = sys.now() - parse_start;
+    compile_times.parse_time = parse_start.elapsed();
     if let Some(content_mapper_host) = &content_mapper_host {
         compile_times.content_mapper_times = content_mapper_host.timings();
     }
@@ -465,9 +469,6 @@ fn perform_compilation(
     });
     if let Some(line) = tsrs_compiler::leaf_stats_report() {
         eprint!("{line}");
-    }
-    if std::env::var_os("TSRS_LAZY_DTS").is_some_and(|v| v == "stats") {
-        eprint!("{}", tsrs_ast::lazylist::stats_line());
     }
 
     CommandLineResult { watcher: None, status: result.status }
@@ -502,18 +503,24 @@ fn perform_incremental_compilation(
     // config and the host's file system, both thread-safe), so the read runs on its own thread while the program
     // is built; "BuildInfo read time" is the read's own duration. `--singleThreaded` keeps Go's order.
     let read_build_info = || {
-        let start = sys.now();
+        let start = tsc::DiagnosticTimer::new(
+            sys,
+            config.compiler_options().unwrap().diagnostics_enabled(),
+        );
         let old_program = tsrs_incremental::read_build_info_program(
             config,
             &*tsrs_incremental::new_build_info_reader(Arc::clone(&host)),
             &*host,
         );
-        (old_program, sys.now() - start)
+        (old_program, start.elapsed())
     };
     let build_program = || {
-        let start = sys.now();
+        let start = tsc::DiagnosticTimer::new(
+            sys,
+            config.compiler_options().unwrap().diagnostics_enabled(),
+        );
         let program = new_program(ProgramOptions::new(config, Arc::clone(&host)));
-        (program, sys.now() - start)
+        (program, start.elapsed())
     };
     // Go starts tracing between the build info read and the program; nothing in between writes output.
     start_tracing_if_needed(sys, &config);
@@ -523,7 +530,9 @@ fn perform_incremental_compilation(
             (read, build_program())
         } else {
             // Rows print in first-recorded order; keep the read's rows ahead of the program's.
-            tsrs_incremental::register_build_info_read_phases();
+            if config.compiler_options().unwrap().diagnostics_enabled() {
+                tsrs_incremental::register_build_info_read_phases();
+            }
             std::thread::scope(|scope| {
                 let read = scope.spawn(read_build_info);
                 let program = build_program();
@@ -532,7 +541,8 @@ fn perform_incremental_compilation(
         };
     compile_times.build_info_read_time = build_info_read_time;
     compile_times.parse_time = parse_time;
-    let changes_compute_start = sys.now();
+    let changes_compute_start =
+        tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
     let incremental_program = tsrs_incremental::new_program(
         program,
         old_program,
@@ -540,7 +550,7 @@ fn perform_incremental_compilation(
         Some(std::time::Instant::now),
         testing.is_some(),
     );
-    compile_times.changes_compute_time = sys.now() - changes_compute_start;
+    compile_times.changes_compute_time = changes_compute_start.elapsed();
     if let Some(content_mapper_host) = &content_mapper_host {
         compile_times.content_mapper_times = content_mapper_host.timings();
     }

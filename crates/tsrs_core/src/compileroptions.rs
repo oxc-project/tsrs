@@ -188,6 +188,11 @@ pub fn empty_compiler_options() -> crate::P<CompilerOptions> {
 }
 
 impl CompilerOptions {
+    /// Whether the caller requested compilation statistics and timings.
+    pub fn diagnostics_enabled(&self) -> bool {
+        self.diagnostics.is_true() || self.extended_diagnostics.is_true()
+    }
+
     pub fn get_emit_script_target(&self) -> ScriptTarget {
         if self.target != ScriptTarget::None {
             return self.target;

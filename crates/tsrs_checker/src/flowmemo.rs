@@ -57,13 +57,6 @@ fn mode_from_env() -> FlowMemoMode {
     })
 }
 
-fn stats_from_env() -> bool {
-    static STATS: OnceLock<bool> = OnceLock::new();
-    *STATS.get_or_init(|| {
-        std::env::var("TSRS_FLOW_MEMO_STATS").is_ok_and(|v| !v.is_empty() && v != "0")
-    })
-}
-
 /// log2 of the slot count (32 bytes each).
 fn table_bits() -> u32 {
     static BITS: OnceLock<u32> = OnceLock::new();
@@ -159,24 +152,6 @@ impl FrameTaint {
     }
 }
 
-#[derive(Default, Clone, Copy)]
-pub(crate) struct FlowMemoStats {
-    pub walks: u64,
-    pub consults: u64,
-    pub blocked: u64,
-    pub blocked_loop: u64,
-    pub blocked_cache: u64,
-    pub blocked_shared: u64,
-    pub blocked_counters: u64,
-    pub hits: u64,
-    pub height_misses: u64,
-    pub fills: u64,
-    pub tainted: u64,
-    pub counters: u64,
-    pub aborts: u64,
-    pub shadow_checks: u64,
-}
-
 pub struct FlowMemo {
     pub mode: FlowMemoMode,
     slots: Vec<Slot>,
@@ -195,7 +170,6 @@ pub struct FlowMemo {
     /// Shadow mode: memo answers waiting for the frame that found them to end.
     pub(crate) shadow_hits: Vec<ShadowHit>,
     pub(crate) key_buf: Vec<u8>,
-    pub(crate) stats: FlowMemoStats,
 }
 
 impl FlowMemo {
@@ -212,7 +186,6 @@ impl FlowMemo {
             checkpoints: Vec::new(),
             shadow_hits: Vec::new(),
             key_buf: Vec::new(),
-            stats: FlowMemoStats::default(),
         }
     }
 
@@ -394,33 +367,6 @@ impl FlowMemo {
             full_key: self.shadow_keys.get(i).cloned().flatten(),
             origin: self.shadow_origin.get(i).copied().unwrap_or((None, 0)),
         }
-    }
-
-    pub fn report(&self) -> Option<String> {
-        if !stats_from_env() {
-            return None;
-        }
-        let s = &self.stats;
-        Some(format!(
-            "flow memo ({:?}, {} slots): walks {}, consults {}, found {} (blocked {}: loop {}, counters {}, cache {}, shared {}), hits {}, height misses {}, fills {}, not stored: tainted {}, counters {}; aborts {}, shadow checks {}",
-            self.mode,
-            self.slots.len(),
-            s.walks,
-            s.consults,
-            s.hits + s.blocked + s.height_misses,
-            s.blocked,
-            s.blocked_loop,
-            s.blocked_counters,
-            s.blocked_cache,
-            s.blocked_shared,
-            s.hits,
-            s.height_misses,
-            s.fills,
-            s.tainted,
-            s.counters,
-            s.aborts,
-            s.shadow_checks
-        ))
     }
 }
 
@@ -649,28 +595,15 @@ impl Checker {
     /// `sharedFlows` values, the loop analysis in progress, another `flowTypeCache` when the memo's walk read it, an
     /// active instantiation's cache), or leave the instantiation count elsewhere.
     #[inline]
-    pub(crate) fn flow_memo_consult_ok(&mut self, f: P<FlowState>, hit: MemoHit) -> bool {
+    pub(crate) fn flow_memo_consult_ok(&self, f: P<FlowState>, hit: MemoHit) -> bool {
         let cache_ok = hit.epoch == 0 || hit.epoch == self.flow_memo.type_cache_epoch;
         let counters_ok =
             self.active_mappers.is_empty() && (!hit.count_reset || self.instantiation_count == 0);
-        let ok = !f.memo_faithful.get()
+        !f.memo_faithful.get()
             && self.flow_loop_stack.is_empty()
             && cache_ok
             && counters_ok
-            && f.impure_shared.get() == 0;
-        if !ok && stats_from_env() {
-            let s = &mut self.flow_memo.stats;
-            if !self.flow_loop_stack.is_empty() {
-                s.blocked_loop += 1;
-            } else if !counters_ok {
-                s.blocked_counters += 1;
-            } else if !cache_ok {
-                s.blocked_cache += 1;
-            } else if f.impure_shared.get() != 0 {
-                s.blocked_shared += 1;
-            }
-        }
-        ok
+            && f.impure_shared.get() == 0
     }
 
     /// Go's `saveFlowTypeCache := c.flowTypeCache; c.flowTypeCache = nil`, with the memo's bookkeeping.

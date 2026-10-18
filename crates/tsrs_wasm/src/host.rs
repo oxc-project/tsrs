@@ -227,7 +227,6 @@ fn base(path: &str) -> String {
 impl IoFS for HostRoot {
     fn stat(&self, name: &str) -> Result<FileInfo, FsError> {
         let full = self.join(name)?;
-        tsrs_vfs::osvfs::count_stat_call();
         let out = call(OP_STAT, full.as_bytes()).map_err(fs_error)?;
         let text = tsrs_core::utf8::from_utf8_lossy(&out);
         let mut fields = text.split(' ');
@@ -248,7 +247,6 @@ impl IoFS for HostRoot {
 
     fn read_dir(&self, name: &str) -> Result<Vec<IoDirEntry>, FsError> {
         let full = self.join(name)?;
-        tsrs_vfs::osvfs::count_read_dir_call();
         let out = call(OP_READ_DIR, full.as_bytes()).map_err(fs_error)?;
         let mut entries: Vec<IoDirEntry> = out
             .split(|&b| b == 0)
@@ -269,7 +267,6 @@ impl IoFS for HostRoot {
 
     fn read_file(&self, name: &str) -> Result<Vec<u8>, FsError> {
         let full = self.join(name)?;
-        tsrs_vfs::osvfs::count_read_file_call();
         call(OP_READ, full.as_bytes()).map_err(fs_error)
     }
 }

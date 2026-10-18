@@ -267,7 +267,7 @@ pub(crate) fn process_all_program_files(
         content_mapper_mu: Mutex::new(contentMapperBookkeeping::default()),
         module_resolution_error: None,
     };
-    let roots_start = std::time::Instant::now();
+    let roots_start = tsrs_core::phases::Timer::new(compiler_options.diagnostics_enabled());
     // The lookups (a file_exists per root file) are independent; tasks are still created in root order.
     let curr_dir = host.get_current_directory().to_string();
     let containing_file = match &loader.opts.config.config_file {
@@ -319,7 +319,7 @@ pub(crate) fn process_all_program_files(
             path,
         );
     }
-    tsrs_core::phases::record("Program: root file lookups", roots_start.elapsed());
+    roots_start.record("Program: root file lookups");
     if !root_files.is_empty() && compiler_options.no_lib.is_false_or_unknown() {
         if compiler_options.lib.is_none() {
             let name = tsoptions::get_default_lib_file_name(&compiler_options);
@@ -345,13 +345,19 @@ pub(crate) fn process_all_program_files(
     }
 
     let root_tasks = loader.root_tasks.clone();
-    tsrs_core::phases::time("Program: file graph (parse + resolve)", || {
-        filesParser::parse(&mut loader, &root_tasks);
-    });
+    tsrs_core::phases::time(
+        compiler_options.diagnostics_enabled(),
+        "Program: file graph (parse + resolve)",
+        || {
+            filesParser::parse(&mut loader, &root_tasks);
+        },
+    );
 
-    let processed = tsrs_core::phases::time("Program: collect files", || {
-        filesParser::get_processed_files(&mut loader)
-    });
+    let processed = tsrs_core::phases::time(
+        compiler_options.diagnostics_enabled(),
+        "Program: collect files",
+        || filesParser::get_processed_files(&mut loader),
+    );
     let resolution_data = loader.resolver.get_resolution_data();
     let module_resolution_error = loader.module_resolution_error.take();
     // tsrs-only: the loader's tasks and maps and the resolver's caches (heap only; nothing the program refers to) are

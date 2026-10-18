@@ -209,7 +209,8 @@ Without `--checkers`, tsrs picks its checker count per machine (tsgo always uses
 the cores, from 4 to 32; a program with fewer than 32 type-checked files per checker gets fewer, down to 4, and never
 more checkers than files. `--build` uses 4 per project; `--singleThreaded` uses one. `GOMEMLIMIT` has no effect on tsrs.
 `--extendedDiagnostics` prints the same counters as tsgo (`Memory used` is the process RSS), so scripts that parse
-them keep working.
+them keep working. Compilation timings are collected only when `--diagnostics` or `--extendedDiagnostics` is
+enabled. Pass the flag on the command line to include config-read timing.
 
 ## TODO
 

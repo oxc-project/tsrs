@@ -122,6 +122,7 @@ impl PendingPrints {
 
 #[derive(Default)]
 pub(crate) struct EmitTimes {
+    enabled: bool,
     times: [AtomicU64; 5],
     writers: Mutex<usize>,
     writer_done: Condvar,
@@ -146,18 +147,29 @@ impl EmitTimes {
         WritePermit(self)
     }
 
-    pub(crate) fn add(&self, phase: EmitPhase, start: Instant) {
-        self.times[phase as usize].fetch_add(start.elapsed().as_nanos() as u64, Ordering::Relaxed);
+    pub(crate) fn start(&self) -> Option<Instant> {
+        self.enabled.then(Instant::now)
+    }
+
+    pub(crate) fn add(&self, phase: EmitPhase, start: Option<Instant>) {
+        if let Some(start) = start {
+            // Relaxed: only accumulates a statistic, read after the emit workers finish.
+            self.times[phase as usize]
+                .fetch_add(start.elapsed().as_nanos() as u64, Ordering::Relaxed);
+        }
     }
 
     pub(crate) fn time<T>(&self, phase: EmitPhase, f: impl FnOnce() -> T) -> T {
-        let start = Instant::now();
+        let start = self.start();
         let result = f();
         self.add(phase, start);
         result
     }
 
     fn record(&self) {
+        if !self.enabled {
+            return;
+        }
         for (name, nanos) in EMIT_PHASE_NAMES.iter().zip(&self.times) {
             let nanos = nanos.load(Ordering::Relaxed);
             if nanos != 0 {
@@ -203,7 +215,8 @@ impl Program {
 
         let results: Vec<Mutex<Option<EmitResult>>> =
             source_files.iter().map(|_| Mutex::new(None)).collect();
-        let times = EmitTimes::default();
+        let times =
+            EmitTimes { enabled: self.options().diagnostics_enabled(), ..Default::default() };
         let mem_log = crate::emitter::emit_mem_log();
         // Each file's emit runs in a scratch region of its own (notes/mem-emit-regions.md): the transformed trees,
         // the emit context and the node builder's per-request state are allocated there and freed once the file is

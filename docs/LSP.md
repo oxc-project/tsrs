@@ -77,7 +77,8 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 An experimental [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
 and assertions and drives the Rust language server over stdio. It uses a test-only server entry point and a
 filesystem bridge; internal project-state baselines and Go content-mapper callbacks are not covered. The
-translated Rust suite remains the default and supplies the compatibility counts above.
+Go runner also runs in Linux CI with zero failures and a floor of 4,048 exercised groups. The translated Rust
+suite supplies the compatibility counts above.
 
 ## Protocol types and JSON
 

@@ -50,11 +50,31 @@ Each test starts a fresh process; cleanup closes stdin, drains stdout, waits for
 - Existing upstream skips remain intact. Skips are not counted as passes.
 - Windows transport and production CLI startup are not covered by this prototype.
 
-The translated Rust suite remains the default. This runner is an experiment in retaining upstream test logic,
-not a change to the published compatibility counts.
+The translated Rust suite continues to supply the published compatibility counts. This runner retains upstream
+test logic and runs as an additional Linux CI gate; it does not yet replace the translated suite's full coverage.
 
 The summary counts a parent with only skipped subtests as skipped: Go itself reports such a parent as passing.
 Pass `--rust-results target/fourslash-results` to the summary to compare exercised groups with the translated suite.
+
+## CI gate
+
+The active Linux test job in `.github/workflows/ci.yml` checks out the pinned `tsc` source and fixtures, installs
+Go from its `go.mod` and Python 3.12, builds the server example with the dev profile, and runs:
+
+```sh
+cargo build --profile dev --locked -p tsrs_cli --example fourslash_server
+PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh
+```
+
+The gate requires a completed, successful Go package result, zero failing tests, and at least **4,048 exercised
+groups**. It excludes parents whose subtests all skipped, including nested groups, so additional skips cannot
+silently reduce coverage. CI also runs the summary's regression checks. Go's build cache is shared with
+`actions/setup-go` through `GOCACHE` at `target/go-fourslash/go-cache`.
+
+On failure, CI uploads `results.jsonl`, `runner.log`, and baseline differences as the `go-fourslash-results`
+artifact. For a local run, `PYTHON`, `TSRS_FOURSLASH_SERVER`, and `TSRS_GO_FOURSLASH_WORK` can select another Python
+executable, prebuilt server, and work directory. `MIN_PASS` overrides the gate's coverage floor; raise the default
+when support improves.
 
 ## Validation (2026-10-18)
 

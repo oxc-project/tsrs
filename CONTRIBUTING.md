@@ -86,9 +86,10 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
 - Only CI, autofix, release, security and triage workflows are active. CI has two independent Linux jobs with separate
-  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance
-  in both checker modes, and regressions. Source checks overlap Rust setup and Clippy in `lint`. In `test`, Node and
-  Rust setup run in parallel, and the TypeScript fixture checkout overlaps Rust checks, with an explicit wait before tests.
+  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
+  both checker modes, the [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate), and regressions.
+  Source checks overlap Rust setup and Clippy in `lint`. In `test`, Node, Rust, and Python setup run in parallel,
+  and the TypeScript source and fixture checkout overlaps Rust checks, with an explicit wait before Go setup and tests.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.
   The full CI and other workflow definitions are preserved as `.github/workflows/*.yml.bak`; they do not run
   automatically or by manual dispatch. Restore the original `.yml` filename to re-enable one.

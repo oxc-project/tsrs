@@ -75,8 +75,8 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 | `cmd/tsc/lsp.go` | `tsrs_cli` (`lsp.rs`) | `tsrs --lsp -stdio` |
 
 The [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
-and assertions and drives the Rust language server over stdio. It uses a test-only server entry point and a
-filesystem bridge and a read-only project-state bridge. Go content-mapper callbacks remain unsupported. The
+and assertions and drives the Rust language server over a local LSP socket. It uses a test-only server entry point,
+a filesystem bridge, and a read-only project-state bridge. Go content-mapper callbacks remain unsupported. The
 Go runner runs in Linux CI with zero failures and a floor of 4,074 exercised groups, including all 4,066 groups
 passing in the translated Rust suite. The translated suite remains for release verification and PGO/BOLT training.
 

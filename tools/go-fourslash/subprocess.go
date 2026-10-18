@@ -8,12 +8,12 @@ import (
 	"io"
 	"net"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"sync"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/json"
@@ -29,6 +29,7 @@ type subprocessClient struct {
 	stateListener net.Listener
 	stateEncoder  *stdjson.Encoder
 	stateDecoder  *stdjson.Decoder
+	stateConn     net.Conn
 }
 
 func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerRequest ServerRequestHandler) (*LSPClient, func() error) {
@@ -51,33 +52,50 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 	t.Cleanup(func() { stateListener.Close() })
 	ctx, cancel := context.WithTimeout(t.Context(), 120*time.Second)
 	t.Cleanup(cancel)
-	cmd := exec.CommandContext(ctx, os.Getenv("TSRS_FOURSLASH_SERVER"), listener.Addr().String(), stateListener.Addr().String())
-	cmd.WaitDelay = 5 * time.Second
-	stderr, err := os.Create(filepath.Join(t.TempDir(), "server.stderr"))
+	lspListener, err := net.Listen("unix", filepath.Join(dir, "lsp.sock"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { stderr.Close() })
-	cmd.Stderr = stderr
-	stdin, err := cmd.StdinPipe()
+	t.Cleanup(func() { lspListener.Close() })
+	worker, err := acquireSubprocessWorker()
 	if err != nil {
+		t.Fatalf("start Rust LSP worker: %v", err)
+	}
+	released := false
+	t.Cleanup(func() {
+		if !released {
+			worker.close(true)
+		}
+	})
+	stopKill := context.AfterFunc(ctx, func() { worker.cmd.Process.Kill() })
+	t.Cleanup(func() { stopKill() })
+	context.AfterFunc(ctx, func() { lspListener.Close(); listener.Close(); stateListener.Close() })
+	if err := worker.encoder.Encode(dir); err != nil {
 		t.Fatal(err)
 	}
-	// Own the read end: Cmd.Wait closes StdoutPipe before the router necessarily finishes draining it.
-	stdout, stdoutWriter, err := os.Pipe()
+	caseDone := make(chan error, 1)
+	go func() {
+		var done bool
+		err := worker.decoder.Decode(&done)
+		if err == nil && !done {
+			err = fmt.Errorf("Rust worker did not finish the case")
+		}
+		caseDone <- err
+		if err != nil {
+			cancel()
+		}
+	}()
+	conn, err := lspListener.Accept()
 	if err != nil {
-		t.Fatal(err)
+		output, _ := os.ReadFile(worker.stderr.Name())
+		t.Fatalf("connect Rust LSP worker: %v\n%s", err, output)
 	}
-	t.Cleanup(func() { stdout.Close() })
-	t.Cleanup(func() { stdoutWriter.Close() })
-	cmd.Stdout = stdoutWriter
-	if err := cmd.Start(); err != nil {
-		t.Fatalf("start Rust LSP server: %v", err)
-	}
-	stdoutWriter.Close()
+	lspConn := conn.(*net.UnixConn)
+	t.Cleanup(func() { lspConn.Close() })
+	context.AfterFunc(ctx, func() { lspConn.Close() })
 	state := &subprocessClient{options: make(chan *core.CompilerOptions, 1), ready: make(chan struct{}), stateListener: stateListener}
 	client := &LSPClient{
-		inputWriter: lsp.ToWriter(stdin), outputReader: lsp.ToReader(stdout),
+		inputWriter: lsp.ToWriter(lspConn), outputReader: lsp.ToReader(lspConn),
 		pendingRequests: make(map[jsonrpc.ID]chan *lsproto.ResponseMessage),
 		onServerRequest: onServerRequest, ctx: ctx, subprocess: state,
 	}
@@ -89,8 +107,6 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 			cancel()
 		}
 	}()
-	processDone := make(chan error, 1)
-	go func() { processDone <- cmd.Wait(); cancel() }()
 	bridgeDone := make(chan error, 1)
 	go func() {
 		conn, err := listener.Accept()
@@ -102,21 +118,29 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 		}
 		bridgeDone <- err
 	}()
-	context.AfterFunc(ctx, func() { listener.Close() })
-	context.AfterFunc(ctx, func() { stateListener.Close() })
 	var closeOnce sync.Once
 	var closeErr error
 	closed := false
 	closeClient := func() error {
 		closeOnce.Do(func() {
 			closed = true
-			stdin.Close()
+			cleanupTimer := time.AfterFunc(5*time.Second, cancel)
+			defer cleanupTimer.Stop()
 			select {
-			case closeErr = <-processDone:
-			case <-time.After(5 * time.Second):
-				cancel()
-				closeErr = <-processDone
+			case <-state.ready:
+				closeErr = client.shutdownSubprocess()
+				state.stateConn.Close()
+			default:
 			}
+			lspConn.CloseWrite()
+			if err := <-caseDone; closeErr == nil {
+				closeErr = err
+			}
+			stopKill()
+			if closeErr == nil {
+				closeErr = ctx.Err()
+			}
+			// The worker has finished the server; wake the local socket reader as well.
 			cancel()
 			if err := <-routerDone; closeErr == nil {
 				closeErr = err
@@ -124,9 +148,14 @@ func newSubprocessClient(t *testing.T, serverOpts lsp.ServerOptions, onServerReq
 			if err := <-bridgeDone; closeErr == nil && err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, net.ErrClosed) && !errors.Is(err, context.Canceled) {
 				closeErr = err
 			}
-			if output, _ := os.ReadFile(stderr.Name()); closeErr != nil {
-				closeErr = fmt.Errorf("Rust LSP subprocess: %w\n%s", closeErr, output)
+			if closeErr != nil {
+				output, _ := os.ReadFile(worker.stderr.Name())
+				worker.close(true)
+				closeErr = fmt.Errorf("Rust LSP worker: %w\n%s", closeErr, output)
+			} else {
+				closeErr = worker.release()
 			}
+			released = true
 		})
 		return closeErr
 	}
@@ -147,6 +176,33 @@ func (c *LSPClient) WaitForSubprocessInit(t *testing.T) {
 	case <-c.subprocess.ready:
 	case <-c.ctx.Done():
 		t.Fatalf("Rust LSP server did not initialize: %v", c.ctx.Err())
+	}
+}
+
+func (c *LSPClient) shutdownSubprocess() error {
+	id := c.NextID()
+	reqID := lsproto.NewID(lsproto.IntegerOrString{Integer: &id})
+	request := &lsproto.RequestMessage{ID: reqID, Method: lsproto.MethodShutdown}
+	response := make(chan *lsproto.ResponseMessage, 1)
+	c.pendingRequestsMu.Lock()
+	c.pendingRequests[*reqID] = response
+	c.pendingRequestsMu.Unlock()
+	defer func() {
+		c.pendingRequestsMu.Lock()
+		delete(c.pendingRequests, *reqID)
+		c.pendingRequestsMu.Unlock()
+	}()
+	if err := c.writeToServer(request.Message()); err != nil {
+		return err
+	}
+	select {
+	case <-c.ctx.Done():
+		return c.ctx.Err()
+	case reply := <-response:
+		if reply == nil || reply.Error != nil {
+			return fmt.Errorf("Rust LSP shutdown failed: %v", reply)
+		}
+		return nil
 	}
 }
 
@@ -202,17 +258,34 @@ func (s *subprocessClient) serveFS(ctx context.Context, conn net.Conn, opts lsp.
 			defer stateConn.Close()
 			stop := context.AfterFunc(ctx, func() { stateConn.Close() })
 			defer stop()
+			s.stateConn = stateConn
 			s.stateEncoder, s.stateDecoder = stdjson.NewEncoder(stateConn), stdjson.NewDecoder(stateConn)
 			close(s.ready)
 		default:
 			result, err = callFS(opts.FS, method, args)
 		}
 		response := map[string]any{"result": result}
+		// File contents dominate bridge traffic. Keep the JSON response small and
+		// follow it with exactly this many UTF-8 bytes, without quoting a second copy.
+		var contents string
+		if method == "readFile" && err == nil && result != nil {
+			contents = result.(string)
+			if !utf8.ValidString(contents) {
+				// Match encoding/json's replacement of each invalid UTF-8 code unit.
+				contents = string([]rune(contents))
+			}
+			response["result"] = len(contents)
+		}
 		if err != nil {
 			response["error"] = err.Error()
 		}
 		if err := encoder.Encode(response); err != nil {
 			return err
+		}
+		if contents != "" {
+			if _, err := io.WriteString(conn, contents); err != nil {
+				return err
+			}
 		}
 	}
 }

@@ -18,14 +18,14 @@ flags go after it. The default concurrency is four, each test has a two-minute s
 suite has a thirty-minute timeout. `-count=1` disables cached results.
 
 The runner extracts the pinned commit into `target/go-fourslash/reference`, then uses a Go build overlay to adapt
-three harness files and add `subprocess.go` and `remotestate.go`. It never patches the source checkout, test bodies,
+four harness files and add `subprocess.go`, `worker.go`, and `remotestate.go`. It never patches the source checkout, test bodies,
 or reference baselines. Go's ordinary baseline verifier writes differences under the extracted checkout's
 `tsc/testdata/baselines/local/`. The runner returns `go test`'s exit status.
 
 ## Process boundary
 
 ```text
-Go test body → upstream Go Fourslash assertions → LSP stdin/stdout → Rust language server
+Go test body → upstream Go Fourslash assertions → LSP Unix socket → Rust language server
                     ↑                                                   │
                     └──── original Go virtual filesystem ← Unix socket ─┘
 ```
@@ -35,6 +35,12 @@ It is not the production `tsrs --lsp -stdio` executable. Standard LSP has no ope
 filesystem, and the pinned Go harness also sets inferred-project compiler options and waits for initialization
 through internal calls. A private Unix socket carries those setup operations and filesystem callbacks; all
 editor requests and responses use the existing framed LSP transport.
+
+The Go harness leases Rust workers, keeping at most four idle processes. Each worker handles up to 32 cases
+before restarting, with a fresh LSP server, session, and filesystem for every case. Only the process and the
+existing immutable parse cache are shared, as in the translated Rust runner. The case limit bounds retained
+parse entries and arena allocations. Stdin/stdout carry worker commands and completion acknowledgements;
+each case has its own LSP, filesystem, and project-state sockets.
 
 For `@stateBaseline` cases, a second private Unix socket returns read-only project snapshots after LSP requests
 complete. Go retains its upstream state comparison and formatting, using remote views of projects, source files,
@@ -46,7 +52,10 @@ existing `GetFileMapWithBuild` helper, then the Rust server reads the resulting 
 The Go filesystem remains authoritative, including bundled libraries, symlinks, case sensitivity, writes, and
 renames. Paths are not relocated or rewritten. Compiler options use the existing Go-compatible options codec.
 The example selects the same Go checker-history mode as `tsrs-fourslash`, including its environment overrides.
-Each test starts a fresh process; cleanup closes stdin, drains stdout, waits for exit, and kills a hung child.
+File reads send a JSON byte count followed by raw UTF-8, avoiding JSON escaping of library contents. Missing
+files remain distinct from empty files, and invalid UTF-8 uses the same replacement behavior as Go's JSON encoder.
+Cleanup sends LSP shutdown, closes state inspection, and waits for the worker's completion acknowledgement
+before reuse. Failed or timed-out workers are killed and discarded; `TestMain` reaps idle workers at suite exit.
 
 ## Remaining scope
 
@@ -97,3 +106,35 @@ content-mapper groups. The eight additional passes exercise Rust LSP behavior wi
 
 Also checked: a child that immediately exits reports a failure promptly; fresh pinned-source extraction and
 reuse preserve the original harness and test files; the dev builds, workspace Clippy, and source checks pass.
+
+### Runner cost
+
+The worker pool and raw file payloads reduce the full Go suite from **54.55 s to 24.96 s**, with the same
+4,074 passing groups and 472 skips. These measurements use the CI dev profile and four concurrent cases on
+the same macOS arm64 machine; they measure harness cost, not production compiler performance.
+
+| Measurement | One process per case, JSON file contents | Workers, raw file contents |
+| --- | ---: | ---: |
+| Full suite via `run.py` (warm build cache) | 54.55 s | 24.96 s |
+| Direct-binary repeat 1 | 59.82 s | 25.78 s |
+| Direct-binary repeat 2 | 67.88 s | 42.83 s |
+| Go + Rust instructions retired | 3.030 trillion | 0.828 trillion |
+| Rust process launches | 4,129 | 133 |
+| Maximum per-process peak RSS across repeats | 195 MiB | 303 MiB |
+
+Wall time varied between runs, but both repeat pairs improved. Retaining parsed files trades memory for speed;
+workers restart after 32 cases rather than retaining the entire suite. RSS above is the largest process peak,
+not the sum of concurrent workers. A raw-payload-only intermediate run took 44.61 s; capping `GOMAXPROCS` at
+four made little additional difference and is not part of this change.
+
+For reproduction, compare commit `8d4c4cf4` with this version, building each server with the dev profile and
+using `run.py -- -json` for complete results. For build-free repeats,
+compile each overlay with `go test -c -overlay=<work>/overlay.json -o <suite> ./internal/fourslash/tests`, then
+run that binary from the extracted `tsc` directory with `TSRS_FOURSLASH_SERVER=<matching-server>` and
+`-test.count=1 -test.parallel=4 -test.timeout=30m -test.v`. The paired instruction run wrapped the Go binary
+and every Rust child separately in macOS `/usr/bin/time -l`, summing instructions and taking the maximum RSS;
+its wall times were 64.08 s and 26.10 s. Timing a Python launcher alone does not count child instructions.
+
+The framing checks run with `cargo test -p tsrs_cli` in the existing CI job. Local lifecycle checks additionally
+repeat hover, cross-project call hierarchy, and auto-import cases 40 times under Go's race detector to cross the
+worker restart boundary, and verify that an immediate child failure is reported and the next case can launch a healthy worker.

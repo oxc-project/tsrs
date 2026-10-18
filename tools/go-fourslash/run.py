@@ -69,6 +69,12 @@ def prepare(reference, work):
     c.Server.SetCompilerOptionsForInferredProjects(c.ctx, options)""")
     overlay(client_path, client)
     overlay("internal/testutil/lsptestutil/tsrs_subprocess.go", (HERE / "subprocess.go").read_text())
+    overlay("internal/testutil/lsptestutil/tsrs_worker.go", (HERE / "worker.go").read_text())
+    main_path = "internal/fourslash/tests/testmain_test.go"
+    main = (module / main_path).read_text()
+    main = replace_once(main, '"testing"', '"testing"\n"github.com/microsoft/TypeScript/tsc/internal/testutil/lsptestutil"')
+    main = replace_once(main, "\tm.Run()", "\tdefer lsptestutil.CloseSubprocessWorkers()\n\tm.Run()")
+    overlay(main_path, main)
 
     harness_path = "internal/fourslash/fourslash.go"
     harness = (module / harness_path).read_text()

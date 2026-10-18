@@ -36,3 +36,7 @@ system-alloc = []
 [[bin]]
 name = "tsrs"
 path = "src/main.rs"
+
+[[example]]
+name = "fourslash_server"
+test = true

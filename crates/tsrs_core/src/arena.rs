@@ -1130,6 +1130,18 @@ pub fn note_escape(addr: usize) {
     }
 }
 
+/// Routes lazily filled data by its owner before any registered region exists.
+///
+/// Makes `enter_owner` and `enter_table_owner` look up the owner's region from now on, as they do once a registered
+/// region exists (`Region::new`), for a process that frees unregistered regions (a program's file loader regions,
+/// `tsrs_compiler` programregions.rs). Until then they leave lazily filled data of an object outside every region in
+/// the current target, which is right only while nothing is freed: a project reference's command line, parsed before
+/// any region, got its output maps in the loader region of the first program that read them (an incremental `tsc -b`
+/// whose upstream projects were up to date), and kept them after that region was freed.
+pub fn route_by_owner() {
+    ANY_REGION.store(true, Ordering::Relaxed);
+}
+
 /// Makes the current thread's own (never freed) arena the allocation target until the scope is dropped: for data
 /// that outlives any region, such as process-wide lazily initialized statics.
 pub fn enter_thread_arena() -> RegionScope {

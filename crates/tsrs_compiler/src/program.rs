@@ -70,14 +70,15 @@ pub struct ProgramOptions {
     /// disable this to retain per-file diagnostics and Go-shaped build info; external pools opt out too.
     pub canonical_diagnostics: bool,
     /// tsrs-only: each checker of the built-in pool allocates in a region of its own, which `free_program` gives
-    /// back (watch mode, which replaces its program every cycle; the CLI's single build leaks its checkers).
+    /// back (watch mode, which replaces its program every cycle, and `tsc -b`, which frees each project's program once
+    /// it is built; the CLI's single build leaks its checkers).
     pub checker_regions: bool,
     /// tsrs-only, with `checker_regions`: the diagnostics each checker makes go to a region of its own, which
     /// `free_program` gives back too (checkerpool.rs `SlotChecker`): the caller copies those it keeps (watch
     /// mode's snapshot, `tsrs_incremental` `Program::copy_diagnostics`).
     pub checker_diagnostic_regions: bool,
     /// tsrs-only: what the file loader allocates goes to these regions (programregions.rs), which the caller frees
-    /// once nothing uses the program's processed-file and resolution data (watch mode).
+    /// once nothing uses the program's processed-file and resolution data (watch mode, `tsc -b`).
     pub regions: Option<std::sync::Arc<crate::programregions::ProgramRegions>>,
     /// tsrs-only: `reuse_program` may keep the file loader's synthetic imports (JSX runtime, import helpers) of the
     /// edited file. Their parent is this program's version of the file, so the caller must keep it alive while any

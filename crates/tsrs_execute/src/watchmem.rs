@@ -85,10 +85,11 @@ type FreeJob = Box<dyn FnOnce() + Send>;
 
 /// Runs the frees of a watch session on one thread, in the order they were queued: a file region is freed only after
 /// the programs that were replaced before it was found unreachable (they may refer to it). Freeing a large program's
-/// checker regions takes a while (~150 ms on a 9k-file project) and nothing waits for it. The test harness frees in
-/// place, for deterministic runs, and so does a build without threads (WebAssembly). The thread starts with the first
-/// queued free, so a build that frees nothing (every non-watch build, which creates one with its orchestrator) starts
-/// none: in the WebAssembly module, which cannot spawn threads, `-b` panicked creating it.
+/// checker regions takes a while (~150 ms on a 9k-file project) and nothing waits for it. A `tsc -b` that is not a
+/// watch session frees each project's program here once it is built (`BuildTask::free_built_program`). The test
+/// harness frees in place, for deterministic runs, and so does a build without threads (WebAssembly). The thread starts
+/// with the first queued free, so a build that frees nothing (an API build, which creates one with its orchestrator)
+/// starts none: in the WebAssembly module, which cannot spawn threads, `-b` panicked creating it.
 pub(crate) struct Freer {
     in_place: bool,
     tx: std::sync::OnceLock<Mutex<mpsc::Sender<FreeJob>>>,

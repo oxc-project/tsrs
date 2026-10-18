@@ -291,11 +291,15 @@ pub fn leaf_settings_from_env(checkers: usize) -> LeafSettings {
 /// never the language server, the API or the test harnesses). Predicted paths are matched relative to
 /// `current_directory`. From now on, `bind` binds a file that was parsed in a registered region of its own in
 /// that region, so its binder data is freed with it (a watch session's file regions, `tsrs_execute`
-/// watchmem.rs). Opt-in: in a process with other registered regions (API builds), a region containing a file
-/// may be held by the building thread.
+/// watchmem.rs), or outlives the program that bound it (the declaration files a `tsc -b` shares between projects).
+/// Opt-in: in a process with other registered regions (API builds), a region containing a file may be held by the
+/// building thread.
 pub fn bind_in_file_regions() {
     // Relaxed: set before the session parses anything; the binding threads get their work through locks taken after.
     OWN_FILE_REGIONS.store(true, Ordering::Relaxed);
+    // The same sessions free their programs' regions, so lazily filled data of the objects outside every region (the
+    // command lines) must not go to one of those, which it would until the first file region is created.
+    tsrs_core::arena::route_by_owner();
 }
 
 pub fn enable(settings: LeafSettings, current_directory: &str) {

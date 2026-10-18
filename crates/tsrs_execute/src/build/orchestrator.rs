@@ -126,7 +126,8 @@ pub struct Orchestrator {
     // Watch mode: the status lines ("Found N errors. Watching for file changes.") and the directory watches.
     watch_status_reporter: Option<DiagnosticReporter<'static>>,
     wm: Arc<WatchManager>,
-    // tsrs-only, watch mode: frees the programs the tasks replace and the files nothing refers to (watchmem.rs).
+    // tsrs-only, watch mode: frees the programs the tasks replace and the files nothing refers to (watchmem.rs). Other
+    // CLI builds: the programs of the built tasks (`frees_built_programs`).
     pub(crate) freer: crate::watchmem::Freer,
     // tsrs-only, watch mode: the background computation of the tasks' placeholder signatures (`start_signature_job`).
     signature_job: Mutex<Option<(tsrs_core::context::CancelFunc, std::thread::JoinHandle<()>)>>,
@@ -380,6 +381,11 @@ impl Orchestrator {
     // tsc -b entrypoint
     // orchestrator.go:295
     pub fn start(&'static self) -> CommandLineResult {
+        if self.frees_built_programs() {
+            // The declaration and JSON files every project shares go to regions of their own (`host::get_source_file`),
+            // bound there, so that freeing a project's program does not take their binder data with it.
+            tsrs_compiler::bind_in_file_regions();
+        }
         let status = self.start_worker("", false /*onlyReferences*/).status();
         // Under the test harness a watch session returns after the first build; the harness drives the cycles.
         let watcher = (self.opts.command.compiler_options.watch.is_true()
@@ -391,6 +397,15 @@ impl Orchestrator {
     /// Makes this orchestrator allocate in collectable regions and retain per-file API diagnostics.
     pub fn enable_api_mode(&self) {
         self.api_mode.store(true, Ordering::SeqCst);
+    }
+
+    /// tsrs-only (Go's GC): whether each project's program is freed once the project is built (`free_built_program`).
+    /// A CLI build that is not a watch session; the API frees its programs its own way, a watch session keeps each as
+    /// the old state of the next cycle, and the test harness reads them at report time (`Testing::on_program`).
+    pub(crate) fn frees_built_programs(&self) -> bool {
+        !self.opts.command.compiler_options.watch.is_true()
+            && self.opts.testing.is_none()
+            && !self.api_mode.load(Ordering::SeqCst)
     }
 
     pub(crate) fn uses_canonical_diagnostics(&self) -> bool {
@@ -790,8 +805,16 @@ impl Orchestrator {
         if self.opts.testing.is_none() {
             // The program is only needed by Testing.OnProgram at report time; drop it now so a task
             // that has finished but is not yet reported does not keep its program alive.
-            let program = task.result.lock().unwrap().as_mut().unwrap().program.take();
-            if let (true, Some(program)) = (self.api_mode.load(Ordering::SeqCst), program) {
+            let (program, regions) = {
+                let mut result = task.result.lock().unwrap();
+                let result = result.as_mut().unwrap();
+                (result.program.take(), result.program_regions.take())
+            };
+            if let (true, Some(program)) = (self.frees_built_programs(), program) {
+                // On the free thread, so that the builder goes on to its next project: freeing inline took 4% of the
+                // wall time of a 3,000-project build at 64 builders on 8 cores.
+                self.freer.run(move || task.free_built_program(program, regions));
+            } else if let (true, Some(program)) = (self.api_mode.load(Ordering::SeqCst), program) {
                 // API builds free each project's program once it is built (its arenas go with the task region when
                 // the orchestrator is freed; this frees the heap side: program, checkers, processed data). It is a
                 // full build that shares nothing, and nothing reads it after its task (statistics and diagnostics are

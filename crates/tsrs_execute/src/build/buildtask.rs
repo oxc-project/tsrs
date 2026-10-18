@@ -60,6 +60,9 @@ pub(crate) struct taskResult {
     pub(crate) exit_status: ExitStatus,
     pub(crate) statistics: Option<Statistics>,
     pub(crate) program: Option<P<tsrs_incremental::Program>>,
+    // tsrs-only: what the program's file loader allocated, freed with the program
+    // (`Orchestrator::frees_built_programs`).
+    pub(crate) program_regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
     pub(crate) build_kind: buildKind,
     pub(crate) files_to_delete: Vec<String>,
 }
@@ -73,6 +76,7 @@ impl taskResult {
             exit_status: ExitStatus::Success,
             statistics: None,
             program: None,
+            program_regions: None,
             build_kind: buildKind::None,
             files_to_delete: Vec::new(),
         }
@@ -151,6 +155,9 @@ pub struct BuildTask {
     watch_changes: Mutex<Option<Vec<(Path, tsrs_fswatch::EventKind)>>>,
     // tsrs-only, watch mode: the task built a program this cycle (reset by the orchestrator each cycle).
     pub(crate) built_program: AtomicBool,
+    // tsrs-only: the file loader regions of a freed program whose task reported diagnostics, which point at the files
+    // in them (`free_built_program`).
+    diagnostic_file_regions: Mutex<Option<Arc<tsrs_compiler::ProgramRegions>>>,
 }
 
 // tsrs-only (watch mode): what a task's full build allocated beside its program, which the programs `reuse_program`
@@ -192,6 +199,7 @@ impl BuildTask {
             watch_incremental: Mutex::new(None),
             watch_changes: Mutex::new(None),
             built_program: AtomicBool::new(false),
+            diagnostic_file_regions: Mutex::new(None),
         }
     }
 
@@ -527,6 +535,32 @@ impl BuildTask {
         });
     }
 
+    // tsrs-only (Go's GC; `Orchestrator::frees_built_programs`): frees the program the task just built, its checkers
+    // (their regions) and its snapshot's heap, once nothing reads them: its outputs and build info are written, its
+    // report takes only the text, statistics and diagnostics already collected, and downstream programs read this
+    // project's outputs. Without this every program of a build stays to process exit, and a large project graph
+    // exhausts the arena reservation.
+    //
+    // The task's diagnostics stay (the build's error summary reads them): they escape the checker regions when made,
+    // but they point at their files, which the file loader parsed into `regions`, so a task that reported any keeps
+    // those. The declaration and JSON files projects share are in regions of their own (`host::get_source_file`).
+    pub(crate) fn free_built_program(
+        &self,
+        program: P<tsrs_incremental::Program>,
+        regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
+    ) {
+        let compiler_program = program.get_program();
+        // SAFETY: nothing reads the incremental program or its snapshot again (see above; it was not made for the test
+        // harness, `frees_built_programs`).
+        unsafe { tsrs_incremental::Program::drop_replaced(program) };
+        // SAFETY: a full build (`new_program`; batch builds never reuse a program), so it shares nothing with another
+        // version, and no checker handle of it is held once its task is built.
+        unsafe { tsrs_compiler::free_unshared_program(compiler_program) };
+        if !self.errors.lock().unwrap().is_empty() {
+            *self.diagnostic_file_regions.lock().unwrap() = regions;
+        }
+    }
+
     // tsrs-only (watch mode): adds the files the task's program, its last full build's processed-file data and the
     // diagnostics its snapshot keeps refer to (`Orchestrator::free_unreachable_watch_files`).
     pub(crate) fn add_live_watch_files(&self, live: &mut rustc_hash::FxHashSet<usize>) {
@@ -736,12 +770,14 @@ impl BuildTask {
             program_options.canonical_diagnostics = orchestrator.uses_canonical_diagnostics();
             // Watch mode frees the program when the task builds again (`replace_watch_program`), with the diagnostics
             // its checkers make: the task's errors are cleared first, and the snapshot that keeps some copies them.
-            program_options.checker_regions = watch;
+            // Other CLI builds free it once the task is built (`free_built_program`); the diagnostics stay.
+            let frees = watch || orchestrator.frees_built_programs();
+            program_options.checker_regions = frees;
             // `watch_full_build` keeps the parents of the synthetic imports the reused programs keep.
             program_options.reuse_synthetic_imports = watch;
             program_options.checker_diagnostic_regions =
                 watch && orchestrator.opts.testing.is_none();
-            regions = watch.then(|| Arc::new(tsrs_compiler::ProgramRegions::default()));
+            regions = frees.then(|| Arc::new(tsrs_compiler::ProgramRegions::default()));
             program_options.regions.clone_from(&regions);
             new_program(program_options)
         });
@@ -786,7 +822,14 @@ impl BuildTask {
                 unsafe { tsrs_incremental::Program::drop_replaced(kept) };
             }
         }
-        self.result.lock().unwrap().as_mut().unwrap().program = Some(incremental_program);
+        {
+            let mut result = self.result.lock().unwrap();
+            let result = result.as_mut().unwrap();
+            result.program = Some(incremental_program);
+            if !watch {
+                result.program_regions.clone_from(&regions);
+            }
+        }
         compile_times.changes_compute_time = changes_compute_start.elapsed();
         if watch {
             // After the incremental program is made: its snapshot reads the program it replaces.

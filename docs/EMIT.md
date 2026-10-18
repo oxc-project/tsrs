@@ -251,7 +251,7 @@ two-package fixture.
 
 ## Known limitations
 
-CLI build mode retains finished programs and can use more memory than tsgo on large graphs. Content-mapper conformance cases that need `runExternalCode` are not run yet.
+Content-mapper conformance cases that need `runExternalCode` are not run yet.
 
 The const-enum inliner checks property accesses during emit, so emit can change where a diagnostic is first
 reported, as in tsgo. A `--noEmit` run does not take that path. Match the pinned TypeScript source, compiler

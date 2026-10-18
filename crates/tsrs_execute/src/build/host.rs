@@ -40,6 +40,7 @@ pub(crate) struct host {
         Mutex<FxHashMap<SourceFileParseOptions, (P<SourceFile>, Option<std::time::SystemTime>)>>,
     >,
     // tsrs-only, watch mode: the regions of those files (watchmem.rs; `Orchestrator::free_unreachable_watch_files`).
+    // A build that frees its programs (`Orchestrator::frees_built_programs`): the regions of the cached `source_files`.
     pub(crate) watch_file_regions: crate::watchmem::FileRegions,
 }
 
@@ -188,7 +189,20 @@ impl CompilerHost for host {
             // Cache dts and json files as they will be reused
             return self.source_files.load_or_store(
                 &opts,
-                |opts| self.host.get_source_file(opts.clone()),
+                |opts| {
+                    if !self.o().frees_built_programs() {
+                        return self.host.get_source_file(opts.clone());
+                    }
+                    // tsrs-only: every project that reads the file shares it, so it must outlive the program that
+                    // parsed it, which is freed once built (`BuildTask::free_built_program`): a region of its own,
+                    // where it is bound and its lazily filled data goes too. Kept for the build, as the cache is.
+                    let size = self
+                        .host
+                        .fs()
+                        .stat(&opts.file_name)
+                        .map_or(0, |info| usize::try_from(info.size()).unwrap_or(0));
+                    self.watch_file_regions.parse(size, || self.host.get_source_file(opts.clone()))
+                },
                 false, /* allowZero */
             );
         }

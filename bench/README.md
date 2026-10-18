@@ -4,11 +4,11 @@
 ([microsoft/typescript-benchmarking](https://github.com/microsoft/typescript-benchmarking), `cases/`) and eleven
 open-source applications and libraries (see "Application projects") with tsrs, with tsgo 7.0.2 (npm `typescript@7.0.2`) and, where a
 Bun binary is given, with `bun check`, and reports wall time, peak memory and the error count of each.
-Wall-time benchmark automation is disabled; its workflow is preserved as
-[`.github/workflows/bench.yml.bak`](../.github/workflows/bench.yml.bak). The local commands below remain available.
+Wall-time reports are published by [`.github/workflows/update-benchmarks.yml`](../.github/workflows/update-benchmarks.yml)
+on changes to the project list or workflow, and on manual dispatch. The local commands below remain available.
 The outdated `bench/results/` archive has been removed from the working tree; historical runs remain in
 [Git history](https://github.com/oxc-project/tsrs/tree/94e7305f0f067e9f68570798c0498e03c7e423eb/bench/results).
-The saved workflow measures every project on GitHub-hosted `ubuntu-24.04` runners in four modes and in four more
+The former benchmark workflow measured every project on GitHub-hosted `ubuntu-24.04` runners in four modes and in four more
 with bun check; `bench/results/<date>-<commit>.md` has every table. [The latest recorded results](RESULTS.md) show the
 Bun comparison tables, with tsgo, tsrs and bun check side by side: the default mode (each compiler at its own
 thread count) and both compilers at `--checkers` 4 (tsgo's default), 8 and 16.
@@ -248,9 +248,10 @@ the small projects move by a few hundred KiB), so peak memory is flagged when it
 
 ## CI
 
-CodSpeed runs on pushes to main, pull requests, and manual dispatch. The other benchmark workflows are disabled,
-including manual dispatch. Their definitions are preserved under `.github/workflows/`
-as `bench.yml.bak`, `bench-compare.yml.bak`, `pr-verify.yml.bak` and `perf-probe.yml.bak`.
+CodSpeed runs on pushes to main, pull requests, and manual dispatch. `update-benchmarks.yml` publishes wall-time reports
+on changes to `bench/projects.json` or the workflow itself, and on manual dispatch. The comparison and probe workflows
+are disabled, including manual dispatch. Their definitions are preserved under `.github/workflows/`
+as `bench-compare.yml.bak`, `pr-verify.yml.bak` and `perf-probe.yml.bak`. The former `bench.yml` is available in Git history.
 The completed build-layout experiment's workflow and build script were removed; `tools/perf/layout-measure.py`
 still compares supplied binaries. Local measurement tools remain available; recorded runs are archived in Git history.
 
@@ -294,9 +295,10 @@ Outside CodSpeed's Linux instrumentation, the last command exercises capture, wa
 verification without reporting performance measurements. Use `--profile dev` when building for local correctness
 checks. The workflow uses the release profile without PGO, with debug symbols retained by cargo-codspeed.
 
-### Published benchmarks
+### Historical benchmark workflow
 
-The saved benchmark workflow is built for unattended runs: one run per measured commit (the concurrency group is the commit, so a dispatch for another commit
+This section describes the removed `bench.yml` workflow; its dispatch commands require restoring it from Git history.
+The workflow was built for unattended runs: one run per measured commit (the concurrency group is the commit, so a dispatch for another commit
 starts its own run on its own machines and only a re-dispatch of the same commit replaces a queued twin; until
 2026-10-07 one shared group let a later push replace the queued bench, and bursts of merges left most commits without
 a results file), never cancelled, network steps retried, and the results commit re-created on top of the latest

@@ -2,7 +2,7 @@
 # simulation. tsrs_bench captures the project's filesystem before measurement, then Criterion2 measures a fresh
 # compilation. Build the suite once, then run each project in a separate job to parallelize simulation and isolate
 # compiler arenas and settings.
-# The disabled wall-time benchmark workflow is saved in .github/workflows/bench.yml.bak.
+# Wall-time reports are published by .github/workflows/update-benchmarks.yml.
 # Security: read-only GITHUB_TOKEN plus an OIDC token for the CodSpeed upload, no secrets.
 
 name: CodSpeed

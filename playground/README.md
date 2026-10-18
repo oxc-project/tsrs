@@ -71,9 +71,10 @@ without starting a local preview server. Hosted checks allow longer timeouts for
 ## Deployment
 
 [The playground](https://tsrs-playground.void.app) is a static site on Void Cloud. The
-[Playground workflow](../.github/workflows/void-deploy.yml) validates pull requests, including the native/WASM
-comparison and production browser checks. The [Release workflow](../.github/workflows/release.yml) calls it after
-publishing the GitHub release from `oxc-project/tsrs`'s `main`. Dry runs and skipped releases do not deploy.
+[Playground workflow](../.github/workflows/void-deploy.yml) runs only when the
+[Release workflow](../.github/workflows/release.yml) calls it after publishing the GitHub release from
+`oxc-project/tsrs`'s `main`. It runs the native/WASM comparison and production browser checks before deploying.
+Pull requests, dry runs and skipped releases do not deploy.
 Production deployments are serialized; there is no separate manual trigger or preview deployment.
 Void's OIDC service requires the release commit to remain the current `main` head.
 

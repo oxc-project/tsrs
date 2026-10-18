@@ -59,8 +59,8 @@ jobs:
         id: ts
         run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
 
-      # The conformance suite and tsoptions unit tests need the pinned upstream fixtures.
-      - name: Check out TypeScript testdata
+      # The conformance suite and workspace tests need the pinned upstream fixtures.
+      - name: Check out TypeScript test fixtures and clients
         id: testdata
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         background: true
@@ -69,24 +69,21 @@ jobs:
           ref: ${{ steps.ts.outputs.commit }}
           path: ts-ref
           fetch-depth: 1
-          sparse-checkout: tsc/testdata
+          sparse-checkout: |
+            tsc/testdata
+            packages/typescript/src
+            packages/typescript/lib
+            packages/typescript/vendor
+            tools/scripts/tsc
           persist-credentials: false
 
       - name: cargo check
-        run: cargo check --workspace --exclude tsrs_fourslash --locked --config 'build.warnings="deny"'
+        run: cargo check --locked --config 'build.warnings="deny"'
 
       - wait: testdata
 
-      - name: Request filesystem Go fixtures
-        run: cargo test --locked -p tsrs_api --test requestfs_differential
-
-      - name: cargo test (fast crates)
-        run: >-
-          cargo test --locked --no-fail-fast
-          -p tsrs_core -p tsrs_spanmap -p tsrs_ipc -p tsrs_contentmapper -p tsrs_contentmappertest -p tsrs_ast -p tsrs_scanner
-          -p tsrs_diagnostics -p tsrs_vfs -p tsrs_module
-          -p tsrs_tsoptions -p tsrs_printer -p tsrs_modulespecifiers -p tsrs_compiler -p tsrs_incremental -p tsrs_execute
-          -p tsrs_testrunner -p tsrs_cli
+      - name: cargo test (workspace)
+        run: cargo test --locked
 
       - name: npm library paths (noembed)
         run: cargo test --locked -p tsrs_cli --features noembed --test npm_lib_path

@@ -10,6 +10,7 @@
 // unionBitWidth, childType, ...) are ports of the pinned generate-encoder.ts functions of the same name; keep
 // them in sync with the pinned source when the TypeScript commit moves. Only the emitted language differs.
 
+import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { KindType, MemberInfo, NodeType, Type } from "../../../tools/gen-ast/schema.ts";
@@ -542,7 +543,15 @@ genCreateStringNode();
 genCreateExtendedNode();
 genCreateChildrenNode();
 
-const generated = lines.join("\n");
+// Compare the same formatting that cargo fmt applies to the checked-in file.
+const generated = execFileSync("rustfmt", [
+    "--edition", "2024",
+    "--config-path", path.resolve(crateRoot, "../..", ".rustfmt.toml"),
+], {
+    input: lines.join("\n"),
+    encoding: "utf8",
+    cwd: path.resolve(crateRoot, "../.."),
+});
 const coverage = genCoverage();
 if (process.argv.includes("--check")) {
     let ok = true;

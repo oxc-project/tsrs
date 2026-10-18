@@ -27,7 +27,7 @@ Run `pnpm install --frozen-lockfile` from the repository root to install the npm
 ```sh
 cargo build --profile dev -p tsrs_cli -p tsrs_testrunner
 ./target/debug/tsrs -p path/to/project             # like `tsc` (emits; add --noEmit to only type check)
-cargo check --workspace                           # must be 0 errors, 0 warnings (CI sets build.warnings=deny)
+cargo check                                      # must be 0 errors, 0 warnings (CI sets build.warnings=deny)
 cargo check -p tsrs_wasm --target wasm32-wasip1   # the WebAssembly build still compiles (notes/wasm-build.md)
 cargo clippy --all-targets --config 'build.warnings="deny"'
 tools/lint/source.py                              # unsafe Send/Sync inventory, comments on weakened atomic orderings
@@ -48,13 +48,15 @@ tools/wasm/build.sh  # requires the wasm32-wasip1 target and wasm-opt
 
 ## Run the tests
 
-The conformance suite reads the reference baselines from a checkout of microsoft/TypeScript at the pinned commit in
-`ts-ref/` (git-ignored):
+The conformance suite and workspace tests use fixtures, API clients and the AST schema from a checkout of
+microsoft/TypeScript at the pinned commit in `ts-ref/` (git-ignored):
 
 ```sh
 commit=$(node npm/build.mjs --print-typescript-commit)
 git clone --filter=blob:none --sparse https://github.com/microsoft/TypeScript ts-ref
-git -C ts-ref sparse-checkout set tsc/testdata && git -C ts-ref checkout "$commit"
+git -C ts-ref sparse-checkout set tsc/testdata packages/typescript/src \
+  packages/typescript/lib packages/typescript/vendor tools/scripts/tsc
+git -C ts-ref checkout "$commit"
 
 ./target/debug/tsrs-test run --suite all                          # summary table; lists in target/test-results/
 ./target/debug/tsrs-test run --filter <substring>                 # one test or a cluster
@@ -63,7 +65,7 @@ git -C ts-ref sparse-checkout set tsc/testdata && git -C ts-ref checkout "$commi
 ./target/debug/tsrs-fourslash run                                # language-server suite
 TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # what CI enforces: errors, .types, .symbols
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
-cargo test -p tsrs_core -p tsrs_scanner -p tsrs_cli              # unit and CLI tests (see .github/workflows/ci.yml)
+cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
 CI runs the gate twice: in tsgo's check history, which the baselines need, and in the default mode
@@ -84,13 +86,13 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
 - Only CI, autofix, release, security and triage workflows are active. CI has two independent Linux jobs with separate
-  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and unit tests, compiler conformance in
-  both checker modes, and regressions. Source checks overlap Rust setup and Clippy in `lint`. In `test`, Node and
+  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance
+  in both checker modes, and regressions. Source checks overlap Rust setup and Clippy in `lint`. In `test`, Node and
   Rust setup run in parallel, and the TypeScript fixture checkout overlaps Rust checks, with an explicit wait before tests.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.
   The full CI and other workflow definitions are preserved as `.github/workflows/*.yml.bak`; they do not run
   automatically or by manual dispatch. Restore the original `.yml` filename to re-enable one.
-- Maintainers land small commits directly on `main` (rebase onto `origin/main`, `cargo check --workspace`, re-run the
+- Maintainers land small commits directly on `main` (rebase onto `origin/main`, `cargo check`, re-run the
   affected tests and the full suite, then `git push origin HEAD:main`; never force-push). See `docs/DEBUGGING.md`.
 - Commit messages: `<area>: <what and why>`, plus the conformance totals when they change.
 - Contributions are licensed under Apache-2.0 (`LICENSE`, section 5).

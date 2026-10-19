@@ -58,83 +58,104 @@ Local results are ignored by Git and go to `bench/results/<date>-<tsrs commit>[-
 `<work-dir>/logs/<timestamp>/`. The first run clones and installs the projects into `<work-dir>/solutions`
 (default `bench/.work`, ~5 GB); later runs reuse them as long as `bench/projects.json` is unchanged.
 
-## Laptop: published tsrs vs TypeScript nightly and 7.0.2
+## Published compilers on a laptop
 
-Run `./bench/laptop.sh` on an Apple Silicon Mac. It resolves `@tsrs/darwin-arm64@latest`, `typescript@next` and
-`typescript@7.0.2` once per invocation, installs them in separate directories, and measures their native executables
-with Hyperfine 2. Each compiler has its own saved npm lockfile.
-No local compiler build is used. The script needs Python 3, Node/npm, pnpm and git; it downloads a checksum-verified
-Hyperfine 2.0.0 unless `--hyperfine /path/to/hyperfine` is supplied.
-
-The four pinned projects are vscode, mui-docs, webpack and t3code-server. There are only two modes:
-**Aligned** (4 checkers each, default memory policies) and **Maximum resources** (one checker per logical CPU,
-all but 4 GiB of RAM as a soft budget through tsrs `--maxMemory` and Go `GOMEMLIMIT`). All three compilers use all
-logical CPUs for their worker pools. Go GC remains at its default in both modes; a high memory limit does not
-disable collections.
-
-The default is 3 warmups and 10 measured runs per compiler, project and mode. `--projects webpack --runs 1 --warmup 0`
-is a short smoke run. The default full run produces 240 measurements. Results go to
-`bench/.work/laptop/results/<timestamp>/`: `raw.csv` and `raw.json` contain one row per measured run (wall seconds,
-instructions, peak RSS bytes and exit code), with no aggregation. Each cell
-also retains Hyperfine's original JSON and compiler output. Metadata records exact package versions, npm integrity,
-binary hashes, project commits, commands and resource settings. Separate untimed preflights record file counts and
-diagnostic locations/codes for each compiler; each TypeScript version is compared with tsrs and differences are
-reported alongside the measurements.
-
-The [2026-10-19 laptop run](laptop-results/20261019T104740.804330Z/) is committed with all 240 raw measurements,
-original Hyperfine exports, preflight comparisons, package provenance, charts, and regeneration instructions.
-
-[`laptop-hyperfine.sh`](laptop-hyperfine.sh) runs those pinned compiler versions and resource settings directly
-in Bash using the existing installed packages and prepared projects. It prints each complete command, including
-its working directory and environment, before invoking Hyperfine. Preview all eight commands or run them:
+The existing entry points cover both workflows. `run.py` defaults to local builds and Linux CI;
+`--profile laptop` selects published macOS ARM64 binaries measured with Hyperfine 2. `chart.py` defaults to
+the existing CI SVG charts; `--format blog` renders a saved Hyperfine bundle. Both runners share
+[`projects.json`](projects.json), project setup/cache handling, timed flags and diagnostic parsing.
 
 ```bash
-bash bench/laptop-hyperfine.sh --dry-run
-bash bench/laptop-hyperfine.sh
+# Resolve @tsrs/darwin-arm64@latest, typescript@next and typescript@7.0.2 once, then benchmark.
+python3 bench/run.py --profile laptop
+
+# Prepare once, inspect the complete commands, then run directly in Bash.
+python3 bench/run.py --profile laptop --setup-only
+bash bench/.work/laptop/run.sh --dry-run
+bash bench/.work/laptop/run.sh
 ```
 
-This uses the measured tsrs `0.17.0` binary, TypeScript nightly `7.1.0-dev.20261019.1`, and TypeScript `7.0.2`,
-with 4 checkers in Aligned and 14 checkers / 32 GiB soft memory budgets in Maximum resources. Each invocation
-writes individual-run JSON and compiler logs into a new `bench/.work/laptop/manual-results.*` directory.
-Set `BENCH_WORK` to use another prepared work directory or `BENCH_HF` to select another Hyperfine 2 executable.
+The generated Bash script is the execution path used by both commands. It prints each complete Hyperfine command,
+working directory and environment before running it. Each invocation creates a fresh
+`bench/.work/laptop/results/<timestamp>.<suffix>/` bundle, including raw CSV/JSON, original Hyperfine exports,
+preflight comparisons, package lockfiles, compiler hashes, commands, environments and chart settings.
+`laptop.sh` and `laptop-hyperfine.sh` remain small compatibility launchers; neither defines another benchmark matrix.
+Set `--work-dir` at preparation time (and `BENCH_WORK` when using the compatibility Bash launcher).
 
-### Blog charts
+Preparation requires an Apple Silicon Mac, Python 3.9+, Node/npm, pnpm and git. It downloads checksum-verified
+Hyperfine 2.0.0, or accepts `--hyperfine /path/to/hyperfine`. The four default projects are vscode, mui-docs,
+webpack and t3code-server, pinned in the shared project catalog. Use `--projects webpack --runs 1 --warmup 0`
+for a short run, or select other catalog projects with `--projects`.
 
-[`laptop-charts/render.py`](laptop-charts/render.py) turns a completed `laptop.sh` result directory into the
-**TypeScript Default Config** (the `aligned` mode) and **Maximum resources** figures, with three bars per project
-and metric. Older two-compiler results
-are also supported. Install the pinned plotting dependencies once, then pass any
-completed result directory:
+| Mode | Checkers per compiler | Memory settings |
+| --- | --- | --- |
+| TypeScript Default Config (`aligned`) | 4 | Default policies |
+| Maximum resources (`maximum`) | Logical CPU count | RAM minus 4 GiB: tsrs `--maxMemory`, Go `GOMEMLIMIT` |
 
-```sh
-python3 -m venv bench/.work/laptop/chart-venv
-bench/.work/laptop/chart-venv/bin/python -m pip install -r bench/laptop-charts/requirements.txt
-bench/.work/laptop/chart-venv/bin/python bench/laptop-charts/render.py bench/.work/laptop/results/<timestamp>
+Both modes set worker pools to the logical CPU count (`GOMAXPROCS` and `RAYON_NUM_THREADS`), with default Go GC.
+The memory settings are soft budgets, not hard RSS caps. Defaults are 3 warmups and 10 measured repetitions:
+240 raw samples across four projects, three compilers and two modes. Wall time, instructions, peak RSS and exit
+codes remain individual samples. Peak RSS is a process peak, not total allocated memory. Untimed preflights record
+file counts and diagnostic differences; `--extendedDiagnostics` is never included in timed commands.
+
+To repeat the [archived 2026-10-19 run](laptop-results/20261019T104740.804330Z/) using its exact npm lockfiles,
+project commits, checker counts and worker/memory settings instead of resolving moving release tags:
+
+```bash
+python3 bench/run.py --profile laptop --replay bench/laptop-results/20261019T104740.804330Z --setup-only
+bash bench/.work/laptop/run.sh --dry-run
+bash bench/.work/laptop/run.sh
 ```
 
-Outputs go to `<results>/charts/` (override with `--output-dir`): `aligned.png`, `maximum.png`, SVG equivalents,
-an `index.html` viewer with parameter facts, `means.csv`, `means.json`, `alt-text.txt` and `chart-manifest.json`.
-The generator checks every wall-time and peak-RSS sample against its original Hyperfine export before averaging
-repetitions within each project/compiler/mode. Raw results stay unchanged; projects are never aggregated together.
-Versions, checker counts, memory budgets, run counts and preflight comparisons come from the saved results.
+Replay verifies compiler binary hashes against the archive and records the current machine separately; the saved
+14-checker/32-GiB settings remain fixed. Timings will vary with hardware and system load. New runs always label the
+actual measured compiler version. The generated runner checks binary hashes and project HEADs before every run;
+preparing again refreshes installed dependencies and the plan.
 
-The saved design uses Cloudflare orange (`#F38020`) for tsrs, TypeScript blue (`#3178C6`) for nightly and light blue
-(`#91B8E3`) for 7.0.2, bundled Inter fonts, adjacent version legends, and units beside each value. Bars and legends
-are ordered tsrs, TypeScript nightly, then TypeScript 7.0.2. Comparison labels for tsrs and nightly use 7.0.2 as
-the reference: wall-time bars show × faster (or × slower), and memory bars show × memory. Reference bars have no
-comparison labels; older two-compiler results use nightly as the reference. Both figures use the same zero-based
-bar scale per metric, expanded when needed for future measurements. Each footer shows the shared arguments once;
-`<project>` stands for the project-specific path. Full commands and CPU/memory settings remain in the parameter
-facts, alt text and manifest. Legends show names and versions. There are no axis ticks, checker/memory subtitles,
-unit subtitles, title accent line or top-right note. Four-project PNGs are 2200 × 1200; SVG text is outlined.
-The layout uses equal-width metric columns, evenly spaced legend groups, consistent bar spacing, and separators
-centered between project rows. Chart text uses Inter Regular/Medium at 12 pt or larger, with dark primary
-(`#18212B`) and secondary (`#36424E`) colors on white. Values use a stronger weight than comparison labels.
+### Reproduce the blog charts
 
-To change only the tsrs legend text, pass `--tsrs-display-version <version>`. For example, the blog figures use
-`--tsrs-display-version 0.18.0-ts7.1.0-dev.20260929`. This does not rerun the benchmark or change its recorded
-compiler version; the parameter facts, alt text and manifest retain the distinction between display and measured
-versions.
+Rendering needs only the saved data and pinned plotting environment; no compiler binaries, project clones or npm
+access are required. Create the plotting environment once with Python 3.9–3.12:
+
+```bash
+python3.12 -m venv bench/.work/charts-venv
+bench/.work/charts-venv/bin/python -m pip install -r bench/chart-assets/requirements.txt
+
+# Regenerate the two committed figures and their data/facts.
+bench/.work/charts-venv/bin/python bench/chart.py \
+  bench/laptop-results/20261019T104740.804330Z --format blog
+
+# Re-render elsewhere and compare every artifact byte for byte without changing the archive.
+bench/.work/charts-venv/bin/python bench/chart.py \
+  bench/laptop-results/20261019T104740.804330Z --format blog --check
+```
+
+Pass any completed Hyperfine bundle and optionally `--output-dir <directory>`. The default output is
+`<results>/charts/`: `aligned.png`, `maximum.png`, matching SVGs, `index.html`, `means.csv`, `means.json`,
+`alt-text.txt` and `chart-manifest.json`. Each chart shows mean wall time and mean peak RSS, averaging repetitions
+within each compiler/project/mode; projects are never aggregated. The HTML viewer retains exact commands,
+CPU/memory parameters, versions and preflight differences.
+
+[`blog.py`](blog.py) keeps the approved Cloudflare orange / TypeScript blue design, bundled Inter fonts,
+three-bar ordering, shared command footer and comparisons against TypeScript 7.0.2. [`results.py`](results.py)
+validates every CSV/JSON sample against the original Hyperfine export, including units, instructions, exit codes,
+commands and complete run counts. SVG IDs and dates are deterministic; source paths do not affect output.
+All plotting dependencies are pinned in [`chart-assets/requirements.txt`](chart-assets/requirements.txt).
+`--check` detects changes in rendered artifacts, including differences from another plotting environment.
+
+The archive's [`chart.json`](laptop-results/20261019T104740.804330Z/chart.json) preserves the requested tsrs
+legend override (`0.18.0…`) separately from the measured version (`0.17.0…`). It is loaded automatically;
+the measured version remains in raw metadata, facts, alt text and the manifest. `--tsrs-display-version` can
+override the legend for a one-off export. No rebenchmark is implied by a display change.
+
+Run the offline benchmark/reporting checks with the plotting environment:
+
+```bash
+bench/.work/charts-venv/bin/python -m unittest discover -s bench -p 'test_*.py'
+```
+
+They exercise the generated Bash runner with fake executables, reject corrupted results, reproduce both figures
+after relocating the archive, and cover the existing CI report/chart workflow. No real compiler benchmark runs.
 
 ## Suite mapping
 

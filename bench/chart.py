@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Draw the README's chart from a recorded benchmark result.
 
+For the published-compiler blog figures: chart.py <result-directory> --format blog [--check].
+
 A scatter of how many times faster tsrs is than tsgo (x) against how many times less peak memory it uses (y), both
 linear. Each project is a line through one point per checker count: both compilers at --checkers 1, 2, 4 and 8 on
 the same 8-vCPU machine, so every point compares equal thread counts with at most one checker per core. Up and to the
@@ -12,6 +14,7 @@ import argparse
 import json
 import math
 from pathlib import Path
+import tempfile
 import xml.etree.ElementTree as ET
 
 import run
@@ -409,12 +412,41 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("result", type=Path, help="recorded benchmark result (.json)")
-    parser.add_argument("--output", type=Path, required=True, help="SVG destination")
+    parser.add_argument("result", type=Path, help="recorded CI result (.json) or Hyperfine result directory")
+    parser.add_argument("--format", choices=("ci", "blog"), default="ci", help="default: existing CI SVG charts")
+    parser.add_argument("--output", type=Path, help="CI SVG destination")
+    parser.add_argument("--output-dir", type=Path, help="blog output directory (default: <result>/charts)")
+    parser.add_argument("--check", action="store_true", help="regenerate blog charts in a temporary directory and compare bytes")
+    parser.add_argument("--tsrs-display-version", help="blog legend override; normally read from <result>/chart.json")
     parser.add_argument("--theme", choices=THEMES, default="light", help="color scheme (default: light)")
     parser.add_argument("--per-project", choices=DETAIL, help="draw bench/RESULTS.md's per-project chart of this "
                         "metric instead of the README's summary")
     args = parser.parse_args()
+    if args.format == "blog":
+        if args.output or args.per_project or args.theme != "light":
+            parser.error("--output, --per-project and --theme apply to CI charts; use --output-dir for blog charts")
+        import blog
+        destination = args.output_dir or args.result / "charts"
+        try:
+            if args.check:
+                with tempfile.TemporaryDirectory(prefix="tsrs-charts-") as directory:
+                    generated = Path(directory)
+                    blog.render(args.result, generated, args.tsrs_display_version)
+                    changed = [p.name for p in generated.iterdir() if p.is_file() and
+                               (not (destination / p.name).is_file() or
+                                p.read_bytes() != (destination / p.name).read_bytes())]
+                    if changed:
+                        parser.error("Charts need regeneration: " + ", ".join(sorted(changed)))
+                print(f"All chart artifacts reproduce byte for byte: {destination}")
+            else:
+                blog.render(args.result, destination, args.tsrs_display_version)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
+        return
+    if not args.output:
+        parser.error("CI charts require --output")
+    if args.output_dir or args.check or args.tsrs_display_version:
+        parser.error("--output-dir, --check and --tsrs-display-version require --format blog")
     try:
         result = json.loads(args.result.read_text())
         image = per_project_svg(result, args.per_project, args.theme) if args.per_project else svg(result, args.theme)

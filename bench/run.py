@@ -9,6 +9,7 @@ See bench/README.md. Typical use:
     python3 bench/run.py --projects vscode --out-dir /tmp/p/vscode   # one project of a parallel run (CI)
     python3 bench/run.py --modes wide,checkers1,checkers2,checkers4,checkers8 --out-dir /tmp/p/wide  # the published tables
     python3 bench/run.py --merge /tmp/p/*/*.json        # join such results into one
+    python3 bench/run.py --profile laptop --setup-only # published binaries; generate a printable Bash runner
 """
 
 from __future__ import annotations
@@ -765,7 +766,17 @@ def write_results(result: dict, args: argparse.Namespace, note: str = "") -> Non
 
 
 def main() -> None:
+    # Keep the CI runner's defaults and dependencies; the published macOS binaries use Hyperfine.
+    profile = argparse.ArgumentParser(add_help=False)
+    profile.add_argument("--profile", choices=("ci", "laptop"), default="ci")
+    selected, remaining = profile.parse_known_args()
+    if selected.profile == "laptop":
+        import laptop
+        laptop.main(remaining)
+        return
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--profile", choices=("ci", "laptop"), default="ci",
+                    help="ci: local builds/Linux CI; laptop: published binaries/Hyperfine (use --profile laptop --help)")
     ap.add_argument("--local", action="store_true", help="label results as measured on this machine")
     ap.add_argument("--label", help="machine label for the table header")
     ap.add_argument("--work-dir", type=Path, default=BENCH / ".work", help="clones, installs, logs (default bench/.work)")

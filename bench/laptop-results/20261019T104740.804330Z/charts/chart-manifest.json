@@ -18,6 +18,13 @@
   ],
   "comparison_baseline": "typescript_7_0_2",
   "matplotlib": "3.9.4",
+  "requirements_sha256": "4ec2adc0911e86d8afa48db2f4a991f08b48957c482e1ea5c275e67cf23b8130",
+  "fonts_sha256": {
+    "Inter-Medium.ttf": "3efc305942edc0add0bf606490058ea5ee9bd7ed1945f1417a65b7256eb66f5e",
+    "Inter-Regular.ttf": "e67df83732cdb7420c0668d9036e6e765e0a7f443f4663fee543322d1f832ca5"
+  },
+  "svg_hashsalt": "tsrs-benchmark-v1",
+  "svg_date": "2026-10-19T11:10:03.041475+00:00",
   "png_dimensions": [
     2200,
     1200

@@ -1,6 +1,6 @@
 # Laptop benchmark: 2026-10-19
 
-Recorded with [`bench/laptop.sh`](../../laptop.sh) on an Apple M3 Max with 14 logical CPUs and 36 GiB RAM.
+Recorded with the laptop profile (now [`bench/run.py --profile laptop`](../../run.py)) on an Apple M3 Max with 14 logical CPUs and 36 GiB RAM.
 The run contains 240 individual measurements: four public projects, three compilers, two resource modes,
 and ten measured repetitions after three warmups for each combination.
 
@@ -35,22 +35,29 @@ records both versions.
 **Maximum resources** uses fourteen checkers, tsrs `--maxMemory 32G`, and Go `GOMEMLIMIT=32GiB`.
 Both modes set `GOMAXPROCS=14` and `RAYON_NUM_THREADS=14`, with default Go GC.
 
-The archive preserves the selected result files byte for byte. Repeated console logs, installed packages,
+The archive preserves the selected measurement files byte for byte. Figures can be regenerated from them. Repeated console logs, installed packages,
 working project clones, caches, and Finder metadata are not included.
 
 ## Regenerate the figures
 
-From the repository root, after installing the [plotting dependencies](../../README.md#blog-charts):
+From the repository root, after installing the [plotting dependencies](../../README.md#reproduce-the-blog-charts):
 
-```sh
-bench/.work/laptop/chart-venv/bin/python bench/laptop-charts/render.py \
-  bench/laptop-results/20261019T104740.804330Z \
-  --tsrs-display-version 0.18.0-ts7.1.0-dev.20260929 \
-  --output-dir bench/.work/laptop/charts-from-archive
+```bash
+bench/.work/charts-venv/bin/python bench/chart.py \
+  bench/laptop-results/20261019T104740.804330Z --format blog
+
+bench/.work/charts-venv/bin/python bench/chart.py \
+  bench/laptop-results/20261019T104740.804330Z --format blog --check
 ```
 
-This validates every wall-time and peak-RSS sample against the original Hyperfine export before drawing.
-It does not run a compiler or change the recorded measurements.
+The renderer reads the presentation override from [`chart.json`](chart.json), validates all 240 raw samples
+against Hyperfine, and reproduces both PNG/SVG figures and their supporting files. SVG dates/IDs are fixed;
+`--check` compares bytes in a temporary directory. No benchmark is run and measured versions remain unchanged.
+To write elsewhere, add `--output-dir <directory>`.
+
+To repeat measurements using these exact versions, project pins and resource settings, use
+`python3 bench/run.py --profile laptop --replay bench/laptop-results/20261019T104740.804330Z --setup-only`,
+then inspect and run `bash bench/.work/laptop/run.sh`. New timings are recorded in a fresh result directory.
 
 To verify the archive:
 

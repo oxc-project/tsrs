@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw wall-time and peak-memory bars from a completed bench/run.py result directory."""
+"""Draw SVG wall-time and peak-memory bars from a completed bench/run.py result directory."""
 import argparse
 import csv
 import hashlib
@@ -39,7 +39,6 @@ class BarChart:
         self.footer_rule_y = self.first_row_y + (len(self.projects) - .5) * self.row_pitch
         self.footer_y = self.footer_rule_y + .32
         self.figure_height = self.footer_y + .36
-        self.png_dimensions = [round(self.figure_width * 200), round(self.figure_height * 200)]
         # Cloudflare orange and TypeScript blue, with distinct blue shades for additional releases.
         blues = ("#3178C6", "#91B8E3", "#1D4F88", "#62A4D9", "#18405F", "#B5D0EB")
         self.colors = {"tsrs": "#F38020", **{c: blues[i % len(blues)] for i, c in enumerate(self.compilers[1:])}}
@@ -194,7 +193,6 @@ class BarChart:
         for text in fig.texts:
             box = text.get_window_extent(fig.canvas.get_renderer())
             assert box.x0 >= 0 and box.y0 >= 0 and box.x1 <= bounds.width and box.y1 <= bounds.height, text.get_text()
-        fig.savefig(self.here / "benchmark.png", dpi=200, facecolor="white")
         fig.savefig(self.here / "benchmark.svg", facecolor="white", metadata={"Date": self.meta["completed_utc"]})
         plt.close(fig)
         path = self.here / "benchmark.svg"
@@ -220,7 +218,7 @@ class BarChart:
                     "title": self.title, "versions": self.versions, "settings": self.meta["settings"],
                     "compiler_order": self.compilers, "baseline": self.baseline, "colors": self.colors,
                     "font": "DejaVu Sans (Matplotlib default)", "matplotlib": matplotlib.__version__,
-                    "png_dimensions": self.png_dimensions, "commands": self.commands,
+                    "figure_size_inches": [self.figure_width, self.figure_height], "commands": self.commands,
                     "aggregation": "arithmetic mean per compiler/project; no cross-project aggregation",
                     "means": means}
         (self.here / "chart-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
@@ -241,7 +239,7 @@ class BarChart:
                 'img{width:100%}table{border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:10px;'
                 'border-bottom:1px solid #ddd}a{color:#3178c6}</style>'
                 f'<h1>{html.escape(self.title)}</h1><img src="benchmark.svg" alt="{html.escape(self.alt_text(), quote=True)}">'
-                '<p><a href="benchmark.png">PNG</a> · <a href="benchmark.svg">SVG</a> · '
+                '<p><a href="benchmark.svg">SVG</a> · '
                 '<a href="means.csv">Chart data</a> · <a href="alt-text.txt">Alt text</a></p>'
                 '<table>' + table + '</table></html>')
         (self.here / "index.html").write_text(page)

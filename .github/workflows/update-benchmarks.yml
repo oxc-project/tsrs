@@ -196,7 +196,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Draw both chart styles
+      - name: Draw both SVG chart styles
         run: |
           python -m pip install -r bench/requirements-charts.txt
           for result in "$RUNNER_TEMP/bench-partial/$PROJECT"/*; do
@@ -232,7 +232,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Combine project data and update report images
+      - name: Combine project data and update report SVGs
         run: |
           python -m pip install -r bench/requirements-charts.txt
           python bench/publish.py "$RUNNER_TEMP"/bench-partials/*/* \

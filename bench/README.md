@@ -87,7 +87,8 @@ through a PR. To repeat measurements, use the exact versions and resource settin
 
 ## Draw charts from a saved bundle
 
-Rendering needs only saved data. It does not rerun compilers or require the benchmarked repositories.
+Both chart scripts produce SVG images. Rendering needs only saved data; it does not rerun compilers or require
+the benchmarked repositories.
 Set up the plotting environment once:
 
 ```bash
@@ -117,7 +118,7 @@ chart_python=bench/.work/charts-venv/bin/python
 to the last version as its comparison baseline and accepts `--title` and `--output-dir`. Bar charts use Cloudflare
 orange for tsrs, TypeScript blues, and Matplotlib's default font.
 
-Bar-chart outputs are in `<result>/charts/`: `benchmark.png`, `benchmark.svg`, `means.csv`, `means.json`,
+Bar-chart outputs are in `<result>/charts/`: `benchmark.svg`, `means.csv`, `means.json`,
 `alt-text.txt`, `chart-manifest.json`, and `index.html` with commands and parameter details. Both renderers average
 runs within each compiler/project; they never average across projects. Legends show the measured versions.
 
@@ -128,7 +129,7 @@ To generate the report and all publication SVGs together:
 ```
 
 This writes `RESULTS.md`, `large-projects.svg`, `large-projects-dark.svg`, the light/dark `per-project-time` and
-`per-project-memory` SVGs, and `benchmark.svg`. The bar-chart PNG remains in `<result>/charts/`.
+`per-project-memory` SVGs, and `benchmark.svg`.
 
 ## Reproduce images from CI
 
@@ -150,7 +151,7 @@ gh run download "$run_id" --repo oxc-project/tsrs --name bench-result --dir "$wo
   --run-url "https://github.com/oxc-project/tsrs/actions/runs/$run_id"
 ```
 
-The regenerated report and SVGs are in `$work/images/`; the PNG is in `$work/bench-result/charts/benchmark.png`.
+The regenerated report and SVGs are in `$work/images/`.
 The downloaded originals are in `$work/bench-publication/`. Keep the same code and pinned plotting dependencies
 when reproducing images. Artifacts are retained for 14 days; download the complete bundle to preserve it longer.
 

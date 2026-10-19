@@ -461,6 +461,8 @@ fn process_counters() -> (u64, u64) {
 }
 
 fn main() {
+    #[cfg(all(target_os = "linux", not(miri)))]
+    tsrs_core::allocator::init_mimalloc();
     // TSRS_ORACLE_STACK_MB overrides the stack size, to measure the parser's stack use per nesting level.
     let stack_mb: usize =
         std::env::var("TSRS_ORACLE_STACK_MB").ok().and_then(|s| s.parse().ok()).unwrap_or(4096);

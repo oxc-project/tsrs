@@ -18,9 +18,7 @@ tsrs_lsp.workspace = true
 tsrs_api.workspace = true
 tsrs_api_transport.workspace = true
 tsrs_execute = { path = "../tsrs_execute" }
-# no_thp avoids huge-page amplification on the heap (notes/mem-no-thp.md). It also disables THP for the
-# whole process; main re-enables it for the arena.
-mimalloc-safe = { workspace = true, features = ["no_thp"] }
+mimalloc-safe.workspace = true
 libc = "0.2"
 
 [features]

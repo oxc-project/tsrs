@@ -33,7 +33,9 @@ simdutf8 = "0.1.5"
 dragonbox_ecma = "0.1.12"
 num-bigint = "0.5.1"
 num-traits = "0.2"
-mimalloc-safe = { version = "0.1.67", features = ["v3"] }
+# Keep every mimalloc binary on the CLI's heap policy, even when built separately. On Linux, each binary calls
+# tsrs_core::allocator::init_mimalloc to retain huge-page advice for the arena (notes/mem-no-thp.md).
+mimalloc-safe = { version = "0.1.67", features = ["v3", "no_thp"] }
 # Pin exactly: 1.1.2 uses Unicode 15.1.0, matching the pinned TypeScript identifier tables.
 # Newer Unicode versions accept additional identifier characters; upgrade only when TypeScript's tables change.
 unicode-id-start = "=1.1.2"

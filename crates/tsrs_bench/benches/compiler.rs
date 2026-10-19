@@ -22,6 +22,8 @@ fn compiler(criterion: &mut Criterion) {
 }
 
 fn main() {
+    #[cfg(all(target_os = "linux", not(miri)))]
+    tsrs_core::allocator::init_mimalloc();
     // Compiler profiling switches can write files directly, bypassing the FS interface.
     for (name, _) in std::env::vars_os() {
         assert!(

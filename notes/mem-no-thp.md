@@ -1,5 +1,11 @@
 # mem-no-thp: mimalloc without transparent-huge-page advice on its heap
 
+Current configuration: the workspace enables mimalloc-safe's `v3` and `no_thp` features for every consumer. The CLI,
+test runner, compiler benchmark and parser oracle call `tsrs_core::allocator::init_mimalloc` at startup on Linux,
+before spawning workers, unless running under Miri (or, for the CLI, with `system-alloc`). This keeps the allocator
+policy consistent when binaries are built separately or together: the heap is not advised, the arena can use THP,
+and `MIMALLOC_ALLOW_THP` still overrides the default. The measurements below record how that policy was selected.
+
 The change: `crates/tsrs_cli/Cargo.toml` builds mimalloc with the crate feature `no_thp`
 (`mimalloc = { version = "0.1.52", features = ["no_thp"] }`). libmimalloc-sys 0.1.49 then compiles mimalloc v3 with
 `MI_NO_THP` on Linux and Android; on other targets the feature does nothing. The tsrs arena (`tsrs_core::reserve`)

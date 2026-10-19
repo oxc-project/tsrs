@@ -1,3 +1,4 @@
+pub mod allocator;
 pub mod arena;
 pub mod ptr;
 #[cfg(compressed_ptrs)]

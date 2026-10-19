@@ -55,7 +55,8 @@ targeting `wasm32-wasip1` (WASI Preview 1).
 
 ## Contributing
 
-Issues and pull requests are currently disabled until we have the bandwidth to triage them.
+The [issue tracker](https://github.com/oxc-project/tsrs/issues) is open for bug reports. Please include a minimal reproduction.
+Pull requests remain closed because we don't have the bandwidth to review them.
 
 See the [contributing guide](https://github.com/oxc-project/tsrs/blob/main/CONTRIBUTING.md)
 for building from source and running the suites, the [Code of Conduct](https://github.com/oxc-project/tsrs/blob/main/CODE_OF_CONDUCT.md), and

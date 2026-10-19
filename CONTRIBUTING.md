@@ -2,9 +2,11 @@
 
 tsrs is a Rust port of the TypeScript 7 type checker (the Go code in microsoft/TypeScript, `tsc/internal`).
 
-Issues and pull requests are currently disabled until we have the bandwidth to triage them. This guide covers
-building from source, reproducing bugs and the checks required for changes. When contributions reopen, a small
-reproduction will be the most useful starting point for a bug report.
+Bug reports are welcome in the [issue tracker](https://github.com/oxc-project/tsrs/issues). Include a minimal
+reproduction, the tsrs and reference compiler versions, the command you ran, and the expected and actual output.
+
+Pull requests remain closed because we don't have the bandwidth to review them. This guide covers building from
+source, reproducing bugs and the checks required for changes.
 
 The port was written largely by AI coding agents, directed and reviewed by Max Schwenk. Its correctness rests on
 the [conformance results](docs/COMPATIBILITY.md#conformance) rather than on review alone.

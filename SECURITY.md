@@ -42,7 +42,7 @@ The TypeScript Language Service only executes in the context of a [trusted works
 
 **In short:** `tsrs` is safe to run on untrusted code in the sense that it will only read and write files, and never execute the code it compiles or other arbitrary code. All other resource and path constraints are the caller's responsibility.
 
-Specifically, **crashes, stack overflows, nonlinear performance, and hangs** are generally not considered vulnerabilities unless they result in arbitrary code execution, and should be reported through the [normal issue flow](https://github.com/oxc-project/tsrs/issues/new/choose) instead.
+Specifically, **crashes, stack overflows, nonlinear performance, and hangs** are generally not considered vulnerabilities unless they result in arbitrary code execution, and should be reported through the [normal issue flow](https://github.com/oxc-project/tsrs/issues/new) instead.
 
 ## Security
 

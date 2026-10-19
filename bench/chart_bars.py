@@ -9,7 +9,6 @@ import math
 import os
 from pathlib import Path
 import statistics
-import tempfile
 import textwrap
 import xml.etree.ElementTree as ET
 
@@ -269,20 +268,10 @@ def main():
     parser.add_argument("--output-dir", type=Path, help="default: <result>/charts")
     parser.add_argument("--baseline", help="TypeScript version or compiler ID (default: last TypeScript in the run)")
     parser.add_argument("--title", default="TypeScript type checking")
-    parser.add_argument("--check", action="store_true", help="regenerate in a temporary directory and compare every artifact")
     args = parser.parse_args()
     destination = args.output_dir or args.result / "charts"
     try:
-        if args.check:
-            with tempfile.TemporaryDirectory(prefix="tsrs-charts-") as directory:
-                generated = Path(directory)
-                render(args.result, generated, args.baseline, args.title)
-                changed = [p.name for p in generated.iterdir() if p.is_file() and
-                           (not (destination / p.name).is_file() or p.read_bytes() != (destination / p.name).read_bytes())]
-                require(not changed, "Charts need regeneration: " + ", ".join(sorted(changed)))
-            print(f"All chart artifacts reproduce byte for byte: {destination}")
-        else:
-            render(args.result, destination, args.baseline, args.title)
+        render(args.result, destination, args.baseline, args.title)
     except (OSError, ValueError) as error:
         parser.error(str(error))
 

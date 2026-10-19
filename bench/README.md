@@ -93,15 +93,7 @@ JSON retains the summaries recorded by its original runner.
 
 Rendering needs only the saved bundle, with no compiler binaries or repository checkouts. [`results.py`](results.py)
 checks samples against Hyperfine exports, including units, instructions, exit codes, commands and run counts.
-SVG dates/IDs are deterministic. With the same plotting environment, verify exact regeneration with:
-
-```bash
-bench/.work/charts-venv/bin/python bench/chart_bars.py bench/results/<timestamp> --check
-bench/.work/charts-venv/bin/python -m unittest discover -s bench -p 'test_*.py'
-```
-
-The checks use synthetic data generated in temporary directories, exercise parameterized execution and both
-renderers, and preserve historical reporting coverage. They do not run real compiler benchmarks.
+SVG dates/IDs are deterministic; the pinned plotting environment keeps chart regeneration reproducible.
 
 ## Suite mapping
 

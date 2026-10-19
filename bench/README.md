@@ -84,6 +84,20 @@ reported alongside the measurements.
 The [2026-10-19 laptop run](laptop-results/20261019T104740.804330Z/) is committed with all 240 raw measurements,
 original Hyperfine exports, preflight comparisons, package provenance, charts, and regeneration instructions.
 
+[`laptop-hyperfine.sh`](laptop-hyperfine.sh) runs those pinned compiler versions and resource settings directly
+in Bash using the existing installed packages and prepared projects. It prints each complete command, including
+its working directory and environment, before invoking Hyperfine. Preview all eight commands or run them:
+
+```bash
+bash bench/laptop-hyperfine.sh --dry-run
+bash bench/laptop-hyperfine.sh
+```
+
+This uses the measured tsrs `0.17.0` binary, TypeScript nightly `7.1.0-dev.20261019.1`, and TypeScript `7.0.2`,
+with 4 checkers in Aligned and 14 checkers / 32 GiB soft memory budgets in Maximum resources. Each invocation
+writes individual-run JSON and compiler logs into a new `bench/.work/laptop/manual-results.*` directory.
+Set `BENCH_WORK` to use another prepared work directory or `BENCH_HF` to select another Hyperfine 2 executable.
+
 ### Blog charts
 
 [`laptop-charts/render.py`](laptop-charts/render.py) turns a completed `laptop.sh` result directory into the

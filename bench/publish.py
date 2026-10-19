@@ -3,7 +3,7 @@
 
     python3 bench/publish.py bench/results/<date>-<commit>.json
 
-Older backfills and runs without the Bun comparison results (wide and checkers16) keep the existing report and chart.
+Older backfills and runs without the published modes (wide and checkers4) keep the existing report and chart.
 """
 
 import argparse
@@ -16,8 +16,8 @@ import chart
 import run
 
 REPO = run.REPO
-# The summary tables, all from the Bun comparison jobs: each compiler at its own default, then both at 4 (tsgo's default),
-# 8 and 16 checker threads, the chart's points. Modes a result lacks are skipped.
+# The summary tables, all from the measure jobs: each compiler at its own default, then both at 1, 2, 4 (tsgo's
+# default) and 8 checker threads, the chart's points. Modes a result lacks are skipped.
 PUBLISHED_MODES = ["wide", *chart.POINTS.values()]
 
 

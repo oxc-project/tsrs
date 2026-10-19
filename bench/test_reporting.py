@@ -87,9 +87,14 @@ class ReportingTests(unittest.TestCase):
                  'watch': {'project': 'vscode', 'project_path': 'src', 'leaf': 'src/leaf.test.ts', 'reps': 5,
                            'tsgo_reps': 3, 'edits': 5, 'machine': self.historical['machine'],
                            'tsgo': stats(1), 'tsrs': stats(0.25), 'sessions': {}}}
+        charted = self.resized()
+        charted['modes'].append('checkers4')
+        charted['mode_reps']['checkers4'] = charted['mode_reps']['checkers16']
+        for project in charted['projects'].values():
+            project['checkers4'] = copy.deepcopy(project['checkers16'])
         with tempfile.TemporaryDirectory() as directory:
             paths = [Path(directory) / 'all.json', Path(directory) / 'watch.json']
-            paths[0].write_text(json.dumps(self.resized()))
+            paths[0].write_text(json.dumps(charted))
             paths[1].write_text(json.dumps(watch))
             merged = run.merge_results({'projects': [{'name': name} for name in self.historical['projects']]}, paths)
             other = dict(watch, tsrs=dict(watch['tsrs'], commit='0' * 40))
@@ -148,8 +153,13 @@ class PublishTests(unittest.TestCase):
         ], cwd=self.repo, text=True).strip()
 
     def result(self, commit):
+        """The fixture as a current result: its 16-checker cells stand in for the 4-checker ones."""
         result = copy.deepcopy(self.historical)
         result['tsrs']['commit'] = commit
+        result['modes'] = ['checkers4' if mode == 'checkers16' else mode for mode in result['modes']]
+        result['mode_reps']['checkers4'] = result['mode_reps'].pop('checkers16')
+        for project in result['projects'].values():
+            project['checkers4'] = project.pop('checkers16')
         return result
 
     def publish(self, result):
@@ -168,9 +178,9 @@ class PublishTests(unittest.TestCase):
         report = report.decode()
         self.assertIn(f'tsrs commit: `{commit[:12]}`', report)
         self.assertIn('### Default settings on 16 vCPUs', report)
-        self.assertIn('### `--checkers 16`', report)
-        self.assertNotIn('### `--checkers 4`', report)
-        self.assertNotIn('### `--checkers 8`', report)
+        self.assertIn('### `--checkers 4`', report)
+        self.assertNotIn('### `--checkers 1`', report)
+        self.assertNotIn('### `--checkers 16`', report)
         self.assertNotIn('### `--singleThreaded`', report)
         self.assertNotIn('### Scaling', report)
         self.assertTrue(report.startswith('# Benchmark results\n\n<!-- bench:start -->\n'))
@@ -183,59 +193,74 @@ class PublishTests(unittest.TestCase):
         self.assertIn(chart.THEMES['light']['background'].encode(), svg)
         self.assertIn(chart.THEMES['dark']['background'].encode(), dark_svg)
 
-    def with_wide_points(self, result):
-        """The fixture with the 16-vCPU machine's 4- and 8-checker cells, scaled from its 16-checker ones."""
-        result['modes'] += ['wide-checkers4', 'wide-checkers8']
-        result['mode_reps'].update({mode: result['mode_reps']['checkers16'] for mode in ('wide-checkers4', 'wide-checkers8')})
+    def with_chart_points(self, result):
+        """The result with 1-, 2- and 8-checker cells, scaled from its 4-checker ones."""
+        result['modes'] += ['checkers1', 'checkers2', 'checkers8']
+        result['mode_reps'].update({mode: result['mode_reps']['checkers4']
+                                    for mode in ('checkers1', 'checkers2', 'checkers8')})
         for project in result['projects'].values():
-            for mode, tsgo_scale, tsrs_scale in (('wide-checkers4', 1.6, 1.1), ('wide-checkers8', 1.2, 1.05)):
-                cell = project[mode] = copy.deepcopy(project['checkers16'])
+            for mode, tsgo_scale, tsrs_scale in (('checkers1', 3.2, 3.6), ('checkers2', 1.8, 1.9),
+                                                 ('checkers8', 0.8, 0.6)):
+                cell = project[mode] = copy.deepcopy(project['checkers4'])
                 cell['tsgo']['wall_s'] *= tsgo_scale
                 cell['tsrs']['wall_s'] *= tsrs_scale
                 cell['tsgo']['peak_rss_bytes'] /= tsgo_scale
         return result
 
-    def bars(self, root, metric):
+    def points(self, root):
         ns = '{http://www.w3.org/2000/svg}'
-        panel = root.find(f".//{ns}g[@data-metric='{metric}']")
-        return {bar.get('data-compiler'): float(bar.get('data-total')) for bar in panel.iter(f'{ns}g')
-                if bar.get('data-compiler')}
+        return {(group.get('data-project'), int(dot.get('data-checkers'))):
+                (float(dot.get('data-speedup')), float(dot.get('data-memory')))
+                for group in root.iter(f'{ns}g') if group.get('data-project')
+                for dot in group.iter(f'{ns}circle')}
 
-    def test_chart_sums_every_compiler_at_four_threads_each(self):
-        result = self.with_wide_points(self.result(self.commits[0]))
+    def test_chart_plots_speedup_against_memory_at_each_checker_count(self):
+        result = self.with_chart_points(self.result(self.commits[0]))
         self.assertTrue(self.publish(result))
         _, svg, dark_svg = self.latest()
         ns = '{http://www.w3.org/2000/svg}'
-        cells = [project['wide-checkers4'] for project in result['projects'].values()]
+        project = result['projects']['vscode']
         for image in (svg, dark_svg):
             root = ET.fromstring(image)
-            self.assertIn('Summed over 1 TypeScript project · 4 threads each · 16-vCPU Linux machine',
-                          [element.text for element in root.iter(f'{ns}text')])
-            for metric in ('wall_s', 'peak_rss_bytes'):
-                bars = self.bars(root, metric)
-                self.assertEqual(['tsrs', 'bun', 'tsgo'], list(bars))
-                for compiler, total in bars.items():
-                    self.assertAlmostEqual(sum(cell[compiler][metric] for cell in cells), total, delta=total * 1e-5)
-            self.assertIn('mode: wide-checkers4', root.find(f'{ns}metadata').text)
+            texts = [element.text for element in root.iter(f'{ns}text')]
+            self.assertIn('Both compilers at the same checker count on a 16-vCPU Linux machine', texts)
+            self.assertIn('parallel checker threads (--checkers 1, 2, 4, 8)', texts)
+            self.assertIn('vscode', texts)
+            points = self.points(root)
+            self.assertEqual([('vscode', 1), ('vscode', 2), ('vscode', 4), ('vscode', 8)], list(points))
+            for (_, checkers), (speedup, memory) in points.items():
+                cell = project[chart.POINTS[checkers]]
+                self.assertAlmostEqual(cell['tsgo']['wall_s'] / cell['tsrs']['wall_s'], speedup, delta=speedup * 1e-5)
+                self.assertAlmostEqual(cell['tsgo']['peak_rss_bytes'] / cell['tsrs']['peak_rss_bytes'], memory,
+                                       delta=memory * 1e-5)
+            self.assertIn('modes: checkers1, checkers2, checkers4, checkers8', root.find(f'{ns}metadata').text)
             description = root.find(f'{ns}desc').text
-            self.assertIn(f"tsrs {chart.format_value('wall_s', cells[0]['tsrs']['wall_s'])}", description)
+            self.assertIn(f"tsrs {chart.format_value('wall_s', project['checkers1']['tsrs']['wall_s'])}",
+                          description)
 
-    def test_chart_falls_back_to_sixteen_threads_and_leaves_out_unmeasured_compilers(self):
-        result = self.result(self.commits[0])
-        for project in result['projects'].values():
-            project['checkers16'].pop('bun')
-        self.assertTrue(self.publish(result))
+    def test_chart_plots_only_the_checker_counts_a_result_has(self):
+        # The fixture's 8-checker cell is from the 8-vCPU machine, not its 4-checker cell's 16-vCPU one: left out.
+        self.assertTrue(self.publish(self.result(self.commits[0])))
         _, svg, _ = self.latest()
         root = ET.fromstring(svg)
         ns = '{http://www.w3.org/2000/svg}'
-        texts = [element.text for element in root.iter(f'{ns}text')]
-        self.assertIn('tsrs vs tsgo', texts)
-        self.assertIn('Summed over 1 TypeScript project · 16 threads each · 16-vCPU Linux machine', texts)
-        self.assertEqual(['tsrs', 'tsgo'], list(self.bars(root, 'wall_s')))
+        self.assertIn('parallel checker threads (--checkers 4)',
+                      [element.text for element in root.iter(f'{ns}text')])
+        self.assertEqual([('vscode', 4)], list(self.points(root)))
+
+    def test_chart_names_nightlies_by_their_minor_version(self):
+        self.assertEqual('TypeScript 7.1 nightly', chart.typescript_name('7.1.0-dev.20261018.1'))
+        self.assertEqual('TypeScript 7.0.2', chart.typescript_name('7.0.2'))
+
+    def test_chart_needs_one_of_its_projects(self):
+        result = self.result(self.commits[0])
+        result['projects'] = {'Compiler': result['projects']['vscode']}
+        with self.assertRaises(ValueError):
+            chart.svg(result)
 
     def test_publishes_per_project_charts_into_the_report(self):
-        result = self.with_wide_points(self.result(self.commits[0]))
-        cell = result['projects']['vscode']['wide-checkers4']
+        result = self.with_chart_points(self.result(self.commits[0]))
+        cell = result['projects']['vscode']['checkers8']  # the most checkers every project has
         cell['bun']['peak_rss_bytes'] = cell['tsrs']['peak_rss_bytes'] / 2  # bun check wins on memory, not on time
         cell['bun']['wall_s'] = cell['tsrs']['wall_s'] * 2
         self.assertTrue(self.publish(result))
@@ -255,16 +280,19 @@ class PublishTests(unittest.TestCase):
                 self.assertEqual(metric == 'peak_rss_bytes', any(label.startswith('bun ') for label in labels))
                 self.assertEqual('linear' if metric == 'wall_s' else 'log',
                                  root.find(f".//{ns}g[@data-scale]").get('data-scale'))
+                better = root.find(f".//{ns}g[@data-role='better']")
+                self.assertEqual(chart.BETTER[metric], better.find(f'{ns}text').text)
+                self.assertIsNotNone(better.find(f'{ns}path'))  # the arrowhead
 
-    def test_publishes_sixteen_vcpu_tables_at_four_eight_and_sixteen_checkers(self):
-        self.assertTrue(self.publish(self.with_wide_points(self.result(self.commits[0]))))
+    def test_publishes_tables_at_one_two_four_and_eight_checkers(self):
+        self.assertTrue(self.publish(self.with_chart_points(self.result(self.commits[0]))))
         report = self.report.read_text()
         positions = [report.index(title) for title in (
-            '### Default settings on 16 vCPUs', '### `--checkers 4`', '### `--checkers 8`', '### `--checkers 16`')]
+            '### Default settings on 16 vCPUs', '### `--checkers 1`', '### `--checkers 2`', '### `--checkers 4`',
+            '### `--checkers 8`')]
         self.assertEqual(sorted(positions), positions)
-        self.assertEqual(1, report.count('### `--checkers 8`'))
+        self.assertEqual(1, report.count('### `--checkers 2`'))
         self.assertIn("4 checker threads each (tsgo's default)", report)
-        self.assertIn("16 checker threads each (tsrs's default on 16 vCPUs)", report)
         self.assertNotIn(', on Depot CI', report)
 
     def test_publishing_preserves_handwritten_sections_around_tables(self):
@@ -293,7 +321,7 @@ class PublishTests(unittest.TestCase):
         old_report, old_svg, old_dark_svg = self.latest()
         result['date'] = '2026-10-11 12:00 UTC'
         result['projects']['vscode']['wide']['tsrs']['wall_s'] *= 2
-        result['projects']['vscode']['checkers16']['tsrs']['wall_s'] *= 2
+        result['projects']['vscode']['checkers4']['tsrs']['wall_s'] *= 2
         self.assertTrue(self.publish(result))
         report, svg, dark_svg = self.latest()
         self.assertNotEqual(old_report, report)
@@ -301,10 +329,10 @@ class PublishTests(unittest.TestCase):
         self.assertNotEqual(old_dark_svg, dark_svg)
         self.assertIn(result['date'].encode(), report)
 
-    def test_results_without_sixteen_vcpu_measurements_preserve_latest(self):
+    def test_results_without_the_published_modes_preserve_latest(self):
         self.assertTrue(self.publish(self.result(self.commits[0])))
         latest = self.latest()
-        for mode in ('wide', 'checkers16'):
+        for mode in ('wide', 'checkers4'):
             for missing in ('mode', 'cells'):
                 with self.subTest(mode=mode, missing=missing):
                     result = self.result(self.commits[2])

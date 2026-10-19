@@ -252,11 +252,12 @@ Shared CI machines vary by a few percent between runs of the same code; the sing
 
 ## README chart
 
-The [chart](large-projects.svg) plots TypeScript 7 against tsrs on VS Code, T3 Code and MUI docs from the latest
-`--checkers` 4, 8 and 16 results above, both compilers at the same count on the 16-vCPU machine. Each project is a line
-through a point per thread count: up is TypeScript 7's wall time over tsrs's, right is its peak memory over tsrs's,
-and both axes start at 1x, the same as TypeScript 7. CI redraws it with the summary tables. Ratios use unrounded
-medians. The SVG description lists the times and memory behind every point; its metadata records the measured commit,
+The [chart](large-projects.svg) plots tsgo against tsrs on vscode, mui-docs, t3code-server, supabase
+(`supabase-studio`), playwright, typeorm and date-fns from the latest `--checkers` 1, 2, 4 and 8 results above, both
+compilers at the same count on the same 8-vCPU machine. Each project is a line through a point per checker count: right is
+tsgo's wall time over tsrs's, up is its peak memory over tsrs's, both on linear axes from 0. The title names the timed
+tsgo (`TypeScript 7.1 nightly` for a `7.1.0-dev` build) and the footer gives its exact version. CI redraws it
+with the summary tables. Ratios use unrounded medians. The SVG description lists the times and memory behind every point; its metadata records the measured commit,
 date and modes.
 
 ## Historical comparison on 64 vCPUs

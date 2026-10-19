@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Draw the README's chart from a recorded benchmark result.
 
-Two panels of three bars: tsrs's, bun check's and tsgo's check time and peak memory, each summed over the projects
-of bench/projects.json, all three at the same thread count on the recorded machine (4, tsgo's default, when the result
-has it). Shorter is better.
+A scatter of how many times faster tsrs is than tsgo (x) against how many times less peak memory it uses (y), both
+linear. Each project is a line through one point per checker count: both compilers at --checkers 1, 2, 4 and 8 on
+the same 8-vCPU machine, so every point compares equal thread counts with at most one checker per core. Up and to the
+right is better.
 """
 from __future__ import annotations
 
@@ -16,27 +17,40 @@ import xml.etree.ElementTree as ET
 import run
 
 
-# Drawn top to bottom; bun check only when the result measured it on every project.
+# The per-project charts' compilers, drawn top to bottom; bun check only when the result measured it on every project.
 COMPILERS = ("tsrs", "bun", "tsgo")
-NAMES = {"tsrs": "tsrs", "bun": "bun check", "tsgo": "tsgo"}
-# The Bun comparison equal-thread modes (bench/run.py WIDE_CHECKER_MODES; bench/publish.py publishes their tables).
-POINTS = run.WIDE_CHECKER_MODES
-# The mode a result must have for the chart to be drawn (bench/publish.py). The chart uses the fewest threads every
-# project was measured at: 4 since the 4-thread mode exists, 16 for older results.
-MODE = POINTS[16]
+# The equal-thread modes by checker count (bench/run.py CHART_CHECKER_MODES), the README chart's points.
+POINTS = run.CHART_CHECKER_MODES
+# The mode a result must have for the charts to be drawn (bench/publish.py).
+MODE = POINTS[4]
 PANELS = (("wall_s", "Check time", "faster"), ("peak_rss_bytes", "Peak memory", "less memory"))
-# The README shows the light or dark chart to match the reader's GitHub theme.
-THEMES = {
-    "light": {"tsrs": "#087b5b", "bun": "#d99a1e", "tsgo": "#3178c6", "background": "#ffffff", "border": "#e5e7eb",
-              "text": "#111827", "muted": "#6b7280", "faint": "#9ca3af", "track": "#f3f4f6"},
-    "dark": {"tsrs": "#3fb98c", "bun": "#e3b341", "tsgo": "#58a6ff", "background": "#0d1117", "border": "#30363d",
-             "text": "#e6edf3", "muted": "#9198a1", "faint": "#6e7681", "track": "#21262d"},
-}
 GIB = 2**30
-WIDTH, HEIGHT = 1200, 500
 FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
-# One panel: its left edge, the bars' start and full length, the first bar's center, the row pitch and bar height.
-PANEL_X, BAR_X, BAR_LENGTH, ROW_Y, ROW_PITCH, BAR_HEIGHT = (48, 624), 128, 290, 228, 92, 30
+
+# The README chart's projects (bench/projects.json names) and their legend names, in legend order.
+SCATTER_PROJECTS = {"vscode": "vscode", "mui-docs": "mui-docs",
+                    "t3code-server": "t3code-server", "supabase-studio": "supabase", "playwright": "playwright",
+                    "typeorm": "typeorm", "date-fns": "date-fns"}
+# The per-project charts' projects (bench/RESULTS.md): the README chart's and four more applications.
+DETAIL_PROJECTS = {**SCATTER_PROJECTS, "nuxt": "nuxt", "xstate-main": "xstate", "formbricks-web": "formbricks",
+                   "cal-diy": "cal-diy"}
+# Both charts' colors, after oxc.rs's palette: beige or near-black cards, Oxc teal (aqua when dark) for tsrs, the
+# TypeScript blue for tsgo, the pink of Bun's logo for bun check. The README chart's project colors avoid all three,
+# so a color means one thing in every chart. The README and bench/RESULTS.md show the light or dark chart to match the reader's GitHub
+# theme.
+THEMES = {
+    "light": {"background": "#f4f3ec", "border": "#dcdad0", "text": "#16171d", "muted": "#6f6876", "grid": "#e2e0d6",
+              "axis": "#16171d", "dot": "#16171d", "tsrs": "#0d6a73", "tsgo": "#3178c6", "bun": "#c2255c",
+              "projects": ("#6c3bff", "#e8590c", "#2f9e44", "#d4a017", "#867e8e", "#a0522d", "#7b8a00")},
+    "dark": {"background": "#16171d", "border": "#3b3440", "text": "#ffffff", "muted": "#a49cab", "grid": "#2a2630",
+             "axis": "#867e8e", "dot": "#0c0912", "tsrs": "#32f3e9", "tsgo": "#58a6ff", "bun": "#f06595",
+             "projects": ("#b39aff", "#ff922b", "#51cf66", "#fcc419", "#b0a8b9", "#e0a07a", "#c0cf3a")},
+}
+WIDTH, HEIGHT = 1200, 884
+# The plot area's edges; its top moves down a legend row for each row the legend wraps onto.
+PLOT_LEFT, PLOT_RIGHT, PLOT_TOP, PLOT_BOTTOM = 130, 1140, 205, 720
+# The legend's first row, the pitch between rows and the gap between entries.
+LEGEND_Y, LEGEND_ROW, LEGEND_GAP = 139, 34, 36
 
 
 def measured(cell: dict, compiler: str, metric: str) -> float | None:
@@ -52,18 +66,17 @@ def format_value(metric: str, value: float | None) -> str:
     return run.fmt_s(value) if metric == "wall_s" else f"{value / GIB:.2f} GiB"
 
 
-def total_text(metric: str, value: float) -> str:
-    return f"{value:.1f} s" if metric == "wall_s" else f"{value / GIB:.1f} GiB"
-
-
 def chart_mode(result: dict) -> str:
-    """The fewest equal threads every project has a tsgo and tsrs measurement at."""
-    for checkers in sorted(POINTS):
+    """The per-project charts' mode: the most equal checker threads every one of their projects in the result has a
+    tsgo and tsrs measurement at."""
+    projects = [p for name, p in result["projects"].items() if name in DETAIL_PROJECTS]
+    for checkers in sorted(POINTS, reverse=True):
         mode = POINTS[checkers]
-        if all(measured(p.get(mode) or {}, c, m) is not None for p in result["projects"].values()
-               for c in ("tsgo", "tsrs") for m, *_ in PANELS):
+        if projects and all(measured(p.get(mode) or {}, c, m) is not None for p in projects
+                            for c in ("tsgo", "tsrs") for m, *_ in PANELS):
             return mode
-    raise ValueError(f"no benchmark results with every project measured in one of {', '.join(POINTS.values())}")
+    raise ValueError(f"no results for {', '.join(DETAIL_PROJECTS)} with every project measured in one of "
+                     f"{', '.join(POINTS.values())}")
 
 
 def element(parent, tag, **attrs):
@@ -79,76 +92,202 @@ def text(parent, x, y, value, size, weight=400, fill=None, anchor=None):
     element(parent, "text", **attrs).text = value
 
 
+def ratios(cell: dict) -> tuple[float, float] | None:
+    """tsgo's wall time and peak memory over tsrs's, or None when either compiler lacks a measurement."""
+    values = {(c, m): measured(cell, c, m) for c in ("tsgo", "tsrs") for m in ("wall_s", "peak_rss_bytes")}
+    if None in values.values():
+        return None
+    return (values["tsgo", "wall_s"] / values["tsrs", "wall_s"],
+            values["tsgo", "peak_rss_bytes"] / values["tsrs", "peak_rss_bytes"])
+
+
+def axis_end(high: float) -> tuple[float, float]:
+    """A 0-based linear axis past `high` with at most 10 grid steps: its end and step."""
+    step = nice_step(high * 8 / 10)
+    end = math.ceil(high / step + 0.5) * step
+    return end, step
+
+
+def typescript_name(version: str) -> str:
+    """The timed tsgo as the chart names it: `TypeScript 7.1 nightly` for a 7.1.0-dev build, else `TypeScript <version>`."""
+    release, _, prerelease = version.partition("-")
+    if prerelease.startswith("dev."):
+        return f"TypeScript {'.'.join(release.split('.')[:2])} nightly"
+    return f"TypeScript {version}"
+
+
+def ink(fill: str) -> str:
+    """Black or white, whichever reads better on `fill` (#rrggbb), by its relative luminance."""
+    r, g, b = (int(fill[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    linear = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+    return "#16171d" if 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2] > 0.18 else "#ffffff"
+
+
+def machine_phrase(machine: dict) -> str:
+    """`an 8-vCPU Linux machine`: the article follows the spoken number (an 8, an 11, an 18, a 16)."""
+    cpus = machine.get("cpus")
+    return (("an " if str(cpus).startswith(("8", "11", "18")) else "a ")
+            + f"{cpus}-vCPU {machine.get('platform', 'Linux').split()[0]} machine")
+
+
+def header(root, colors: dict, width: int, title: str, kind: str, subtitle: str):
+    """Both charts' card, title, right-aligned kind and subtitle; returns the drawing group."""
+    height = int(root.get("height"))
+    element(root, "rect", x=0.5, y=0.5, width=width - 1, height=height - 1, rx=4, fill=colors["background"],
+            stroke=colors["border"])
+    drawing = element(root, "g", font_family=FONT, fill=colors["text"])
+    text(drawing, 48, 66, title, 26, 600)
+    text(drawing, width - 48, 66, kind, 21, fill=colors["muted"], anchor="end")
+    text(drawing, 48, 98, subtitle, 17, fill=colors["muted"])
+    return drawing
+
+
+def footer(drawing, colors: dict, height: int, result: dict, modes: list[str], machine: dict) -> None:
+    """Both charts' two footer lines: the compilers, then the machine and repetitions."""
+    build = run.TSRS_BUILDS[result["tsrs"].get("build", "release")].replace("`", "")
+    text(drawing, 48, height - 50, f"tsgo: typescript@{result['tsgo']['version']}. tsrs: "
+         f"{result['tsrs']['commit'][:12]}, {build}. Measured {result['date'][:10]}.", 14, fill=colors["muted"])
+    text(drawing, 48, height - 28, f"{machine['label'].replace('`', '')}. Wall time and peak RSS, "
+         f"{run.reps_text(result, modes)}.", 14, fill=colors["muted"])
+
+
+def legend_entry(parent, colors: dict, x: float, y: float, fill: str, label: str) -> None:
+    """A legend dot and its name, starting at `x`."""
+    element(parent, "circle", cx=f"{x:.1f}", cy=y, r=9, fill=fill, stroke=colors["dot"], stroke_width=1.5)
+    text(parent, f"{x + 20:.1f}", y + 7, label, 19, 500)
+
+
+def text_width(value: str, size: float) -> float:
+    """Roughly how wide `value` sets in the chart's sans-serif font."""
+    return size * sum(0.3 if c in "ijlrtf-. " else 0.56 for c in value)
+
+
 def svg(result: dict, theme: str = "light") -> str:
     colors = THEMES[theme]
-    if not any(MODE in project for project in result["projects"].values()):
-        raise ValueError(f"no benchmark results for mode {MODE!r}")
-    mode = chart_mode(result)
-    checkers = next(c for c, m in POINTS.items() if m == mode)
-    cells = {name: project[mode] for name, project in result["projects"].items()}
-    compilers = [c for c in COMPILERS if all(measured(cell, c, m) is not None for cell in cells.values()
-                                             for m, *_ in PANELS)]
-    totals = {metric: {c: sum(measured(cell, c, metric) for cell in cells.values()) for c in compilers}
-              for metric, *_ in PANELS}
-    machine = next((cell["machine"] for cell in cells.values() if "machine" in cell), result["machine"])
-    threads = f"--checkers {checkers}" + (f", bun check with --threads {checkers}" if "bun" in compilers else "")
-    title = " vs ".join(NAMES[c] for c in compilers)
-    setting = (f"Summed over {len(cells)} TypeScript project{'s' if len(cells) != 1 else ''} · {checkers} threads each · "
-               f"{machine.get('cpus')}-vCPU {machine.get('platform', 'Linux').split()[0]} machine")
+    series = {}
+    for name in SCATTER_PROJECTS:
+        project = result["projects"].get(name) or {}
+        points = [(checkers, mode, ratios(project[mode])) for checkers, mode in sorted(POINTS.items())
+                  if mode in project and ratios(project[mode])]
+        # A line joins only points measured on one machine: the 4-checker point's, or the first point's.
+        machines = {mode: (project[mode].get("machine") or result["machine"])["label"] for _, mode, _ in points}
+        anchor = machines.get(MODE) or next(iter(machines.values()), None)
+        points = [point for point in points if machines[point[1]] == anchor]
+        if points:
+            series[name] = points
+    if not series:
+        raise ValueError(f"no tsgo and tsrs results for {', '.join(SCATTER_PROJECTS)} in "
+                         f"{', '.join(POINTS.values())}")
+    modes = sorted({mode for points in series.values() for _, mode, _ in points},
+                   key=lambda mode: next(c for c, m in POINTS.items() if m == mode))
+    checker_counts = [c for c, m in sorted(POINTS.items()) if m in modes]
+    machine = next((result["projects"][name][mode]["machine"] for name in series for mode in modes
+                    if "machine" in (result["projects"][name].get(mode) or {})), result["machine"])
+    cpus = machine_phrase(machine)
+    counts = ", ".join(map(str, checker_counts[:-1])) + (" and " if len(checker_counts) > 1 else "") + \
+        str(checker_counts[-1])
 
+    x_end, x_step = axis_end(max(x for points in series.values() for *_, (x, _) in points))
+    y_end, y_step = axis_end(max(y for points in series.values() for *_, (_, y) in points))
+    x_of = lambda v: PLOT_LEFT + (PLOT_RIGHT - PLOT_LEFT) * v / x_end
+    # The legend's rows, right-aligned under the subtitle: a dot and a name per project, wrapped to the card's width.
+    rows: list[list[tuple[str, float]]] = [[]]
+    for name in series:
+        width = 20 + text_width(SCATTER_PROJECTS[name], 19)
+        if rows[-1] and sum(w + LEGEND_GAP for _, w in rows[-1]) + width > WIDTH - 96:
+            rows.append([])
+        rows[-1].append((name, width))
+    plot_top = PLOT_TOP + LEGEND_ROW * (len(rows) - 1)
+    y_of = lambda v: PLOT_BOTTOM - (PLOT_BOTTOM - plot_top) * v / y_end
+
+    typescript = typescript_name(result["tsgo"]["version"])
+    title = f"tsrs vs {typescript}"
     root = ET.Element("svg", {"xmlns": "http://www.w3.org/2000/svg", "width": str(WIDTH), "height": str(HEIGHT),
                               "viewBox": f"0 0 {WIDTH} {HEIGHT}", "role": "img", "aria-labelledby": "title description"})
     ET.SubElement(root, "title", id="title").text = title
     details = []
-    for name, cell in cells.items():
-        parts = [f"{NAMES[c]} {format_value('wall_s', measured(cell, c, 'wall_s'))}, "
-                 f"{format_value('peak_rss_bytes', measured(cell, c, 'peak_rss_bytes'))}" for c in compilers]
-        details.append(f"{name}: {'; '.join(parts)}. ")
-    summary = " ".join(
-        f"{label}: " + ", ".join(f"{NAMES[c]} {total_text(metric, totals[metric][c])}" for c in compilers) + "."
-        for metric, label, _ in PANELS)
+    for name, points in series.items():
+        parts = []
+        for checkers, mode, (speed, memory) in points:
+            cell = result["projects"][name][mode]
+            parts.append(f"--checkers {checkers}: {speed:.1f}x faster, {memory:.1f}x less memory (tsgo "
+                         f"{format_value('wall_s', measured(cell, 'tsgo', 'wall_s'))}, "
+                         f"{format_value('peak_rss_bytes', measured(cell, 'tsgo', 'peak_rss_bytes'))}; tsrs "
+                         f"{format_value('wall_s', measured(cell, 'tsrs', 'wall_s'))}, "
+                         f"{format_value('peak_rss_bytes', measured(cell, 'tsrs', 'peak_rss_bytes'))})")
+        details.append(f"{SCATTER_PROJECTS[name]}: {'; '.join(parts)}.")
     build = run.TSRS_BUILDS[result["tsrs"].get("build", "release")].replace("`", "")
     ET.SubElement(root, "desc", id="description").text = (
-        f"{setting}. {summary} Shorter is better. Per project: " + "".join(details) +
-        f"tsgo and tsrs with {threads}. {run.reps_text(result, [mode]).capitalize()}. tsrs uses {build}. "
+        f"How many times faster tsrs type-checks than tsgo ({typescript}), against how many times less peak memory "
+        f"it uses, both compilers at --checkers {counts} on {cpus}. Up and to the right is better. "
+        + " ".join(details) + f" {run.reps_text(result, modes).capitalize()}. tsrs uses {build}. "
         f"Machine: {machine['label'].replace('`', '')}. Measured {result['date']}; tsrs commit {result['tsrs']['commit']}. "
         f"TypeScript {result['tsgo']['version']}; TypeScript reference {(result.get('reference') or {}).get('commit', 'not recorded')}.")
     ET.SubElement(root, "metadata").text = (
-        f"Generated by bench/chart.py; mode: {mode}; tsrs commit: {result['tsrs']['commit']}; "
+        f"Generated by bench/chart.py; modes: {', '.join(modes)}; tsrs commit: {result['tsrs']['commit']}; "
         f"measured: {result['date']}; build: {result['tsrs'].get('build', 'release')}. "
         "Details: https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md")
 
-    element(root, "rect", x=0.5, y=0.5, width=WIDTH - 1, height=HEIGHT - 1, rx=20, fill=colors["background"],
-            stroke=colors["border"])
-    drawing = element(root, "g", font_family=FONT, fill=colors["text"])
-    text(drawing, 48, 72, title, 36, 700)
-    text(drawing, 48, 110, setting, 17, fill=colors["muted"])
+    drawing = header(root, colors, WIDTH, title, "Speed vs peak memory",
+                     f"Both compilers at the same checker count on {cpus}")
 
-    for (metric, label, word), left in zip(PANELS, PANEL_X):
-        values = totals[metric]
-        full = max(values.values())
-        panel = element(drawing, "g", data_metric=metric)
-        text(panel, left, 170, label, 20, 600)
-        text(panel, left + BAR_X + BAR_LENGTH, 170, "shorter is better", 14, fill=colors["faint"], anchor="end")
-        for row, compiler in enumerate(compilers):
-            y = ROW_Y + row * ROW_PITCH
-            top = y - BAR_HEIGHT / 2
-            length = max(BAR_HEIGHT, BAR_LENGTH * values[compiler] / full)
-            bar = element(panel, "g", data_compiler=compiler, data_total=f"{values[compiler]:.6g}")
-            element(bar, "rect", x=left + BAR_X, y=top, width=BAR_LENGTH, height=BAR_HEIGHT, rx=BAR_HEIGHT / 2,
-                    fill=colors["track"])
-            element(bar, "rect", x=left + BAR_X, y=top, width=f"{length:.1f}", height=BAR_HEIGHT, rx=BAR_HEIGHT / 2,
-                    fill=colors[compiler])
-            text(bar, left + BAR_X - 14, y + 6, NAMES[compiler], 18, 600 if compiler == "tsrs" else 500, anchor="end")
-            value_x = left + BAR_X + BAR_LENGTH + 18
-            text(bar, value_x, y + 7, total_text(metric, values[compiler]), 19, 700, colors[compiler])
-            if compiler != "tsgo":
-                text(bar, value_x, y + 32, f"{values['tsgo'] / values[compiler]:.1f}x {word}", 14, 500,
-                     colors["muted"])
+    # The key, right-aligned above the legend: the number in a dot is the run's parallel checker threads.
+    key = element(drawing, "g", data_role="key")
+    key_text = f"parallel checker threads (--checkers {', '.join(map(str, checker_counts))})"
+    x = WIDTH - 48 - text_width(key_text, 17)
+    text(key, f"{x:.1f}", 98, key_text, 17, fill=colors["muted"])
+    element(key, "circle", cx=f"{x - 22:.1f}", cy=92, r=13, fill=colors["background"], stroke=colors["text"],
+            stroke_width=1.5)
+    text(key, f"{x - 22:.1f}", 97, "n", 14, 700, colors["text"], "middle")
 
-    text(drawing, 48, HEIGHT - 28, f"tsgo and tsrs with {threads}. Wall time and peak RSS, "
-         f"{run.reps_text(result, [mode])}. tsrs {result['tsrs']['commit'][:12]}, measured {result['date'][:10]}.",
-         13, fill=colors["faint"])
+    project_colors = dict(zip(SCATTER_PROJECTS, colors["projects"]))
+    legend = element(drawing, "g", data_role="legend")
+    for row, items in enumerate(rows):
+        y = LEGEND_Y + row * LEGEND_ROW
+        x = WIDTH - 48
+        for name, width in reversed(items):
+            x -= width
+            legend_entry(legend, colors, x, y, project_colors[name], SCATTER_PROJECTS[name])
+            x -= LEGEND_GAP
+
+    grid = element(drawing, "g", data_role="grid")
+    for k in range(int(round(y_end / y_step)) + 1):
+        value = k * y_step
+        y = y_of(value)
+        if k:
+            element(grid, "line", x1=PLOT_LEFT, y1=f"{y:.1f}", x2=PLOT_RIGHT, y2=f"{y:.1f}", stroke=colors["grid"],
+                    stroke_width=1.5)
+        text(grid, PLOT_LEFT - 18, f"{y + 7:.1f}", f"{value:g}x", 19, fill=colors["muted"], anchor="end")
+    for k in range(int(round(x_end / x_step)) + 1):
+        value = k * x_step
+        x = x_of(value)
+        element(grid, "line", x1=f"{x:.1f}", y1=PLOT_BOTTOM, x2=f"{x:.1f}", y2=PLOT_BOTTOM + 8, stroke=colors["axis"],
+                stroke_width=1.5)
+        text(grid, f"{x:.1f}", PLOT_BOTTOM + 36, f"{value:g}x", 19, fill=colors["muted"], anchor="middle")
+    element(grid, "path", d=f"M{PLOT_LEFT} {plot_top}V{PLOT_BOTTOM}H{PLOT_RIGHT}", fill="none",
+            stroke=colors["axis"], stroke_width=1.5)
+    text(grid, (PLOT_LEFT + PLOT_RIGHT) / 2, PLOT_BOTTOM + 84, f"Times faster than {typescript}", 21,
+         anchor="middle")
+    text(grid, 0, 0, f"Times less peak memory than {typescript}", 21, anchor="middle")
+    grid[-1].set("transform", f"translate({PLOT_LEFT - 78} {(plot_top + PLOT_BOTTOM) / 2}) rotate(-90)")
+
+    # Lines first, then every dot above every line.
+    plot = element(drawing, "g", data_role="points")
+    for name, points in series.items():
+        element(plot, "polyline", data_project=name, fill="none", stroke=project_colors[name], stroke_width=3.5,
+                stroke_linejoin="round", stroke_linecap="round",
+                points=" ".join(f"{x_of(s):.1f},{y_of(m):.1f}" for *_, (s, m) in points))
+    # Each dot carries its checker count.
+    for name, points in series.items():
+        group = element(plot, "g", data_project=name)
+        for checkers, mode, (speed, memory) in points:
+            x, y = x_of(speed), y_of(memory)
+            element(group, "circle", data_checkers=checkers, data_speedup=f"{speed:.6g}", data_memory=f"{memory:.6g}",
+                    cx=f"{x:.1f}", cy=f"{y:.1f}", r=13, fill=project_colors[name], stroke=colors["dot"],
+                    stroke_width=1.5)
+            text(group, f"{x:.1f}", f"{y + 5:.1f}", str(checkers), 14, 700, ink(project_colors[name]), "middle")
+
+    footer(drawing, colors, HEIGHT, result, modes, machine)
     ET.indent(root, space="  ")
     return ET.tostring(root, encoding="unicode") + "\n"
 
@@ -156,8 +295,10 @@ def svg(result: dict, theme: str = "light") -> str:
 # The per-project charts (bench/RESULTS.md): one row per project, a dot per compiler on a shared axis. Check time is
 # linear, so the long checks read as long; peak memory is logarithmic, since bun check and tsrs trade wins there and
 # would sit on top of each other on a linear axis.
-DETAIL_WIDTH, DETAIL_TOP, DETAIL_PITCH, DETAIL_LEFT, DETAIL_RIGHT = 1000, 150, 34, 210, 720
+DETAIL_TOP, DETAIL_PITCH, DETAIL_LEFT, DETAIL_RIGHT = 200, 40, 230, 890
 DETAIL = {"wall_s": ("Check time", "faster", "linear"), "peak_rss_bytes": ("Peak memory", "less", "log")}
+# The direction note under each per-project chart's axis, after a left-pointing arrow.
+BETTER = {"wall_s": "lower is better", "peak_rss_bytes": "less is better"}
 
 
 def nice_step(span: float) -> float:
@@ -174,12 +315,15 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
     label, word, scale = DETAIL[metric]
     mode = chart_mode(result)
     checkers = next(c for c, m in POINTS.items() if m == mode)
-    cells = {name: project[mode] for name, project in result["projects"].items()}
+    cells = {name: project[mode] for name, project in result["projects"].items()
+             if name in DETAIL_PROJECTS and mode in project}
     compilers = [c for c in COMPILERS if all(measured(cell, c, m) is not None for cell in cells.values()
                                              for m, *_ in PANELS)]
-    names = sorted(cells, key=lambda name: -measured(cells[name], "tsgo", "wall_s"))
+    typescript = typescript_name(result["tsgo"]["version"])
+    names = {"tsrs": "tsrs", "bun": "bun check", "tsgo": typescript}
+    order = sorted(cells, key=lambda name: -measured(cells[name], "tsgo", "wall_s"))
     unit = 1 if metric == "wall_s" else GIB
-    values = {name: {c: measured(cells[name], c, metric) / unit for c in compilers} for name in names}
+    values = {name: {c: measured(cells[name], c, metric) / unit for c in compilers} for name in order}
     low = min(v for row in values.values() for v in row.values())
     high = max(v for row in values.values() for v in row.values())
     if scale == "linear":
@@ -194,66 +338,71 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
         end = min((t for t in steps if t >= high), default=10 ** math.ceil(math.log10(high)))
         ticks = [t for t in steps if start <= t <= end]
         x_of = lambda v: DETAIL_LEFT + (DETAIL_RIGHT - DETAIL_LEFT) * math.log(v / start) / math.log(end / start)
-    height = DETAIL_TOP + len(names) * DETAIL_PITCH + 70
-    bottom = DETAIL_TOP + len(names) * DETAIL_PITCH - DETAIL_PITCH / 2
+    bottom = DETAIL_TOP + len(order) * DETAIL_PITCH - DETAIL_PITCH / 2
+    height = int(bottom + 150)
     machine = next((cell["machine"] for cell in cells.values() if "machine" in cell), result["machine"])
-    threads = f"--checkers {checkers}" + (f"; bun check: --threads {checkers}" if "bun" in compilers else "")
-    title = f"{label}: " + " vs ".join(NAMES[c] for c in compilers)
+    threads = f"--checkers {checkers}" + (f", bun check at --threads {checkers}" if "bun" in compilers else "")
+    title = f"tsrs vs {typescript}"
 
-    root = ET.Element("svg", {"xmlns": "http://www.w3.org/2000/svg", "width": str(DETAIL_WIDTH), "height": str(height),
-                              "viewBox": f"0 0 {DETAIL_WIDTH} {height}", "role": "img",
+    root = ET.Element("svg", {"xmlns": "http://www.w3.org/2000/svg", "width": str(WIDTH), "height": str(height),
+                              "viewBox": f"0 0 {WIDTH} {height}", "role": "img",
                               "aria-labelledby": "title description"})
-    ET.SubElement(root, "title", id="title").text = title
+    ET.SubElement(root, "title", id="title").text = f"{label} by project: {title}"
     ET.SubElement(root, "desc", id="description").text = " ".join(
-        f"{name}: " + ", ".join(f"{NAMES[c]} {format_value(metric, values[name][c] * unit)}" for c in compilers) + "."
-        for name in names) + f" {checkers} threads each ({threads}). Smaller is better."
+        f"{DETAIL_PROJECTS[name]}: " + ", ".join(f"{names[c]} {format_value(metric, values[name][c] * unit)}"
+                                                for c in compilers) + "."
+        for name in order) + f" Both compilers at {threads} on {machine_phrase(machine)}. Smaller is better."
     ET.SubElement(root, "metadata").text = (
         f"Generated by bench/chart.py; metric: {metric}; mode: {mode}; tsrs commit: {result['tsrs']['commit']}; "
         f"measured: {result['date']}.")
-    element(root, "rect", x=0.5, y=0.5, width=DETAIL_WIDTH - 1, height=height - 1, rx=20, fill=colors["background"],
-            stroke=colors["border"])
-    drawing = element(root, "g", font_family=FONT, fill=colors["text"])
-    text(drawing, 40, 58, title, 28, 700)
-    text(drawing, 40, 90, f"{checkers} threads each ({threads}) on a {machine.get('cpus')}-vCPU machine, sorted by "
-         "tsgo's check time. Smaller is better.", 15, fill=colors["muted"])
-    legend_x = DETAIL_WIDTH - 40
+    drawing = header(root, colors, WIDTH, title, f"{label} by project",
+                     f"{'All three' if len(compilers) == 3 else 'Both'} compilers at {threads} on "
+                     f"{machine_phrase(machine)}, sorted by tsgo's check time")
+    legend = element(drawing, "g", data_role="legend")
+    x = WIDTH - 48
     for compiler in reversed(compilers):
-        legend_x -= 9 * len(NAMES[compiler]) + 34
-        element(drawing, "circle", cx=legend_x, cy=124, r=6, fill=colors[compiler])
-        text(drawing, legend_x + 12, 129, NAMES[compiler], 14, 500, colors["muted"])
+        x -= 20 + text_width(names[compiler], 19)
+        legend_entry(legend, colors, x, 139, colors[compiler], names[compiler])
+        x -= LEGEND_GAP
 
     grid = element(drawing, "g", data_scale=scale)
     for tick in ticks:
         x = x_of(tick)
-        element(grid, "line", x1=f"{x:.1f}", y1=DETAIL_TOP - 18, x2=f"{x:.1f}", y2=bottom, stroke=colors["track"],
+        element(grid, "line", x1=f"{x:.1f}", y1=DETAIL_TOP - 22, x2=f"{x:.1f}", y2=bottom, stroke=colors["grid"],
                 stroke_width=1.5)
-        text(grid, f"{x:.1f}", bottom + 22, f"{tick:g}", 13, fill=colors["faint"], anchor="middle")
-    text(grid, (DETAIL_LEFT + DETAIL_RIGHT) / 2, bottom + 44,
-         ("seconds" if metric == "wall_s" else "GiB") + (", log scale" if scale == "log" else ""), 13,
-         fill=colors["muted"], anchor="middle")
+        text(grid, f"{x:.1f}", bottom + 30, f"{tick:g}", 17, fill=colors["muted"], anchor="middle")
+    text(grid, (DETAIL_LEFT + DETAIL_RIGHT) / 2, bottom + 62,
+         ("seconds" if metric == "wall_s" else "GiB") + (", log scale" if scale == "log" else ""), 19,
+         anchor="middle")
+    # Lower is better on both charts: an arrow pointing back along the axis, under its left end.
+    better = element(drawing, "g", data_role="better")
+    y = bottom + 62
+    element(better, "line", x1=DETAIL_LEFT + 4, y1=y - 6, x2=DETAIL_LEFT + 58, y2=y - 6, stroke=colors["text"],
+            stroke_width=2.5, stroke_linecap="round")
+    element(better, "path", d=f"M{DETAIL_LEFT - 4} {y - 6}l13 -8v16z", fill=colors["text"])
+    text(better, DETAIL_LEFT + 70, y, BETTER[metric], 19, 600)
 
-    for row, name in enumerate(names):
+    for row, name in enumerate(order):
         y = DETAIL_TOP + row * DETAIL_PITCH
         v = values[name]
         line = element(drawing, "g", data_project=name)
-        text(line, DETAIL_LEFT - 18, y + 5, name, 14, 500, anchor="end")
+        text(line, DETAIL_LEFT - 22, y + 6, DETAIL_PROJECTS[name], 19, 500, anchor="end")
         xs = [x_of(v[c]) for c in compilers]
-        element(line, "line", x1=f"{min(xs):.1f}", y1=y, x2=f"{max(xs):.1f}", y2=y, stroke=colors["track"],
-                stroke_width=5, stroke_linecap="round")
+        element(line, "line", x1=f"{min(xs):.1f}", y1=y, x2=f"{max(xs):.1f}", y2=y, stroke=colors["grid"],
+                stroke_width=6, stroke_linecap="round")
         for compiler in ("tsgo", "bun", "tsrs"):
             if compiler in compilers:
-                element(line, "circle", data_compiler=compiler, cx=f"{x_of(v[compiler]):.1f}", cy=y, r=7,
-                        fill=colors[compiler], stroke=colors["background"], stroke_width=1.5)
+                element(line, "circle", data_compiler=compiler, cx=f"{x_of(v[compiler]):.1f}", cy=y, r=9,
+                        fill=colors[compiler], stroke=colors["dot"], stroke_width=1.5)
         labels = [("tsrs", f"{v['tsgo'] / v['tsrs']:.1f}x {word}")]
         if "bun" in compilers and v["bun"] < v["tsrs"]:
             labels.append(("bun", f"bun {v['tsgo'] / v['bun']:.1f}x {word}"))
-        x = max(xs) + 16
+        x = max(xs) + 20
         for compiler, label_text in labels:
-            text(line, f"{x:.1f}", y + 5, label_text, 13, 600, colors[compiler])
-            x += 7.4 * len(label_text) + 16
+            text(line, f"{x:.1f}", y + 6, label_text, 17, 600, colors[compiler])
+            x += text_width(label_text, 17) + 18
 
-    text(drawing, 40, height - 20, f"Wall time and peak RSS, {run.reps_text(result, [mode])}. tsrs "
-         f"{result['tsrs']['commit'][:12]}, measured {result['date'][:10]}.", 12, fill=colors["faint"])
+    footer(drawing, colors, height, result, [mode], machine)
     ET.indent(root, space="  ")
     return ET.tostring(root, encoding="unicode") + "\n"
 

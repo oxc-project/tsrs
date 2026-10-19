@@ -133,7 +133,8 @@ jobs:
 
   measure:
     needs: build
-    runs-on: ubuntu-latest
+    # 8 vCPUs, so the chart's 8-checker point runs one checker per core.
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
     timeout-minutes: 180
     strategy:
       fail-fast: false
@@ -141,7 +142,7 @@ jobs:
         project: ${{ fromJSON(needs.build.outputs.projects) }}
     env:
       PROJECT: ${{ matrix.project }}
-      BENCH_RUNNER: GitHub Actions `ubuntu-latest`
+      BENCH_RUNNER: Namespace `nscloud-ubuntu-24.04-amd64-8x16`
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -149,8 +150,8 @@ jobs:
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
           mem_gb=$(awk '/MemTotal/ {printf "%d", $2 / 1048576}' /proc/meminfo)
-          if [ "$(nproc)" != 4 ] || [ "$mem_gb" -lt 14 ] || [ "$(uname -m)" != x86_64 ]; then
-            echo "::error::expected 4 vCPU / 16 GB / x86_64"; exit 1
+          if [ "$(nproc)" != 8 ] || [ "$mem_gb" -lt 14 ] || [ "$(uname -m)" != x86_64 ]; then
+            echo "::error::expected 8 vCPU / 16 GB / x86_64"; exit 1
           fi
 
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
@@ -189,7 +190,7 @@ jobs:
           bin="$RUNNER_TEMP/benchmark-compilers"
           chmod +x "$bin/tsrs" "$bin/bun"
           sha256sum "$bin/tsrs" "$bin/bun"
-          python3 bench/run.py --projects "$PROJECT" --modes wide,wide-checkers4,wide-checkers8,checkers16 \
+          python3 bench/run.py --projects "$PROJECT" --modes wide,checkers1,checkers2,checkers4,checkers8 \
             --tsrs "$bin/tsrs" --tsrs-build pgo-dist --rustc "$(cat "$bin/rustc.txt")" --bun "$bin/bun" \
             --out-dir "$RUNNER_TEMP/bench-partial/$PROJECT" --reps 10 --tsgo-reps 3
 

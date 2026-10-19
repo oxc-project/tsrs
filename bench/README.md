@@ -1,8 +1,9 @@
 # Benchmarks: tsrs vs tsgo
 
 `bench/run.py` type-checks the projects the TypeScript team benchmarks the Go compiler on
-([microsoft/typescript-benchmarking](https://github.com/microsoft/typescript-benchmarking), `cases/`) and eleven
-open-source applications and libraries (see "Application projects") with tsrs, with tsgo 7.0.2 (npm `typescript@7.0.2`) and, where a
+([microsoft/typescript-benchmarking](https://github.com/microsoft/typescript-benchmarking), `cases/`) and thirteen
+open-source applications and libraries (see "Application projects") with tsrs, with tsgo from the TypeScript nightly (npm `typescript@7.1.0-dev.*`, the `tsgo` version in
+`projects.json`) and, where a
 Bun binary is given, with `bun check`, and reports wall time, peak memory and the error count of each.
 Wall-time reports are published by [`.github/workflows/update-benchmarks.yml`](../.github/workflows/update-benchmarks.yml)
 on changes to the project list or workflow, and on manual dispatch. The local commands below remain available.
@@ -11,22 +12,29 @@ The outdated `bench/results/` archive has been removed from the working tree; hi
 The former benchmark workflow measured every project on GitHub-hosted `ubuntu-24.04` runners in four modes and in four more
 with bun check; `bench/results/<date>-<commit>.md` has every table. [The latest recorded results](RESULTS.md) show the
 Bun comparison tables, with tsgo, tsrs and bun check side by side: the default mode (each compiler at its own
-thread count) and both compilers at `--checkers` 4 (tsgo's default), 8 and 16.
+thread count) and both compilers at `--checkers` 1, 2, 4 (tsgo's default) and 8.
 
-The [README chart](large-projects.svg) sums the check time and peak memory of every project for tsrs, bun check and
-tsgo from the equal-thread measurements of the PGO-optimized `dist` build: two panels of three bars, with
-each total and its multiple of tsgo's. It uses the fewest threads every project was measured at: 4 (`wide-checkers4`,
-tsgo's default), or 16 (`checkers16`) for results older than that mode. Bun check is drawn when every project has it.
-A sum weights the large projects most: they are where the wait is. The results commit step runs `bench/publish.py`
+The [README chart](large-projects.svg) plots, for seven projects (vscode, mui-docs, t3code-server, supabase,
+playwright, typeorm and date-fns), how many times faster tsrs is than tsgo (x) against how many times less peak memory
+it uses (y), both linear, from the equal-thread measurements of the PGO-optimized `dist` build. Each project is a line
+through one point per checker count, both compilers at `--checkers` 1, 2, 4 and 8 (`checkers1`, `checkers2`,
+`checkers4`, `checkers8`) on the same 8-vCPU runner, so no point runs more checkers than there are cores; a line
+joins only points measured on one machine; a result without a mode
+leaves its point out. Ratios rather than totals keep each project's point independent of which other projects are in
+the suite, and equal checker counts keep the comparison from crediting either compiler with more cores. The title
+names the timed tsgo (`TypeScript 7.1 nightly` for a `7.1.0-dev` build) and the footer gives its exact version. The results commit step runs `bench/publish.py`
 to generate the tables and a light and a dark SVG together ([`large-projects-dark.svg`](large-projects-dark.svg));
 README.md shows the one matching the reader's GitHub theme, links to stable paths and is not rewritten by CI. Each
 project's times and memory are in the SVG's description and the report, with the error comparisons, all modes and raw
 measurements.
 
-[The latest results](RESULTS.md) open with two per-project charts from the same mode, also drawn by `bench/publish.py`
-in both themes (`bench/per-project-time.svg`, `bench/per-project-memory.svg` and their `-dark` twins; `python3
-bench/chart.py <result.json> --per-project wall_s|peak_rss_bytes --output <file>` draws one). Each row is a project,
-sorted by tsgo's check time, with a dot per compiler and how many times faster (or less memory) tsrs is than tsgo;
+[The latest results](RESULTS.md) open with two per-project charts, also drawn by `bench/publish.py` in both themes
+(`bench/per-project-time.svg`, `bench/per-project-memory.svg` and their `-dark` twins; `python3 bench/chart.py
+<result.json> --per-project wall_s|peak_rss_bytes --output <file>` draws one). They cover the README chart's projects
+plus nuxt, xstate, formbricks and cal-diy, at the most checkers all of them were measured at (`--checkers 8` on the
+8-vCPU runner). All three charts share one theme, after the oxc.rs palette: Oxc teal (aqua in the dark theme) for tsrs,
+the TypeScript blue for tsgo and the pink of Bun's logo for bun check. An arrow under each per-project chart's axis
+points back toward zero: lower is better on both. Each row is a project, sorted by tsgo's check time, with a dot per compiler and how many times faster (or less memory) tsrs is than tsgo;
 bun check's multiple is shown on the rows where it beats tsrs. Check time is on a linear axis, so the long checks read
 as long; peak memory is on a log axis, where bun check and tsrs, which trade wins, stay apart.
 
@@ -83,7 +91,7 @@ builds); the tsserver/LSP/startup scenarios (not `tsc` runs). All six included p
 The suite has one application-shaped workload (`mui-docs`), and none of its projects leans on schema-validation
 types. Application projects include four large applications (three Next.js/React apps built on Zod and tested with Vitest, and an
 Effect server), plus Bun's published benchmark set (mikro-orm, next.js root and packages/next, storybook, nuxt, playwright)
-and one more popular library (drizzle-orm). Each is pinned to one commit.
+and three more popular libraries (drizzle-orm, typeorm, date-fns). Each is pinned to one commit.
 
 | project | repository @ commit | `-p` | files | workload |
 | --- | --- | --- | ---: | --- |
@@ -100,6 +108,8 @@ and one more popular library (drizzle-orm). Each is pinned to one commit.
 | `playwright` | microsoft/playwright @ `d469960` | `.` | ~1,515 | Playwright testing framework (broader tsconfig than Bun's 706; same commit) |
 | **Other popular libraries** | | | | |
 | `drizzle-orm` | drizzle-team/drizzle-orm @ `15454db` | `.` | ~943 | Drizzle ORM (large popular project) |
+| `typeorm` | typeorm/typeorm @ `fe9239428751` | `packages/typeorm` | 3,575 | TypeORM sources and tests, decorators |
+| `date-fns` | date-fns/date-fns @ `717ce0a807ea` | `pkgs/core` | 2,277 | date-fns core, already on TypeScript 7 |
 
 **Original application projects:** Each install command does what the app's own `typecheck` needs before `tsc` runs, with package scripts off:
 
@@ -125,11 +135,15 @@ and one more popular library (drizzle-orm). Each is pinned to one commit.
 - `nuxt`: pnpm install.
 - `playwright`: npm ci.
 - `drizzle-orm`: pnpm install.
+- `typeorm`: pnpm install of `typeorm` and its workspace dependencies.
+- `date-fns`: pnpm install, then `tsc --build` of the projects `pkgs/core` references (`pkgs/tz`, `pkgs/utc`,
+  `pkgs/docs`), with date-fns's own TypeScript 7, so their declarations exist.
 
-**Overlays.** cal.diy and Formbricks still compile with TypeScript 5.9, whose tsconfig options TypeScript 7 removed
+**Overlays.** cal.diy, Formbricks and TypeORM still compile with TypeScript 5.9, whose tsconfig options TypeScript 7 removed
 (`baseUrl`, `moduleResolution: node`, `target: es5`); unmodified, both stop at config errors before checking a
 file. `bench/overlays/<name>/` holds the minimal TypeScript 7 replacements, copied over the checkout before the
-install: `baseUrl` becomes a `"*": ["./*"]` path, `node` resolution becomes `bundler`, ES5 becomes ES2017.
+install: `baseUrl` becomes a `"*": ["./*"]` path, `node` resolution becomes `bundler` (with `module: esnext` for
+TypeORM, whose `commonjs` does not allow it), ES5 becomes ES2017.
 cal.diy's generated tRPC declarations import `@trpc/server/dist/...`, which `bundler` resolution blocks through the
 package's `exports`, so a `paths` entry maps it to the package directory as `node` resolution did (without it,
 tsgo reports 727 errors instead of 136). Formbricks also gets the `next-env.d.ts` Next.js writes on `next dev`
@@ -145,22 +159,25 @@ tsrs's errors (the table's errors paragraph names such projects).
 
 - Invocation, identical for both: `-p <project> --noEmit --incremental false --pretty false` (`TIMED_FLAGS` in
   `run.py`), in the default mode (no thread flag: tsgo uses 4 checker threads; tsrs every core up to 16, then half the cores,
-  from 4 to 32, lowered toward 4 for programs with fewer than 32 type-checked files per checker; the standard
-  4-vCPU runner uses 4). Other modes set `--singleThreaded`, `--checkers 4` or `--checkers 8`.
-  The Bun comparison jobs run default mode again (`wide`) and `--checkers` 4, 8 and 16 (`wide-checkers4`,
-  `wide-checkers8` and `checkers16`). These historical mode names remain so old and new reports use the same
-  schema; the reports record the actual machine for every cell. Select modes with `--modes` (default
+  from 4 to 32, lowered toward 4 for programs with fewer than 32 type-checked files per checker; the 8-vCPU
+  benchmark runner uses 8). Other modes set `--singleThreaded`, `--checkers 4` or `--checkers 8`.
+  The published jobs run default mode again (`wide`) and `--checkers` 1, 2, 4 and 8 (`checkers1`, `checkers2`,
+  `checkers4` and `checkers8`), at most one checker per core on the 8-vCPU runner. Historical 16-vCPU results use the
+  `wide-checkers4`, `wide-checkers8` and `checkers16` modes, which still render. The
+  reports record the actual machine for every cell. Select modes with `--modes` (default
   `default,single,checkers4,checkers8`; flags in `MODE_FLAGS` in `run.py`). `--checkers` sets only checker threads;
   parsing and binding still use every core. Counts above the runner's CPU count oversubscribe it.
 - `bun check` (`--bun <binary>`, Bun 1.4.3 canary or later) is a third column in every mode it is measured in: `bun check
   -p <project> --no-pretty --all`, with `--threads N` where tsgo and tsrs get `--checkers N` (bun's only thread knob,
   and it caps every thread). CI measures it on the same standard GitHub runner size. Its error count is recorded, not compared: bun check
-  follows TypeScript 7.0 (on vscode its errors equal tsgo 7.0.2's line for line), tsrs the 7.1-dev commit it ports.
+  follows TypeScript 7.0 (on 2026-10-06 its vscode errors equaled tsgo 7.0.2's line for line), while tsgo and tsrs
+  follow 7.1-dev.
   `--noEmit` instead of the suite's `--outdir` keeps the measurement to type checking; `--pretty
   false` makes the error lines parseable.
-- tsgo: `pnpm add typescript@7.0.2 @typescript/typescript-<os>-<arch>@7.0.2`. Its `bin/tsc` is a Node launcher (`lib/tsc.js` -> `getExePath.js`) that
+- tsgo: `pnpm add typescript@<version> @typescript/typescript-<os>-<arch>@<version>`, with the nightly `version` of
+  `tsgo` in `projects.json` (Renovate keeps it current). Its `bin/tsc` is a Node launcher (`lib/tsc.js` -> `getExePath.js`) that
   `execve`s the Go binary `@typescript/typescript-<os>-<arch>/lib/tsc`; the harness runs that binary directly (checked
-  to be a native executable printing `Version 7.0.2`), so Node startup is not part of the measurement.
+  to be a native executable printing that version), so Node startup is not part of the measurement.
 - tsrs: by default the release build of the checked-out commit (`target/release/tsrs`). CI measures what the npm
   package ships instead: the PGO build of the `release` profile (fat LTO, one codegen unit), built with the commands of
   the release workflow and trained with `.github/scripts/pgo-train.sh` (conformance suite + fourslash suite + xstate-main + webpack),
@@ -186,8 +203,8 @@ tsrs's errors (the table's errors paragraph names such projects).
   tables, an errors paragraph names only the projects where tsgo and tsrs disagree: a differing count is a
   **Mismatch** and a differing location set "Same count, different locations", both bold. This is a correctness
   signal, not a performance one.
-- tsrs ports a TypeScript 7.1-dev commit (`b85298b6`, `Cargo.toml`), not 7.0.2, so some differences are TypeScript
-  version differences. When the two disagree, the harness also runs `typescript@7.1.0-dev.20260930.4` (the nightly
+- tsrs ports a TypeScript 7.1-dev commit (`b85298b6`, `Cargo.toml`), not the newer nightly that is timed, so some
+  differences are TypeScript version differences. When the two disagree, the harness also runs `typescript@7.1.0-dev.20260930.4` (the nightly
   built from `b85298b6` plus one CI-only commit; `reference` in `projects.json`) once: if it reports exactly tsrs's
   errors the project is listed as a TypeScript version difference and not flagged. On 2026-10-01 that explains both
   differences (vscode 359 vs 371, webpack 848 vs 840: tsrs's lists equal the nightly's line for line). When the port moves to a
@@ -195,7 +212,7 @@ tsrs's errors (the table's errors paragraph names such projects).
 
 ## Watch mode
 
-`bench/watch.py` measures `--watch` on vscode: tsrs against tsgo 7.0.2, both started as
+`bench/watch.py` measures `--watch` on vscode: tsrs against the nightly tsgo of `projects.json`, both started as
 `--watch -p src --noEmit --preserveWatchOutput --pretty false` with no thread flags. bun check has no watch mode (Bun
 1.4.4 canary: `bun check` has no `--watch` flag, and `bun --watch check` checks once and ignores later edits), so it has
 no column. Each session:
@@ -362,16 +379,17 @@ once the four application projects were in; `measure-watch` since 2026-10-13):
    (`gh workflow run bench.yml --ref <branch>`) ends with the `bench-result` artifact: nothing is committed
    or commented.
 
-**Fixed machine spec**: GitHub-hosted `ubuntu-24.04`, 4 vCPU, 16 GB RAM, Linux x86_64 for this public repository
-([runner specifications](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)). The hardware
-step checks CPU count, memory and architecture. CPU models can differ; results record the actual machine and the
-regression/history tools compare compatible measurements. The 8- and 16-checker modes oversubscribe these runners.
+**Fixed machine spec**: the `measure` jobs run on Namespace `nscloud-ubuntu-24.04-amd64-8x16` (8 vCPU, 16 GB RAM,
+Linux x86_64; [runner labels](https://namespace.so/docs/reference/github-actions/runner-configuration)); the build and
+publish jobs stay on GitHub-hosted `ubuntu-latest`. The hardware step checks CPU count, memory and architecture. CPU
+models can differ; results record the actual machine and the regression/history tools compare compatible
+measurements. The 16-checker mode oversubscribes these runners.
 
 Caching uses GitHub's `actions/cache` service and the Rust setup action for
 `~/.cargo` and the dependency part of `target/`, which holds the PGO-instrumented build (workspace crates are
 rebuilt: they are what is being measured). The final PGO build is not cached: its RUSTFLAGS contain the profile's
 hash, which changes every run, so cargo rebuilds all of it anyway (as in the release workflow); one
-cache for the suite checkout plus the pnpm-installed compilers (`typescript@7.0.2` and the reference nightly); one cache
+cache for the suite checkout plus the pnpm-installed compilers (the timed nightly and the reference nightly); one cache
 per cloned project (checkout + `node_modules`) keyed on its pinned commit and install command
 (`bench/run.py --print-cache-keys`), so changing one pin re-installs only that project. Each measuring job restores
 the shared cache and its own project's; the build job restores the two training projects (xstate-main, webpack) and
@@ -497,7 +515,7 @@ with the `verify` label, run `8hc5870p99`): 8 min 42 s, of which cache restores 
 compare on one wide machine, the way Bun's `bun check` announcement measured them (vscode, Linux x64, 64 threads,
 mean of 20 runs). It runs four compilers on the same checkouts:
 
-- `tsgo`: `typescript@7.0.2` (as in `run.py`);
+- `tsgo`: the timed nightly (`tsgo` in `projects.json`, as in `run.py`);
 - `tsgo-dev`: `typescript@7.1.0-dev.20260930.4` (`reference` in `projects.json`), built from the TypeScript commit
   tsrs ports, so it is both the like-for-like Go baseline and the error oracle;
 - `tsrs`: the binary given with `--tsrs`;

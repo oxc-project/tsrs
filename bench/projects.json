@@ -136,6 +136,21 @@
       "commit": "15454dbe49d827c6081f3d0231e2e7985e517295",
       "project": ".",
       "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.6.3 install --frozen-lockfile --ignore-scripts"
+    },
+    {
+      "name": "typeorm",
+      "repo": "https://github.com/typeorm/typeorm.git",
+      "commit": "fe92394287516feeada6e9c308ebe22deca2458e",
+      "project": "packages/typeorm",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@10.34.5 install --frozen-lockfile --ignore-scripts --filter typeorm...",
+      "overlay": "bench/overlays/typeorm"
+    },
+    {
+      "name": "date-fns",
+      "repo": "https://github.com/date-fns/date-fns.git",
+      "commit": "717ce0a807ea4c6b540d015b5c408723175b2838",
+      "project": "pkgs/core",
+      "install": "pnpm --pm-on-fail=ignore dlx pnpm@11.22.0 install --frozen-lockfile --ignore-scripts && node_modules/.bin/tsc --build pkgs/tz pkgs/utc pkgs/docs"
     }
   ]
 }

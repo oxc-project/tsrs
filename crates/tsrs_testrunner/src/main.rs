@@ -149,6 +149,11 @@ struct Selection {
     list: Option<FxHashSet<String>>,
 }
 
+struct SelectedTests {
+    items: Vec<TestItem>,
+    excluded: std::collections::BTreeMap<String, String>,
+}
+
 impl Selection {
     fn from_args(args: &mut Args) -> Selection {
         let suites = match args.value("--suite").as_deref() {
@@ -176,12 +181,17 @@ impl Selection {
         self.suites.len() != SUITES.len() || self.filter.is_some() || self.list.is_some()
     }
 
-    fn select(&self, table: &OptionTable) -> Vec<TestItem> {
+    fn select(&self, table: &OptionTable) -> SelectedTests {
         let re = self.filter.as_deref().and_then(|f| Regex::new(f).ok());
         let mut items = Vec::new();
+        let mut excluded = std::collections::BTreeMap::new();
         for suite in &self.suites {
             for path in compiler_runner::enumerate_test_files(suite) {
                 let basename = tspath::get_base_file_name(&path);
+                if let Some(reason) = compiler_runner::skipped_test_reason(&basename) {
+                    excluded.insert(format!("{suite}/{basename}"), reason.to_string());
+                    continue;
+                }
                 let expanded = match compiler_runner::expand_test_file(suite, &path, table) {
                     Ok(v) => v,
                     Err(e) => {
@@ -214,7 +224,7 @@ impl Selection {
                 }));
             }
         }
-        items
+        SelectedTests { items, excluded }
     }
 }
 
@@ -235,7 +245,7 @@ fn cmd_run(mut args: Args) {
 
     let started = Instant::now();
     let table = options::tsoptions_option_table();
-    let items = sel.select(&table);
+    let SelectedTests { items, excluded } = sel.select(&table);
     if items.is_empty() {
         println!("no tests selected");
         return;
@@ -305,6 +315,7 @@ fn cmd_run(mut args: Args) {
         this_run.insert(item.id(), report::Entry::from(&r));
     }
     report::write_summary(&dir, &json_path, &summary);
+    report::write_run_manifest(&dir, &items, &excluded, !sel.is_partial());
     report::print_table(&this_run);
     println!("{:.1}s; results in {}", started.elapsed().as_secs_f64(), dir.display());
     if panic_summary {
@@ -322,7 +333,7 @@ fn check_no_extra(args: &Args) {
 fn cmd_list(mut args: Args) {
     let sel = Selection::from_args(&mut args);
     check_no_extra(&args);
-    for item in sel.select(&options::tsoptions_option_table()) {
+    for item in sel.select(&options::tsoptions_option_table()).items {
         println!("{}", item.id());
     }
 }
@@ -337,7 +348,7 @@ fn cmd_materialize(mut args: Args) {
     let table = options::tsoptions_option_table();
     let (mut written, mut skipped, mut with_dropped, mut errors) = (0, 0, 0, 0);
     let _ = std::fs::remove_dir_all(&out);
-    for (i, item) in sel.select(&table).iter().enumerate() {
+    for (i, item) in sel.select(&table).items.iter().enumerate() {
         match materialize::materialize(item, &table, &out.join(materialize::dir_name(i, item))) {
             Ok(m) if m.skipped => skipped += 1,
             Ok(m) => {
@@ -365,7 +376,7 @@ fn cmd_show(mut args: Args) {
     let name = args.rest.remove(0);
     let table = options::tsoptions_option_table();
     let sel = Selection { suites: SUITES.to_vec(), filter: None, list: None };
-    let all = sel.select(&table);
+    let all = sel.select(&table).items;
     let exact: Vec<&TestItem> = all
         .iter()
         .filter(|i| {

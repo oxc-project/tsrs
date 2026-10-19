@@ -180,8 +180,9 @@ pub fn run_item(table: &OptionTable, item: &TestItem) -> ItemResult {
         Ok(Outcome::Baseline(actual, types_and_symbols, js, maps)) => {
             match &js {
                 None => {
-                    extras
-                        .push(("js", ExtraResult::plain(Class::Skip, "no js output".to_string())));
+                    let reason = crate::compile::skipped_emit_test_reason(&item.path)
+                        .unwrap_or("no js output");
+                    extras.push(("js", ExtraResult::plain(Class::Skip, reason.to_string())));
                 }
                 Some(js) => extras.push(("js", ExtraResult::classify(item, "js", js))),
             }

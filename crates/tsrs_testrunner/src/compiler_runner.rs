@@ -67,6 +67,17 @@ pub static SKIPPED_TESTS: &[&str] = &[
     "requireOfJsonFileWithModuleNodeResolutionEmitNone.ts",
 ];
 
+pub fn skipped_test_reason(basename: &str) -> Option<&'static str> {
+    if !SKIPPED_TESTS.contains(&basename) {
+        return None;
+    }
+    Some(if basename.starts_with("API") {
+        "requires built typescript.d.ts"
+    } else {
+        "contains removed compiler options"
+    })
+}
+
 pub fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
@@ -222,7 +233,7 @@ pub fn expand_test_file(
     table: &OptionTable,
 ) -> Result<Vec<TestItem>, String> {
     let basename = tspath::get_base_file_name(path);
-    if SKIPPED_TESTS.contains(&basename.as_str()) {
+    if skipped_test_reason(&basename).is_some() {
         return Ok(Vec::new());
     }
     let content = read_test_file(path);

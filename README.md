@@ -19,13 +19,16 @@ Try checking and emitting code in the [browser playground](https://tsrs-playgrou
 ## Conformance
 
 `tsrs` currently targets the main branch of [microsoft/TypeScript](https://github.com/microsoft/typescript).
-We aim to release a stable version against TypeScript 7.1 with 100% conformance. In our testing on existing projects,
-we have yet to find a correctness bug in `tsrs`.
+We aim to release a stable version against TypeScript 7.1 with 100% conformance. Remaining differences are tracked
+as conformance gaps.
 
 There are known order issues: the pinned Go compiler can produce different diagnostics and traces depending on
 parallel parse, resolution, and check order, while `tsrs` canonicalizes some checker history by default. For the
 closest comparison, use `--checkerAssignment go --noLazyMembers`; tsgo parser and resolver races can still vary
 between runs.
+
+CI compares all supported compiler conformance baselines in both checker modes. It reports
+[known mismatches](tools/conformance/known-mismatches.json) and rejects new or changed failures and lost coverage.
 
 `--init` and `--showConfig` are not supported. See [compatibility and evidence](https://github.com/oxc-project/tsrs/blob/main/docs/COMPATIBILITY.md)
 for supported features and known gaps.

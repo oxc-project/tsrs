@@ -203,6 +203,31 @@ pub fn write_summary(dir: &Path, json_path: &Path, summary: &Summary) {
     }
 }
 
+// Written only after a completed run. The CI gate compares this selection with the results and its
+// checked-in coverage inventory; partial runs and stale summaries must not satisfy full conformance.
+pub fn write_run_manifest(
+    dir: &Path,
+    items: &[crate::compiler_runner::TestItem],
+    excluded: &BTreeMap<String, String>,
+    complete: bool,
+) {
+    let baselines: Vec<&str> = std::iter::once("errors")
+        .chain(
+            crate::worker::EXTRA_KINDS
+                .into_iter()
+                .filter_map(|(ext, bit)| (crate::extra_baselines() & bit != 0).then_some(ext)),
+        )
+        .collect();
+    let selected: Vec<String> = items.iter().map(crate::compiler_runner::TestItem::id).collect();
+    let mode = if tsrs_core::compat::go_compatible_history() { "go" } else { "default" };
+    let manifest = json!({
+        "complete": complete, "mode": mode, "baselines": baselines,
+        "selected": selected, "excluded": excluded,
+    });
+    std::fs::write(dir.join("run.json"), serde_json::to_string_pretty(&manifest).unwrap())
+        .expect("write conformance run manifest");
+}
+
 pub fn print_table(summary: &Summary) {
     print_table_of(summary, "suite", |e| Some(e.class));
     for ext in EXTRA_EXTS {

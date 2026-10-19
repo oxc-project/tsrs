@@ -86,31 +86,33 @@ jobs:
         run: cargo test --locked -p tsrs_cli --features noembed --test npm_lib_path
 
       - name: Build correctness binaries
+        id: correctness-build
         run: cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner
 
-      - name: Conformance suite
-        run: .github/scripts/conformance-gate.sh
+      - name: Conformance gate checks
+        run: python3 -m unittest discover -s tools/conformance -p 'test_*.py'
 
-      - name: Conformance suite (default checker mode)
-        env:
-          TS_TEST_PROGRAM_SINGLE_THREADED: "false"
-          TSRS_HISTORY: canonical
-          MIN_TYPES: "12778"
-          MIN_SYMBOLS: "12778"
-          TSRS_TEST_RESULTS: ${{ github.workspace }}/target/test-results-default
-        run: .github/scripts/conformance-gate.sh
+      - name: Full conformance (Go-compatible mode)
+        id: conformance-go
+        if: ${{ !cancelled() && steps.correctness-build.outcome == 'success' }}
+        run: .github/scripts/conformance-gate.sh --mode go
+
+      - name: Full conformance (default checker mode)
+        id: conformance-default
+        if: ${{ !cancelled() && steps.correctness-build.outcome == 'success' }}
+        run: .github/scripts/conformance-gate.sh --mode default
 
       - name: Regression cases
         run: tools/regressions.sh target/debug/tsrs
 
       - name: Upload conformance results
-        if: failure()
+        if: ${{ !cancelled() && (steps.conformance-go.outcome == 'success' || steps.conformance-go.outcome == 'failure' || steps.conformance-default.outcome == 'success' || steps.conformance-default.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: conformance-results
           path: |
-            target/test-results/*.txt
-            target/test-results-default/*.txt
+            target/test-results/
+            target/test-results-default/
           if-no-files-found: ignore
 
   fourslash:

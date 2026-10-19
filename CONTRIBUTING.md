@@ -66,14 +66,18 @@ git -C ts-ref checkout "$commit"
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
 ./target/debug/tsrs-test run --suite all --baselines types,symbols # type and symbol baselines
 PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
-TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # what CI enforces: errors, .types, .symbols
+TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh --mode go # all supported baselines
+TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh --mode default
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
-CI runs the gate twice: in tsgo's check history, which the baselines need, and in the default mode
-(`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical`, where `conformance/objectLiteralNormalization`'s
-`.types` / `.symbols` differ by design).
+CI runs the full gate twice: in tsgo's check history and in the default checker mode, including JavaScript,
+declaration output and source maps. Both runs publish every mismatch and skipped-coverage reason. Known
+differences are recorded in [the mismatch inventory](tools/conformance/known-mismatches.json); new or changed
+mismatches, crashes, timeouts and lost coverage fail CI. Fixed entries must be removed. Follow the
+[review and refresh workflow](tools/conformance/README.md#refresh-after-reviewing-a-change); CI never updates
+the inventory automatically. Default-mode differences remain conformance gaps even when they were deliberate.
 
 A change must not lose passing tests: compare `target/test-results/pass.txt` before and after
 (`comm -23 <(sort before.txt) <(sort target/test-results/pass.txt)` must print nothing). `docs/DEBUGGING.md`

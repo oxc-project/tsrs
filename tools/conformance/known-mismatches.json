@@ -1,0 +1,237 @@
+{
+  "reference_commit": "b85298b6a81f772d080b0455de0ca9d744cd6fd6",
+  "modes": {
+    "go": {
+      "coverage": {
+        "selected": {
+          "count": 15197,
+          "sha256": "a978bccb849b14e9895c1d5bc1e9cb388e65de3a00e3695f6ad06b03eb02b51c"
+        },
+        "excluded": {
+          "compiler/APILibCheck.ts": "requires built typescript.d.ts",
+          "compiler/APISample_Watch.ts": "requires built typescript.d.ts",
+          "compiler/APISample_WatchWithDefaults.ts": "requires built typescript.d.ts",
+          "compiler/APISample_WatchWithOwnWatchHost.ts": "requires built typescript.d.ts",
+          "compiler/APISample_compile.ts": "requires built typescript.d.ts",
+          "compiler/APISample_jsdoc.ts": "requires built typescript.d.ts",
+          "compiler/APISample_linter.ts": "requires built typescript.d.ts",
+          "compiler/APISample_parseConfig.ts": "requires built typescript.d.ts",
+          "compiler/APISample_transform.ts": "requires built typescript.d.ts",
+          "compiler/APISample_watcher.ts": "requires built typescript.d.ts",
+          "compiler/alwaysStrictNoImplicitUseStrict.ts": "contains removed compiler options",
+          "compiler/excessPropertyErrorsSuppressed.ts": "contains removed compiler options",
+          "compiler/keyofDoesntContainSymbols.ts": "contains removed compiler options",
+          "compiler/lateBoundConstraintTypeChecksCorrectly.ts": "contains removed compiler options",
+          "compiler/mappedTypeUnionConstraintInferences.ts": "contains removed compiler options",
+          "compiler/moduleNoneDynamicImport.ts": "contains removed compiler options",
+          "compiler/moduleNoneErrors.ts": "contains removed compiler options",
+          "compiler/noCrashWithVerbatimModuleSyntaxAndImportsNotUsedAsValues.ts": "contains removed compiler options",
+          "compiler/noErrorUsingImportExportModuleAugmentationInDeclarationFile1.ts": "contains removed compiler options",
+          "compiler/noErrorUsingImportExportModuleAugmentationInDeclarationFile2.ts": "contains removed compiler options",
+          "compiler/noErrorUsingImportExportModuleAugmentationInDeclarationFile3.ts": "contains removed compiler options",
+          "compiler/noImplicitAnyIndexingSuppressed.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_commonjs.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_es6.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_system.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_umd.ts": "contains removed compiler options",
+          "compiler/noStrictGenericChecks.ts": "contains removed compiler options",
+          "compiler/parameterInitializerBeforeDestructuringEmit.ts": "contains removed compiler options",
+          "compiler/preserveUnusedImports.ts": "contains removed compiler options",
+          "compiler/requireOfJsonFileWithModuleEmitNone.ts": "contains removed compiler options",
+          "compiler/requireOfJsonFileWithModuleNodeResolutionEmitNone.ts": "contains removed compiler options",
+          "conformance/importsNotUsedAsValues_error.ts": "contains removed compiler options",
+          "conformance/nonPrimitiveIndexingWithForInSupressError.ts": "contains removed compiler options",
+          "conformance/preserveValueImports.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_errors.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_importsNotUsedAsValues.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_mixedImports.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_module.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat2.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat3.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat4.ts": "contains removed compiler options"
+        },
+        "exercised": {
+          "errors": {
+            "count": 13462,
+            "sha256": "5942794fcf81ddab626269ca2d8ff540f167e2e5bfd907126c3de6b1ec0db2e7"
+          },
+          "types": {
+            "count": 12779,
+            "sha256": "376aad2e5a14ee651789174b97fcdab2439c9a4970f6bfcb2aae1ac785550728"
+          },
+          "symbols": {
+            "count": 12779,
+            "sha256": "376aad2e5a14ee651789174b97fcdab2439c9a4970f6bfcb2aae1ac785550728"
+          },
+          "js": {
+            "count": 13392,
+            "sha256": "bbe36f0b2335ca542da0f150399d02abfb8d30d510e9e7af98da0681774ad523"
+          },
+          "js.map": {
+            "count": 149,
+            "sha256": "035c7cbbd97f444315a2972c6cc9c0671cc6e8d463971f1fc59c998469403b7f"
+          },
+          "sourcemap.txt": {
+            "count": 156,
+            "sha256": "da877c4e39eecf2d496b5df39aa12e188667b6f439a350462bf5b125f0c7febb"
+          }
+        },
+        "skipped": {
+          "errors": {
+            "count": 1735,
+            "sha256": "26949a9d47d8c8aa9c73e4a2c8cc310c5e87c68f321c6df428d7265ee083a7c2"
+          },
+          "types": {
+            "count": 2418,
+            "sha256": "da151390695e6d2e6a01d8dbe1c88ccf69459705ecd9668e4dcb4124cd07ab1d"
+          },
+          "symbols": {
+            "count": 2418,
+            "sha256": "da151390695e6d2e6a01d8dbe1c88ccf69459705ecd9668e4dcb4124cd07ab1d"
+          },
+          "js": {
+            "count": 1805,
+            "sha256": "877b22782d6b43f1ecf205aa2a46c5c2f9ea14c6fea17fbd38830f67af7d9558"
+          },
+          "js.map": {
+            "count": 15048,
+            "sha256": "f73879f0e77a5b16718c84abf77d95857db216ba13664bcdc4a46446844ff914"
+          },
+          "sourcemap.txt": {
+            "count": 15041,
+            "sha256": "0906471ed8bdafa4d987c34989a7d012daeda4e50c85304cfac755e0b6a23b7b"
+          }
+        }
+      },
+      "mismatches": []
+    },
+    "default": {
+      "coverage": {
+        "selected": {
+          "count": 15197,
+          "sha256": "a978bccb849b14e9895c1d5bc1e9cb388e65de3a00e3695f6ad06b03eb02b51c"
+        },
+        "excluded": {
+          "compiler/APILibCheck.ts": "requires built typescript.d.ts",
+          "compiler/APISample_Watch.ts": "requires built typescript.d.ts",
+          "compiler/APISample_WatchWithDefaults.ts": "requires built typescript.d.ts",
+          "compiler/APISample_WatchWithOwnWatchHost.ts": "requires built typescript.d.ts",
+          "compiler/APISample_compile.ts": "requires built typescript.d.ts",
+          "compiler/APISample_jsdoc.ts": "requires built typescript.d.ts",
+          "compiler/APISample_linter.ts": "requires built typescript.d.ts",
+          "compiler/APISample_parseConfig.ts": "requires built typescript.d.ts",
+          "compiler/APISample_transform.ts": "requires built typescript.d.ts",
+          "compiler/APISample_watcher.ts": "requires built typescript.d.ts",
+          "compiler/alwaysStrictNoImplicitUseStrict.ts": "contains removed compiler options",
+          "compiler/excessPropertyErrorsSuppressed.ts": "contains removed compiler options",
+          "compiler/keyofDoesntContainSymbols.ts": "contains removed compiler options",
+          "compiler/lateBoundConstraintTypeChecksCorrectly.ts": "contains removed compiler options",
+          "compiler/mappedTypeUnionConstraintInferences.ts": "contains removed compiler options",
+          "compiler/moduleNoneDynamicImport.ts": "contains removed compiler options",
+          "compiler/moduleNoneErrors.ts": "contains removed compiler options",
+          "compiler/noCrashWithVerbatimModuleSyntaxAndImportsNotUsedAsValues.ts": "contains removed compiler options",
+          "compiler/noErrorUsingImportExportModuleAugmentationInDeclarationFile1.ts": "contains removed compiler options",
+          "compiler/noErrorUsingImportExportModuleAugmentationInDeclarationFile2.ts": "contains removed compiler options",
+          "compiler/noErrorUsingImportExportModuleAugmentationInDeclarationFile3.ts": "contains removed compiler options",
+          "compiler/noImplicitAnyIndexingSuppressed.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_commonjs.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_es6.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_system.ts": "contains removed compiler options",
+          "compiler/noImplicitUseStrict_umd.ts": "contains removed compiler options",
+          "compiler/noStrictGenericChecks.ts": "contains removed compiler options",
+          "compiler/parameterInitializerBeforeDestructuringEmit.ts": "contains removed compiler options",
+          "compiler/preserveUnusedImports.ts": "contains removed compiler options",
+          "compiler/requireOfJsonFileWithModuleEmitNone.ts": "contains removed compiler options",
+          "compiler/requireOfJsonFileWithModuleNodeResolutionEmitNone.ts": "contains removed compiler options",
+          "conformance/importsNotUsedAsValues_error.ts": "contains removed compiler options",
+          "conformance/nonPrimitiveIndexingWithForInSupressError.ts": "contains removed compiler options",
+          "conformance/preserveValueImports.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_errors.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_importsNotUsedAsValues.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_mixedImports.ts": "contains removed compiler options",
+          "conformance/preserveValueImports_module.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat2.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat3.ts": "contains removed compiler options",
+          "conformance/verbatimModuleSyntaxCompat4.ts": "contains removed compiler options"
+        },
+        "exercised": {
+          "errors": {
+            "count": 13462,
+            "sha256": "5942794fcf81ddab626269ca2d8ff540f167e2e5bfd907126c3de6b1ec0db2e7"
+          },
+          "types": {
+            "count": 12779,
+            "sha256": "376aad2e5a14ee651789174b97fcdab2439c9a4970f6bfcb2aae1ac785550728"
+          },
+          "symbols": {
+            "count": 12779,
+            "sha256": "376aad2e5a14ee651789174b97fcdab2439c9a4970f6bfcb2aae1ac785550728"
+          },
+          "js": {
+            "count": 13392,
+            "sha256": "bbe36f0b2335ca542da0f150399d02abfb8d30d510e9e7af98da0681774ad523"
+          },
+          "js.map": {
+            "count": 149,
+            "sha256": "035c7cbbd97f444315a2972c6cc9c0671cc6e8d463971f1fc59c998469403b7f"
+          },
+          "sourcemap.txt": {
+            "count": 156,
+            "sha256": "da877c4e39eecf2d496b5df39aa12e188667b6f439a350462bf5b125f0c7febb"
+          }
+        },
+        "skipped": {
+          "errors": {
+            "count": 1735,
+            "sha256": "26949a9d47d8c8aa9c73e4a2c8cc310c5e87c68f321c6df428d7265ee083a7c2"
+          },
+          "types": {
+            "count": 2418,
+            "sha256": "da151390695e6d2e6a01d8dbe1c88ccf69459705ecd9668e4dcb4124cd07ab1d"
+          },
+          "symbols": {
+            "count": 2418,
+            "sha256": "da151390695e6d2e6a01d8dbe1c88ccf69459705ecd9668e4dcb4124cd07ab1d"
+          },
+          "js": {
+            "count": 1805,
+            "sha256": "877b22782d6b43f1ecf205aa2a46c5c2f9ea14c6fea17fbd38830f67af7d9558"
+          },
+          "js.map": {
+            "count": 15048,
+            "sha256": "f73879f0e77a5b16718c84abf77d95857db216ba13664bcdc4a46446844ff914"
+          },
+          "sourcemap.txt": {
+            "count": 15041,
+            "sha256": "0906471ed8bdafa4d987c34989a7d012daeda4e50c85304cfac755e0b6a23b7b"
+          }
+        }
+      },
+      "mismatches": [
+        {
+          "test": "conformance/objectLiteralNormalization",
+          "baseline": "js",
+          "class": "fail",
+          "first_difference": "L163: -    b?: undefined; +    a?: undefined;",
+          "diff_sha256": "97294d9602178a35f6d8583f097deb86b97b3f534206ed74c14b766abdc6c3ed"
+        },
+        {
+          "test": "conformance/objectLiteralNormalization",
+          "baseline": "symbols",
+          "class": "fail",
+          "first_difference": "L58: ->a2.b : Symbol(b, Decl(objectLiteralNormalization.ts, 10, 17), Decl(objectLiteralNormalization.ts, 1, 45)) +>a2.b : Symbol(b, Decl(objectLiteralNormalization.ts, 10, 17))",
+          "diff_sha256": "81a477ca9c3374fb48915e4406cbff465b04b2c3540286f4a66340afb589a483"
+        },
+        {
+          "test": "conformance/objectLiteralNormalization",
+          "baseline": "types",
+          "class": "fail",
+          "first_difference": "L178: ->c3 : { a: number; b: number; } | { b?: undefined; a?: undefined; } +>c3 : { a: number; b: number; } | { a?: undefined; b?: undefined; }",
+          "diff_sha256": "8503092af0b83c5177830987b509df6af41944489962683d7b78106f09ca610f"
+        }
+      ]
+    }
+  }
+}

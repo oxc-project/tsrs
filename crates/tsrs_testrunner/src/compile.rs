@@ -489,6 +489,12 @@ const SKIPPED_EMIT_TESTS: [&str; 8] = [
     "typeOnlyMerge3.ts",
 ];
 
+pub fn skipped_emit_test_reason(path: &str) -> Option<&'static str> {
+    SKIPPED_EMIT_TESTS
+        .contains(&tspath::get_base_file_name(path).as_ref())
+        .then_some("upstream nondeterministic emit exclusion")
+}
+
 // compiler_runner.go:440 (verifyJavaScriptOutput). `None`: no `.js` baseline for this test (not requested, no
 // non-declaration files, or a skipped emit test); a panic while building it is `Err` (Go RecoverAndFail).
 fn verify_javascript_output(
@@ -511,7 +517,7 @@ fn verify_javascript_output(
     if !has_non_dts_files {
         return None;
     }
-    if SKIPPED_EMIT_TESTS.contains(&tspath::get_base_file_name(&item.path).as_ref()) {
+    if skipped_emit_test_reason(&item.path).is_some() {
         return None;
     }
     if dts_only_mode() {

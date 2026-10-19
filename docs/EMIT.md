@@ -214,13 +214,18 @@ Go's mock watch backend (`tsctests/mockwatch.rs`); content-mapper scenarios use 
 Build the CLI and conformance runner as described in [CONTRIBUTING.md](../CONTRIBUTING.md), then run:
 
 ```sh
-./target/release/tsrs-test run --suite all --baselines types,symbols,js,jsmap,sourcemap
-./target/release/tsrs-test show <suite/name> --js
+./target/debug/tsrs-test run --suite all --baselines types,symbols,js,jsmap,sourcemap
+./target/debug/tsrs-test show <suite/name> --js
 ```
 
 The emit harness mirrors Go's pre- and post-emit programs, output ordering, declaration recompilation and
 `noCheck` repeat. Its `baseline.DiffText` uses the `similar` crate's patience algorithm and unified format.
 Go's own nondeterministic emit-test skip list is preserved.
+
+CI gates all these baselines in Go-compatible and default checker modes. The default mode's
+`conformance/objectLiteralNormalization` declaration-output mismatch remains tracked in the
+[known-mismatch inventory](../tools/conformance/known-mismatches.json); new or changed diffs fail the gate.
+See [the gate workflow](../tools/conformance/README.md) for local commands and reports.
 
 ### Emit oracle
 

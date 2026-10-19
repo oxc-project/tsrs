@@ -62,7 +62,7 @@ for b in "${bins[@]}"; do
   grep -E 'BOLT-INFO: (basic block reordering|splitting|ICF)' "$work/$b.bolt.log" || true
 done
 
-# Gates on the BOLT-optimized binaries (same thresholds as ci.yml).
+# Gates on the BOLT-optimized binaries (same full-baseline mismatch inventory as ci.yml).
 if [ ${#bins[@]} -gt 1 ]; then
   TSRS_TEST="$work/tsrs-test.bolt" TSRS_TEST_RESULTS="$work/test-results" .github/scripts/conformance-gate.sh | tail -1
   TSRS_FOURSLASH_SERVER="$work/fourslash_server.bolt" TSRS_GO_FOURSLASH_WORK="$work/go-fourslash" \

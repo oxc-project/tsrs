@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the Aligned and Maximum resources blog charts from a laptop.sh result directory."""
+"""Render the TypeScript Default Config and Maximum resources charts from a laptop.sh result directory."""
 import argparse
 import csv
 import hashlib
@@ -29,6 +29,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from matplotlib.patches import Rectangle
+from matplotlib.transforms import Affine2D
 
 META = json.loads((SOURCE / "metadata.json").read_text())
 RAW = json.loads((SOURCE / "raw.json").read_text())
@@ -36,6 +37,9 @@ PROJECTS = [p["name"] for p in META["projects"]]
 COMPILERS = tuple(c for c in ("typescript_7_0_2", "typescript", "tsrs") if c in META["compilers"])
 assert {"typescript", "tsrs"} <= set(COMPILERS) == set(META["compilers"])
 MODES = ("aligned", "maximum")
+TITLES = {"aligned": "TypeScript Default Config", "maximum": "Maximum resources"}
+FIGURE_HEIGHT = 6.12
+PNG_DIMENSIONS = [2200, round(FIGURE_HEIGHT * 200)]
 COLORS = {"typescript_7_0_2": "#91B8E3", "typescript": "#3178C6", "tsrs": "#F38020"}
 NAMES = {c: META["compilers"][c].get("label", "tsrs" if c == "tsrs" else "TypeScript") for c in COMPILERS}
 THREE_COMPILERS = len(COMPILERS) == 3
@@ -75,6 +79,30 @@ FONTS = {style: FontProperties(fname=str(ASSETS / "fonts" / f"Inter-{name}.ttf")
 # Outline the text in SVG exports so the chosen font renders identically in the blog.
 plt.rcParams.update({"font.size": 11, "svg.fonttype": "path", "text.color": INK})
 
+def command_details(mode, compiler):
+    """Read the measured command, substituting only the project-specific path."""
+    configurations = set()
+    for cell in META["cells"]:
+        if cell["mode"] != mode:
+            continue
+        command = cell["commands"][compiler]
+        args = command[1:].copy()
+        args[args.index("-p") + 1] = "<project>"
+        keys = ("RAYON_NUM_THREADS",) if compiler == "tsrs" else ("GOMAXPROCS", "GOGC", "GOMEMLIMIT")
+        environment = tuple(f"{key}={cell['environment'][key]}" for key in keys
+                            if cell["environment"].get(key) is not None)
+        configurations.add((Path(command[0]).name, tuple(args), environment))
+    assert len(configurations) == 1, f"Commands or resource settings differ across projects: {mode}/{compiler}"
+    executable, args, environment = configurations.pop()
+    # The harness puts -p and --noEmit first, the remaining common flags next, then resource flags.
+    assert args[:3] == ("-p", "<project>", "--noEmit")
+    lines = [" ".join((executable, *args[:3])), " ".join(args[3:7]), " ".join(args[7:])]
+    if environment:
+        lines.append(" ".join(environment))
+    return {"command": " ".join((executable, *args)), "environment": list(environment), "lines": lines}
+
+COMMANDS = {mode: {c: command_details(mode, c) for c in COMPILERS} for mode in MODES}
+
 def advantage_label(metric, ts, rs):
     suffix = " vs nightly" if THREE_COMPILERS else ""
     if ts == rs:
@@ -86,7 +114,7 @@ def advantage_label(metric, ts, rs):
 def alt_text(mode):
     settings = META["modes"][mode]
     palette = "TypeScript 7.0.2 in light blue; " if THREE_COMPILERS else ""
-    parts = [f"{settings['label']}: {palette}TypeScript nightly in blue; tsrs in orange.",
+    parts = [f"{TITLES[mode]}: {palette}TypeScript nightly in blue; tsrs in orange.",
              f"Arithmetic means of {RUNS} runs after {WARMUPS} warmups, per project; {settings['checkers']} checker threads each."]
     for project in PROJECTS:
         values = []
@@ -96,30 +124,33 @@ def alt_text(mode):
                           f"{mean['wall_seconds']:.3f} s and {mean['peak_rss_gib']:.3f} GiB")
         parts.append(f"{LABELS.get(project, project)}: " + "; ".join(values) + ".")
     parts.append("tsrs comparison labels are relative to TypeScript nightly.")
+    for compiler in COMPILERS:
+        details = COMMANDS[mode][compiler]
+        parts.append(f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: {details['command']}; "
+                     + " ".join(details["environment"]) + ".")
     return " ".join(parts)
 
 def draw(mode):
-    settings = META["modes"][mode]
-    fig = plt.figure(figsize=(11, 5.3), facecolor="white")
+    fig = plt.figure(figsize=(11, FIGURE_HEIGHT), facecolor="white")
     renderer = fig.canvas.get_renderer()
+    # Preserve the plot's physical spacing, remove the subtitle's space and add a command footer.
+    chart_transform = Affine2D().scale(1, 5.3 / FIGURE_HEIGHT).translate(0, 1.2 / FIGURE_HEIGHT) + fig.transFigure
 
-    def label(x, y, text, size=11, style="regular", color=INK, ha="left", va="baseline"):
-        return fig.text(x, y, text, fontproperties=FONTS[style], fontsize=size, color=color, ha=ha, va=va)
+    def label(x, y, text, size=11, style="regular", color=INK, ha="left", va="baseline", transform=chart_transform):
+        return fig.text(x, y, text, fontproperties=FONTS[style], fontsize=size, color=color, ha=ha, va=va, transform=transform)
 
-    label(.055, .920, settings["label"], size=24, style="semibold")
-    memory = "default memory policies" if mode == "aligned" else f"{SOFT_MEMORY} GiB soft memory budgets"
-    label(.055, .859, f"{settings['checkers']} checkers  ·  {memory}", size=11.5, color=MUTED)
+    label(.055, .920 - .38 / 5.3, TITLES[mode], size=24, style="semibold")
 
     left = .055
     for compiler in COMPILERS:
         name, version = NAMES[compiler], META["compilers"][compiler]["version"]
-        fig.add_artist(Rectangle((left, .786), .013, .022, transform=fig.transFigure,
+        fig.add_artist(Rectangle((left, .786), .013, .022, transform=chart_transform,
                                  facecolor=COLORS[compiler], edgecolor="none"))
         name_text = label(left + .023, .787, name, size=11.5, style="semibold")
         version_text = label(left + .023, .748, version, size=10, color=MUTED)
         # Pack the legends together, with a small gap after the wider of the name and version.
         left = max(t.get_window_extent(renderer).x1 for t in (name_text, version_text)) / fig.bbox.width + .030
-    fig.add_artist(plt.Line2D([.055, .950], [.706, .706], transform=fig.transFigure, color=GRID, linewidth=.7))
+    fig.add_artist(plt.Line2D([.055, .950], [.706, .706], transform=chart_transform, color=GRID, linewidth=.7))
 
     label(.055, .660, "Project", size=10.5, color=MUTED)
     columns = (("wall_seconds", .235, "Wall time", "s"),
@@ -155,7 +186,7 @@ def draw(mode):
         y = .535 - index * .138
         label(.055, y + statistics.mean(offsets), LABELS.get(project, project), size=11.5, style="semibold", va="center")
         if index:
-            fig.add_artist(plt.Line2D([.055, .950], [y + .0545, y + .0545], transform=fig.transFigure,
+            fig.add_artist(plt.Line2D([.055, .950], [y + .0545, y + .0545], transform=chart_transform,
                                      color="#ECEFF2", linewidth=.6))
         for metric, left, _, unit in columns:
             ts, rs = (MEANS[mode, project, compiler][metric] for compiler in ("typescript", "tsrs"))
@@ -163,7 +194,7 @@ def draw(mode):
             for compiler, offset in zip(COMPILERS, offsets):
                 value = MEANS[mode, project, compiler][metric]
                 width = .300 * value / scales[metric]
-                fig.add_artist(Rectangle((left, y + offset - bar_height / 2), width, bar_height, transform=fig.transFigure,
+                fig.add_artist(Rectangle((left, y + offset - bar_height / 2), width, bar_height, transform=chart_transform,
                                          facecolor=COLORS[compiler], edgecolor="none"))
                 value_text = label(left + width + .009, y + offset, f"{value:.2f} {unit}", size=11.5, style="medium", va="center")
                 if compiler == "tsrs":
@@ -171,7 +202,21 @@ def draw(mode):
                     note = label(adjacent, y + offset, advantage, size=10.5, style="medium", color="#9A4507", va="center")
                     assert note.get_window_extent(renderer).x1 / fig.bbox.width < (.60 if metric == "wall_seconds" else .97)
 
-    # Validate that the full version strings and data labels fit inside the artwork.
+    fig.add_artist(plt.Line2D([.055, .950], [1.30 / FIGURE_HEIGHT] * 2,
+                             transform=fig.transFigure, color=GRID, linewidth=.7))
+    footer_width = .895 / len(COMPILERS)
+    for index, compiler in enumerate(COMPILERS):
+        left = .055 + index * footer_width
+        name = NAMES[compiler]
+        if compiler == "typescript_7_0_2":
+            name += " " + META["compilers"][compiler]["version"]
+        label(left, 1.10 / FIGURE_HEIGHT, name, size=10, style="semibold", transform=fig.transFigure)
+        for row, line in enumerate(COMMANDS[mode][compiler]["lines"]):
+            text = label(left, (.89 - row * .17) / FIGURE_HEIGHT, line, size=9.2, color=MUTED,
+                         transform=fig.transFigure)
+            assert text.get_window_extent(renderer).x1 / fig.bbox.width < left + footer_width - .01, line
+
+    # Validate that the full version strings, commands and data labels fit inside the artwork.
     fig.canvas.draw()
     bounds = fig.bbox
     for text in fig.texts:
@@ -183,7 +228,7 @@ def draw(mode):
     path = HERE / f"{mode}.svg"
     svg = path.read_text()
     start = svg.index(">", svg.index("<svg")) + 1
-    svg = svg[:start] + "\n<title>" + html.escape(settings["label"] + ": tsrs vs TypeScript") + "</title>\n<desc>" + html.escape(alt_text(mode)) + "</desc>" + svg[start:]
+    svg = svg[:start] + "\n<title>" + html.escape(TITLES[mode] + ": tsrs vs TypeScript") + "</title>\n<desc>" + html.escape(alt_text(mode)) + "</desc>" + svg[start:]
     path.write_text(svg)
     ET.fromstring(svg)
 
@@ -209,7 +254,7 @@ for (mode, project), preflight in PREFLIGHTS.items():
             match = "match" if check['error_keys'] == counts['tsrs']['error_keys'] else "differ"
             description += f"; diagnostic locations/codes {match} relative to tsrs"
         details.append(description)
-    scope.append(f"{META['modes'][mode]['label']} / {LABELS.get(project, project)}: " + ". ".join(details) + ".")
+    scope.append(f"{TITLES[mode]} / {LABELS.get(project, project)}: " + ". ".join(details) + ".")
 facts = [
     ("Aggregation", f"Arithmetic mean of {RUNS} measured runs per compiler, project and mode. Warmups excluded. No aggregation across projects."),
     ("Mean peak memory", "Average the individual process peaks, then divide bytes by 2^30 for GiB."),
@@ -217,20 +262,22 @@ facts = [
     ("Colors", "; ".join(f"{NAMES[c]} {META['compilers'][c]['version']}: {COLORS[c]}" for c in COMPILERS)),
     ("Machine", f"{CPU}; {CORES} logical CPUs; {RAM:g} GiB RAM; macOS {META['machine']['macos']}"),
     ("Compilers", "; ".join(f"{META['compilers'][c]['requested']}: {META['compilers'][c]['version']}" for c in COMPILERS) + "; native published binaries."),
-    ("Aligned", f"{META['modes']['aligned']['checkers']} checkers each; default memory policies."),
+    (TITLES["aligned"], f"{META['modes']['aligned']['checkers']} checkers each; default memory policies."),
     ("Maximum resources", f"{META['modes']['maximum']['checkers']} checkers each; tsrs --maxMemory {SOFT_MEMORY}G; Go GOMEMLIMIT={SOFT_MEMORY}GiB. Soft budgets, not hard RSS caps."),
     ("CPU and GC", f"Both modes: GOMAXPROCS={CORES}; RAYON_NUM_THREADS={CORES}; GOGC unset (default GC retained)."),
     ("Method", f"{META['hyperfine']['version']}; {WARMUPS} warmups and {RUNS} measurements; --shell=none; --noEmit --incremental false --pretty false. No timed --extendedDiagnostics."),
     ("Scope", " ".join(scope)),
     ("Source run", SOURCE.name),
+    ("Command footer", "Commands and relevant compiler environment variables come from saved metadata. <project> represents each row's project path. GOGC is omitted when unset."),
 ]
 table = ''.join(f'<tr><th>{html.escape(k)}</th><td>{html.escape(v)}</td></tr>' for k, v in facts)
 sections = []
 for mode in MODES:
     svg = (HERE / f"{mode}.svg").read_text()
     svg = svg[svg.index("<svg"):]
-    sections.append(f'<section id="{mode}"><div class="downloads"><strong>{META["modes"][mode]["label"]}</strong>'
-                    f'<a href="{mode}.png" download>PNG · 2200 × 1060</a><a href="{mode}.svg" download>SVG · vector</a></div>{svg}</section>')
+    sections.append(f'<section id="{mode}"><div class="downloads"><strong>{TITLES[mode]}</strong>'
+                    f'<a href="{mode}.png" download>PNG · {PNG_DIMENSIONS[0]} × {PNG_DIMENSIONS[1]}</a>'
+                    f'<a href="{mode}.svg" download>SVG · vector</a></div>{svg}</section>')
 page = '''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>tsrs vs TypeScript — blog charts</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#24282c;font:16px/1.6 system-ui,sans-serif}
@@ -241,7 +288,7 @@ details{padding:20px}summary{cursor:pointer;font-weight:650}table{border-collaps
 th,td{text-align:left;vertical-align:top;border-bottom:1px solid #e1e4e8;padding:10px}th{width:190px}
 </style><main><h1>tsrs vs TypeScript</h1>
 <p>Two blog figures: average wall time and mean peak memory per project, with comparison labels.</p>
-<nav><a href="#aligned">Aligned</a><a href="#maximum">Maximum resources</a><a href="#facts">Parameters</a>
+<nav><a href="#aligned">TypeScript Default Config</a><a href="#maximum">Maximum resources</a><a href="#facts">Parameters</a>
 <a href="means.csv" download>Chart data</a><a href="alt-text.txt" download>Alt text</a></nav>
 '''
 page += ''.join(sections)
@@ -255,7 +302,8 @@ page += '<p>Color references: <a href="https://developers.cloudflare.com/workers
     "aggregation": f"arithmetic mean of {RUNS} repetitions per compiler/project/mode",
     "cross_project_aggregation": False, "colors": {c: COLORS[c] for c in COMPILERS},
     "comparison_baseline": "typescript", "matplotlib": matplotlib.__version__,
-    "png_dimensions": [2200, 1060], "font": "Inter", "svg_text": "outlined for consistent rendering",
+    "png_dimensions": PNG_DIMENSIONS, "font": "Inter", "svg_text": "outlined for consistent rendering",
+    "titles": TITLES, "commands": COMMANDS,
     "mean_values": mean_rows,
 }, indent=2) + "\n")
 print(f"Created two blog figures in {HERE}")

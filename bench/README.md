@@ -84,7 +84,8 @@ reported alongside the measurements.
 ### Blog charts
 
 [`laptop-charts/render.py`](laptop-charts/render.py) turns a completed `laptop.sh` result directory into the
-**Aligned** and **Maximum resources** figures, with three bars per project and metric. Older two-compiler results
+**TypeScript Default Config** (the `aligned` mode) and **Maximum resources** figures, with three bars per project
+and metric. Older two-compiler results
 are also supported. Install the pinned plotting dependencies once, then pass any
 completed result directory:
 
@@ -103,8 +104,10 @@ Versions, checker counts, memory budgets, run counts and preflight comparisons c
 The saved design uses Cloudflare orange (`#F38020`) for tsrs, TypeScript blue (`#3178C6`) for nightly and light blue
 (`#91B8E3`) for 7.0.2, bundled Inter fonts, adjacent version legends, and units beside each value. Speedup/memory
 comparisons beside tsrs values explicitly use the nightly as their baseline. Both figures
-use the same zero-based bar scale per metric, expanded when needed for future measurements. There are no axis
-ticks, unit subtitles, footer, title accent line or top-right note. PNGs are 2200 × 1060; SVG text is outlined.
+use the same zero-based bar scale per metric, expanded when needed for future measurements. Each footer shows the
+measured command and relevant CPU/memory environment settings for each compiler; `<project>` stands for the
+project-specific path. Legends show names and versions. There are no axis ticks, checker/memory subtitles, unit
+subtitles, title accent line or top-right note. PNGs are 2200 × 1224; SVG text is outlined.
 
 ## Suite mapping
 

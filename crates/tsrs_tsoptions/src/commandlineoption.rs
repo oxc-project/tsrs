@@ -104,7 +104,9 @@ pub struct CommandLineOption {
     pub affects_module_resolution: bool,
     pub affects_emit: bool,
 
+    #[expect(dead_code, reason = "Kept so generated option declarations match the Go metadata.")]
     pub(crate) allow_js_flag: bool,
+    #[expect(dead_code, reason = "Kept so generated option declarations match the Go metadata.")]
     pub(crate) strict_flag: bool,
 
     // used in transpileoptions worker

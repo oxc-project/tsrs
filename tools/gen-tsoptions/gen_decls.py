@@ -82,7 +82,7 @@ def convert_field(key, value):
     raise Exception(f"unknown field {key}: {value}")
 
 
-def convert_literal(body, indent):
+def literal_fields(body):
     fields = []
     for line in body.split("\n"):
         line = re.sub(r"//.*$", "", line).strip()
@@ -91,7 +91,12 @@ def convert_literal(body, indent):
         m = re.fullmatch(r"(\w+):\s*(.+?),?", line)
         if not m:
             raise Exception("cannot parse line: " + line)
-        fields.append(convert_field(m.group(1), m.group(2)))
+        fields.append((m.group(1), m.group(2)))
+    return fields
+
+
+def convert_literal(body, indent):
+    fields = [convert_field(key, value) for key, value in literal_fields(body)]
     pad = " " * (indent + 4)
     out = "CommandLineOption {\n"
     for f in fields:
@@ -110,6 +115,7 @@ def scream(n):
 def main():
     go = open(sys.argv[1]).read()
     out = []
+    compiler_option_change_fields = []
     # single named literals: var X = CommandLineOption{ ... }
     for m in re.finditer(r"^var (\w+) = CommandLineOption\{\n(.*?)\n\}", go, re.S | re.M):
         name, body = m.group(1), m.group(2)
@@ -119,6 +125,7 @@ def main():
     for m in re.finditer(r"^var (\w+) = \[\]\*CommandLineOption\{\n(.*?)\n\}\n", go, re.S | re.M):
         name, body = m.group(1), m.group(2)
         vis = "pub " if name[0].isupper() else "pub(crate) "
+        source_name = name
         name = scream(name)
         items = []
         # split top-level elements
@@ -152,6 +159,27 @@ def main():
         s = f"static {arr}: [CommandLineOption; {len(lits)}] = [\n"
         for _, body in lits:
             s += "    " + convert_literal(body, 4) + ",\n"
+            if source_name in ("commonOptionsWithBuild", "optionsForCompiler"):
+                fields = dict(literal_fields(body))
+                semantic = fields.get("AffectsSemanticDiagnostics") == "true"
+                declaration_path = fields.get("AffectsDeclarationPath") == "true"
+                emit = fields.get("AffectsEmit") == "true"
+                if semantic or declaration_path or emit:
+                    option_name = fields["Name"]
+                    assert option_name.startswith('"') and option_name.endswith('"'), option_name
+                    strict = fields.get("strictFlag") == "true"
+                    allow_js = fields.get("allowJsFlag") == "true"
+                    assert not (strict and allow_js), option_name
+                    mode = "strict" if strict else "allow_js" if allow_js else "normal"
+                    compiler_option_change_fields.append(
+                        (
+                            snake(option_name[1:-1]),
+                            semantic,
+                            declaration_path,
+                            emit,
+                            mode,
+                        )
+                    )
         s += "];\n\n"
         s += f"{vis}static {name}: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {{\n"
         s += "    vec![\n"
@@ -163,6 +191,20 @@ def main():
                 s += f"        &{arr}[{li}],\n"
                 li += 1
         s += "    ]\n});\n"
+        out.append(s)
+    if compiler_option_change_fields:
+        s = "macro_rules! for_each_compiler_option_change_field {\n"
+        s += "    ($m:ident) => {\n"
+        s += "        $m! {\n"
+        for field, semantic, declaration_path, emit, mode in compiler_option_change_fields:
+            s += (
+                f"            {field}: "
+                f"({str(semantic).lower()}, {str(declaration_path).lower()}, "
+                f"{str(emit).lower()}, {mode}),\n"
+            )
+        s += "        }\n"
+        s += "    };\n"
+        s += "}\n"
         out.append(s)
     text = "\n".join(out)
     target = open(sys.argv[2]).read()

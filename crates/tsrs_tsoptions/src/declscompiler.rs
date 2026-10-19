@@ -6,8 +6,6 @@ use tsrs_diagnostics as diagnostics;
 use crate::commandlineoption::{
     CommandLineOption, CommandLineOptionKind, DefaultValueDescription, ExtraValidation,
 };
-use crate::parsinghelpers::for_each_compiler_options_field;
-use crate::tsconfigparsing::COMMAND_LINE_COMPILER_OPTIONS_MAP;
 use tsrs_core::CompilerOptions;
 
 pub static OPTIONS_DECLARATIONS: LazyLock<Vec<&'static CommandLineOption>> = LazyLock::new(|| {
@@ -1413,72 +1411,151 @@ pub(crate) static OPTIONS_FOR_COMPILER: LazyLock<Vec<&'static CommandLineOption>
             &OPTIONS_FOR_COMPILER_ITEMS[96],
         ]
     });
+
+macro_rules! for_each_compiler_option_change_field {
+    ($m:ident) => {
+        $m! {
+            assume_changes_only_affect_direct_dependencies: (true, false, true, normal),
+            target: (false, false, true, normal),
+            module: (false, false, true, normal),
+            check_js: (true, false, false, normal),
+            jsx: (true, false, true, normal),
+            out_file: (false, true, true, normal),
+            out_dir: (false, true, true, normal),
+            root_dir: (false, true, true, normal),
+            ts_build_info_file: (false, false, true, normal),
+            remove_comments: (false, false, true, normal),
+            import_helpers: (false, false, true, normal),
+            downlevel_iteration: (false, false, true, normal),
+            verbatim_module_syntax: (true, false, true, normal),
+            isolated_declarations: (true, false, false, normal),
+            erasable_syntax_only: (true, false, false, normal),
+            no_implicit_any: (true, false, false, strict),
+            strict_null_checks: (true, false, false, strict),
+            strict_function_types: (true, false, false, strict),
+            strict_bind_call_apply: (true, false, false, strict),
+            strict_property_initialization: (true, false, false, strict),
+            strict_builtin_iterator_return: (true, false, false, strict),
+            no_implicit_this: (true, false, false, strict),
+            use_unknown_in_catch_variables: (true, false, false, strict),
+            always_strict: (false, false, true, normal),
+            stable_type_ordering: (true, false, false, normal),
+            no_unused_locals: (true, false, false, normal),
+            no_unused_parameters: (true, false, false, normal),
+            exact_optional_property_types: (true, false, false, normal),
+            no_implicit_returns: (true, false, false, normal),
+            no_fallthrough_cases_in_switch: (true, false, false, normal),
+            no_unchecked_indexed_access: (true, false, false, normal),
+            no_implicit_override: (true, false, false, normal),
+            no_property_access_from_index_signature: (true, false, false, normal),
+            allow_synthetic_default_imports: (true, false, false, normal),
+            es_module_interop: (true, false, true, normal),
+            allow_umd_global_access: (true, false, false, normal),
+            allow_importing_ts_extensions: (true, false, false, normal),
+            rewrite_relative_import_extensions: (true, false, false, normal),
+            no_unchecked_side_effect_imports: (true, false, false, normal),
+            source_root: (false, false, true, normal),
+            map_root: (false, false, true, normal),
+            inline_sources: (false, false, true, normal),
+            experimental_decorators: (true, false, true, normal),
+            emit_decorator_metadata: (true, false, true, normal),
+            jsx_import_source: (true, false, true, normal),
+            react_namespace: (false, false, true, normal),
+            emit_bom: (false, false, true, normal),
+            new_line: (false, false, true, normal),
+            no_error_truncation: (true, false, false, normal),
+            strip_internal: (false, false, true, normal),
+            no_emit_helpers: (false, false, true, normal),
+            no_emit_on_error: (false, false, true, normal),
+            preserve_const_enums: (false, false, true, normal),
+            declaration_dir: (false, true, true, normal),
+            allow_unused_labels: (true, false, false, normal),
+            allow_unreachable_code: (true, false, false, normal),
+            use_define_for_class_fields: (true, false, true, normal),
+        }
+    };
+}
 // END GENERATED
 
-fn options_have_changes(
-    old_options: Option<&CompilerOptions>,
-    new_options: Option<&CompilerOptions>,
-    decl_filter: impl Fn(&CommandLineOption) -> bool,
-) -> bool {
-    let (old_options, new_options) = match (old_options, new_options) {
-        (None, None) => return false,
-        (Some(old), Some(new)) if std::ptr::eq(old, new) => return false,
-        (Some(old), Some(new)) => (old, new),
-        _ => return true,
-    };
-    // Go ForEachCompilerOptionValue walks the struct fields by reflection and looks each one up by name.
-    macro_rules! compare_fields {
-        ($($field:ident: $json:literal,)*) => {
-            $(
-                if let Some(option_declaration) = COMMAND_LINE_COMPILER_OPTIONS_MAP.get($json) {
-                    if decl_filter(option_declaration) {
-                        let changed = if option_declaration.strict_flag {
-                            compare_strict(old_options, new_options, &old_options.$field, &new_options.$field)
-                        } else if option_declaration.allow_js_flag {
-                            old_options.get_allow_js() != new_options.get_allow_js()
-                        } else {
-                            old_options.$field != new_options.$field
-                        };
-                        if changed {
-                            return true;
-                        }
-                    }
-                }
-            )*
-        };
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct CompilerOptionChanges(u8);
+
+impl CompilerOptionChanges {
+    const SEMANTIC_DIAGNOSTICS: u8 = 1 << 0;
+    const DECLARATION_PATH: u8 = 1 << 1;
+    const EMIT: u8 = 1 << 2;
+    const ALL: u8 = Self::SEMANTIC_DIAGNOSTICS | Self::DECLARATION_PATH | Self::EMIT;
+
+    pub const fn affects_semantic_diagnostics(self) -> bool {
+        self.0 & Self::SEMANTIC_DIAGNOSTICS != 0
     }
-    for_each_compiler_options_field!(compare_fields);
-    false
+
+    pub const fn affects_declaration_path(self) -> bool {
+        self.0 & Self::DECLARATION_PATH != 0
+    }
+
+    pub const fn affects_emit(self) -> bool {
+        self.0 & Self::EMIT != 0
+    }
 }
 
-fn compare_strict<T: std::any::Any>(
-    old_options: &CompilerOptions,
-    new_options: &CompilerOptions,
-    old_value: &T,
-    new_value: &T,
-) -> bool {
-    let old_value = (old_value as &dyn std::any::Any).downcast_ref::<Tristate>().copied().unwrap();
-    let new_value = (new_value as &dyn std::any::Any).downcast_ref::<Tristate>().copied().unwrap();
-    old_options.get_strict_option_value(old_value) != new_options.get_strict_option_value(new_value)
+pub fn compiler_option_changes(
+    old_options: Option<&CompilerOptions>,
+    new_options: Option<&CompilerOptions>,
+) -> CompilerOptionChanges {
+    let (old_options, new_options) = match (old_options, new_options) {
+        (None, None) => return CompilerOptionChanges::default(),
+        (Some(old), Some(new)) if std::ptr::eq(old, new) => {
+            return CompilerOptionChanges::default();
+        }
+        (Some(old), Some(new)) => (old, new),
+        _ => return CompilerOptionChanges(CompilerOptionChanges::ALL),
+    };
+
+    macro_rules! field_changed {
+        ($old:ident, $new:ident, $field:ident, normal) => {
+            $old.$field != $new.$field
+        };
+        ($old:ident, $new:ident, $field:ident, strict) => {
+            $old.get_strict_option_value($old.$field) != $new.get_strict_option_value($new.$field)
+        };
+        ($old:ident, $new:ident, $field:ident, allow_js) => {
+            $old.get_allow_js() != $new.get_allow_js()
+        };
+    }
+    macro_rules! compare_change_fields {
+        ($($field:ident: ($semantic:literal, $declaration_path:literal, $emit:literal, $mode:ident),)*) => {{
+            let mut changes = CompilerOptionChanges::default();
+            $(
+                if field_changed!(old_options, new_options, $field, $mode) {
+                    changes.0 |= ($semantic as u8) * CompilerOptionChanges::SEMANTIC_DIAGNOSTICS
+                        | ($declaration_path as u8) * CompilerOptionChanges::DECLARATION_PATH
+                        | ($emit as u8) * CompilerOptionChanges::EMIT;
+                }
+            )*
+            changes
+        }};
+    }
+    for_each_compiler_option_change_field!(compare_change_fields)
 }
 
 pub fn compiler_options_affect_semantic_diagnostics(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
 ) -> bool {
-    options_have_changes(old_options, new_options, |option| option.affects_semantic_diagnostics)
+    compiler_option_changes(old_options, new_options).affects_semantic_diagnostics()
 }
 
 pub fn compiler_options_affect_declaration_path(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
 ) -> bool {
-    options_have_changes(old_options, new_options, |option| option.affects_declaration_path)
+    compiler_option_changes(old_options, new_options).affects_declaration_path()
 }
 
 pub fn compiler_options_affect_emit(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
 ) -> bool {
-    options_have_changes(old_options, new_options, |option| option.affects_emit)
+    compiler_option_changes(old_options, new_options).affects_emit()
 }

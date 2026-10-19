@@ -1,7 +1,8 @@
 use rustc_hash::FxHashMap;
+use tsrs_core::{CompilerOptions, Tristate};
 
 use crate::commandlineoption::CommandLineOption;
-use crate::declscompiler::OPTIONS_DECLARATIONS;
+use crate::declscompiler::{OPTIONS_DECLARATIONS, compiler_option_changes};
 use crate::parsinghelpers::for_each_compiler_options_field;
 
 // Go compares the CompilerOptions struct fields (and their json tags) with the declarations; the Rust
@@ -60,4 +61,50 @@ fn test_compiler_options_declaration() {
         }),
     );
     assert!(errors.is_empty(), "{errors:#?}");
+}
+
+#[test]
+fn test_compiler_option_changes() {
+    let empty = CompilerOptions::default();
+    let changes = compiler_option_changes(Some(&empty), Some(&empty));
+    assert!(!changes.affects_semantic_diagnostics());
+    assert!(!changes.affects_declaration_path());
+    assert!(!changes.affects_emit());
+
+    let changes = compiler_option_changes(None, Some(&empty));
+    assert!(changes.affects_semantic_diagnostics());
+    assert!(changes.affects_declaration_path());
+    assert!(changes.affects_emit());
+
+    let mut options = empty.clone();
+    options.check_js = Tristate::True;
+    let changes = compiler_option_changes(Some(&empty), Some(&options));
+    assert!(changes.affects_semantic_diagnostics());
+    assert!(!changes.affects_declaration_path());
+    assert!(!changes.affects_emit());
+
+    let mut options = empty.clone();
+    options.remove_comments = Tristate::True;
+    let changes = compiler_option_changes(Some(&empty), Some(&options));
+    assert!(!changes.affects_semantic_diagnostics());
+    assert!(!changes.affects_declaration_path());
+    assert!(changes.affects_emit());
+
+    let mut options = empty.clone();
+    options.out_dir = "dist".to_string();
+    let changes = compiler_option_changes(Some(&empty), Some(&options));
+    assert!(!changes.affects_semantic_diagnostics());
+    assert!(changes.affects_declaration_path());
+    assert!(changes.affects_emit());
+
+    let mut strict = empty;
+    strict.strict = Tristate::True;
+    let mut explicit_strict = strict.clone();
+    explicit_strict.no_implicit_any = Tristate::True;
+    let changes = compiler_option_changes(Some(&strict), Some(&explicit_strict));
+    assert!(!changes.affects_semantic_diagnostics());
+
+    explicit_strict.no_implicit_any = Tristate::False;
+    let changes = compiler_option_changes(Some(&strict), Some(&explicit_strict));
+    assert!(changes.affects_semantic_diagnostics());
 }

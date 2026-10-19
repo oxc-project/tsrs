@@ -16,6 +16,7 @@ ASSETS = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("results", type=Path, help="completed result directory produced by bench/laptop.sh")
 parser.add_argument("--output-dir", type=Path, help="default: <results>/charts")
+parser.add_argument("--tsrs-display-version", help="override the tsrs legend version without changing recorded measurements")
 args = parser.parse_args()
 SOURCE = args.results.resolve()
 HERE = args.output_dir.resolve() if args.output_dir else SOURCE / "charts"
@@ -38,10 +39,14 @@ COMPILERS = tuple(c for c in ("typescript_7_0_2", "typescript", "tsrs") if c in 
 assert {"typescript", "tsrs"} <= set(COMPILERS) == set(META["compilers"])
 MODES = ("aligned", "maximum")
 TITLES = {"aligned": "TypeScript Default Config", "maximum": "Maximum resources"}
-FIGURE_HEIGHT = 6.12
+FOOTER_HEIGHT = .45
+FIGURE_HEIGHT = 5.3 - .38 + FOOTER_HEIGHT
 PNG_DIMENSIONS = [2200, round(FIGURE_HEIGHT * 200)]
 COLORS = {"typescript_7_0_2": "#91B8E3", "typescript": "#3178C6", "tsrs": "#F38020"}
 NAMES = {c: META["compilers"][c].get("label", "tsrs" if c == "tsrs" else "TypeScript") for c in COMPILERS}
+DISPLAY_VERSIONS = {c: META["compilers"][c]["version"] for c in COMPILERS}
+if args.tsrs_display_version:
+    DISPLAY_VERSIONS["tsrs"] = args.tsrs_display_version
 THREE_COMPILERS = len(COMPILERS) == 3
 INK, MUTED, GRID = "#24282C", "#555E68", "#E7EAEE"
 LABELS = {"vscode": "VS Code", "mui-docs": "MUI docs", "webpack": "webpack", "t3code-server": "t3code server"}
@@ -94,28 +99,40 @@ def command_details(mode, compiler):
         configurations.add((Path(command[0]).name, tuple(args), environment))
     assert len(configurations) == 1, f"Commands or resource settings differ across projects: {mode}/{compiler}"
     executable, args, environment = configurations.pop()
-    # The harness puts -p and --noEmit first, the remaining common flags next, then resource flags.
-    assert args[:3] == ("-p", "<project>", "--noEmit")
-    lines = [" ".join((executable, *args[:3])), " ".join(args[3:7]), " ".join(args[7:])]
-    if environment:
-        lines.append(" ".join(environment))
-    return {"command": " ".join((executable, *args)), "environment": list(environment), "lines": lines}
+    return {"command": " ".join((executable, *args)), "arguments": list(args), "environment": list(environment)}
 
 COMMANDS = {mode: {c: command_details(mode, c) for c in COMPILERS} for mode in MODES}
 
-def advantage_label(metric, ts, rs):
-    suffix = " vs nightly" if THREE_COMPILERS else ""
-    if ts == rs:
-        return f"(same{suffix})"
+def shared_arguments(mode):
+    # The harness appends compiler-specific resource flags after the shared arguments.
+    common = []
+    for values in zip(*(COMMANDS[mode][c]["arguments"] for c in COMPILERS)):
+        if len(set(values)) != 1:
+            break
+        common.append(values[0])
+    assert common[:3] == ["-p", "<project>", "--noEmit"]
+    return " ".join(common)
+
+SHARED_ARGUMENTS = {mode: shared_arguments(mode) for mode in MODES}
+
+def comparison_label(metric, value, baseline, compiler):
+    if compiler == "tsrs":
+        return "(1× baseline)"
+    ratio = value / baseline
     if metric == "wall_seconds":
-        return f"({ts / rs:.2f}× faster{suffix})" if rs < ts else f"({rs / ts:.2f}× slower{suffix})"
-    return f"({abs(1 - rs / ts) * 100:.1f}% {'less' if rs < ts else 'more'}{suffix})"
+        if value == baseline:
+            return "(1× baseline)"
+        return f"({ratio:.2f}× slower)" if ratio > 1 else f"({1 / ratio:.2f}× faster)"
+    return f"({ratio:.2f}× memory)"
 
 def alt_text(mode):
     settings = META["modes"][mode]
     palette = "TypeScript 7.0.2 in light blue; " if THREE_COMPILERS else ""
     parts = [f"{TITLES[mode]}: {palette}TypeScript nightly in blue; tsrs in orange.",
              f"Arithmetic means of {RUNS} runs after {WARMUPS} warmups, per project; {settings['checkers']} checker threads each."]
+    if DISPLAY_VERSIONS["tsrs"] != META["compilers"]["tsrs"]["version"]:
+        parts.append(f"The tsrs legend displays {DISPLAY_VERSIONS['tsrs']}; "
+                     f"the saved measurements were recorded with {META['compilers']['tsrs']['version']}.")
     for project in PROJECTS:
         values = []
         for compiler in COMPILERS:
@@ -123,7 +140,9 @@ def alt_text(mode):
             values.append(f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: "
                           f"{mean['wall_seconds']:.3f} s and {mean['peak_rss_gib']:.3f} GiB")
         parts.append(f"{LABELS.get(project, project)}: " + "; ".join(values) + ".")
-    parts.append("tsrs comparison labels are relative to TypeScript nightly.")
+    parts.append("Each bar is compared with tsrs for the same project and mode, with tsrs marked as the 1× baseline. "
+                 "Slower ratios divide the compiler's mean wall time by tsrs mean wall time; "
+                 "memory ratios divide the compiler's mean peak RSS by tsrs mean peak RSS.")
     for compiler in COMPILERS:
         details = COMMANDS[mode][compiler]
         parts.append(f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: {details['command']}; "
@@ -134,7 +153,7 @@ def draw(mode):
     fig = plt.figure(figsize=(11, FIGURE_HEIGHT), facecolor="white")
     renderer = fig.canvas.get_renderer()
     # Preserve the plot's physical spacing, remove the subtitle's space and add a command footer.
-    chart_transform = Affine2D().scale(1, 5.3 / FIGURE_HEIGHT).translate(0, 1.2 / FIGURE_HEIGHT) + fig.transFigure
+    chart_transform = Affine2D().scale(1, 5.3 / FIGURE_HEIGHT).translate(0, FOOTER_HEIGHT / FIGURE_HEIGHT) + fig.transFigure
 
     def label(x, y, text, size=11, style="regular", color=INK, ha="left", va="baseline", transform=chart_transform):
         return fig.text(x, y, text, fontproperties=FONTS[style], fontsize=size, color=color, ha=ha, va=va, transform=transform)
@@ -143,7 +162,7 @@ def draw(mode):
 
     left = .055
     for compiler in COMPILERS:
-        name, version = NAMES[compiler], META["compilers"][compiler]["version"]
+        name, version = NAMES[compiler], DISPLAY_VERSIONS[compiler]
         fig.add_artist(Rectangle((left, .786), .013, .022, transform=chart_transform,
                                  facecolor=COLORS[compiler], edgecolor="none"))
         name_text = label(left + .023, .787, name, size=11.5, style="semibold")
@@ -164,14 +183,12 @@ def draw(mode):
         right = .60 if metric == "wall_seconds" else .97
         for other_mode in MODES:
             for project in PROJECTS:
-                ts, rs = (MEANS[other_mode, project, c][metric] for c in ("typescript", "tsrs"))
+                baseline = MEANS[other_mode, project, "tsrs"][metric]
                 for compiler in COMPILERS:
                     value = MEANS[other_mode, project, compiler][metric]
-                    texts = [label(0, 0, f"{value:.2f} {unit}", size=11.5, style="medium")]
-                    padding = .018
-                    if compiler == "tsrs":
-                        texts.append(label(0, 0, advantage_label(metric, ts, rs), size=10.5, style="medium"))
-                        padding += .009
+                    texts = [label(0, 0, f"{value:.2f} {unit}", size=11.5, style="medium"),
+                             label(0, 0, comparison_label(metric, value, baseline, compiler), size=10.5, style="medium")]
+                    padding = .027
                     text_width = sum(t.get_window_extent(renderer).width for t in texts) / fig.bbox.width
                     for text in texts:
                         text.remove()
@@ -189,32 +206,24 @@ def draw(mode):
             fig.add_artist(plt.Line2D([.055, .950], [y + .0545, y + .0545], transform=chart_transform,
                                      color="#ECEFF2", linewidth=.6))
         for metric, left, _, unit in columns:
-            ts, rs = (MEANS[mode, project, compiler][metric] for compiler in ("typescript", "tsrs"))
-            advantage = advantage_label(metric, ts, rs)
+            baseline = MEANS[mode, project, "tsrs"][metric]
             for compiler, offset in zip(COMPILERS, offsets):
                 value = MEANS[mode, project, compiler][metric]
                 width = .300 * value / scales[metric]
                 fig.add_artist(Rectangle((left, y + offset - bar_height / 2), width, bar_height, transform=chart_transform,
                                          facecolor=COLORS[compiler], edgecolor="none"))
                 value_text = label(left + width + .009, y + offset, f"{value:.2f} {unit}", size=11.5, style="medium", va="center")
-                if compiler == "tsrs":
-                    adjacent = value_text.get_window_extent(renderer).x1 / fig.bbox.width + .009
-                    note = label(adjacent, y + offset, advantage, size=10.5, style="medium", color="#9A4507", va="center")
-                    assert note.get_window_extent(renderer).x1 / fig.bbox.width < (.60 if metric == "wall_seconds" else .97)
+                adjacent = value_text.get_window_extent(renderer).x1 / fig.bbox.width + .009
+                note = label(adjacent, y + offset, comparison_label(metric, value, baseline, compiler),
+                             size=10.5, style="medium", color="#9A4507" if compiler == "tsrs" else MUTED, va="center")
+                assert note.get_window_extent(renderer).x1 / fig.bbox.width < (.60 if metric == "wall_seconds" else .97)
 
-    fig.add_artist(plt.Line2D([.055, .950], [1.30 / FIGURE_HEIGHT] * 2,
+    fig.add_artist(plt.Line2D([.055, .950], [(FOOTER_HEIGHT + .10) / FIGURE_HEIGHT] * 2,
                              transform=fig.transFigure, color=GRID, linewidth=.7))
-    footer_width = .895 / len(COMPILERS)
-    for index, compiler in enumerate(COMPILERS):
-        left = .055 + index * footer_width
-        name = NAMES[compiler]
-        if compiler == "typescript_7_0_2":
-            name += " " + META["compilers"][compiler]["version"]
-        label(left, 1.10 / FIGURE_HEIGHT, name, size=10, style="semibold", transform=fig.transFigure)
-        for row, line in enumerate(COMMANDS[mode][compiler]["lines"]):
-            text = label(left, (.89 - row * .17) / FIGURE_HEIGHT, line, size=9.2, color=MUTED,
-                         transform=fig.transFigure)
-            assert text.get_window_extent(renderer).x1 / fig.bbox.width < left + footer_width - .01, line
+    heading = label(.055, .28 / FIGURE_HEIGHT, "All compilers:", size=10, style="semibold", transform=fig.transFigure)
+    left = heading.get_window_extent(renderer).x1 / fig.bbox.width + .012
+    text = label(left, .28 / FIGURE_HEIGHT, SHARED_ARGUMENTS[mode], size=10, color=MUTED, transform=fig.transFigure)
+    assert text.get_window_extent(renderer).x1 / fig.bbox.width < .95, SHARED_ARGUMENTS[mode]
 
     # Validate that the full version strings, commands and data labels fit inside the artwork.
     fig.canvas.draw()
@@ -258,7 +267,7 @@ for (mode, project), preflight in PREFLIGHTS.items():
 facts = [
     ("Aggregation", f"Arithmetic mean of {RUNS} measured runs per compiler, project and mode. Warmups excluded. No aggregation across projects."),
     ("Mean peak memory", "Average the individual process peaks, then divide bytes by 2^30 for GiB."),
-    ("Comparison labels", "Speedup = TypeScript nightly mean wall time / tsrs mean wall time. Memory reduction = 100 × (1 − tsrs mean peak RSS / TypeScript nightly mean peak RSS). Calculated before rounding."),
+    ("Comparison labels", "tsrs is the 1× baseline for each project and mode. Slower ratio = compiler mean wall time / tsrs mean wall time; if a compiler is faster, show the reciprocal as × faster. Memory ratio = compiler mean peak RSS / tsrs mean peak RSS. Calculated before rounding."),
     ("Colors", "; ".join(f"{NAMES[c]} {META['compilers'][c]['version']}: {COLORS[c]}" for c in COMPILERS)),
     ("Machine", f"{CPU}; {CORES} logical CPUs; {RAM:g} GiB RAM; macOS {META['machine']['macos']}"),
     ("Compilers", "; ".join(f"{META['compilers'][c]['requested']}: {META['compilers'][c]['version']}" for c in COMPILERS) + "; native published binaries."),
@@ -268,8 +277,15 @@ facts = [
     ("Method", f"{META['hyperfine']['version']}; {WARMUPS} warmups and {RUNS} measurements; --shell=none; --noEmit --incremental false --pretty false. No timed --extendedDiagnostics."),
     ("Scope", " ".join(scope)),
     ("Source run", SOURCE.name),
-    ("Command footer", "Commands and relevant compiler environment variables come from saved metadata. <project> represents each row's project path. GOGC is omitted when unset."),
+    ("Command footer", "Shared arguments are shown once, read from saved commands for all compilers. <project> represents each row's project path. Compiler-specific flags and environment variables are retained below; GOGC is omitted when unset."),
 ]
+for mode in MODES:
+    facts.append((f"{TITLES[mode]} commands", "; ".join(
+        f"{NAMES[c]} {META['compilers'][c]['version']}: "
+        + " ".join((*COMMANDS[mode][c]["environment"], COMMANDS[mode][c]["command"])) for c in COMPILERS)))
+if DISPLAY_VERSIONS["tsrs"] != META["compilers"]["tsrs"]["version"]:
+    facts.append(("tsrs legend version", f"Display override: {DISPLAY_VERSIONS['tsrs']}. "
+                  f"Measurements remain from {META['compilers']['tsrs']['version']}; the benchmark was not rerun."))
 table = ''.join(f'<tr><th>{html.escape(k)}</th><td>{html.escape(v)}</td></tr>' for k, v in facts)
 sections = []
 for mode in MODES:
@@ -301,9 +317,11 @@ page += '<p>Color references: <a href="https://developers.cloudflare.com/workers
     "samples": len(RAW), "bars_per_chart": len(PROJECTS) * len(COMPILERS) * 2,
     "aggregation": f"arithmetic mean of {RUNS} repetitions per compiler/project/mode",
     "cross_project_aggregation": False, "colors": {c: COLORS[c] for c in COMPILERS},
-    "comparison_baseline": "typescript", "matplotlib": matplotlib.__version__,
+    "comparison_baseline": "tsrs", "matplotlib": matplotlib.__version__,
     "png_dimensions": PNG_DIMENSIONS, "font": "Inter", "svg_text": "outlined for consistent rendering",
-    "titles": TITLES, "commands": COMMANDS,
+    "titles": TITLES, "commands": COMMANDS, "shared_arguments": SHARED_ARGUMENTS,
+    "display_versions": DISPLAY_VERSIONS,
+    "measured_versions": {c: META["compilers"][c]["version"] for c in COMPILERS},
     "mean_values": mean_rows,
 }, indent=2) + "\n")
 print(f"Created two blog figures in {HERE}")

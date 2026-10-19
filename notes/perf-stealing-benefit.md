@@ -228,7 +228,7 @@ included in this note.
     `apps/server/src/server.ts` (the tests through `binCli.ts` and `cli/server.ts`), which the same checker owns:
     checking it costs 1.2 s without stealing and builds the types the four files then reuse. With stealing,
     heavy-files-first moves it to the front of its owner's queue (from position 179 of 275), and the four files are
-    stolen from the back. Their thieves have not built those types, so each builds them again, and the pass ends
+    still queued when the other checkers run out of work, so they are stolen. Their thieves have not built those types, so each builds them again, and the pass ends
     later than without stealing.
 
   This is the first-touch cost that `max_thieves_per_queue` limits, but that limit applies only from 8 checkers.

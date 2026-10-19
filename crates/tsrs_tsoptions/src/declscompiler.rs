@@ -1415,32 +1415,53 @@ pub(crate) static OPTIONS_FOR_COMPILER: LazyLock<Vec<&'static CommandLineOption>
     });
 // END GENERATED
 
-const AFFECTS_SEMANTIC_DIAGNOSTICS: u8 = 1 << 0;
-const AFFECTS_DECLARATION_PATH: u8 = 1 << 1;
-const AFFECTS_EMIT: u8 = 1 << 2;
-const AFFECTS_ALL: u8 = AFFECTS_SEMANTIC_DIAGNOSTICS | AFFECTS_DECLARATION_PATH | AFFECTS_EMIT;
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
+struct CompilerOptionChanges(u8);
+
+impl CompilerOptionChanges {
+    const SEMANTIC_DIAGNOSTICS: Self = Self(1 << 0);
+    const DECLARATION_PATH: Self = Self(1 << 1);
+    const EMIT: Self = Self(1 << 2);
+    const ALL: Self = Self(Self::SEMANTIC_DIAGNOSTICS.0 | Self::DECLARATION_PATH.0 | Self::EMIT.0);
+
+    fn from_declaration(option: &CommandLineOption) -> Self {
+        Self(
+            (option.affects_semantic_diagnostics as u8)
+                | ((option.affects_declaration_path as u8) << 1)
+                | ((option.affects_emit as u8) << 2),
+        )
+    }
+
+    fn insert(&mut self, other: Self) {
+        self.0 |= other.0;
+    }
+
+    fn contains(self, other: Self) -> bool {
+        self.0 & other.0 != 0
+    }
+}
 
 #[inline(never)]
-fn compiler_option_change_flags(
+fn compiler_option_changes(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
-) -> u8 {
+) -> CompilerOptionChanges {
     let (old_options, new_options) = match (old_options, new_options) {
-        (None, None) => return 0,
-        (Some(old), Some(new)) if std::ptr::eq(old, new) => return 0,
+        (None, None) => return CompilerOptionChanges::default(),
+        (Some(old), Some(new)) if std::ptr::eq(old, new) => {
+            return CompilerOptionChanges::default();
+        }
         (Some(old), Some(new)) => (old, new),
-        _ => return AFFECTS_ALL,
+        _ => return CompilerOptionChanges::ALL,
     };
-    let mut changes = 0;
+    let mut changes = CompilerOptionChanges::default();
     // Go ForEachCompilerOptionValue walks the struct fields by reflection and looks each one up by name.
     macro_rules! compare_fields {
         ($($field:ident: $json:literal,)*) => {
             $(
                 if let Some(option_declaration) = COMMAND_LINE_COMPILER_OPTIONS_MAP.get($json) {
-                    let affected = (option_declaration.affects_semantic_diagnostics as u8)
-                        | (option_declaration.affects_declaration_path as u8) << 1
-                        | (option_declaration.affects_emit as u8) << 2;
-                    if affected != 0 {
+                    let affected = CompilerOptionChanges::from_declaration(option_declaration);
+                    if affected != CompilerOptionChanges::default() {
                         let changed = if option_declaration.strict_flag {
                             compare_strict(old_options, new_options, &old_options.$field, &new_options.$field)
                         } else if option_declaration.allow_js_flag {
@@ -1449,8 +1470,8 @@ fn compiler_option_change_flags(
                             old_options.$field != new_options.$field
                         };
                         if changed {
-                            changes |= affected;
-                            if changes == AFFECTS_ALL {
+                            changes.insert(affected);
+                            if changes == CompilerOptionChanges::ALL {
                                 return changes;
                             }
                         }
@@ -1478,19 +1499,21 @@ pub fn compiler_options_affect_semantic_diagnostics(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
 ) -> bool {
-    compiler_option_change_flags(old_options, new_options) & AFFECTS_SEMANTIC_DIAGNOSTICS != 0
+    compiler_option_changes(old_options, new_options)
+        .contains(CompilerOptionChanges::SEMANTIC_DIAGNOSTICS)
 }
 
 pub fn compiler_options_affect_declaration_path(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
 ) -> bool {
-    compiler_option_change_flags(old_options, new_options) & AFFECTS_DECLARATION_PATH != 0
+    compiler_option_changes(old_options, new_options)
+        .contains(CompilerOptionChanges::DECLARATION_PATH)
 }
 
 pub fn compiler_options_affect_emit(
     old_options: Option<&CompilerOptions>,
     new_options: Option<&CompilerOptions>,
 ) -> bool {
-    compiler_option_change_flags(old_options, new_options) & AFFECTS_EMIT != 0
+    compiler_option_changes(old_options, new_options).contains(CompilerOptionChanges::EMIT)
 }

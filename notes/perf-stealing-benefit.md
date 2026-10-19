@@ -28,21 +28,71 @@ time goes *up* from 4 to 6 checkers. That is a scheduling problem specific to st
   <img alt="Line chart: geometric-mean wall-time cost of turning stealing off, by checker count. Static locality is 7 to 11 percent slower than stealing; the Go assignment is 15 to 21 percent slower." src="perf-stealing-benefit/aggregate.svg">
 </picture>
 
-## What was compared
+## The three modes
 
-Three arms, all with the same binary and flags (`-p <project> --noEmit --incremental false --pretty false --checkers
-N`):
+All three run the same binary with the same flags (`-p <project> --noEmit --incremental false --pretty false
+--checkers N`). They differ in two things: which checker each file is given before checking starts (the
+assignment), and whether that can change while the type-check pass runs.
 
-| arm | how | what it is |
-| --- | --- | --- |
-| `steal` | no assignment named (the default) | locality assignment, then dynamic stealing during the type-check pass |
-| `locality` | `TSRS_CHECKER_ASSIGNMENT=locality` | the same locality assignment, no stealing: what removing stealing alone would leave |
-| `go` | `TSRS_CHECKER_ASSIGNMENT=go` | tsgo's file assignment and tsgo's check history: the fully tsgo-compatible mode |
+### `steal`: the default (no assignment named)
 
-Naming any assignment turns off more than the queue stealing itself (`stealing_enabled` in checkerpool.rs gates all
-of it): the heavy-files-first start order (`heavy_files_first`), split checking of heavy declaration files
-(`plan_splits`) and the sticky-steal module affinity. So the `locality` arm is "remove stealing and what depends on
-it", which is the change under consideration. Separating the parts was not attempted here.
+1. Assignment: the locality assignment, exactly as in `locality` below.
+2. Start order. Inside each checker's queue, the files heavier than 1/200 of an average checker's share of the pass
+   move to the front, heaviest first; the rest keep program order (`heavy_files_first`). A heavy file started last
+   would be the pass's tail; started first, it overlaps the other checkers' work.
+3. Split checking. A type-checked declaration file of at least 40% of an average checker's share is checked in
+   pieces of about 1/8 of a share, each queued on a different checker, so one huge `.d.ts` does not hold up one checker (`plan_splits`,
+   splitcheck.rs). It only matters on projects without `skipLibCheck`.
+4. Stealing. Each checker takes files from the front of its own queue. A checker whose queue is empty takes a file
+   that has not started from the back of the queue with the most estimated work left (`queues_next`). The estimate
+   is Go's file weight (node count, text size, import fan-out; `checked_file_weights`). The thief keeps the file:
+   declaration diagnostics for it later run on that checker.
+5. Limits on thieves. From 8 to 15 checkers at most a quarter of the checkers steal from one queue at a time (two at
+   8, `max_thieves_per_queue`), because each thief pays to build the types of a region it has not seen. The "sticky"
+   thief, which keeps stealing from the same queue (`steal_sticky`), applies only from 16 checkers, or from 8 on very
+   large programs (`affinity::applies`), so it is off in every open-source cell here.
+
+Only the type-check pass steals. Later passes (declaration diagnostics, emit) run each file on the checker that
+checked it. Diagnostics do not depend on which checker checked a file, because the history-dependent caches tsgo has
+are keyed on the program here (notes/perf-order-independence.md), so the output is the same in every run.
+
+### `locality`: `TSRS_CHECKER_ASSIGNMENT=locality`
+
+The same assignment as `steal`, used as is: each checker checks the files it was given, in program order, and an idle
+checker waits. There is no heavy-files-first, no split checking and no stealing. Naming any assignment turns all of
+them off (`stealing_enabled` in checkerpool.rs).
+
+The locality assignment itself (`locality_associations`) works like this:
+
+- Only type-checked files carry weight. `skipLibCheck` declaration files weigh 0 and go to checker 0.
+- Each file goes into the shallowest directory subtree that holds at most a quarter of an average checker's load
+  (`LOCALITY_GROUP_FRACTION`), and that subtree is one group, so a feature folder or a package stays on one checker.
+- The groups are placed heaviest first with Go's FENNEL step: affinity is the import edges between groups, with a
+  load cap of 101% of the average.
+- From 16 checkers, or from 8 on very large programs, a module-affinity term also counts the modules that groups
+  share (affinity.rs). It is part of the assignment, so `steal` and `locality` both get it.
+
+This is what tsrs would do if stealing were removed and the default assignment kept. It is the main comparison in this
+note.
+
+### `go`: `TSRS_CHECKER_ASSIGNMENT=go`
+
+tsgo's behaviour, for byte-identical output with tsgo. Three things change from `locality`:
+
+1. Assignment: tsgo's `createCheckers` (`go_associations`). FENNEL runs file by file over the import graph, with
+   tsgo's weights and balance policy. There is no directory grouping, so files of one folder can land on different
+   checkers.
+2. No stealing, heavy-files-first or split checking, as in `locality`.
+3. Go's check history (`tsrs_core::compat::go_compatible_history`). The caches whose results depend on what a checker
+   saw first behave as in tsgo: the per-name `x?: undefined` property cache, the interface-check site, base type
+   resolution, too-complex reporting, and the instantiation count of nested checks. This is why `go` output can
+   change with the checker count (below). The same switch also turns off tsrs-only speed-ups that tsgo does not have:
+   the union front cache (unioncache.rs), the indexed-access memo, the inference memo (infermemo.rs), and deferring
+   type-argument constraint checks to the checker that checks the file.
+
+So `go` is not "`locality` with tsgo's assignment": part of its extra cost comes from caches it turns off, not from
+scheduling. It is shown as the far end of the scale (full tsgo compatibility), not as an estimate of the assignment
+alone.
 
 Output: `steal` and `locality` printed byte-identical stdout (diagnostics) in every one of the 76 project x checker
 cells, across all 20 runs each. `go` differed in three cells, as expected from tsgo's history: nuxt printed 3 errors
@@ -139,7 +189,8 @@ Rows are sorted by `locality` wall time at 8 checkers, largest first. Median wal
   the check pass is too short for the schedule to matter.
 - `go` is slower than `locality` on most cells (geomean 15-21% slower than stealing, against 7-11% for `locality`),
   but not all: on mikro-orm and mui-docs at 2 checkers, cal-diy at 6 and xstate-main at 4 and 8 it is faster than
-  `locality`. It changes the assignment and the check history at once, so the two effects are not separated here.
+  `locality`. It changes the assignment, the check history and the speed-up caches at once ("The three modes"), so
+  their effects are not separated here.
 
 ## Exceptions
 

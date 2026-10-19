@@ -57,8 +57,9 @@ python3 bench/run.py --projects all --print-projects
 
 ## Results and charts
 
-Results stay in ignored `bench/results/<timestamp>/` directories. Do not commit measurements, generated charts,
-compiler installs or project checkouts. CI uploads measurements and figures as downloadable artifacts.
+Raw results stay in ignored `bench/results/<timestamp>/` directories. Do not commit raw measurements, compiler
+installs or project checkouts. CI uploads complete bundles as artifacts and opens a PR updating the public report
+and chart images in `bench/`.
 
 Each completed bundle contains `metadata.json`, `raw.csv`, `raw.json`, package lockfiles and, per repository,
 `hyperfine.json`, `preflight.json` and compiler logs. Preflights collect file counts and diagnostic locations/codes
@@ -226,8 +227,10 @@ CodSpeed runs on pushes to main, pull requests, and manual dispatch.
 [Update benchmarks](../.github/workflows/update-benchmarks.yml) prepares the pinned catalog projects, builds the
 PGO/BOLT tsrs binary and Hyperfine once, and measures each project with one configuration: 4 checkers, 8 worker
 CPUs, default memory policy, 3 warmups and 10 repetitions against TypeScript nightly and 7.0.2. Both chart styles
-are generated from each result bundle. Raw samples, logs and charts are uploaded as artifacts; the workflow does
-not commit results or open results PRs.
+are generated from each result bundle. TypeScript nightly is resolved once for all project jobs. The final job
+combines their raw samples, regenerates `RESULTS.md`, the light/dark README and per-project SVGs, and the
+multi-version `benchmark.svg`, then opens or updates a draft PR on runs from `main`. Raw samples, logs, package
+lockfiles and both chart styles remain downloadable artifacts; only the public report and SVG images enter the PR.
 
 [Benchmark tooling](../.github/workflows/benchmark-checks.yml) runs the offline execution, validation and chart
 checks when benchmark code changes. No committed measurement archive is needed.
@@ -487,6 +490,7 @@ artifact works on Depot CI (a job can download an artifact that a still-running 
 because the 64-vCPU job's 13-minute measurement varies by more than that (762 s vs 779 s). And eleven runners, one of
 them 64 vCPU, sat idle through the 7-minute build.
 `count.py`, `watch.py` and `compare.py` remain specialized instruction-count, watch and branch-comparison tools.
+`publish.py` accepts completed bundles (combine several with `--merge-dir`) and renders the publication files.
 `history.py`, `regressions.py` and `publish.py` can still read historical result JSON; their historical mode names
 are not configurations of the current runner.
 

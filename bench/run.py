@@ -829,7 +829,7 @@ def main(argv=None) -> None:
     hf = compilers.hyperfine(work, args.hyperfine)
     executables, packages = compilers.install_compilers(work, source, versions, args.tsrs_version or "latest", args.tsrs)
     settings = {"checkers": args.checkers, "workers": args.workers, "memory_gib": args.memory_gib}
-    meta = {"schema_version": 1, "machine": machine_info(True, None), "prepared_utc": stamp,
+    meta = {"schema_version": 1, "machine": machine_info(False, None), "prepared_utc": stamp,
             "compilers": packages, "settings": settings, "runs": args.runs, "warmup": args.warmup,
             "projects": projects, "suite": cfg["suite"],
             "hyperfine": {"version": compilers.output([hf, "--version"]), "sha256": compilers.sha256(hf)},

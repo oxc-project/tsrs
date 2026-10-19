@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 180
     outputs:
       projects: ${{ steps.plan.outputs.projects }}
+      typescript: ${{ steps.plan.outputs.typescript }}
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -43,6 +44,8 @@ jobs:
         run: |
           echo "projects=$(python3 bench/run.py --print-projects --projects all)" >> "$GITHUB_OUTPUT"
           echo "reference=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+          nightly=$(npm view typescript@next version)
+          echo "typescript=$nightly 7.0.2" >> "$GITHUB_OUTPUT"
           python3 bench/run.py --print-cache-keys --projects xstate-main,webpack >> "$GITHUB_OUTPUT"
 
       # PGO training needs both fixtures and the pinned Go fourslash source checkout.
@@ -137,6 +140,7 @@ jobs:
         project: ${{ fromJSON(needs.build.outputs.projects) }}
     env:
       PROJECT: ${{ matrix.project }}
+      TYPESCRIPT_VERSIONS: ${{ needs.build.outputs.typescript }}
       BENCH_RUNNER: Namespace `nscloud-ubuntu-24.04-amd64-8x16`
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
@@ -183,7 +187,8 @@ jobs:
         run: |
           bin="$RUNNER_TEMP/benchmark-compilers"
           chmod +x "$bin/tsrs" "$bin/hyperfine"
-          python3 bench/run.py --projects "$PROJECT" --typescript-versions next 7.0.2 \
+          read -ra versions <<< "$TYPESCRIPT_VERSIONS"
+          python3 bench/run.py --projects "$PROJECT" --typescript-versions "${versions[@]}" \
             --tsrs "$bin/tsrs" --hyperfine "$bin/hyperfine" --checkers 4 --workers 8 \
             --out-dir "$RUNNER_TEMP/bench-partial/$PROJECT" --runs 10 --warmup 3
 
@@ -206,5 +211,101 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  publish:
+    needs: measure
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      # Raw samples and figures are downloadable artifacts; this workflow never commits results.
+      - name: Fetch benchmark history
+        run: git fetch --unshallow origin main
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: bench-partial-*
+          path: ${{ runner.temp }}/bench-partials
+
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Combine project data and update report images
+        run: |
+          python -m pip install -r bench/requirements-charts.txt
+          python bench/publish.py "$RUNNER_TEMP"/bench-partials/*/* \
+            --merge-dir "$RUNNER_TEMP/bench-result" --output-dir "$RUNNER_TEMP/bench-publication" \
+            --commit "$GITHUB_SHA" --run-url "$RUN_URL"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bench-result
+          path: |
+            ${{ runner.temp }}/bench-result
+            ${{ runner.temp }}/bench-publication
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Create GitHub App token
+        if: github.ref == 'refs/heads/main'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or update benchmark PR
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          measured="$GITHUB_SHA"
+          git fetch -q origin main
+          if ! git merge-base --is-ancestor "$measured" origin/main; then
+            echo "Keeping results as artifacts: the measured commit is no longer on main."
+            exit 0
+          fi
+          git checkout -q -f -B main origin/main
+          displayed=$(sed -n 's/.*tsrs commit: `\([0-9a-f]\{7,40\}\)`.*/\1/p' bench/RESULTS.md | tail -1)
+          if [ -n "$displayed" ] && displayed=$(git rev-parse --verify "$displayed^{commit}") && \
+             [ "$displayed" != "$measured" ] && git merge-base --is-ancestor "$measured" "$displayed"; then
+            echo "Keeping the newer published report and images."
+            exit 0
+          fi
+
+          # Only the public report and images enter git; samples and logs stay in artifacts.
+          cp "$RUNNER_TEMP/bench-publication/RESULTS.md" bench/RESULTS.md
+          cp "$RUNNER_TEMP"/bench-publication/*.svg bench/
+          git add bench/RESULTS.md bench/benchmark.svg 'bench/large-projects*.svg' 'bench/per-project-*.svg'
+          git diff --cached --quiet && exit 0
+
+          gh auth setup-git
+          branch="bench/results-$measured"
+          title="chore(bench): update results for ${measured:0:12}"
+          previous=$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)
+          # Create the commit through GitHub so the app token supplies its attribution.
+          while IFS= read -r -d '' path; do
+            git show ":$path" | jq -Rs --arg path "$path" '{path: $path, mode: "100644", type: "blob", content: .}'
+          done < <(git diff --cached --name-only -z) |
+            jq -s --arg base_tree "$(git rev-parse 'HEAD^{tree}')" '{base_tree: $base_tree, tree: .}' > "$RUNNER_TEMP/bench-tree.json"
+          tree=$(gh api --method POST "repos/$GH_REPO/git/trees" --input "$RUNNER_TEMP/bench-tree.json" --jq .sha)
+          commit=$(gh api "repos/$GH_REPO/git/commits" -f message="$title" -f tree="$tree" \
+            -f "parents[]=$(git rev-parse HEAD)" --jq .sha)
+          git fetch -q origin "$commit"
+          git push "--force-with-lease=refs/heads/$branch:$previous" origin "$commit:refs/heads/$branch"
+
+          printf 'Update the benchmark report and chart images for `%s`. Raw samples remain in [workflow artifacts](%s).\n' \
+            "${measured:0:12}" "$RUN_URL" > "$RUNNER_TEMP/bench-pr.md"
+          pr=$(gh pr list --base main --head "$branch" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
+          else
+            gh pr create --draft --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/bench-pr.md"
+          fi

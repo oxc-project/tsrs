@@ -3,6 +3,7 @@ import csv
 import json
 import math
 import shlex
+import shutil
 from pathlib import Path
 
 FIELDS = ("project", "compiler", "run", "wall_seconds", "instructions", "peak_rss_bytes", "exit_code")
@@ -95,6 +96,45 @@ def load_bundle(source):
                     (float(saved[k]) if k == "wall_seconds" else int(saved[k])) == row[k]
                     for k in FIELDS), "raw.csv differs from Hyperfine exports")
     return meta, rows, preflights
+
+
+def merge_bundles(sources, destination):
+    """Combine project bundles without averaging samples; retain each job's original metadata."""
+    sources, destination = [Path(p) for p in sources], Path(destination)
+    require(bool(sources), "No benchmark bundles to publish")
+    bundles = [load_bundle(source)[0] for source in sources]
+    base = bundles[0]
+    projects, cells, seen = [], [], set()
+    identity = lambda compilers: {name: {k: v for k, v in info.items() if k not in ('binary', 'requested')}
+                                  for name, info in compilers.items()}
+    for meta in bundles:
+        for key in ('settings', 'runs', 'warmup', 'suite', 'hyperfine', 'machine'):
+            require(meta.get(key) == base.get(key), f"Cannot combine different {key}")
+        require(identity(meta['compilers']) == identity(base['compilers']), "Cannot combine different compiler builds")
+        for project in meta['projects']:
+            require(project['name'] not in seen, f"Duplicate project: {project['name']}")
+            seen.add(project['name'])
+            projects.append(project)
+        cells.extend(meta['cells'])
+    destination.mkdir(parents=True, exist_ok=False)
+    for index, (source, meta) in enumerate(zip(sources, bundles)):
+        provenance = destination / 'partials' / str(index)
+        provenance.mkdir(parents=True)
+        for path in source.iterdir():
+            if path.is_file():
+                shutil.copy2(path, provenance / path.name)
+                if index == 0 and (path.name.endswith('package-lock.json') or path.name == 'npm-packages.json'):
+                    shutil.copy2(path, destination / path.name)
+        for project in meta['projects']:
+            shutil.copytree(source / project['name'], destination / project['name'])
+    merged = dict(base, projects=projects, cells=cells,
+                  started_utc=min(m['started_utc'] for m in bundles),
+                  completed_utc=max(m['completed_utc'] for m in bundles),
+                  partials=[f'partials/{i}/metadata.json' for i in range(len(bundles))])
+    rows, _ = collect_samples(destination, merged)
+    write_samples(destination, rows)
+    (destination / 'metadata.json').write_text(json.dumps(merged, indent=2) + '\n')
+    return destination
 
 
 def for_chart(source, typescript_version=None):

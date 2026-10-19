@@ -81,6 +81,9 @@ binary hashes, project commits, commands and resource settings. Separate untimed
 diagnostic locations/codes for each compiler; each TypeScript version is compared with tsrs and differences are
 reported alongside the measurements.
 
+The [2026-10-19 laptop run](laptop-results/20261019T104740.804330Z/) is committed with all 240 raw measurements,
+original Hyperfine exports, preflight comparisons, package provenance, charts, and regeneration instructions.
+
 ### Blog charts
 
 [`laptop-charts/render.py`](laptop-charts/render.py) turns a completed `laptop.sh` result directory into the

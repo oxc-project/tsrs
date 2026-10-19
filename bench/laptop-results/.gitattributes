@@ -1,0 +1,7 @@
+# Preserve recorded export bytes and checksums across Git line-ending settings.
+* -text
+
+# CSV exports use CRLF; Matplotlib emits trailing spaces inside SVG path data.
+*.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*/charts/*.svg whitespace=-blank-at-eol,blank-at-eof,space-before-tab
+*/charts/index.html whitespace=-blank-at-eol,blank-at-eof,space-before-tab

@@ -1,0 +1,56 @@
+{
+  "compilers": {
+    "typescript_7_0_2": {
+      "exit_code": 1,
+      "files": 2941,
+      "errors": 5,
+      "error_keys": {
+        "apps/server/src/process/externalLauncher.test.ts(1071,11): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1074,23): error TS7006": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1114,11): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1158,9): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1161,21): error TS7006": 1
+      }
+    },
+    "typescript": {
+      "exit_code": 2,
+      "files": 2948,
+      "errors": 6,
+      "error_keys": {
+        "apps/server/scripts/record-pi-rpc-replay-fixture.ts(284,9): error TS2322": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1071,11): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1074,23): error TS7006": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1114,11): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1158,9): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1161,21): error TS7006": 1
+      }
+    },
+    "tsrs": {
+      "exit_code": 2,
+      "files": 2945,
+      "errors": 6,
+      "error_keys": {
+        "apps/server/scripts/record-pi-rpc-replay-fixture.ts(284,9): error TS2322": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1071,11): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1074,23): error TS7006": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1114,11): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1158,9): error TS2304": 1,
+        "apps/server/src/process/externalLauncher.test.ts(1161,21): error TS7006": 1
+      }
+    }
+  },
+  "comparison": {
+    "same_files": false,
+    "same_diagnostic_keys": true
+  },
+  "comparisons_to_tsrs": {
+    "typescript_7_0_2": {
+      "same_files": false,
+      "same_diagnostic_keys": false
+    },
+    "typescript": {
+      "same_files": false,
+      "same_diagnostic_keys": true
+    }
+  }
+}

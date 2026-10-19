@@ -1,0 +1,600 @@
+{
+  "typescript_7_0_2": [
+    {
+      "bin": {
+        "tsc": "bin/tsc"
+      },
+      "tag": "latest",
+      "bugs": {
+        "url": "https://github.com/microsoft/TypeScript/issues"
+      },
+      "dist": {
+        "shasum": "9ec773d7954a8c182c17cc5bbd575aa28bc51582",
+        "tarball": "https://registry.npmjs.org/typescript/-/typescript-7.0.2.tgz",
+        "fileCount": 416,
+        "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+        "signatures": [
+          {
+            "sig": "MEUCIHn8lVrLBbTJToaOcV3IJ0oVPREmFT5BhqmO2niVNCaSAiEAjbubGExGAYMSJN39iEgX/eDYhwBGnh/iyyGTRigXGjY=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 2497498
+      },
+      "name": "typescript",
+      "type": "module",
+      "_from": "file:M:\\SvcFab\\_App\\MS.Ess.PackageManager.Publisher_App1\\temp\\2a631491-44e7-41b1-8b99-87b20578c02f\\typescript.tgz",
+      "author": {
+        "name": "Microsoft Corp."
+      },
+      "engines": {
+        "node": ">=16.20.0"
+      },
+      "exports": {
+        ".": "./lib/version.cjs",
+        "./unstable/fs": "./dist/api/fs.js",
+        "./package.json": "./package.json",
+        "./unstable/ast": "./dist/ast/index.js",
+        "./unstable/sync": "./dist/api/sync/api.js",
+        "./unstable/async": "./dist/api/async/api.js",
+        "./unstable/proto": "./dist/api/proto.js",
+        "./unstable/ast/is": "./dist/ast/is.js",
+        "./unstable/ast/clone": "./dist/ast/clone.js",
+        "./unstable/ast/utils": "./dist/ast/utils.js",
+        "./unstable/ast/factory": "./dist/ast/factory.generated.js",
+        "./unstable/ast/scanner": "./dist/ast/scanner.js",
+        "./unstable/ast/visitor": "./dist/ast/visitor.js"
+      },
+      "gitHead": "2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
+      "imports": {
+        "#enums/*": {
+          "types": "./dist/enums/*.enum.d.ts",
+          "default": "./dist/enums/*.js"
+        },
+        "#getExePath": "./lib/getExePath.js",
+        "#vscode-jsonrpc/node": "./vendor/vscode-jsonrpc/lib/node/main.js"
+      },
+      "license": "Apache-2.0",
+      "_npmUser": {
+        "name": "microsoft1es",
+        "email": "npmjs@microsoft.com"
+      },
+      "homepage": "https://www.typescriptlang.org/",
+      "keywords": [
+        "TypeScript",
+        "Microsoft",
+        "compiler",
+        "language",
+        "javascript"
+      ],
+      "_resolved": "M:\\SvcFab\\_App\\MS.Ess.PackageManager.Publisher_App1\\temp\\2a631491-44e7-41b1-8b99-87b20578c02f\\typescript.tgz",
+      "_integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "repository": {
+        "url": "git+https://github.com/microsoft/TypeScript.git",
+        "type": "git"
+      },
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "directories": {},
+      "maintainers": [
+        {
+          "name": "microsoft1es",
+          "email": "npmjs@microsoft.com"
+        },
+        {
+          "name": "typescript-bot",
+          "email": "typescript@microsoft.com"
+        },
+        {
+          "name": "weswigham",
+          "email": "wwigham@gmail.com"
+        },
+        {
+          "name": "andrewbranch",
+          "email": "andrew@wheream.io"
+        },
+        {
+          "name": "typescript-deploys",
+          "email": "typescript-design@microsoft.com"
+        },
+        {
+          "name": "microsoft-oss-releases",
+          "email": "microsoft-oss-publishing@microsoft.com"
+        },
+        {
+          "name": "jakebailey",
+          "email": "jacob.b.bailey@gmail.com"
+        }
+      ],
+      "_nodeVersion": "18.5.0",
+      "dependencies": {
+        "@typescript/typescript-aix-ppc64": "7.0.2",
+        "@typescript/typescript-linux-arm": "7.0.2",
+        "@typescript/typescript-linux-x64": "7.0.2",
+        "@typescript/typescript-sunos-x64": "7.0.2",
+        "@typescript/typescript-win32-x64": "7.0.2",
+        "@typescript/typescript-darwin-x64": "7.0.2",
+        "@typescript/typescript-netbsd-x64": "7.0.2",
+        "@typescript/typescript-freebsd-x64": "7.0.2",
+        "@typescript/typescript-linux-arm64": "7.0.2",
+        "@typescript/typescript-linux-ppc64": "7.0.2",
+        "@typescript/typescript-linux-s390x": "7.0.2",
+        "@typescript/typescript-openbsd-x64": "7.0.2",
+        "@typescript/typescript-win32-arm64": "7.0.2",
+        "@typescript/typescript-darwin-arm64": "7.0.2",
+        "@typescript/typescript-netbsd-arm64": "7.0.2",
+        "@typescript/typescript-freebsd-arm64": "7.0.2",
+        "@typescript/typescript-linux-loong64": "7.0.2",
+        "@typescript/typescript-linux-riscv64": "7.0.2",
+        "@typescript/typescript-openbsd-arm64": "7.0.2",
+        "@typescript/typescript-linux-mips64el": "7.0.2"
+      },
+      "publishConfig": {
+        "tag": "latest",
+        "access": "public"
+      },
+      "_hasShrinkwrap": false,
+      "preferUnplugged": true,
+      "optionalDependencies": {
+        "@typescript/typescript-aix-ppc64": "7.0.2",
+        "@typescript/typescript-linux-arm": "7.0.2",
+        "@typescript/typescript-linux-x64": "7.0.2",
+        "@typescript/typescript-sunos-x64": "7.0.2",
+        "@typescript/typescript-win32-x64": "7.0.2",
+        "@typescript/typescript-darwin-x64": "7.0.2",
+        "@typescript/typescript-netbsd-x64": "7.0.2",
+        "@typescript/typescript-freebsd-x64": "7.0.2",
+        "@typescript/typescript-linux-arm64": "7.0.2",
+        "@typescript/typescript-linux-ppc64": "7.0.2",
+        "@typescript/typescript-linux-s390x": "7.0.2",
+        "@typescript/typescript-openbsd-x64": "7.0.2",
+        "@typescript/typescript-win32-arm64": "7.0.2",
+        "@typescript/typescript-darwin-arm64": "7.0.2",
+        "@typescript/typescript-netbsd-arm64": "7.0.2",
+        "@typescript/typescript-freebsd-arm64": "7.0.2",
+        "@typescript/typescript-linux-loong64": "7.0.2",
+        "@typescript/typescript-linux-riscv64": "7.0.2",
+        "@typescript/typescript-openbsd-arm64": "7.0.2",
+        "@typescript/typescript-linux-mips64el": "7.0.2"
+      },
+      "_npmOperationalInternal": {
+        "tmp": "tmp/typescript_7.0.2_1783526118240_0.6935539106833353",
+        "host": "s3://npm-registry-packages-npm-production"
+      },
+      "_id": "typescript@7.0.2",
+      "version": "7.0.2"
+    },
+    {
+      "os": [
+        "darwin"
+      ],
+      "cpu": [
+        "arm64"
+      ],
+      "tag": "latest",
+      "bugs": {
+        "url": "https://github.com/microsoft/TypeScript/issues"
+      },
+      "dist": {
+        "shasum": "a55fdfcfa58df58d27db2237cde6a5c1e35a7235",
+        "tarball": "https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.0.2.tgz",
+        "fileCount": 113,
+        "integrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+        "signatures": [
+          {
+            "sig": "MEYCIQDVihzHgSntcpRfjY59lXpkYSmUI2WQArFnVbEaUhKqEQIhANijJBCaQv625Pl3uT9hftn0hWxqMYbGgNj7PNHdtzTd",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 27498111
+      },
+      "name": "@typescript/typescript-darwin-arm64",
+      "type": "module",
+      "_from": "file:M:\\SvcFab\\_App\\MS.Ess.PackageManager.Publisher_App1\\temp\\ab8f6f4c-711a-4785-8ff6-8837718d94bd\\typescript-darwin-arm64.tgz",
+      "author": {
+        "name": "Microsoft Corp."
+      },
+      "engines": {
+        "node": ">=16.20.0"
+      },
+      "exports": {
+        "./package.json": "./package.json"
+      },
+      "gitHead": "2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
+      "license": "Apache-2.0",
+      "_npmUser": {
+        "name": "microsoft1es",
+        "email": "npmjs@microsoft.com"
+      },
+      "homepage": "https://www.typescriptlang.org/",
+      "keywords": [
+        "TypeScript",
+        "Microsoft",
+        "compiler",
+        "language",
+        "javascript"
+      ],
+      "_resolved": "M:\\SvcFab\\_App\\MS.Ess.PackageManager.Publisher_App1\\temp\\ab8f6f4c-711a-4785-8ff6-8837718d94bd\\typescript-darwin-arm64.tgz",
+      "_integrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+      "repository": {
+        "url": "git+https://github.com/microsoft/TypeScript.git",
+        "type": "git"
+      },
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "directories": {},
+      "maintainers": [
+        {
+          "name": "microsoft1es",
+          "email": "npmjs@microsoft.com"
+        },
+        {
+          "name": "typescript-bot",
+          "email": "typescript@microsoft.com"
+        },
+        {
+          "name": "weswigham",
+          "email": "wwigham@gmail.com"
+        },
+        {
+          "name": "andrewbranch",
+          "email": "andrew@wheream.io"
+        },
+        {
+          "name": "typescript-deploys",
+          "email": "typescript-design@microsoft.com"
+        },
+        {
+          "name": "microsoft-oss-releases",
+          "email": "microsoft-oss-publishing@microsoft.com"
+        },
+        {
+          "name": "jakebailey",
+          "email": "jacob.b.bailey@gmail.com"
+        }
+      ],
+      "_nodeVersion": "18.5.0",
+      "publishConfig": {
+        "tag": "latest",
+        "access": "public"
+      },
+      "_hasShrinkwrap": false,
+      "preferUnplugged": true,
+      "_npmOperationalInternal": {
+        "tmp": "tmp/typescript-darwin-arm64_7.0.2_1783525776623_0.23465326721212953",
+        "host": "s3://npm-registry-packages-npm-production"
+      },
+      "_id": "@typescript/typescript-darwin-arm64@7.0.2",
+      "version": "7.0.2"
+    }
+  ],
+  "typescript": [
+    {
+      "bin": {
+        "tsc": "bin/tsc"
+      },
+      "tag": "next",
+      "bugs": {
+        "url": "https://github.com/microsoft/TypeScript/issues"
+      },
+      "dist": {
+        "shasum": "d8623155d083086d2740b7f6c6f37bb71178aa64",
+        "tarball": "https://registry.npmjs.org/typescript/-/typescript-7.1.0-dev.20261019.1.tgz",
+        "fileCount": 558,
+        "integrity": "sha512-/2vZZAbzfTtBHESo60frvN/NF0h3+fcNZSXdYzuugLwZ6F2s5I+QRFmSTrs64IM5bJY7RrhApDc7jJeAR3gGow==",
+        "signatures": [
+          {
+            "sig": "MEUCIQCEwZammN78EYZs81JjSQ1CFPWOaKN71xbJYe4QwYGTIAIge1AhQ++5MDnnvjDBAm5L8PPTKz40wAfY8zMiA9AE6/0=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEUCIQDkIHjQQPwVKalhQ7dZuXw8Q89VYgVj2wAK6TBW3AjaXAIgfp12omCDLWyxST2CbfvvEuJXDRrVoI+OBj9cEWoF9GE=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 4157875
+      },
+      "name": "typescript",
+      "type": "module",
+      "_from": "file:M:\\SvcFab\\_App\\MS.Ess.PackageManager.PublisherV2_App60\\temp\\55941381-cc4d-48d7-bb93-32bd14716e4e\\typescript.tgz",
+      "author": {
+        "name": "Microsoft Corp."
+      },
+      "engines": {
+        "node": ">=16.20.0"
+      },
+      "exports": {
+        ".": "./lib/version.cjs",
+        "./fs": "./dist/api/fs.js",
+        "./ast": "./dist/ast/index.js",
+        "./path": "./dist/api/typedPaths.js",
+        "./sync": "./dist/api/sync/api.js",
+        "./async": "./dist/api/async/api.js",
+        "./proto": "./dist/api/proto.js",
+        "./ast/is": "./dist/ast/is.js",
+        "./vscode": "./dist/vscode/extensionApi.js",
+        "./ast/clone": "./dist/ast/clone.js",
+        "./ast/utils": "./dist/ast/utils.js",
+        "./ast/factory": "./dist/ast/factory.generated.js",
+        "./ast/scanner": "./dist/ast/scanner.js",
+        "./ast/visitor": "./dist/ast/visitor.js",
+        "./package.json": "./package.json",
+        "./schemas/jsconfig.schema.json": "./schemas/jsconfig.schema.json",
+        "./schemas/tsconfig.schema.json": "./schemas/tsconfig.schema.json"
+      },
+      "gitHead": "5237fd46890956e4bb8177a1a05dcd69e4166560",
+      "imports": {
+        "#enums/*": {
+          "types": "./dist/enums/*.enum.d.ts",
+          "default": "./dist/enums/*.js"
+        },
+        "#getExePath": "./lib/getExePath.js",
+        "#vscode-jsonrpc/node": "./vendor/vscode-jsonrpc/lib/node/main.js"
+      },
+      "license": "Apache-2.0",
+      "_npmUser": {
+        "name": "microsoft1es",
+        "email": "npmjs@microsoft.com"
+      },
+      "homepage": "https://www.typescriptlang.org/",
+      "keywords": [
+        "TypeScript",
+        "Microsoft",
+        "compiler",
+        "language",
+        "javascript"
+      ],
+      "_resolved": "M:\\SvcFab\\_App\\MS.Ess.PackageManager.PublisherV2_App60\\temp\\55941381-cc4d-48d7-bb93-32bd14716e4e\\typescript.tgz",
+      "_integrity": "sha512-/2vZZAbzfTtBHESo60frvN/NF0h3+fcNZSXdYzuugLwZ6F2s5I+QRFmSTrs64IM5bJY7RrhApDc7jJeAR3gGow==",
+      "repository": {
+        "url": "git+https://github.com/microsoft/TypeScript.git",
+        "type": "git"
+      },
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "directories": {},
+      "maintainers": [
+        {
+          "name": "microsoft1es",
+          "email": "npmjs@microsoft.com"
+        },
+        {
+          "name": "typescript-bot",
+          "email": "typescript@microsoft.com"
+        },
+        {
+          "name": "weswigham",
+          "email": "wwigham@gmail.com"
+        },
+        {
+          "name": "andrewbranch",
+          "email": "andrew@wheream.io"
+        },
+        {
+          "name": "typescript-deploys",
+          "email": "typescript-design@microsoft.com"
+        },
+        {
+          "name": "microsoft-oss-releases",
+          "email": "microsoft-oss-publishing@microsoft.com"
+        },
+        {
+          "name": "jakebailey",
+          "email": "jacob.b.bailey@gmail.com"
+        }
+      ],
+      "_nodeVersion": "18.5.0",
+      "dependencies": {
+        "@typescript/typescript-linux-arm": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-linux-x64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-win32-x64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-darwin-x64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-linux-arm64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-win32-arm64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-darwin-arm64": "7.1.0-dev.20261019.1"
+      },
+      "publishConfig": {
+        "tag": "next",
+        "access": "public"
+      },
+      "_hasShrinkwrap": false,
+      "readmeFilename": "README.md",
+      "preferUnplugged": true,
+      "optionalDependencies": {
+        "@typescript/typescript-linux-arm": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-linux-x64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-win32-x64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-darwin-x64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-linux-arm64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-win32-arm64": "7.1.0-dev.20261019.1",
+        "@typescript/typescript-darwin-arm64": "7.1.0-dev.20261019.1"
+      },
+      "_npmOperationalInternal": {
+        "tmp": "tmp/typescript_7.1.0-dev.20261019.1_1792398091619_0.34055571675165797",
+        "host": "s3://npm-registry-packages-npm-production"
+      },
+      "_id": "typescript@7.1.0-dev.20261019.1",
+      "version": "7.1.0-dev.20261019.1"
+    },
+    {
+      "os": [
+        "darwin"
+      ],
+      "cpu": [
+        "arm64"
+      ],
+      "tag": "next",
+      "bugs": {
+        "url": "https://github.com/microsoft/TypeScript/issues"
+      },
+      "dist": {
+        "shasum": "4283a16c75cca96374e281e8f10ea581f326651e",
+        "tarball": "https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-dev.20261019.1.tgz",
+        "fileCount": 121,
+        "integrity": "sha512-695uRLXrkj4Y3EjJICoXP7jss1aWu3cXd+qgdnjOv6QY2MlAUR18aPwo+d6S+jxlSicqD34J/tRR/nEqFetZ7Q==",
+        "signatures": [
+          {
+            "sig": "MEYCIQDD1ALB1jRRGSSO6k6rAZSiGWH99zMoeA2IXzJiELPUhgIhAN3Osxn9Z4dw3eqK8aiSUF3t1AekXhmYyq67uGDSEIVu",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEUCIFG3q4GBiNoEQ98zmONAvIjTGXY/v6xe48gokL8bgYChAiEAjh2bGLtopMc8d4os1Xsdfl5dWy2NmAUIDS1gmcUrCtQ=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 28172003
+      },
+      "name": "@typescript/typescript-darwin-arm64",
+      "type": "module",
+      "_from": "file:M:\\SvcFab\\_App\\MS.Ess.PackageManager.PublisherV2_App60\\temp\\a8b2d17b-480d-4e40-b63c-9aa55e97ec43\\typescript-darwin-arm64.tgz",
+      "author": {
+        "name": "Microsoft Corp."
+      },
+      "engines": {
+        "node": ">=16.20.0"
+      },
+      "exports": {
+        "./package.json": "./package.json"
+      },
+      "gitHead": "5237fd46890956e4bb8177a1a05dcd69e4166560",
+      "license": "Apache-2.0",
+      "_npmUser": {
+        "name": "microsoft1es",
+        "email": "npmjs@microsoft.com"
+      },
+      "homepage": "https://www.typescriptlang.org/",
+      "keywords": [
+        "TypeScript",
+        "Microsoft",
+        "compiler",
+        "language",
+        "javascript"
+      ],
+      "_resolved": "M:\\SvcFab\\_App\\MS.Ess.PackageManager.PublisherV2_App60\\temp\\a8b2d17b-480d-4e40-b63c-9aa55e97ec43\\typescript-darwin-arm64.tgz",
+      "_integrity": "sha512-695uRLXrkj4Y3EjJICoXP7jss1aWu3cXd+qgdnjOv6QY2MlAUR18aPwo+d6S+jxlSicqD34J/tRR/nEqFetZ7Q==",
+      "repository": {
+        "url": "git+https://github.com/microsoft/TypeScript.git",
+        "type": "git"
+      },
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "directories": {},
+      "maintainers": [
+        {
+          "name": "microsoft1es",
+          "email": "npmjs@microsoft.com"
+        },
+        {
+          "name": "typescript-bot",
+          "email": "typescript@microsoft.com"
+        },
+        {
+          "name": "weswigham",
+          "email": "wwigham@gmail.com"
+        },
+        {
+          "name": "andrewbranch",
+          "email": "andrew@wheream.io"
+        },
+        {
+          "name": "typescript-deploys",
+          "email": "typescript-design@microsoft.com"
+        },
+        {
+          "name": "microsoft-oss-releases",
+          "email": "microsoft-oss-publishing@microsoft.com"
+        },
+        {
+          "name": "jakebailey",
+          "email": "jacob.b.bailey@gmail.com"
+        }
+      ],
+      "_nodeVersion": "18.5.0",
+      "publishConfig": {
+        "tag": "next",
+        "access": "public"
+      },
+      "_hasShrinkwrap": false,
+      "readmeFilename": "README.md",
+      "preferUnplugged": true,
+      "_npmOperationalInternal": {
+        "tmp": "tmp/typescript-darwin-arm64_7.1.0-dev.20261019.1_1792397787455_0.4346490763902169",
+        "host": "s3://npm-registry-packages-npm-production"
+      },
+      "_id": "@typescript/typescript-darwin-arm64@7.1.0-dev.20261019.1",
+      "version": "7.1.0-dev.20261019.1"
+    }
+  ],
+  "tsrs": [
+    {
+      "os": [
+        "darwin"
+      ],
+      "cpu": [
+        "arm64"
+      ],
+      "dist": {
+        "shasum": "5a6ec899847a10b45aa706ecafa3189cfa8c2c7e",
+        "tarball": "https://registry.npmjs.org/@tsrs/darwin-arm64/-/darwin-arm64-0.17.0-ts7.1.0-dev.20260929.tgz",
+        "fileCount": 118,
+        "integrity": "sha512-juTSQfazlitvMOCeGrHPI4blgAKDV74WM1hUcwRIaF2lJj1N7gy4v8z1ehxvX7ra261Ms2YspsoNFC5pKKYyeg==",
+        "signatures": [
+          {
+            "sig": "MEUCIQDJGg1apjwnLq1pc96xs9n6pa7WfQpgk4zQTzLuk7usUgIgRcy2iJHOcMMP0exVhD0f21yhJiPQDFOGIPYjHB8VmPw=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "sig": "MEUCIH4QWpQfUkc8S/+S/sgDg++hLQu7ypjHdy7Yg/K+ud5CAiEAt9wCo7zl379ygwVigTze+AN8M2t0a+NtMNpNvNMb/IQ=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@tsrs%2fdarwin-arm64@0.17.0-ts7.1.0-dev.20260929",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 21252098
+      },
+      "name": "@tsrs/darwin-arm64",
+      "engines": {
+        "node": ">=16.20.0"
+      },
+      "exports": {
+        "./package.json": "./package.json"
+      },
+      "license": "Apache-2.0",
+      "_npmUser": {
+        "name": "GitHub Actions",
+        "email": "npm-oidc-no-reply@github.com",
+        "trustedPublisher": {
+          "id": "github",
+          "oidcConfigId": "db4ec89f-e7dc-4f11-a3bb-039d55e362e6"
+        }
+      },
+      "repository": {
+        "url": "git+https://github.com/oxc-project/tsrs.git",
+        "type": "git"
+      },
+      "description": "The darwin-arm64 binary for tsrs",
+      "directories": {},
+      "maintainers": [
+        {
+          "name": "qidanta",
+          "email": "jiangweixian1994@gmail.com"
+        },
+        {
+          "name": "boshen",
+          "email": "boshenc@gmail.com"
+        }
+      ],
+      "publishConfig": {
+        "access": "public"
+      },
+      "_hasShrinkwrap": false,
+      "preferUnplugged": true,
+      "_npmOperationalInternal": {
+        "tmp": "tmp/darwin-arm64_0.17.0-ts7.1.0-dev.20260929_1792401240997_0.9679520467046545",
+        "host": "s3://npm-registry-packages-npm-production"
+      },
+      "_id": "@tsrs/darwin-arm64@0.17.0-ts7.1.0-dev.20260929",
+      "version": "0.17.0-ts7.1.0-dev.20260929"
+    }
+  ]
+}

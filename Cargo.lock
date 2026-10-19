@@ -836,7 +836,7 @@ name = "tsrs_cli"
 version = "0.16.0"
 dependencies = [
  "libc",
- "libmimalloc-sys2",
+ "mimalloc-safe",
  "tsrs_api",
  "tsrs_api_transport",
  "tsrs_compiler",

@@ -48,10 +48,12 @@ jobs:
       ts_nightly: ${{ steps.v.outputs.ts_nightly }}
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       - name: Set up Node
         uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
         with:
           registry-url: ""
+
       - name: Check version changes
         if: github.event_name == 'push'
         id: check
@@ -60,6 +62,7 @@ jobs:
           static-checking: localIsNew
           file-name: package.json
           file-url: https://registry.npmjs.org/tsrs/latest
+
       - name: Validate release version and notes
         if: github.event_name == 'workflow_dispatch' || steps.check.outputs.changed == 'true'
         id: v
@@ -79,6 +82,7 @@ jobs:
           echo "crate_version=$crate_version" >> "$GITHUB_OUTPUT"
           echo "ts_commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
           echo "ts_nightly=$(node npm/build.mjs --print-typescript-nightly)" >> "$GITHUB_OUTPUT"
+
       # The binaries stamp `nightly` as TypeScript's version (Cargo.toml): it must be built from the pinned commit, or
       # from a later one that changes nothing under tsc/, or tsbuildinfo files would claim to come from another tsgo.
       - name: Check the TypeScript nightly against the pinned commit
@@ -129,6 +133,7 @@ jobs:
           # - { target: x86_64-pc-windows-msvc, os: windows-latest, experimental: true, run: true }
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       # Training needs conformance fixtures and the Go fourslash source at the pinned commit.
       - name: Check out TypeScript source and testdata
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -139,14 +144,17 @@ jobs:
           fetch-depth: 1
           sparse-checkout: tsc
           persist-credentials: false
+
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: ts-ref/tsc/go.mod
           cache: false
+
       - name: Read macOS image revision
         if: runner.os == 'macOS'
         id: python-image
         run: echo "version=${ImageVersion:?}" >> "$GITHUB_OUTPUT"
+
       # Include the completion marker beside the architecture directory so setup-python recognizes the install.
       # The image revision refreshes the 3.15 patch selection; the workflow hash covers the setup action and version.
       - name: Cache macOS Python
@@ -155,20 +163,25 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/Python/3.15.*
           key: release-python-v1-${{ matrix.os }}-${{ runner.arch }}-${{ steps.python-image.outputs.version }}-${{ hashFiles('.github/workflows/release.yml') }}
+
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: '3.15'
+
       # The bench projects of the training workload install with their pinned package managers via pnpm (bench/run.py --setup-only).
       # No .npmrc: the default registry-url writes one with `_authToken=${NODE_AUTH_TOKEN}`, and yarn 1 (webpack's
       # install in the PGO training run) refuses to run while that variable is unset. Only `publish` needs the registry.
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
         with:
           registry-url: ""
+
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
           components: llvm-tools
+
       - run: rustup target add ${{ matrix.target }}
+
       # The instrumented build and training state live outside target/, so the final build cannot reuse them.
       # CFLAGS: cc passes -Cprofile-generate/-use on to clang (macOS) but not to gcc (Linux). Apple clang's profile
       # format does not match rustc's LLVM (the instrumented mimalloc crashed in __llvm_profile_instrument_target
@@ -183,11 +196,13 @@ jobs:
         # tsrs-test embeds libraries, Go supplies the task server's VFS, and the CLI uses disk libraries.
         # Build together so their compiler symbols match for PGO.
         run: cargo build --release --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_fourslash_server --bins --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+
       - name: Training run
         shell: bash
         env:
           TSRS_LIB_PATH: ${{ github.workspace }}/crates/tsrs_vfs/libs
         run: .github/scripts/pgo-train.sh "$RUNNER_TEMP/pgo/target/${{ matrix.target }}/release" "$RUNNER_TEMP/pgo/raw" "$RUNNER_TEMP/pgo/bench"
+
       - name: Merge profiles
         id: profile
         shell: bash
@@ -200,6 +215,7 @@ jobs:
           sum=$(shasum -a 256 "$RUNNER_TEMP/pgo/merged.profdata" | cut -c1-16)
           mv "$RUNNER_TEMP/pgo/merged.profdata" "$RUNNER_TEMP/pgo/$sum.profdata"
           echo "path=$RUNNER_TEMP/pgo/$sum.profdata" >> "$GITHUB_OUTPUT"
+
       # Linux: --emit-relocs keeps the relocations BOLT needs to move code (the code itself is unchanged), and the
       # test runners are built too so that the BOLT step can run the gates on BOLT-optimized binaries.
       - name: cargo build
@@ -211,6 +227,7 @@ jobs:
           targets=(-p tsrs_cli)
           [ "$RUNNER_OS" = Linux ] && targets+=(-p tsrs_testrunner -p tsrs_fourslash_server --bins)
           cargo build --release --locked "${targets[@]}" --features "$TSRS_CARGO_FEATURES" --target ${{ matrix.target }}
+
       # BOLT from the LLVM release that matches rustc's LLVM. The tarball's tools need glibc 2.34 (22.04 has 2.35).
       - name: Read BOLT version
         if: runner.os == 'Linux'
@@ -220,6 +237,7 @@ jobs:
           llvm=$(rustc -vV | sed -n 's/^LLVM version: //p')
           test -n "$llvm"
           echo "version=$llvm" >> "$GITHUB_OUTPUT"
+
       - name: Cache BOLT
         if: runner.os == 'Linux'
         id: bolt-cache
@@ -230,6 +248,7 @@ jobs:
             ${{ runner.temp }}/llvm/bin/merge-fdata
             ${{ runner.temp }}/llvm/lib/libbolt_rt_instr.a
           key: release-bolt-v1-${{ matrix.os }}-${{ runner.arch }}-${{ steps.llvm.outputs.version }}
+
       - name: Install BOLT
         if: runner.os == 'Linux' && steps.bolt-cache.outputs.cache-hit != 'true'
         shell: bash
@@ -242,6 +261,7 @@ jobs:
           curl -fsSL "https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/$name.tar.zst" |
             tar -x --zstd -C "$RUNNER_TEMP/llvm" --strip-components=1 --wildcards \
               "$name/bin/llvm-bolt" "$name/bin/merge-fdata" "$name/lib/libbolt_rt_instr.a"
+
       - name: Configure BOLT
         if: runner.os == 'Linux'
         shell: bash
@@ -250,12 +270,14 @@ jobs:
           test -x "$RUNNER_TEMP/llvm/bin/merge-fdata"
           test -s "$RUNNER_TEMP/llvm/lib/libbolt_rt_instr.a"
           echo "$RUNNER_TEMP/llvm/bin" >> "$GITHUB_PATH"
+
       - name: BOLT and gates on the BOLT-optimized binaries
         if: runner.os == 'Linux'
         shell: bash
         env:
           TSRS_LIB_PATH: ${{ github.workspace }}/crates/tsrs_vfs/libs
         run: .github/scripts/bolt.sh "target/${{ matrix.target }}/release" "$RUNNER_TEMP/bolt" "$RUNNER_TEMP/pgo/bench"
+
       - name: Stage binary
         shell: bash
         env:
@@ -271,11 +293,13 @@ jobs:
             set +e; "out/${{ matrix.target }}/$exe" bad.ts; status=$?; set -e
             [ "$status" = 2 ] || { echo "expected exit 2 for a type error, got $status"; exit 1; }
           fi
+
       - name: Installed-package smoke (CLI and Node API)
         shell: bash
         run: |
           node npm/build.mjs --artifacts out --pack
           node npm/sdk/smoke-consumer.mjs --noembed
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bin-${{ matrix.target }}
@@ -289,9 +313,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
+
       - run: cargo check --locked
 
   # Musl uses static dist builds without PGO/BOLT.
@@ -310,13 +336,16 @@ jobs:
           - { target: aarch64-unknown-linux-musl, os: ubuntu-22.04-arm }
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
           tools: cargo-zigbuild@0.23.4
+
       - uses: goto-bus-stop/setup-zig@abea47f85e598557f500fa1fd2ab7464fcb39406 # v2.2.1
         with:
           version: 0.13.0
+
       - name: Build and stage musl binary
         env:
           TSRS_LIB_PATH: ${{ github.workspace }}/crates/tsrs_vfs/libs
@@ -327,6 +356,7 @@ jobs:
           cp "target/${{ matrix.target }}/release/tsrs" "out/${{ matrix.target }}/tsrs"
           "out/${{ matrix.target }}/tsrs" --version | tee version.txt
           grep -q "^Version $TSRS_TS_VERSION (" version.txt || { echo "::error::the binary is not stamped with TypeScript $TSRS_TS_VERSION"; exit 1; }
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bin-${{ matrix.target }}
@@ -346,11 +376,15 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
           restore-cache: false
+
       - run: rustup target add wasm32-wasip1
+
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+
       # The module sizes in notes/wasm-build.md come from binaryen version 133.
       - name: Install binaryen 133
         run: |
@@ -358,14 +392,19 @@ jobs:
           echo "2dc9c7813f5375db93d96ead4b78222fcc3e2677bbb832297af4797782a37489  $RUNNER_TEMP/binaryen.tgz" | sha256sum -c -
           tar xzf "$RUNNER_TEMP/binaryen.tgz" -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/binaryen-version_133/bin" >> "$GITHUB_PATH"
+
       - name: Build the module
         run: tools/wasm/build.sh
+
       - name: Build native tsrs (pnpm test compares against it)
         run: cargo build --release --locked -p tsrs_cli
+
       - name: pnpm test (npm/tsrs-wasm)
         run: pnpm --dir npm/tsrs-wasm test
+
       - name: Pack
         run: node npm/build.mjs --wasm npm/tsrs-wasm/tsrs.wasm --out wasm-dist --pack
+
       - name: Installed-package smoke
         env:
           VERSION: ${{ needs.version.outputs.version }}
@@ -381,6 +420,7 @@ jobs:
           printf 'const x: number = "no";\n' > bad.ts
           set +e; pnpm exec tsrs-wasm bad.ts; status=$?; set -e
           [ "$status" = 2 ] || { echo "expected exit 2 for a type error, got $status"; exit 1; }
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: npm-wasm
@@ -398,16 +438,20 @@ jobs:
       id-token: write # npm trusted publishing and provenance
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: bin-*
           path: artifacts
           merge-multiple: true
+
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: npm-wasm
           path: wasm-dist
+
       - name: Require the release platforms and the WebAssembly package
         run: |
           for t in aarch64-apple-darwin x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
@@ -415,13 +459,16 @@ jobs:
             test -f "artifacts/$t/tsrs" || { echo "::error::missing binary for $t"; exit 1; }
           done
           ls -lR artifacts wasm-dist
+
       - name: Assemble and pack
         run: |
           node npm/build.mjs --artifacts artifacts --pack
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: npm-packages
           path: npm/dist/*.tgz
+
       - name: Publish (@tsrs platform packages, tsrs, then @tsrs/wasm)
         env:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
@@ -455,6 +502,7 @@ jobs:
             fi
             pnpm publish "$tarball" "${flags[@]}"
           done < "$RUNNER_TEMP/publish.txt"
+
       - name: Verify every published package and latest tag
         if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
         run: node .github/scripts/wait-for-npm-packages.mjs --release npm/dist/packages.json wasm-dist/packages.json
@@ -468,6 +516,7 @@ jobs:
       contents: write
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

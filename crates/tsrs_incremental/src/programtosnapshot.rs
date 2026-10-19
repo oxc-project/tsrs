@@ -35,27 +35,16 @@ pub(crate) fn program_to_snapshot(
     });
     snapshot.options.set(Some(program.options()));
     snapshot.check_pending.set(program.options().no_check.is_true());
-    let can_use_incremental_state = snapshot.can_use_incremental_state();
-    let compiler_option_changes = if can_use_incremental_state {
-        let old_options = old_program.map(|p| p.snapshot.options());
-        tsrs_tsoptions::compiler_option_changes(
-            old_options.map(P::get),
-            Some(snapshot.options().get()),
-        )
-    } else {
-        tsrs_tsoptions::CompilerOptionChanges::default()
-    };
     let mut to = toProgramSnapshot {
         program,
         old_program,
         snapshot,
-        compiler_option_changes,
         global_file_removed: false,
         has_deleted_files: false,
         global_scope_lost: false,
     };
 
-    if can_use_incremental_state {
+    if to.snapshot.can_use_incremental_state() {
         to.reuse_from_old_program();
         to.compute_program_file_changes();
         to.handle_file_delete();
@@ -80,7 +69,6 @@ struct toProgramSnapshot {
     program: &'static CompilerProgram,
     old_program: Option<P<Program>>,
     snapshot: P<Snapshot>,
-    compiler_option_changes: tsrs_tsoptions::CompilerOptionChanges,
     global_file_removed: bool,
     // Files of the old state that the new program does not have (compute_program_file_changes).
     has_deleted_files: bool,
@@ -127,8 +115,12 @@ impl toProgramSnapshot {
     // programtosnapshot.go:75
     fn compute_program_file_changes(&mut self) {
         let old = self.old_program.map(|p| p.snapshot);
-        let can_copy_semantic_diagnostics =
-            old.is_some() && !self.compiler_option_changes.affects_semantic_diagnostics();
+        let can_copy_semantic_diagnostics = old.is_some_and(|old| {
+            !tsrs_tsoptions::compiler_options_affect_semantic_diagnostics(
+                Some(&old.options()),
+                Some(&self.program.options()),
+            )
+        });
         // We can only reuse emit signatures (i.e. .d.ts signatures) if the .d.ts file is unchanged,
         // which will eg be depedent on change in options like declarationDir and outDir options are unchanged.
         // We need to look in oldState.compilerOptions, rather than oldCompilerOptions (i.e.we need to disregard useOldState) because
@@ -136,8 +128,12 @@ impl toProgramSnapshot {
         // which would make useOldState as false since we can now use reference maps that are needed to track what to emit, what to check etc
         // but that option change does not affect d.ts file name so emitSignatures should still be reused.
         let can_copy_emit_signatures = self.snapshot.options().composite.is_true()
-            && old.is_some()
-            && !self.compiler_option_changes.affects_declaration_path();
+            && old.is_some_and(|old| {
+                !tsrs_tsoptions::compiler_options_affect_declaration_path(
+                    Some(&old.options()),
+                    Some(&self.program.options()),
+                )
+            });
         let copy_declaration_file_diagnostics = can_copy_semantic_diagnostics
             && self.snapshot.options().skip_lib_check.is_true()
                 == old.unwrap().options().skip_lib_check.is_true();
@@ -486,7 +482,10 @@ impl toProgramSnapshot {
             }
             // If options affect emit, then we need to do complete emit per compiler options
             // otherwise only the js or dts that needs to emitted because its different from previously emitted options
-            let pending_emit_kind = if self.compiler_option_changes.affects_emit() {
+            let pending_emit_kind = if tsrs_tsoptions::compiler_options_affect_emit(
+                Some(&old_program.snapshot.options()),
+                Some(&self.snapshot.options()),
+            ) {
                 get_file_emit_kind(&self.snapshot.options())
             } else {
                 get_pending_emit_kind_with_options(

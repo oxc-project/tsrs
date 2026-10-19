@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw the README's chart from a recorded benchmark result.
 
-For the published-compiler blog figures: chart.py <result-directory> --format blog [--check].
+For wall-time/peak-memory bars across multiple releases, use bench/chart_bars.py.
 
 A scatter of how many times faster tsrs is than tsgo (x) against how many times less peak memory it uses (y), both
 linear. Each project is a line through one point per checker count: both compilers at --checkers 1, 2, 4 and 8 on
@@ -14,7 +14,6 @@ import argparse
 import json
 import math
 from pathlib import Path
-import tempfile
 import xml.etree.ElementTree as ET
 
 import run
@@ -28,7 +27,7 @@ POINTS = run.CHART_CHECKER_MODES
 MODE = POINTS[4]
 PANELS = (("wall_s", "Check time", "faster"), ("peak_rss_bytes", "Peak memory", "less memory"))
 GIB = 2**30
-FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+FONT = "sans-serif"
 
 # The README chart's projects (bench/projects.json names) and their legend names, in legend order.
 SCATTER_PROJECTS = {"vscode": "vscode", "mui-docs": "mui-docs",
@@ -72,14 +71,16 @@ def format_value(metric: str, value: float | None) -> str:
 def chart_mode(result: dict) -> str:
     """The per-project charts' mode: the most equal checker threads every one of their projects in the result has a
     tsgo and tsrs measurement at."""
-    projects = [p for name, p in result["projects"].items() if name in DETAIL_PROJECTS]
-    for checkers in sorted(POINTS, reverse=True):
-        mode = POINTS[checkers]
+    detail_projects = result.get("project_labels", DETAIL_PROJECTS)
+    points = result.get("chart_points", POINTS)
+    projects = [p for name, p in result["projects"].items() if name in detail_projects]
+    for checkers in sorted(points, reverse=True):
+        mode = points[checkers]
         if projects and all(measured(p.get(mode) or {}, c, m) is not None for p in projects
                             for c in ("tsgo", "tsrs") for m, *_ in PANELS):
             return mode
-    raise ValueError(f"no results for {', '.join(DETAIL_PROJECTS)} with every project measured in one of "
-                     f"{', '.join(POINTS.values())}")
+    raise ValueError(f"no results for {', '.join(detail_projects)} with every project measured in one of "
+                     f"{', '.join(points.values())}")
 
 
 def element(parent, tag, **attrs):
@@ -147,9 +148,11 @@ def header(root, colors: dict, width: int, title: str, kind: str, subtitle: str)
 
 def footer(drawing, colors: dict, height: int, result: dict, modes: list[str], machine: dict) -> None:
     """Both charts' two footer lines: the compilers, then the machine and repetitions."""
-    build = run.TSRS_BUILDS[result["tsrs"].get("build", "release")].replace("`", "")
+    build = ("published npm binary" if result["tsrs"].get("package") else "local binary" if result.get("chart_points") else
+             run.TSRS_BUILDS[result["tsrs"].get("build", "release")].replace("`", ""))
     text(drawing, 48, height - 50, f"tsgo: typescript@{result['tsgo']['version']}. tsrs: "
-         f"{result['tsrs']['commit'][:12]}, {build}. Measured {result['date'][:10]}.", 14, fill=colors["muted"])
+         f"{result['tsrs'].get('version') if result.get('chart_points') else result['tsrs']['commit'][:12]}, "
+         f"{build}. Measured {result['date'][:10]}.", 14, fill=colors["muted"])
     text(drawing, 48, height - 28, f"{machine['label'].replace('`', '')}. Wall time and peak RSS, "
          f"{run.reps_text(result, modes)}.", 14, fill=colors["muted"])
 
@@ -166,11 +169,13 @@ def text_width(value: str, size: float) -> float:
 
 
 def svg(result: dict, theme: str = "light") -> str:
+    project_names = result.get("project_labels", SCATTER_PROJECTS)
+    chart_points = result.get("chart_points", POINTS)
     colors = THEMES[theme]
     series = {}
-    for name in SCATTER_PROJECTS:
+    for name in project_names:
         project = result["projects"].get(name) or {}
-        points = [(checkers, mode, ratios(project[mode])) for checkers, mode in sorted(POINTS.items())
+        points = [(checkers, mode, ratios(project[mode])) for checkers, mode in sorted(chart_points.items())
                   if mode in project and ratios(project[mode])]
         # A line joins only points measured on one machine: the 4-checker point's, or the first point's.
         machines = {mode: (project[mode].get("machine") or result["machine"])["label"] for _, mode, _ in points}
@@ -179,11 +184,11 @@ def svg(result: dict, theme: str = "light") -> str:
         if points:
             series[name] = points
     if not series:
-        raise ValueError(f"no tsgo and tsrs results for {', '.join(SCATTER_PROJECTS)} in "
-                         f"{', '.join(POINTS.values())}")
+        raise ValueError(f"no tsgo and tsrs results for {', '.join(project_names)} in "
+                         f"{', '.join(chart_points.values())}")
     modes = sorted({mode for points in series.values() for _, mode, _ in points},
-                   key=lambda mode: next(c for c, m in POINTS.items() if m == mode))
-    checker_counts = [c for c, m in sorted(POINTS.items()) if m in modes]
+                   key=lambda mode: next(c for c, m in chart_points.items() if m == mode))
+    checker_counts = [c for c, m in sorted(chart_points.items()) if m in modes]
     machine = next((result["projects"][name][mode]["machine"] for name in series for mode in modes
                     if "machine" in (result["projects"][name].get(mode) or {})), result["machine"])
     cpus = machine_phrase(machine)
@@ -196,7 +201,7 @@ def svg(result: dict, theme: str = "light") -> str:
     # The legend's rows, right-aligned under the subtitle: a dot and a name per project, wrapped to the card's width.
     rows: list[list[tuple[str, float]]] = [[]]
     for name in series:
-        width = 20 + text_width(SCATTER_PROJECTS[name], 19)
+        width = 20 + text_width(project_names[name], 19)
         if rows[-1] and sum(w + LEGEND_GAP for _, w in rows[-1]) + width > WIDTH - 96:
             rows.append([])
         rows[-1].append((name, width))
@@ -218,16 +223,17 @@ def svg(result: dict, theme: str = "light") -> str:
                          f"{format_value('peak_rss_bytes', measured(cell, 'tsgo', 'peak_rss_bytes'))}; tsrs "
                          f"{format_value('wall_s', measured(cell, 'tsrs', 'wall_s'))}, "
                          f"{format_value('peak_rss_bytes', measured(cell, 'tsrs', 'peak_rss_bytes'))})")
-        details.append(f"{SCATTER_PROJECTS[name]}: {'; '.join(parts)}.")
-    build = run.TSRS_BUILDS[result["tsrs"].get("build", "release")].replace("`", "")
+        details.append(f"{project_names[name]}: {'; '.join(parts)}.")
+    build = ("published npm binary" if result["tsrs"].get("package") else "local binary" if result.get("chart_points") else
+             run.TSRS_BUILDS[result["tsrs"].get("build", "release")].replace("`", ""))
     ET.SubElement(root, "desc", id="description").text = (
         f"How many times faster tsrs type-checks than tsgo ({typescript}), against how many times less peak memory "
         f"it uses, both compilers at --checkers {counts} on {cpus}. Up and to the right is better. "
         + " ".join(details) + f" {run.reps_text(result, modes).capitalize()}. tsrs uses {build}. "
-        f"Machine: {machine['label'].replace('`', '')}. Measured {result['date']}; tsrs commit {result['tsrs']['commit']}. "
+        f"Machine: {machine['label'].replace('`', '')}. Measured {result['date']}; tsrs {result['tsrs'].get('version', result['tsrs']['commit'])}. "
         f"TypeScript {result['tsgo']['version']}; TypeScript reference {(result.get('reference') or {}).get('commit', 'not recorded')}.")
     ET.SubElement(root, "metadata").text = (
-        f"Generated by bench/chart.py; modes: {', '.join(modes)}; tsrs commit: {result['tsrs']['commit']}; "
+        f"Generated by bench/chart.py; modes: {', '.join(modes)}; tsrs: {result['tsrs'].get('version', result['tsrs']['commit'])}; "
         f"measured: {result['date']}; build: {result['tsrs'].get('build', 'release')}. "
         "Details: https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md")
 
@@ -243,14 +249,15 @@ def svg(result: dict, theme: str = "light") -> str:
             stroke_width=1.5)
     text(key, f"{x - 22:.1f}", 97, "n", 14, 700, colors["text"], "middle")
 
-    project_colors = dict(zip(SCATTER_PROJECTS, colors["projects"]))
+    project_colors = {name: colors["projects"][i % len(colors["projects"])]
+                      for i, name in enumerate(project_names)}
     legend = element(drawing, "g", data_role="legend")
     for row, items in enumerate(rows):
         y = LEGEND_Y + row * LEGEND_ROW
         x = WIDTH - 48
         for name, width in reversed(items):
             x -= width
-            legend_entry(legend, colors, x, y, project_colors[name], SCATTER_PROJECTS[name])
+            legend_entry(legend, colors, x, y, project_colors[name], project_names[name])
             x -= LEGEND_GAP
 
     grid = element(drawing, "g", data_role="grid")
@@ -314,12 +321,13 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
     """One project per row, sorted by tsgo's check time: tsgo's, bun check's and tsrs's value as dots joined by a
     line, then how many times faster (or less memory) tsrs is than tsgo, and bun check's multiple on the rows where
     it beats tsrs."""
+    project_names = result.get("project_labels", DETAIL_PROJECTS)
     colors = THEMES[theme]
     label, word, scale = DETAIL[metric]
     mode = chart_mode(result)
-    checkers = next(c for c, m in POINTS.items() if m == mode)
+    checkers = next(c for c, m in result.get("chart_points", POINTS).items() if m == mode)
     cells = {name: project[mode] for name, project in result["projects"].items()
-             if name in DETAIL_PROJECTS and mode in project}
+             if name in project_names and mode in project}
     compilers = [c for c in COMPILERS if all(measured(cell, c, m) is not None for cell in cells.values()
                                              for m, *_ in PANELS)]
     typescript = typescript_name(result["tsgo"]["version"])
@@ -352,11 +360,11 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
                               "aria-labelledby": "title description"})
     ET.SubElement(root, "title", id="title").text = f"{label} by project: {title}"
     ET.SubElement(root, "desc", id="description").text = " ".join(
-        f"{DETAIL_PROJECTS[name]}: " + ", ".join(f"{names[c]} {format_value(metric, values[name][c] * unit)}"
+        f"{project_names[name]}: " + ", ".join(f"{names[c]} {format_value(metric, values[name][c] * unit)}"
                                                 for c in compilers) + "."
         for name in order) + f" Both compilers at {threads} on {machine_phrase(machine)}. Smaller is better."
     ET.SubElement(root, "metadata").text = (
-        f"Generated by bench/chart.py; metric: {metric}; mode: {mode}; tsrs commit: {result['tsrs']['commit']}; "
+        f"Generated by bench/chart.py; metric: {metric}; mode: {mode}; tsrs: {result['tsrs'].get('version', result['tsrs']['commit'])}; "
         f"measured: {result['date']}.")
     drawing = header(root, colors, WIDTH, title, f"{label} by project",
                      f"{'All three' if len(compilers) == 3 else 'Both'} compilers at {threads} on "
@@ -389,7 +397,7 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
         y = DETAIL_TOP + row * DETAIL_PITCH
         v = values[name]
         line = element(drawing, "g", data_project=name)
-        text(line, DETAIL_LEFT - 22, y + 6, DETAIL_PROJECTS[name], 19, 500, anchor="end")
+        text(line, DETAIL_LEFT - 22, y + 6, project_names[name], 19, 500, anchor="end")
         xs = [x_of(v[c]) for c in compilers]
         element(line, "line", x1=f"{min(xs):.1f}", y1=y, x2=f"{max(xs):.1f}", y2=y, stroke=colors["grid"],
                 stroke_width=6, stroke_linecap="round")
@@ -412,45 +420,22 @@ def per_project_svg(result: dict, metric: str, theme: str = "light") -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("result", type=Path, help="recorded CI result (.json) or Hyperfine result directory")
-    parser.add_argument("--format", choices=("ci", "blog"), default="ci", help="default: existing CI SVG charts")
-    parser.add_argument("--output", type=Path, help="CI SVG destination")
-    parser.add_argument("--output-dir", type=Path, help="blog output directory (default: <result>/charts)")
-    parser.add_argument("--check", action="store_true", help="regenerate blog charts in a temporary directory and compare bytes")
-    parser.add_argument("--tsrs-display-version", help="blog legend override; normally read from <result>/chart.json")
-    parser.add_argument("--theme", choices=THEMES, default="light", help="color scheme (default: light)")
-    parser.add_argument("--per-project", choices=DETAIL, help="draw bench/RESULTS.md's per-project chart of this "
-                        "metric instead of the README's summary")
+    parser.add_argument("result", type=Path, help="recorded JSON or bench/run.py result directory")
+    parser.add_argument("--output", type=Path, required=True, help="SVG destination")
+    parser.add_argument("--typescript-version", help="version/ID to compare with tsrs (default: first TypeScript in the result)")
+    parser.add_argument("--theme", choices=THEMES, default="light")
+    parser.add_argument("--per-project", choices=DETAIL)
     args = parser.parse_args()
-    if args.format == "blog":
-        if args.output or args.per_project or args.theme != "light":
-            parser.error("--output, --per-project and --theme apply to CI charts; use --output-dir for blog charts")
-        import blog
-        destination = args.output_dir or args.result / "charts"
-        try:
-            if args.check:
-                with tempfile.TemporaryDirectory(prefix="tsrs-charts-") as directory:
-                    generated = Path(directory)
-                    blog.render(args.result, generated, args.tsrs_display_version)
-                    changed = [p.name for p in generated.iterdir() if p.is_file() and
-                               (not (destination / p.name).is_file() or
-                                p.read_bytes() != (destination / p.name).read_bytes())]
-                    if changed:
-                        parser.error("Charts need regeneration: " + ", ".join(sorted(changed)))
-                print(f"All chart artifacts reproduce byte for byte: {destination}")
-            else:
-                blog.render(args.result, destination, args.tsrs_display_version)
-        except (OSError, ValueError) as error:
-            parser.error(str(error))
-        return
-    if not args.output:
-        parser.error("CI charts require --output")
-    if args.output_dir or args.check or args.tsrs_display_version:
-        parser.error("--output-dir, --check and --tsrs-display-version require --format blog")
     try:
-        result = json.loads(args.result.read_text())
+        if args.result.is_dir():
+            from results import for_chart
+            result = for_chart(args.result, args.typescript_version)
+        else:
+            if args.typescript_version:
+                parser.error("--typescript-version applies to result directories")
+            result = json.loads(args.result.read_text())
         image = per_project_svg(result, args.per_project, args.theme) if args.per_project else svg(result, args.theme)
-    except ValueError as error:
+    except (OSError, ValueError) as error:
         parser.error(str(error))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(image)

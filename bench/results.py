@@ -5,7 +5,7 @@ import math
 import shlex
 from pathlib import Path
 
-FIELDS = ("mode", "project", "compiler", "run", "wall_seconds", "instructions", "peak_rss_bytes", "exit_code")
+FIELDS = ("project", "compiler", "run", "wall_seconds", "instructions", "peak_rss_bytes", "exit_code")
 METRICS = {"wall_seconds": ("time_wall_clock", "second"), "instructions": ("instructions", None),
            "peak_rss_bytes": ("memory_peak_resident", "byte")}
 
@@ -47,16 +47,16 @@ def collect_samples(source, meta):
     projects = [p["name"] for p in meta["projects"]]
     require(len(projects) == len(set(projects)) and projects, "Duplicate or missing projects")
     require(meta["runs"] > 0 and meta["warmup"] >= 0, "Invalid repetition counts")
-    expected = {(m, p) for m in meta["modes"] for p in projects}
-    cells = {(c["mode"], c["project"]): c for c in meta["cells"]}
+    expected = set(projects)
+    cells = {c["project"]: c for c in meta["cells"]}
     require(set(cells) == expected and len(cells) == len(meta["cells"]), "Missing or duplicate command cells")
     rows, preflights = [], {}
-    for (mode, project), cell in cells.items():
-        folder = source / mode / project
+    for project, cell in cells.items():
+        folder = source / project
         checks = read_json(folder / "preflight.json")
         require(set(checks["compilers"]) == names, f"Incomplete preflight: {folder}")
         require(set(cell["commands"]) == names, f"Incomplete commands: {folder}")
-        preflights[mode, project] = checks
+        preflights[project] = checks
         for result in measurements(folder / "hyperfine.json", meta["runs"], names):
             compiler = result["name"]
             require(shlex.split(result["command"]) == cell["commands"][compiler],
@@ -65,7 +65,7 @@ def collect_samples(source, meta):
             require(check["files"] > 0, f"Empty preflight: {folder}/{compiler}")
             for index, sample in enumerate(result["measurements"], 1):
                 require(sample["exit_code"] == check["exit_code"], f"Exit status changed: {folder}/{compiler}")
-                rows.append(dict(zip(FIELDS, (mode, project, compiler, index,
+                rows.append(dict(zip(FIELDS, (project, compiler, index,
                     sample["time_wall_clock"]["value"], int(sample["instructions"]["value"]),
                     int(sample["memory_peak_resident"]["value"]), sample["exit_code"]))))
     return rows, preflights
@@ -82,6 +82,7 @@ def write_samples(source, rows):
 def load_bundle(source):
     source = Path(source)
     meta = read_json(source / "metadata.json")
+    require(meta.get("schema_version") == 1, "Unsupported result schema; expected a bench/run.py result directory")
     require(meta.get("completed_utc"), "Benchmark must be complete before rendering")
     rows, preflights = collect_samples(source, meta)
     require(read_json(source / "raw.json") == rows, "raw.json differs from Hyperfine exports")
@@ -90,6 +91,36 @@ def load_bundle(source):
     require(len(csv_rows) == len(rows), "raw.csv has missing or extra rows")
     for saved, row in zip(csv_rows, rows):
         require(set(saved) == set(FIELDS), "Unexpected raw.csv columns")
-        require(all(saved[k] == row[k] if isinstance(row[k], str) else float(saved[k]) == row[k]
+        require(all(saved[k] == row[k] if isinstance(row[k], str) else
+                    (float(saved[k]) if k == "wall_seconds" else int(saved[k])) == row[k]
                     for k in FIELDS), "raw.csv differs from Hyperfine exports")
     return meta, rows, preflights
+
+
+def for_chart(source, typescript_version=None):
+    """Present a selected version to the existing scatter/per-project renderer without rewriting raw data."""
+    from statistics import mean
+    meta, rows, _ = load_bundle(source)
+    candidates = [c for c in meta['compilers'] if c != 'tsrs']
+    if typescript_version:
+        candidates = [c for c in candidates if c == typescript_version or
+                      meta['compilers'][c]['version'] == typescript_version]
+    require(bool(candidates), 'Requested TypeScript version was not measured')
+    compiler = candidates[0]
+    checkers = meta['settings']['checkers']
+    mode = f'checkers{checkers}'
+    tsrs = dict(meta['compilers']['tsrs'], commit='not recorded', build='release')
+    result = {'date': meta['started_utc'], 'machine': meta['machine'], 'tsrs': tsrs,
+              'tsgo': meta['compilers'][compiler], 'modes': [mode], 'reps': meta['runs'],
+              'chart_points': {checkers: mode}, 'projects': {},
+              'project_labels': {p['name']: p['name'] for p in meta['projects']}}
+    for project in meta['projects']:
+        name = project['name']
+        cell = {}
+        for source_compiler, dest_compiler in ((compiler, 'tsgo'), ('tsrs', 'tsrs')):
+            group = [r for r in rows if r['project'] == name and r['compiler'] == source_compiler]
+            cell[dest_compiler] = {'ok_runs': len(group), 'runs': len(group),
+                                  'wall_s': mean(r['wall_seconds'] for r in group),
+                                  'peak_rss_bytes': mean(r['peak_rss_bytes'] for r in group)}
+        result['projects'][name] = {mode: cell}
+    return result

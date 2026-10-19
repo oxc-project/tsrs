@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
-"""Benchmarks tsrs against the pinned TypeScript nightly on the typescript-benchmarking projects.
+"""Benchmark selected releases with one resource configuration per invocation.
 
-See bench/README.md. Typical use:
+    python3 bench/run.py --typescript-versions next 7.0.2 --tsrs-version latest --projects vscode webpack
+    python3 bench/run.py --checkers 14 --workers 14 --memory-gib 32 --dry-run
 
-    python3 bench/run.py --local                       # everything in bench/projects.json
-    python3 bench/run.py --local --projects webpack,Compiler --reps 1
-    python3 bench/run.py --setup-only                  # clone + install only (CI cache warm-up)
-    python3 bench/run.py --projects vscode --out-dir /tmp/p/vscode   # one project of a parallel run (CI)
-    python3 bench/run.py --modes wide,checkers1,checkers2,checkers4,checkers8 --out-dir /tmp/p/wide  # the published tables
-    python3 bench/run.py --merge /tmp/p/*/*.json        # join such results into one
-    python3 bench/run.py --profile laptop --setup-only # published binaries; generate a printable Bash runner
+Shared setup and historical reporting helpers remain here for chart.py, watch.py and compare.py.
 """
 
 from __future__ import annotations
@@ -420,6 +415,8 @@ def mode_reps(result: dict, mode: str) -> tuple[int, int | None]:
 
 def reps_text(result: dict, modes: list[str]) -> str:
     """`median of 10 interleaved runs (3 for tsgo)`, or one such phrase per mode shown when their counts differ."""
+    if result.get("chart_points"):
+        return f"arithmetic mean of {result['reps']} runs per compiler/project"
     def one(reps, tsgo_reps):
         return f"median of {reps} interleaved runs" + (f" ({tsgo_reps} for tsgo)" if tsgo_reps not in (None, reps) else "")
     groups: dict[tuple, list[str]] = {}
@@ -765,195 +762,80 @@ def write_results(result: dict, args: argparse.Namespace, note: str = "") -> Non
         log(f"WARNING: error-count mismatch or failed runs: {', '.join(sorted(set(bad)))}")
 
 
-def main() -> None:
-    # Keep the CI runner's defaults and dependencies; the published macOS binaries use Hyperfine.
-    profile = argparse.ArgumentParser(add_help=False)
-    profile.add_argument("--profile", choices=("ci", "laptop"), default="ci")
-    selected, remaining = profile.parse_known_args()
-    if selected.profile == "laptop":
-        import laptop
-        laptop.main(remaining)
-        return
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--profile", choices=("ci", "laptop"), default="ci",
-                    help="ci: local builds/Linux CI; laptop: published binaries/Hyperfine (use --profile laptop --help)")
-    ap.add_argument("--local", action="store_true", help="label results as measured on this machine")
-    ap.add_argument("--label", help="machine label for the table header")
-    ap.add_argument("--work-dir", type=Path, default=BENCH / ".work", help="clones, installs, logs (default bench/.work)")
-    ap.add_argument("--tsrs", type=Path, default=REPO / "target" / "release" / "tsrs")
-    ap.add_argument("--tsrs-build", choices=sorted(TSRS_BUILDS), default="release",
-                    help="how --tsrs was built (named in the table header; CI: pgo-dist, see update-benchmarks.yml)")
-    ap.add_argument("--tsgo", type=Path, help="native tsgo binary (default: install typescript@<version> from npm)")
-    ap.add_argument("--bun", type=Path, help="bun executable with `bun check` (Bun 1.4.3 canary or later): adds a bun "
-                                             "check column to every mode measured")
-    ap.add_argument("--projects", help="comma-separated subset of bench/projects.json")
-    ap.add_argument("--modes", default="default,single,checkers4,checkers8", help="comma-separated: " + ", ".join(MODE_FLAGS))
-    ap.add_argument("--reps", type=int, default=3)
-    ap.add_argument("--tsgo-reps", type=int, help="runs of tsgo per cell (default: --reps). tsgo takes 10-20x longer "
-                    "than tsrs, so more tsrs and bun reps against the runner's +-5-10%% noise need not cost tsgo runs")
-    ap.add_argument("--timeout", type=float, default=900, help="per-run timeout in seconds")
-    ap.add_argument("--no-warmup", action="store_true")
-    ap.add_argument("--no-instructions", action="store_true",
-                    help="skip the untimed instruction-count run of tsrs (Linux only; bench/regressions.py compares it)")
-    ap.add_argument("--setup-only", action="store_true", help="clone and install everything, including the reference compiler")
-    ap.add_argument("--print-cache-keys", action="store_true",
-                    help="print `<name>=<key>` lines (GITHUB_OUTPUT format) for the CI caches of bench/.work")
-    ap.add_argument("--print-projects", action="store_true",
-                    help="print the project names as a JSON list (the CI matrix: one measuring job per project)")
-    ap.add_argument("--rustc", help="`rustc -V` of the toolchain that built --tsrs (default: this machine's; the CI "
-                                    "measuring jobs have no Rust)")
-    ap.add_argument("--merge", type=Path, nargs="+", metavar="RESULT",
-                    help="only join these per-project results of one run into one result file (no benchmarking)")
+def comma_values(values):
+    return [part.strip() for value in values for part in value.split(',') if part.strip()]
+
+
+def main(argv=None) -> None:
+    ap = argparse.ArgumentParser(description="Benchmark tsrs against selected TypeScript 7 releases with Hyperfine.")
+    ap.add_argument("--typescript-versions", nargs="+", default=["next"], metavar="VERSION",
+                    help="npm versions/tags, separated by spaces or commas (default: next)")
+    compiler = ap.add_mutually_exclusive_group()
+    compiler.add_argument("--tsrs-version", help="published tsrs version/tag (default: latest)")
+    compiler.add_argument("--tsrs", type=Path, help="use this local native tsrs executable instead of a release")
+    ap.add_argument("--projects", "--repos", nargs="+", default=["vscode,mui-docs,webpack,t3code-server"],
+                    help="names from bench/projects.json, separated by spaces or commas; use all for the full catalog")
+    ap.add_argument("--checkers", type=int, default=4, help="checker count for every compiler (default: 4)")
+    ap.add_argument("--workers", type=int, default=usable_cpus(), help="worker-pool CPUs for every compiler (default: available CPUs)")
+    ap.add_argument("--memory-gib", type=int, help="optional soft memory budget: tsrs --maxMemory and Go GOMEMLIMIT")
+    ap.add_argument("--runs", "--reps", type=int, default=10)
+    ap.add_argument("--warmup", type=int, default=3)
+    ap.add_argument("--work-dir", type=Path, default=BENCH / ".work")
     ap.add_argument("--out-dir", type=Path, default=BENCH / "results")
-    ap.add_argument("--readme", type=Path, help="rewrite a legacy bench block (CI uses bench/publish.py)")
-    ap.add_argument("--readme-modes", help="comma-separated modes the summary block (and --readme-table) shows; default: "
-                                           "all of the result's modes. CI: `wide`, the Bun comparison default-mode table")
-    ap.add_argument("--readme-table", type=Path, help="also write the summary variant of the table to this file")
-    ap.add_argument("--apply-table", type=Path,
-                    help="only rewrite --readme's bench block from this results .md (no benchmarking)")
-    args = ap.parse_args()
-    if args.apply_table:
-        if not args.readme:
-            ap.error("--apply-table needs --readme")
-        update_readme(args.readme, args.apply_table.read_text())
-        return
-
+    ap.add_argument("--hyperfine", type=Path, help="Hyperfine 2 executable; otherwise PATH or verified macOS ARM64 download")
+    ap.add_argument("--setup-only", action="store_true", help="only prepare repository checkouts and dependencies")
+    ap.add_argument("--dry-run", action="store_true", help="prepare compilers/projects and print Bash commands without measuring")
+    ap.add_argument("--print-projects", action="store_true", help="print selected names as JSON without setup")
+    ap.add_argument("--print-cache-keys", action="store_true", help="print project cache keys without setup")
+    args = ap.parse_args(argv)
+    versions = comma_values(args.typescript_versions)
+    names = comma_values(args.projects)
+    if not versions or len(set(versions)) != len(versions):
+        ap.error("--typescript-versions requires unique versions/tags")
+    if min(args.runs, args.checkers, args.workers) < 1 or args.warmup < 0:
+        ap.error("--runs, --checkers and --workers must be positive; --warmup must be nonnegative")
+    if args.memory_gib is not None and args.memory_gib < 1:
+        ap.error("--memory-gib must be positive")
     cfg = json.loads((BENCH / "projects.json").read_text())
-    projects = cfg["projects"]
-    if args.projects:
-        want = args.projects.split(",")
-        unknown = set(want) - {p["name"] for p in projects}
-        if unknown:
-            sys.exit(f"unknown projects: {', '.join(sorted(unknown))}")
-        projects = [p for p in projects if p["name"] in want]
+    catalog = {p["name"]: p for p in cfg["projects"]}
+    if names == ["all"]:
+        names = list(catalog)
+    if not names or len(names) != len(set(names)) or set(names) - set(catalog):
+        ap.error("--projects must select unique names from bench/projects.json (or all)")
+    projects = [dict(catalog[name]) for name in names]
     if args.print_projects:
-        print(json.dumps([p["name"] for p in projects]))
+        print(json.dumps(names))
         return
-    if args.merge:
-        write_results(merge_results(cfg, args.merge), args)
-        return
-    modes = args.modes.split(",")
-    if unknown_modes := set(modes) - set(MODE_FLAGS):
-        sys.exit(f"unknown modes: {', '.join(sorted(unknown_modes))}")
-    work = args.work_dir.resolve()
     if args.print_cache_keys:
-        digest = lambda x: hashlib.sha256(json.dumps(x, sort_keys=True).encode()).hexdigest()[:16]
-        # bench/.work/{suite,tsgo}: the suite checkout (Compiler, Compiler-Unions) and the npm compilers.
-        print(f"shared={digest([cfg['suite'], cfg['tsgo'], cfg.get('reference'), native_platform()])}")
-        # bench/.work/solutions/<name>: one cache per cloned project, keyed on its commit and install command.
-        for p in projects:
-            if "repo" in p:
-                key = [p["repo"], p["commit"], p.get("install")] + ([overlay_digest(p)] if "overlay" in p else [])
-                print(f"{p['name']}={p['commit'][:12]}-{digest(key)}")
+        digest = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()[:16]
+        print(f"shared={digest([cfg['suite'], native_platform()])}")
+        for project in projects:
+            if "repo" in project:
+                print(f"{project['name']}={digest([project, overlay_digest(project)])}")
         return
-
-    tsgo = (args.tsgo or ensure_tsgo(cfg["tsgo"], work)).resolve()
-    ref_cfg = cfg.get("reference")
-    if ref_cfg:
-        port_commit = re.search(r'^commit = "([0-9a-f]+)"', (REPO / "Cargo.toml").read_text(), re.M)
-        if port_commit and port_commit.group(1) != ref_cfg["commit"]:
-            log(f"WARNING: bench/projects.json reference.commit {ref_cfg['commit'][:12]} is not the TypeScript commit "
-                f"tsrs ports ({port_commit.group(1)[:12]}); pick the nightly built from it")
-    for p in projects:
-        setup_project(cfg, p, work)
+    work = args.work_dir.resolve()
+    for project in projects:
+        setup_project(cfg, project, work)
+        if "suite_dir" in project:
+            project["commit"] = cfg["suite"]["commit"]
+        if "overlay" in project:
+            project["overlay_sha256"] = overlay_digest(project)
     if args.setup_only:
-        if ref_cfg:
-            ensure_tsgo(ref_cfg, work)
         return
-
-    tsrs = args.tsrs.resolve()
-    tsrs_version = subprocess.run([str(tsrs), "--version"], capture_output=True, text=True, check=True).stdout.strip()
-    commit = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-    dirty = bool(subprocess.run(["git", "-C", str(REPO), "status", "--porcelain", "--untracked-files=no"],
-                                capture_output=True, text=True).stdout.strip())
-    now = dt.datetime.now(dt.timezone.utc)
-    bun = args.bun.resolve() if args.bun else None
-    bun_version = (subprocess.run([str(bun), "--revision"], capture_output=True, text=True, check=True).stdout.strip()
-                   if bun else None)
-    result: dict = {
-        "date": now.strftime("%Y-%m-%d %H:%M UTC"),
-        "machine": machine_info(args.local, args.label),
-        "tsrs": {"commit": commit, "dirty": dirty, "version": tsrs_version, "build": args.tsrs_build,
-                 "rustc": args.rustc or rustc_version()},
-        "tsgo": {"version": cfg["tsgo"]["version"], "binary": str(tsgo).replace(str(Path.home()), "~")},
-        "bun": {"version": bun_version, "binary": str(bun).replace(str(Path.home()), "~")} if bun else None,
-        "suite": cfg["suite"],
-        "reference": ref_cfg,
-        "reps": args.reps,
-        "tsgo_reps": args.tsgo_reps if args.tsgo_reps is not None else args.reps,
-        "modes": modes,
-        "flags": " ".join(TIMED_FLAGS),
-        "projects": {},
-        "raw": [],
-    }
-    logs = work / "logs" / now.strftime("%Y%m%d-%H%M%S")
-    compilers = {"tsgo": tsgo, "tsrs": tsrs}
-    if bun:
-        compilers["bun"] = bun
-    measured = list(compilers)  # tsgo, tsrs and, with --bun, bun; the order rotates every rep
-    t_start = time.perf_counter()
-    for p in projects:
-        name = p["name"]
-        cwd, proj = project_path(cfg, p, work)
-        if not args.no_warmup:
-            log(f"{name}: warm-up (tsgo, untimed)")
-            run_once(tsgo, cwd, proj, "default", logs / f"{name}-warmup.log", args.timeout)
-            if bun:
-                log(f"{name}: warm-up (bun, untimed)")
-                run_once(bun, cwd, proj, "default", logs / f"{name}-warmup-bun.log", args.timeout, compiler="bun")
-        runs: dict = {m: {c: [] for c in measured} for m in modes}
-        tsgo_reps = args.tsgo_reps if args.tsgo_reps is not None else args.reps
-        for rep in range(args.reps):
-            order = measured[rep % len(measured):] + measured[:rep % len(measured)]
-            for mode in modes:
-                for c in order:
-                    if c == "tsgo" and rep >= tsgo_reps:
-                        continue
-                    r = run_once(compilers[c], cwd, proj, mode, logs / f"{name}-{mode}-{c}-{rep}.log", args.timeout,
-                                 compiler=c)
-                    log(f"{name} {mode:7} {c} rep {rep}: wall {r['wall_s']:.2f} s, "
-                        f"peak {fmt_mem(r['peak_rss_bytes'])}, errors {r['errors']}, exit {r['exit']}")
-                    if not r["ok"]:
-                        log(f"  FAILED; log: {logs / f'{name}-{mode}-{c}-{rep}.log'}")
-                    runs[mode][c].append(r)
-                    result["raw"].append({"project": name, "mode": mode, "compiler": c, "rep": rep,
-                                          **{k: v for k, v in r.items() if k != "error_keys"}})
-        pr: dict = {"commit": p.get("commit") or cfg["suite"]["commit"], "project": p["project"],
-                    "source": "suite" if "case" in p else "application"}
-        if "overlay" in p:
-            pr["overlay"] = overlay_digest(p)
-        for mode in modes:
-            g, t = summarize(runs[mode]["tsgo"]), summarize(runs[mode]["tsrs"])
-            gk = {tuple(r["error_keys"]) for r in runs[mode]["tsgo"] if r["ok"]}
-            tk = {tuple(r["error_keys"]) for r in runs[mode]["tsrs"] if r["ok"]}
-            match = bool(gk and tk) and g["error_counts"] == t["error_counts"] and len(g["error_counts"]) == 1
-            pr[mode] = {"tsgo": g, "tsrs": t, "errors_match": match if gk and tk else None,
-                        "error_locations_match": (gk == tk) if gk and tk else None}
-            if bun:
-                # Recorded, not compared: bun check, the nightly and tsrs may follow different TypeScript commits.
-                pr[mode]["bun"] = summarize(runs[mode]["bun"])
-            if gk and tk and gk != tk:
-                only_g = sorted(set().union(*gk) - set().union(*tk))[:20]
-                only_t = sorted(set().union(*tk) - set().union(*gk))[:20]
-                pr[mode]["error_diff_sample"] = {"tsgo_only": only_g, "tsrs_only": only_t}
-                log(f"{name} {mode}: ERROR SETS DIFFER tsgo-only {only_g[:5]} tsrs-only {only_t[:5]}")
-                if ref_cfg:
-                    if "ref" not in compilers:
-                        compilers["ref"] = ensure_tsgo(ref_cfg, work).resolve()
-                    rr = run_once(compilers["ref"], cwd, proj, mode, logs / f"{name}-{mode}-ref.log", args.timeout)
-                    pr[mode]["reference"] = {"ok": rr["ok"], "errors": rr["errors"],
-                                             "same_as_tsrs": rr["ok"] and tuple(rr["error_keys"]) in tk}
-                    log(f"{name} {mode}: reference {ref_cfg['version']}: {rr['errors']} errors, same as tsrs: "
-                        f"{pr[mode]['reference']['same_as_tsrs']}")
-        if "single" in modes and not args.no_instructions:
-            counted = count_instructions(tsrs, cwd, proj, logs / f"{name}-instructions-tsrs.log", args.timeout)
-            if counted is not None:
-                pr["single"]["tsrs"].update(counted)
-                log(f"{name} single  tsrs: {counted['instructions'] / 1e9:.3f} G instructions, peak "
-                    f"{fmt_mem(counted['max_rss_bytes'])} (one thread, untimed)")
-        result["projects"][name] = pr
-    result["duration_s"] = round(time.perf_counter() - t_start)
-    write_results(result, args, f"logs in {logs}")
+    import compilers
+    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+    source = args.out_dir.resolve() / stamp
+    source.mkdir(parents=True)
+    hf = compilers.hyperfine(work, args.hyperfine)
+    executables, packages = compilers.install_compilers(work, source, versions, args.tsrs_version or "latest", args.tsrs)
+    settings = {"checkers": args.checkers, "workers": args.workers, "memory_gib": args.memory_gib}
+    meta = {"schema_version": 1, "machine": machine_info(True, None), "prepared_utc": stamp,
+            "compilers": packages, "settings": settings, "runs": args.runs, "warmup": args.warmup,
+            "projects": projects, "suite": cfg["suite"],
+            "hyperfine": {"version": compilers.output([hf, "--version"]), "sha256": compilers.sha256(hf)},
+            "cells": compilers.plan_cells(cfg, projects, settings, executables, work, hf, args.runs, args.warmup, source)}
+    compilers.write_json(source / "metadata.json", meta)
+    compilers.run_matrix(source, meta, hf, args.dry_run)
 
 
 if __name__ == "__main__":

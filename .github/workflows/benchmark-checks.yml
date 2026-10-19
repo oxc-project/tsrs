@@ -21,10 +21,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: bench/chart-assets/requirements.txt
-      - run: python -m pip install -r bench/chart-assets/requirements.txt
-      - name: Verify archived data
-        working-directory: bench/laptop-results/20261019T104740.804330Z
-        run: sha256sum -c SHA256SUMS
+          cache-dependency-path: bench/requirements-charts.txt
+      - run: python -m pip install -r bench/requirements-charts.txt
       - name: Check benchmark execution and reporting offline
         run: python -m unittest discover -s bench -p 'test_*.py'

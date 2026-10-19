@@ -8,24 +8,27 @@ replaced by, on the 19 projects of `bench/projects.json` at 2, 4, 6 and 8 checke
 
 Stealing makes the type check faster on most real projects, and the difference is well outside run-to-run noise.
 
-| checkers | stealing vs static locality (geomean over 19 projects) | summed wall time, stealing / locality | projects faster / slower (95% CI excludes 0) |
+| checkers | stealing vs no stealing (geomean over 19 projects) | summed wall time, stealing / no stealing | projects faster / slower (95% CI excludes 0) |
 | ---: | ---: | ---: | ---: |
 | 2 | -6.8% [-10.0, -3.9] | 38.7 s / 41.9 s (-7.7%) | 14 / 0 |
 | 4 | -8.4% [-11.2, -5.8] | 24.4 s / 27.0 s (-9.7%) | 16 / 0 |
 | 6 | -8.5% [-13.1, -3.3] | 20.0 s / 21.8 s (-8.3%) | 14 / 1 |
 | 8 | -9.9% [-15.3, -5.1] | 17.7 s / 19.4 s (-9.1%) | 12 / 1 |
 
-Put the other way: turning stealing off and keeping the static locality assignment makes the check 7-11% slower on
+Put the other way: with no stealing (the same assignment, no dynamic scheduling) the check is 7-11% slower on
 average (geomean), with per-project costs up to 67% (next-packages-next at 8 checkers: 0.54 s to 0.90 s). Going all
 the way to tsgo's assignment and check history (`go`) makes it 15-21% slower.
 
 The one project where stealing loses clearly is t3code-server, at 6 checkers (+28%) and 8 (+11.5%): its stealing
 time goes *up* from 4 to 6 checkers. That is a scheduling problem specific to stealing on that project, not noise
-(all 20 stealing runs at 6 checkers are slower than all 20 locality runs); see "Exceptions".
+(all 20 stealing runs at 6 checkers are slower than all 20 no-stealing runs); see "Exceptions".
+
+On a large private monorepo (4, 6 and 8 checkers, 2 rounds) stealing was 9-14% faster than no stealing and
+26-32% faster than `go`; see "Large private monorepo".
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="perf-stealing-benefit/aggregate-dark.svg">
-  <img alt="Line chart: geometric-mean wall-time cost of turning stealing off, by checker count. Static locality is 7 to 11 percent slower than stealing; the Go assignment is 15 to 21 percent slower." src="perf-stealing-benefit/aggregate.svg">
+  <img alt="Line chart: geometric-mean wall-time cost of turning stealing off, by checker count. No stealing is 7 to 11 percent slower than stealing; the Go assignment is 15 to 21 percent slower." src="perf-stealing-benefit/aggregate.svg">
 </picture>
 
 ## The three modes
@@ -36,7 +39,7 @@ assignment), and whether that can change while the type-check pass runs.
 
 ### `steal`: the default (no assignment named)
 
-1. Assignment: the locality assignment, exactly as in `locality` below.
+1. Assignment: the locality assignment, exactly as in no stealing below.
 2. Start order. Inside each checker's queue, the files heavier than 1/200 of an average checker's share of the pass
    move to the front, heaviest first; the rest keep program order (`heavy_files_first`). A heavy file started last
    would be the pass's tail; started first, it overlaps the other checkers' work.
@@ -56,7 +59,7 @@ Only the type-check pass steals. Later passes (declaration diagnostics, emit) ru
 checked it. Diagnostics do not depend on which checker checked a file, because the history-dependent caches tsgo has
 are keyed on the program here (notes/perf-order-independence.md), so the output is the same in every run.
 
-### `locality`: `TSRS_CHECKER_ASSIGNMENT=locality`
+### No stealing: `TSRS_CHECKER_ASSIGNMENT=locality`
 
 The same assignment as `steal`, used as is: each checker checks the files it was given, in program order, and an idle
 checker waits. There is no heavy-files-first, no split checking and no stealing. Naming any assignment turns all of
@@ -70,19 +73,19 @@ The locality assignment itself (`locality_associations`) works like this:
 - The groups are placed heaviest first with Go's FENNEL step: affinity is the import edges between groups, with a
   load cap of 101% of the average.
 - From 16 checkers, or from 8 on very large programs, a module-affinity term also counts the modules that groups
-  share (affinity.rs). It is part of the assignment, so `steal` and `locality` both get it.
+  share (affinity.rs). It is part of the assignment, so `steal` and no stealing both get it.
 
 This is what tsrs would do if stealing were removed and the default assignment kept. It is the main comparison in this
 note.
 
 ### `go`: `TSRS_CHECKER_ASSIGNMENT=go`
 
-tsgo's behaviour, for byte-identical output with tsgo. Three things change from `locality`:
+tsgo's behaviour, for byte-identical output with tsgo. Three things change from no stealing:
 
 1. Assignment: tsgo's `createCheckers` (`go_associations`). FENNEL runs file by file over the import graph, with
    tsgo's weights and balance policy. There is no directory grouping, so files of one folder can land on different
    checkers.
-2. No stealing, heavy-files-first or split checking, as in `locality`.
+2. Stealing, heavy-files-first and split checking are off, as in no stealing.
 3. Go's check history (`tsrs_core::compat::go_compatible_history`). The caches whose results depend on what a checker
    saw first behave as in tsgo: the per-name `x?: undefined` property cache, the interface-check site, base type
    resolution, too-complex reporting, and the instantiation count of nested checks. This is why `go` output can
@@ -90,11 +93,11 @@ tsgo's behaviour, for byte-identical output with tsgo. Three things change from 
    the union front cache (unioncache.rs), the indexed-access memo, the inference memo (infermemo.rs), and deferring
    type-argument constraint checks to the checker that checks the file.
 
-So `go` is not "`locality` with tsgo's assignment": part of its extra cost comes from caches it turns off, not from
+So `go` is not "no stealing with tsgo's assignment": part of its extra cost comes from caches it turns off, not from
 scheduling. It is shown as the far end of the scale (full tsgo compatibility), not as an estimate of the assignment
 alone.
 
-Output: `steal` and `locality` printed byte-identical stdout (diagnostics) in every one of the 76 project x checker
+Output: `steal` and no stealing printed byte-identical stdout (diagnostics) in every one of the 76 project x checker
 cells, across all 20 runs each. `go` differed in three cells, as expected from tsgo's history: nuxt printed 3 errors
 instead of 4 at 2 checkers, and drizzle-orm 10,845 instead of 10,846 at 2 and 6 checkers (the cases of
 notes/fix-history-dependent-diagnostics.md and notes/perf-order-independence.md). A tsgo-compatible mode therefore
@@ -122,10 +125,10 @@ also means checker-count-dependent output.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="perf-stealing-benefit/per-project-dark.svg">
-  <img alt="Dot plot, one panel per checker count: each project's wall-time change with stealing against static locality, with 95% confidence intervals. Nearly all dots are left of zero; t3code-server is right of zero at 6 and 8 checkers." src="perf-stealing-benefit/per-project.svg">
+  <img alt="Dot plot, one panel per checker count: each project's wall-time change with stealing against no stealing, with 95% confidence intervals. Nearly all dots are left of zero; t3code-server is right of zero at 6 and 8 checkers." src="perf-stealing-benefit/per-project.svg">
 </picture>
 
-Stealing's wall-time change against `locality` (negative: stealing faster), median ratio and 95% CI:
+Stealing's wall-time change against no stealing (negative: stealing faster), median ratio and 95% CI:
 
 | project | 2 checkers | 4 checkers | 6 checkers | 8 checkers |
 | --- | ---: | ---: | ---: | ---: |
@@ -149,7 +152,7 @@ Stealing's wall-time change against `locality` (negative: stealing faster), medi
 | Compiler | -6.6% [-7.6, -4.8] | +0.4% [-0.9, +3.6] | -1.2% [-3.1, +1.1] | -0.8% [-2.8, +0.6] |
 | date-fns | -1.2% [-6.2, +5.1] | +0.0% [-4.6, +6.4] | -2.1% [-5.1, +2.8] | +3.9% [-4.9, +8.4] |
 
-Rows are sorted by `locality` wall time at 8 checkers, largest first. Median wall seconds, steal / locality / go:
+Rows are sorted by no-stealing wall time at 8 checkers, largest first. Median wall seconds, steal / no stealing / go:
 
 | project | 2 checkers | 4 checkers | 6 checkers | 8 checkers |
 | --- | ---: | ---: | ---: | ---: |
@@ -175,8 +178,27 @@ Rows are sorted by `locality` wall time at 8 checkers, largest first. Median wal
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="perf-stealing-benefit/largest-dark.svg">
-  <img alt="Six line charts, one per large project, of median wall time against checker count for stealing, static locality and the Go assignment. Stealing is lowest except on t3code-server at 6 and 8 checkers." src="perf-stealing-benefit/largest.svg">
+  <img alt="Six line charts, one per large project, of median wall time against checker count for stealing, no stealing and the Go assignment. Stealing is lowest except on t3code-server at 6 and 8 checkers." src="perf-stealing-benefit/largest.svg">
 </picture>
+
+## Large private monorepo
+
+The same three modes on a large private monorepo's main type-check program, with the same binary, flags and pinning.
+Two rounds of the 9 cells (no 2-checker cell: it takes too long), in random order, after one warm-up run. With two
+runs per cell there is no confidence interval. The range below is stealing's change over all four pairs of a
+stealing run and a run of the other mode. Only ratios are given: absolute times would say how large the repository
+is.
+
+| checkers | stealing vs no stealing | range | stealing vs `go` | range |
+| ---: | ---: | ---: | ---: | ---: |
+| 4 | -12.3% | -13.1 to -11.5% | -32.1% | -33.5 to -30.5% |
+| 6 | -9.0% | -11.9 to -5.9% | -26.7% | -28.8 to -24.6% |
+| 8 | -14.0% | -15.2 to -12.7% | -26.0% | -26.7 to -25.3% |
+
+In every cell both stealing runs were faster than both runs of either other mode. The output was byte-identical in
+all 18 runs, `go` included. Stealing's gain here is above the open-source geomean (7-11%) at 4 and 8 checkers and
+about equal to it at 6. The raw runs are not
+included in this note.
 
 ## Reading it
 
@@ -187,14 +209,14 @@ Rows are sorted by `locality` wall time at 8 checkers, largest first. Median wal
   next-packages-next, xstate-main), as the static assignment's imbalance grows (notes/perf-checker-scaling.md).
 - The three smallest programs (date-fns, Compiler, Compiler-Unions; 0.1-0.25 s) show no difference above 2 checkers:
   the check pass is too short for the schedule to matter.
-- `go` is slower than `locality` on most cells (geomean 15-21% slower than stealing, against 7-11% for `locality`),
+- `go` is slower than no stealing on most cells (geomean 15-21% slower than stealing, against 7-11% for no stealing),
   but not all: on mikro-orm and mui-docs at 2 checkers, cal-diy at 6 and xstate-main at 4 and 8 it is faster than
-  `locality`. It changes the assignment, the check history and the speed-up caches at once ("The three modes"), so
+  no stealing. It changes the assignment, the check history and the speed-up caches at once ("The three modes"), so
   their effects are not separated here.
 
 ## Exceptions
 
-- **t3code-server, 6 and 8 checkers**: stealing 3.25 s and 2.91 s against locality 2.53 s and 2.61 s; stealing at 6
+- **t3code-server, 6 and 8 checkers**: stealing 3.25 s and 2.91 s against no stealing 2.53 s and 2.61 s; stealing at 6
   checkers is slower than at 4 (3.09 s). Not explained yet: the likely cause is the first-touch cost the stealing note
   already measures (a stolen file is checked by a checker that has not built its neighbourhood, so work is
   duplicated), concentrated here on a few files. `TSRS_ASSIGNMENT_STATS=times` per-checker timings are the next step.
@@ -208,7 +230,7 @@ Rows are sorted by `locality` wall time at 8 checkers, largest first. Median wal
   ratios could move a little with PGO.
 - Wall time only. Instructions retired were not measured (`perf_event_open` is not permitted in the container);
   the stealing note reports +0-5% instructions at 4-8 checkers from duplicated first touches.
-- `locality` removes stealing together with heavy-files-first and split checking. A version that kept those without
+- No stealing also turns off heavy-files-first and split checking. A version that kept those without
   stealing was not measured.
 
 ## Reproduce

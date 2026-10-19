@@ -19,7 +19,7 @@ THEMES = {
     "dark": {"surface": "#1a1a19", "text": "#f0efec", "text2": "#c3c2b7", "grid": "#33322f",
              "series": ["#3987e5", "#d95926", "#199e70"], "zero": "#77766f"},
 }
-ARM_LABEL = {"steal": "stealing (default)", "locality": "static locality (stealing off)", "go": "Go assignment + history"}
+ARM_LABEL = {"steal": "stealing (default)", "locality": "no stealing", "go": "Go assignment + history"}
 B = 4000  # bootstrap resamples
 
 
@@ -135,7 +135,7 @@ def chart_per_project(s, theme, path):
     axes[0].set_yticks(range(len(projects)))
     axes[0].set_yticklabels(projects, color=t["text"], fontsize=9)
     axes[0].invert_yaxis()
-    fig.suptitle("Stealing vs static locality: wall-time change per project\n(median ratio with 95% CI; left of 0 = stealing faster)",
+    fig.suptitle("Stealing vs no stealing: wall-time change per project\n(median ratio with 95% CI; left of 0 = stealing faster)",
                  color=t["text"], fontsize=11, x=0.01, ha="left")
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(path, facecolor=t["surface"])
@@ -207,7 +207,7 @@ def chart_large(s, theme, path, top=6):
 
 def tables(s):
     counts = s["counts"]
-    lines = ["| project | " + " | ".join(f"{n}: steal / locality / go (s)" for n in counts) + " |",
+    lines = ["| project | " + " | ".join(f"{n}: steal / no stealing / go (s)" for n in counts) + " |",
              "| --- | " + " | ".join("---:" for _ in counts) + " |"]
     for p in sorted(s["projects"], key=lambda p: -s["projects"][p][max(counts)]["locality"]["median"]):
         cells = []

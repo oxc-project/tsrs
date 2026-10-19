@@ -35,7 +35,7 @@ from matplotlib.transforms import Affine2D
 META = json.loads((SOURCE / "metadata.json").read_text())
 RAW = json.loads((SOURCE / "raw.json").read_text())
 PROJECTS = [p["name"] for p in META["projects"]]
-COMPILERS = tuple(c for c in ("typescript_7_0_2", "typescript", "tsrs") if c in META["compilers"])
+COMPILERS = tuple(c for c in ("tsrs", "typescript", "typescript_7_0_2") if c in META["compilers"])
 assert {"typescript", "tsrs"} <= set(COMPILERS) == set(META["compilers"])
 MODES = ("aligned", "maximum")
 TITLES = {"aligned": "TypeScript Default Config", "maximum": "Maximum resources"}
@@ -48,6 +48,8 @@ DISPLAY_VERSIONS = {c: META["compilers"][c]["version"] for c in COMPILERS}
 if args.tsrs_display_version:
     DISPLAY_VERSIONS["tsrs"] = args.tsrs_display_version
 THREE_COMPILERS = len(COMPILERS) == 3
+BASELINE = "typescript_7_0_2" if THREE_COMPILERS else "typescript"
+REFERENCE = f"{NAMES[BASELINE]} {META['compilers'][BASELINE]['version']}"
 INK, SECONDARY, GRID = "#18212B", "#36424E", "#E7EAEE"
 TEXT_SIZES = {"title": 24, "heading": 14, "legend": 13, "version": 12,
               "project": 13, "value": 13, "comparison": 12, "footer": 12}
@@ -118,12 +120,10 @@ def shared_arguments(mode):
 SHARED_ARGUMENTS = {mode: shared_arguments(mode) for mode in MODES}
 
 def comparison_label(metric, value, baseline, compiler):
-    if compiler == "tsrs":
-        return "(1× baseline)"
+    if compiler == BASELINE or value == baseline:
+        return ""
     ratio = value / baseline
     if metric == "wall_seconds":
-        if value == baseline:
-            return "(1× baseline)"
         return f"({ratio:.2f}× slower)" if ratio > 1 else f"({1 / ratio:.2f}× faster)"
     return f"({ratio:.2f}× memory)"
 
@@ -142,9 +142,11 @@ def alt_text(mode):
             values.append(f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: "
                           f"{mean['wall_seconds']:.3f} s and {mean['peak_rss_gib']:.3f} GiB")
         parts.append(f"{LABELS.get(project, project)}: " + "; ".join(values) + ".")
-    parts.append("Each bar is compared with tsrs for the same project and mode, with tsrs marked as the 1× baseline. "
-                 "Slower ratios divide the compiler's mean wall time by tsrs mean wall time; "
-                 "memory ratios divide the compiler's mean peak RSS by tsrs mean peak RSS.")
+    parts.append(f"Bars run from top to bottom: {', '.join(NAMES[c] for c in COMPILERS)}. "
+                 f"Comparison labels are relative to {REFERENCE} for the same project and mode. "
+                 "Faster ratios divide the reference mean wall time by the compiler's mean wall time; "
+                 "memory ratios divide the compiler's mean peak RSS by the reference mean peak RSS. "
+                 "The reference bars have no comparison labels.")
     for compiler in COMPILERS:
         details = COMMANDS[mode][compiler]
         parts.append(f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: {details['command']}; "
@@ -178,19 +180,25 @@ def draw(mode):
                ("peak_rss_gib", .620, "Peak memory", "GiB"))
     scales = {}
     for metric, left, title, unit in columns:
-        label(left, .660, title, size=TEXT_SIZES["heading"], style="semibold")
+        heading = label(left, .660, title, size=TEXT_SIZES["heading"], style="semibold")
+        adjacent = heading.get_window_extent(renderer).x1 / fig.bbox.width + .012
+        reference = "vs " + (META["compilers"][BASELINE]["version"] if THREE_COMPILERS else "nightly")
+        label(adjacent, .660, reference, size=TEXT_SIZES["comparison"], color=SECONDARY)
         # Keep a common zero-based scale across projects and both modes. Expand it
         # for future measurements when needed, reserving room for every value and annotation.
         scale = 8.0
         right = .60 if metric == "wall_seconds" else .97
         for other_mode in MODES:
             for project in PROJECTS:
-                baseline = MEANS[other_mode, project, "tsrs"][metric]
+                baseline = MEANS[other_mode, project, BASELINE][metric]
                 for compiler in COMPILERS:
                     value = MEANS[other_mode, project, compiler][metric]
-                    texts = [label(0, 0, f"{value:.2f} {unit}", size=TEXT_SIZES["value"], style="semibold"),
-                             label(0, 0, comparison_label(metric, value, baseline, compiler), size=TEXT_SIZES["comparison"])]
-                    padding = .027
+                    texts = [label(0, 0, f"{value:.2f} {unit}", size=TEXT_SIZES["value"], style="semibold")]
+                    comparison = comparison_label(metric, value, baseline, compiler)
+                    padding = .018
+                    if comparison:
+                        texts.append(label(0, 0, comparison, size=TEXT_SIZES["comparison"]))
+                        padding += .009
                     text_width = sum(t.get_window_extent(renderer).width for t in texts) / fig.bbox.width
                     for text in texts:
                         text.remove()
@@ -209,7 +217,7 @@ def draw(mode):
             fig.add_artist(plt.Line2D([.055, .950], [y + .064, y + .064], transform=chart_transform,
                                      color="#ECEFF2", linewidth=.6))
         for metric, left, _, unit in columns:
-            baseline = MEANS[mode, project, "tsrs"][metric]
+            baseline = MEANS[mode, project, BASELINE][metric]
             for compiler, offset in zip(COMPILERS, offsets):
                 value = MEANS[mode, project, compiler][metric]
                 width = .300 * value / scales[metric]
@@ -217,10 +225,12 @@ def draw(mode):
                                          facecolor=COLORS[compiler], edgecolor="none"))
                 value_text = label(left + width + .009, y + offset, f"{value:.2f} {unit}",
                                    size=TEXT_SIZES["value"], style="semibold", va="center")
-                adjacent = value_text.get_window_extent(renderer).x1 / fig.bbox.width + .009
-                note = label(adjacent, y + offset, comparison_label(metric, value, baseline, compiler),
-                             size=TEXT_SIZES["comparison"], color=SECONDARY, va="center")
-                assert note.get_window_extent(renderer).x1 / fig.bbox.width < (.60 if metric == "wall_seconds" else .97)
+                comparison = comparison_label(metric, value, baseline, compiler)
+                if comparison:
+                    adjacent = value_text.get_window_extent(renderer).x1 / fig.bbox.width + .009
+                    note = label(adjacent, y + offset, comparison,
+                                 size=TEXT_SIZES["comparison"], color=SECONDARY, va="center")
+                    assert note.get_window_extent(renderer).x1 / fig.bbox.width < (.60 if metric == "wall_seconds" else .97)
 
     fig.add_artist(plt.Line2D([.055, .950], [(FOOTER_HEIGHT + .10) / FIGURE_HEIGHT] * 2,
                              transform=fig.transFigure, color=GRID, linewidth=.7))
@@ -271,7 +281,7 @@ for (mode, project), preflight in PREFLIGHTS.items():
 facts = [
     ("Aggregation", f"Arithmetic mean of {RUNS} measured runs per compiler, project and mode. Warmups excluded. No aggregation across projects."),
     ("Mean peak memory", "Average the individual process peaks, then divide bytes by 2^30 for GiB."),
-    ("Comparison labels", "tsrs is the 1× baseline for each project and mode. Slower ratio = compiler mean wall time / tsrs mean wall time; if a compiler is faster, show the reciprocal as × faster. Memory ratio = compiler mean peak RSS / tsrs mean peak RSS. Calculated before rounding."),
+    ("Comparison labels", f"Reference: {REFERENCE}, with no comparison labels on its bars. Faster ratio = reference mean wall time / compiler mean wall time; if a compiler is slower, show the reciprocal as × slower. Memory ratio = compiler mean peak RSS / reference mean peak RSS. Calculated before rounding within each project and mode."),
     ("Colors", "; ".join(f"{NAMES[c]} {META['compilers'][c]['version']}: {COLORS[c]}" for c in COMPILERS)),
     ("Machine", f"{CPU}; {CORES} logical CPUs; {RAM:g} GiB RAM; macOS {META['machine']['macos']}"),
     ("Compilers", "; ".join(f"{META['compilers'][c]['requested']}: {META['compilers'][c]['version']}" for c in COMPILERS) + "; native published binaries."),
@@ -321,7 +331,7 @@ page += '<p>Color references: <a href="https://developers.cloudflare.com/workers
     "samples": len(RAW), "bars_per_chart": len(PROJECTS) * len(COMPILERS) * 2,
     "aggregation": f"arithmetic mean of {RUNS} repetitions per compiler/project/mode",
     "cross_project_aggregation": False, "colors": {c: COLORS[c] for c in COMPILERS},
-    "comparison_baseline": "tsrs", "matplotlib": matplotlib.__version__,
+    "compiler_order": COMPILERS, "comparison_baseline": BASELINE, "matplotlib": matplotlib.__version__,
     "png_dimensions": PNG_DIMENSIONS, "font": "Inter", "svg_text": "outlined for consistent rendering",
     "text_sizes_pt": TEXT_SIZES, "text_colors": {"primary": INK, "secondary": SECONDARY},
     "titles": TITLES, "commands": COMMANDS, "shared_arguments": SHARED_ARGUMENTS,

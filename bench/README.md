@@ -102,11 +102,13 @@ repetitions within each project/compiler/mode. Raw results stay unchanged; proje
 Versions, checker counts, memory budgets, run counts and preflight comparisons come from the saved results.
 
 The saved design uses Cloudflare orange (`#F38020`) for tsrs, TypeScript blue (`#3178C6`) for nightly and light blue
-(`#91B8E3`) for 7.0.2, bundled Inter fonts, adjacent version legends, and units beside each value. Every bar has a
-comparison label relative to tsrs: wall-time bars show × slower (or × faster), memory bars show × memory, and tsrs
-is marked as the 1× baseline. Both figures use the same zero-based bar scale per metric, expanded when needed for
-future measurements. Each footer shows the shared arguments once; `<project>` stands for the project-specific
-path. Full commands and CPU/memory settings remain in the parameter facts, alt text and manifest. Legends show
+(`#91B8E3`) for 7.0.2, bundled Inter fonts, adjacent version legends, and units beside each value. Bars and legends
+are ordered tsrs, TypeScript nightly, then TypeScript 7.0.2. Comparison labels for tsrs and nightly use 7.0.2 as
+the reference: wall-time bars show × faster (or × slower), and memory bars show × memory. Reference bars have no
+comparison labels; older two-compiler results use nightly as the reference. Both figures use the same zero-based
+bar scale per metric, expanded when needed for future measurements. Each footer shows the shared arguments once;
+`<project>` stands for the project-specific path. Full commands and CPU/memory settings remain in the parameter
+facts, alt text and manifest. Legends show
 names and versions. There are no axis ticks, checker/memory subtitles, unit subtitles, title accent line or
 top-right note. PNGs are 2200 × 1074; SVG text is outlined.
 Chart text uses Inter Medium/SemiBold at 12 pt or larger, with dark primary (`#18212B`) and secondary (`#36424E`)

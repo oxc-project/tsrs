@@ -48,7 +48,9 @@ DISPLAY_VERSIONS = {c: META["compilers"][c]["version"] for c in COMPILERS}
 if args.tsrs_display_version:
     DISPLAY_VERSIONS["tsrs"] = args.tsrs_display_version
 THREE_COMPILERS = len(COMPILERS) == 3
-INK, MUTED, GRID = "#24282C", "#555E68", "#E7EAEE"
+INK, SECONDARY, GRID = "#18212B", "#36424E", "#E7EAEE"
+TEXT_SIZES = {"title": 24, "heading": 14, "legend": 13, "version": 12,
+              "project": 13, "value": 13, "comparison": 12, "footer": 12}
 LABELS = {"vscode": "VS Code", "mui-docs": "MUI docs", "webpack": "webpack", "t3code-server": "t3code server"}
 GIB = 2**30
 RUNS, WARMUPS = META["runs"], META["warmup"]
@@ -155,28 +157,28 @@ def draw(mode):
     # Preserve the plot's physical spacing, remove the subtitle's space and add a command footer.
     chart_transform = Affine2D().scale(1, 5.3 / FIGURE_HEIGHT).translate(0, FOOTER_HEIGHT / FIGURE_HEIGHT) + fig.transFigure
 
-    def label(x, y, text, size=11, style="regular", color=INK, ha="left", va="baseline", transform=chart_transform):
+    def label(x, y, text, size=12, style="medium", color=INK, ha="left", va="baseline", transform=chart_transform):
         return fig.text(x, y, text, fontproperties=FONTS[style], fontsize=size, color=color, ha=ha, va=va, transform=transform)
 
-    label(.055, .920 - .38 / 5.3, TITLES[mode], size=24, style="semibold")
+    label(.055, .920 - .38 / 5.3, TITLES[mode], size=TEXT_SIZES["title"], style="semibold")
 
     left = .055
     for compiler in COMPILERS:
         name, version = NAMES[compiler], DISPLAY_VERSIONS[compiler]
-        fig.add_artist(Rectangle((left, .786), .013, .022, transform=chart_transform,
+        fig.add_artist(Rectangle((left, .785), .0145, .030, transform=chart_transform,
                                  facecolor=COLORS[compiler], edgecolor="none"))
-        name_text = label(left + .023, .787, name, size=11.5, style="semibold")
-        version_text = label(left + .023, .748, version, size=10, color=MUTED)
+        name_text = label(left + .024, .789, name, size=TEXT_SIZES["legend"], style="semibold")
+        version_text = label(left + .024, .741, version, size=TEXT_SIZES["version"], color=SECONDARY)
         # Pack the legends together, with a small gap after the wider of the name and version.
         left = max(t.get_window_extent(renderer).x1 for t in (name_text, version_text)) / fig.bbox.width + .030
     fig.add_artist(plt.Line2D([.055, .950], [.706, .706], transform=chart_transform, color=GRID, linewidth=.7))
 
-    label(.055, .660, "Project", size=10.5, color=MUTED)
-    columns = (("wall_seconds", .235, "Wall time", "s"),
-               ("peak_rss_gib", .635, "Peak memory", "GiB"))
+    label(.055, .660, "Project", size=TEXT_SIZES["heading"], style="semibold")
+    columns = (("wall_seconds", .215, "Wall time", "s"),
+               ("peak_rss_gib", .620, "Peak memory", "GiB"))
     scales = {}
     for metric, left, title, unit in columns:
-        label(left, .660, title, size=13, style="semibold")
+        label(left, .660, title, size=TEXT_SIZES["heading"], style="semibold")
         # Keep a common zero-based scale across projects and both modes. Expand it
         # for future measurements when needed, reserving room for every value and annotation.
         scale = 8.0
@@ -186,8 +188,8 @@ def draw(mode):
                 baseline = MEANS[other_mode, project, "tsrs"][metric]
                 for compiler in COMPILERS:
                     value = MEANS[other_mode, project, compiler][metric]
-                    texts = [label(0, 0, f"{value:.2f} {unit}", size=11.5, style="medium"),
-                             label(0, 0, comparison_label(metric, value, baseline, compiler), size=10.5, style="medium")]
+                    texts = [label(0, 0, f"{value:.2f} {unit}", size=TEXT_SIZES["value"], style="semibold"),
+                             label(0, 0, comparison_label(metric, value, baseline, compiler), size=TEXT_SIZES["comparison"])]
                     padding = .027
                     text_width = sum(t.get_window_extent(renderer).width for t in texts) / fig.bbox.width
                     for text in texts:
@@ -197,13 +199,14 @@ def draw(mode):
                     scale = max(scale, .300 * value / available)
         scales[metric] = scale
 
-    offsets = (.028, -.010, -.048) if THREE_COMPILERS else (.008, -.037)
+    offsets = (.037, -.007, -.051) if THREE_COMPILERS else (.008, -.037)
     bar_height = .024 if THREE_COMPILERS else .028
     for index, project in enumerate(PROJECTS):
-        y = .535 - index * .138
-        label(.055, y + statistics.mean(offsets), LABELS.get(project, project), size=11.5, style="semibold", va="center")
+        y = .555 - index * .142
+        label(.055, y + statistics.mean(offsets), LABELS.get(project, project),
+              size=TEXT_SIZES["project"], style="semibold", va="center")
         if index:
-            fig.add_artist(plt.Line2D([.055, .950], [y + .0545, y + .0545], transform=chart_transform,
+            fig.add_artist(plt.Line2D([.055, .950], [y + .064, y + .064], transform=chart_transform,
                                      color="#ECEFF2", linewidth=.6))
         for metric, left, _, unit in columns:
             baseline = MEANS[mode, project, "tsrs"][metric]
@@ -212,17 +215,18 @@ def draw(mode):
                 width = .300 * value / scales[metric]
                 fig.add_artist(Rectangle((left, y + offset - bar_height / 2), width, bar_height, transform=chart_transform,
                                          facecolor=COLORS[compiler], edgecolor="none"))
-                value_text = label(left + width + .009, y + offset, f"{value:.2f} {unit}", size=11.5, style="medium", va="center")
+                value_text = label(left + width + .009, y + offset, f"{value:.2f} {unit}",
+                                   size=TEXT_SIZES["value"], style="semibold", va="center")
                 adjacent = value_text.get_window_extent(renderer).x1 / fig.bbox.width + .009
                 note = label(adjacent, y + offset, comparison_label(metric, value, baseline, compiler),
-                             size=10.5, style="medium", color="#9A4507" if compiler == "tsrs" else MUTED, va="center")
+                             size=TEXT_SIZES["comparison"], color=SECONDARY, va="center")
                 assert note.get_window_extent(renderer).x1 / fig.bbox.width < (.60 if metric == "wall_seconds" else .97)
 
     fig.add_artist(plt.Line2D([.055, .950], [(FOOTER_HEIGHT + .10) / FIGURE_HEIGHT] * 2,
                              transform=fig.transFigure, color=GRID, linewidth=.7))
-    heading = label(.055, .28 / FIGURE_HEIGHT, "All compilers:", size=10, style="semibold", transform=fig.transFigure)
+    heading = label(.055, .28 / FIGURE_HEIGHT, "All compilers:", size=TEXT_SIZES["footer"], style="semibold", transform=fig.transFigure)
     left = heading.get_window_extent(renderer).x1 / fig.bbox.width + .012
-    text = label(left, .28 / FIGURE_HEIGHT, SHARED_ARGUMENTS[mode], size=10, color=MUTED, transform=fig.transFigure)
+    text = label(left, .28 / FIGURE_HEIGHT, SHARED_ARGUMENTS[mode], size=TEXT_SIZES["footer"], color=SECONDARY, transform=fig.transFigure)
     assert text.get_window_extent(renderer).x1 / fig.bbox.width < .95, SHARED_ARGUMENTS[mode]
 
     # Validate that the full version strings, commands and data labels fit inside the artwork.
@@ -319,6 +323,7 @@ page += '<p>Color references: <a href="https://developers.cloudflare.com/workers
     "cross_project_aggregation": False, "colors": {c: COLORS[c] for c in COMPILERS},
     "comparison_baseline": "tsrs", "matplotlib": matplotlib.__version__,
     "png_dimensions": PNG_DIMENSIONS, "font": "Inter", "svg_text": "outlined for consistent rendering",
+    "text_sizes_pt": TEXT_SIZES, "text_colors": {"primary": INK, "secondary": SECONDARY},
     "titles": TITLES, "commands": COMMANDS, "shared_arguments": SHARED_ARGUMENTS,
     "display_versions": DISPLAY_VERSIONS,
     "measured_versions": {c: META["compilers"][c]["version"] for c in COMPILERS},

@@ -109,6 +109,8 @@ future measurements. Each footer shows the shared arguments once; `<project>` st
 path. Full commands and CPU/memory settings remain in the parameter facts, alt text and manifest. Legends show
 names and versions. There are no axis ticks, checker/memory subtitles, unit subtitles, title accent line or
 top-right note. PNGs are 2200 × 1074; SVG text is outlined.
+Chart text uses Inter Medium/SemiBold at 12 pt or larger, with dark primary (`#18212B`) and secondary (`#36424E`)
+colors on white. Values use a stronger weight than comparison labels, and bar rows leave room for the larger type.
 
 To change only the tsrs legend text, pass `--tsrs-display-version <version>`. For example, the blog figures use
 `--tsrs-display-version 0.18.0-ts7.1.0-dev.20260929`. This does not rerun the benchmark or change its recorded

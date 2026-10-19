@@ -252,8 +252,9 @@ retains the translated runner's historical results and verify-family breakdown.
 - Content mappers are not loaded by the language server; 55 fourslash groups are explicitly skipped.
   CLI checks and builds support them ([content-mapper note](../notes/contentmappers.md)). The language service's
   span-map branches are retained but receive no content-mapped scripts.
-- LSP-attached API sessions, automatic type acquisition, telemetry, profiling requests and localized messages
-  are not ported. The standalone API server is available; see [NODE_API.md](NODE_API.md).
+- LSP-attached API sessions, automatic type acquisition, performance/project telemetry, profiling requests and
+  localized messages are not ported. Request-failure telemetry, including flaky diagnostics, is sent when enabled.
+  The standalone API server is available; see [NODE_API.md](NODE_API.md).
 - Eight `@tsc` fixture groups use Go's `tsctests.GetFileMapWithBuild` before the Rust LSP session starts;
   this verifies Rust LSP behavior with the resulting files, not Rust emit or build.
 - Builtin watcher backends for Windows and Linux fanotify are not ported. Linux uses inotify, Go's fallback;

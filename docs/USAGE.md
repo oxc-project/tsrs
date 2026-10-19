@@ -15,7 +15,8 @@ Your existing `tsconfig.json` controls compilation. tsrs emits JavaScript and de
 options by default, just like `tsc`; pass `--noEmit` when you only want type checking.
 
 See [TypeScript compatibility](COMPATIBILITY.md) for supported features and known gaps, including unsupported
-commands such as `--init` and `--showConfig`.
+commands such as `--init` and `--showConfig`, and [differences from pinned TypeScript](DEFAULTS.md) for changed
+defaults and detailed comparisons.
 
 `tsrs --watch -p .` and `tsrs -b --watch` rebuild when files change, like `tsc`. On Linux a rebuild starts when the
 editor closes the saved file, so it never checks a half-written file and adds no fixed delay. macOS (FSEvents) reports
@@ -29,10 +30,10 @@ per watched file; tsrs raises its descriptor limit as far as the system allows a
 
 Alongside the supported `tsc` flags, tsrs offers options to control performance:
 
-- `--checkers N` sets the number of checker threads. By default tsrs uses one per core up to 16 cores, then half the
-  cores, from 4 to 32; a program with fewer than 32 type-checked files per checker gets fewer, down to 4, and never
-  more checkers than files. `--build` uses 4 per project. More threads are faster but use more memory. The thread
-  count doesn't change the diagnostics, apart from the known exceptions in the
+- `--checkers N` sets the number of checker threads. By default tsrs uses one per core up to 16 cores, then the greater
+  of 16 and half the cores, capped at 32; a program with fewer than 32 type-checked files per checker gets fewer,
+  down to 4, and never more checkers than files. `--build` uses 4 per project. More threads are faster but use more
+  memory. The thread count doesn't change the diagnostics, apart from the known exceptions in the
   [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
 - `--singleThreaded` uses one thread, for the lowest memory use.
 - `--checkerCostCache <file>` remembers how long each file took to check and uses that to balance threads on the next
@@ -41,8 +42,8 @@ Alongside the supported `tsc` flags, tsrs offers options to control performance:
   tsrs replaces its largest checker with a fresh one, trading CPU for memory. The diagnostics are the same.
 - `--checkerAssignment locality` disables work stealing for reproducible scheduling. Debug assignments
   `random:<seed>` and `file:<path>` are also available. The former `go` assignment has been removed.
-- `--noLazyMembers` turns off a set of checker optimizations that are not yet merged upstream. They never change
-  diagnostics; the patches are in [`upstream/`](../upstream/).
+- `--noLazyMembers` turns off lazy checker optimizations. These can affect diagnostics near an instantiation depth
+  limit; see the [known exceptions](../notes/open-history-dependence.md) and [patches](../upstream/).
 
 ## Native packages
 

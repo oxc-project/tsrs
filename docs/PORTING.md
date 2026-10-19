@@ -5,7 +5,7 @@
 `Cargo.toml`, `[workspace.metadata.typescript]`) to Rust. Scope: the `tsc` command line (type checking, JavaScript and
 declaration emit, source maps, incremental builds, `--build`), the language server (`--lsp`) and the API server
 (`--api`), including watch mode (`--watch`, `-b --watch`). Not ported: `--init`, `--showConfig`, tracing (`--generateTrace`), pprof, localized
-messages (English only), and in the language server automatic type acquisition and telemetry; the
+messages (English only), and in the language server automatic type acquisition and performance/project telemetry; the
 [capability table](COMPATIBILITY.md#what-it-does-and-doesnt-do) has the full, current list.
 
 The port is **mechanical and faithful**: same algorithms, same function decomposition,
@@ -215,7 +215,7 @@ callback, even when the closure does not need it.
 ## What not to port
 
 `--init`/`--showConfig`, tracing, pprof, message localization, the fanotify and Windows file-watching backends, and
-the language server's automatic type acquisition and telemetry are not ported
+the language server's automatic type acquisition and performance/project telemetry are not ported
 ([capability table](COMPATIBILITY.md#what-it-does-and-doesnt-do)). If a function only serves one of those, leave it
 out; if a needed function has a branch that only serves one, keep the branch structure and mark only the truly
 unreachable part.

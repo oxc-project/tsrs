@@ -40,7 +40,8 @@ Updating this table (../AGENTS.md says when; commands and paths below are relati
 - Keep the root and npm README summaries, docs/EMIT.md, docs/LSP.md and docs/STATUS.md consistent with the table.
 -->
 
-"Identical" below means identical to tsgo built from the same pinned commit.
+"Identical" below means identical to tsgo built from the same pinned commit. [Differences from pinned
+TypeScript](DEFAULTS.md) details changed defaults, unsupported features and known parity gaps.
 
 | feature | status | evidence and notes |
 | --- | --- | --- |
@@ -58,8 +59,9 @@ Updating this table (../AGENTS.md says when; commands and paths below are relati
 | Content mappers (`.vue`, `.svelte`, `.astro` via `contentMappers`) | CLI and `-b`: yes. Language server: no | 7 of 9 content-mapper scenario baselines match exactly; two build scenarios also expose the cache-metadata difference; the 15 content-mapper conformance cases are not run yet ([experiment note](../notes/contentmappers.md)) |
 | Language server (`--lsp -stdio`) | yes | the [Go subprocess runner](../tools/go-fourslash/README.md) has 4,073 of 4,546 groups passing, one [recorded circular-interface reference mismatch](../tools/go-fourslash/known-mismatches.json), and 472 skips, including project-state baselines; eight use Go-built fixture setup. CI and release workflows use this runner from 0.17.0; the translated Rust suite has been removed |
 | Allocation profiling (`alloc-profile` build) | no | the counting allocator, heap sampler, reachability census and checker heap census have been removed; `TSRS_MEM_SPLIT` and `TSRS_ARENA_POISON` remain ([debugging](DEBUGGING.md)) |
-| Automatic type acquisition, telemetry, profiling (language server) | no | not ported |
-| Node API server (`--api`) | yes, with gaps | upstream client test suites pass; request-filesystem Go fixtures exercise the production implementation in default tests; no profiling requests, no Windows named pipes ([Node API](NODE_API.md)) |
+| Automatic type acquisition, profiling (language server) | no | not ported |
+| Telemetry (language server) | request failures only | Request-failure events, including flaky diagnostics, are sent when enabled; performance and project telemetry are not ported ([details](DEFAULTS.md#language-server)) |
+| Node API server (`--api`) | yes, with gaps | upstream client test suites pass; request-filesystem Go fixtures exercise the production implementation in default tests; no profiling requests, no Windows named pipes ([Node API](NODE_API.md)); unknown `moduleDetection` numbers use the default detection behavior ([option parsing gaps](DEFAULTS.md#option-parsing-edge-cases)) |
 | npm packages (`tsrs`, `@tsrs/<os>-<arch>[-<libc>]`) | yes | 0.16.0 moves scoped packages from `@ts-rs` to `@tsrs`; the main package remains `tsrs`. 0.14.0: macOS arm64 and Linux x64/arm64 GNU/musl, selected by libc; earlier Linux packages used unsuffixed GNU names, and releases before 0.12.0 used `@maschwenk`. 0.14.1: the platform packages ship the default libraries next to the binary, which reads them from there like the npm tsgo, so `--listFiles`, diagnostics and tsbuildinfo name real lib paths instead of `bundled:///libs/...`. Since 0.17.0, npm release builds use `noembed`, excluding the duplicate embedded typings; default Cargo and WebAssembly builds retain them. The binaries report TypeScript's version as the npm nightly built from the pinned commit (7.1.0-dev.20260930.4; 0.14.0 reports `7.1.0-dev`), so tsbuildinfo files, `typesVersions` and `--version` agree with that tsgo |
 | WebAssembly (`@tsrs/wasm`) | yes | single-threaded; renamed to `@ts-rs/wasm` in 0.12.0 and `@tsrs/wasm` in 0.16.0; byte-identical to native `--singleThreaded` on a 2,000-case conformance sample ([experiment note](../notes/wasm-build.md)) |
 | Browser playground | yes | [hosted on Void](https://tsrs-playground.void.app), also available as a [local/static build with the vendored official TypeScript Playground page and styles](../playground/README.md): tsrs WASM checking and emit, virtual files, errors, JS/declarations, examples, Run/Logs, share links and compatible plugins; pinned visual-source integrity, native-equivalence integration checks and local/hosted production browser checks. Basic editing only: no semantic autocomplete/hover, AST/type inspection, inlay hints, or automatic package type acquisition |

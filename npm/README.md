@@ -213,12 +213,13 @@ pnpm exec tsrs -p path/to/project --noEmit --extendedDiagnostics
 #    (`--noEmit` for a typecheck-only script).
 ```
 
-Without `--checkers`, tsrs picks its checker count per machine (tsgo always uses 4): every core up to 16, then half
-the cores, from 4 to 32; a program with fewer than 32 type-checked files per checker gets fewer, down to 4, and never
-more checkers than files. `--build` uses 4 per project; `--singleThreaded` uses one. `GOMEMLIMIT` has no effect on tsrs.
-`--extendedDiagnostics` prints the same counters as tsgo (`Memory used` is the process RSS), so scripts that parse
-them keep working. Compilation timings are collected only when `--diagnostics` or `--extendedDiagnostics` is
-enabled. Pass the flag on the command line to include config-read timing.
+Without `--checkers`, tsrs picks its checker count per machine (tsgo defaults to 4): every core up to 16, then the
+greater of 16 and half the cores, capped at 32; a program with fewer than 32 type-checked files per checker gets
+fewer, down to 4, and never more checkers than files. `--build` uses 4 per project; `--singleThreaded` uses one.
+`GOMEMLIMIT` has no effect on tsrs.
+`--extendedDiagnostics` uses tsgo's counter labels; `Memory used` is the process RSS and `Memory allocs` is always 0.
+Compilation timings are collected only when `--diagnostics` or `--extendedDiagnostics` is enabled. Pass the flag on
+the command line to include config-read timing.
 
 ## TODO
 

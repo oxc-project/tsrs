@@ -58,29 +58,34 @@ Local results are ignored by Git and go to `bench/results/<date>-<tsrs commit>[-
 `<work-dir>/logs/<timestamp>/`. The first run clones and installs the projects into `<work-dir>/solutions`
 (default `bench/.work`, ~5 GB); later runs reuse them as long as `bench/projects.json` is unchanged.
 
-## Laptop: published tsrs vs TypeScript nightly
+## Laptop: published tsrs vs TypeScript nightly and 7.0.2
 
-Run `./bench/laptop.sh` on an Apple Silicon Mac. It resolves `@tsrs/darwin-arm64@latest` and `typescript@next`
-once per invocation, installs the exact published versions, and measures their native executables with Hyperfine 2.
+Run `./bench/laptop.sh` on an Apple Silicon Mac. It resolves `@tsrs/darwin-arm64@latest`, `typescript@next` and
+`typescript@7.0.2` once per invocation, installs them in separate directories, and measures their native executables
+with Hyperfine 2. Each compiler has its own saved npm lockfile.
 No local compiler build is used. The script needs Python 3, Node/npm, pnpm and git; it downloads a checksum-verified
 Hyperfine 2.0.0 unless `--hyperfine /path/to/hyperfine` is supplied.
 
 The four pinned projects are vscode, mui-docs, webpack and t3code-server. There are only two modes:
 **Aligned** (4 checkers each, default memory policies) and **Maximum resources** (one checker per logical CPU,
-all but 4 GiB of RAM as a soft budget through tsrs `--maxMemory` and Go `GOMEMLIMIT`). Both use all logical CPUs for
-their worker pools. Go GC remains at its default in both modes; a high memory limit does not disable collections.
+all but 4 GiB of RAM as a soft budget through tsrs `--maxMemory` and Go `GOMEMLIMIT`). All three compilers use all
+logical CPUs for their worker pools. Go GC remains at its default in both modes; a high memory limit does not
+disable collections.
 
 The default is 3 warmups and 10 measured runs per compiler, project and mode. `--projects webpack --runs 1 --warmup 0`
-is a short smoke run. Results go to `bench/.work/laptop/results/<timestamp>/`: `raw.csv` and `raw.json` contain one
-row per measured run (wall seconds, instructions, peak RSS bytes and exit code), with no aggregation. Each cell
+is a short smoke run. The default full run produces 240 measurements. Results go to
+`bench/.work/laptop/results/<timestamp>/`: `raw.csv` and `raw.json` contain one row per measured run (wall seconds,
+instructions, peak RSS bytes and exit code), with no aggregation. Each cell
 also retains Hyperfine's original JSON and compiler output. Metadata records exact package versions, npm integrity,
 binary hashes, project commits, commands and resource settings. Separate untimed preflights record file counts and
-diagnostic locations/codes; version differences are reported alongside the measurements.
+diagnostic locations/codes for each compiler; each TypeScript version is compared with tsrs and differences are
+reported alongside the measurements.
 
 ### Blog charts
 
 [`laptop-charts/render.py`](laptop-charts/render.py) turns a completed `laptop.sh` result directory into the
-**Aligned** and **Maximum resources** figures. Install the pinned plotting dependencies once, then pass any
+**Aligned** and **Maximum resources** figures, with three bars per project and metric. Older two-compiler results
+are also supported. Install the pinned plotting dependencies once, then pass any
 completed result directory:
 
 ```sh
@@ -95,8 +100,9 @@ The generator checks every wall-time and peak-RSS sample against its original Hy
 repetitions within each project/compiler/mode. Raw results stay unchanged; projects are never aggregated together.
 Versions, checker counts, memory budgets, run counts and preflight comparisons come from the saved results.
 
-The saved design uses Cloudflare orange (`#F38020`) for tsrs, TypeScript blue (`#3178C6`), bundled Inter fonts,
-adjacent version legends, units beside each value, and speedup/memory comparisons beside tsrs values. Both figures
+The saved design uses Cloudflare orange (`#F38020`) for tsrs, TypeScript blue (`#3178C6`) for nightly and light blue
+(`#91B8E3`) for 7.0.2, bundled Inter fonts, adjacent version legends, and units beside each value. Speedup/memory
+comparisons beside tsrs values explicitly use the nightly as their baseline. Both figures
 use the same zero-based bar scale per metric, expanded when needed for future measurements. There are no axis
 ticks, unit subtitles, footer, title accent line or top-right note. PNGs are 2200 × 1060; SVG text is outlined.
 

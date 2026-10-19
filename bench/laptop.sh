@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Published macOS arm64 compilers: @tsrs/darwin-arm64@latest vs typescript@next.
+# Published macOS arm64 compilers: tsrs latest, TypeScript nightly and TypeScript 7.0.2.
 # Usage: ./bench/laptop.sh [--runs 10] [--warmup 3]
 # Raw samples only: Aligned and Maximum resources, four pinned public projects.
 set -euo pipefail
@@ -94,42 +94,47 @@ def hyperfine(work, override):
 
 
 def install_compilers(work, result_dir):
-    tsrs = release("@tsrs/darwin-arm64", "latest")
-    typescript = release("typescript", "next")
     native_name = "@typescript/typescript-darwin-arm64"
-    native_version = typescript.get("optionalDependencies", {}).get(native_name)
-    if not native_version:
-        fail("typescript@next does not declare the native macOS arm64 compiler")
-    native = release(native_name, native_version)
-    packages = [tsrs, typescript, native]
-    for package in packages:
-        log(f"Using {package['name']}@{package['version']}")
-    install = work / "packages" / f"tsrs-{tsrs['version']}_typescript-{typescript['version']}"
-    install.mkdir(parents=True, exist_ok=True)
-    if not (install / "package.json").exists():
-        write_json(install / "package.json", {"name": "laptop-benchmark", "private": True})
-    subprocess.run(["npm", "install", "--prefix", str(install), "--registry", REGISTRY,
-                    "--cache", str(work / "npm-cache"), "--ignore-scripts", "--no-audit", "--no-fund",
-                    "--save-exact", *[p["name"] + "@" + p["version"] for p in packages]], check=True)
-    shutil.copyfile(install / "package-lock.json", result_dir / "package-lock.json")
-    executables = {
-        "typescript": install / "node_modules" / native_name / "lib" / "tsc",
-        "tsrs": install / "node_modules" / tsrs["name"] / "tsrs",
-    }
-    metadata = {}
-    for compiler, package in (("typescript", native), ("tsrs", tsrs)):
-        exe = executables[compiler]
+    specifications = (
+        ("typescript_7_0_2", "typescript", "7.0.2", "TypeScript"),
+        ("typescript", "typescript", "next", "TypeScript nightly"),
+        ("tsrs", "@tsrs/darwin-arm64", "latest", "tsrs"),
+    )
+    executables, metadata, all_packages = {}, {}, {}
+    for compiler, name, tag, label in specifications:
+        requested = f"{name}@{tag}"
+        package = release(name, tag)
+        packages = [package]
+        if name == "typescript":
+            native_version = package.get("optionalDependencies", {}).get(native_name)
+            if not native_version:
+                fail(f"{requested} does not declare the native macOS arm64 compiler")
+            package = release(native_name, native_version)
+            packages.append(package)
+        log(f"Using {requested}: {package['version']}")
+        # Separate installations keep the stable and nightly TypeScript packages from replacing each other.
+        install = work / "packages" / f"{compiler}-{package['version']}"
+        install.mkdir(parents=True, exist_ok=True)
+        if not (install / "package.json").exists():
+            write_json(install / "package.json", {"name": "laptop-benchmark", "private": True})
+        subprocess.run(["npm", "install", "--prefix", str(install), "--registry", REGISTRY,
+                        "--cache", str(work / "npm-cache"), "--ignore-scripts", "--no-audit", "--no-fund",
+                        "--save-exact", *[p["name"] + "@" + p["version"] for p in packages]], check=True)
+        shutil.copyfile(install / "package-lock.json", result_dir / f"{compiler}-package-lock.json")
+        exe = install / "node_modules" / package["name"] / ("lib/tsc" if name == "typescript" else "tsrs")
         installed = json.loads((install / "node_modules" / package["name"] / "package.json").read_text())
         if installed["version"] != package["version"]:
             fail(f"Installed {compiler} version does not match the resolved release")
         with exe.open("rb") as binary:
             if binary.read(4) not in (b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe"):
                 fail(f"{exe} is not a native Mach-O executable")
-        metadata[compiler] = {"package": package["name"], "version": package["version"],
-                              "requested": "typescript@next" if compiler == "typescript" else "@tsrs/darwin-arm64@latest",
+        executables[compiler] = exe
+        all_packages[compiler] = packages
+        metadata[compiler] = {"package": package["name"], "version": package["version"], "label": label,
+                              "requested": requested,
                               "dist": package["dist"], "binary": str(exe), "sha256": sha256(exe),
                               "version_output": output([exe, "--version"])}
-    write_json(result_dir / "npm-packages.json", packages)
+    write_json(result_dir / "npm-packages.json", all_packages)
     return executables, metadata
 
 
@@ -179,7 +184,7 @@ def measurements(path, runs, commands):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Published tsrs vs TypeScript nightly; raw per-run measurements.")
+    parser = argparse.ArgumentParser(description="Published tsrs vs TypeScript nightly and 7.0.2; raw per-run measurements.")
     parser.add_argument("--runs", type=int, default=10)
     parser.add_argument("--warmup", type=int, default=3)
     parser.add_argument("--projects", default=",".join(PROJECTS), help="subset for a smoke run; default: all four")
@@ -258,9 +263,15 @@ def main():
                           for compiler, command in commands.items()}
                 comparison = {"same_files": checks["typescript"]["files"] == checks["tsrs"]["files"],
                               "same_diagnostic_keys": checks["typescript"]["error_keys"] == checks["tsrs"]["error_keys"]}
-                if not all(comparison.values()):
-                    log(f"{name}: compiler versions differ in files or diagnostic locations/codes; see preflight.json")
-                write_json(cell_dir / "preflight.json", {"compilers": checks, "comparison": comparison})
+                comparisons = {compiler: {
+                    "same_files": check["files"] == checks["tsrs"]["files"],
+                    "same_diagnostic_keys": check["error_keys"] == checks["tsrs"]["error_keys"],
+                } for compiler, check in checks.items() if compiler != "tsrs"}
+                for compiler, compared in comparisons.items():
+                    if not all(compared.values()):
+                        log(f"{name}: {compiler} differs from tsrs in files or diagnostic locations/codes; see preflight.json")
+                write_json(cell_dir / "preflight.json", {"compilers": checks, "comparison": comparison,
+                                                         "comparisons_to_tsrs": comparisons})
                 hf_json = cell_dir / "hyperfine.json"
                 argv = [str(hf), "--shell=none", "--runs", str(args.runs), "--warmup", str(args.warmup),
                         "--metrics", METRICS, "--style", "none", "--output", "inherit",
@@ -275,9 +286,9 @@ def main():
                 log_path = cell_dir / "hyperfine.log"
                 with log_path.open("w") as stream:
                     subprocess.run(argv, cwd=cwd, env=mode_env, stdout=stream, stderr=subprocess.STDOUT,
-                                   check=True, timeout=900 * 2 * (args.runs + args.warmup))
+                                   check=True, timeout=900 * len(commands) * (args.runs + args.warmup))
                 check_log(log_path)
-                for result in measurements(hf_json, args.runs, 2):
+                for result in measurements(hf_json, args.runs, len(commands)):
                     compiler = result["name"]
                     for index, sample in enumerate(result["measurements"], 1):
                         if sample["exit_code"] != checks[compiler]["exit_code"]:

@@ -33,16 +33,18 @@ from matplotlib.patches import Rectangle
 META = json.loads((SOURCE / "metadata.json").read_text())
 RAW = json.loads((SOURCE / "raw.json").read_text())
 PROJECTS = [p["name"] for p in META["projects"]]
-COMPILERS, MODES = ("typescript", "tsrs"), ("aligned", "maximum")
-COLORS = {"typescript": "#3178C6", "tsrs": "#F38020"}
+COMPILERS = tuple(c for c in ("typescript_7_0_2", "typescript", "tsrs") if c in META["compilers"])
+assert {"typescript", "tsrs"} <= set(COMPILERS) == set(META["compilers"])
+MODES = ("aligned", "maximum")
+COLORS = {"typescript_7_0_2": "#91B8E3", "typescript": "#3178C6", "tsrs": "#F38020"}
+NAMES = {c: META["compilers"][c].get("label", "tsrs" if c == "tsrs" else "TypeScript") for c in COMPILERS}
+THREE_COMPILERS = len(COMPILERS) == 3
 INK, MUTED, GRID = "#24282C", "#555E68", "#E7EAEE"
 LABELS = {"vscode": "VS Code", "mui-docs": "MUI docs", "webpack": "webpack", "t3code-server": "t3code server"}
 GIB = 2**30
 RUNS, WARMUPS = META["runs"], META["warmup"]
 CPU, CORES = META["machine"]["cpu"], META["machine"]["cores"]
 RAM = META["machine"]["ram_bytes"] / GIB
-TS_VERSION = META["compilers"]["typescript"]["version"]
-TSRS_VERSION = META["compilers"]["tsrs"]["version"]
 SOFT_MEMORY = META["modes"]["maximum"]["memory_gib"]
 GROUPS, MEANS, PREFLIGHTS = defaultdict(list), {}, {}
 assert META.get("completed_utc"), "Benchmark must be complete before rendering"
@@ -53,7 +55,7 @@ for row in RAW:
 for mode in MODES:
     for project in PROJECTS:
         hf = json.loads((SOURCE / mode / project / "hyperfine.json").read_text())
-        assert len(hf["results"]) == 2 and {r["name"] for r in hf["results"]} == set(COMPILERS)
+        assert len(hf["results"]) == len(COMPILERS) and {r["name"] for r in hf["results"]} == set(COMPILERS)
         preflight = json.loads((SOURCE / mode / project / "preflight.json").read_text())
         PREFLIGHTS[mode, project] = preflight
         for result in hf["results"]:
@@ -74,20 +76,26 @@ FONTS = {style: FontProperties(fname=str(ASSETS / "fonts" / f"Inter-{name}.ttf")
 plt.rcParams.update({"font.size": 11, "svg.fonttype": "path", "text.color": INK})
 
 def advantage_label(metric, ts, rs):
+    suffix = " vs nightly" if THREE_COMPILERS else ""
     if ts == rs:
-        return "(same)"
+        return f"(same{suffix})"
     if metric == "wall_seconds":
-        return f"({ts / rs:.2f}× faster)" if rs < ts else f"({rs / ts:.2f}× slower)"
-    return f"({abs(1 - rs / ts) * 100:.1f}% {'less' if rs < ts else 'more'})"
+        return f"({ts / rs:.2f}× faster{suffix})" if rs < ts else f"({rs / ts:.2f}× slower{suffix})"
+    return f"({abs(1 - rs / ts) * 100:.1f}% {'less' if rs < ts else 'more'}{suffix})"
 
 def alt_text(mode):
     settings = META["modes"][mode]
-    parts = [f"{settings['label']}: tsrs in orange; TypeScript nightly in blue.",
+    palette = "TypeScript 7.0.2 in light blue; " if THREE_COMPILERS else ""
+    parts = [f"{settings['label']}: {palette}TypeScript nightly in blue; tsrs in orange.",
              f"Arithmetic means of {RUNS} runs after {WARMUPS} warmups, per project; {settings['checkers']} checker threads each."]
     for project in PROJECTS:
-        ts, rs = (MEANS[mode, project, compiler] for compiler in COMPILERS)
-        parts.append(f"{LABELS.get(project, project)}: TypeScript {ts['wall_seconds']:.3f} s and {ts['peak_rss_gib']:.3f} GiB; "
-                     f"tsrs {rs['wall_seconds']:.3f} s and {rs['peak_rss_gib']:.3f} GiB.")
+        values = []
+        for compiler in COMPILERS:
+            mean = MEANS[mode, project, compiler]
+            values.append(f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: "
+                          f"{mean['wall_seconds']:.3f} s and {mean['peak_rss_gib']:.3f} GiB")
+        parts.append(f"{LABELS.get(project, project)}: " + "; ".join(values) + ".")
+    parts.append("tsrs comparison labels are relative to TypeScript nightly.")
     return " ".join(parts)
 
 def draw(mode):
@@ -103,7 +111,8 @@ def draw(mode):
     label(.055, .859, f"{settings['checkers']} checkers  ·  {memory}", size=11.5, color=MUTED)
 
     left = .055
-    for compiler, name, version in (("typescript", "TypeScript", TS_VERSION), ("tsrs", "tsrs", TSRS_VERSION)):
+    for compiler in COMPILERS:
+        name, version = NAMES[compiler], META["compilers"][compiler]["version"]
         fig.add_artist(Rectangle((left, .786), .013, .022, transform=fig.transFigure,
                                  facecolor=COLORS[compiler], edgecolor="none"))
         name_text = label(left + .023, .787, name, size=11.5, style="semibold")
@@ -124,8 +133,9 @@ def draw(mode):
         right = .60 if metric == "wall_seconds" else .97
         for other_mode in MODES:
             for project in PROJECTS:
-                ts, rs = (MEANS[other_mode, project, c][metric] for c in COMPILERS)
-                for compiler, value in (("typescript", ts), ("tsrs", rs)):
+                ts, rs = (MEANS[other_mode, project, c][metric] for c in ("typescript", "tsrs"))
+                for compiler in COMPILERS:
+                    value = MEANS[other_mode, project, compiler][metric]
                     texts = [label(0, 0, f"{value:.2f} {unit}", size=11.5, style="medium")]
                     padding = .018
                     if compiler == "tsrs":
@@ -139,19 +149,21 @@ def draw(mode):
                     scale = max(scale, .300 * value / available)
         scales[metric] = scale
 
+    offsets = (.028, -.010, -.048) if THREE_COMPILERS else (.008, -.037)
+    bar_height = .024 if THREE_COMPILERS else .028
     for index, project in enumerate(PROJECTS):
         y = .535 - index * .138
-        label(.055, y - .0145, LABELS.get(project, project), size=11.5, style="semibold", va="center")
+        label(.055, y + statistics.mean(offsets), LABELS.get(project, project), size=11.5, style="semibold", va="center")
         if index:
             fig.add_artist(plt.Line2D([.055, .950], [y + .0545, y + .0545], transform=fig.transFigure,
                                      color="#ECEFF2", linewidth=.6))
         for metric, left, _, unit in columns:
-            ts, rs = (MEANS[mode, project, compiler][metric] for compiler in COMPILERS)
+            ts, rs = (MEANS[mode, project, compiler][metric] for compiler in ("typescript", "tsrs"))
             advantage = advantage_label(metric, ts, rs)
-            for compiler, offset in (("typescript", .008), ("tsrs", -.037)):
+            for compiler, offset in zip(COMPILERS, offsets):
                 value = MEANS[mode, project, compiler][metric]
                 width = .300 * value / scales[metric]
-                fig.add_artist(Rectangle((left, y + offset - .014), width, .028, transform=fig.transFigure,
+                fig.add_artist(Rectangle((left, y + offset - bar_height / 2), width, bar_height, transform=fig.transFigure,
                                          facecolor=COLORS[compiler], edgecolor="none"))
                 value_text = label(left + width + .009, y + offset, f"{value:.2f} {unit}", size=11.5, style="medium", va="center")
                 if compiler == "tsrs":
@@ -171,7 +183,7 @@ def draw(mode):
     path = HERE / f"{mode}.svg"
     svg = path.read_text()
     start = svg.index(">", svg.index("<svg")) + 1
-    svg = svg[:start] + "\n<title>" + html.escape(settings["label"] + ": tsrs vs TypeScript nightly") + "</title>\n<desc>" + html.escape(alt_text(mode)) + "</desc>" + svg[start:]
+    svg = svg[:start] + "\n<title>" + html.escape(settings["label"] + ": tsrs vs TypeScript") + "</title>\n<desc>" + html.escape(alt_text(mode)) + "</desc>" + svg[start:]
     path.write_text(svg)
     ET.fromstring(svg)
 
@@ -189,16 +201,22 @@ with (HERE / "means.csv").open("w", newline="") as f:
 scope = []
 for (mode, project), preflight in PREFLIGHTS.items():
     counts = preflight["compilers"]
-    match = "match" if preflight["comparison"]["same_diagnostic_keys"] else "differ"
-    scope.append(f"{META['modes'][mode]['label']} / {LABELS.get(project, project)}: diagnostic locations/codes {match}; "
-                 f"TypeScript {counts['typescript']['files']:,} files, tsrs {counts['tsrs']['files']:,} files.")
+    details = []
+    for compiler in COMPILERS:
+        check = counts[compiler]
+        description = f"{NAMES[compiler]} {META['compilers'][compiler]['version']}: {check['files']:,} files, {check['errors']:,} diagnostics"
+        if compiler != "tsrs":
+            match = "match" if check['error_keys'] == counts['tsrs']['error_keys'] else "differ"
+            description += f"; diagnostic locations/codes {match} relative to tsrs"
+        details.append(description)
+    scope.append(f"{META['modes'][mode]['label']} / {LABELS.get(project, project)}: " + ". ".join(details) + ".")
 facts = [
     ("Aggregation", f"Arithmetic mean of {RUNS} measured runs per compiler, project and mode. Warmups excluded. No aggregation across projects."),
     ("Mean peak memory", "Average the individual process peaks, then divide bytes by 2^30 for GiB."),
-    ("Comparison labels", "Speedup = TypeScript mean wall time / tsrs mean wall time. Memory reduction = 100 × (1 − tsrs mean peak RSS / TypeScript mean peak RSS). Calculated before rounding."),
-    ("Colors", "tsrs: Cloudflare orange #F38020. TypeScript: #3178C6. Dark text labels for contrast."),
+    ("Comparison labels", "Speedup = TypeScript nightly mean wall time / tsrs mean wall time. Memory reduction = 100 × (1 − tsrs mean peak RSS / TypeScript nightly mean peak RSS). Calculated before rounding."),
+    ("Colors", "; ".join(f"{NAMES[c]} {META['compilers'][c]['version']}: {COLORS[c]}" for c in COMPILERS)),
     ("Machine", f"{CPU}; {CORES} logical CPUs; {RAM:g} GiB RAM; macOS {META['machine']['macos']}"),
-    ("Compilers", f"typescript@next: {TS_VERSION}; @tsrs/darwin-arm64@latest: {TSRS_VERSION}; native published binaries."),
+    ("Compilers", "; ".join(f"{META['compilers'][c]['requested']}: {META['compilers'][c]['version']}" for c in COMPILERS) + "; native published binaries."),
     ("Aligned", f"{META['modes']['aligned']['checkers']} checkers each; default memory policies."),
     ("Maximum resources", f"{META['modes']['maximum']['checkers']} checkers each; tsrs --maxMemory {SOFT_MEMORY}G; Go GOMEMLIMIT={SOFT_MEMORY}GiB. Soft budgets, not hard RSS caps."),
     ("CPU and GC", f"Both modes: GOMAXPROCS={CORES}; RAYON_NUM_THREADS={CORES}; GOGC unset (default GC retained)."),
@@ -214,14 +232,14 @@ for mode in MODES:
     sections.append(f'<section id="{mode}"><div class="downloads"><strong>{META["modes"][mode]["label"]}</strong>'
                     f'<a href="{mode}.png" download>PNG · 2200 × 1060</a><a href="{mode}.svg" download>SVG · vector</a></div>{svg}</section>')
 page = '''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>tsrs vs TypeScript nightly — blog charts</title><style>
+<title>tsrs vs TypeScript — blog charts</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#24282c;font:16px/1.6 system-ui,sans-serif}
 main{max-width:1280px;margin:auto;padding:32px}h1{font-size:28px;margin:0 0 8px}a{color:#2365a8}
 nav{display:flex;gap:24px;flex-wrap:wrap;margin:18px 0}section,details{background:white;border:1px solid #e1e4e8;border-radius:8px;margin:24px 0;overflow:hidden}
 svg{display:block;width:100%;height:auto}.downloads{padding:14px 24px;border-bottom:1px solid #e1e4e8}.downloads a{margin-left:20px}
 details{padding:20px}summary{cursor:pointer;font-weight:650}table{border-collapse:collapse;width:100%;margin-top:18px;font-size:14px}
 th,td{text-align:left;vertical-align:top;border-bottom:1px solid #e1e4e8;padding:10px}th{width:190px}
-</style><main><h1>tsrs vs TypeScript nightly</h1>
+</style><main><h1>tsrs vs TypeScript</h1>
 <p>Two blog figures: average wall time and mean peak memory per project, with comparison labels.</p>
 <nav><a href="#aligned">Aligned</a><a href="#maximum">Maximum resources</a><a href="#facts">Parameters</a>
 <a href="means.csv" download>Chart data</a><a href="alt-text.txt" download>Alt text</a></nav>
@@ -233,11 +251,12 @@ page += '<p>Color references: <a href="https://developers.cloudflare.com/workers
 (HERE / "chart-manifest.json").write_text(json.dumps({
     "source": SOURCE.name, "raw_sha256": hashlib.sha256((SOURCE / "raw.json").read_bytes()).hexdigest(),
     "metadata_sha256": hashlib.sha256((SOURCE / "metadata.json").read_bytes()).hexdigest(),
-    "samples": len(RAW), "bars_per_chart": len(PROJECTS) * 4,
+    "samples": len(RAW), "bars_per_chart": len(PROJECTS) * len(COMPILERS) * 2,
     "aggregation": f"arithmetic mean of {RUNS} repetitions per compiler/project/mode",
-    "cross_project_aggregation": False, "colors": COLORS, "matplotlib": matplotlib.__version__,
+    "cross_project_aggregation": False, "colors": {c: COLORS[c] for c in COMPILERS},
+    "comparison_baseline": "typescript", "matplotlib": matplotlib.__version__,
     "png_dimensions": [2200, 1060], "font": "Inter", "svg_text": "outlined for consistent rendering",
     "mean_values": mean_rows,
 }, indent=2) + "\n")
 print(f"Created two blog figures in {HERE}")
-print(f"All {len(RAW)} source measurements validated against Hyperfine; {len(PROJECTS) * 4} bars in each figure.")
+print(f"All {len(RAW)} source measurements validated against Hyperfine; {len(PROJECTS) * len(COMPILERS) * 2} bars in each figure.")

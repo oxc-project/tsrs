@@ -5,6 +5,30 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 2026-10-19: 0.17.0 release
+
+All seven packages use `0.17.0-ts7.1.0-dev.20260929`. The TypeScript pin remains `b85298b6a81f`; release binaries
+report the matching nightly `7.1.0-dev.20260930.4`.
+
+`tsrs -b` frees each project's program after building it, fixing arena exhaustion on large project graphs (#607).
+The same change fixes a use-after-free in incremental builds and build watch mode. The
+[change's measurements](../notes/mem-build-free-programs.md) show a synthetic 7,500-project graph completing at
+4.8 GB peak RSS with `--builders 64 --checkers 1`, where the previous code exhausted the arena range.
+These are measurements of that change, not a packaged-release comparison.
+
+Native npm binaries omit duplicate embedded TypeScript libraries and use the copies shipped beside the executable
+(#578). Compiler maintenance removes dormant instrumentation, collects diagnostic timings only when requested,
+uses compact generated Unicode casing tables and shares compiler-option change traversal (#584, #585, #590,
+#592, #602, #610). Native binaries using mimalloc share the CLI's allocator policy (#612).
+
+CI and release validation now use the pinned upstream Go fourslash harness against the Rust server (#594).
+The [recorded harness validation](../tools/go-fourslash/README.md#validation-2026-10-18) has 4,074 passing groups
+and 472 skips, including all 4,066 passes from the former translated suite; eight additional groups use Go-built
+fixtures. The browser playground deploys after successful releases (#526, #587).
+
+The workflow publishes the [GitHub release notes](releases/0.17.0.md) under the title `0.17.0`, without a prefix.
+Bumping the root `package.json` version on `main` triggers publishing.
+
 ## 2026-10-16: 0.16.0 release
 
 All seven packages use `0.16.0-ts7.1.0-dev.20260929`. The TypeScript pin remains `b85298b6a81f`; release binaries

@@ -143,9 +143,11 @@ Wire contract the server has to speak (from the pinned `tsc/cmd/tsc/api.go`, `ts
 
 ## Releasing
 
-`.github/workflows/release.yml` runs on a pushed tag `v<workspace version>` or `v<npm version>` (e.g. `v0.1.0`):
+To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refresh `Cargo.lock`, set the root
+`package.json` version to the output of `node npm/build.mjs --print-version`, and add `docs/releases/<workspace version>.md`.
+`.github/workflows/release.yml` publishes when that root package version is bumped on `main`:
 
-1. checks the tag against `Cargo.toml`, and runs `cargo check`;
+1. checks the root package version against `Cargo.toml`, requires release notes, and runs `cargo check`;
 2. builds PGO release binaries (`release` profile, trained by `.github/scripts/pgo-train.sh`) for macOS arm64 and Linux
    x64 and arm64 GNU (`ubuntu-22.04`); on GNU, BOLT-optimizes them and runs the conformance and fourslash gates on the
    BOLT-optimized binaries (`.github/scripts/bolt.sh`); smoke-runs the native ones (`--version`, exit code 2 on a type
@@ -160,6 +162,9 @@ Wire contract the server has to speak (from the pinned `tsc/cmd/tsc/api.go`, `ts
    run can be re-run). Before publishing the main package, waits up to 10 minutes for every optional dependency's
    exact version metadata and tarball to be available on npm, including platform packages skipped on a re-run.
    Dry runs skip this check. Releases publish directly, without a staged approval step.
+5. waits for all published packages to be available on npm, creates the GitHub release tagged `v<workspace version>`
+   with the version alone as its title and `docs/releases/<workspace version>.md` as its notes, then deploys the
+   browser playground.
 
 The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
 the BOLT-optimized `fourslash_server` task binary. PGO training uses the same Go harness. The macOS binary gets only the

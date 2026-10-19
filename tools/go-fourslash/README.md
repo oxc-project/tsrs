@@ -13,6 +13,9 @@ python3.12 tools/go-fourslash/run.py -- -json > target/go-fourslash/results.json
 python3.12 tools/go-fourslash/summarize.py target/go-fourslash/results.jsonl
 ```
 
+These raw commands report every failure and return nonzero for the recorded reference-lookup mismatch.
+Use `.github/scripts/go-fourslash-gate.sh` for the reviewed mismatch and coverage gate used by CI and releases.
+
 Use `--reference /path/to/TypeScript` to read another checkout, `--work /path/to/scratch` for a separate workspace,
 or `--server /path/to/fourslash_server` to use a prebuilt server. These options go before `--`; ordinary `go test`
 flags go after it. The default concurrency is four, each test has a two-minute subprocess timeout, and the whole
@@ -57,7 +60,7 @@ existing `GetFileMapWithBuild` helper, then the Rust server reads the resulting 
 
 The Go filesystem remains authoritative, including bundled libraries, symlinks, case sensitivity, writes, and
 renames. Paths are not relocated or rewritten. Compiler options use the existing Go-compatible options codec.
-The task server selects Go checker-history mode for baseline compatibility, including its environment overrides.
+The task server uses the normal tsrs checker implementation.
 File reads send a JSON byte count followed by raw UTF-8, avoiding JSON escaping of library contents. Missing
 files remain distinct from empty files, and invalid UTF-8 uses the same replacement behavior as Go's JSON encoder.
 Cleanup sends LSP shutdown, half-closes state requests and drains the final response, then waits for the worker's
@@ -88,16 +91,30 @@ cargo build --profile dev --locked -p tsrs_fourslash_server
 PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh
 ```
 
-The gate requires a completed, successful Go package result, zero failing tests, and at least **4,074 exercised
-groups**. It excludes parents whose subtests all skipped, including nested groups, so additional skips cannot
-silently reduce coverage. The runner first checks bridge shutdown with a deliberately delayed response terminator;
-CI also runs the summary's regression checks. Go's build cache is shared with
-`actions/setup-go` through `GOCACHE` at `target/go-fourslash/go-cache`.
+The gate checks a completed Go package result, at least **4,073 passing groups**, and exact selected/skipped
+coverage fingerprints. [known-mismatches.json](known-mismatches.json) records one existing production-behavior
+gap: `TestFindAllRefsInheritedProperties4`, where reference lookup through circular interfaces differs.
+It remains a failing case in the report. Its reference, actual output and complete diff must match their
+recorded fingerprints; new, changed or resolved mismatches fail until reviewed. A non-baseline assertion,
+panic, missing artifact, abnormal runner exit, or changed coverage always fails. The Go process may exit 1
+only for the exact recorded baseline failure. Nothing is skipped to make this gate pass.
 
-On failure, CI uploads `results.jsonl`, `runner.log`, and baseline differences as the `go-fourslash-results`
-artifact. For a local run, `PYTHON`, `TSRS_FOURSLASH_SERVER`, and `TSRS_GO_FOURSLASH_WORK` can select another Python
-executable, prebuilt server, and work directory. `MIN_PASS` overrides the gate's coverage floor; raise the default
-when support improves.
+The runner first checks bridge shutdown with a deliberately delayed response terminator; CI also runs
+regression checks for the gate. Go's build cache is shared with `actions/setup-go` through `GOCACHE` at
+`target/go-fourslash/go-cache`. CI publishes the counts and known gaps in the job summary, and uploads
+`results.jsonl`, `runner.log`, `report.md`, coverage fingerprints, and complete baseline differences even
+when the gate passes.
+
+For a local run, `PYTHON`, `TSRS_FOURSLASH_SERVER`, and `TSRS_GO_FOURSLASH_WORK` select another Python
+executable, prebuilt server, and work directory. `MIN_PASS` can raise the pass floor but cannot bypass the
+reviewed mismatch or coverage inventory. Update that inventory explicitly only after inspecting the raw
+Go outcomes and the full baseline diff; there is no automatic refresh in CI.
+
+## Validation (2026-10-20)
+
+Normal tsrs behavior: **4,073 passing groups, 1 recorded failure, 472 skips** at the same pinned commit.
+The alternate checker mode has been removed. The newly exposed circular-interface reference difference
+remains tracked as conformance debt; upstream assertions and baselines are unchanged.
 
 ## Validation (2026-10-18)
 
@@ -106,7 +123,7 @@ At pinned TypeScript commit `b85298b6a81f772d080b0455de0ca9d744cd6fd6`, on macOS
 | Runner | Passing groups | Failing groups | Skipped groups |
 | --- | ---: | ---: | ---: |
 | Former translated Rust suite (before removal) | 4,066 | 63 | 417 |
-| Go tests with Rust subprocess | 4,074 | 0 | 472 |
+| Go tests with Rust subprocess (former compatibility mode) | 4,074 | 0 | 472 |
 
 All 4,066 groups passing in the translated suite are exercised successfully, including the 18 project-state
 groups skipped by the initial prototype. Eight additional groups pass using Go's `@tsc` setup support. No passing

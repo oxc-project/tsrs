@@ -426,9 +426,10 @@ fn collect(dir: &FsPath, out: &mut Vec<PathBuf>) {
 
 #[test]
 fn tsctests() {
-    // The baselines are tsgo's output: keep Go's check history (tsrs_core::compat).
-    tsrs_core::compat::use_go_history_for_tsgo_baselines();
     let root = repo_root();
+    let reference_dir = std::env::var_os("TSRS_TESTDATA")
+        .map_or_else(|| root.join("ts-ref/tsc/testdata"), PathBuf::from)
+        .join("baselines/reference");
     let dump = std::env::var("TSCTESTS_DUMP")
         .map_or_else(|_| root.join("target/tsctests-dump"), PathBuf::from);
     let filter = std::env::var("TSCTESTS_FILTER").unwrap_or_default();
@@ -470,10 +471,8 @@ fn tsctests() {
                         .unwrap()
                         .join()
                         .unwrap();
-                    let reference = tsrs_core::utf8::read_to_string(
-                        root.join("ts-ref/tsc/testdata/baselines/reference").join(&test.baseline),
-                    )
-                    .ok();
+                    let reference =
+                        tsrs_core::utf8::read_to_string(reference_dir.join(&test.baseline)).ok();
                     let class = match outcome {
                         Ok(actual) => {
                             if reference.as_deref() == Some(actual.as_str()) {

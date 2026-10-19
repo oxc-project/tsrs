@@ -108,7 +108,7 @@ Parsing and binding run per file (in parallel) and finish before checking. Check
 mode: `default_checker_count`), each on its own OS thread with a 512 MB stack (`tsrs_compiler::checkerpool`). Files are assigned to checkers by directory
 locality; in the type-check pass a checker that runs out steals unstarted files from the busiest one
 (notes/perf-checker-stealing.md), which is safe because output does not depend on which checker checks a file
-(notes/perf-order-independence.md; `--checkerAssignment go` keeps Go's assignment and history). Each thread allocates in its own leak arena;
+(notes/perf-order-independence.md; known exceptions are tracked in docs/COMPATIBILITY.md). Each thread allocates in its own leak arena;
 `P<T>` is `Send + Sync` by decree, so the compiler does not police sharing. The rules:
 
 - **Shared, frozen after binding**: AST nodes and node lists, `SourceFile`, binder symbols and symbol tables,

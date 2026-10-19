@@ -5,21 +5,29 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
-## Unreleased: full conformance CI (2026-10-20)
+## Unreleased: one compiler behavior and full conformance CI (2026-10-20)
 
-Both CI checker modes now compare errors, types, symbols, JavaScript/declarations and source maps. The gate
-uses a reviewed [mismatch inventory](../tools/conformance/known-mismatches.json), including full-diff and
-coverage fingerprints, instead of aggregate pass thresholds. Existing differences remain visible; new or
-changed mismatches, crashes, timeouts, missing results and lost coverage fail. Successful fixes require removing
-their stale entries. CI publishes both mode reports and complete artifacts even when the first gate fails.
-GNU release callers use the same full gate in Go-compatible mode.
+The Go-compatible checker mode is removed. CLI, API, language server and harnesses use the normal checker
+implementation; `--checkerAssignment go` is rejected and `TSRS_HISTORY` no longer selects behavior.
+Existing scheduling-independent fixes and incremental cache safeguards are retained.
 
-Measured locally with dev binaries and pinned reference `b85298b6a81f`: all 13,462 diagnostic, 12,779 type,
-12,779 symbol, 13,392 JavaScript, 149 JavaScript-map and 156 sourcemap-text baselines pass in Go-compatible mode.
-Default mode has three mismatches in `conformance/objectLiteralNormalization` (types, symbols and declaration
-output), now recorded as conformance gaps. Both runs select 15,197 variants, skip 1,735 unsupported configurations,
-exclude 42 fixtures before expansion, and have no crashes or timeouts. These are source validation results,
-not measurements of a published release. Compiler behavior is unchanged.
+CI and GNU releases run one full conformance gate covering diagnostics, types, symbols,
+JavaScript/declarations and source maps. A reviewed [mismatch inventory](../tools/conformance/known-mismatches.json)
+records full-diff and coverage fingerprints. Known differences remain visible; new or changed mismatches,
+crashes, timeouts, missing results and lost coverage fail. Fixed entries must be removed. CI publishes
+complete reports and artifacts on success and failure. Repository and emit comparison tools run normal tsrs.
+
+Measured locally with dev binaries and pinned reference `b85298b6a81f`: 13,462 diagnostic, 12,778 type,
+12,778 symbol, 13,391 JavaScript, 149 JavaScript-map and 156 sourcemap-text baselines pass.
+Three mismatches remain in `conformance/objectLiteralNormalization` (types, symbols and declaration output).
+The run selects 15,197 variants, skips 1,735 unsupported configurations, excludes 42 fixtures before expansion,
+and has no crashes or timeouts. These are source validation results, not measurements of a published release.
+
+The full Fourslash run has 4,073 passes, one circular-interface reference mismatch and 472 skips. The mismatch
+is recorded with exact output fingerprints; changed failures, crashes and lost coverage fail the gate.
+The 522 compiler/build/watch scenarios have 181 exact matches and 341 differences, 284 of which contain the
+existing tsrs incremental-cache signature. Their raw results remain visible; the old compatibility-mode
+counts no longer describe normal tsrs behavior. See [scenario evidence](EMIT.md#scenario-baselines).
 
 ## 2026-10-19: 0.18.0 release
 

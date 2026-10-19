@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Keep the minimum in sync with tools/go-fourslash/README.md. Skipped-only parents do not count as coverage.
+# Exact reviewed mismatches and coverage; skipped-only parents do not count as passes.
 set -euo pipefail
 
 work="${TSRS_GO_FOURSLASH_WORK:-$PWD/target/go-fourslash}"
@@ -11,5 +11,6 @@ status=0
   --server "${TSRS_FOURSLASH_SERVER:-target/debug/fourslash_server}" \
   -- -json > "$work/results.jsonl" 2> "$work/runner.log" || status=$?
 cat "$work/runner.log"
-"$python" tools/go-fourslash/summarize.py "$work/results.jsonl" --min-pass "${MIN_PASS:-4074}"
-exit "$status"
+"$python" tools/go-fourslash/summarize.py "$work/results.jsonl" --min-pass "${MIN_PASS:-4073}" \
+  --runner-exit "$status" --known tools/go-fourslash/known-mismatches.json \
+  --baselines "$work/reference/tsc/testdata/baselines"

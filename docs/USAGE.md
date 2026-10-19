@@ -39,7 +39,8 @@ Alongside the supported `tsc` flags, tsrs offers options to control performance:
   run (up to ~15% faster on repeated runs).
 - `--maxMemory <size>` (for example `12G`; `--noEmit` checks only) keeps the process near that much memory: above it,
   tsrs replaces its largest checker with a fresh one, trading CPU for memory. The diagnostics are the same.
-- `--checkerAssignment go` splits files across threads the way tsgo does, for byte-identical output with tsgo.
+- `--checkerAssignment locality` disables work stealing for reproducible scheduling. Debug assignments
+  `random:<seed>` and `file:<path>` are also available. The former `go` assignment has been removed.
 - `--noLazyMembers` turns off a set of checker optimizations that are not yet merged upstream. They never change
   diagnostics; the patches are in [`upstream/`](../upstream/).
 

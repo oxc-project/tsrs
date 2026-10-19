@@ -681,7 +681,7 @@ mod memory_tests {
             .unwrap_or(0)
     }
 
-    /// API builds write the same files, byte for byte, as the Go-history CLI on the same project graph.
+    /// API and CLI builds emit identical files; only CLI build info carries the diagnostic-cache signature.
     #[test]
     fn api_build_outputs_match_cli_build() {
         let _serial = super::BUILD_TESTS.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -718,7 +718,7 @@ mod memory_tests {
         assert!(exe.exists(), "build the tsrs binary first: {}", exe.display());
         let status = std::process::Command::new(&exe)
             .args(["-b", "app"])
-            .env("TSRS_CHECKER_ASSIGNMENT", "go")
+            .env_remove("TSRS_CHECKER_ASSIGNMENT")
             .current_dir(&cli)
             .status()
             .unwrap();
@@ -759,7 +759,35 @@ mod memory_tests {
         for f in &files {
             let a = std::fs::read(cli.join(f)).unwrap();
             let b = std::fs::read(api.join(f)).unwrap_or_else(|_| panic!("api build missing {f}"));
-            assert!(a == b, "{f} differs between tsrs -b and the API build");
+            if f.ends_with(".tsbuildinfo") {
+                use tsrs_core::json::{self, Value};
+                let Value::Object(mut cli_info) =
+                    json::unmarshal(std::str::from_utf8(&a).unwrap()).unwrap()
+                else {
+                    panic!("CLI build info must be an object");
+                };
+                let Value::Object(api_info) =
+                    json::unmarshal(std::str::from_utf8(&b).unwrap()).unwrap()
+                else {
+                    panic!("API build info must be an object");
+                };
+                let Some(Value::String(signature)) =
+                    cli_info.shift_remove("tsrsCanonicalCheckSignature")
+                else {
+                    panic!("CLI build info must carry a diagnostic-cache signature");
+                };
+                assert!(signature.strip_prefix("go4-v1:").is_some_and(|hash| {
+                    hash.len() == 32 && hash.bytes().all(|b| b.is_ascii_hexdigit())
+                }));
+                assert!(!api_info.contains_key("tsrsCanonicalCheckSignature"));
+                assert_eq!(
+                    json::marshal(&Value::Object(cli_info)).unwrap().as_bytes(),
+                    b,
+                    "{f} differs beyond the CLI cache signature"
+                );
+            } else {
+                assert!(a == b, "{f} differs between tsrs -b and the API build");
+            }
         }
         let _ = std::fs::remove_dir_all(&base);
     }

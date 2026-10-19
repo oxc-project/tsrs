@@ -1082,9 +1082,9 @@ pub struct Checker {
     pub instantiation_count: u32,
     /// `TSRS_WORK_CENSUS` (workcensus.rs); None unless the variable is set.
     pub census: Option<Box<crate::workcensus::Census>>,
-    /// `TSRS_UNION_CACHE` (unioncache.rs; on by default, off under Go-compatible history).
+    /// `TSRS_UNION_CACHE` (unioncache.rs; on by default).
     pub(crate) union_front_cache: crate::unioncache::UnionFrontCache,
-    /// `TSRS_INFER_MEMO` (infermemo.rs; on by default, off under Go-compatible history).
+    /// `TSRS_INFER_MEMO` (infermemo.rs; on by default).
     pub(crate) infer_memo: crate::infermemo::InferMemo,
     /// Calls of `add_diagnostic` and `add_suggestion_diagnostic`, duplicates included (wrapping): the inference memo
     /// stores only walks that added none.
@@ -1154,8 +1154,7 @@ pub struct Checker {
     pub subtype_reduction_cache: FxHashMap<CacheHashKey, &'static [P<Type>]>,
     pub cached_types: FxHashMap<CachedTypeKey, P<Type>>,
     pub cached_signatures: PackedMap<CachedSignatureKey, P<Signature>>,
-    pub undefined_properties: FxHashMap<String, P<Symbol>>,
-    // tsrs: the canonical (history-independent) form of `undefined_properties` (get_undefined_property).
+    // tsrs: key by the property declaration so output does not depend on checker history.
     pub undefined_properties_by_prop: FxHashMap<P<Symbol>, P<Symbol>>,
     pub narrowed_types: FxHashMap<NarrowedTypeKey, P<Type>>,
     pub assignment_reduced_types: FxHashMap<AssignmentReducedKey, P<Type>>,
@@ -1668,7 +1667,6 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         subtype_reduction_cache: FxHashMap::default(),
         cached_types: FxHashMap::default(),
         cached_signatures: PackedMap::default(),
-        undefined_properties: FxHashMap::default(),
         undefined_properties_by_prop: FxHashMap::default(),
         narrowed_types: FxHashMap::default(),
         assignment_reduced_types: FxHashMap::default(),
@@ -2205,7 +2203,6 @@ impl Checker {
             subtype_reduction_cache: base.subtype_reduction_cache.clone(),
             cached_types: base.cached_types.clone(),
             cached_signatures: base.cached_signatures.clone(),
-            undefined_properties: base.undefined_properties.clone(),
             undefined_properties_by_prop: base.undefined_properties_by_prop.clone(),
             narrowed_types: base.narrowed_types.clone(),
             assignment_reduced_types: base.assignment_reduced_types.clone(),

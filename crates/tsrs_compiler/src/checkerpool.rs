@@ -902,7 +902,7 @@ impl checkerPool {
     // processing only those assigned to its checker. Within each checker's set, files are visited in their original
     // order (`visit_order`), except that the type-check pass with stealing starts each checker on its heavy files
     // (heavy_files_first). Output does not depend on the order in the default mode (notes/perf-order-independence.md);
-    // program order keeps Go's history under `--checkerAssignment go` and the counters stable.
+    // program order keeps the counters stable.
     pub(crate) fn for_each_checker_group_do(
         &self,
         files: &[P<SourceFile>],
@@ -1210,11 +1210,11 @@ impl poolState {
 // queue with the most work left. Diagnostics and emit do not depend on which checker runs a file
 // (notes/perf-order-independence.md); the --extendedDiagnostics counters do, so they vary from run to run. Off when an
 // assignment is named (`--checkerAssignment` / TSRS_CHECKER_ASSIGNMENT: the fully deterministic static modes, also
-// for the oracles and harnesses) and under Go's check history.
+// for reproducible investigations).
 fn stealing_enabled() -> bool {
     let named = CLI_CHECKER_ASSIGNMENT.get().is_some()
         || std::env::var("TSRS_CHECKER_ASSIGNMENT").is_ok_and(|v| !v.is_empty());
-    !named && !tsrs_core::compat::go_compatible_history()
+    !named
 }
 
 // A file heavier than 1/HEAVY_SHARE_DIVISOR of an average checker's share of a pass is "heavy": a single such file
@@ -1600,15 +1600,6 @@ fn splitmix64(state: &mut u64) -> u64 {
     z ^ (z >> 31)
 }
 
-// Go `createCheckers`' association step (FENNEL over the import graph, see above).
-fn go_associations(program: &Program, checker_count: usize, concurrent: bool) -> Vec<usize> {
-    go_associations_with_adjacency(
-        program,
-        checker_count,
-        &get_import_adjacency(program, concurrent),
-    )
-}
-
 fn go_associations_with_adjacency(
     program: &Program,
     checker_count: usize,
@@ -1665,8 +1656,7 @@ fn go_associations_with_adjacency(
 // that was reparsed with the same imports. Computing the locality assignment of a large program takes longer than
 // the rest of a one-file watch cycle (12 ms of 80 on a 9.4k-file project), and its output is a function of the
 // program alone (see CheckerAssignment), so any assignment gives the same diagnostics and emit. The other
-// assignments are computed again: `go` keeps tsgo's assignment-dependent cache, and the debug ones should differ
-// per program.
+// debug assignments are computed again so they can differ per program.
 fn inherited_associations(
     program: &Program,
     checker_count: usize,
@@ -1711,7 +1701,6 @@ fn compute_associations(program: &Program, checker_count: usize) -> Vec<usize> {
         return vec![0; program.files.len()];
     }
     let associations = match checker_assignment() {
-        CheckerAssignment::Go => go_associations(program, checker_count, true),
         CheckerAssignment::Locality => locality_associations(program, checker_count),
         CheckerAssignment::Random(seed) => {
             let mut state = seed;
@@ -1858,13 +1847,11 @@ pub(crate) fn write_cost_cache(program: &'static Program) {
 // TSRS_CHECKER_ASSIGNMENT=<name> (any binary). The assignment never changes what a file's diagnostics are, only
 // which checker computes them (and so how much checker state is duplicated across checkers).
 //   locality (default): directory-subtree groups packed onto checkers with Go's FENNEL (below)
-//   go:                 Go's createCheckers association (FENNEL over single files in program order)
 //   file:<path>:        one checker index per line by program file index (experiments)
 //   random:<seed>:      a random checker per file and a random visit order in each checker, drawn from the seed
 //                       (debug: output must not depend on the assignment)
 pub enum CheckerAssignment {
     Locality,
-    Go,
     File(String),
     Random(u64),
 }
@@ -1877,15 +1864,12 @@ pub fn set_checker_assignment_from_cli(name: &str) -> bool {
         return false;
     }
     let _ = CLI_CHECKER_ASSIGNMENT.set(name.to_string());
-    // `go` also means Go's check history in the caches that have two behaviours (tsrs_core::compat).
-    tsrs_core::compat::set_go_compatible_history(name == "go");
     true
 }
 
 fn parse_checker_assignment(name: &str) -> Option<CheckerAssignment> {
     match name {
         "" | "locality" => Some(CheckerAssignment::Locality),
-        "go" => Some(CheckerAssignment::Go),
         _ => match name.strip_prefix("random:") {
             Some(seed) => seed.parse::<u64>().ok().map(CheckerAssignment::Random),
             None => name.strip_prefix("file:").map(|p| CheckerAssignment::File(p.to_string())),
@@ -1899,7 +1883,7 @@ fn checker_assignment() -> CheckerAssignment {
         None => std::env::var("TSRS_CHECKER_ASSIGNMENT").unwrap_or_default(),
     };
     parse_checker_assignment(&name).unwrap_or_else(|| {
-        panic!("unknown checker assignment {name:?} (locality, go, file:<path>, random:<seed>)")
+        panic!("unknown checker assignment {name:?} (locality, file:<path>, random:<seed>)")
     })
 }
 

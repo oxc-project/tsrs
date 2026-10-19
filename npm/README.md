@@ -189,7 +189,7 @@ What maintainers must configure before the first release:
 
 `.github/workflows/ci.yml` runs on pushes to main, pull requests into main, merge groups and manual dispatch. Its three
 Linux jobs run Clippy/source checks and Rust checks/unit tests, build the compiler and conformance runner with the dev
-profile, and run all compiler conformance baselines in both checker modes and regression cases. The conformance
+profile, and run all compiler conformance baselines using normal tsrs behavior and regression cases. The conformance
 gate reports [known mismatches](../tools/conformance/known-mismatches.json) and rejects new or changed failures
 and lost coverage. Fourslash has its own job with the server framing checks, gate checks, and Go subprocess suite.
 

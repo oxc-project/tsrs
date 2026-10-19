@@ -2251,24 +2251,15 @@ impl Checker {
     // sorts among the widened literal's properties, `get_named_members`) is that of the first property of that name
     // this checker ever widened: the printed property order then depends on which files the checker saw before.
     // Canonically the cache is keyed by the sibling property, so the filled-in property sorts by the declaration it
-    // stands for; `go_compatible_history()` keeps Go's per-name cache (tsrs_core::compat).
+    // stands for.
     pub(crate) fn get_undefined_property(&mut self, prop: P<Symbol>) -> P<Symbol> {
-        let go = tsrs_core::compat::go_compatible_history();
-        let cached = if go {
-            self.undefined_properties.get(prop.name())
-        } else {
-            self.undefined_properties_by_prop.get(&prop)
-        };
+        let cached = self.undefined_properties_by_prop.get(&prop);
         if let Some(&cached) = cached {
             return cached;
         }
         let result = self.create_symbol_with_type(prop, Some(self.undefined_or_missing_type));
         result.flags.set(result.flags.get() | SymbolFlags::Optional);
-        if go {
-            self.undefined_properties.insert(prop.name().to_string(), result);
-        } else {
-            self.undefined_properties_by_prop.insert(prop, result);
-        }
+        self.undefined_properties_by_prop.insert(prop, result);
         result
     }
 
@@ -4066,11 +4057,8 @@ impl Checker {
             if !self.push_type_resolution(t.into(), TypeSystemPropertyName::ResolvedBaseTypes) {
                 return data.resolved_base_types.get();
             }
-            let canonical = !tsrs_core::compat::go_compatible_history();
-            if canonical {
-                self.base_types_depth += 1;
-                self.base_types_resolved_log.push(t);
-            }
+            self.base_types_depth += 1;
+            self.base_types_resolved_log.push(t);
             let symbol = t.symbol();
             if t.object_flags().intersects(ObjectFlags::Tuple) {
                 let base = self.get_tuple_base_type(t);
@@ -4092,9 +4080,7 @@ impl Checker {
             }
             // Go: `t.symbol.Declarations != nil`; a nil and an empty declaration list both iterate nothing.
             if !self.pop_type_resolution() {
-                if canonical {
-                    self.base_types_circular.push(t);
-                }
+                self.base_types_circular.push(t);
                 let declarations = t.symbol().unwrap().declarations();
                 for &declaration in declarations {
                     if is_class_declaration(declaration) || is_interface_declaration(declaration) {
@@ -4113,11 +4099,9 @@ impl Checker {
             self.members_reset_epoch += 1;
             self.augment_filter = None; // t may be one of the filter's four types: its members are resolved again
             data.base_types_resolved.set(true);
-            if canonical {
-                self.base_types_depth -= 1;
-                if self.base_types_depth == 0 {
-                    self.canonicalize_base_type_cycles(t);
-                }
+            self.base_types_depth -= 1;
+            if self.base_types_depth == 0 {
+                self.canonicalize_base_type_cycles(t);
             }
         }
         data.resolved_base_types.get()
@@ -4130,7 +4114,6 @@ impl Checker {
     // declared first in program order (`earliest_declaration`): when the outermost resolution `t` found a cycle entered
     // elsewhere, the base types it resolved are reset and resolved again from that member. If any circular type that
     // resolution found is a class or has no symbol, nothing is reset (Go's result stands for all of its cycles).
-    // `go_compatible_history()` keeps Go's result.
     fn canonicalize_base_type_cycles(&mut self, t: P<Type>) {
         if self.base_types_circular.is_empty() {
             self.base_types_resolved_log.clear();

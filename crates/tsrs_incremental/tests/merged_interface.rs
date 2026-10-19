@@ -303,41 +303,14 @@ fn in_memory_interface_diagnostics_require_unchanged_report_slots() {
         assert_eq!(writes.load(Ordering::Relaxed), before + 1);
     }
 
-    std::fs::write(&build_info_path, &serialized).unwrap();
-    tsrs_core::compat::set_go_compatible_history(true);
-    let go = create(None, true);
-    assert_eq!(
-        state(go, "e.ts"),
-        SemanticDiagnosticsState::NotCached,
-        "Go history must reject a tagged default cache"
-    );
-    let go_expected = sites(build(None));
-    assert_eq!(sites(go), go_expected);
-    emit(go);
-    let go_serialized = std::fs::read_to_string(&build_info_path).unwrap();
-    assert!(!go_serialized.contains("tsrsCanonicalCheckSignature"));
-    let go_modified = std::fs::metadata(&build_info_path).unwrap().modified().unwrap();
-    let go_writes = writes.load(Ordering::Relaxed);
-    for _ in 0..2 {
-        let loaded = create(None, true);
-        assert_eq!(
-            state(loaded, "e.ts"),
-            SemanticDiagnosticsState::Reused,
-            "native Go interface caches must remain reusable"
-        );
-        assert_eq!(state(loaded, "f.ts"), SemanticDiagnosticsState::Reused);
-        assert_eq!(sites(loaded), go_expected);
-        emit(loaded);
-    }
-    assert_eq!(writes.load(Ordering::Relaxed), go_writes);
-    assert_eq!(std::fs::read_to_string(&build_info_path).unwrap(), go_serialized);
-    assert_eq!(std::fs::metadata(&build_info_path).unwrap().modified().unwrap(), go_modified);
-    tsrs_core::compat::set_go_compatible_history(false);
+    // Legacy/API caches omit the CLI signature. Refresh affected diagnostics once, then reuse them.
+    std::fs::write(&build_info_path, &api_serialized).unwrap();
+    let legacy_writes = writes.load(Ordering::Relaxed);
     let default = create(None, true);
     assert_eq!(
         state(default, "e.ts"),
         SemanticDiagnosticsState::NotCached,
-        "default history must refresh an untagged Go cache"
+        "CLI must refresh an untagged legacy cache"
     );
     assert_eq!(state(default, "f.ts"), SemanticDiagnosticsState::Reused);
     assert_eq!(sites(default), expected);
@@ -347,11 +320,11 @@ fn in_memory_interface_diagnostics_require_unchanged_report_slots() {
     assert_eq!(
         state(restored, "e.ts"),
         SemanticDiagnosticsState::Reused,
-        "restored default history must reuse the interface cache"
+        "upgraded cache must reuse the interface diagnostics"
     );
     assert_eq!(sites(restored), expected);
     emit(restored);
-    assert_eq!(writes.load(Ordering::Relaxed), go_writes + 1);
+    assert_eq!(writes.load(Ordering::Relaxed), legacy_writes + 1);
 
     // An in-memory edit (a watch cycle) refreshes interface caches only when the changed file declares an interface,
     // before or after the edit: only that can move a merged interface's report site.

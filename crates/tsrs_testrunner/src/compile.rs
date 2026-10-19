@@ -712,13 +712,12 @@ fn convert(d: P<Diagnostic>, files: &mut FxHashMap<P<SourceFile>, Rc<FileLike>>)
     }
 }
 
-// Go testutil.TestProgramIsSingleThreaded: programs stay single-threaded unless
-// TS_TEST_PROGRAM_SINGLE_THREADED says otherwise (Go also goes multi-threaded under the race detector).
+// Use normal compiler threading unless a local investigation explicitly requests a single-threaded program.
 fn test_program_is_single_threaded() -> bool {
     static SINGLE_THREADED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *SINGLE_THREADED.get_or_init(|| match std::env::var("TS_TEST_PROGRAM_SINGLE_THREADED") {
-        Ok(v) => parse_go_bool(&v).unwrap_or(true),
-        Err(_) => true,
+        Ok(v) => parse_go_bool(&v).unwrap_or(false),
+        Err(_) => false,
     })
 }
 

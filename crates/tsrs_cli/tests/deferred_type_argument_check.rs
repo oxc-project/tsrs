@@ -16,7 +16,6 @@ fn run(args: &[&str]) -> String {
         .args(["-p", ".", "--pretty", "false"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
-        .env_remove("TSRS_HISTORY")
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(2), "{args:?}: {}", String::from_utf8_lossy(&out.stderr));
@@ -42,5 +41,4 @@ fn deferred_constraint_check_reports_in_its_file() {
             );
         }
     }
-    assert_eq!(run(&["--checkers", "2", "--checkerAssignment", "go"]), expected, "go");
 }

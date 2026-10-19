@@ -122,10 +122,9 @@ conformance runner still skips the `runExternalCode` cases.
 ### Checker history
 
 Go's inferred declaration types can depend on checker assignment and cache history.
-tsrs's default mode removes several of those dependencies, with known exceptions recorded in the
-[compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do). For a strict reference comparison, use
-`--checkerAssignment go --checkers 4 --noLazyMembers` against tsgo with `--checkers 4`; see
-[the remaining history dependencies](../notes/open-history-dependence.md).
+tsrs removes several of those dependencies, with known exceptions recorded in the
+[compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do). Comparisons run normal tsrs behavior;
+all differences remain conformance gaps. See [the remaining history dependencies](../notes/open-history-dependence.md).
 
 ### Incremental programs
 
@@ -148,8 +147,8 @@ variants in `incremental.NewProgram` like Go's `createProgram` (with `testBuildI
 order with Go's `omitzero` rules (nil vs empty kept where Go distinguishes them, e.g. `fileInfos: []`) and the
 tuple encodings of the custom `MarshalJSON`s; unmarshaling follows the `UnmarshalJSON` fallbacks.
 
-The default CLI can add an optional canonical-check signature to build info for safe warm reuse. Go-history
-and API formats retain their reference behavior; see
+The CLI can add an optional canonical-check signature to build info for safe warm reuse.
+API formats retain their reference behavior; see
 [the incremental diagnostic rules](../notes/fix-history-dependent-diagnostics.md).
 
 ### Version
@@ -209,6 +208,28 @@ output sanitizer of `tsctests/sys.go`. Watch scenarios (`tscWatch/`, `tsbuildWat
 Go's mock watch backend (`tsctests/mockwatch.rs`); content-mapper scenarios use the in-process test mappers of
 `tsrs_contentmappertest`.
 
+### Scenario baselines
+
+With normal tsrs behavior at pin `b85298b6a81f`, the 522 official compiler/build/watch scenarios have:
+
+| Suite | Exact matches | Differences | Crashes |
+| --- | ---: | ---: | ---: |
+| tsc | 107 / 223 | 116 | 0 |
+| tsbuild | 45 / 192 | 147 | 0 |
+| tscWatch | 18 / 42 | 24 | 0 |
+| tsbuildWatch | 11 / 65 | 54 | 0 |
+
+Of the 341 differing scenarios, 284 contain tsrs's incremental-cache signature. The baseline includes build-info
+bytes and sizes as well as compiler output. Other gaps include unsupported CLI commands; these counts do not
+classify every difference as a diagnostic defect. No metadata is stripped from the comparison to improve the count.
+The scenario harness writes `target/tsctests-results/{pass,fail,crash}.txt` and full actual baselines under `local/`.
+Its Rust wrapper reports differences without failing; these optional scenarios are separate from the mandatory
+compiler conformance gate and require a captured scenario dump.
+
+`TSRS_REFERENCE=/path/to/pinned/reference tools/oracle/tsctests/dump.sh` can capture scenarios from an isolated
+checkout. Set `TSRS_TESTDATA=/path/to/pinned/reference/tsc/testdata` when running
+`cargo test -p tsrs_execute tsctests::tsctests -- --nocapture` to select the corresponding reference baselines.
+
 ## Validation
 
 Build the CLI and conformance runner as described in [CONTRIBUTING.md](../CONTRIBUTING.md), then run:
@@ -222,7 +243,7 @@ The emit harness mirrors Go's pre- and post-emit programs, output ordering, decl
 `noCheck` repeat. Its `baseline.DiffText` uses the `similar` crate's patience algorithm and unified format.
 Go's own nondeterministic emit-test skip list is preserved.
 
-CI gates all these baselines in Go-compatible and default checker modes. The default mode's
+CI gates all these baselines using normal tsrs behavior. The
 `conformance/objectLiteralNormalization` declaration-output mismatch remains tracked in the
 [known-mismatch inventory](../tools/conformance/known-mismatches.json); new or changed diffs fail the gate.
 See [the gate workflow](../tools/conformance/README.md) for local commands and reports.

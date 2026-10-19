@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 # Dumps the tsc/tsbuild scenarios of Go's execute/tsctests as JSON for the Rust harness
-# (crates/tsrs_execute/src/tsctests, `cargo test --release -p tsrs_execute tsctests`).
+# (crates/tsrs_execute/src/tsctests, `cargo test -p tsrs_execute tsctests`).
 #   tools/oracle/tsctests/dump.sh [OUT]   (default OUT: target/tsctests-dump)
 # Applies runner.patch + tsrs_dump.go to ts-ref/tsc/internal/execute/tsctests, runs the Go tests with TSRS_DUMP=OUT,
-# then restores runner.go. Needs Go (GOTOOLCHAIN=auto).
+# then restores runner.go. TSRS_REFERENCE can select an isolated checkout. Needs Go (GOTOOLCHAIN=auto).
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$here/../../.."
 out="${1:-$repo/target/tsctests-dump}"
 mkdir -p "$out"
 out="$(cd "$out" && pwd)"
-dir="$repo/ts-ref/tsc/internal/execute/tsctests"
+reference="${TSRS_REFERENCE:-$repo/ts-ref}"
+dir="$reference/tsc/internal/execute/tsctests"
 cp "$dir/runner.go" "$dir/runner.go.orig"
 trap 'mv "$dir/runner.go.orig" "$dir/runner.go"; rm -f "$dir/tsrs_dump.go"' EXIT
-(cd "$repo/ts-ref/tsc" && patch -s -p1 < "$here/runner.patch")
+(cd "$reference/tsc" && patch -s -p1 < "$here/runner.patch")
 cp "$here/tsrs_dump.go" "$dir/tsrs_dump.go"
 rm -rf "$out"; mkdir -p "$out"
-(cd "$repo/ts-ref/tsc" && TSRS_DUMP="$out" GOTOOLCHAIN=auto go test ./internal/execute/tsctests/ -count=1)
+(cd "$reference/tsc" && TSRS_DUMP="$out" GOTOOLCHAIN=auto go test ./internal/execute/tsctests/ -count=1)
 find "$out" -name '*.json' | wc -l

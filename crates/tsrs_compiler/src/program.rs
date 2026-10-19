@@ -275,9 +275,7 @@ impl std::ops::Deref for Program {
 
 impl Program {
     pub fn uses_canonical_diagnostics(&self) -> bool {
-        self.canonical_diagnostics
-            && !tsrs_core::compat::go_compatible_history()
-            && self.compiler_checker_pool().is_some()
+        self.canonical_diagnostics && self.compiler_checker_pool().is_some()
     }
 
     pub fn file_exists(&self, path: &str) -> bool {

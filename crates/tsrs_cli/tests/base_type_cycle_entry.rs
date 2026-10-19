@@ -5,8 +5,7 @@
 // it inherits `RequiredEnv`'s required one and spawn.ts gets a TS2322). So spawn.ts's error depends on whether
 // read-env.ts was checked before it on its checker (tsgo-ref: no error at 1-5 checkers, an error at 8 and 16;
 // expected.txt is its output at 8). By default tsrs enters every cycle at the member declared first in program order
-// (`ProcessEnv`, which is also what tsgo-ref does with `--skipLibCheck false`); `--checkerAssignment go` keeps Go's
-// behaviour (notes/fix-history-dependent-diagnostics.md).
+// (`ProcessEnv`, which is also what tsgo-ref does with `--skipLibCheck false`; notes/fix-history-dependent-diagnostics.md).
 
 use std::path::Path;
 use std::process::Command;
@@ -21,7 +20,6 @@ fn run(args: &[&str]) -> String {
         .args(["-p", ".", "--pretty", "false"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
-        .env_remove("TSRS_HISTORY")
         .output()
         .unwrap();
     let stdout = String::from_utf8(out.stdout).unwrap();
@@ -50,6 +48,4 @@ fn base_type_cycle_is_entered_at_its_first_declared_member() {
             );
         }
     }
-    // Go's history: one checker checks read-env.ts first and enters the cycle at `Env`, as tsgo-ref does.
-    assert_eq!(run(&["--checkers", "1", "--checkerAssignment", "go"]), "");
 }

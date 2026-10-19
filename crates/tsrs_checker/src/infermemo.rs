@@ -1,4 +1,4 @@
-//! The inference walk memo (`TSRS_INFER_MEMO`, on by default, off under Go-compatible history; docs/DEBUGGING.md,
+//! The inference walk memo (`TSRS_INFER_MEMO`, on by default; docs/DEBUGGING.md,
 //! notes/perf-heavy-files-infer-memo.md).
 //!
 //! `inferTypes` walks a source type against a target type and adds candidates to the inference infos of the type
@@ -46,8 +46,7 @@
 //! `TSRS_LAZY_MEMBERS=0` the difference does not exist).
 //!
 //! `TSRS_INFER_MEMO=shadow` also walks every hit (from the same starting state) and panics unless that walk creates
-//! nothing but such member symbols, has no other effects and ends in the stored outcome. `TSRS_INFER_MEMO=0` turns the memo off, `=1` forces it on under
-//! Go-compatible history too. `TSRS_INFER_MEMO_STATS=1` prints the totals on stderr at exit.
+//! nothing but such member symbols, has no other effects and ends in the stored outcome. `TSRS_INFER_MEMO=0` turns the memo off, `=1` turns it on. `TSRS_INFER_MEMO_STATS=1` prints the totals on stderr at exit.
 //! `TSRS_INFER_MEMO_MIN_STEPS=<n>` sets the shortest walk that is stored (default `MIN_STEPS`).
 
 use crate::*;
@@ -71,11 +70,10 @@ fn env_mode() -> Option<InferMemoMode> {
     })
 }
 
-/// The mode for a checker created now: the environment's; by default on, except under Go-compatible history.
+/// The mode for a checker created now: the environment's; on by default.
 fn infer_memo_mode() -> InferMemoMode {
     match env_mode() {
         Some(mode) => mode,
-        None if tsrs_core::compat::go_compatible_history() => InferMemoMode::Off,
         None => InferMemoMode::On,
     }
 }

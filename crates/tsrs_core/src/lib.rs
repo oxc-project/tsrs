@@ -28,7 +28,6 @@ pub use frozen::{
 };
 
 pub mod collections;
-pub mod compat;
 pub mod debug;
 pub mod festats;
 pub mod glob;

@@ -624,7 +624,6 @@ pub struct TypeAliasLinks {
 #[derive(Default)]
 pub struct DeclaredTypeLinks {
     pub declared_type: Cell<Option<P<Type>>>,
-    pub interface_checked: Cell<bool>,
     pub index_signatures_checked: Cell<bool>,
     pub type_parameters_checked: Cell<bool>,
     pub enum_checked: Cell<bool>,

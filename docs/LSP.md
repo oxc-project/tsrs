@@ -1,7 +1,7 @@
 # The language server (`tsrs --lsp -stdio`)
 
 tsrs provides diagnostics, hover, go to definition, references, rename, completions with auto-imports, code fixes
-and formatting through the TypeScript 7 language-server protocol. It passes 4,074 of 4,546 fourslash groups; see
+and formatting through the TypeScript 7 language-server protocol. It passes 4,073 of 4,546 fourslash groups, with one recorded failure and 472 skips; see
 [known gaps](#known-gaps) and the [compatibility table](COMPATIBILITY.md#what-it-does-and-doesnt-do).
 
 ## Editor setup
@@ -77,8 +77,8 @@ The [initial port log](history/LSP.md) records the completed phases and their me
 The [Go fourslash subprocess runner](../tools/go-fourslash/README.md) keeps the upstream Go test bodies
 and assertions and drives the Rust language server over a local LSP socket. It uses a test-only server entry point,
 a filesystem bridge, and a read-only project-state bridge. Go content-mapper callbacks remain unsupported. The
-Go runner runs in Linux CI with zero failures and a floor of 4,074 exercised groups, including all 4,066 groups
-that passed in the former translated Rust suite. Release verification and PGO/BOLT training also use the Go runner.
+Go runner runs in Linux CI with 4,073 passing groups, one recorded mismatch and exact coverage tracking.
+The circular-interface reference mismatch is visible in every report and must not change without review. Release verification and PGO/BOLT training also use the Go runner.
 
 ## Protocol types and JSON
 
@@ -234,7 +234,7 @@ index 0, as in Go), so `sort_symbols` uses Go's pdqsort port there (`checker::Pr
 
 ## Fourslash
 
-The Go subprocess runner passes **4,074 groups, with 0 failures and 472 skips**. Its state snapshots preserve
+The Go subprocess runner passes **4,073 groups, with 1 recorded failure and 472 skips**. Its state snapshots preserve
 the upstream project-state assertions. Go's `@tsc` setup helper builds fixtures for eight groups unsupported by
 the former translated harness; their LSP requests run against Rust. See the [runner guide](../tools/go-fourslash/README.md)
 for commands and comparison results.

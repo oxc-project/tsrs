@@ -219,9 +219,8 @@ pub fn write_run_manifest(
         )
         .collect();
     let selected: Vec<String> = items.iter().map(crate::compiler_runner::TestItem::id).collect();
-    let mode = if tsrs_core::compat::go_compatible_history() { "go" } else { "default" };
     let manifest = json!({
-        "complete": complete, "mode": mode, "baselines": baselines,
+        "schema_version": 2, "complete": complete, "baselines": baselines,
         "selected": selected, "excluded": excluded,
     });
     std::fs::write(dir.join("run.json"), serde_json::to_string_pretty(&manifest).unwrap())

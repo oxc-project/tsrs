@@ -169,7 +169,6 @@ impl FS for RemoteFS {
 }
 
 pub fn run() {
-    tsrs_core::compat::use_go_history_for_tsgo_baselines();
     if std::env::args().nth(1).as_deref() == Some("--worker") {
         run_worker();
         return;

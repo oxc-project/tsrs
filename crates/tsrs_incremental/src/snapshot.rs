@@ -452,7 +452,7 @@ pub struct Snapshot {
     // Looked up package.json files from
     pub(crate) package_jsons: RefCell<Option<Vec<String>>>,
     pub(crate) missing_package_jsons: RefCell<Option<Vec<String>>>,
-    // tsrs-only, versioned proof of canonical report placement; absent in Go-compatible history.
+    // tsrs-only, versioned proof of canonical report placement; absent for API programs without canonical diagnostic placement.
     pub(crate) canonical_check_signature: OnceLock<String>,
 
     // Additional fields that are not serialized but needed to track state

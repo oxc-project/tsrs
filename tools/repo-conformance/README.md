@@ -40,20 +40,13 @@ checked shallowest first. When neither compiler loads a file for a config, the p
 and ten configs in all; 180 seconds for setup (60 for cloning); 120 seconds for checking, with at most 60 seconds per
 compiler per config. tsrs is not run when tsgo fails or times out. Timeouts kill child processes too.
 
-Each project is compared in two modes. Default mode runs both compilers as users do, with no extra flags, so the
-project's own options (including `checkers`) apply to both. Strict mode runs tsgo again with `--checkers 4`, its
-default count (`internal/compiler/checkerpool.go`: one checker under `singleThreaded`, never more than the file count),
-and `tsrs --checkerAssignment go --checkers 4 --noLazyMembers`, which reproduces Go's checker assignment, history and
-caches; lazy members change which instantiations a checker has cached, and so where depth limits are hit
-(`docs/DEBUGGING.md`). Strict mode has its own tsgo run because no tsgo output says how many checkers the default run
-used. It runs only for projects where default-mode tsgo completed, after all default comparisons, splitting the time
-they leave (half to tsgo, the rest to tsrs, at most 60 seconds each), so it never shortens them. tsrs is not run when
-strict tsgo fails. A strict-mode timeout with less time than the default run's limit counts as not compared rather than
-as a failure. Each mode keeps its own logs (`tsgo.log`/`tsrs.log`, `tsgo-strict.log`/`tsrs-strict.log`) and diffs
-(`diagnostics.diff`, `diagnostics-strict.diff`), and shard reports record each mode's flags.
+Each project runs once per compiler using its own options, including `checkers`, without compatibility flags.
+Logs are `tsgo.log` and `tsrs.log`, with differences in `diagnostics.diff`. The former strict comparison
+pass is removed. Harness version 5 refuses older manifests for reruns; archived two-mode reports can still
+be read, but their settings cannot be mixed with current runs.
 
 Actions reports coverage and retains logs, commits, and diagnostic diffs for 14 days. Differences and tsrs failures
-after tsgo completes fail the report in either mode (a strict-mode match does not excuse a default-mode difference),
+after tsgo completes fail the report,
 as do missing results, results at another commit, or no completed comparisons. The report says whether diagnostics or
 only other output, such as `traceResolution` traces, differ; either is a difference. Skipped, empty, and untested
 projects are excluded from pass counts; the repository table counts identical projects against those where both

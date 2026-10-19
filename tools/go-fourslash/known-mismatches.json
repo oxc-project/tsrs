@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "reference_commit": "b85298b6a81f772d080b0455de0ca9d744cd6fd6",
+  "coverage": {
+    "selected": {
+      "count": 4602,
+      "sha256": "4840ccc3097a511f5de8f159b263e6010a4004286a6be206c7b89b4230c51bca"
+    },
+    "skipped": {
+      "count": 472,
+      "sha256": "d29a288fde0f7864f4b9e24bc57b9b52547246f321a1c01410bd7fed151082be"
+    }
+  },
+  "mismatches": [
+    {
+      "test": "TestFindAllRefsInheritedProperties4",
+      "baseline": "fourslash/findAllReferences/findAllRefsInheritedProperties4.baseline.jsonc",
+      "reference_sha256": "261540fca5bb12344b286090eb8d3200008637ccb36d02298844503aeb1fe668",
+      "actual_sha256": "8faeec554f3e0414d18d6cc0b1bff0a0cfc327f29de8e40dbcabf0a176b7d665",
+      "diff_sha256": "7a2aee10c0014b8c1421d69aa81c8c6e37038807dc40c7eb8ca18b9af87e0227"
+    }
+  ]
+}

@@ -1877,7 +1877,7 @@ impl Checker {
             // file B reports at the site in A; A's later sites are then quiet). While a file is being checked the
             // report is emitted when the file is done (`flush_too_complex_reports`); outside a file check (the
             // language server asking for a type) it is emitted at once. Go reports at once, every time.
-            Some(node) if !tsrs_core::compat::go_compatible_history() => {
+            Some(node) => {
                 let reported_before = ast::get_source_file_of_node(node)
                     .is_some_and(|file| !self.too_complex_reported.insert((file, key)));
                 if reported_before {
@@ -1929,9 +1929,9 @@ impl Checker {
     /// without the error, so whether a file reports the TS2590 depends on what its checker evaluated before it, and
     /// under work stealing on timing (issue #218, notes/open-history-dependence.md section 4). By default such
     /// results are not cached: every evaluation computes them again, and each file reports once per type, at the first
-    /// site (`report_too_complex`, `flush_too_complex_reports`). `go_compatible_history()` keeps Go's caches.
+    /// site (`report_too_complex`, `flush_too_complex_reports`).
     pub(crate) fn too_complex_since(&self, before: u32) -> bool {
-        self.too_complex_reports != before && !tsrs_core::compat::go_compatible_history()
+        self.too_complex_reports != before
     }
 
     // checker.go:27130

@@ -39,9 +39,8 @@ done
 : "${TSGO:?set TSGO to the reference tsgo binary}"
 export TSGO
 export TSRS="${TSRS:-$here/../../../target/release/tsrs}"
-# Go assigns files to checkers with FENNEL; tsrs defaults to directory locality, and printed types (inferred
-# declaration types) can depend on which files a checker saw first. Compare in the Go assignment by default.
-export TSRS_CHECKER_ASSIGNMENT="${TSRS_CHECKER_ASSIGNMENT:-go}"
+# Compare the normal compiler behavior without an alternate checker assignment.
+unset TSRS_CHECKER_ASSIGNMENT
 OUT_GO="${OUT_GO:-/tmp/emit-go}"
 OUT_RS="${OUT_RS:-/tmp/emit-rs}"
 mkdir -p "$OUT_GO" "$OUT_RS"

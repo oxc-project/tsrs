@@ -7,7 +7,7 @@ import tempfile
 import time
 import unittest
 
-from run import (HARNESS, MODES, Context, check_config, check_projects, child_env, compare, difference, execute,
+from run import (HARNESS, HISTORICAL_MODES, MODES, Context, check_config, check_projects, child_env, compare, difference, execute,
                  install_plan, read_compilation, summarize, write_json)
 
 
@@ -20,6 +20,23 @@ def compilation(text="", files=1, code=0, timeout=False):
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_each_project_runs_each_compiler_once_without_compatibility_flags(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            compiler = root / "compiler"
+            compiler.write_text("#!/bin/sh\nprintf 'Files: 1\\n'\n")
+            compiler.chmod(0o755)
+            result = check_projects(root, ["tsconfig.json"], context(compiler, compiler, root), root / "logs", 10, 5)
+            self.assertEqual(result["status"], "match")
+            self.assertNotIn("strict_status", result)
+            self.assertNotIn("strict", result["configs"][0])
+            logs = root / "logs" / "0"
+            self.assertEqual(sorted(p.name for p in logs.glob("*.log")), ["tsgo.log", "tsrs.log"])
+            for name in ("tsgo.log", "tsrs.log"):
+                command = (logs / name).read_text().splitlines()[0]
+                for flag in ("--checkerAssignment", "--checkers", "--noLazyMembers"):
+                    self.assertNotIn(flag, command)
+
     def test_dropped_changed_or_reordered_diagnostics_fail_parity(self):
         first = "a.ts(1,1): error TS2322: wrong type.\n  'foo' is missing."
         second = "b.ts(1,1): error TS2345: wrong argument."
@@ -213,6 +230,26 @@ class RerunTests(unittest.TestCase):
 
 
 class ReportTests(unittest.TestCase):
+    def test_current_manifest_rejects_historical_results(self):
+        manifest = {"harness": HARNESS, "tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 1,
+                    "repositories": [{"repository": "a/one"}]}
+        report = {"harness": HARNESS - 1, "tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shard": 0,
+                  "modes": HISTORICAL_MODES, "results": [{"repository": "a/one", "status": "match", "configs": [
+                      {"config": "tsconfig.json", "status": "match", "tsgo": {"exit": 0},
+                       "strict": {"status": "match"}}]}]}
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            write_json(root / "shard-0.json", report)
+            self.assertFalse(summarize(manifest, root, root / "report.md"))
+            self.assertIn("obsolete harness results", (root / "report.md").read_text())
+            self.assertTrue(summarize(dict(manifest, harness=HARNESS - 1), root, root / "report.md"))
+            self.assertIn("## Historical strict mode", (root / "report.md").read_text())
+            report.update(harness=HARNESS, modes=MODES)
+            del report["results"][0]["configs"][0]["strict"]
+            write_json(root / "shard-0.json", report)
+            self.assertTrue(summarize(manifest, root, root / "report.md"))
+            self.assertNotIn("Historical strict", (root / "report.md").read_text())
+
     def test_missing_duplicate_or_wrong_revision_results_fail_the_report(self):
         manifest = {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 2,
                     "repositories": [{"repository": "a/one"}, {"repository": "a/two"}]}
@@ -229,7 +266,7 @@ class ReportTests(unittest.TestCase):
             self.assertIn("Missing repository result: a/two", out.read_text())
             write_json(results / "shard-1.json", shard(1, "a/two"))
             self.assertTrue(summarize(manifest, results, out))
-            self.assertIn("These shard reports predate strict mode", out.read_text())
+            self.assertNotIn("## Historical strict mode", out.read_text())
             write_json(results / "duplicate" / "shard-0.json", shard(0, "a/one"))
             self.assertFalse(summarize(manifest, results, out))
             (results / "duplicate" / "shard-0.json").unlink()
@@ -243,7 +280,7 @@ class ReportTests(unittest.TestCase):
                     self.assertIn("1 of 2 repositories have a result; 1 had at least one project", text)
                     self.assertIn("Both compilers completed on 1 projects: 1 identical", text)
                     self.assertIn("Missing repository result: a/two", text)
-                    self.assertIn("| [a/two](https://github.com/a/two) | `` | missing |  | 0 / 0 | 0 |", text)
+                    self.assertIn("| [a/two](https://github.com/a/two) | `` | missing | 0 / 0 | 0 |", text)
 
     def test_a_rerun_shard_fills_a_lost_one_only_with_matching_provenance(self):
         manifest = {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 2,
@@ -285,7 +322,7 @@ class ReportTests(unittest.TestCase):
             self.assertIn("Missing repository result: a/two", text)
             # Shards checked with other settings or modes are not merged, including reports from before strict mode.
             write_json(root / "rerun" / "shard-1.json", shard(1, ("a/two", "c2", "match")))
-            for settings in ({"check_timeout": 60}, {"modes": {"default": MODES["default"]}}):
+            for settings in ({"check_timeout": 60}, {"modes": HISTORICAL_MODES}):
                 with self.subTest(settings=settings):
                     write_json(root / "previous" / "shard-0.json",
                                shard(0, ("a/one", "c1", "match"), ("a/three", "c3", "match"), **settings))
@@ -309,7 +346,7 @@ class ReportTests(unittest.TestCase):
                     "available_configs": 1, "configs": [{"config": "tsconfig.json", "status": default,
                                                          "tsgo": {"exit": 0}, "strict": {"status": strict}}]}
         def shard(index, *results, **fields):
-            return {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shard": index, "modes": MODES,
+            return {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shard": index, "modes": HISTORICAL_MODES,
                     **fields, "results": list(results)}
         cases = [
             # A partial earlier shard (a/4 was not reached) that recorded a difference in either mode.
@@ -413,7 +450,7 @@ class CompilerControls(unittest.TestCase):
             self.assertEqual([c["status"] for c in result["configs"][3:]], ["no_inputs", "no_inputs"])
             self.assertEqual(result["status"], "partial")
 
-    def test_strict_mode_is_reported_separately_and_does_not_clear_a_default_difference(self):
+    def test_production_difference_is_reported_without_an_alternate_run(self):
         """Reduced from the property-order configs (langfuse, qwen-code, OmniRoute, ...): tsrs's default mode prints
         `user?: undefined` where the declaration puts it, tsgo where a.ts's checker first created it."""
         tsrs = Path(os.environ["TSRS_CONFORMANCE_TSRS"]).resolve()
@@ -427,11 +464,12 @@ class CompilerControls(unittest.TestCase):
             result = check_projects(root, ["tsconfig.json"], context(tsgo, tsrs, root), root / "logs", 60, 5)
             [config] = result["configs"]
             self.assertEqual((config["status"], config["difference"]), ("mismatch", ["diagnostics"]))
-            self.assertEqual(config["strict"]["status"], "match")
-            self.assertEqual((result["status"], result["strict_status"]), ("mismatch", "match"))
+            self.assertEqual(result["status"], "mismatch")
+            self.assertNotIn("strict", config)
+            self.assertNotIn("strict_status", result)
             logs = root / "logs" / "0"
             self.assertIn("{ status: string; user?: undefined; }", (logs / "tsrs.log").read_text())
-            self.assertIn("{ user?: undefined; status: string; }", (logs / "tsrs-strict.log").read_text())
+            self.assertFalse((logs / "tsrs-strict.log").exists())
             self.assertTrue((logs / "diagnostics.diff").exists())
             self.assertFalse((logs / "diagnostics-strict.diff").exists())
             manifest = {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 1,
@@ -442,13 +480,11 @@ class CompilerControls(unittest.TestCase):
             self.assertFalse(summarize(manifest, root / "results", root / "report.md"))
             report = (root / "report.md").read_text()
             self.assertIn("0 identical (0 without errors, 0 with the same errors) and 1 different", report)
-            self.assertIn("tsrs `--checkerAssignment go --checkers 4 --noLazyMembers`", report)
-            self.assertIn("1 identical, 0 different, 0 tsrs failures in strict mode", report)
-            self.assertIn("1 projects that differ or fail in default mode are identical in strict mode", report)
-            self.assertIn("tsconfig.json: mismatch (diagnostics); strict match", report)
-            self.assertIn("| mismatch | match | 0 / 1 | 1 |", report)
+            self.assertNotIn("## Historical strict mode", report)
+            self.assertIn("tsconfig.json: mismatch (diagnostics)", report)
+            self.assertIn("| mismatch | 0 / 1 | 1 |", report)
 
-    def test_default_mode_keeps_the_projects_checkers_and_strict_mode_has_its_own_reference(self):
+    def test_comparison_keeps_the_projects_checkers(self):
         """make(...) costs just over the 5M instantiation limit. tsgo with the project's 8 checkers checks b.ts's
         `id(big)` on a checker that has not seen a.ts and reports TS2589 there too; with 4 checkers it does not. A
         default reference forced to 4 checkers would hide b.ts's error from the default comparison."""
@@ -470,58 +506,15 @@ class CompilerControls(unittest.TestCase):
             [config] = result["configs"]
             logs = root / "logs" / "0"
             depth = "error TS2589: Type instantiation is excessively deep and possibly infinite."
-            default, strict = (logs / "tsgo.log").read_text(), (logs / "tsgo-strict.log").read_text()
+            default = (logs / "tsgo.log").read_text()
+            self.assertFalse((logs / "tsgo-strict.log").exists())
             self.assertNotIn("--checkers", default.partition("\n")[0])
             self.assertEqual([line for line in default.splitlines() if depth in line],
                              ["a.ts(5,13): " + depth, "b.ts(2,11): " + depth])
-            self.assertEqual([line for line in strict.splitlines() if depth in line], ["a.ts(5,13): " + depth])
-            self.assertIn("--noLazyMembers", (logs / "tsrs-strict.log").read_text().partition("\n")[0])
-            self.assertEqual(config["strict"]["status"], "match")
             # Default-mode tsrs (locality assignment) currently reports only a.ts's error here; checked against the
             # project's 8-checker reference, that is a difference, where a 4-checker reference would have matched.
             both = "b.ts(2,11): " + depth in (logs / "tsrs.log").read_text()
             self.assertEqual(config["status"], "match" if both else "mismatch")
-
-    def test_strict_mode_stays_within_the_check_budget(self):
-        """A tsrs that hangs only in strict mode: the default comparisons keep their time, the whole check stays within
-        its budget, and a strict timeout is a failure only when tsrs had at least the default run's limit."""
-        tsrs = Path(os.environ["TSRS_CONFORMANCE_TSRS"]).resolve()
-        tsgo = Path(os.environ["TSRS_CONFORMANCE_TSGO"]).resolve()
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp).resolve()
-            hang = root / "tsrs-hangs-in-strict-mode"
-            hang.write_text(f'#!/bin/sh\ncase "$*" in *noLazyMembers*) sleep 60;; esac\nexec "{tsrs}" "$@"\n')
-            hang.chmod(0o755)
-            configs = []
-            for name in ("one", "two", "three"):
-                write_json(root / name / "tsconfig.json", {"files": ["a.ts"]})
-                (root / name / "a.ts").write_text("export const x: number = 1;\n")
-                configs.append(name + "/tsconfig.json")
-            for budget, checked, expected in ((6, configs, "budget_exhausted"), (3, configs[:1], "tsrs_failed")):
-                with self.subTest(budget=budget):
-                    start = time.monotonic()
-                    result = check_projects(root, checked, context(tsgo, hang, root), root / f"logs{budget}", budget, 5)
-                    self.assertLess(time.monotonic() - start, budget + 1)
-                    self.assertEqual([c["status"] for c in result["configs"]], ["match"] * len(checked))
-                    self.assertEqual([c["strict"]["status"] for c in result["configs"]], [expected] * len(checked))
-                    self.assertEqual(result["status"], "match")
-
-    def test_a_strict_reference_failure_does_not_run_strict_tsrs(self):
-        tsrs = Path(os.environ["TSRS_CONFORMANCE_TSRS"]).resolve()
-        tsgo = Path(os.environ["TSRS_CONFORMANCE_TSGO"]).resolve()
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp).resolve()
-            broken = root / "tsgo-fails-with-checkers"
-            broken.write_text(f'#!/bin/sh\ncase "$*" in *--checkers*) exit 3;; esac\nexec "{tsgo}" "$@"\n')
-            broken.chmod(0o755)
-            write_json(root / "tsconfig.json", {"files": ["a.ts"]})
-            (root / "a.ts").write_text("export const x: number = 1;\n")
-            result = check_projects(root, ["tsconfig.json"], context(broken, tsrs, root), root / "logs", 30, 5)
-            [config] = result["configs"]
-            self.assertEqual((config["status"], config["strict"]["status"]), ("match", "reference_failed"))
-            self.assertNotIn("tsrs", config["strict"])
-            self.assertFalse((root / "logs" / "0" / "tsrs-strict.log").exists())
-            self.assertEqual(result["strict_status"], "not_checked")
 
     def test_a_reference_timeout_does_not_spend_the_budget_on_tsrs(self):
         tsrs = Path(os.environ["TSRS_CONFORMANCE_TSRS"]).resolve()

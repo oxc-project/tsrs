@@ -61,22 +61,16 @@ fewer symbols, types and instantiations than `tsgo-ref` (it equals tsgo with bot
 
 ## Checker assignment (multi-checker counters)
 
-With more than one checker, tsrs assigns files to checkers by directory locality by default
-(`--checkerAssignment locality`, notes/mem-assignment.md); Go uses FENNEL over single files. Diagnostics and emitted
-files do not depend on the assignment (notes/perf-order-independence.md), but multi-checker
-symbol/type/instantiation counters and peak memory do: compare them against `tsgo-ref` with `--checkerAssignment go`
-(or `TSRS_CHECKER_ASSIGNMENT=go`). `go` also preserves Go's checker history (`tsrs_core::compat`), so it is the mode
-for byte-identity with tsgo (with `--noLazyMembers`
-where an instantiation depth limit is reached: lazy members change which instantiations a checker has cached,
-notes/open-history-dependence.md section 6). The conformance, fourslash and tsc harnesses run in it; set
-`TSRS_CHECKER_ASSIGNMENT=locality` to run them in the default mode.
-`TSRS_CHECKER_ASSIGNMENT=random:<seed>` puts each file on a random checker with a random visit order in each checker:
-the default mode must print the same text for every seed and checker count. Single-threaded runs have no assignment.
-Without a named assignment the type-check pass also steals work: a checker that has run out of files takes unstarted
-files from the back of the busiest checker (notes/perf-checker-stealing.md). Output is unchanged by it, but the
-counters vary from run to run; naming an assignment (`--checkerAssignment locality`) turns stealing off for fully
-reproducible counters. `TSRS_HISTORY=canonical` runs the tsgo-baseline harnesses in the default mode, stealing
-included, without naming an assignment.
+With more than one checker, tsrs assigns files by directory locality (notes/mem-assignment.md).
+All entrypoints and harnesses use the same checker behavior. The former Go-compatible history mode,
+`--checkerAssignment go`, and `TSRS_HISTORY` have been removed; differences from the pinned reference
+remain conformance gaps.
+
+`TSRS_CHECKER_ASSIGNMENT=random:<seed>` assigns files and visit order from a seed, to check that output
+stays independent of scheduling. Known exceptions are recorded in the compatibility table.
+Without a named assignment the type-check pass steals work from the busiest checker; counters can vary
+between runs. `--checkerAssignment locality` disables stealing for reproducible counters.
+
 Each checker begins the type-check pass with the files of its queue whose static weight exceeds 1/200 of an average
 checker's share, heaviest first, then the rest in program order (notes/perf-checker-64.md,
 notes/perf-heavy-first-threshold.md); `TSRS_HEAVY_SHARE_DIVISOR=<n>` changes the divisor for experiments.
@@ -95,16 +89,15 @@ checkers at most a quarter of the checkers take files from any one checker at a 
 
 By default a TS2590 no longer depends on the checker assignment: a result computed while one was reported is not
 cached, so every file that evaluates the type reports it, once per too-complex type at the first site that evaluated
-it (`Checker::too_complex_since`, `flush_too_complex_reports`, notes/open-history-dependence.md section 4). The trace below is for `--checkerAssignment go`, which keeps Go's caches and so Go's first-evaluation-only
-reports, and for finding which union a TS2590 is about.
+it (`Checker::too_complex_since`, `flush_too_complex_reports`, notes/open-history-dependence.md section 4). The trace identifies which union a TS2590 is about.
 
 TS2590 ("Expression produces a union type that is too complex to represent") comes from two places. `removeSubtypes`
 gives up when, after 100,000 comparisons, the comparisons per constituent so far times the union's length exceed
 1,000,000, so only a union of more than 1,000 types can get it. `checkCrossProductUnion` gives up when a cross product
 would have 100,000 members or more: the union an intersection of unions expands to (`X & (A | B) & (C | D)` is
 `X & A & C | X & A & D | ...`), a spread of a union, a template literal over unions, a tuple with a union in a variadic
-element. Neither caches its failure, but what is built from the error type it returns is cached higher up, so in Go
-mode a checker reports the TS2590 only where it first builds the type (notes/open-history-dependence.md section 4).
+element. Neither caches its failure, but what is built from the error type it returns is cached higher up, so the upstream Go
+compiler reports the TS2590 only where it first builds the type (notes/open-history-dependence.md section 4).
 `TSRS_TRACE_UNION_REDUCTION=1` prints three kinds of lines on stderr (crates/tsrs_checker/src/uniontrace.rs; the first
 two below are from the reporter's reproduction (PR #228, now testdata/regressions/union-too-complex-cross-product), the third
 from
@@ -152,7 +145,7 @@ the types already hold and resolves nothing. When two runs disagree on a TS2590:
   | 4 | 4 | 6 | no | yes |
 
   On another commit, the checker that checked `RecordMap.ts` and then `execution.ts` printed no line at
-  `execution.ts(89,23)` and no error, while under `--checkerAssignment go` the two files were on different checkers
+  `execution.ts(89,23)` and no error, while under the former compatibility mode the two files were on different checkers
   and `execution.ts`'s checker built the cross products itself and reported the TS2590, as tsgo does.
 
 ## `.types` / `.symbols` equivalence on the private monorepo against the cached reference
@@ -298,13 +291,12 @@ them with the memo on, off and in shadow mode.
 in input order, the reduction mode and the alias (symbol and type arguments), at most 8 words. A call is stored only if
 it created no type other than the union it returns, instantiated nothing, took neither the template-literal nor the
 constrained-type-variable reduction, and did not return `errorType` (the TS2590 path); the module comment has the
-argument for why a hit then returns exactly what the uncached call would. On by default, off under
-`--checkerAssignment go`. Diagnostics, `.types`/`.symbols` output and the `Types`/`Instantiations` counters are the
+argument for why a hit then returns exactly what the uncached call would. On by default. Diagnostics, `.types`/`.symbols` output and the `Types`/`Instantiations` counters are the
 same either way.
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_UNION_CACHE` | unset (on; off under `--checkerAssignment go`), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also computes the uncached answer at every hit and panics if it is a different type (the panic names the input type ids, the reduction and both answers) |
+| `TSRS_UNION_CACHE` | unset (on), `0`/`off`, `1`/`on`, `shadow` | `shadow` also computes the uncached answer at every hit and panics if it is a different type (the panic names the input type ids, the reduction and both answers) |
 | `TSRS_UNION_CACHE_STATS` | `1` | at exit, one line on stderr: lookups, hits, stores, why misses were not stored, calls that bypass the cache (shadow mode prints it too) |
 | `TSRS_UNION_CACHE_BITS` | default `10` | log2 of the table size. Larger tables hit slightly more often (2^12: 0.03% fewer instructions) but cost up to 2 MiB of RSS per checker (an allocation above mimalloc's medium size) |
 
@@ -322,13 +314,13 @@ candidate lists, priority and `topLevel`, and whether it cleared the cached infe
 took at least 16 `inferFromTypes` steps (and an earlier walk to the same target did too), created no type, symbol or signature, instantiated nothing, added no
 diagnostic, took no impure union reduction, read no transient state (the flow memo's taint frame around it), did not
 start inside an instantiation and, if it started with the instantiation count at 0, checked no expression; the
-module comment has the argument. On by default, off under `--checkerAssignment go`. It pays where one generic call is
+module comment has the argument. On by default. It pays where one generic call is
 inferred many times from the same contextual type (vscode's `mapSessionEvents.test.ts`:
 notes/perf-heavy-files-infer-memo.md).
 
 | variable | values | effect |
 | --- | --- | --- |
-| `TSRS_INFER_MEMO` | unset (on; off under `--checkerAssignment go`), `0`/`off`, `1`/`on` (on in every mode), `shadow` | `shadow` also walks every hit from the same starting state and panics unless the walk again creates nothing but lazy member symbols, has no other effects and ends in the stored outcome (the panic names the type ids and both outcomes) |
+| `TSRS_INFER_MEMO` | unset (on), `0`/`off`, `1`/`on`, `shadow` | `shadow` also walks every hit from the same starting state and panics unless the walk again creates nothing but lazy member symbols, has no other effects and ends in the stored outcome (the panic names the type ids and both outcomes) |
 | `TSRS_INFER_MEMO_STATS` | `1` | at exit, one line on stderr: lookups, hits, the `inferFromTypes` steps the hits skipped, stores, and why long walks were not stored (shadow mode prints it too) |
 | `TSRS_INFER_MEMO_MIN_STEPS` | default `16` | the shortest walk (in `inferFromTypes` steps) that is stored; lower stores more walks (more memory, more lookups that pay) |
 
@@ -352,7 +344,7 @@ notes/mem-free-leaf-files.md). A leaf is a checked TypeScript module that no oth
 only its own declarations; on vscode 2,289 of the 2,337 leaves are predicted (99.2% of the leaves' nodes). Other files
 are parsed into the thread arenas as before. The text, the `SourceFile` and the diagnostics are kept, so the report is
 the same. It is off with declaration emit (`declaration`, `composite`), `--explainFiles`, `--incremental`, `--build`,
-`--checkerAssignment go`, in the language server, the API and the test harnesses, under the debug modes that walk
+in the language server, the API and the test harnesses, under the debug modes that walk
 files or checker tables after the check (`TSRS_FILE_TIMES` and the work census),
 and in builds without compressed pointers (`plain-ptrs`, non-unix): there a freed region's memory stays mapped and the heap its values owned is reused, so a stale read would see a live object, and nothing would be
 saved. Asking a program for one freed leaf's diagnostics after the pass panics (the tree is gone); the CLI never does.
@@ -398,7 +390,7 @@ first range; each other range is a queue item at the front of another checker's 
 statements (`Checker::check_source_file_piece`) and hands its diagnostics for the file to the owner. The owner adds
 them to its collection, which deduplicates and sorts, and then runs the file-level steps as usual. A file is split only
 if all its top-level statements are declarations (`TS1036` is reported on the first executable statement of a block
-only, so two ranges would each report one). It is off with a named assignment (`--checkerAssignment`, `go`,
+only, so two ranges would each report one). It is off with a named assignment (`--checkerAssignment locality`,
 `random:<seed>`), single-threaded, and in every other pass (declaration diagnostics, emit, incremental, the language
 server).
 
@@ -410,7 +402,7 @@ server).
 
 After a change to what checking a declaration statement reads or writes outside the statement, run the conformance
 suite in the default checker mode with forced splits and compare its lists with an unsplit run:
-`TS_TEST_PROGRAM_SINGLE_THREADED=false TSRS_HISTORY=canonical TSRS_SPLIT_FILES=force:3,shadow tsrs-test run --suite all
+`TSRS_SPLIT_FILES=force:3,shadow tsrs-test run --suite all
 --baselines types,symbols --panic-summary` against the same with `TSRS_SPLIT_FILES=0` (about 630 declaration files in
 330 test programs are split). `cargo test -p tsrs_cli --test split_check` runs testdata/split-check in every mode
 against tsgo-ref's output.

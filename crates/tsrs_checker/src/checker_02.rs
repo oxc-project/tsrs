@@ -1314,12 +1314,8 @@ impl Checker {
     /// diagnostics, and a checker's diagnostics in a file it does not check are never read, so every checker but the
     /// one that checks the file repeated it for nothing: in excalidraw one such check costs each of 9 checkers 0.3 s
     /// and 120 MiB of discarded error elaboration (notes/perf-excalidraw-typefest.md). TypeScript defers the same
-    /// check (`addLazyDiagnostic` in `checkTypeReferenceOrImport`); typescript-go runs it at once, as Go-compatible
-    /// history mode still does.
+    /// check (`addLazyDiagnostic` in `checkTypeReferenceOrImport`); typescript-go runs it at once.
     fn defer_type_argument_constraints(&mut self, node: P<Node>) -> bool {
-        if tsrs_core::compat::go_compatible_history() {
-            return false;
-        }
         let Some(file) = ast::get_source_file_of_node(Some(node)) else {
             return false;
         };

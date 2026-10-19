@@ -507,8 +507,6 @@ fn cmd_types_dump(mut args: Args) {
 fn main() {
     #[cfg(all(target_os = "linux", not(miri)))]
     tsrs_core::allocator::init_mimalloc();
-    // The baselines are tsgo's output (one checker in program order): keep Go's check history (tsrs_core::compat).
-    tsrs_core::compat::use_go_history_for_tsgo_baselines();
     // tsrs-only (notes/mem-lazy-dts-members.md): `TSRS_LAZY_DTS=force` parses every declaration-file member list
     // lazily, checked files included, to test that forcing gives the same output. Off by default.
     if std::env::var_os("TSRS_LAZY_DTS").is_some_and(|v| v == "force") {

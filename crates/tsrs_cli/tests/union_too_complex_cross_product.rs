@@ -5,8 +5,8 @@
 // the type, because the error type it returns is cached one level up (the intersection split, the relation), so
 // tsgo-ref reports x/zz.ts at 3 checkers and nothing at 1 or 2, and tsrs with work stealing reported it in about half
 // of the runs. By default tsrs no longer caches a result computed while a TS2590 was reported, so every file that
-// evaluates the type reports it, once per type at the first site, whatever the assignment; `--checkerAssignment go`
-// keeps Go's behaviour (notes/open-history-dependence.md section 4).
+// evaluates the type reports it, once per type at the first site, whatever the assignment
+// (notes/open-history-dependence.md section 4).
 
 use std::path::Path;
 use std::process::Command;
@@ -19,7 +19,6 @@ fn run(args: &[&str]) -> (bool, String) {
         .args(["-p", ".", "--pretty", "false"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
-        .env_remove("TSRS_HISTORY")
         .output()
         .unwrap();
     assert!(
@@ -53,11 +52,4 @@ fn too_complex_union_reports_at_every_site_whatever_the_assignment() {
             );
         }
     }
-    // Go's history: the checker that evaluated the type under x/a.ts's `@ts-ignore` reports nothing at x/zz.ts, as
-    // tsgo-ref does with one checker.
-    assert_eq!(
-        run(&["--checkers", "1", "--checkerAssignment", "go"]),
-        (true, String::new()),
-        "--checkerAssignment go"
-    );
 }

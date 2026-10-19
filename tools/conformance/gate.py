@@ -18,6 +18,7 @@ KNOWN = Path(__file__).with_name("known-mismatches.json")
 BASELINES = ("errors", "types", "symbols", "js", "js.map", "sourcemap.txt")
 CLASSES = ("pass", "codes", "fail", "crash", "timeout", "skip")
 FLAGS = "types,symbols,js,jsmap,sourcemap"
+SCHEMA_VERSION = 2
 
 
 def unique_object(pairs):
@@ -79,13 +80,14 @@ def mismatch_index(entries):
     return index
 
 
-def inspect_results(directory, mode, commit):
+def inspect_results(directory, commit):
     invocation = read_json(directory / "invocation.json")
-    if invocation != {"mode": mode, "reference_commit": commit, "exit_code": 0}:
-        raise ValueError("runner failed, or results were produced for a different mode/reference")
+    if invocation != {"schema_version": SCHEMA_VERSION, "reference_commit": commit, "exit_code": 0}:
+        raise ValueError("runner failed, or results have an obsolete schema/different reference")
     manifest = read_json(directory / "run.json")
-    if manifest["complete"] is not True or manifest["mode"] != mode or manifest["baselines"] != list(BASELINES):
-        raise ValueError("results are not a complete full-baseline run in the requested mode")
+    if (manifest.get("schema_version") != SCHEMA_VERSION or "mode" in manifest
+            or manifest["complete"] is not True or manifest["baselines"] != list(BASELINES)):
+        raise ValueError("results are not a complete full-baseline run with the current schema")
     selected = manifest["selected"]
     if not selected or len(set(selected)) != len(selected):
         raise ValueError("empty or duplicate test selection")
@@ -179,8 +181,8 @@ def compare(snapshot, expected):
     return changes, problems
 
 
-def report(directory, mode, counts, skipped, excluded, changes, problems):
-    lines = [f"## Full conformance: {mode}", "", "| Baseline | Pass | Codes | Fail | Crash | Timeout | Skip |",
+def report(directory, counts, skipped, excluded, changes, problems):
+    lines = ["## Full conformance", "", "| Baseline | Pass | Codes | Fail | Crash | Timeout | Skip |",
              "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for baseline in BASELINES:
         lines.append(f"| {baseline} | " + " | ".join(str(counts[baseline][c]) for c in CLASSES) + " |")
@@ -220,15 +222,14 @@ def publish_report(directory, text):
             output.write(text)
 
 
-def run(directory, mode, commit):
+def run(directory, commit):
     directory.mkdir(parents=True, exist_ok=True)
     # Only remove run-level metadata. Never recursively delete a caller-supplied results directory.
     for filename in ("summary.json", "run.json", "invocation.json", "coverage.json", "report.md"):
         (directory / filename).unlink(missing_ok=True)
     env = os.environ.copy()
     env.pop("TSRS_CHECKER_ASSIGNMENT", None)
-    env["TSRS_HISTORY"] = "canonical" if mode == "default" else "go"
-    env["TS_TEST_PROGRAM_SINGLE_THREADED"] = "false" if mode == "default" else "true"
+    env.pop("TS_TEST_PROGRAM_SINGLE_THREADED", None)
     env["TSRS_TEST_RESULTS"] = str(directory.resolve())
     command = [env.get("TSRS_TEST", "target/release/tsrs-test"), "run", "--suite", "all",
                "--baselines", FLAGS, "--timeout", env.get("TEST_TIMEOUT", "120")]
@@ -239,49 +240,49 @@ def run(directory, mode, commit):
                 log.write(line)
                 print(line, end="", flush=True)
             status = process.wait()
-    write_json(directory / "invocation.json", {"mode": mode, "reference_commit": commit, "exit_code": status})
+    write_json(directory / "invocation.json", {"schema_version": SCHEMA_VERSION, "reference_commit": commit, "exit_code": status})
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("run", "check", "refresh"))
-    parser.add_argument("--mode", choices=("go", "default"), default="go")
     parser.add_argument("--results", type=Path)
     parser.add_argument("--known", type=Path, default=KNOWN)
     args = parser.parse_args()
-    directory = args.results or Path(os.environ.get("TSRS_TEST_RESULTS", ROOT / "target" /
-                                                   ("test-results" if args.mode == "go" else "test-results-default")))
+    directory = args.results or Path(os.environ.get("TSRS_TEST_RESULTS", ROOT / "target" / "test-results"))
     try:
         if args.command == "refresh" and os.environ.get("CI"):
             raise ValueError("refresh is a local review operation; CI cannot update known mismatches")
         commit = reference_commit()
         if args.command == "run":
-            run(directory, args.mode, commit)
-        snapshot, counts, skipped, problems = inspect_results(directory, args.mode, commit)
+            run(directory, commit)
+        snapshot, counts, skipped, problems = inspect_results(directory, commit)
         if args.known.exists():
             known = read_json(args.known)
+            if known.get("schema_version") != SCHEMA_VERSION or "modes" in known:
+                raise ValueError("obsolete inventory schema; migrate the reviewed production results")
             if known["reference_commit"] != commit:
-                raise ValueError("known mismatches target a different upstream commit; regenerate both modes after review")
+                raise ValueError("known mismatches target a different upstream commit; regenerate after review")
         elif args.command == "refresh":
-            known = {"reference_commit": commit, "modes": {}}
+            known = {"schema_version": SCHEMA_VERSION, "reference_commit": commit}
         else:
             raise ValueError(f"missing reviewed inventory: {args.known}")
         if args.command == "refresh":
             if problems:
                 raise ValueError("cannot record crashes/timeouts: " + "; ".join(problems))
             mismatch_index(snapshot["mismatches"])
-            known["modes"][args.mode] = snapshot
+            known.update(snapshot)
             args.known.parent.mkdir(parents=True, exist_ok=True)
             write_json(args.known, known)
             changes = [("known", entry) for entry in snapshot["mismatches"]]
-            print(f"Updated {args.known} ({args.mode}); review the diff before committing.")
+            print(f"Updated {args.known}; review the diff before committing.")
         else:
-            changes, differences = compare(snapshot, known["modes"][args.mode])
+            changes, differences = compare(snapshot, known)
             problems.extend(differences)
-        report(directory, args.mode, counts, skipped, snapshot["coverage"]["excluded"], changes, problems)
+        report(directory, counts, skipped, snapshot["coverage"]["excluded"], changes, problems)
         return 1 if problems else 0
     except (OSError, ValueError, KeyError, TypeError) as error:
-        publish_report(directory, f"## Full conformance: {args.mode}\n\nConformance gate: FAIL\n\n"
+        publish_report(directory, "## Full conformance\n\nConformance gate: FAIL\n\n"
                                   f"Incomplete or invalid results/inventory: {html.escape(str(error))}\n")
         return 1
 

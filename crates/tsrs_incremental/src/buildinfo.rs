@@ -2,8 +2,8 @@
 //
 // Go marshals these types with encoding/json/v2 (`omitzero` fields, custom MarshalJSON for the tuple shapes).
 // Rust builds the same `json::Value` tree by hand, field by field in Go's declaration order, so that
-// `json::marshal` produces Go's exact bytes in Go-compatible history. Unmarshaling follows the Go
-// `UnmarshalJSON` fallbacks; default history adds an optional tsrs canonical-cache proof.
+// `json::marshal` follows Go encoding with an optional tsrs diagnostic-cache signature. Unmarshaling follows the Go
+// `UnmarshalJSON` fallbacks.
 
 use rustc_hash::FxHashMap;
 use tsrs_ast::RepopulateDiagnosticKind;
@@ -643,7 +643,7 @@ pub struct BuildInfo {
     pub package_jsons: Option<Vec<String>>,
     pub missing_package_jsons: Option<Vec<String>>,
     pub content_mapper_identities: Option<Vec<String>>,
-    // Default-history cache proof; Go-compatible history leaves it empty and omits it.
+    // CLI diagnostic-cache proof; the API leaves it empty and omits it.
     pub tsrs_canonical_check_signature: String,
 
     // IncrementalProgram info
@@ -728,10 +728,8 @@ impl BuildInfo {
         canonical_diagnostics: bool,
     ) -> Result<BuildInfo, String> {
         let o = as_object(data)?;
-        // tsrs-only: tagged CLI diagnostics cannot be reused by API or Go history, even with a malformed proof.
-        if (!canonical_diagnostics || tsrs_core::compat::go_compatible_history())
-            && o.contains_key("tsrsCanonicalCheckSignature")
-        {
+        // tsrs-only: tagged CLI diagnostics cannot be reused by the API, even with a malformed proof.
+        if !canonical_diagnostics && o.contains_key("tsrsCanonicalCheckSignature") {
             return Err(
                 "canonical build info cannot be reused with this diagnostic policy".to_string()
             );

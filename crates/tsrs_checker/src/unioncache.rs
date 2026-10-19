@@ -1,4 +1,4 @@
-//! The union front cache (`TSRS_UNION_CACHE`, on by default, off under Go-compatible history; docs/DEBUGGING.md,
+//! The union front cache (`TSRS_UNION_CACHE`, on by default; docs/DEBUGGING.md,
 //! notes/perf-union-inference.md).
 //!
 //! Most `getUnionType` calls build a union of a few types that was built before. Without the cache every such call
@@ -28,7 +28,7 @@
 //! never freed while their checker lives, so a handle in a key is never reused for another type.
 //!
 //! `TSRS_UNION_CACHE=shadow` computes the uncached answer at every hit as well and panics if it is a different object.
-//! `TSRS_UNION_CACHE=0` turns the cache off, `=1` forces it on under Go-compatible history too.
+//! `TSRS_UNION_CACHE=0` turns the cache off, `=1` turns it on.
 //! `TSRS_UNION_CACHE_STATS=1` prints the totals (lookups, hits, stores, why misses were not stored, calls that bypass
 //! the cache) on stderr at exit; `TSRS_UNION_CACHE_BITS=<n>` sets the table size (default 10; larger tables cost RSS,
 //! notes/perf-union-inference.md).
@@ -56,7 +56,7 @@ fn env_mode() -> Option<UnionCacheMode> {
 }
 
 /// The mode of the indexed-access memo (`TSRS_IA_MEMO`, `checker_13.rs`
-/// `get_indexed_access_type_by_union_memoized`): on unless turned off or under Go-compatible history, like
+/// `get_indexed_access_type_by_union_memoized`): on unless turned off, like
 /// the union front cache.
 pub(crate) fn indexed_access_memo_mode() -> UnionCacheMode {
     static MODE: OnceLock<UnionCacheMode> = OnceLock::new();
@@ -64,16 +64,14 @@ pub(crate) fn indexed_access_memo_mode() -> UnionCacheMode {
         Ok("0" | "off") => UnionCacheMode::Off,
         Ok("1" | "on") => UnionCacheMode::On,
         Ok("shadow") => UnionCacheMode::Shadow,
-        _ if tsrs_core::compat::go_compatible_history() => UnionCacheMode::Off,
         _ => UnionCacheMode::On,
     })
 }
 
-/// The mode for a checker created now: the environment's; by default on, except under Go-compatible history.
+/// The mode for a checker created now: the environment's; on by default.
 pub(crate) fn union_cache_mode() -> UnionCacheMode {
     match env_mode() {
         Some(mode) => mode,
-        None if tsrs_core::compat::go_compatible_history() => UnionCacheMode::Off,
         None => UnionCacheMode::On,
     }
 }

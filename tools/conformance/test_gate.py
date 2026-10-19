@@ -27,10 +27,10 @@ class ConformanceGateTests(unittest.TestCase):
 
     def write_results(self):
         gate.write_json(self.results / "invocation.json", {
-            "mode": "go", "reference_commit": gate.reference_commit(), "exit_code": 0,
+            "schema_version": gate.SCHEMA_VERSION, "reference_commit": gate.reference_commit(), "exit_code": 0,
         })
         gate.write_json(self.results / "run.json", {
-            "complete": True, "mode": "go", "baselines": list(gate.BASELINES),
+            "complete": True, "schema_version": gate.SCHEMA_VERSION, "baselines": list(gate.BASELINES),
             "selected": [record["id"] for record in self.records],
             "excluded": {"compiler/APILibCheck.ts": "requires built typescript.d.ts"},
         })
@@ -114,7 +114,7 @@ class ConformanceGateTests(unittest.TestCase):
         self.assert_rejected("resolved or no longer exercised")
         self.assertEqual(self.invoke("refresh").returncode, 0)
         self.assertEqual(self.invoke().returncode, 0)
-        self.assertEqual(gate.read_json(self.known)["modes"]["go"]["mismatches"], [])
+        self.assertEqual(gate.read_json(self.known)["mismatches"], [])
 
     def test_new_skip_and_missing_case_fail_coverage(self):
         self.seed()
@@ -170,7 +170,7 @@ class ConformanceGateTests(unittest.TestCase):
     def test_incomplete_or_wrong_run_cannot_satisfy_gate(self):
         self.seed()
         manifest = gate.read_json(self.results / "run.json")
-        for change in ({"complete": False}, {"mode": "default"}, {"baselines": ["errors", "types", "symbols"]},
+        for change in ({"complete": False}, {"schema_version": 1}, {"mode": "go"}, {"baselines": ["errors", "types", "symbols"]},
                        {"selected": []}, {"selected": ["compiler/good"]},
                        {"selected": ["compiler/good", "compiler/good"]}):
             with self.subTest(change=change):
@@ -202,7 +202,7 @@ class ConformanceGateTests(unittest.TestCase):
         self.seed()
         original = gate.read_json(self.known)
         known = copy.deepcopy(original)
-        known["modes"]["go"]["mismatches"] *= 2
+        known["mismatches"] *= 2
         gate.write_json(self.known, known)
         self.assert_rejected("duplicate mismatch")
         known = copy.deepcopy(original)
@@ -212,6 +212,28 @@ class ConformanceGateTests(unittest.TestCase):
         self.known.write_text('{"modes": {}, "modes": {}}')
         self.assert_rejected("duplicate JSON key")
 
+    def test_legacy_metadata_cannot_satisfy_gate(self):
+        self.seed()
+        for filename in ("invocation.json", "run.json"):
+            path = self.results / filename
+            original = gate.read_json(path)
+            legacy = {key: value for key, value in original.items() if key != "schema_version"}
+            legacy["mode"] = "go"
+            gate.write_json(path, legacy)
+            self.assertNotEqual(self.invoke().returncode, 0)
+            gate.write_json(path, original)
+        known = gate.read_json(self.known)
+        gate.write_json(self.known, {"reference_commit": known["reference_commit"],
+                                    "modes": {"default": known}})
+        self.assert_rejected("obsolete inventory schema")
+
+    def test_removed_mode_option_is_rejected(self):
+        for mode in ("go", "default"):
+            result = subprocess.run([sys.executable, gate.__file__, "check", "--mode", mode],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("unrecognized arguments: --mode", result.stderr)
+
     def test_ci_cannot_refresh_the_inventory(self):
         self.seed()
         before = self.known.read_bytes()
@@ -220,7 +242,7 @@ class ConformanceGateTests(unittest.TestCase):
         self.assertIn("CI cannot update", result.stdout)
         self.assertEqual(self.known.read_bytes(), before)
 
-    def test_run_selects_full_baselines_and_overrides_ambient_mode(self):
+    def test_run_selects_full_baselines_and_clears_threading_overrides(self):
         self.seed()
         source = self.root / "source"
         source.mkdir()
@@ -233,13 +255,12 @@ class ConformanceGateTests(unittest.TestCase):
             "import os, pathlib, shutil, sys\n"
             "assert sys.argv[1:] == ['run', '--suite', 'all', '--baselines', "
             f"{gate.FLAGS!r}, '--timeout', '121']\n"
-            "assert os.environ['TSRS_HISTORY'] == 'go'\n"
-            "assert os.environ['TS_TEST_PROGRAM_SINGLE_THREADED'] == 'true'\n"
+            "assert 'TS_TEST_PROGRAM_SINGLE_THREADED' not in os.environ\n"
             "assert 'TSRS_CHECKER_ASSIGNMENT' not in os.environ\n"
             f"shutil.copytree({str(source)!r}, os.environ['TSRS_TEST_RESULTS'], dirs_exist_ok=True)\n"
         )
         fake_runner.chmod(0o755)
-        result = self.invoke("run", TSRS_TEST=str(fake_runner), TSRS_HISTORY="canonical",
+        result = self.invoke("run", TSRS_TEST=str(fake_runner), TS_TEST_PROGRAM_SINGLE_THREADED="true",
                              TSRS_CHECKER_ASSIGNMENT="locality", TEST_TIMEOUT="121")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

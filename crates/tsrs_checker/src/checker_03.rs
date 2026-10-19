@@ -1335,7 +1335,7 @@ impl Checker {
         let symbol = self.get_symbol_of_declaration(node).unwrap();
         self.check_type_parameter_lists_identical(symbol);
         // Only check this symbol once
-        if self.is_interface_check_site(symbol, node) {
+        if Self::is_interface_check_site(symbol, node) {
             let t = self.get_declared_type_of_symbol(symbol);
             let type_with_this = self.get_type_with_this_argument(t, None, false);
             let error_node = if self.reports_interface_check_errors(symbol, node, t) {
@@ -1381,16 +1381,8 @@ impl Checker {
     // files the errors depend on which files share a checker and in what order it visits them
     // (notes/fix-history-dependent-diagnostics.md). By default they run at the first interface declaration of the symbol
     // in each file, so each file gets the index-constraint errors at its own declarations whatever checked it before;
-    // `reports_interface_check_errors` decides where TS2320 and TS2430 go. `go_compatible_history()` keeps Go's flag.
-    fn is_interface_check_site(&mut self, symbol: P<Symbol>, node: P<Node>) -> bool {
-        if tsrs_core::compat::go_compatible_history() {
-            let links = self.declared_type_links.get(symbol);
-            if links.interface_checked.get() {
-                return false;
-            }
-            links.interface_checked.set(true);
-            return true;
-        }
+    // `reports_interface_check_errors` decides where TS2320 and TS2430 go.
+    fn is_interface_check_site(symbol: P<Symbol>, node: P<Node>) -> bool {
         let file = get_source_file_of_node(node);
         symbol
             .declarations()
@@ -1401,8 +1393,8 @@ impl Checker {
     }
 
     // Whether the checks running at `node` report TS2320 and TS2430, which go to the declaration being checked. Under
-    // Go's flag, always. By default, where tsgo's compiler at its default checker count reports them: at `node` only if
-    // no earlier file of the program that tsgo type checks on the same checker declares the interface
+    // Go's implementation, always. tsrs reports where tsgo's compiler at its default checker count reports them:
+    // at `node` only if no earlier file of the program that tsgo type checks on the same checker declares the interface
     // (`Program::tsgo_default_check_slot`). That depends on the program alone, not on tsrs's checkers.
     fn reports_interface_check_errors(
         &mut self,
@@ -1410,7 +1402,7 @@ impl Checker {
         node: P<Node>,
         t: P<Type>,
     ) -> bool {
-        if tsrs_core::compat::go_compatible_history() || self.get_base_types(t).is_empty() {
+        if self.get_base_types(t).is_empty() {
             return true;
         }
         let file = get_source_file_of_node(node).unwrap();

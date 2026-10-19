@@ -77,12 +77,12 @@ pub fn command_line_with_testing(
             args.retain(|a| !a.eq_ignore_ascii_case(flag));
         }
     }
-    // tsrs-only: `--checkerAssignment <locality|go|random:<seed>|file:<path>>` picks how files are assigned to checkers
-    // (tsrs_compiler checkerpool.rs; `go` is Go's FENNEL assignment and Go's check history, tsrs_core::compat).
+    // tsrs-only: `--checkerAssignment <locality|random:<seed>|file:<path>>` picks how files are assigned to checkers
+    // (tsrs_compiler checkerpool.rs).
     if let Some(pos) = args.iter().position(|a| a.eq_ignore_ascii_case("--checkerAssignment")) {
         let name = args.get(pos + 1).cloned().unwrap_or_default();
         if !tsrs_compiler::set_checker_assignment_from_cli(&name) {
-            sys.write(&format!("error: unknown --checkerAssignment {name:?} (expected locality, go, random:<seed> or file:<path>).\n"));
+            sys.write(&format!("error: unknown --checkerAssignment {name:?} (expected locality, random:<seed> or file:<path>).\n"));
             return CommandLineResult {
                 watcher: None,
                 status: ExitStatus::DiagnosticsPresent_OutputsSkipped,
@@ -416,14 +416,12 @@ fn perform_compilation(
 
     // tsrs-only (notes/mem-free-leaf-files.md): a `--noEmit` check frees the tree of each file that nothing else
     // refers to once it is checked. Not when anything reads the trees after the check pass: declaration
-    // diagnostics (`declaration`, `composite`), `--explainFiles` (the import nodes of each file), the tsctests harness,
-    // or Go's check history (`--checkerAssignment go`, a per-name cache that keeps another file's declarations).
+    // diagnostics (`declaration`, `composite`), `--explainFiles` (the import nodes of each file), or the tsctests harness.
     let options = config.compiler_options().unwrap();
     let leaf_freeing_allowed = testing.is_none()
         && options.no_emit.is_true()
         && !options.get_emit_declarations()
-        && !options.explain_files.is_true()
-        && !tsrs_core::compat::go_compatible_history();
+        && !options.explain_files.is_true();
     let leaf_settings = if leaf_freeing_allowed {
         tsrs_compiler::leaf_settings_from_env(tsrs_compiler::checker_count_upper_bound(
             &options, false,

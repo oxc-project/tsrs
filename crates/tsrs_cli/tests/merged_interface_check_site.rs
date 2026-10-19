@@ -3,8 +3,7 @@
 // (tsgo-ref on merged-interface-check-site: a.ts only at 1-2 checkers, a.ts and b.ts at 3-4, all four files at 8). By
 // default tsrs reports them where tsgo does at its default four checkers, whatever its own checker count and assignment,
 // and still reports each file's index-constraint errors (merged-interface-extends-site: TS2411 in c.ts and d.ts, which
-// do not report the TS2430). expected.txt is tsgo-ref's default output; `--checkerAssignment go` keeps Go's behaviour
-// (notes/fix-history-dependent-diagnostics.md).
+// do not report the TS2430). expected.txt is tsgo-ref's default output (notes/fix-history-dependent-diagnostics.md).
 
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -24,7 +23,6 @@ fn run_in(dir: &Path, args: &[&str]) -> String {
         .args(["-p", ".", "--pretty", "false"])
         .args(args)
         .env_remove("TSRS_CHECKER_ASSIGNMENT")
-        .env_remove("TSRS_HISTORY")
         .output()
         .unwrap();
     assert_eq!(
@@ -91,8 +89,8 @@ fn incremental_merged_interface_sites_match_clean_builds() {
 }
 
 #[test]
-fn incremental_merged_interface_sites_follow_history_changes() {
-    let dir = std::env::temp_dir().join(format!("tsrs-merged-history-{}", std::process::id()));
+fn incremental_merged_interface_sites_upgrade_legacy_caches() {
+    let dir = std::env::temp_dir().join(format!("tsrs-merged-legacy-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     for name in ["bases.ts", "a.ts", "b.ts", "c.ts", "d.d.ts"] {
         std::fs::copy(case("merged-interface-check-site").join(name), dir.join(name)).unwrap();
@@ -106,7 +104,6 @@ fn incremental_merged_interface_sites_follow_history_changes() {
     .unwrap();
     let info = dir.join("tsconfig.tsbuildinfo");
     let default = ["--checkers", "8"];
-    let go = ["--checkers", "8", "--checkerAssignment", "go"];
     let unchanged = |args: &[&str], expected: &str| {
         let bytes = std::fs::read(&info).unwrap();
         let modified = std::fs::metadata(&info).unwrap().modified().unwrap();
@@ -114,30 +111,33 @@ fn incremental_merged_interface_sites_follow_history_changes() {
         assert_eq!(
             std::fs::read(&info).unwrap(),
             bytes,
-            "unchanged history must preserve build info"
+            "unchanged program must preserve build info"
         );
         assert_eq!(
             std::fs::metadata(&info).unwrap().modified().unwrap(),
             modified,
-            "unchanged history must not rewrite build info"
+            "unchanged program must not rewrite build info"
         );
     };
     let initial = run_in(&dir, &default);
     assert_eq!(initial.lines().filter(|line| line.contains("TS2320")).count(), 2);
     let default_info = std::fs::read_to_string(&info).unwrap();
     unchanged(&default, &initial);
-    let switched = run_in(&dir, &go);
-    let go_info = std::fs::read_to_string(&info).unwrap();
-    assert!(
-        !go_info.contains("tsrsCanonicalCheckSignature"),
-        "Go history must rewrite tagged default caches"
-    );
-    std::fs::remove_file(&info).unwrap();
-    let fresh_go = run_in(&dir, &go);
-    assert_eq!(fresh_go.lines().filter(|line| line.contains("TS2320")).count(), 4);
-    assert_eq!(switched, fresh_go, "default-to-Go must preserve the full ordered diagnostics");
-    assert_eq!(std::fs::read_to_string(&info).unwrap(), go_info);
-    unchanged(&go, &fresh_go);
+    // Old Go-history and API build info has no canonical signature. Upgrade it once.
+    let tsrs_core::json::Value::Object(mut legacy) =
+        tsrs_core::json::unmarshal(&default_info).unwrap()
+    else {
+        panic!("build info must be an object");
+    };
+    legacy.shift_remove("tsrsCanonicalCheckSignature");
+    std::fs::write(
+        &info,
+        tsrs_core::json::marshal(&tsrs_core::json::Value::Object(legacy)).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(run_in(&dir, &default), initial);
+    assert_eq!(std::fs::read_to_string(&info).unwrap(), default_info);
+    unchanged(&default, &initial);
 
     let key = "\"tsrsCanonicalCheckSignature\":";
     let start = default_info.find(key).unwrap() + key.len();
@@ -154,21 +154,10 @@ fn incremental_merged_interface_sites_follow_history_changes() {
     ] {
         std::fs::write(&info, format!("{}{value}{}", &default_info[..start], &default_info[end..]))
             .unwrap();
-        assert_eq!(
-            run_in(&dir, &go),
-            fresh_go,
-            "Go history must reject every present default tag: {value}"
-        );
-        assert_eq!(
-            std::fs::read_to_string(&info).unwrap(),
-            go_info,
-            "Go rewrite must omit the default tag: {value}"
-        );
-        unchanged(&go, &fresh_go);
+        assert_eq!(run_in(&dir, &default), initial, "invalid cache signature: {value}");
+        assert_eq!(std::fs::read_to_string(&info).unwrap(), default_info);
+        unchanged(&default, &initial);
     }
-    assert_eq!(run_in(&dir, &default), initial, "Go-to-default must refresh the reporting sites");
-    assert_eq!(std::fs::read_to_string(&info).unwrap(), default_info);
-    unchanged(&default, &initial);
     std::fs::remove_dir_all(dir).unwrap();
 }
 
@@ -273,22 +262,5 @@ fn merged_interface_reports_where_tsgo_does() {
                 );
             }
         }
-        assert_eq!(
-            run(name, &["--checkers", "4", "--checkerAssignment", "go"]),
-            expected,
-            "{name} go at 4 checkers"
-        );
     }
-    // Go's history at one checker: only the first declaration reports, as tsgo-ref does.
-    let go_one =
-        run("merged-interface-check-site", &["--checkers", "1", "--checkerAssignment", "go"]);
-    assert_eq!(
-        go_one.lines().filter(|l| l.contains("TS2320")).collect::<Vec<_>>(),
-        [
-            "a.ts(1,11): error TS2320: Interface 'Merged' cannot simultaneously extend types 'Left' and 'Right'."
-        ]
-    );
-    let go_eight =
-        run("merged-interface-check-site", &["--checkers", "8", "--checkerAssignment", "go"]);
-    assert_eq!(go_eight.lines().filter(|l| l.contains("TS2320")).count(), 4);
 }

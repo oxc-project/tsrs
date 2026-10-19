@@ -66,18 +66,17 @@ git -C ts-ref checkout "$commit"
 ./target/debug/tsrs-test show <suite/name>                        # expected vs actual
 ./target/debug/tsrs-test run --suite all --baselines types,symbols # type and symbol baselines
 PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
-TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh --mode go # all supported baselines
-TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh --mode default
+TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # all supported baselines
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
-CI runs the full gate twice: in tsgo's check history and in the default checker mode, including JavaScript,
-declaration output and source maps. Both runs publish every mismatch and skipped-coverage reason. Known
+CI runs the full gate using normal tsrs behavior, including JavaScript, declaration output and source maps.
+The run publishes every mismatch and skipped-coverage reason. Known
 differences are recorded in [the mismatch inventory](tools/conformance/known-mismatches.json); new or changed
 mismatches, crashes, timeouts and lost coverage fail CI. Fixed entries must be removed. Follow the
 [review and refresh workflow](tools/conformance/README.md#refresh-after-reviewing-a-change); CI never updates
-the inventory automatically. Default-mode differences remain conformance gaps even when they were deliberate.
+the inventory automatically. Differences remain conformance gaps even when they were deliberate.
 
 A change must not lose passing tests: compare `target/test-results/pass.txt` before and after
 (`comm -23 <(sort before.txt) <(sort target/test-results/pass.txt)` must print nothing). `docs/DEBUGGING.md`
@@ -93,8 +92,7 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
 - CI has three independent Linux jobs with separate
-  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
-  both checker modes, and regressions; `fourslash` runs the server framing checks, gate checks, and
+  Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, full compiler conformance, and regressions; `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate).
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`
   run sequentially: the runner rewrites the shared GitHub event file when starting steps, so parallel actions

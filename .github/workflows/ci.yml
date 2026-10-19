@@ -92,27 +92,21 @@ jobs:
       - name: Conformance gate checks
         run: python3 -m unittest discover -s tools/conformance -p 'test_*.py'
 
-      - name: Full conformance (Go-compatible mode)
-        id: conformance-go
+      - name: Full conformance
+        id: conformance
         if: ${{ !cancelled() && steps.correctness-build.outcome == 'success' }}
-        run: .github/scripts/conformance-gate.sh --mode go
-
-      - name: Full conformance (default checker mode)
-        id: conformance-default
-        if: ${{ !cancelled() && steps.correctness-build.outcome == 'success' }}
-        run: .github/scripts/conformance-gate.sh --mode default
+        run: .github/scripts/conformance-gate.sh
 
       - name: Regression cases
         run: tools/regressions.sh target/debug/tsrs
 
       - name: Upload conformance results
-        if: ${{ !cancelled() && (steps.conformance-go.outcome == 'success' || steps.conformance-go.outcome == 'failure' || steps.conformance-default.outcome == 'success' || steps.conformance-default.outcome == 'failure') }}
+        if: ${{ !cancelled() && (steps.conformance.outcome == 'success' || steps.conformance.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: conformance-results
           path: |
             target/test-results/
-            target/test-results-default/
           if-no-files-found: ignore
 
   fourslash:
@@ -165,15 +159,18 @@ jobs:
         run: python3 -m unittest discover -s tools/go-fourslash -p 'test_*.py'
 
       - name: Go Fourslash suite
+        id: fourslash-gate
         run: .github/scripts/go-fourslash-gate.sh
 
       - name: Upload Go Fourslash results
-        if: failure()
+        if: ${{ !cancelled() && (steps.fourslash-gate.outcome == 'success' || steps.fourslash-gate.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: go-fourslash-results
           path: |
             target/go-fourslash/results.jsonl
             target/go-fourslash/runner.log
+            target/go-fourslash/report.md
+            target/go-fourslash/coverage.json
             target/go-fourslash/reference/tsc/testdata/baselines/local/fourslash/
           if-no-files-found: ignore

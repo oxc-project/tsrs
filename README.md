@@ -23,11 +23,10 @@ We aim to release a stable version against TypeScript 7.1 with 100% conformance.
 as conformance gaps.
 
 There are known order issues: the pinned Go compiler can produce different diagnostics and traces depending on
-parallel parse, resolution, and check order, while `tsrs` canonicalizes some checker history by default. For the
-closest comparison, use `--checkerAssignment go --noLazyMembers`; tsgo parser and resolver races can still vary
-between runs.
+parallel parse, resolution, and check order, while `tsrs` makes several checker operations independent of order.
+Differences from the pinned reference remain conformance gaps.
 
-CI compares all supported compiler conformance baselines in both checker modes. It reports
+CI compares all supported compiler conformance baselines using normal tsrs behavior. It reports
 [known mismatches](tools/conformance/known-mismatches.json) and rejects new or changed failures and lost coverage.
 
 `--init` and `--showConfig` are not supported. See [compatibility and evidence](https://github.com/oxc-project/tsrs/blob/main/docs/COMPATIBILITY.md)

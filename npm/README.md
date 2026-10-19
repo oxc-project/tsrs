@@ -158,9 +158,10 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
    release version, exit code 2 on a type error), and uploads it as the `npm-wasm` artifact;
 4. assembles and packs the native packages with `npm/build.mjs`, uploads the tarballs as the `npm-packages` artifact,
    and publishes the platform packages, then the main package, then `@tsrs/wasm`, with
-   `--access public --tag latest` using npm trusted publishing (skipping any already on the registry, so a failed
-   run can be re-run). Before publishing the main package, waits up to 10 minutes for every optional dependency's
-   exact version metadata and tarball to be available on npm, including platform packages skipped on a re-run.
+   `--access public --tag latest` using npm trusted publishing (skipping versions already published or staged, so a
+   failed run can be re-run). The publish job allows 90 minutes. Before publishing the main package, waits up to
+   30 minutes for every optional dependency's exact version metadata and tarball to be available on npm, including
+   platform packages skipped on a re-run.
    Dry runs skip this check. Releases publish directly, without a staged approval step.
 5. waits for all published packages to be available on npm, creates the GitHub release tagged `v<workspace version>`
    with the version alone as its title and `docs/releases/<workspace version>.md` as its notes, then deploys the

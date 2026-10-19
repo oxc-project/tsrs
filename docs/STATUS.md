@@ -5,6 +5,19 @@ change are identified separately from measurements of the packaged release. For 
 see the [compatibility table](COMPATIBILITY.md); detailed investigations are indexed in the
 [engineering notes](../notes/README.md). The early development log follows the release entries.
 
+## 2026-10-19: 0.18.0 release
+
+All seven packages use `0.18.0-ts7.1.0-dev.20260929`. The TypeScript pin remains `b85298b6a81f`; release binaries
+report the matching nightly `7.1.0-dev.20260930.4`.
+
+Release publishing allows 30 minutes for each package to become available on npm and 90 minutes for the publish
+job. Re-runs skip versions npm reports as already staged or published, even when they are not yet visible to
+registry queries; metadata, tarballs and `latest` tags must still become available before the release completes
+(#615). Compiler behavior, supported platforms and the recorded conformance results are unchanged from 0.17.0.
+
+The workflow publishes the [GitHub release notes](releases/0.18.0.md) under the title `0.18.0`.
+Bumping the root `package.json` version on `main` triggers publishing.
+
 ## 2026-10-19: 0.17.0 release
 
 All seven packages use `0.17.0-ts7.1.0-dev.20260929`. The TypeScript pin remains `b85298b6a81f`; release binaries

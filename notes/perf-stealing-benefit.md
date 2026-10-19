@@ -217,9 +217,26 @@ included in this note.
 ## Exceptions
 
 - **t3code-server, 6 and 8 checkers**: stealing 3.25 s and 2.91 s against no stealing 2.53 s and 2.61 s; stealing at 6
-  checkers is slower than at 4 (3.09 s). Not explained yet: the likely cause is the first-touch cost the stealing note
-  already measures (a stolen file is checked by a checker that has not built its neighbourhood, so work is
-  duplicated), concentrated here on a few files. `TSRS_ASSIGNMENT_STATS=times` per-checker timings are the next step.
+  checkers is slower than at 4 (3.09 s). The cause is duplicated work on stolen files. Per-file timings
+  (`TSRS_FILE_TIMES`, 3 runs of each mode at 6 checkers, check phase 3.00-3.15 s with stealing against 2.36-2.48 s
+  without) show:
+  - Total checker CPU goes from 10.3 s to 15.6 s with stealing.
+  - About 320 files are stolen per run. They cost 5.8 s of CPU on their thieves, against 0.85 s on their owner in the
+    no-stealing run.
+  - 4.8 s of that is four files of `apps/server/src/cli` (`server.ts`, `app.test.ts`, `pair.test.ts`,
+    `theme.test.ts`). Each costs 1.0-1.3 s on a thief and 1-8 ms on the owner. All four reach
+    `apps/server/src/server.ts` (the tests through `binCli.ts` and `cli/server.ts`), which the same checker owns:
+    checking it costs 1.2 s without stealing and builds the types the four files then reuse. With stealing,
+    heavy-files-first moves it to the front of its owner's queue (from position 179 of 275), and the four files are
+    stolen from the back. Their thieves have not built those types, so each builds them again, and the pass ends
+    later than without stealing.
+
+  This is the first-touch cost that `max_thieves_per_queue` limits, but that limit applies only from 8 checkers.
+  At 6 checkers, `TSRS_STEAL_MAX_THIEVES=1` gave 2.65-2.96 s and `=2` gave 2.81-3.00 s (3 runs each), against
+  2.98-3.11 s with no limit: better, still slower than no stealing. A fix would have to know that a file is cheap
+  only on its owner (for example from the checker cost cache, or by not stealing files that import a file the
+  owner has already checked at high cost). Not measured here. `TSRS_FILE_TIMES` turns off leaf freeing, so these
+  absolute times differ a little from the benchmark's.
 - **nuxt at 8, mui-docs at 8, typeorm at 8**: intervals include zero; no measurable effect.
 
 ## Caveats

@@ -26,8 +26,8 @@ export async function checkPackage([name, version], latest = false, fetchPackage
 
 async function waitForPackage([name, version], latest) {
     const spec = `${name}@${version}`;
-    // Leave time for the remaining publishes within the release job's 30-minute timeout.
-    const deadline = Date.now() + 10 * 60 * 1000;
+    // Allow slow registry staging, with room for both waits within the release job's 90-minute timeout.
+    const deadline = Date.now() + 30 * 60 * 1000;
 
     console.log(`Waiting for ${spec} to be available.`);
     while (Date.now() < deadline) {

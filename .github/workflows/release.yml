@@ -354,7 +354,7 @@ jobs:
   publish:
     needs: [version, check, build, build-musl, wasm]
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 90
     permissions:
       contents: read
       id-token: write # npm trusted publishing and provenance
@@ -415,7 +415,19 @@ jobs:
               # npm publish can finish before package metadata and tarballs are available.
               node .github/scripts/wait-for-npm-packages.mjs npm/dist/tsrs/package.json
             fi
-            pnpm publish "$tarball" "${flags[@]}"
+            if pnpm publish "$tarball" "${flags[@]}" > "$RUNNER_TEMP/publish.log" 2>&1; then
+              cat "$RUNNER_TEMP/publish.log"
+            else
+              status=$?
+              cat "$RUNNER_TEMP/publish.log"
+              # Staged versions can be absent from `pnpm view` while npm already rejects republishing them.
+              # The availability checks still require their metadata, tarballs and latest tags to become visible.
+              if [ "$DRY_RUN" != true ] && grep -Eq 'publish over (previously staged|the previously published) version' "$RUNNER_TEMP/publish.log"; then
+                echo "$name@$VERSION already published or staged"
+                continue
+              fi
+              exit "$status"
+            fi
           done < "$RUNNER_TEMP/publish.txt"
       - name: Verify every published package and latest tag
         if: github.event_name != 'workflow_dispatch' || !inputs.dry_run

@@ -22,7 +22,7 @@ fn scratch(name: &str) -> PathBuf {
 fn install_binary(dir: &Path) -> PathBuf {
     let bin = dir.join("bin");
     std::fs::create_dir_all(&bin).unwrap();
-    let exe = bin.join("tsrs");
+    let exe = bin.join(if cfg!(windows) { "tsrs.exe" } else { "tsrs" });
     if std::fs::hard_link(env!("CARGO_BIN_EXE_tsrs"), &exe).is_err() {
         std::fs::copy(env!("CARGO_BIN_EXE_tsrs"), &exe).unwrap();
     }

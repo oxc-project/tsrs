@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](https://github.com/oxc-project/tsrs/blob/main/LICENSE)
 
 `tsrs` is a drop-in replacement for the TypeScript 7 compiler and language server, written in Rust.
-Our goal is 100% conformance, with much lower memory use and faster type checking.
+Our goal is 100% conformance, with much lower memory use and faster type checking. [Read the announcement](https://blog.cloudflare.com/typescript-rust-port/).
 
 ## Get started
 

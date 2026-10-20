@@ -1,8 +1,8 @@
 # Builds the tsrs binaries and the WebAssembly module, publishes the npm packages, then creates the GitHub release,
 # using docs/releases/<workspace version>.md for its notes. Bump the root package.json version on main to release;
 # it must match the npm version npm/build.mjs derives from Cargo.toml. The conformance and fourslash gates run here on the BOLT-optimized
-# GNU binaries (.github/scripts/bolt.sh). The macOS binary gets only the smoke tests below; nothing runs the suites
-# on macOS (.github/workflows/ci.yml, Linux only, gates the source). The broader WebAssembly differential gate
+# GNU binaries (.github/scripts/bolt.sh). The macOS and Windows binaries get the smoke tests below; Windows also
+# trains on the conformance suite. The broader WebAssembly differential gate
 # (tools/wasm/gate.sh) remains available locally.
 #
 # Setup before the first release:
@@ -129,8 +129,6 @@ jobs:
           # Built on 22.04 so the binary needs at most glibc 2.35.
           - { target: x86_64-unknown-linux-gnu, os: ubuntu-22.04, experimental: false, run: true }
           - { target: aarch64-unknown-linux-gnu, os: ubuntu-22.04-arm, experimental: false, run: true }
-          # Not built yet (npm/README.md TODO): win32-x64. The main package lists only the platforms built here.
-          # - { target: x86_64-pc-windows-msvc, os: windows-latest, experimental: true, run: true }
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -306,6 +304,118 @@ jobs:
           path: out/
           if-no-files-found: error
 
+  # The Windows profile trains compiler code through tsrs-test and the native CLI. The Unix
+  # Fourslash bridge and benchmark installers are not used on Windows.
+  build-windows:
+    name: build x86_64-pc-windows-msvc
+    needs: version
+    if: needs.version.outputs.release == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 180
+    env:
+      TSRS_TS_VERSION: ${{ needs.version.outputs.ts_nightly }}
+      CARGO_PROFILE_RELEASE_STRIP: symbols
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - name: Check out TypeScript testdata
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: microsoft/TypeScript
+          ref: ${{ needs.version.outputs.ts_commit }}
+          path: ts-ref
+          fetch-depth: 1
+          sparse-checkout: tsc/testdata
+          persist-credentials: false
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        with:
+          registry-url: ""
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          restore-cache: false
+          components: llvm-tools
+
+      - run: rustup target add x86_64-pc-windows-msvc
+
+      - name: Instrumented build
+        shell: pwsh
+        run: |
+          $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
+          New-Item -ItemType Directory -Force $raw | Out-Null
+          $env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP "pgo/target"
+          # Override rustc's LTO while keeping Cargo's release profile identical to the final build.
+          $env:CARGO_ENCODED_RUSTFLAGS = @("-Cprofile-generate=$raw", "-Clto=thin") -join [char]31
+          cargo build --release --locked -p tsrs_cli -p tsrs_testrunner --bins --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Training run
+        shell: pwsh
+        run: |
+          $bin = Join-Path $env:RUNNER_TEMP "pgo/target/x86_64-pc-windows-msvc/release"
+          $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
+          & ./.github/scripts/pgo-train-windows.ps1 -BinDir $bin -RawDir $raw
+
+      - name: Merge profiles
+        id: profile
+        shell: pwsh
+        run: |
+          $profdata = Join-Path (rustc --print sysroot) "lib/rustlib/x86_64-pc-windows-msvc/bin/llvm-profdata.exe"
+          if (-not (Test-Path $profdata)) { throw "missing llvm-profdata at $profdata" }
+          $raw = Join-Path $env:RUNNER_TEMP "pgo/raw"
+          $profiles = @(Get-ChildItem $raw -Filter "*.profraw" | Where-Object Length -gt 0 | ForEach-Object FullName)
+          if ($profiles.Count -eq 0) { throw "no nonempty profiles" }
+          $merged = Join-Path $env:RUNNER_TEMP "pgo/merged.profdata"
+          & $profdata merge -o $merged @profiles
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $profdata show $merged | Select-Object -Last 5
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $sum = (Get-FileHash $merged -Algorithm SHA256).Hash.Substring(0, 16).ToLowerInvariant()
+          $profile = Join-Path $env:RUNNER_TEMP "pgo/$sum.profdata"
+          Move-Item $merged $profile
+          [System.IO.File]::AppendAllText($env:GITHUB_OUTPUT, "path=$profile`n")
+
+      - name: Final PGO build
+        shell: pwsh
+        env:
+          PROFILE_PATH: ${{ steps.profile.outputs.path }}
+        run: |
+          $env:CARGO_ENCODED_RUSTFLAGS = "-Cprofile-use=$env:PROFILE_PATH"
+          cargo build --release --locked -p tsrs_cli --features tsrs_cli/noembed --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Stage and smoke binary
+        shell: pwsh
+        run: |
+          $target = "x86_64-pc-windows-msvc"
+          $out = Join-Path $env:GITHUB_WORKSPACE "out/$target"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          $exe = Join-Path $out "tsrs.exe"
+          Copy-Item "target/$target/release/tsrs.exe" $exe
+          $env:TSRS_LIB_PATH = Join-Path $env:GITHUB_WORKSPACE "crates/tsrs_vfs/libs"
+          $version = & $exe --version
+          if ($LASTEXITCODE -ne 0 -or -not $version.StartsWith("Version $env:TSRS_TS_VERSION (")) {
+            throw "unexpected version: $version"
+          }
+          Set-Content -Path (Join-Path $env:RUNNER_TEMP "bad.ts") -Value 'const x: number = "no";'
+          & $exe --noEmit --ignoreConfig (Join-Path $env:RUNNER_TEMP "bad.ts")
+          if ($LASTEXITCODE -ne 2) { throw "expected exit 2 for a type error, got $LASTEXITCODE" }
+
+      - name: Installed-package smoke (CLI)
+        shell: pwsh
+        run: |
+          node npm/build.mjs --artifacts out --pack
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node npm/sdk/smoke-consumer.mjs --noembed --cli-only
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bin-x86_64-pc-windows-msvc
+          path: out/
+          if-no-files-found: error
+
   check:
     needs: version
     if: needs.version.outputs.release == 'true'
@@ -430,7 +540,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    needs: [version, check, build, build-musl, wasm]
+    needs: [version, check, build, build-windows, build-musl, wasm]
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     permissions:
@@ -458,6 +568,7 @@ jobs:
             x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
             test -f "artifacts/$t/tsrs" || { echo "::error::missing binary for $t"; exit 1; }
           done
+          test -f artifacts/x86_64-pc-windows-msvc/tsrs.exe || { echo "::error::missing Windows binary"; exit 1; }
           ls -lR artifacts wasm-dist
 
       - name: Assemble and pack

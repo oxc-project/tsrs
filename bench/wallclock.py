@@ -13,6 +13,7 @@ import json
 import math
 import os
 import shlex
+import statistics
 import subprocess
 import sys
 import urllib.error
@@ -127,13 +128,51 @@ def preflight(command: list[str], cwd: Path, log: Path) -> int:
     return result.returncode
 
 
-def summary(result: dict) -> dict:
-    times = result["times"]
-    mean = result["mean"]
-    if (not times or isinstance(mean, bool) or not isinstance(mean, (int, float)) or
-            not math.isfinite(mean) or mean <= 0):
-        raise ValueError("Hyperfine returned invalid timing data")
-    return {"mean": mean, "stddev": result["stddev"], "runs": len(times)}
+def checked_command(command: list[str], expected_exit: int) -> str:
+    # Projects can have existing diagnostics. Make those exits successful for
+    # Hyperfine while still failing if a timed run exits differently.
+    return f'{shlex.join(command)}; code=$?; [ "$code" -eq {expected_exit} ]'
+
+
+def timed_pairs(base_command: list[str], head_command: list[str], cwd: Path, raw: Path,
+                runs: int, base_exit: int, head_exit: int) -> list[dict]:
+    if runs < 2:
+        raise ValueError("at least two timing pairs are required")
+    commands = {"main": checked_command(base_command, base_exit),
+                "pr": checked_command(head_command, head_exit)}
+    pairs = []
+    for index in range(runs):
+        order = ("main", "pr") if index % 2 == 0 else ("pr", "main")
+        subprocess.run(["hyperfine", "--shell=default", "--warmup", "0", "--runs", "1",
+                        "--export-json", str(raw), *(commands[name] for name in order)],
+                       cwd=cwd, check=True, timeout=1800)
+        results = json.loads(raw.read_text())["results"]
+        if len(results) != 2 or any(len(result["times"]) != 1 for result in results):
+            raise ValueError("Hyperfine did not return one time for each binary")
+        pair = {name: finite_positive(result["times"][0]) for name, result in zip(order, results)}
+        pairs.append(pair)
+    raw.write_text(json.dumps({"pairs": pairs}, indent=2) + "\n")
+    return pairs
+
+
+def peak_rss(command: list[str], cwd: Path, raw: Path, expected_exit: int) -> int:
+    # bench/measure.py uses wait4, so the reported peak is the compiler's own
+    # RSS. On Linux ru_maxrss is KiB; on macOS it is bytes.
+    with open(os.devnull, "wb") as output:
+        result = subprocess.run([sys.executable, str(bench_run.BENCH / "measure.py"),
+                                 str(raw), "--", *command], cwd=cwd, stdout=output,
+                                stderr=subprocess.STDOUT, timeout=900, check=False)
+    if result.returncode != expected_exit:
+        raise RuntimeError(f"{command[0]} exited {result.returncode} during RSS measurement "
+                           f"(expected {expected_exit})")
+    measurement = json.loads(raw.read_text())
+    if os.waitstatus_to_exitcode(measurement["status"]) != expected_exit:
+        raise ValueError("RSS measurement returned an inconsistent exit status")
+    rss = measurement["maxrss"]
+    if isinstance(rss, bool) or not isinstance(rss, int) or rss <= 0:
+        raise ValueError("RSS measurement returned an invalid peak")
+    raw.unlink()
+    return rss if sys.platform == "darwin" else rss * 1024
 
 
 def file_digest(path: Path) -> bytes:
@@ -161,13 +200,20 @@ def measure(args: argparse.Namespace) -> None:
     base_exit = preflight(base_command, cwd, args.out.with_suffix(".main.log"))
     head_exit = preflight(head_command, cwd, args.out.with_suffix(".pr.log"))
     raw = args.out.with_name(args.out.stem + "-hyperfine.json")
-    subprocess.run(["hyperfine", "--shell=none", "--warmup", "1", "--runs", str(args.runs), "--ignore-failure",
-                    "--export-json", str(raw), shlex.join(base_command), shlex.join(head_command)],
-                   cwd=cwd, check=True)
-    results = json.loads(raw.read_text())["results"]
-    if len(results) != 2:
-        raise ValueError("Hyperfine did not measure both binaries")
-    partial = {"project": args.project, "main": summary(results[0]), "pr": summary(results[1]),
+    pairs = timed_pairs(base_command, head_command, cwd, raw, args.runs, base_exit, head_exit)
+    peaks = {"main": [], "pr": []}
+    for index in range(3):
+        order = ("main", "pr") if index % 2 == 0 else ("pr", "main")
+        for name in order:
+            command, expected = ((base_command, base_exit) if name == "main" else (head_command, head_exit))
+            peaks[name].append(peak_rss(command, cwd, args.out.with_suffix(".rss.json"), expected))
+    partial = {"project": args.project,
+               "main": {"median_s": statistics.median(pair["main"] for pair in pairs),
+                        "peak_rss_bytes": statistics.median(peaks["main"])},
+               "pr": {"median_s": statistics.median(pair["pr"] for pair in pairs),
+                      "peak_rss_bytes": statistics.median(peaks["pr"])},
+               "pair_ratios": [pair["pr"] / pair["main"] for pair in pairs],
+               "timing_pairs": len(pairs), "rss_runs": len(peaks["main"]),
                "main_exit": base_exit, "pr_exit": head_exit,
                "diagnostics_match": (file_digest(args.out.with_suffix(".main.log")) ==
                                      file_digest(args.out.with_suffix(".pr.log")))}
@@ -176,24 +222,30 @@ def measure(args: argparse.Namespace) -> None:
 
 def finite_positive(value: object) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
-        raise ValueError("invalid benchmark mean")
+        raise ValueError("invalid benchmark measurement")
     return float(value)
 
 
 def render_report(args: argparse.Namespace) -> str:
     run_url = args.run_url
-    lines = [MARKER, "### Wall-clock benchmark", "", f"[Workflow run]({run_url}) · "
+    lines = [MARKER, "### Wall time and peak RSS", "", f"[Workflow run]({run_url}) · "
              f"main `{args.base_sha[:12]}` → PR merge `{args.merge_sha[:12]}` "
              f"(head `{args.head_sha[:12]}`)", "", f"Clef gate: {args.reason}.", ""]
     if args.decision != "true":
         lines.append("Benchmarks skipped.")
         return "\n".join(lines) + "\n"
+    if args.identical == "true":
+        lines.append("The main and PR release binaries are byte-for-byte identical. No compiler performance "
+                     "difference to measure.")
+        return "\n".join(lines) + "\n"
     cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
     expected = [p["name"] for p in cfg["projects"]]
     lines += ["Release builds, default checker count; `-p <project> --noEmit --incremental false --pretty false`. "
-              "Each binary was measured after one warmup on the same 8-vCPU runner per project.", "",
-              "| Project | main | PR | Change |", "| --- | ---: | ---: | ---: |"]
-    missing, mismatched, ratios = [], [], []
+              "Ten alternating main/PR timing pairs and three RSS runs per binary on the same 8-vCPU runner "
+              "per project. Wall time uses Hyperfine; RSS uses `wait4` and includes the compiler process.", "",
+              "| Project | main wall | PR wall | paired wall Δ | pair range | main RSS | PR RSS | RSS Δ |",
+              "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+    missing, mismatched = [], []
     for name in expected:
         path = args.results / f"{name}.json"
         try:
@@ -202,30 +254,34 @@ def render_report(args: argparse.Namespace) -> str:
             data = json.loads(path.read_text())
             if data["project"] != name:
                 raise ValueError("wrong project in result")
-            base = finite_positive(data["main"]["mean"])
-            head = finite_positive(data["pr"]["mean"])
-            ratio = head / base
-            if not math.isfinite(ratio):
-                raise ValueError("invalid timing ratio")
+            base = finite_positive(data["main"]["median_s"])
+            head = finite_positive(data["pr"]["median_s"])
+            base_rss = finite_positive(data["main"]["peak_rss_bytes"])
+            head_rss = finite_positive(data["pr"]["peak_rss_bytes"])
+            pair_ratios = [finite_positive(value) for value in data["pair_ratios"]]
+            if len(pair_ratios) != data["timing_pairs"] or len(pair_ratios) < 2 or data["rss_runs"] < 1:
+                raise ValueError("incomplete benchmark samples")
             diagnostics_match = data["diagnostics_match"]
             main_exit, pr_exit = data["main_exit"], data["pr_exit"]
             if not isinstance(diagnostics_match, bool) or not all(
-                    isinstance(code, int) for code in (main_exit, pr_exit)):
+                    isinstance(code, int) and not isinstance(code, bool) for code in (main_exit, pr_exit)):
                 raise ValueError("invalid diagnostic comparison")
         except (OSError, KeyError, TypeError, ValueError):
             missing.append(name)
-            lines.append(f"| {name} | — | — | failed |")
+            lines.append(f"| {name} | — | — | failed | — | — | — | — |")
             continue
-        ratios.append(ratio)
-        delta = (ratio - 1) * 100
-        lines.append(f"| {name} | {base:.3f} s | {head:.3f} s | {delta:+.1f}% |")
+        delta = (statistics.median(pair_ratios) - 1) * 100
+        low, high = (min(pair_ratios) - 1) * 100, (max(pair_ratios) - 1) * 100
+        rss_delta = (head_rss / base_rss - 1) * 100
+        lines.append(f"| {name} | {base:.3f} s | {head:.3f} s | {delta:+.1f}% | "
+                     f"{low:+.1f}% to {high:+.1f}% | {base_rss / 1048576:.1f} MiB | "
+                     f"{head_rss / 1048576:.1f} MiB | {rss_delta:+.1f}% |")
         if not diagnostics_match or main_exit != pr_exit:
             mismatched.append(name)
-    lines += ["", "Positive change means the PR is slower. Shared CI machines have timing noise; confirm small "
-              "changes with another run on the same hardware."]
-    if ratios:
-        geometric = math.exp(sum(math.log(ratio) for ratio in ratios) / len(ratios))
-        lines.append(f"Geometric mean across {len(ratios)} projects: **{(geometric - 1) * 100:+.1f}%**.")
+    lines += ["", "Positive change means the PR used more time or memory. The paired wall Δ is the median of "
+              "the ten PR/main ratios; the range shows all ten. A range crossing 0% indicates inconsistent "
+              "timing direction. Shared CI machines remain noisy; confirm small changes on a controlled runner "
+              "or with deterministic instruction counts."]
     if mismatched:
         lines.append(f"Diagnostics or exit status differed on: {', '.join(mismatched)}.")
     if missing:
@@ -275,6 +331,7 @@ def main() -> None:
     comment_parser.add_argument("--merge-sha", required=True)
     comment_parser.add_argument("--run-url", required=True)
     comment_parser.add_argument("--decision", required=True)
+    comment_parser.add_argument("--identical", required=True)
     comment_parser.add_argument("--reason", required=True)
     comment_parser.add_argument("--results", type=Path, required=True)
     args = parser.parse_args()

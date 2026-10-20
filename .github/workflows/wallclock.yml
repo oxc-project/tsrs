@@ -28,10 +28,15 @@ jobs:
     outputs:
       run: ${{ steps.clef.outputs.run }}
       reason: ${{ steps.clef.outputs.reason }}
+      projects: ${{ steps.projects.outputs.projects }}
     steps:
       # Only same-repository PRs reach this job. The PR merge checkout includes
       # this workflow's helper script before it has landed on main.
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - name: List benchmark projects
+        id: projects
+        run: echo "projects=$(python3 bench/run.py --print-projects)" >> "$GITHUB_OUTPUT"
 
       - name: Ask Clef whether performance measurement is needed
         id: clef
@@ -99,12 +104,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  compare:
+  check-binaries:
     needs: [decide, build-main, build-pr]
     if: needs.decide.outputs.run == 'true'
-    # Reuse the runner where the main benchmark already measures instruction counts.
-    runs-on: nscloud-ubuntu-24.04-amd64-8x16
-    timeout-minutes: 360
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     outputs:
@@ -133,31 +137,56 @@ jobs:
             echo "identical=false" >> "$GITHUB_OUTPUT"
           fi
 
+  measure:
+    needs: [decide, check-binaries]
+    if: needs.check-binaries.outputs.identical == 'false'
+    # Each project has a dedicated runner, so other projects do not affect its measurements.
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.decide.outputs.projects || '[]') }}
+    permissions:
+      contents: read
+    env:
+      PROJECT: ${{ matrix.project }}
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: wallclock-main-cli
+          path: ${{ runner.temp }}/wallclock-binaries/main
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: wallclock-pr-cli
+          path: ${{ runner.temp }}/wallclock-binaries/pr
+
+      - name: Prepare binaries
+        run: chmod +x "$RUNNER_TEMP/wallclock-binaries/main/tsrs" "$RUNNER_TEMP/wallclock-binaries/pr/tsrs"
+
       - uses: taiki-e/install-action@1ed6d7be6168f6c9046541087ff549b6bc581fdf # v2.87.2
-        if: steps.binaries.outputs.identical != 'true'
         with:
           tool: hyperfine
           fallback: none
 
       - name: Runner information
-        if: steps.binaries.outputs.identical != 'true'
         run: |
           nproc
           free -h
           hyperfine --version
 
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
-        if: steps.binaries.outputs.identical != 'true'
         with:
           registry-url: ""
 
       - name: Cache keys
         id: keys
-        if: steps.binaries.outputs.identical != 'true'
-        run: python3 bench/run.py --print-cache-keys --projects Compiler | sed -n '/^shared=/p' >> "$GITHUB_OUTPUT"
+        run: python3 bench/run.py --print-cache-keys --projects "$PROJECT" | sed -n '/^shared=/p' >> "$GITHUB_OUTPUT"
 
       - name: Restore shared benchmark checkout
-        if: steps.binaries.outputs.identical != 'true'
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
@@ -166,31 +195,22 @@ jobs:
           key: bench-shared-${{ runner.os }}-${{ steps.keys.outputs.shared }}
 
       - name: Compare main and PR with Hyperfine
-        if: steps.binaries.outputs.identical != 'true'
         run: |
-          projects=$(python3 -c 'import json; from pathlib import Path; print("\n".join(p["name"] for p in json.loads(Path("bench/projects.json").read_text())["projects"]))')
-          failed=0
-          while IFS= read -r project; do
-            if ! python3 bench/wallclock.py measure --project "$project" \
-              --base "$RUNNER_TEMP/wallclock-binaries/main/tsrs" \
-              --head "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" \
-              --out "$RUNNER_TEMP/wallclock-results/$project.json" --runs 10; then
-              failed=1
-            fi
-            rm -rf "bench/.work/solutions/$project"
-          done <<< "$projects"
-          exit "$failed"
+          python3 bench/wallclock.py measure --project "$PROJECT" \
+            --base "$RUNNER_TEMP/wallclock-binaries/main/tsrs" \
+            --head "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" \
+            --out "$RUNNER_TEMP/wallclock-results/$PROJECT.json" --runs 10
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always() && steps.binaries.outputs.identical == 'false'
+        if: always()
         with:
-          name: wallclock-results
+          name: wallclock-results-${{ matrix.project }}
           path: ${{ runner.temp }}/wallclock-results
           if-no-files-found: ignore
           retention-days: 7
 
   report:
-    needs: [decide, build-main, build-pr, compare]
+    needs: [decide, check-binaries, measure]
     if: always() && needs.decide.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -201,11 +221,24 @@ jobs:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        if: needs.decide.outputs.run == 'true' && needs.compare.outputs.identical == 'false'
+        if: needs.check-binaries.outputs.identical == 'false'
         continue-on-error: true
         with:
-          name: wallclock-results
+          pattern: wallclock-results-*
           path: ${{ runner.temp }}/wallclock-results
+          merge-multiple: true
+
+      - name: Join project measurements
+        if: needs.check-binaries.outputs.identical == 'false'
+        run: python3 bench/wallclock.py join --results "$RUNNER_TEMP/wallclock-results" --out "$RUNNER_TEMP/wallclock-joined.json"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: needs.check-binaries.outputs.identical == 'false'
+        with:
+          name: wallclock-joined
+          path: ${{ runner.temp }}/wallclock-joined.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Update PR benchmark comment
         env:
@@ -215,11 +248,11 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           MERGE_SHA: ${{ github.sha }}
           DECISION: ${{ needs.decide.outputs.run }}
-          IDENTICAL: ${{ needs.compare.outputs.identical }}
+          IDENTICAL: ${{ needs.check-binaries.outputs.identical }}
           REASON: ${{ needs.decide.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 bench/wallclock.py comment --pr-number "$PR_NUMBER" \
             --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --merge-sha "$MERGE_SHA" --run-url "$RUN_URL" \
             --decision "$DECISION" --identical "$IDENTICAL" --reason "$REASON" \
-            --results "$RUNNER_TEMP/wallclock-results"
+            --results "$RUNNER_TEMP/wallclock-joined.json"

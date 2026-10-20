@@ -272,6 +272,12 @@ as `bench-compare.yml.bak`, `pr-verify.yml.bak` and `perf-probe.yml.bak`. The fo
 The completed build-layout experiment's workflow and build script were removed; `tools/perf/layout-measure.py`
 still compares supplied binaries. Local measurement tools remain available; recorded runs are archived in Git history.
 
+`wallclock.yml` compares the main and PR release binaries on pull requests that may affect performance. If the
+binaries differ, it runs one job per `bench/projects.json` project on separate 8-vCPU runners. Each job measures
+alternating main/PR timing pairs, peak RSS and instruction counts, then uploads its project result. The report job
+downloads all available results, joins them into the `wallclock-joined` artifact in project order and posts one PR
+table. Missing or invalid project results appear as failed rows, so a failed shard does not hide the others.
+
 For those saved workflows, restore the original `.yml` filename before using their `gh workflow run` commands.
 They produce no automated measurements, regression comments or result/chart updates while disabled.
 

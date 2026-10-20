@@ -325,6 +325,25 @@ def finite_positive(value: object) -> float:
     return float(value)
 
 
+def join_results(args: argparse.Namespace) -> None:
+    cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
+    projects = {}
+    for name in (project["name"] for project in cfg["projects"]):
+        path = args.results / f"{name}.json"
+        try:
+            if path.stat().st_size > 100_000:
+                raise ValueError("project result is too large")
+            data = json.loads(path.read_text())
+            if data["project"] != name:
+                raise ValueError("wrong project in result")
+        except (OSError, KeyError, TypeError, ValueError) as error:
+            print(f"Skipping {name}: {error}", file=sys.stderr)
+            continue
+        projects[name] = data
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps({"projects": projects}, indent=2) + "\n")
+
+
 def render_report(args: argparse.Namespace) -> str:
     run_url = args.run_url
     lines = [MARKER, "### Performance change vs main", "", f"[Workflow run]({run_url}) · "
@@ -339,19 +358,22 @@ def render_report(args: argparse.Namespace) -> str:
         return "\n".join(lines) + "\n"
     cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
     expected = [p["name"] for p in cfg["projects"]]
+    try:
+        results = json.loads(args.results.read_text())["projects"]
+        if not isinstance(results, dict):
+            raise ValueError("invalid joined results")
+    except (OSError, KeyError, TypeError, ValueError):
+        results = {}
     lines += ["Release builds, default checker count; `-p <project> --noEmit --incremental false --pretty false`. "
-              "Ten alternating main/PR timing pairs and three RSS runs per binary on one runner. "
+              "Ten alternating main/PR timing pairs and three RSS runs per binary on each project's runner. "
               "Instructions are user-space instructions retired across all threads in three separate "
               "alternating pairs at the default checker count.", "",
               "| Project | Wall time Δ | Peak RSS Δ | Instructions Δ |",
               "| --- | ---: | ---: | ---: |"]
     missing, mismatched, uncounted = [], [], []
     for name in expected:
-        path = args.results / f"{name}.json"
         try:
-            if path.stat().st_size > 100_000:
-                raise ValueError("project result is too large")
-            data = json.loads(path.read_text())
+            data = results[name]
             if data["project"] != name:
                 raise ValueError("wrong project in result")
             base = finite_positive(data["main"]["median_s"])
@@ -436,6 +458,9 @@ def main() -> None:
     measure_parser.add_argument("--out", type=Path, required=True)
     measure_parser.add_argument("--work-dir", type=Path, default=bench_run.BENCH / ".work")
     measure_parser.add_argument("--runs", type=int, default=10)
+    join_parser = subs.add_parser("join")
+    join_parser.add_argument("--results", type=Path, required=True)
+    join_parser.add_argument("--out", type=Path, required=True)
     comment_parser = subs.add_parser("comment")
     comment_parser.add_argument("--pr-number", type=int, required=True)
     comment_parser.add_argument("--base-sha", required=True)
@@ -451,6 +476,8 @@ def main() -> None:
         decide()
     elif args.command == "measure":
         measure(args)
+    elif args.command == "join":
+        join_results(args)
     else:
         comment(args)
 

@@ -87,6 +87,8 @@ jobs:
     if: needs.decide.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 180
+    outputs:
+      identical: ${{ steps.package.outputs.identical }}
     permissions:
       contents: read
       actions: read
@@ -151,6 +153,7 @@ jobs:
         run: cargo build --release --locked -p tsrs_cli
 
       - name: Package both CLIs
+        id: package
         run: |
           mkdir -p "$RUNNER_TEMP/wallclock-binaries/main" "$RUNNER_TEMP/wallclock-binaries/pr"
           cp "$RUNNER_TEMP/wallclock-main/tsrs" "$RUNNER_TEMP/wallclock-binaries/main/tsrs"
@@ -158,8 +161,14 @@ jobs:
           "$RUNNER_TEMP/wallclock-binaries/main/tsrs" --version
           "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" --version
           sha256sum "$RUNNER_TEMP/wallclock-binaries/main/tsrs" "$RUNNER_TEMP/wallclock-binaries/pr/tsrs"
+          if cmp -s "$RUNNER_TEMP/wallclock-binaries/main/tsrs" "$RUNNER_TEMP/wallclock-binaries/pr/tsrs"; then
+            echo "identical=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "identical=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: steps.package.outputs.identical != 'true'
         with:
           name: wallclock-binaries
           path: ${{ runner.temp }}/wallclock-binaries
@@ -168,7 +177,7 @@ jobs:
 
   measure:
     needs: [decide, build-pr]
-    if: needs.decide.outputs.run == 'true'
+    if: needs.decide.outputs.run == 'true' && needs.build-pr.outputs.identical != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -257,7 +266,7 @@ jobs:
           persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        if: needs.decide.outputs.run == 'true'
+        if: needs.decide.outputs.run == 'true' && needs.build-pr.outputs.identical != 'true'
         continue-on-error: true
         with:
           pattern: wallclock-result-*
@@ -272,10 +281,11 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           MERGE_SHA: ${{ github.sha }}
           DECISION: ${{ needs.decide.outputs.run }}
+          IDENTICAL: ${{ needs.build-pr.outputs.identical }}
           REASON: ${{ needs.decide.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 bench/wallclock.py comment --pr-number "$PR_NUMBER" \
             --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --merge-sha "$MERGE_SHA" --run-url "$RUN_URL" \
-            --decision "$DECISION" --reason "$REASON" \
+            --decision "$DECISION" --identical "$IDENTICAL" --reason "$REASON" \
             --results "$RUNNER_TEMP/wallclock-results"

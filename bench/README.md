@@ -397,8 +397,8 @@ saves the shared cache. The build job restores the TypeScript
 testdata (`ts-ref/tsc/testdata`, 22 MB compressed) from a cache keyed on the TypeScript commit; on a miss they run the
 sparse checkout and save it. That saves about 4 s per job (2026-10-07: checkout 4.9-5.7 s, restore 1.4 s).
 
-These cache details describe the disabled benchmark workflows. The active CI does not run benchmark project
-workloads or restore their caches; it checks out the pinned TypeScript source and fixtures for conformance and Fourslash.
+These cache details describe the disabled benchmark workflows. The active CI restores four pinned projects for the
+determinism gate; it also checks out the pinned TypeScript source and fixtures for conformance and Fourslash.
 
 Historical job duration split, 2026-10-01 (before this migration):
 

@@ -68,6 +68,7 @@ git -C ts-ref checkout "$commit"
 PYTHON=python3.12 .github/scripts/go-fourslash-gate.sh             # language-server suite (Go assertions, Rust LSP)
 TSRS_TEST=target/debug/tsrs-test .github/scripts/conformance-gate.sh # what CI enforces: errors, .types, .symbols
 tools/regressions.sh target/debug/tsrs                            # testdata/regressions (CI runs it too)
+tools/ci/determinism.sh --self-test && tools/ci/determinism.sh target/debug/tsrs # checker assignment gate
 cargo test --locked                                             # all workspace unit and integration tests (CI)
 ```
 
@@ -88,9 +89,10 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
-- CI has three independent Linux jobs with separate
+- CI has four independent Linux jobs with separate
   Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
-  both checker modes, and regressions; `fourslash` runs the server framing checks, gate checks, and
+  both checker modes, and regressions; `determinism` compares checker output across four pinned projects and regression
+  cases; `fourslash` runs the server framing checks, gate checks, and
   [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate).
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`
   run sequentially: the runner rewrites the shared GitHub event file when starting steps, so parallel actions

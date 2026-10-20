@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Select, measure, and report the PR wall-clock benchmark.
 
-The project setup and compiler flags come from bench/run.py. Only the decision
-and comment commands receive credentials; neither runs a PR binary.
+Project setup uses bench/bench.mjs. Only the decision and comment commands
+receive credentials; neither runs a PR binary.
 """
 
 from __future__ import annotations
@@ -20,9 +20,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-import run as bench_run
-
-
+BENCH = Path(__file__).resolve().parent
+# Keep the measured command aligned with bench/lib.mjs.
+TIMED_FLAGS = ["--noEmit", "--incremental", "false", "--pretty", "false"]
 MARKER = "<!-- tsrs-wallclock-benchmark -->"
 SKIP_BELOW = 0.10  # Only a confident "no" saves the full benchmark.
 MAX_PATH_LIST_CHARS = 60_000
@@ -101,7 +101,7 @@ def clef_state(files: list[dict]) -> dict:
             "command": "tsrs -p <project> --noEmit --incremental false --pretty false",
             "checker_count": "default",
             "metrics": ["wall time", "peak RSS", "instructions at the default checker count"],
-            "projects": [p["name"] for p in json.loads((bench_run.BENCH / "projects.json").read_text())["projects"]],
+            "projects": [p["name"] for p in json.loads((BENCH / "projects.json").read_text())["projects"]],
         },
         "files": changes,
     }
@@ -216,7 +216,7 @@ def peak_rss(command: list[str], cwd: Path, raw: Path, expected_exit: int) -> in
     # bench/measure.py uses wait4, so the reported peak is the compiler's own
     # RSS. On Linux ru_maxrss is KiB; on macOS it is bytes.
     with open(os.devnull, "wb") as output:
-        result = subprocess.run([sys.executable, str(bench_run.BENCH / "measure.py"),
+        result = subprocess.run([sys.executable, str(BENCH / "measure.py"),
                                  str(raw), "--", *command], cwd=cwd, stdout=output,
                                 stderr=subprocess.STDOUT, timeout=900, check=False)
     if result.returncode != expected_exit:
@@ -235,7 +235,7 @@ def peak_rss(command: list[str], cwd: Path, raw: Path, expected_exit: int) -> in
 def instruction_count(command: list[str], cwd: Path, raw: Path) -> dict:
     """Count all threads of one untimed default-checker run with the Linux counter."""
     with raw.with_suffix(".log").open("wb") as output:
-        subprocess.run([sys.executable, str(bench_run.BENCH / "count.py"), str(raw), "--", *command],
+        subprocess.run([sys.executable, str(BENCH / "count.py"), str(raw), "--", *command],
                        cwd=cwd, stdout=output, stderr=subprocess.STDOUT, timeout=900, check=False)
     result = json.loads(raw.read_text())
     count = result.get("instructions")
@@ -257,18 +257,23 @@ def file_digest(path: Path) -> bytes:
 
 
 def measure(args: argparse.Namespace) -> None:
-    cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
+    cfg = json.loads((BENCH / "projects.json").read_text())
     project = next((p for p in cfg["projects"] if p["name"] == args.project), None)
     if project is None:
         raise ValueError(f"unknown benchmark project: {args.project}")
     work = args.work_dir.resolve()
-    bench_run.setup_project(cfg, project, work)
-    cwd, config = bench_run.project_path(cfg, project, work)
+    subprocess.run(["node", str(BENCH / "bench.mjs"), "prepare", "--projects", args.project,
+                    "--work-dir", str(work)], cwd=BENCH.parent, check=True)
+    if "suite_dir" in project:
+        cwd = work / "suite" / project["suite_dir"]
+    else:
+        cwd = work / "solutions" / project["name"]
+    config = (cwd / project["project"]).resolve()
     base, head = args.base.resolve(), args.head.resolve()
     if not base.is_file() or not head.is_file():
         raise FileNotFoundError("both benchmark binaries are required")
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    flags = ["-p", str(config), *bench_run.TIMED_FLAGS]
+    flags = ["-p", str(config), *TIMED_FLAGS]
     base_command, head_command = [str(base), *flags], [str(head), *flags]
     base_exit = preflight(base_command, cwd, args.out.with_suffix(".main.log"))
     head_exit = preflight(head_command, cwd, args.out.with_suffix(".pr.log"))
@@ -356,7 +361,7 @@ def render_report(args: argparse.Namespace) -> str:
         lines.append("The main and PR release binaries are byte-for-byte identical. No compiler performance "
                      "difference to measure.")
         return "\n".join(lines) + "\n"
-    cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
+    cfg = json.loads((BENCH / "projects.json").read_text())
     expected = [p["name"] for p in cfg["projects"]]
     try:
         results = json.loads(args.results.read_text())["projects"]
@@ -456,7 +461,7 @@ def main() -> None:
     measure_parser.add_argument("--base", type=Path, required=True)
     measure_parser.add_argument("--head", type=Path, required=True)
     measure_parser.add_argument("--out", type=Path, required=True)
-    measure_parser.add_argument("--work-dir", type=Path, default=bench_run.BENCH / ".work")
+    measure_parser.add_argument("--work-dir", type=Path, default=BENCH / ".work")
     measure_parser.add_argument("--runs", type=int, default=10)
     join_parser = subs.add_parser("join")
     join_parser.add_argument("--results", type=Path, required=True)

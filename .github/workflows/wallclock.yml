@@ -36,7 +36,9 @@ jobs:
 
       - name: List benchmark projects
         id: projects
-        run: echo "projects=$(python3 bench/run.py --print-projects)" >> "$GITHUB_OUTPUT"
+        run: |
+          projects=$(python3 -c 'import json; from pathlib import Path; print(json.dumps([p["name"] for p in json.loads(Path("bench/projects.json").read_text())["projects"]]))')
+          echo "projects=$projects" >> "$GITHUB_OUTPUT"
 
       - name: Ask Clef whether performance measurement is needed
         id: clef
@@ -184,7 +186,7 @@ jobs:
 
       - name: Cache keys
         id: keys
-        run: python3 bench/run.py --print-cache-keys --projects "$PROJECT" | sed -n '/^shared=/p' >> "$GITHUB_OUTPUT"
+        run: node bench/bench.mjs plan --format keys --projects "$PROJECT" | sed -n '/^shared=/p' >> "$GITHUB_OUTPUT"
 
       - name: Restore shared benchmark checkout
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0

@@ -55,3 +55,7 @@ compatibility summaries consistent with it.
 When you run tsrs on private code (to test performance, hill-climb or reproduce a bug), say only that it was run on a
 large private monorepo. Never divulge anything else about that repo: not its name, paths, package or file names, size,
 types or code. This holds in code, comments, notes, commit messages and pull requests.
+
+## Scripts and automation
+
+Write new scripts and ad hoc automation in JavaScript, not Python.

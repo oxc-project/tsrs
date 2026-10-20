@@ -27,9 +27,12 @@ class WallclockTests(unittest.TestCase):
                    "CLOUDFLARE_ACCOUNT_ID": "account", "CLOUDFLARE_API_KEY": "token"}
             files = [{"filename": "README.md", "status": "modified", "patch": "@@ -1 +1 @@\n-old\n+new"}]
             with patch.dict(os.environ, env, clear=True), patch.object(wallclock, "pr_files", return_value=files), \
-                    patch.object(wallclock, "clef_probability", return_value=0.02):
+                    patch.object(wallclock, "clef_probability", return_value=0.02) as clef:
                 wallclock.decide()
             self.assertIn("run=false", output.read_text())
+            self.assertEqual(clef.call_args.args[0]["files"], [{"path": "README.md", "status": "modified"}])
+            self.assertNotIn("title", clef.call_args.args[0])
+            self.assertNotIn("body", clef.call_args.args[0])
             output.unlink()
             with patch.dict(os.environ, env, clear=True), patch.object(wallclock, "pr_files", return_value=files), \
                     patch.object(wallclock, "clef_probability", side_effect=TimeoutError):

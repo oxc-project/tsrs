@@ -132,15 +132,17 @@ jobs:
             echo "identical=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Prepare runner
+      - uses: taiki-e/install-action@1ed6d7be6168f6c9046541087ff549b6bc581fdf # v2.87.2
+        if: steps.binaries.outputs.identical != 'true'
+        with:
+          tool: hyperfine
+          fallback: none
+
+      - name: Runner information
         if: steps.binaries.outputs.identical != 'true'
         run: |
           nproc
           free -h
-          if ! command -v hyperfine > /dev/null; then
-            sudo apt-get update -qq
-            sudo apt-get install -y hyperfine
-          fi
           hyperfine --version
 
       - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1

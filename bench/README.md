@@ -96,7 +96,7 @@ node bench/bench.mjs verify-images \
 
 ## CI and retained data
 
-`update-benchmarks.yml` builds a PGO + BOLT tsrs binary and Hyperfine 2, prepares each pinned project and measures TypeScript nightly, TypeScript 7.0.2 and tsrs on the same 8-vCPU runner specification. Each project uses four checkers, eight worker CPUs, three warmups and ten measured runs. The publish job merges the partial bundles, renders SVGs, re-renders from `publication.json` and verifies the outputs before opening a draft PR. It commits the compact publication data and images; complete raw samples, logs and package locks stay in workflow artifacts for 14 days.
+`update-benchmarks.yml` builds a PGO + BOLT tsrs binary and Hyperfine 2, prepares each pinned project and measures TypeScript nightly, TypeScript 7.0.2 and tsrs on the same 8-vCPU runner specification. Each project uses four checkers, eight worker CPUs, three warmups and ten measured runs. The publish job merges the partial bundles, renders SVGs, re-renders from `publication.json` and verifies the outputs. Pull requests retain the report, charts, and raw samples as workflow artifacts; main also opens a draft PR for the compact publication data and images. Artifacts remain available for 14 days.
 
 `merge` requires matching compiler builds, settings and machine details, and rejects duplicate projects. Source partials remain in the merged artifact. Raw samples and project checkouts remain ignored by git.
 

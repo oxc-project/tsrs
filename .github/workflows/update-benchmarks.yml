@@ -8,18 +8,25 @@ on:
       - bench/*.mjs
       - pnpm-lock.yaml
       - .github/workflows/update-benchmarks.yml
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - bench/projects.json
+      - bench/*.mjs
+      - pnpm-lock.yaml
+      - .github/workflows/update-benchmarks.yml
   workflow_dispatch:
 
 concurrency:
-  group: update-benchmarks-${{ github.sha }}
-  cancel-in-progress: false
+  group: update-benchmarks-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
   build:
-    if: github.repository == 'oxc-project/tsrs'
+    if: github.repository == 'oxc-project/tsrs' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 180
     outputs:

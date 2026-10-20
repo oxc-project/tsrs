@@ -110,12 +110,7 @@ def clef_state(files: list[dict]) -> dict:
 def clef_probabilities(state: dict) -> tuple[float, float]:
     account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
     key = os.environ["CLOUDFLARE_API_KEY"]
-    email = os.environ.get("CLOUDFLARE_EMAIL", "")
-    headers = {"Content-Type": "application/json"}
-    if email:
-        headers.update({"X-Auth-Email": email, "X-Auth-Key": key})
-    else:
-        headers["Authorization"] = f"Bearer {key}"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
     body = {
         "model": "clef",
         "state": state,

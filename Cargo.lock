@@ -1005,6 +1005,7 @@ name = "tsrs_bench"
 version = "0.18.0"
 dependencies = [
  "criterion2",
+ "mimalloc-safe",
  "rustc-hash",
  "tsrs_core",
  "tsrs_execute",

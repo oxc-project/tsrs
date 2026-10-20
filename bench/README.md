@@ -290,9 +290,6 @@ crashes, missing project configs, and mismatched results fail. Statistics are di
 memory information from the OS and contain nondeterministic timings.
 Compiler environment overrides (`TSRS_*`, except `TSRS_BENCH_PROJECT`) are rejected, including profiling switches
 that could bypass the filesystem interface.
-The benchmark intentionally uses Rust's system allocator rather than the release CLI's mimalloc allocator. Mimalloc
-reads the clock during arena maintenance, which otherwise dominates CodSpeed's system-call report and obscures
-compiler synchronization.
 
 Criterion2 3.0.4 runs five unmeasured warmups and one measured compilation. CI builds the benchmark suite once
 and shares the compiled artifact with a four-job matrix. Each shard runs one project in parallel, setting up

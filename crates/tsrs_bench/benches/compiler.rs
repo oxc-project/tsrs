@@ -1,6 +1,9 @@
 use criterion::Criterion;
 use tsrs_bench::PreparedProject;
 
+#[global_allocator]
+static ALLOCATOR: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+
 fn compiler(criterion: &mut Criterion) {
     criterion.set_current_file(criterion::abs_file!());
     criterion.set_macro_group("compiler");
@@ -19,8 +22,8 @@ fn compiler(criterion: &mut Criterion) {
 }
 
 fn main() {
-    // Use the system allocator here: mimalloc's arena maintenance reads the clock hundreds of
-    // times per compilation, which obscures compiler synchronization in CodSpeed's syscall report.
+    #[cfg(all(target_os = "linux", not(miri)))]
+    tsrs_core::allocator::init_mimalloc();
     // Compiler profiling switches can write files directly, bypassing the FS interface.
     for (name, _) in std::env::vars_os() {
         assert!(

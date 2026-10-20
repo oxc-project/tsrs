@@ -294,7 +294,10 @@ that could bypass the filesystem interface.
 Criterion2 3.0.4 runs five unmeasured warmups and one measured compilation. CI builds the benchmark suite once
 and shares the compiled artifact with a four-job matrix. Each shard runs one project in parallel, setting up
 and caching only that project's inputs. Each process uses `RAYON_NUM_THREADS=1`
-and the CLI's large stack; process exit reclaims its seven compilations' arenas.
+and the CLI's large stack. CodSpeed also sets `MIMALLOC_ARENA_PURGE_MULT=-1` to disable arena purge scheduling:
+the short-lived benchmark process reclaims its seven compilations' arenas at exit, while avoiding allocator clock
+reads and purge system calls in the simulated profile. This CodSpeed-only setting deliberately differs from the
+production allocator configuration.
 `TSRS_BENCH_PROJECT` is required because Criterion2's CodSpeed adapter does not implement benchmark filters.
 The target requires the `codspeed` feature: ordinary Criterion calibration would accumulate arena allocations.
 Benchmarks are named `compiler::<project>` and start a new baseline, distinct from the former disk-backed CLI measurements.
@@ -305,7 +308,7 @@ From the repository root:
 cargo install cargo-codspeed --version 5.0.3 --locked
 python3 bench/run.py --setup-only --projects Compiler-Unions,xstate-main,webpack,drizzle-orm
 cargo codspeed build -p tsrs_bench --bench compiler --features codspeed --profile release --locked -m simulation
-RAYON_NUM_THREADS=1 TSRS_BENCH_PROJECT=Compiler-Unions cargo codspeed run -p tsrs_bench --bench compiler -m simulation
+MIMALLOC_ARENA_PURGE_MULT=-1 RAYON_NUM_THREADS=1 TSRS_BENCH_PROJECT=Compiler-Unions cargo codspeed run -p tsrs_bench --bench compiler -m simulation
 ```
 
 Outside CodSpeed's Linux instrumentation, the last command exercises capture, warmups, replay, and output

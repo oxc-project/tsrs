@@ -32,7 +32,7 @@ request.
 
 **Clear the bar.** A change lands only if it gains at least one of:
 
-- 1% of single-threaded instructions on at least one `bench/projects.json` project (`bench/count.py`, deterministic);
+- 1% of single-threaded instructions on at least one `bench/projects.json` project (`node bench/bench.mjs count`, deterministic);
 - 2% of wall time in the wall-time table in [`bench/RESULTS.md`](bench/RESULTS.md), read across two publishes on
   the same hardware;
 - 5% of peak memory at the default checker count.

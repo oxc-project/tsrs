@@ -12,7 +12,7 @@
 # the tsrs binary itself on two open-source projects from bench/projects.json (xstate-main, webpack; default mode,
 # tsrs's default checker count for the runner). Needs Go, Python 3.12+, the pinned ts-ref/tsc source checkout,
 # and network for the bench projects' clone + install
-# (bench/run.py --setup-only). Never train on private code.
+# (bench/bench.mjs prepare). Never train on private code.
 set -euo pipefail
 
 bin=$(cd "$1" && pwd)
@@ -20,7 +20,7 @@ mkdir -p "$2" "$3"
 raw=$(cd "$2" && pwd)
 work=$(cd "$3" && pwd)
 
-python3 bench/run.py --setup-only --projects xstate-main,webpack --work-dir "$work"
+node bench/bench.mjs prepare --projects xstate-main,webpack --work-dir "$work"
 
 check_exit() { # $1 = exit status, $2 = what ran; 0/1/2 are tsc exit codes, anything else is a crash
   if [ "$1" -gt 2 ]; then echo "::error::$2 exited with $1"; exit 1; fi

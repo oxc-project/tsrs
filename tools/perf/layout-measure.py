@@ -28,8 +28,7 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "bench"))
-import run as rb  # noqa: E402
+import bench_bridge as rb
 
 FLAGS = ["--noEmit", "--incremental", "false", "--pretty", "false"]
 EVENTS = "instructions,cycles,iTLB-load-misses,L1-icache-load-misses"

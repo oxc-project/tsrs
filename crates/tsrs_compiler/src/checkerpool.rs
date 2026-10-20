@@ -1968,8 +1968,8 @@ fn default_checker_count_by_machine() -> i64 {
     )
 }
 
-// The machine rule of `default_checker_count_by_machine` for a core count (bench/run.py `tsrs_default_checkers` mirrors
-// it for the results tables).
+// The machine rule of `default_checker_count_by_machine` for a core count. Benchmark comparisons at default settings
+// leave the checker count unset so this rule applies.
 fn default_checkers_for_parallelism(parallelism: i64) -> i64 {
     (parallelism / 2)
         .max(parallelism.min(SMALL_MACHINE_CHECKERS))

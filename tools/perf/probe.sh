@@ -9,7 +9,7 @@
 #
 # Environment (set by the workflow; set them yourself to run locally):
 #   TSRS_BIN    tsrs binary          BUN_BIN   bun binary with `bun check`
-#   BENCH_WORK  bench/.work with the projects set up (bench/run.py --setup-only --projects vscode)
+#   BENCH_WORK  bench/.work with the projects set up (node bench/bench.mjs prepare --projects vscode)
 #   PROBE_OUT   output directory
 set -euo pipefail
 : "${TSRS_BIN:?}" "${BENCH_WORK:?}" "${PROBE_OUT:?}"

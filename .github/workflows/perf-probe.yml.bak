@@ -81,7 +81,7 @@ jobs:
       # bench.yml's caches (restore only).
       - name: Cache keys
         id: keys
-        run: python3 bench/run.py --print-cache-keys --projects "$PROBE_PROJECTS" | tee -a "$GITHUB_OUTPUT"
+        run: node bench/bench.mjs plan --format keys --projects "$PROBE_PROJECTS" | tee -a "$GITHUB_OUTPUT"
 
       - name: Restore suite and compilers
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -127,7 +127,7 @@ jobs:
           key: bench-t3code-server-${{ runner.os }}-${{ steps.keys.outputs['t3code-server'] }}
 
       - name: Set up projects and compilers
-        run: python3 bench/run.py --setup-only --projects "$PROBE_PROJECTS"
+        run: node bench/bench.mjs prepare --projects "$PROBE_PROJECTS"
 
       - name: Build tsrs (release)
         run: cargo build --release --locked -p tsrs_cli

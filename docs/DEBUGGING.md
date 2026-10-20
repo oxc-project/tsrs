@@ -448,7 +448,7 @@ CARGO_PROFILE_RELEASE_STRIP=none RUSTFLAGS="-C force-frame-pointers=yes" CARGO_T
 samply record ./target/profiling/release/tsrs -p <project> --noEmit --incremental false
 ```
 
-For before/after numbers, compare instruction counts, not wall time: `python3 bench/count.py out.json -- <tsrs command>`
+For before/after numbers, compare instruction counts, not wall time: `node bench/bench.mjs count --output-dir /tmp/tsrs-count -- <tsrs command>`
 on Linux (single-threaded, with `--singleThreaded` and `RAYON_NUM_THREADS=1`, counts repeat to about 0.001%), or
 `/usr/bin/time -l` on macOS. Per-function counts: `valgrind --tool=callgrind --callgrind-out-file=cg.out <tsrs command>`
 on a `--release` build with symbols (`CARGO_PROFILE_RELEASE_STRIP=none`), then

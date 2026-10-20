@@ -451,7 +451,7 @@ instructions on the five largest projects).
 
 CI and bench: the bench runs once per push to `main`, one concurrency group per commit, where before a push replaced
 the queued bench and bursts of merges went unmeasured; README.md keeps the newest commit's table whatever order the
-runs finish in, the regression flag compares a run with the nearest benchmarked ancestor of its commit, `bench/history.py`
+runs finish in, the regression flag compares a run with the nearest benchmarked ancestor of its commit, `node bench/bench.mjs history`
 prints the per-commit history of each metric, and a `commit` input backfills a commit's results (#175, #176). CI fails
 a code pull request whose title, body or commit subjects carry a CI-skip marker, which the squash commit would copy
 (#182). Notes: leaf freeing at 32 checkers stays off, the give-backs' TLB-flush interrupts cost more than the memory
@@ -531,7 +531,7 @@ the default).
 Bench: the README bench measures each project on its own machine at the same time (push to results 13 min 51 s, was
 26 min 35 s), adds the application projects cal.diy, Formbricks, Supabase Studio and T3 Code (#116), `--checkers 8`
 and `--checkers 64` tables, a 64-vCPU default-mode table with `bun check`, and bolds speedups from 5x and memory
-ratios at 0.25x or less (#117, #122, #126, #127). bench/compare.py runs the 64-thread head-to-head with tsgo, the
+ratios at 0.25x or less (#117, #122, #126, #127). `node bench/bench.mjs compare` runs the 64-thread head-to-head with tsgo, the
 7.1-dev nightly and `bun check` (#119).
 
 ## 2026-10-05: 0.4.0 release

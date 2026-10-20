@@ -44,8 +44,8 @@ def self_test() -> None:
     assert violations({"title": "fix: y", "body": "see [skip ci] commits"}, ["crates/a.rs"]) == [
         "body carries a CI-skip marker, but the pull request changes crates/a.rs"
     ]
-    assert violations({"title": "t", "body": "", "commit 2": "notes: z [SKIP CI]"}, ["notes/z.md", "bench/run.py"]) == [
-        "commit 2 carries a CI-skip marker, but the pull request changes bench/run.py"
+    assert violations({"title": "t", "body": "", "commit 2": "notes: z [SKIP CI]"}, ["notes/z.md", "bench/bench.mjs"]) == [
+        "commit 2 carries a CI-skip marker, but the pull request changes bench/bench.mjs"
     ]
     assert violations({"title": "t [ci skip]", "body": None}, ["bench/results/x.json"]) == []
     print("skip_marker self-test: ok")

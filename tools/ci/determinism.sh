@@ -13,7 +13,7 @@
 #                           [--projects xstate-main,webpack,nuxt,drizzle-orm] [--seeds 6]
 #                           [--default-reps 3] [--work-dir bench/.work] [--no-regressions]
 #
-# Projects are bench/projects.json names checked out under <work-dir> (`python3 bench/run.py --setup-only --projects
+# Projects are bench/projects.json names checked out under <work-dir> (`node bench/bench.mjs prepare --projects
 # <names>`); the regression cases are testdata/regressions/*/ (tools/regressions.sh checks their expected.txt).
 set -uo pipefail
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -99,7 +99,7 @@ print(p["project"])' "$repo/bench/projects.json" "$name"); then
     echo "FAIL $name: not in bench/projects.json"; fail=1; continue
   fi
   dir="$work/$sub"
-  [ -d "$dir" ] || { echo "FAIL $name: no checkout at $dir (python3 bench/run.py --setup-only --projects $name)"; fail=1; continue; }
+  [ -d "$dir" ] || { echo "FAIL $name: no checkout at $dir (node bench/bench.mjs prepare --projects $name)"; fail=1; continue; }
   before=$runs
   sweep "$name" "$dir" -p "$proj" --noEmit --incremental false --pretty false
   echo "$name: $(wc -l < "$out/$name-single.txt" | tr -d ' ') lines single-threaded, $((runs - before)) runs compared"

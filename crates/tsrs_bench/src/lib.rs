@@ -78,7 +78,7 @@ impl PreparedProject {
     fn capture(cwd: String, config: &str, lib_path: String, fs: Arc<dyn FS>) -> Self {
         assert!(
             fs.file_exists(config),
-            "missing benchmark config {config:?}; run bench/run.py --setup-only first"
+            "missing benchmark config {config:?}; run node bench/bench.mjs prepare first"
         );
         let recording = Arc::new(RecordingFs::new(fs));
         let args: Vec<String> = [

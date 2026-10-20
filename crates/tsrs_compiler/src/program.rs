@@ -486,7 +486,7 @@ impl Program {
 // (mimalloc `no_thp`, notes/mem-no-thp.md) the parallel parse is bound by page-fault contention, not threads (vscode
 // on 64 vCPUs: 0.124 s at 32 threads, 0.131 s at 64), and every allocating thread keeps its own partly filled
 // allocator pages and arena chunk tail (64 -> 32 threads: -0.09 GiB peak). RAYON_NUM_THREADS still sets the count
-// exactly, as before (bench/run.py's single-threaded counter uses 1).
+// exactly, as before (single-threaded runs with `node bench/bench.mjs count` use 1).
 const PARSE_THREAD_CAP: usize = 32;
 
 /// Runs worker jobs on the calling thread for threadless targets.

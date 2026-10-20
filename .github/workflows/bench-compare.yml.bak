@@ -105,7 +105,7 @@ jobs:
       # Same cache keys as bench.yml, so the project checkouts it saved are reused (restore only).
       - name: Cache keys
         id: keys
-        run: python3 bench/run.py --print-cache-keys | tee -a "$GITHUB_OUTPUT"
+        run: node bench/bench.mjs plan --format keys | tee -a "$GITHUB_OUTPUT"
 
       - name: Restore suite and compilers
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -184,7 +184,7 @@ jobs:
 
       # Also installs the 7.1-dev reference nightly. Cache-miss projects are set up by compare.py.
       - name: Set up benchmark projects
-        run: python3 bench/run.py --setup-only --projects vscode,xstate-main,webpack
+        run: node bench/bench.mjs prepare --projects vscode,xstate-main,webpack
 
       # tsrs as a PGO `release` build with the release workflow's PGO commands and training, without the BOLT step of
       # release.yml and bench.yml.
@@ -214,7 +214,7 @@ jobs:
         env:
           BENCH_RUNNER: GitHub Actions `${{ inputs.runner || 'ubuntu-24.04' }}`
         run: >-
-          python3 bench/compare.py --tsrs /tmp/tsrs-pgo/target/x86_64-unknown-linux-gnu/release/tsrs
+          node bench/bench.mjs compare --tsrs /tmp/tsrs-pgo/target/x86_64-unknown-linux-gnu/release/tsrs
           --bun /tmp/bun/bun-linux-x64/bun --projects "$PROJECTS" --reps "$REPS" --threads "$THREADS"
 
       - name: Upload results and logs

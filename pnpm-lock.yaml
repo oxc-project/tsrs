@@ -166,6 +166,9 @@ importers:
 
   .:
     devDependencies:
+      opentype.js:
+        specifier: 2.0.0
+        version: 2.0.0
       void:
         specifier: 0.28.0
         version: 0.28.0(@types/node@22.20.1)(arktype@2.2.8)(kysely@0.29.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(valibot@1.5.0(typescript@6.0.2))(vite@8.3.4(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.3)(tsx@4.23.15))(wrangler@4.151.0(@cloudflare/workers-types@5.20261016.1)(@types/node@22.20.1))(zod@4.6.7)
@@ -2807,6 +2810,10 @@ packages:
     resolution: {integrity: sha512-XrsrhT5sybtKI6wakr2SPOlGZWWYbUXZ7a0jT8/QOeAPau+1X/bSegNe5YR75oJmEZQbKningirmGOEJCIk61Q==}
     engines: {node: '>=12.20.0'}
 
+  opentype.js@2.0.0:
+    resolution: {integrity: sha512-kCyjv6xdDY1W/jLWZ/L3QhhTlKUqDZMQ5+Jdlw12b3dXkKNpYBqqlMMj0YDQPShWFTMwgZI1hG14kN3XUDSg/A==}
+    hasBin: true
+
   oxfmt@0.72.0:
     resolution: {integrity: sha512-16OQeL0uhPZbfmT9S9WWM0Nv9+BmVi8Ra1uTYaSKj/qSCs6FB30KOhz9JoNYw6thT+K5bVxsk/tSEOu497i34g==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -5008,6 +5015,8 @@ snapshots:
   object-assign@4.1.1: {}
 
   obug@2.2.1: {}
+
+  opentype.js@2.0.0: {}
 
   oxfmt@0.72.0(vite-plus@1.1.0(@types/node@22.20.1)(@vitest/ui@5.0.3)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.64.0)(sass@1.97.3)(tsx@4.23.15)(typescript@6.0.2)):
     dependencies:

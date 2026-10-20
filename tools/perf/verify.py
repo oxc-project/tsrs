@@ -10,9 +10,9 @@ For each project of bench/projects.json and each checker count, both binaries ru
 every rep). A cell is identical when every run of both binaries printed the same diagnostics (each `error TS` line and
 its indented continuation lines, in order) and exited with the same code as the base's first run. The rest of the
 output is compared too and its first difference recorded in verify.json, but it does not decide. The timed runs pass no
---extendedDiagnostics: its statistics report runs inside the measured process (bench/run.py TIMED_FLAGS).
+--extendedDiagnostics: its statistics report runs inside the measured process (bench/bench.mjs timed flags).
 
-Per project, also: one untimed single-threaded run of each binary through bench/count.py (`--singleThreaded`,
+Per project, also: one untimed single-threaded run of each binary through `node bench/bench.mjs count` (`--singleThreaded`,
 RAYON_NUM_THREADS=1) for instructions retired and peak RSS (Linux only), whose diagnostics must match too; and, unless
 --no-poison, one run of the new binary at 16 checkers with TSRS_ARENA_POISON=1 (freed arena memory filled and never
 reused), which must not crash and must print the base's diagnostics.
@@ -35,8 +35,7 @@ import threading
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "bench"))
-import run as rb  # noqa: E402  (bench/run.py: project setup and paths, output parsing, machine info)
+import bench_bridge as rb
 
 FLAGS = rb.TIMED_FLAGS
 POISON_CHECKERS = 16
@@ -68,7 +67,7 @@ def first_difference(a: list[str], b: list[str]) -> dict | None:
 
 def run_once(exe: Path, cwd: Path, proj: Path, checkers: int, log: Path, timeout: float, env: dict | None = None) -> dict:
     """One timed run; stdout and stderr go to <log>.out and <log>.err. Wall, user CPU and peak RSS from wait4, as in
-    bench/run.py."""
+    bench/bench.mjs."""
     argv = [str(exe), "-p", str(proj), *FLAGS, "--checkers", str(checkers)]
     log.parent.mkdir(parents=True, exist_ok=True)
     out_path, err_path = log.with_suffix(".out"), log.with_suffix(".err")
@@ -94,16 +93,16 @@ def run_once(exe: Path, cwd: Path, proj: Path, checkers: int, log: Path, timeout
 
 
 def count_run(exe: Path, cwd: Path, proj: Path, log: Path, timeout: float) -> dict:
-    """The untimed single-threaded run through bench/count.py (instructions retired, peak RSS; Linux only)."""
+    """The untimed single-threaded run through bench/bench.mjs count (instructions and RSS; Linux only)."""
     argv = [str(exe), "-p", str(proj), "--noEmit", "--incremental", "false", "--singleThreaded", "--pretty", "false"]
     log.parent.mkdir(parents=True, exist_ok=True)
-    out = log.with_suffix(".json")
+    out = log.with_suffix(".bundle")
     with open(log, "wb") as f:
-        subprocess.run([sys.executable, str(rb.BENCH / "count.py"), str(out), "--", *argv], cwd=cwd, stdout=f,
+        subprocess.run(["node", str(rb.BENCH / "bench.mjs"), "count", "--output-dir", str(out), "--", *argv], cwd=cwd, stdout=f,
                        stderr=subprocess.STDOUT, env=dict(os.environ, RAYON_NUM_THREADS="1"), timeout=timeout)
-    c = json.loads(out.read_text())
-    return {"exit": c.get("exit"), "instructions": c.get("instructions"), "peak_rss_bytes": c.get("max_rss_bytes"),
-            "count_error": c.get("error"), "log": str(log),
+    c = json.loads((out / "run.json").read_text())["samples"][0]
+    return {"exit": c.get("exitCode"), "instructions": c.get("instructions"), "peak_rss_bytes": c.get("peakRssBytes"),
+            "count_error": None, "log": str(log),
             "_diagnostics": diagnostics(log.read_text(errors="replace"))}
 
 
@@ -227,7 +226,7 @@ def markdown(result: dict) -> str:
     lines += ["</details>", "",
               f"Wall and peak RSS (`ru_maxrss`): median of {result['reps']} interleaved run{'s' if result['reps'] != 1 else ''} per binary. "
               "The instructions row: user-space instructions retired by one `--singleThreaded` run "
-              "(`bench/count.py`; repeats to about 0.001%) in the wall columns, its peak RSS in the memory columns. "
+              "(`node bench/bench.mjs count`; repeats to about 0.001%) in the wall columns, its peak RSS in the memory columns. "
               "Wall time on these machines moves 2-4% between identical runs; instructions and single-threaded peak "
               "RSS are the stable signals. Identical: same `error TS` lines (with continuation lines) and exit code "
               "in every run of both binaries.",
@@ -256,7 +255,7 @@ def main() -> None:
     ap.add_argument("--poison", action=argparse.BooleanOptionalAction, default=True,
                     help=f"run the new binary once per project at {POISON_CHECKERS} checkers with TSRS_ARENA_POISON=1")
     ap.add_argument("--timeout", type=float, default=900, help="per-run timeout in seconds")
-    ap.add_argument("--work-dir", type=Path, default=rb.BENCH / ".work", help="bench/run.py's work dir (projects)")
+    ap.add_argument("--work-dir", type=Path, default=rb.BENCH / ".work", help="bench/bench.mjs work dir (projects)")
     ap.add_argument("--out", type=Path, default=Path("verify-out"))
     ap.add_argument("--render", action="store_true", help="only re-render <out>/verify.md from <out>/verify.json")
     args = ap.parse_args()
@@ -277,7 +276,7 @@ def main() -> None:
     for n in names:
         rb.setup_project(cfg, by_name[n], work)
 
-    args.out = args.out.resolve()  # the compilers and bench/count.py run in the project directories
+    args.out = args.out.resolve()  # the compilers and bench count run in the project directories
     logs = args.out / "logs"
     result: dict = {
         "date": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),

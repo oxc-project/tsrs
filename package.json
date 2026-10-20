@@ -3,7 +3,12 @@
     "version": "0.19.0-ts7.1.0-beta",
     "private": true,
     "packageManager": "pnpm@12.10.1",
+    "scripts": {
+        "bench": "node bench/bench.mjs",
+        "test:bench": "node --test bench/bench.test.mjs"
+    },
     "devDependencies": {
+        "opentype.js": "2.0.0",
         "void": "0.28.0"
     }
 }

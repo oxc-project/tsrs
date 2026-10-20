@@ -137,7 +137,7 @@ jobs:
         id: projects
         run: |
           if [ "$PROJECTS" = all ]; then
-            list=$(python3 bench/run.py --print-projects | python3 -c 'import json, sys; print(",".join(json.load(sys.stdin)))')
+            list=$(node bench/bench.mjs plan --projects all | jq -r '.projects | join(",")')
           else
             list="$PROJECTS"
           fi
@@ -147,7 +147,7 @@ jobs:
       # bench/projects.json needs a restore step here too; without one, every run clones and installs it.
       - name: Cache keys
         id: keys
-        run: python3 bench/run.py --print-cache-keys --projects "${{ steps.projects.outputs.list }}" | tee -a "$GITHUB_OUTPUT"
+        run: node bench/bench.mjs plan --format keys --projects "${{ steps.projects.outputs.list }}" | tee -a "$GITHUB_OUTPUT"
 
       - name: Restore suite and compilers
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -263,7 +263,7 @@ jobs:
           key: bench-drizzle-orm-${{ runner.os }}-${{ steps.keys.outputs['drizzle-orm'] }}
 
       - name: Set up the projects
-        run: python3 bench/run.py --setup-only --projects "${{ steps.projects.outputs.list }}"
+        run: node bench/bench.mjs prepare --projects "${{ steps.projects.outputs.list }}"
 
       # The baseline: the merge base of this commit and origin/<base>, so that commits that landed on the base since
       # the branch was cut are not counted as the branch's. On a pull request this commit is the merge with main.

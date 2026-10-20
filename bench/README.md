@@ -128,4 +128,20 @@ node bench/bench.mjs regressions --results-dir bench/results
 
 `history` orders results by the first-parent commits on `origin/main`, reports changes against the previous compatible machine and settings, and marks instruction or memory regressions with `!`. Use `--all` to include results from other branches, `--branch` to select another history, or `--tsv` for tab-separated output. `regressions` compares with the nearest compatible ancestor when Git history is available and falls back to the preceding run by date. It prints a table and GitHub Actions warnings; `--comment --repo owner/name --issue N` is an explicit option for posting a comment.
 
+## CodSpeed simulation
+
+`.github/workflows/codspeed.yml` runs a separate single-threaded compiler benchmark on `Compiler-Unions`, `xstate-main`, `webpack`, and `drizzle-orm`. `tsrs_bench` first captures the project's filesystem responses, then measures fresh parses, binds, checks, and diagnostic formatting from that immutable snapshot. Capture and output verification are outside the measured region; an unrecorded file request or changed result fails the benchmark. This is a separate baseline from the CLI wall-time measurements above.
+
+From the repository root, install `cargo-codspeed` and prepare one project before running the simulation locally:
+
+```bash
+cargo install cargo-codspeed --version 5.0.3 --locked
+node bench/bench.mjs prepare --projects Compiler-Unions
+cargo codspeed build -p tsrs_bench --bench compiler --features codspeed --profile release --locked -m simulation
+RAYON_NUM_THREADS=1 TSRS_BENCH_PROJECT=Compiler-Unions \
+  cargo codspeed run -p tsrs_bench --bench compiler -m simulation
+```
+
+Outside CodSpeed's Linux instrumentation, the last command exercises capture, replay, and output verification without reporting performance measurements. Use `--profile dev` for local correctness builds. CI uses the release profile without PGO and keeps debug symbols for flame graphs.
+
 The current committed `RESULTS.md` and its SVGs are historical until a real run replaces them. Do not regenerate them from synthetic measurements.

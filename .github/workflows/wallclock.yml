@@ -1,0 +1,281 @@
+name: Wall-clock benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: wallclock-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  build-main:
+    if: github.repository == 'oxc-project/tsrs' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    env:
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: true
+          cache-key: wallclock-release
+
+      - name: Build main CLI
+        run: |
+          cargo build --release --locked -p tsrs_cli
+          mkdir -p "$RUNNER_TEMP/wallclock-main"
+          cp target/release/tsrs "$RUNNER_TEMP/wallclock-main/tsrs"
+          echo "$GITHUB_SHA" > "$RUNNER_TEMP/wallclock-main/commit.txt"
+          "$RUNNER_TEMP/wallclock-main/tsrs" --version
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wallclock-main-cli
+          path: ${{ runner.temp }}/wallclock-main
+          if-no-files-found: error
+          retention-days: 7
+
+  decide:
+    if: github.repository == 'oxc-project/tsrs' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      run: ${{ steps.clef.outputs.run }}
+      reason: ${{ steps.clef.outputs.reason }}
+      projects: ${{ steps.projects.outputs.projects }}
+    steps:
+      # Only same-repository PRs reach this job. The PR merge checkout includes
+      # this workflow's helper script before it has landed on main.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: List benchmark projects
+        id: projects
+        run: echo "projects=$(python3 bench/run.py --print-projects)" >> "$GITHUB_OUTPUT"
+
+      - name: Ask Clef whether wall-clock measurement is needed
+        id: clef
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          # Set only when CLOUDFLARE_API_KEY is a Global API Key rather than an API token.
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+        run: python3 bench/wallclock.py decide
+
+  build-pr:
+    needs: decide
+    if: needs.decide.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+    env:
+      CARGO_INCREMENTAL: "0"
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: false
+          cache-key: wallclock-release
+
+      - name: Find the main build for this base commit
+        id: main-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          run_id=$(gh run list --workflow wallclock.yml --branch main --commit "$BASE_SHA" \
+            --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: steps.main-run.outputs.run_id != ''
+        continue-on-error: true
+        with:
+          name: wallclock-main-cli
+          path: ${{ runner.temp }}/wallclock-main
+          run-id: ${{ steps.main-run.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Build main CLI if its artifact has expired
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ ! -f "$RUNNER_TEMP/wallclock-main/commit.txt" ] || \
+             [ "$(cat "$RUNNER_TEMP/wallclock-main/commit.txt")" != "$BASE_SHA" ] || \
+             [ ! -f "$RUNNER_TEMP/wallclock-main/tsrs" ]; then
+            cargo build --release --locked -p tsrs_cli
+            mkdir -p "$RUNNER_TEMP/wallclock-main"
+            cp target/release/tsrs "$RUNNER_TEMP/wallclock-main/tsrs"
+          fi
+          chmod +x "$RUNNER_TEMP/wallclock-main/tsrs"
+
+      # This job has read-only repository access and no Cloudflare secrets.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          path: pr
+          persist-credentials: false
+
+      - name: Build PR CLI
+        working-directory: pr
+        run: cargo build --release --locked -p tsrs_cli
+
+      - name: Package both CLIs
+        run: |
+          mkdir -p "$RUNNER_TEMP/wallclock-binaries/main" "$RUNNER_TEMP/wallclock-binaries/pr"
+          cp "$RUNNER_TEMP/wallclock-main/tsrs" "$RUNNER_TEMP/wallclock-binaries/main/tsrs"
+          cp target/release/tsrs "$RUNNER_TEMP/wallclock-binaries/pr/tsrs"
+          "$RUNNER_TEMP/wallclock-binaries/main/tsrs" --version
+          "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" --version
+          sha256sum "$RUNNER_TEMP/wallclock-binaries/main/tsrs" "$RUNNER_TEMP/wallclock-binaries/pr/tsrs"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wallclock-binaries
+          path: ${{ runner.temp }}/wallclock-binaries
+          if-no-files-found: error
+          retention-days: 7
+
+  measure:
+    needs: [decide, build-pr]
+    if: needs.decide.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.decide.outputs.projects) }}
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    env:
+      PROJECT: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Prepare runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+          mem_gb=$(awk '/MemTotal/ {printf "%d", $2 / 1048576}' /proc/meminfo)
+          if [ "$(nproc)" != 8 ] || [ "$mem_gb" -lt 14 ] || [ "$(uname -m)" != x86_64 ]; then
+            echo "::error::expected 8 vCPU / 16 GB / x86_64"; exit 1
+          fi
+          if ! command -v hyperfine > /dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y hyperfine
+          fi
+          hyperfine --version
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        with:
+          registry-url: ""
+
+      - name: Cache keys
+        id: keys
+        run: python3 bench/run.py --print-cache-keys --projects "$PROJECT" | sed "s/^$PROJECT=/project=/" >> "$GITHUB_OUTPUT"
+
+      - name: Restore shared benchmark checkout
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+          key: bench-shared-${{ runner.os }}-${{ steps.keys.outputs.shared }}
+
+      - name: Cache benchmark project
+        if: steps.keys.outputs.project != ''
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: bench/.work/solutions/${{ matrix.project }}
+          key: bench-${{ matrix.project }}-${{ runner.os }}-${{ steps.keys.outputs.project }}
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: wallclock-binaries
+          path: ${{ runner.temp }}/wallclock-binaries
+
+      - name: Compare main and PR with Hyperfine
+        run: |
+          chmod +x "$RUNNER_TEMP/wallclock-binaries/main/tsrs" "$RUNNER_TEMP/wallclock-binaries/pr/tsrs"
+          python3 bench/wallclock.py measure --project "$PROJECT" \
+            --base "$RUNNER_TEMP/wallclock-binaries/main/tsrs" \
+            --head "$RUNNER_TEMP/wallclock-binaries/pr/tsrs" \
+            --out "$RUNNER_TEMP/wallclock-results/$PROJECT.json" --runs 10
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: wallclock-result-${{ matrix.project }}
+          path: ${{ runner.temp }}/wallclock-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  report:
+    needs: [decide, build-pr, measure]
+    if: always() && github.event_name == 'pull_request' && needs.decide.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: needs.decide.outputs.run == 'true'
+        continue-on-error: true
+        with:
+          pattern: wallclock-result-*
+          path: ${{ runner.temp }}/wallclock-results
+          merge-multiple: true
+
+      - name: Update PR benchmark comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_SHA: ${{ github.sha }}
+          DECISION: ${{ needs.decide.outputs.run }}
+          REASON: ${{ needs.decide.outputs.reason }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 bench/wallclock.py comment --pr-number "$PR_NUMBER" \
+            --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" --merge-sha "$MERGE_SHA" --run-url "$RUN_URL" \
+            --decision "$DECISION" --reason "$REASON" \
+            --results "$RUNNER_TEMP/wallclock-results"

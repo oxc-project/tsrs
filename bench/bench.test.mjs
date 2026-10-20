@@ -49,7 +49,10 @@ test('publication SVGs reproduce from committed chart data', async () => {
     assert.equal(await readFile(path.join(first, name), 'utf8'), await readFile(path.join(second, name), 'utf8'));
   }
   assert.match(await readFile(path.join(first, 'benchmark.svg'), 'utf8'), /<title id="title">/);
-  assert.doesNotMatch(await readFile(path.join(first, 'benchmark.svg'), 'utf8'), /<image\b|<text\b|foreignObject/);
+  const chart = await readFile(path.join(first, 'benchmark.svg'), 'utf8');
+  assert.match(chart, /font-family="system-ui, sans-serif"/);
+  assert.match(chart, /<text\b[^>]*>TypeScript type checking<\/text>/);
+  assert.doesNotMatch(chart, /<image\b|<foreignObject\b|<path\b/);
 });
 
 test('merge retains samples and rejects duplicate projects', async () => {

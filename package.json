@@ -8,7 +8,6 @@
         "test:bench": "node --test bench/bench.test.mjs"
     },
     "devDependencies": {
-        "opentype.js": "2.0.0",
         "void": "0.28.0"
     }
 }

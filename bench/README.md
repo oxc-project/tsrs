@@ -21,17 +21,16 @@ All benchmark tools run through `node bench/bench.mjs` from the repository root.
 
 ## Reproduce the published SVGs without benchmarking
 
-Each new publication commits `bench/publication.json`, `bench/RESULTS.md`, and seven SVGs. The JSON contains full-precision chart values and labels, so reproduction requires no compiler, project checkout, Hyperfine, or benchmark machine. From the repository root, with Node 24 and pnpm installed:
+Each new publication commits `bench/publication.json`, `bench/RESULTS.md`, and seven SVGs. The JSON contains full-precision chart values and labels, so reproduction requires no compiler, project checkout, Hyperfine, or benchmark machine. From the repository root, with Node 24:
 
 ```bash
-pnpm install --frozen-lockfile --ignore-scripts
 node bench/bench.mjs render bench/publication.json --output-dir bench/.work/reproduced
 node bench/bench.mjs verify-images bench/publication.json --against bench
 ```
 
 The first command writes fresh SVGs and a report to `bench/.work/reproduced/`. The second independently renders from the JSON and compares all seven SVGs and `RESULTS.md` byte for byte with the committed files in `bench/`. A successful check prints `Reproduced 7 SVGs and RESULTS.md`.
 
-The JSON records hashes of the renderer source, lockfile, and bundled DejaVu fonts. If `render` reports that the renderer source differs, reproduce from its recorded Git revision in a separate worktree. This leaves your current checkout intact:
+The JSON records hashes of the renderer source and lockfile. SVG text uses the viewer's default system fonts, so rendering needs no bundled font files. If `render` reports that the renderer source differs, reproduce from its recorded Git revision in a separate worktree. This leaves your current checkout intact:
 
 ```bash
 repo_root="$PWD"
@@ -40,7 +39,6 @@ renderer_worktree="$(mktemp -d)/renderer"
 git worktree add --detach "$renderer_worktree" "$renderer_revision"
 (
   cd "$renderer_worktree"
-  pnpm install --frozen-lockfile --ignore-scripts
   node bench/bench.mjs render "$repo_root/bench/publication.json" \
     --output-dir "$repo_root/bench/.work/reproduced"
   node bench/bench.mjs verify-images "$repo_root/bench/publication.json" \

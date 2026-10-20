@@ -1,12 +1,8 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import opentype from 'opentype.js';
 import { BENCH, fileSha, requireValue, writeJson } from './lib.mjs';
 import { readPublication, rendererIdentity } from './results.mjs';
 
-const FONT_FILES = [path.join(BENCH, 'fonts', 'DejaVuSans.ttf'), path.join(BENCH, 'fonts', 'DejaVuSans-Bold.ttf')];
-const FONTS = FONT_FILES.map(file => opentype.parse(readFileSync(file)));
 const COLORS = { tsrs: '#0d6a73', bun: '#c2255c', typescript_1: '#3178c6', typescript_2: '#76a7d7', typescript_3: '#18405f' };
 const THEMES = {
   light: { bg: '#f4f3ec', fg: '#16171d', muted: '#6f6876', grid: '#dcdad0', panel: '#ffffff' },
@@ -16,28 +12,12 @@ const GIB = 2 ** 30;
 const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const num = value => Number(value.toFixed(2));
 
-function glyphs(value, x, baseline, size, bold = false) {
-  const font = FONTS[bold ? 1 : 0];
-  let width = 0, data = '', previous;
-  for (const character of String(value)) {
-    const glyph = font.charToGlyph(character);
-    if (previous) width += font.getKerningValue(previous, glyph) * size / font.unitsPerEm;
-    data += glyph.getPath(x + width, baseline, size).toPathData(2);
-    width += glyph.advanceWidth * size / font.unitsPerEm;
-    previous = glyph;
-  }
-  return { width, data };
-}
-
 function label(parts, value, x, y, size, fill, { bold = false, anchor = 'start' } = {}) {
-  const shape = glyphs(value, 0, 0, size, bold);
-  const dx = anchor === 'end' ? -shape.width : anchor === 'middle' ? -shape.width / 2 : 0;
-  parts.push(`<path d="${shape.data}" transform="translate(${num(x + dx)} ${num(y)})" fill="${fill}" aria-hidden="true"/>`);
+  parts.push(`<text x="${num(x)}" y="${num(y)}" font-size="${num(size)}" font-weight="${bold ? 700 : 400}" text-anchor="${anchor}" fill="${fill}" aria-hidden="true">${esc(value)}</text>`);
 }
 
 function fittedLabel(parts, value, x, y, preferredSize, maxWidth, fill, options = {}) {
-  let size = preferredSize;
-  while (size > 9 && glyphs(value, 0, 0, size, options.bold).width > maxWidth) size -= 0.5;
+  const size = Math.max(9, Math.min(preferredSize, maxWidth / (String(value).length * 0.6)));
   label(parts, value, x, y, size, fill, options);
 }
 
@@ -49,7 +29,7 @@ function svg(width, height, title, description, draw, theme = 'light') {
   const palette = THEMES[theme], parts = [];
   rect(parts, 0, 0, width, height, palette.bg);
   draw(parts, palette);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description">\n<title id="title">${esc(title)}</title>\n<desc id="description">${esc(description)}</desc>\n${parts.join('\n')}\n</svg>\n`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="system-ui, sans-serif" role="img" aria-labelledby="title description">\n<title id="title">${esc(title)}</title>\n<desc id="description">${esc(description)}</desc>\n${parts.join('\n')}\n</svg>\n`;
 }
 
 function compilerLabel(data, id) { const info = data.compilers[id]; return id === 'tsrs' ? 'tsrs' : id === 'bun' ? `bun check ${info.version ?? ''}` : `TypeScript ${info.version}`; }
@@ -164,7 +144,7 @@ function report(data) {
 }
 
 export async function render(input, output, { commit, runUrl } = {}) {
-  const renderer = await rendererIdentity([path.join(BENCH, 'render.mjs'), path.join(BENCH, 'results.mjs'), path.join(BENCH, 'lib.mjs'), path.join(BENCH, '..', 'pnpm-lock.yaml'), ...FONT_FILES]);
+  const renderer = await rendererIdentity([path.join(BENCH, 'render.mjs'), path.join(BENCH, 'results.mjs'), path.join(BENCH, 'lib.mjs'), path.join(BENCH, '..', 'pnpm-lock.yaml')]);
   const data = await readPublication(input, renderer);
   if (commit) data.measuredCommit = commit;
   if (runUrl) data.runUrl = runUrl;

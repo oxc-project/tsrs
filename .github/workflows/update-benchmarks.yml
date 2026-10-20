@@ -6,7 +6,6 @@ on:
     paths:
       - bench/projects.json
       - bench/*.mjs
-      - bench/fonts/**
       - pnpm-lock.yaml
       - .github/workflows/update-benchmarks.yml
   workflow_dispatch:

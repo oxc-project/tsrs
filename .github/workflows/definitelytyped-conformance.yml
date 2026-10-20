@@ -1,0 +1,137 @@
+name: DefinitelyTyped conformance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * *"
+
+concurrency:
+  group: definitelytyped-conformance
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      dt_commit: ${{ steps.dt.outputs.commit }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - id: typescript
+        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: microsoft/TypeScript
+          ref: ${{ steps.typescript.outputs.commit }}
+          path: ts-ref
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: DefinitelyTyped/DefinitelyTyped
+          ref: master
+          path: dt
+          fetch-filter: blob:none
+          persist-credentials: false
+      - id: dt
+        run: echo "commit=$(git -C dt rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ts-ref/tsc/go.mod
+          cache-dependency-path: ts-ref/tsc/go.sum
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: definitelytyped
+      - name: Build compilers and Rust task
+        run: |
+          cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner -p tsrs_definitelytyped
+          mkdir -p dt-inputs/bin
+          cp target/debug/tsrs target/debug/tsrs_definitelytyped dt-inputs/bin/
+          cd ts-ref/tsc
+          go build -o "$GITHUB_WORKSPACE/dt-inputs/bin/tsgo" ./cmd/tsc
+      - name: Pin the package manifest
+        run: dt-inputs/bin/tsrs_definitelytyped plan --dt dt --out dt-inputs/manifest.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: definitelytyped-inputs
+          path: dt-inputs/
+          retention-days: 14
+          if-no-files-found: error
+
+  compare:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: DefinitelyTyped/DefinitelyTyped
+          ref: ${{ needs.prepare.outputs.dt_commit }}
+          path: dt
+          fetch-filter: blob:none
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: definitelytyped-inputs
+          path: dt-inputs
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+      - name: Install DefinitelyTyped dependencies
+        working-directory: dt
+        run: |
+          npm install --global "$(jq -r .packageManager package.json)"
+          pnpm install --frozen-lockfile
+      - name: Compare packages
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          chmod +x dt-inputs/bin/tsgo dt-inputs/bin/tsrs dt-inputs/bin/tsrs_definitelytyped
+          dt-inputs/bin/tsrs_definitelytyped run \
+            --manifest dt-inputs/manifest.json --dt dt \
+            --tsgo dt-inputs/bin/tsgo --tsrs dt-inputs/bin/tsrs \
+            --shard "$SHARD/16" --jobs 2 --out dt-results
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: definitelytyped-shard-${{ matrix.shard }}
+          path: dt-results/
+          retention-days: 14
+          if-no-files-found: warn
+
+  report:
+    needs: [prepare, compare]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: definitelytyped-inputs
+          path: dt-inputs
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: definitelytyped-shard-*
+          merge-multiple: true
+          path: dt-results
+      - name: Publish comparison
+        run: |
+          chmod +x dt-inputs/bin/tsrs_definitelytyped
+          status=0
+          dt-inputs/bin/tsrs_definitelytyped report \
+            --manifest dt-inputs/manifest.json --results dt-results --out report.md || status=$?
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: definitelytyped-report
+          path: report.md
+          retention-days: 14
+          if-no-files-found: warn

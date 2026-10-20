@@ -1150,6 +1150,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tsrs_definitelytyped"
+version = "0.18.0"
+dependencies = [
+ "base64",
+ "libc",
+ "serde",
+ "serde_json",
+ "tsrs_api_codec",
+ "tsrs_ast",
+ "tsrs_core",
+ "tsrs_parser",
+ "tsrs_printer",
+ "tsrs_scanner",
+]
+
+[[package]]
 name = "tsrs_diagnostics"
 version = "0.18.0"
 dependencies = [

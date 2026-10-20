@@ -13,10 +13,6 @@ pnpm add -D tsrs
 pnpm exec tsrs --noEmit
 ```
 
-Prebuilt npm binaries cover macOS arm64 and Linux x64/arm64 (glibc and musl). The release workflow now also builds
-Windows x64; releases through 0.18.0 do not contain its platform package. See the [compatibility table](https://github.com/oxc-project/tsrs/blob/main/docs/COMPATIBILITY.md)
-for platform-specific gaps.
-
 You can try `tsrs` today and give us feedback on performance, memory usage, and conformance.
 Try checking and emitting code in the [browser playground](https://tsrs-playground.void.app).
 

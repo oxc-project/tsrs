@@ -170,7 +170,7 @@ To prepare a release, bump `[workspace.package] version` in `Cargo.toml`, refres
 
 The conformance and Go fourslash gates run on the GNU Linux release runners (`bolt.sh`), with Fourslash driving
 the BOLT-optimized `fourslash_server` task binary. Unix PGO training uses the same Go harness. The macOS binary gets only the
-smoke tests; Windows gets CLI smoke tests and a separate Windows CI job. The broader WebAssembly differential gate (`tools/wasm/gate.sh`) is
+smoke tests; Windows gets CLI smoke tests in the release job. The broader WebAssembly differential gate (`tools/wasm/gate.sh`) is
 available locally; the release's WebAssembly package checks remain active.
 
 `workflow_dispatch` runs the same with `pnpm publish --dry-run` by default.

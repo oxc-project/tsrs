@@ -2,8 +2,8 @@
 # Repository setup required before this job will run:
 #   - Install the oxc-guard GitHub App on this repository with Contents, Issues,
 #     and Pull requests write access.
-#   - APP_ID: the oxc-guard GitHub App's client ID, as a repository secret.
-#   - APP_PRIVATE_KEY: the oxc-guard GitHub App's private key.
+#   - CAPTAIN_ID: the oxc-guard GitHub App's client ID, as a repository secret.
+#   - CAPTAIN_KEY: the oxc-guard GitHub App's private key.
 #   - CLOUDFLARE_API_KEY: a Workers AI API token with Workers AI Read and Edit.
 #   - CLOUDFLARE_ACCOUNT_ID: the Workers AI account ID.
 
@@ -55,8 +55,8 @@ jobs:
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
-          client-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          client-id: ${{ secrets.CAPTAIN_ID }}
+          private-key: ${{ secrets.CAPTAIN_KEY }}
           permission-contents: write
           permission-issues: write
           permission-pull-requests: write

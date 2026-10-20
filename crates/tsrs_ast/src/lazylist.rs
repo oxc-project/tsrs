@@ -38,6 +38,8 @@ pub const DEFERRED: u8 = 1;
 pub const UNBOUND: u8 = 2;
 pub const FORCING: u8 = 3;
 pub const DONE: u8 = 4;
+/// `FORCING`, with at least one reader committed to waiting on the record's stripe.
+const FORCING_WITH_WAITERS: u8 = 5;
 
 /// `tsrs_parser::ParsingContext::ClassMembers as u8` (asserted there).
 pub const CLASS_MEMBERS: u8 = 5;
@@ -241,12 +243,27 @@ impl LazyNodeList {
                         std::hint::spin_loop();
                         spins += 1;
                     }
+                    // Acquire on success: as for the loads above. On failure it makes a concurrent `DONE` and the
+                    // nodes it publishes visible before the check under the stripe lock. The forcing thread swaps
+                    // the state to `DONE`, so it either sees this registration and notifies, or wins the race and
+                    // this exchange fails without a reader going to sleep.
+                    let _ = self.state.compare_exchange(
+                        FORCING,
+                        FORCING_WITH_WAITERS,
+                        // The state value itself registers the waiter; there is no other data to release.
+                        Ordering::Acquire,
+                        // A failed exchange may observe `DONE` and must acquire the published nodes.
+                        Ordering::Acquire,
+                    );
                     let (lock, cv) = wait_stripe(self);
                     // Waits for the forcing thread without holding a run slot (`tsrs_core::runslots`).
                     tsrs_core::runslots::blocking(|| {
                         let mut g = lock.lock().unwrap();
                         // Acquire: as above.
-                        while self.state.load(Ordering::Acquire) == FORCING {
+                        while matches!(
+                            self.state.load(Ordering::Acquire),
+                            FORCING | FORCING_WITH_WAITERS
+                        ) {
                             g = cv.wait(g).unwrap();
                         }
                     });
@@ -267,11 +284,17 @@ impl LazyNodeList {
         if bind {
             (BIND_HOOK.get().expect("lazy list bind hook"))(self, file, nodes);
         }
-        // Release: publishes `nodes` and everything the parser and binder wrote to readers that load `DONE`.
-        self.state.store(DONE, Ordering::Release);
-        let (lock, cv) = wait_stripe(self);
-        drop(lock.lock().unwrap());
-        cv.notify_all();
+        // Release: publishes `nodes` and everything the parser and binder wrote to readers that load `DONE`. The
+        // read half observes a waiter's registration in the same atomic modification order. A std condvar notify is
+        // a futex system call on Linux even with nobody waiting, and most lists have no competing reader.
+        let waiting = self.state.swap(DONE, Ordering::Release) == FORCING_WITH_WAITERS;
+        if waiting {
+            let (lock, cv) = wait_stripe(self);
+            // Prevent a missed wake: a registered reader either sees `DONE` while it holds the lock, or releases the
+            // lock atomically as it sleeps before this thread acquires it.
+            drop(lock.lock().unwrap());
+            cv.notify_all();
+        }
         nodes
     }
 

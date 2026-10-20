@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - '.github/**'
+      - 'bench/**'
+      - 'docs/**'
+      - 'notes/**'
+      - '*.md'
+      - '**/*.md'
 
 concurrency:
   group: wallclock-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.sha }}
@@ -72,7 +79,7 @@ jobs:
         id: projects
         run: echo "projects=$(python3 bench/run.py --print-projects)" >> "$GITHUB_OUTPUT"
 
-      - name: Ask Clef whether wall-clock measurement is needed
+      - name: Ask Clef whether wall time or peak RSS measurement is needed
         id: clef
         env:
           GH_TOKEN: ${{ github.token }}

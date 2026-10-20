@@ -113,6 +113,41 @@ jobs:
             target/test-results-default/*.txt
           if-no-files-found: ignore
 
+  windows:
+    name: Test Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+        with:
+          registry-url: ""
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          restore-cache: false
+
+      - name: Build Windows CLI and test runner
+        shell: pwsh
+        run: |
+          cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner --features tsrs_cli/noembed
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Check libraries beside the executable
+        shell: pwsh
+        run: |
+          cargo test --locked -p tsrs_cli --features noembed --test npm_lib_path
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Installed-package smoke (CLI)
+        shell: pwsh
+        run: |
+          node npm/build.mjs --binary x86_64-pc-windows-msvc=target/debug/tsrs.exe --pack
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node npm/sdk/smoke-consumer.mjs --noembed --cli-only
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
   fourslash:
     name: Fourslash
     runs-on: ubuntu-latest

@@ -25,30 +25,65 @@ class WallclockTests(unittest.TestCase):
             env = {"GITHUB_EVENT_PATH": str(self.event(directory)), "GITHUB_OUTPUT": str(output),
                    "GITHUB_REPOSITORY": "oxc-project/tsrs", "GH_TOKEN": "fake",
                    "CLOUDFLARE_ACCOUNT_ID": "account", "CLOUDFLARE_API_KEY": "token"}
-            files = [{"filename": "README.md", "status": "modified", "patch": "@@ -1 +1 @@\n-old\n+new"}]
+            files = [{"filename": "crates/tsrs_checker/src/checker.rs", "status": "modified",
+                      "additions": 1, "deletions": 1, "patch": "@@ -1 +1 @@\n-old\n+new"},
+                     {"filename": "docs/README.md", "status": "modified", "additions": 1, "deletions": 1}]
             with patch.dict(os.environ, env, clear=True), patch.object(wallclock, "pr_files", return_value=files), \
-                    patch.object(wallclock, "clef_probability", return_value=0.02) as clef:
+                    patch.object(wallclock, "clef_probabilities", return_value=(0.02, 0.04)) as clef:
                 wallclock.decide()
             self.assertIn("run=false", output.read_text())
-            self.assertEqual(clef.call_args.args[0]["files"], [{"path": "README.md", "status": "modified"}])
+            self.assertEqual(clef.call_args.args[0]["files"], [
+                {"path": files[0]["filename"], "status": "modified", "additions": 1, "deletions": 1,
+                 "patch": files[0]["patch"]},
+                {"path": "docs/README.md", "status": "modified", "additions": 1, "deletions": 1},
+            ])
+            self.assertIn("--noEmit", clef.call_args.args[0]["workload"]["command"])
             self.assertNotIn("title", clef.call_args.args[0])
             self.assertNotIn("body", clef.call_args.args[0])
             output.unlink()
             with patch.dict(os.environ, env, clear=True), patch.object(wallclock, "pr_files", return_value=files), \
-                    patch.object(wallclock, "clef_probability", side_effect=TimeoutError):
+                    patch.object(wallclock, "clef_probabilities", return_value=(0.02, 0.7)):
+                wallclock.decide()
+            self.assertIn("run=true", output.read_text())
+            self.assertIn("70.0% peak-RSS", output.read_text())
+            output.unlink()
+            with patch.dict(os.environ, env, clear=True), patch.object(wallclock, "pr_files", return_value=files), \
+                    patch.object(wallclock, "clef_probabilities", side_effect=TimeoutError):
                 wallclock.decide()
             self.assertIn("run=true", output.read_text())
 
     def test_clef_request_and_noul_response(self):
-        response = {"success": True, "result": {"answers": {"run_wallclock":
-                                                            {"type": "noul", "noul": 0.8}}}}
+        response = {"success": True, "result": {"answers": {
+            "wall_time_impact": {"type": "noul", "noul": 0.8},
+            "rss_impact": {"type": "noul", "noul": 0.3}}}}
         with patch.dict(os.environ, {"CLOUDFLARE_ACCOUNT_ID": "account", "CLOUDFLARE_API_KEY": "token"},
                         clear=True), patch.object(wallclock.urllib.request, "urlopen",
                                                   return_value=io.BytesIO(json.dumps(response).encode())) as call:
-            self.assertEqual(wallclock.clef_probability({"title": "perf"}), 0.8)
+            self.assertEqual(wallclock.clef_probabilities({"files": []}), (0.8, 0.3))
         request = call.call_args.args[0]
         self.assertEqual(request.get_header("Authorization"), "Bearer token")
-        self.assertEqual(json.loads(request.data)["questions"]["run_wallclock"]["type"], "noul")
+        questions = json.loads(request.data)["questions"]
+        self.assertEqual(set(questions), {"wall_time_impact", "rss_impact"})
+        self.assertTrue(all(question["type"] == "noul" for question in questions.values()))
+
+    def test_incomplete_or_oversized_patch_runs_benchmarks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "output"
+            env = {"GITHUB_EVENT_PATH": str(self.event(directory)), "GITHUB_OUTPUT": str(output),
+                   "GITHUB_REPOSITORY": "oxc-project/tsrs", "GH_TOKEN": "fake",
+                   "CLOUDFLARE_ACCOUNT_ID": "account", "CLOUDFLARE_API_KEY": "token"}
+            base = {"filename": "crates/tsrs_checker/src/checker.rs", "status": "modified",
+                    "additions": 1, "deletions": 1}
+            for patch_text in (None, "@@ -1 +1 @@\n-old", "@@ -1 +1 @@\n-old\n+" + "x" * 4096):
+                with self.subTest(patch=patch_text is not None):
+                    file = {**base, "patch": patch_text}
+                    with patch.dict(os.environ, env, clear=True), \
+                            patch.object(wallclock, "pr_files", return_value=[file]), \
+                            patch.object(wallclock, "clef_probabilities") as clef:
+                        wallclock.decide()
+                    self.assertIn("run=true", output.read_text())
+                    clef.assert_not_called()
+                    output.unlink()
 
     def test_report_marks_slowdown_and_missing_projects(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -44,8 +44,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          # Set only when CLOUDFLARE_API_KEY is a Global API Key rather than an API token.
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
         run: python3 bench/wallclock.py decide
 
   build-pr:

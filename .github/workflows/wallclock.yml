@@ -1,4 +1,4 @@
-name: Wall-clock benchmark
+name: PR performance benchmark
 
 on:
   pull_request:
@@ -33,7 +33,7 @@ jobs:
       # this workflow's helper script before it has landed on main.
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - name: Ask Clef whether wall time or peak RSS measurement is needed
+      - name: Ask Clef whether performance measurement is needed
         id: clef
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,7 +102,8 @@ jobs:
   compare:
     needs: [decide, build-main, build-pr]
     if: needs.decide.outputs.run == 'true'
-    runs-on: ubuntu-latest
+    # Reuse the runner where the main benchmark already measures instruction counts.
+    runs-on: nscloud-ubuntu-24.04-amd64-8x16
     timeout-minutes: 360
     permissions:
       contents: read

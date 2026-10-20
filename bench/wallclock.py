@@ -287,8 +287,8 @@ def render_report(args: argparse.Namespace) -> str:
     cfg = json.loads((bench_run.BENCH / "projects.json").read_text())
     expected = [p["name"] for p in cfg["projects"]]
     lines += ["Release builds, default checker count; `-p <project> --noEmit --incremental false --pretty false`. "
-              "Ten alternating main/PR timing pairs and three RSS runs per binary on the same Ubuntu runner "
-              "per project. Wall time uses Hyperfine; RSS uses `wait4` and includes the compiler process.", "",
+              "Ten alternating main/PR timing pairs and three RSS runs per binary on one Ubuntu runner "
+              "across all projects. Wall time uses Hyperfine; RSS uses `wait4` and includes the compiler process.", "",
               "| Project | main wall | PR wall | paired wall Δ | pair range | main RSS | PR RSS | RSS Δ |",
               "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     missing, mismatched = [], []

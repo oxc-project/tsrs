@@ -269,6 +269,9 @@ CodSpeed runs on pushes to main, pull requests, and manual dispatch. `update-ben
 on changes to `bench/projects.json` or the workflow itself, and on manual dispatch. The comparison and probe workflows
 are disabled, including manual dispatch. Their definitions are preserved under `.github/workflows/`
 as `bench-compare.yml.bak`, `pr-verify.yml.bak` and `perf-probe.yml.bak`. The former `bench.yml` is available in Git history.
+On pull requests and merge groups, the active `ci.yml` compares ordered diagnostics and exit codes against the base
+build for the determinism job's four projects and regression cases. It does not run the saved workflow's performance
+measurements or its full project matrix.
 The completed build-layout experiment's workflow and build script were removed; `tools/perf/layout-measure.py`
 still compares supplied binaries. Local measurement tools remain available; recorded runs are archived in Git history.
 

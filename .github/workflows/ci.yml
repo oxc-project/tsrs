@@ -113,6 +113,76 @@ jobs:
             target/test-results-default/*.txt
           if-no-files-found: ignore
 
+  node-api-clients:
+    name: Node API upstream clients
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
+
+      - name: Read TypeScript reference commit
+        id: ts
+        run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pinned TypeScript client and Go oracle
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: microsoft/TypeScript
+          ref: ${{ steps.ts.outputs.commit }}
+          path: ts-ref
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ts-ref/node_modules
+            ts-ref/packages/typescript/node_modules
+            ts-ref/pnpm-lock.yaml
+            ts-ref/pnpm-workspace.yaml
+          key: node-api-harness-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.node-version', 'pnpm-lock.yaml') }}-${{ steps.ts.outputs.commit }}
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ts-ref/tsc/go.mod
+          cache-dependency-path: ts-ref/tsc/go.sum
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        with:
+          save-cache: ${{ github.ref_name == 'main' }}
+          cache-key: warm-node-api-clients
+
+      - name: Set up pinned upstream client and Go oracle
+        run: tools/node-api/setup.sh
+
+      - name: Go oracle sync and async client suites
+        run: node tools/node-api/run-upstream.mjs --binary tools/node-api/.work/oracle/tsc --label go-oracle --suite upstream --no-trace
+
+      - name: Build tsrs API server
+        run: cargo build --profile dev --locked -p tsrs_cli
+
+      - name: tsrs sync and async client suites
+        run: node tools/node-api/run-upstream.mjs --binary target/debug/tsrs --label tsrs --suite upstream --no-trace
+
+      - name: Upload Node API client results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: node-api-clients
+          include-hidden-files: true
+          path: |
+            tools/node-api/.work/go-oracle/summary.json
+            tools/node-api/.work/go-oracle/results.jsonl
+            tools/node-api/.work/go-oracle/run.tap
+            tools/node-api/.work/tsrs/summary.json
+            tools/node-api/.work/tsrs/results.jsonl
+            tools/node-api/.work/tsrs/run.tap
+          if-no-files-found: ignore
+
   fourslash:
     name: Fourslash
     runs-on: ubuntu-latest
@@ -180,6 +250,8 @@ jobs:
     name: Determinism
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: read
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
@@ -194,6 +266,21 @@ jobs:
           cache-key: warm-determinism
 
       - name: Build checker
+        run: cargo build --profile dev --locked -p tsrs_cli
+
+      - name: Check out the PR or merge queue base
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          path: base-src
+          persist-credentials: false
+
+      - name: Build base checker for ordered diagnostics
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        working-directory: base-src
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/tsrs-base-target
         run: cargo build --profile dev --locked -p tsrs_cli
 
       - name: Determinism cache keys
@@ -235,7 +322,14 @@ jobs:
       - name: Set up determinism projects
         run: python3 bench/run.py --setup-only --projects xstate-main,webpack,nuxt,drizzle-orm
 
-      # The four pinned projects and every regression case must print the same diagnostics and exit with the same
-      # status regardless of checker assignment, visit order, or work stealing.
-      - name: Determinism
-        run: tools/ci/determinism.sh --self-test && tools/ci/determinism.sh target/debug/tsrs
+      # The four pinned projects and every regression case must be deterministic across checker schedules.
+      # On PRs and merge groups, their ordered diagnostics and exit codes must also match the base binary.
+      - name: Determinism and ordered diagnostics
+        run: |
+          python3 tools/ci/compare_diagnostics.py --self-test
+          tools/ci/determinism.sh --self-test
+          if [[ "$GITHUB_EVENT_NAME" = pull_request || "$GITHUB_EVENT_NAME" = merge_group ]]; then
+            tools/ci/determinism.sh target/debug/tsrs --base "$RUNNER_TEMP/tsrs-base-target/debug/tsrs"
+          else
+            tools/ci/determinism.sh target/debug/tsrs
+          fi

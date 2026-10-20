@@ -128,7 +128,9 @@ temp project outside the repo. It then runs the installed binary through CLI pas
 and async API programs on the OS filesystem (diagnostics plus emit with `TSRS_EMIT` unset), and a nodenext
 typecheck of the published declarations that must report exactly one deliberate error.
 
-Full Node API validation is disabled for now. Its jobs are preserved in the standalone
+CI runs the pinned upstream sync and async client suites against the Go oracle and tsrs with
+`--suite upstream --no-trace`. Full Node API validation, including the local parity tests,
+per-method inventory and platform package checks, is still disabled. Those jobs are preserved in
 `.github/workflows/node-api.yml.bak`; the local tools above remain available.
 The saved `parity` job runs the Go oracle (must pass), then tsrs against the same suites, generates the inventory,
 uploads the results, and fails on any tsrs failure. The saved `package` job builds, packs and runs `consumer.mjs` on
@@ -136,8 +138,11 @@ linux-x64 and linux-arm64; `package-macos` does the same on darwin-arm64. Restor
 
 ## Current evidence
 
-Go oracle at the pin, Linux x64, Node 24.21: upstream sync+async suites 842/842 tests passed (7 files,
-787 server processes, 0 unparseable frames). 165 of 172 methods are sent by at least one upstream test.
+In [CI run 39439143649](https://github.com/oxc-project/tsrs/actions/runs/39439143649), the pinned upstream
+sync and async suites passed 850/850 tests on both the Go oracle and tsrs (7 files each, no skips, timeouts or leaked
+processes; tracing disabled). An earlier traced Go oracle run on Linux x64 with Node 24.21 passed 842/842 tests
+(7 files, 787 server processes, 0 unparseable frames). In that run, 165 of 172 methods were sent by at least one
+upstream test.
 Not sent by any upstream test: `getCurrentLanguageServerSnapshot`, `getExportSymbolOfSymbol`,
 `getOuterTypeParametersOfType`, `getConstraintOfType`, `startCPUProfile`, `stopCPUProfile`,
 `saveHeapProfile`. These need harness tests before any claim (the profiling methods are Go-runtime

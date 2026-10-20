@@ -1,5 +1,6 @@
 // Memory ownership tests. RSS is process-wide, so these tests serialize on MEMORY and live in their own test
-// binary (other test files are separate processes).
+// binary (other test files are separate processes). Config parsing has its own binary because its RSS check
+// changed with the order of these tests.
 // `rss_kib` needs glibc `malloc_trim` and `/proc`, so the binary is empty elsewhere.
 #![cfg(all(target_os = "linux", target_env = "gnu"))]
 mod common;
@@ -34,24 +35,9 @@ fn create_program(s: &tsrs_api::Session, roots: &[String], options: &str) -> (u6
     (snapshot, str_of(get(&r, "operation.createdPrograms.0")).to_string())
 }
 
-unsafe extern "C" {
-    fn malloc_trim(pad: usize) -> i32;
-}
-
-/// Resident memory after returning free heap pages to the OS (test binaries use the system allocator, whose
-/// free lists would otherwise look like growth).
-fn rss_kib() -> u64 {
-    // SAFETY: glibc `malloc_trim` has no preconditions.
-    unsafe { malloc_trim(0) };
-    std::fs::read_to_string("/proc/self/status")
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("VmRSS:"))
-                .and_then(|l| l.split_whitespace().nth(1)?.parse().ok())
-        })
-        .unwrap_or(0)
-}
+#[path = "common/rss.rs"]
+mod rss;
+use rss::rss_kib;
 
 /// Program, checker and emit allocations are owned by the snapshot's regions: creating, checking, emitting
 /// and releasing snapshots repeatedly must not accumulate them.
@@ -142,34 +128,6 @@ fn repeated_transpile_reclaims_scratch_memory() {
     // Before scratch regions each call retained ~530 KiB, then ~42 KiB while the compiler checker pool's
     // checkers were leaked; now ~5 KiB (allocator retention).
     assert!(grown < (n as u64) * 24, "rss grew {grown} KiB over {n} iterations");
-}
-
-/// Config requests build their parsed command lines in a scratch region that is freed after the response is
-/// serialized.
-#[test]
-fn repeated_config_parsing_reclaims_memory() {
-    let _g = MEMORY.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-    let dir = TempDir::new("cfgloop");
-    let cfg = dir.write("tsconfig.json", &format!("{{ \"compilerOptions\": {{ \"strict\": true, \"paths\": {{ {} }} }}, \"include\": [\"src\"] }}", (0..200).map(|i| format!("\"p{i}/*\": [\"src/p{i}/*\"]")).collect::<Vec<_>>().join(",")));
-    for i in 0..50 {
-        dir.write(&format!("src/f{i}.ts"), "export {};\n");
-    }
-    let s = session(&dir.dir(), false);
-    let n: usize =
-        std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
-    let req = format!("{{\"file\":{}}}", quote(&cfg));
-    let first = call(&s, "parseConfigFile", &req);
-    for _ in 0..10 {
-        call(&s, "parseConfigFile", &req);
-    }
-    let before = rss_kib();
-    for _ in 0..n {
-        assert_eq!(call(&s, "parseConfigFile", &req), first);
-        call(&s, "readConfigFile", &req);
-    }
-    let grown = rss_kib().saturating_sub(before);
-    eprintln!("parseConfigFile+readConfigFile x{n}: rss grew {grown} KiB");
-    assert!(grown < (n as u64) * 8, "rss grew {grown} KiB over {n} iterations");
 }
 
 /// A createSnapshot whose program build unwinds (moduleResolution with no named kind reaches the module resolver's

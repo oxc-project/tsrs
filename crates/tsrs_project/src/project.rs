@@ -3,8 +3,8 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use tsrs_ast::Diagnostic;
 use tsrs_compiler::{
-    CheckerPool, CreateCheckerPool, CreateModuleResolver, Program, ProgramOptions, new_program,
-    sort_and_deduplicate_diagnostics,
+    CheckerPool, CreateCheckerPool, CreateModuleResolver, Program, ProgramOptions, ProgramRegions,
+    new_program, sort_and_deduplicate_diagnostics,
 };
 use tsrs_core::collections::{Set, SyncMap};
 use tsrs_core::context::Context;
@@ -32,6 +32,11 @@ use crate::watch::{
     new_watched_files, new_watched_files_for_paths,
 };
 use tsrs_core::arena::Region;
+
+// Memory regions: the first chunk of each thread's file loader region of a program (tsrs_compiler programregions.rs).
+// Most language-server projects are small and several programs are alive at once, so it starts well below the
+// 1 MiB of a watch build and grows by chunks as needed.
+const LOADER_REGION_CHUNK: usize = 256 << 10;
 
 pub(crate) const inferredProjectName: &str = "/dev/null/inferred"; // lowercase so toPath is a no-op regardless of settings
 const syntheticProjectPrefix: &str = "/dev/null/synthetic/";
@@ -649,13 +654,24 @@ impl Project {
             && self.program.is_some_and(|program| Some(program.command_line()) == command_line);
         if reuse {
             let old_program = self.program.unwrap();
-            let (program, dirty_file, cloned) = old_program.update_program(
+            // Memory regions: `reuse_program` and the fallback of `update_program` by hand, so that a full rebuild
+            // gets file loader regions of its own (a reused program shares the old one's, with the processed-file
+            // data and resolutions in them).
+            let (program, dirty_file, cloned) = old_program.reuse_program(
                 &self.dirty_file_path,
                 Arc::<compilerHost>::clone(&host),
-                Some(create_checker_pool),
-                Some(create_module_resolver),
+                Some(Arc::clone(&create_checker_pool)),
+                Some(Arc::clone(&create_module_resolver)),
             );
-            new_program_result = program;
+            new_program_result = program.unwrap_or_else(|| {
+                let mut opts = old_program.rebuild_options(
+                    Arc::<compilerHost>::clone(&host),
+                    Some(create_checker_pool),
+                    Some(create_module_resolver),
+                );
+                opts.regions = Some(Arc::new(ProgramRegions::new(LOADER_REGION_CHUNK)));
+                new_program(opts)
+            });
             program_cloned = cloned;
             let (parse_cache, journal) = host.builder_parse_cache_journal();
             if program_cloned {
@@ -688,6 +704,10 @@ impl Project {
             opts.typings_location = typings_location;
             opts.create_checker_pool = Some(create_checker_pool);
             opts.create_module_resolver = Some(create_module_resolver);
+            // Memory regions: what the file loader allocates on the worker pool (resolutions, include reasons,
+            // metadata) goes to regions freed with the program's owner (memregions.rs), not to the workers' own
+            // arenas, where every full build would leave it for the life of the process.
+            opts.regions = Some(Arc::new(ProgramRegions::new(LOADER_REGION_CHUNK)));
             new_program_result = new_program(opts);
         }
         let cleanup = cleanup_module_resolver.lock().unwrap().take();

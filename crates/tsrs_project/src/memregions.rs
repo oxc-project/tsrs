@@ -7,6 +7,8 @@
 // - the base region: the full build's region, shared by every version cloned from it (`UpdateProgram` hands the
 //   shared processed-file data and the symlink cache to the next version);
 // - the regions of its source files (each parsed file version has one, see parsecache.rs);
+// - the file loader's regions (tsrs_compiler programregions.rs: one per thread that ran a loader job, with the
+//   resolutions, include reasons and metadata of a full build), shared by every version reused from that build;
 // - through its checker pool, the checkers' regions.
 //
 // `programOwner` is held by every `Project` value that refers to the program (projects are cloned per snapshot and
@@ -15,7 +17,7 @@
 
 use std::sync::Arc;
 
-use tsrs_compiler::Program;
+use tsrs_compiler::{Program, ProgramRegions};
 use tsrs_core::arena::Region;
 
 use crate::checkerpool::checkerPool;
@@ -27,6 +29,8 @@ pub(crate) struct programOwner {
     region: Region,
     pub(crate) base: Region,
     files: Vec<Region>,
+    // Last: the loader data of a full build, which a reused version's lists point into.
+    loader: Option<Arc<ProgramRegions>>,
 }
 
 impl programOwner {
@@ -61,7 +65,8 @@ impl programOwner {
                 base.allocated_bytes() >> 10
             )
         });
-        programOwner { program, checker_pool, region, base, files }
+        let loader = program.loader_regions();
+        programOwner { program, checker_pool, region, base, files, loader }
     }
 }
 
@@ -74,10 +79,11 @@ impl Drop for programOwner {
     fn drop(&mut self) {
         log_region(|| {
             format!(
-                "program {:p}: freed ({} files, region {} KiB)",
+                "program {:p}: freed ({} files, region {} KiB, loader regions {} KiB)",
                 self.program,
                 self.files.len(),
-                self.region.allocated_bytes() >> 10
+                self.region.allocated_bytes() >> 10,
+                self.loader.as_ref().map_or(0, |r| r.allocated_bytes()) >> 10
             )
         });
         if let Some(pool) = &self.checker_pool {

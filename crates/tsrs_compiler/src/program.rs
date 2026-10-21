@@ -280,6 +280,12 @@ impl Program {
             && self.compiler_checker_pool().is_some()
     }
 
+    /// The file loader's regions (`ProgramOptions::regions`): a program reused from this one shares them, since it
+    /// shares the processed-file data and resolutions in them. `None` when the program was built without.
+    pub fn loader_regions(&self) -> Option<Arc<crate::programregions::ProgramRegions>> {
+        self.opts.regions.clone()
+    }
+
     pub fn file_exists(&self, path: &str) -> bool {
         self.host.fs().file_exists(path)
     }
@@ -703,15 +709,28 @@ impl Program {
         if reused {
             (result.unwrap(), new_file, true)
         } else {
-            let mut opts = ProgramOptions::from_config(
-                self.opts.clone(),
-                new_host,
-                create_checker_pool,
-                create_module_resolver,
-            );
-            opts.canonical_diagnostics = self.canonical_diagnostics;
+            let opts = self.rebuild_options(new_host, create_checker_pool, create_module_resolver);
             (new_program(opts), new_file, false)
         }
+    }
+
+    /// The options of `update_program`'s full rebuild (its fallback when the changed file cannot be replaced in
+    /// place): this program's configuration with a new host, without the file loader's regions (`regions`), which
+    /// the caller sets when it frees programs (`tsrs_project` memregions.rs).
+    pub fn rebuild_options(
+        &self,
+        new_host: Arc<dyn CompilerHost>,
+        create_checker_pool: Option<CreateCheckerPool>,
+        create_module_resolver: Option<CreateModuleResolver>,
+    ) -> ProgramOptions {
+        let mut opts = ProgramOptions::from_config(
+            self.opts.clone(),
+            new_host,
+            create_checker_pool,
+            create_module_resolver,
+        );
+        opts.canonical_diagnostics = self.canonical_diagnostics;
+        opts
     }
 
     // program.go:347

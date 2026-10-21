@@ -200,10 +200,7 @@ fn write_string(out: &mut String, s: &str) {
     let mut i = 0;
     while i < bytes.len() {
         // Copy the run of bytes that need no escaping in one go.
-        let run = bytes[i..]
-            .iter()
-            .position(|&b| !(0x20..0x80).contains(&b) || b == b'"' || b == b'\\')
-            .unwrap_or(bytes.len() - i);
+        let run = super::plain_ascii_len(&bytes[i..]);
         if run > 0 {
             out.push_str(&s[i..i + run]);
             i += run;

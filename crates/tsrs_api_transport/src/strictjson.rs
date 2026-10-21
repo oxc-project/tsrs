@@ -781,10 +781,8 @@ impl FastParser<'_> {
             return None;
         }
         let start = self.i + 1;
-        let len = self.b[start..]
-            .iter()
-            .position(|&c| c == b'"' || c == b'\\' || !(0x20..0x80).contains(&c))?;
-        if self.b[start + len] != b'"' {
+        let len = tsrs_core::json::plain_ascii_len(&self.b[start..]);
+        if self.b.get(start + len) != Some(&b'"') {
             return None;
         }
         self.i = start + len + 1;

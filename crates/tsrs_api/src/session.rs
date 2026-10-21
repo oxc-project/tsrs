@@ -553,5 +553,6 @@ pub(crate) fn scratch<T>(f: impl FnOnce() -> T) -> T {
 
 /// Parses request params (raw JSON bytes; empty means absent, Go `UnmarshalParams` returns nil).
 pub fn json_response(value: &Value) -> ApiResult<Response> {
-    json::marshal(value).map(Response::Json).map_err(ApiError::internal)
+    // Most results are small objects: start with room for one instead of growing to it.
+    json::marshal_with_capacity(value, 256).map(Response::Json).map_err(ApiError::internal)
 }

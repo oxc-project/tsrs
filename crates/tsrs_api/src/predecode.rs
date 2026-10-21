@@ -8,6 +8,8 @@
 // (Go reports the first invalid field in document order, this in struct order) except for DocumentIdentifier,
 // whose custom decoder text is reproduced.
 
+use std::fmt::Write as _;
+
 use rustc_hash::FxHashMap;
 
 use tsrs_core::json::Value;
@@ -132,6 +134,18 @@ fn token(key: &str) -> String {
     key.replace('~', "~0").replace('/', "~1")
 }
 
+/// Appends `/` and the pointer token of `key` to `pointer`.
+fn push_token(pointer: &mut String, key: &str) {
+    pointer.push('/');
+    for c in key.chars() {
+        match c {
+            '~' => pointer.push_str("~0"),
+            '/' => pointer.push_str("~1"),
+            c => pointer.push(c),
+        }
+    }
+}
+
 /// proto.go / project.go `SyntheticProjectID.UnmarshalJSONFrom`: a string (null decodes as "") that parses as a
 /// synthetic project ID.
 fn check_synthetic_id(v: &Value, pointer: &str) -> Result<(), String> {
@@ -161,12 +175,15 @@ fn base_type(go_type: &str) -> &str {
 fn check_struct(
     go_type: &str,
     o: &tsrs_core::collections::OrderedMap<String, Value>,
-    pointer: &str,
+    pointer: &mut String,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
     for spec in struct_fields(base_type(go_type)) {
         if let Some(v) = o.get(spec.name) {
-            check_field(spec, v, &format!("{pointer}/{}", token(spec.name)), lexemes)?;
+            let len = pointer.len();
+            push_token(pointer, spec.name);
+            check_field(spec, v, pointer, lexemes)?;
+            pointer.truncate(len);
         }
     }
     Ok(())
@@ -308,13 +325,13 @@ fn check_request_file_system(
     Ok(())
 }
 
+/// `pointer` locates `v`; it is a scratch buffer that nested checks extend and restore.
 fn check_field(
     spec: &FieldSpec,
     v: &Value,
-    pointer: &str,
+    pointer: &mut String,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
-    let pointer = pointer.to_string();
     let mismatch = |v: &Value, pointer: &str, go_type: &str| {
         format!(
             "cannot unmarshal JSON {} into Go {} within \"{pointer}\"",
@@ -332,8 +349,8 @@ fn check_field(
                 Ok(())
             }
             Value::Null if spec.go_type.starts_with("[]") => Ok(()),
-            _ if spec.go_type.starts_with("[]") => Err(mismatch(v, &pointer, spec.go_type)),
-            _ => check_synthetic_id(v, &pointer),
+            _ if spec.go_type.starts_with("[]") => Err(mismatch(v, pointer, spec.go_type)),
+            _ => check_synthetic_id(v, pointer),
         };
     }
     if matches!(v, Value::Null) && spec.kind != FieldKind::Doc && spec.kind != FieldKind::DocList {
@@ -341,12 +358,12 @@ fn check_field(
         return Ok(());
     }
     if let Some(elem) = field_elem(spec.kind) {
-        check_scalar(elem, v, lexemes.get(&pointer).map(String::as_str))
-            .ok_or_else(|| mismatch(v, &pointer, spec.go_type))?;
+        check_scalar(elem, v, lexemes.get(pointer.as_str()).map(String::as_str))
+            .ok_or_else(|| mismatch(v, pointer, spec.go_type))?;
         if let Value::Object(o) = v {
-            check_struct(spec.go_type, o, &pointer, lexemes)?;
-            check_external_integers(spec.go_type, o, &pointer, lexemes)?;
-            check_request_file_system(spec.go_type, o, &pointer)?;
+            check_struct(spec.go_type, o, pointer, lexemes)?;
+            check_external_integers(spec.go_type, o, pointer, lexemes)?;
+            check_request_file_system(spec.go_type, o, pointer)?;
         }
         return Ok(());
     }
@@ -355,7 +372,7 @@ fn check_field(
             if matches!(v, Value::Null) && spec.nullable {
                 return Ok(());
             }
-            check_document(v, &pointer)
+            check_document(v, pointer)
         }
         FieldKind::DocList => match v {
             Value::Null => Ok(()),
@@ -365,27 +382,34 @@ fn check_field(
                 }
                 Ok(())
             }
-            _ => Err(mismatch(v, &pointer, spec.go_type)),
+            _ => Err(mismatch(v, pointer, spec.go_type)),
         },
         FieldKind::Array => match v {
             Value::Array(items) => {
                 let elem = spec.elem.unwrap_or(Elem::Any);
                 let elem_type = spec.go_type.trim_start_matches("[]");
+                let len = pointer.len();
                 for (i, item) in items.iter().enumerate() {
-                    let p = format!("{pointer}/{i}");
+                    pointer.truncate(len);
+                    let _ = write!(pointer, "/{i}");
                     // A null element is the element type's zero value (or nil), as for fields.
                     if !matches!(item, Value::Null)
-                        && !check_scalar(elem, item, lexemes.get(&p).map(String::as_str))
+                        && !check_scalar(
+                            elem,
+                            item,
+                            lexemes.get(pointer.as_str()).map(String::as_str),
+                        )
                     {
-                        return Err(mismatch(item, &p, elem_type));
+                        return Err(mismatch(item, pointer, elem_type));
                     }
                     if let Value::Object(o) = item {
-                        check_struct(elem_type, o, &p, lexemes)?;
+                        check_struct(elem_type, o, pointer, lexemes)?;
                     }
                 }
+                pointer.truncate(len);
                 Ok(())
             }
-            _ => Err(mismatch(v, &pointer, spec.go_type)),
+            _ => Err(mismatch(v, pointer, spec.go_type)),
         },
         _ => Ok(()),
     }
@@ -554,9 +578,12 @@ pub(crate) fn predecode(
     let Value::Object(o) = params else {
         return Ok(lexemes);
     };
+    let mut pointer = String::new();
     for spec in params_fields(method) {
         if let Some(v) = o.get(spec.name) {
-            check_field(spec, v, &format!("/{}", token(spec.name)), &lexemes).map_err(|e| {
+            pointer.clear();
+            push_token(&mut pointer, spec.name);
+            check_field(spec, v, &mut pointer, &lexemes).map_err(|e| {
                 ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: json: {e}"))
             })?;
         }

@@ -42,11 +42,17 @@ below is two things, and the sections below fold them together:
 - the config load: for this 10-line tsconfig a few KiB of arena plus the heap members, scaling 1:1 with the
   tsconfig text and the include match (the padding experiment); fixed by #677;
 - about 41 KiB per *full program build* (`api-snapshot`, `lsp-reload`; not `api-update` or `lsp-edit`, which reuse
-  a program) that stays in a thread arena and is not the config load. Not attributed yet. Candidates: the
-  `enter_table_owner` routes (the resolver's package.json cache, the project-reference symlink tables) and the
-  `enter_thread_arena` sites on the build path.
+  a program) that stays in a thread arena and is not the config load. #678 attributed it with a trace of every
+  allocation into a thread arena (a backtrace per allocation, aggregated by call stack, 50 vs 200 cycles): 23.5 KiB
+  per cycle is the file loader's worker-side data (`filesparser` -> `prefetch_resolutions` ->
+  `create_resolved_module`, plus `source_file_meta_data`), because `Project::create_program` never set
+  `ProgramOptions::regions` (watch mode does), so every full build in the language server and the API left its
+  resolutions in the workers' own arenas; 7.8 KiB is package.json cache entries that `enter_table_owner` routes to
+  the thread arena by the documented rule; 3.2 KiB is the config load; the rest is small sites. #678 gives every
+  full build loader regions held by the program owner: arena used per cycle 46.4 -> 18.8 KiB for `api-snapshot`
+  and 46.4 -> 15.7 KiB for `lsp-reload`, with #677's share on top of that.
 
-The measurements below are left as taken; read "the config file's text" and "52 KiB" there as the sum of both.
+The measurements below are left as taken; read "the config file's text" and "52 KiB" there as the sum of all three.
 
 ## Method
 

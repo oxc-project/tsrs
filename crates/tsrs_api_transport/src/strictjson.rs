@@ -234,7 +234,16 @@ impl Scanner<'_> {
     /// Reads a string starting at the opening quote; returns its decoded value. `at` locates it in errors.
     fn string(&mut self, at: At) -> Result<String, String> {
         self.i += 1;
-        let mut out = String::new();
+        // Fast path: printable ASCII up to the closing quote is the string itself.
+        let rest = &self.b[self.i..];
+        let plain =
+            rest.iter().position(|&c| c == b'"' || c == b'\\' || !(0x20..0x80).contains(&c));
+        if let Some(len) = plain.filter(|&len| rest[len] == b'"') {
+            let text = std::str::from_utf8(&rest[..len]).unwrap_or_default().to_string();
+            self.i += len + 1;
+            return Ok(text);
+        }
+        let mut out = String::with_capacity(plain.unwrap_or(0));
         loop {
             let Some(&c) = self.b.get(self.i) else {
                 return Err(Self::eof(&self.pointer(at), self.b.len()));
@@ -639,6 +648,14 @@ pub fn validate(input: &[u8]) -> Result<(), String> {
 
 /// `validate`, then `json::unmarshal`, in one scan: the same errors, in the same order.
 pub fn decode(input: &[u8]) -> Result<Decoded, DecodeError> {
+    if let Some(value) = fast_decode(input) {
+        return Ok(Decoded { value, lexemes: FxHashMap::default() });
+    }
+    decode_scan(input)
+}
+
+/// `decode` by the full scan.
+fn decode_scan(input: &[u8]) -> Result<Decoded, DecodeError> {
     let mut scanner =
         Scanner { b: input, i: 0, stack: Vec::new(), comma: None, build: Some(Build::default()) };
     scanner.run().map_err(DecodeError::Invalid)?;
@@ -649,4 +666,234 @@ pub fn decode(input: &[u8]) -> Result<Decoded, DecodeError> {
         )));
     }
     Ok(Decoded { value: build.root.unwrap_or_default(), lexemes: build.lexemes })
+}
+
+/// Containers nested deeper than this leave the document to the full scan.
+const FAST_MAX_DEPTH: usize = 64;
+
+/// `decode` for the common request document, or `None` to leave it to the full scan: every string is
+/// printable ASCII without escapes, every number is an integer of at most 15 digits (exact in an f64, so it
+/// needs no literal), and containers nest at most `FAST_MAX_DEPTH` deep. Whatever it accepts the full scan
+/// accepts with the same value; it never reports an error itself, so error texts all come from the scan.
+fn fast_decode(input: &[u8]) -> Option<Value> {
+    let text = std::str::from_utf8(input).ok()?;
+    let mut parser = FastParser { s: text, b: input, i: 0 };
+    parser.ws();
+    let value = parser.value(0)?;
+    parser.ws();
+    (parser.i == input.len()).then_some(value)
+}
+
+struct FastParser<'a> {
+    s: &'a str,
+    b: &'a [u8],
+    i: usize,
+}
+
+impl FastParser<'_> {
+    fn ws(&mut self) {
+        while matches!(self.b.get(self.i), Some(b' ' | b'\t' | b'\n' | b'\r')) {
+            self.i += 1;
+        }
+    }
+
+    fn eat(&mut self, c: u8) -> Option<()> {
+        (self.b.get(self.i) == Some(&c)).then(|| self.i += 1)
+    }
+
+    fn value(&mut self, depth: usize) -> Option<Value> {
+        match *self.b.get(self.i)? {
+            b'{' => self.object(depth),
+            b'[' => self.array(depth),
+            b'"' => self.string().map(Value::String),
+            b't' => self.literal("true", Value::Bool(true)),
+            b'f' => self.literal("false", Value::Bool(false)),
+            b'n' => self.literal("null", Value::Null),
+            b'-' | b'0'..=b'9' => self.number(),
+            _ => None,
+        }
+    }
+
+    fn object(&mut self, depth: usize) -> Option<Value> {
+        if depth >= FAST_MAX_DEPTH {
+            return None;
+        }
+        self.i += 1;
+        let mut members = OrderedMap::default();
+        self.ws();
+        if self.eat(b'}').is_some() {
+            return Some(Value::Object(members));
+        }
+        loop {
+            self.ws();
+            let key = self.string()?;
+            self.ws();
+            self.eat(b':')?;
+            self.ws();
+            let value = self.value(depth + 1)?;
+            // A duplicate member name is an error: the full scan reports it.
+            if members.insert(key, value).is_some() {
+                return None;
+            }
+            self.ws();
+            match *self.b.get(self.i)? {
+                b',' => self.i += 1,
+                b'}' => {
+                    self.i += 1;
+                    return Some(Value::Object(members));
+                }
+                _ => return None,
+            }
+        }
+    }
+
+    fn array(&mut self, depth: usize) -> Option<Value> {
+        if depth >= FAST_MAX_DEPTH {
+            return None;
+        }
+        self.i += 1;
+        let mut items = Vec::new();
+        self.ws();
+        if self.eat(b']').is_some() {
+            return Some(Value::Array(items));
+        }
+        loop {
+            self.ws();
+            items.push(self.value(depth + 1)?);
+            self.ws();
+            match *self.b.get(self.i)? {
+                b',' => self.i += 1,
+                b']' => {
+                    self.i += 1;
+                    return Some(Value::Array(items));
+                }
+                _ => return None,
+            }
+        }
+    }
+
+    /// A string of printable ASCII without escapes.
+    fn string(&mut self) -> Option<String> {
+        if self.b.get(self.i) != Some(&b'"') {
+            return None;
+        }
+        let start = self.i + 1;
+        let len = self.b[start..]
+            .iter()
+            .position(|&c| c == b'"' || c == b'\\' || !(0x20..0x80).contains(&c))?;
+        if self.b[start + len] != b'"' {
+            return None;
+        }
+        self.i = start + len + 1;
+        self.s.get(start..start + len).map(str::to_string)
+    }
+
+    fn literal(&mut self, word: &str, value: Value) -> Option<Value> {
+        if !self.b[self.i..].starts_with(word.as_bytes()) {
+            return None;
+        }
+        self.i += word.len();
+        Some(value)
+    }
+
+    /// `-?(0|[1-9][0-9]*)` of at most 15 digits, not followed by a fraction or an exponent.
+    fn number(&mut self) -> Option<Value> {
+        let start = self.i;
+        if self.b[self.i] == b'-' {
+            self.i += 1;
+        }
+        let digits = self.b[self.i..].iter().take_while(|c| c.is_ascii_digit()).count();
+        if digits == 0 || (digits > 1 && self.b[self.i] == b'0') {
+            return None;
+        }
+        self.i += digits;
+        if matches!(self.b.get(self.i), Some(b'.' | b'e' | b'E')) {
+            return None;
+        }
+        exact_integer_value(&self.s[start..self.i]).map(Value::Number)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{decode_scan, fast_decode};
+
+    const SEEDS: &[&str] = &[
+        r#"{"snapshot":1,"project":"/p/tsconfig.json","symbol":{"kind":0,"file":{"fileName":"/p/a.ts","path":"/p/a.ts","contentHash":"2bf6352bdccdb064eede8738b1391b80","parseOptionsKey":"0","scriptKind":3,"nodeId":"95"},"id":10}}"#,
+        r#"{"snapshot":2,"project":"/p/tsconfig.json","types":[1,2,3],"flags":-7,"ok":true,"no":false,"z":null}"#,
+        r#" [ {"a" : [ [] , {} , 0 , -0 , 123456789012345 ] } ] "#,
+        r#"{"a":{"b":{"c":{"d":[null,true,false,"x"]}}}}"#,
+    ];
+
+    /// Mutations of request-shaped documents: wherever the fast path accepts, the full scan accepts with
+    /// the same value (compared as marshaled text, which keeps member order) and no recorded literals.
+    #[test]
+    fn fast_path_accepts_only_what_the_scan_accepts_identically() {
+        let marshal = |v: &tsrs_core::json::Value| tsrs_core::json::marshal(v).unwrap();
+        for seed in SEEDS {
+            let fast =
+                fast_decode(seed.as_bytes()).unwrap_or_else(|| panic!("fast path declined {seed}"));
+            assert_eq!(marshal(&fast), marshal(&decode_scan(seed.as_bytes()).ok().unwrap().value));
+        }
+        let alphabet = br#"{}[]":,-0123456789.eE+tfnrulsa \/u"#;
+        let mut state = 0x9e37_79b9_7f4a_7c15_u64;
+        let mut next = |bound: usize| {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            (state % bound as u64) as usize
+        };
+        let (mut accepted, mut cases) = (0, 0);
+        for round in 0..40_000 {
+            let mut doc = SEEDS[round % SEEDS.len()].as_bytes().to_vec();
+            for _ in 0..=next(3) {
+                let at = next(doc.len() + 1);
+                let c = alphabet[next(alphabet.len())];
+                match next(4) {
+                    0 if at < doc.len() => {
+                        doc.remove(at);
+                    }
+                    1 if at < doc.len() => doc[at] = c,
+                    2 if at < doc.len() => {
+                        // Repeat a stretch, which duplicates member names and values.
+                        let end = (at + 1 + next(24)).min(doc.len());
+                        let stretch = doc[at..end].to_vec();
+                        doc.splice(at..at, stretch);
+                    }
+                    _ => doc.insert(at, c),
+                }
+            }
+            cases += 1;
+            let Some(fast) = fast_decode(&doc) else { continue };
+            accepted += 1;
+            let shown = String::from_utf8_lossy(&doc);
+            let full = decode_scan(&doc).unwrap_or_else(|_| panic!("fast path accepted {shown}"));
+            assert!(full.lexemes.is_empty(), "{shown}");
+            assert_eq!(marshal(&fast), marshal(&full.value), "{shown}");
+        }
+        // Enough mutants stay valid for this to test acceptance, not only rejection.
+        assert!(accepted * 20 > cases, "{accepted} of {cases}");
+    }
+
+    #[test]
+    fn fast_path_leaves_what_it_does_not_handle_to_the_scan() {
+        for doc in [
+            "",
+            r#"{"a":"\u0041"}"#,
+            r#"{"a":"é"}"#,
+            r#"{"a":1.5}"#,
+            r#"{"a":1e3}"#,
+            r#"{"a":1234567890123456}"#,
+            r#"{"a":1,"a":2}"#,
+            r#"{"a":01}"#,
+            "[1,]",
+            r#"{"a":1}x"#,
+        ] {
+            assert!(fast_decode(doc.as_bytes()).is_none(), "{doc}");
+        }
+        let deep = format!("{}{}", "[".repeat(65), "]".repeat(65));
+        assert!(fast_decode(deep.as_bytes()).is_none());
+        let ok = format!("{}{}", "[".repeat(64), "]".repeat(64));
+        assert!(fast_decode(ok.as_bytes()).is_some());
+    }
 }

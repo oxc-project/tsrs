@@ -202,9 +202,14 @@ seen; an API client that creates a snapshot per request keeps every request's.
   with r2 0.12 and its poison run settles; `watch-root`, which re-checks every module per cycle, swings by several
   MiB from cycle to cycle (median step 752 KiB, r2 0.19, 37.6 KiB/cycle over the last half), the allocator's
   reuse of what a full re-check frees. A caveat on the sample size: a cycle takes 13-15 s on this machine, from
-  the edit to "Found 0 errors", although the debouncer's constants are 50/500 ms and its settle 1-2 s
-  (`crates/tsrs_fswatch/src/debounce.rs`), so the watch runs are 60 and 30 cycles; the latency is not explained
-  here and may be the FSEvents stream or the directory under `~/.t3`.
+  the edit to "Found 0 errors", so the watch runs are 60 and 30 cycles. That is the machine, not tsrs: its
+  `fseventsd` was saturated (99.7% CPU, 44 GiB resident, 19 days up) and delivered file events to every client
+  about 13 s late (a minimal Swift FSEvents client with tsrs's stream parameters: 9.6-14.0 s; node's `fs.watch`:
+  0.1-1.5 s; one home-directory folder: 2.3 s, then nothing in 15 s), independent of latency, flags, scheduling and
+  directory. tsrs's own path is under 30 ms: FSEvents callback to debounce to "File change detected" within the
+  same millisecond, the rebuild 3-24 ms, with the debouncer's 50/500 ms and settle constants
+  (`crates/tsrs_fswatch/src/debounce.rs`) never on the path. Re-run the two watch scenarios after an fseventsd
+  restart; they should then take 400 cycles like the others.
 
 ## Overlap with open work
 
@@ -293,7 +298,7 @@ One issue, since one fix covers both entry points.
 - The heap's live blocks grow 72 KiB per cycle over the first 80 `api-snapshot` cycles and 15 KiB per cycle from
   100 to 400. The steady part matches the command line's heap members; the early part (about 5 MiB) is not
   attributed and may be caches filling (the overlay file system's handles, the API session's maps).
-- The 13-15 s watch latency on this machine (above). It bounds the watch sample size and is worth a look of its own.
+- The watch scenarios were measured with a saturated `fseventsd` (above): 60 and 30 cycles instead of 400.
 - Linux was not measured. `vmmap` is macOS only; the exit split and the RSS slope work there unchanged.
 
 ## Reproduce

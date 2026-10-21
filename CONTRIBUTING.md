@@ -89,14 +89,18 @@ For a bug outside the suite, add a reproduction under `testdata/regressions/<nam
 - Changes target `main`. CI (`.github/workflows/ci.yml`, on GitHub Actions) runs on pushes
   to `main`, on pull requests (drafts too), on merge groups and by manual dispatch, and must pass. Fork pull requests
   follow the repository's approval setting, run with read-only tokens and never get repository secrets.
-- CI has four independent Linux jobs with separate
+- CI has five independent Linux jobs with separate
   Rust caches: `lint` runs Clippy and source checks; `test` runs Rust checks and all workspace tests, compiler conformance in
   both checker modes, and regressions; `determinism` compares checker output across four pinned projects and regression
   cases; `fourslash` runs the server framing checks, gate checks, and
-  [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate).
+  [Go fourslash subprocess gate](tools/go-fourslash/README.md#ci-gate); `node-api-clients` runs the pinned upstream
+  sync and async client suites against both compilers.
   Source checks overlap Rust setup and Clippy in `lint`. Setup and checkout actions in `test` and `fourslash`
   run sequentially: the runner rewrites the shared GitHub event file when starting steps, so parallel actions
   can read an incomplete payload.
+  On main pushes, `benchmark-cli` warms the plain release CLI and dependency caches for PR benchmarks. Base binaries
+  are restored only for the exact commit and build configuration; misses build normally. Benchmark project and Node API
+  harness caches are saved on main pushes and restored by PRs.
   Autofix removes unused Cargo dependencies and updates the lock file on pull requests; merge groups reject pending fixes.
   Auxiliary workflow definitions preserved as `.github/workflows/*.yml.bak` do not run
   automatically or by manual dispatch. Restore the original `.yml` filename to re-enable one.

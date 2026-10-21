@@ -23,8 +23,12 @@ jobs:
         with:
           restore-cache: true
           cache-key: warm-lint
-          tools: just,cargo-shear@1.13.1
           components: rustfmt
+
+      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
+        with:
+          tool: just,cargo-shear@1.13.1
+          fallback: none
 
       - name: cargo-shear
         id: shear

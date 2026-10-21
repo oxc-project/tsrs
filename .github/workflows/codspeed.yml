@@ -124,16 +124,15 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
-        with:
-          registry-url: "" # Public benchmark installs use Yarn 1, which rejects an unset NODE_AUTH_TOKEN.
+      - uses: ./.github/actions/setup-node-tools
 
       - name: Cache key for the bench project
         id: keys
         run: echo "work=$(node bench/bench.mjs plan --format keys --projects "$TSRS_BENCH_PROJECT" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache the bench project
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - name: Restore benchmark project
+        id: project-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
@@ -177,6 +176,16 @@ jobs:
           mode: memory
           run: cargo codspeed run -p tsrs_bench --bench compiler_default -m memory
 
+      - name: Save benchmark project on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.project-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+            bench/.work/solutions/${{ matrix.project }}
+          key: ${{ steps.project-cache.outputs.cache-primary-key }}
+
   walltime:
     name: Benchmark (walltime, ${{ matrix.project }})
     needs: build-walltime
@@ -194,22 +203,15 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      # The Macro Runner's preinstalled Node 18 cannot install the repository's pnpm 12 pin.
-      # Set up Node before installing pnpm; setup-node's composite action installs pnpm first.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-          package-manager-cache: false
-
-      - name: Install pnpm
-        run: npm install --global pnpm@12.10.1
+      - uses: ./.github/actions/setup-node-tools
 
       - name: Cache key for the bench project
         id: keys
         run: echo "work=$(python3 bench/run.py --print-cache-keys --projects "$TSRS_BENCH_PROJECT" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache the bench project
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - name: Restore benchmark project
+        id: project-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
@@ -241,3 +243,13 @@ jobs:
         with:
           mode: walltime
           run: cargo codspeed run -p tsrs_bench --bench compiler_default -m walltime
+
+      - name: Save benchmark project on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.project-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+            bench/.work/solutions/${{ matrix.project }}
+          key: ${{ steps.project-cache.outputs.cache-primary-key }}

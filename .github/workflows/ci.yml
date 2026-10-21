@@ -16,6 +16,42 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 jobs:
+  benchmark-cli:
+    name: Warm PR benchmark CLI
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'oxc-project/tsrs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
+
+      # Keep the platform, profile, key and build command aligned with wallclock.yml.
+      - name: Restore benchmark CLI
+        id: cli
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: target/release/tsrs
+          key: wallclock-cli-v1-ubuntu-24.04-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}-${{ github.sha }}
+
+      - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
+        if: steps.cli.outputs.cache-hit != 'true'
+        with:
+          save-cache: true
+          cache-key: wallclock-release
+
+      - name: Build benchmark CLI
+        if: steps.cli.outputs.cache-hit != 'true'
+        run: cargo build --release --locked -p tsrs_cli
+
+      - name: Verify benchmark CLI
+        run: target/release/tsrs --version
+
+      - name: Save benchmark CLI
+        if: steps.cli.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: target/release/tsrs
+          key: ${{ steps.cli.outputs.cache-primary-key }}
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -32,6 +68,9 @@ jobs:
         with:
           save-cache: ${{ github.ref_name == 'main' }}
           cache-key: warm-lint
+
+      - name: Release WASM artifact checks
+        run: node --test .github/scripts/restore-release-wasm.test.mjs
 
       - name: Clippy
         run: cargo clippy --locked --all-targets --config 'build.warnings="deny"'
@@ -74,7 +113,7 @@ jobs:
 
       # The conformance suite and workspace tests need the pinned upstream fixtures.
       - name: Check out TypeScript test fixtures and clients
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: microsoft/TypeScript
           ref: ${{ steps.ts.outputs.commit }}
@@ -94,9 +133,6 @@ jobs:
       - name: cargo test (workspace)
         run: cargo test --locked
 
-      - name: npm library paths (noembed)
-        run: cargo test --locked -p tsrs_cli --features noembed --test npm_lib_path
-
       - name: Build correctness binaries
         run: cargo build --profile dev --locked -p tsrs_cli -p tsrs_testrunner
 
@@ -115,9 +151,13 @@ jobs:
       - name: Regression cases
         run: tools/regressions.sh target/debug/tsrs
 
+      # Finish using the embedded CLI before switching its dependency features.
+      - name: npm library paths (noembed)
+        run: cargo test --locked -p tsrs_cli --features noembed --test npm_lib_path
+
       - name: Upload conformance results
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-results
           path: |
@@ -141,7 +181,7 @@ jobs:
         run: echo "commit=$(node npm/build.mjs --print-typescript-commit)" >> "$GITHUB_OUTPUT"
 
       - name: Check out pinned TypeScript client and Go oracle
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: microsoft/TypeScript
           ref: ${{ steps.ts.outputs.commit }}
@@ -149,7 +189,8 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - id: harness-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ts-ref/node_modules
@@ -182,7 +223,7 @@ jobs:
 
       - name: Upload Node API client results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: node-api-clients
           include-hidden-files: true
@@ -194,6 +235,17 @@ jobs:
             tools/node-api/.work/tsrs/results.jsonl
             tools/node-api/.work/tsrs/run.tap
           if-no-files-found: ignore
+
+      - name: Save Node API harness on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.harness-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ts-ref/node_modules
+            ts-ref/packages/typescript/node_modules
+            ts-ref/pnpm-lock.yaml
+            ts-ref/pnpm-workspace.yaml
+          key: ${{ steps.harness-cache.outputs.cache-primary-key }}
 
   fourslash:
     name: Fourslash
@@ -221,7 +273,7 @@ jobs:
           python3 -c 'import tomllib; print("commit=" + tomllib.load(open("Cargo.toml", "rb"))["workspace"]["metadata"]["typescript"]["commit"])' >> "$GITHUB_OUTPUT"
 
       - name: Check out TypeScript source and testdata
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: microsoft/TypeScript
           ref: ${{ steps.ts.outputs.commit }}
@@ -249,7 +301,7 @@ jobs:
 
       - name: Upload Go Fourslash results
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: go-fourslash-results
           path: |
@@ -267,10 +319,7 @@ jobs:
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
 
-      - uses: oxc-project/setup-node@f46a72f95efdc55273fcd042d61c84e723b2892c # v1.4.1
-        with:
-          # Public benchmark installs use Yarn 1, which rejects an unset NODE_AUTH_TOKEN in .npmrc.
-          registry-url: ""
+      - uses: ./.github/actions/setup-node-tools
 
       - uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
@@ -282,7 +331,7 @@ jobs:
 
       - name: Check out the PR or merge queue base
         if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           path: base-src
@@ -300,7 +349,8 @@ jobs:
         run: node bench/bench.mjs plan --format keys --projects xstate-main,webpack,nuxt,drizzle-orm | tee -a "$GITHUB_OUTPUT"
 
       - name: Restore benchmark compilers
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        id: shared-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             bench/.work/suite
@@ -308,25 +358,29 @@ jobs:
           key: bench-shared-${{ runner.os }}-${{ steps.determinism-keys.outputs.shared }}
 
       - name: Restore xstate-main
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        id: xstate-main-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bench/.work/solutions/xstate-main
           key: bench-xstate-main-${{ runner.os }}-${{ steps.determinism-keys.outputs['xstate-main'] }}
 
       - name: Restore webpack
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        id: webpack-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bench/.work/solutions/webpack
           key: bench-webpack-${{ runner.os }}-${{ steps.determinism-keys.outputs['webpack'] }}
 
       - name: Restore nuxt
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        id: nuxt-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bench/.work/solutions/nuxt
           key: bench-nuxt-${{ runner.os }}-${{ steps.determinism-keys.outputs.nuxt }}
 
       - name: Restore drizzle-orm
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        id: drizzle-orm-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bench/.work/solutions/drizzle-orm
           key: bench-drizzle-orm-${{ runner.os }}-${{ steps.determinism-keys.outputs['drizzle-orm'] }}
@@ -353,3 +407,40 @@ jobs:
           else
             tools/ci/determinism.sh target/debug/tsrs
           fi
+
+      - name: Save benchmark compilers on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.shared-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            bench/.work/suite
+            bench/.work/tsgo
+          key: ${{ steps.shared-cache.outputs.cache-primary-key }}
+
+      - name: Save xstate-main on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.xstate-main-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/xstate-main
+          key: ${{ steps.xstate-main-cache.outputs.cache-primary-key }}
+
+      - name: Save webpack on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.webpack-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/webpack
+          key: ${{ steps.webpack-cache.outputs.cache-primary-key }}
+
+      - name: Save nuxt on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.nuxt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/nuxt
+          key: ${{ steps.nuxt-cache.outputs.cache-primary-key }}
+
+      - name: Save drizzle-orm on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.drizzle-orm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: bench/.work/solutions/drizzle-orm
+          key: ${{ steps.drizzle-orm-cache.outputs.cache-primary-key }}

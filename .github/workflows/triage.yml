@@ -37,7 +37,7 @@ jobs:
       issues: read
     steps:
       - name: Check out the repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -48,8 +48,9 @@ jobs:
       - name: Set up Rust
         uses: oxc-project/setup-rust@3d6fb132fbe7cdcb66bf8ec193911c2945369d12 # v1.0.17
         with:
-          save-cache: true
-          cache-key: triagebot
+          # Issue events can restore main's caches but cannot save into that scope.
+          save-cache: false
+          cache-key: warm-test
 
       - name: Create oxc-guard token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0

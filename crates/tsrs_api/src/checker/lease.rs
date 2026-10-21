@@ -33,6 +33,8 @@ struct GateState {
     held: bool,
     /// The request holding the gate (None when held outside a transport request).
     holder: Option<Holder>,
+    /// Acquisitions waiting on `released` (counted under this lock, so a release with none skips the wake).
+    waiters: usize,
 }
 
 #[derive(Default)]
@@ -72,7 +74,9 @@ pub(crate) fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLeas
                 return Ok(());
             }
             let Some(cx) = tsrs_api_transport::current_request() else {
+                st.waiters += 1;
                 st = gate.released.wait(st).unwrap_or_else(std::sync::PoisonError::into_inner);
+                st.waiters -= 1;
                 continue;
             };
             let w = wait.get_or_insert_with(|| ContentionWait::new(st.holder.as_ref()));
@@ -90,11 +94,13 @@ pub(crate) fn acquire(program: &'static Program) -> CheckerResult<ApiCheckerLeas
                 });
             }
             // Re-check shortly: the holder may start or stop waiting on the client while we wait.
+            st.waiters += 1;
             st = gate
                 .released
                 .wait_timeout(st, Duration::from_millis(2))
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .0;
+            st.waiters -= 1;
         }
     })();
     match result {
@@ -120,12 +126,16 @@ fn forget_if_unused(key: usize, gate: &Arc<Gate>) {
 
 impl Drop for ApiCheckerLease {
     fn drop(&mut self) {
-        {
+        let waiters = {
             let mut st = self.gate.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             st.held = false;
             st.holder = None;
+            st.waiters
+        };
+        // A wake is a system call even when nobody waits.
+        if waiters > 0 {
+            self.gate.released.notify_all();
         }
-        self.gate.released.notify_all();
         forget_if_unused(self.key, &self.gate);
     }
 }

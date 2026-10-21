@@ -32,35 +32,51 @@ pub struct CheckerPoolOptions {
 
 // Go's buffered channel used as a counting semaphore (`sem <- struct{}{}` / `<-sem`).
 struct semaphore {
-    used: Mutex<usize>,
+    state: Mutex<semaphoreState>,
     capacity: usize,
     freed: Condvar,
 }
 
+#[derive(Default)]
+struct semaphoreState {
+    used: usize,
+    /// Acquirers waiting on `freed` (counted under the lock, so a release with none skips the wake).
+    waiters: usize,
+}
+
 impl semaphore {
     fn new(capacity: usize) -> semaphore {
-        semaphore { used: Mutex::new(0), capacity, freed: Condvar::new() }
+        semaphore { state: Mutex::default(), capacity, freed: Condvar::new() }
     }
 
     fn acquire(&self) {
-        let mut used = self.used.lock().unwrap();
-        if *used >= self.capacity {
+        let mut state = self.state.lock().unwrap();
+        if state.used >= self.capacity {
             // Waits for another request's checker without holding a run slot (`runslots`).
-            drop(used);
-            used = tsrs_core::runslots::blocking(|| {
-                let mut used = self.used.lock().unwrap();
-                while *used >= self.capacity {
-                    used = self.freed.wait(used).unwrap();
+            drop(state);
+            state = tsrs_core::runslots::blocking(|| {
+                let mut state = self.state.lock().unwrap();
+                while state.used >= self.capacity {
+                    state.waiters += 1;
+                    state = self.freed.wait(state).unwrap();
+                    state.waiters -= 1;
                 }
-                used
+                state
             });
         }
-        *used += 1;
+        state.used += 1;
     }
 
     fn release(&self) {
-        *self.used.lock().unwrap() -= 1;
-        self.freed.notify_one();
+        let waiters = {
+            let mut state = self.state.lock().unwrap();
+            state.used -= 1;
+            state.waiters
+        };
+        // A wake is a system call even when nobody waits.
+        if waiters > 0 {
+            self.freed.notify_one();
+        }
     }
 }
 
@@ -866,7 +882,7 @@ impl checkerPool {
 
     #[cfg(test)]
     pub(crate) fn query_sem_used(&self) -> usize {
-        *self.query_sem.used.lock().unwrap()
+        self.query_sem.state.lock().unwrap().used
     }
 
     // (checker regions, disposed checkers waiting for their leases, parked checkers)

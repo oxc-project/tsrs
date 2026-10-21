@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "tsrs": "file:../../npm/tsrs",
+    "typescript": "7.1.0-dev.20260929.1"
+  }
+}

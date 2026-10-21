@@ -474,7 +474,18 @@ impl Session {
             }
             "createModuleResolver" => self.handle_create_module_resolver(p)?,
             "releaseModuleResolver" => self.handle_release_module_resolver(p)?,
-            "resolveModuleName" => self.handle_resolve_module_name(p)?,
+            // Standalone resolveModuleName creates a fresh resolver and resolution caches on every call.
+            // Go reclaims them via GC; tsrs allocates them in the API server's leak arena unless each
+            // request is routed through a scratch region that is freed once the JSON response is built.
+            // The inProgressSnapshot path is excluded because resolvers cached in a ProgramResolutionContext
+            // outlive the request.
+            "resolveModuleName" => {
+                if p.u64("inProgressSnapshot")? == 0 {
+                    scratch(|| self.handle_resolve_module_name(p))?
+                } else {
+                    self.handle_resolve_module_name(p)?
+                }
+            }
             "createBuildOrchestrator" => self.handle_create_build_orchestrator(p)?,
             "disposeBuildOrchestrator" => self.handle_dispose_build_orchestrator(p)?,
             "build" => self.handle_build(p, false, false)?,

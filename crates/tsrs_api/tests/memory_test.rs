@@ -189,3 +189,50 @@ fn failed_program_builds_release_their_files() {
     let (next, _) = create_program(&s, std::slice::from_ref(&a), "{\"noLib\":true}");
     call(&s, "release", &format!("{{\"snapshot\":{next}}}"));
 }
+
+/// `resolveModuleName` creates a fresh `DefaultResolver` on every call; without a scratch region its
+/// `P`-allocated resolution data, caches and result objects accumulate in the API server thread's leak
+/// arena. Regressed in #655.
+#[test]
+fn repeated_resolve_module_name_reclaims_scratch_memory() {
+    let _g = MEMORY.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+    let dir = TempDir::new("rmloop");
+    let cwd = dir.dir();
+    let src_dir = format!("{cwd}/src");
+    std::fs::create_dir(&src_dir).unwrap();
+    let file = dir.write("src/index.ts", "export {};\n");
+    let s = session(&cwd, false);
+    let resolver = call(
+        &s,
+        "createModuleResolver",
+        r#"{"compilerOptions":{"module":99,"moduleResolution":100}}"#,
+    );
+    let resolver_id = json::marshal(&resolver).unwrap();
+    let req = format!(
+        "{{\"resolver\":{resolver_id},\"moduleName\":\"./index.ts\",\"containingDirectory\":{}}}",
+        quote(&src_dir)
+    );
+
+    // Verify correctness and warm caches.
+    let r = call(&s, "resolveModuleName", &req);
+    assert_eq!(str_of(get(&r, "resolvedModule.resolvedFileName")), file);
+    for _ in 0..10 {
+        call(&s, "resolveModuleName", &req);
+    }
+
+    let n: usize =
+        std::env::var("TSRS_API_STRESS").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
+    let before = rss_kib();
+    for _ in 0..n {
+        let r = call(&s, "resolveModuleName", &req);
+        assert_eq!(str_of(get(&r, "resolvedModule.resolvedFileName")), file);
+    }
+    let grown = rss_kib().saturating_sub(before);
+    eprintln!("resolveModuleName x{n}: rss grew {grown} KiB");
+    // Before the scratch region each call retained ~3.4 KiB; after the fix only allocator noise remains.
+    assert!(
+        grown < (n as u64) * 24,
+        "rss grew {grown} KiB over {n} resolveModuleName calls"
+    );
+    call(&s, "releaseModuleResolver", &format!("{{\"resolver\":{resolver_id}}}"));
+}

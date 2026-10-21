@@ -87,7 +87,7 @@ fn unmarshal_raw_message(v: &Value, response_fields: bool) -> Result<RawMessage,
         return Ok(raw);
     };
     for (k, v) in members {
-        match k.as_str() {
+        match k {
             "jsonrpc" => {
                 field::<JSONRPCVersion>(k, v)?;
             }
@@ -227,7 +227,7 @@ impl Json for ResponseMessage {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "jsonrpc" => {
                     field::<JSONRPCVersion>(k, v)?;
                 }

@@ -168,7 +168,7 @@ pub fn unmarshal_discriminated_arm<T: Json>(
                     .take(1)
                     .chain(members.iter().take(d))
                     .chain(members.iter().skip(d + 1))
-                    .map(|(k, item)| (k.clone(), item.clone())),
+                    .map(|(k, item)| (k.to_string(), item.clone())),
             );
             match T::from_json(&Value::Object(reordered)) {
                 Ok(arm) => return Ok(arm),

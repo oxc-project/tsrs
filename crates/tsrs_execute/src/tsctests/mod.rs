@@ -105,7 +105,7 @@ fn load_scenario(path: &FsPath) -> scenario {
     let Value::Object(o) = tsrs_core::json::unmarshal(&text).unwrap() else { panic!("scenario") };
     let mut env = FxHashMap::default();
     if let Some(Value::Object(e)) = o.get("env") {
-        env.extend(e.into_iter().map(|(k, v)| (k.clone(), s(Some(v)))));
+        env.extend(e.into_iter().map(|(k, v)| (k.to_string(), s(Some(v)))));
     }
     let files = match o.get("files") {
         Some(Value::Array(a)) => a

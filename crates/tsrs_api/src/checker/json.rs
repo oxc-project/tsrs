@@ -19,30 +19,31 @@ impl Obj {
         Obj::default()
     }
 
-    pub(crate) fn set(&mut self, key: &str, value: Value) {
-        self.map.insert(key.to_string(), value);
+    /// Response field names are literals, which the map borrows.
+    pub(crate) fn set(&mut self, key: &'static str, value: Value) {
+        self.map.insert(key, value);
     }
 
-    pub(crate) fn num(&mut self, key: &str, n: f64) {
+    pub(crate) fn num(&mut self, key: &'static str, n: f64) {
         self.set(key, Value::Number(n));
     }
 
     /// `omitzero` numbers (encoding/json v2 `omitempty` would still emit 0).
-    pub(crate) fn nonzero(&mut self, key: &str, n: f64) {
+    pub(crate) fn nonzero(&mut self, key: &'static str, n: f64) {
         if n != 0.0 {
             self.num(key, n);
         }
     }
 
     /// `omitempty` strings ("" is an empty JSON value under encoding/json v2).
-    pub(crate) fn str_nonempty(&mut self, key: &str, s: &str) {
+    pub(crate) fn str_nonempty(&mut self, key: &'static str, s: &str) {
         if !s.is_empty() {
             self.set(key, Value::String(s.to_string()));
         }
     }
 
     /// `omitempty` id slices ([] is an empty JSON value under encoding/json v2).
-    pub(crate) fn ids(&mut self, key: &str, ids: impl Iterator<Item = f64>) {
+    pub(crate) fn ids(&mut self, key: &'static str, ids: impl Iterator<Item = f64>) {
         let ids: Vec<Value> = ids.map(Value::Number).collect();
         if !ids.is_empty() {
             self.set(key, Value::Array(ids));
@@ -50,7 +51,7 @@ impl Obj {
     }
 
     pub(crate) fn extend(&mut self, other: Obj) {
-        self.map.extend(other.map);
+        self.map.append(other.map);
     }
 
     pub(crate) fn build(self) -> Value {
@@ -61,7 +62,7 @@ impl Obj {
     pub(crate) fn build_ordered(mut self, order: &[&str]) -> Value {
         // A stable sort: listed fields by their position in `order`, then the others as they were.
         self.map.sort_by_cached_key(|key, _| {
-            order.iter().position(|o| *o == key.as_str()).unwrap_or(order.len())
+            order.iter().position(|o| *o == key).unwrap_or(order.len())
         });
         Value::Object(self.map)
     }

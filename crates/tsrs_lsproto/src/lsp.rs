@@ -632,7 +632,7 @@ pub(crate) fn json_object_has_key(data: &Value, keys: &[&str]) -> Option<usize> 
     let Value::Object(members) = data else {
         return None;
     };
-    if let Some(i) = members.keys().find_map(|name| keys.iter().position(|key| name == key)) {
+    if let Some(i) = members.keys().find_map(|name| keys.iter().position(|key| name == *key)) {
         return Some(i);
     }
     None

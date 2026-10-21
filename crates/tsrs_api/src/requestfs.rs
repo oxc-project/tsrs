@@ -380,9 +380,9 @@ impl RequestParams {
             Value::Object(m) => {
                 files = m.iter().try_fold(files, |mut files, (k, v)| {
                     match v {
-                        Value::String(c) => files.push((k.clone(), c.clone())),
+                        Value::String(c) => files.push((k.to_string(), c.clone())),
                         // Go map[string]string: a null value is "".
-                        Value::Null => files.push((k.clone(), String::new())),
+                        Value::Null => files.push((k.to_string(), String::new())),
                         _ => return Err("fileSystem.files values must be strings".to_string()),
                     }
 
@@ -398,7 +398,7 @@ impl RequestParams {
                 directories = m.iter().try_fold(directories, |mut directories, (k, v)| {
                     let d = Params(v);
                     directories.push((
-                        k.clone(),
+                        k.to_string(),
                         Entries {
                             files: str_list(d.get("files"), "directory files")?,
                             directories: str_list(d.get("directories"), "directory directories")?,
@@ -422,7 +422,11 @@ impl RequestParams {
                         Value::Null => String::new(),
                         _ => return Err("symlink target must be a string".to_string()),
                     };
-                    symlinks.push((k.clone(), target, matches!(s.get("host"), Value::Bool(true))));
+                    symlinks.push((
+                        k.to_string(),
+                        target,
+                        matches!(s.get("host"), Value::Bool(true)),
+                    ));
 
                     Ok::<_, String>(symlinks)
                 })?;

@@ -165,7 +165,7 @@ impl Json for ResponseError {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "code" => s.code = field(k, v)?,
                 "message" => s.message = field(k, v)?,
                 "data" => s.data = opt(k, v)?,
@@ -260,7 +260,7 @@ impl Json for Message {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "jsonrpc" => {
                     field::<JSONRPCVersion>(k, v)?;
                 }
@@ -304,7 +304,7 @@ impl Json for RequestMessage {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "jsonrpc" => {
                     field::<JSONRPCVersion>(k, v)?;
                 }
@@ -345,7 +345,7 @@ impl Json for ResponseMessage {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "jsonrpc" => {
                     field::<JSONRPCVersion>(k, v)?;
                 }

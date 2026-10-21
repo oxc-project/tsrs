@@ -9,8 +9,9 @@
 // whose custom decoder text is reproduced.
 
 use std::fmt::Write as _;
+use std::sync::LazyLock;
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use tsrs_core::json::{JsonMap, Value};
 
@@ -221,6 +222,28 @@ fn base_type(go_type: &str) -> &str {
         return go_type;
     }
     go_type.trim_start_matches('*').trim_start_matches("[]").trim_start_matches('*')
+}
+
+/// `name` as one of the field names of the params structs and the api-package structs nested in them, for
+/// the request decoder to borrow.
+pub(crate) fn known_member_name(name: &str) -> Option<&'static str> {
+    static NAMES: LazyLock<FxHashSet<&'static str>> = LazyLock::new(|| {
+        let mut names = FxHashSet::default();
+        let mut seen_types = FxHashSet::default();
+        let mut pending: Vec<&'static [FieldSpec]> =
+            crate::methods::PARAMS_TYPES.iter().map(|(method, _)| params_fields(method)).collect();
+        while let Some(fields) = pending.pop() {
+            for spec in fields {
+                names.insert(spec.name);
+                let go_type = base_type(spec.go_type);
+                if seen_types.insert(go_type) {
+                    pending.push(struct_fields(go_type));
+                }
+            }
+        }
+        names
+    });
+    NAMES.get(name).copied()
 }
 
 /// The fields of an api-package struct value at `pointer`, recursively (Go decodes the whole params struct).

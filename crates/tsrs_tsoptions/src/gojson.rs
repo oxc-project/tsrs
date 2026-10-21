@@ -175,7 +175,7 @@ impl GoJson for Option<OrderedMap<String, Option<Vec<String>>>> {
             Value::Object(entries) => {
                 let mut m = OrderedMap::default();
                 m = entries.iter().try_fold(m, |mut m, (k, v)| {
-                    m.insert(k.clone(), Option::<Vec<String>>::from_go_json(v, field)?);
+                    m.insert(k.to_string(), Option::<Vec<String>>::from_go_json(v, field)?);
                     Ok::<_, String>(m)
                 })?;
                 Ok(Some(m))

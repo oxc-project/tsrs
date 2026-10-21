@@ -385,7 +385,7 @@ mod tests {
         let Value::Object(options) = config_object.get_mut("compilerOptions").unwrap() else {
             unreachable!()
         };
-        options.insert("incremental".into(), Value::Bool(true));
+        options.insert("incremental", Value::Bool(true));
         std::fs::write(dir.join("tsconfig.json"), json::marshal(&config).unwrap()).unwrap();
         let exe = std::env::current_exe().unwrap().parent().unwrap().parent().unwrap().join("tsrs");
         let cli = || {

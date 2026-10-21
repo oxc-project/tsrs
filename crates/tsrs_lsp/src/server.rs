@@ -4003,8 +4003,8 @@ fn go_sprint_value(v: &lsproto::Value) -> String {
             format!("[{}]", items.iter().map(go_sprint_value).collect::<Vec<_>>().join(" "))
         }
         lsproto::Value::Object(members) => {
-            let mut keys: Vec<&String> = members.keys().collect();
-            keys.sort();
+            let mut keys: Vec<&str> = members.keys().collect();
+            keys.sort_unstable();
             format!(
                 "map[{}]",
                 keys.iter()

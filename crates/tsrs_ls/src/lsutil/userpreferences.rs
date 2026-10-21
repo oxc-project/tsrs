@@ -1248,7 +1248,7 @@ pub(crate) fn set_raw_fields_from_config(
 ) {
     let index = unstable_name_index();
     for (name, value) in settings {
-        if let Some(&idx) = index.get(name.as_str()) {
+        if let Some(&idx) = index.get(name) {
             let info = &infos[idx];
             let field = (info.field.get_mut)(p);
             let inverted;

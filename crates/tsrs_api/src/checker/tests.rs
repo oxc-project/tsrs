@@ -1498,7 +1498,7 @@ fn probe_lines() -> Vec<String> {
             Err(e) => Value::String(e.to_string()),
         }
     };
-    let obj = |pairs: Vec<(&str, Value)>| {
+    let obj = |pairs: Vec<(&'static str, Value)>| {
         let mut o = super::json::obj();
         for (k, v) in pairs {
             o.set(k, v);
@@ -1914,14 +1914,14 @@ fn source_file_descriptor_matches_agrees_with_comparison() {
     let mut variants = vec![Value::Object(members.clone()), Value::Null, Value::String("x".into())];
     variants.push(with(&|m| m.reverse()));
     variants.push(with(&|m| {
-        m.insert("extra".into(), Value::Null);
+        m.insert("extra", Value::Null);
     }));
     for (key, value) in &members {
         variants.push(with(&|m| {
             m.shift_remove(key);
         }));
         variants.push(with(&|m| {
-            m.insert(key.clone(), Value::Bool(true));
+            m.insert(key.to_string(), Value::Bool(true));
         }));
         let changed: Vec<Value> = match value {
             Value::String(s) => vec![
@@ -1936,7 +1936,7 @@ fn source_file_descriptor_matches_agrees_with_comparison() {
         };
         for c in changed {
             variants.push(with(&|m| {
-                m.insert(key.clone(), c.clone());
+                m.insert(key.to_string(), c.clone());
             }));
         }
     }

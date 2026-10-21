@@ -1375,7 +1375,7 @@ pub(crate) fn json_to_option_value(v: &Value) -> CompilerOptionsValue {
             CompilerOptionsValue::Array(items.iter().map(json_to_option_value).collect())
         }
         Value::Object(m) => CompilerOptionsValue::Object(
-            m.iter().map(|(k, v)| (k.clone(), json_to_option_value(v))).collect(),
+            m.iter().map(|(k, v)| (k.to_string(), json_to_option_value(v))).collect(),
         ),
     }
 }

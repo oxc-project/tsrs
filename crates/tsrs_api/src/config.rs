@@ -76,7 +76,7 @@ pub fn json_to_options_value(v: &Value) -> CompilerOptionsValue {
         }
         Value::Object(o) => {
             let mut m = OrderedMap::default();
-            m.extend(o.iter().map(|(k, v)| (k.clone(), json_to_options_value(v))));
+            m.extend(o.iter().map(|(k, v)| (k.to_string(), json_to_options_value(v))));
             CompilerOptionsValue::Object(m)
         }
     }

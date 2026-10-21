@@ -97,7 +97,7 @@ pub fn source_file_descriptor_matches(file: P<SourceFile>, descriptor: &Value) -
             Value::String(s) => Some(s.as_str()),
             _ => None,
         };
-        match name.as_str() {
+        match name {
             "fileName" => text == Some(o.file_name.as_str()),
             "path" => text == Some(o.path.as_str()),
             "contentHash" => text == Some(codec::source_file_hash_into(&file, &mut digits)),

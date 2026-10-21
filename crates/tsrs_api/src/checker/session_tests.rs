@@ -89,11 +89,11 @@ fn normalize(v: &Value, ids: &mut Ids, in_symbol: bool) -> Value {
         Value::Object(o) => {
             let mut out = JsonMap::new();
             // Visit keys sorted so first-appearance numbering does not depend on field order.
-            let mut keys: Vec<&String> = o.keys().collect();
-            keys.sort();
+            let mut keys: Vec<&str> = o.keys().collect();
+            keys.sort_unstable();
             out.extend(keys.into_iter().map(|k| {
                 let child = &o[k];
-                let nv = match (k.as_str(), child) {
+                let nv = match (k, child) {
                     ("id", Value::Number(n)) if in_symbol => ids.sym(*n),
                     (key, Value::Number(n)) if ID_KEYS.contains(&key) => ids.num(*n),
                     (key, Value::Array(a)) if ID_ARRAY_KEYS.contains(&key) => Value::Array(
@@ -115,7 +115,7 @@ fn normalize(v: &Value, ids: &mut Ids, in_symbol: bool) -> Value {
                     }
                     (key, _) => normalize(child, ids, SYMBOL_KEYS.contains(&key)),
                 };
-                (k.clone(), nv)
+                (k.to_string(), nv)
             }));
             Value::Object(out)
         }

@@ -338,13 +338,16 @@ impl Session {
         let (params, lexemes) = match crate::methods::params_type(method) {
             None => (Value::Null, rustc_hash::FxHashMap::default()),
             Some(go_type) => {
-                let decoded =
-                    tsrs_api_transport::strictjson::decode(params).map_err(|e| match e {
-                        DecodeError::Invalid(e) => ApiError::invalid_request(format!(
-                            "failed to unmarshal *api.{go_type}: {e}"
-                        )),
-                        DecodeError::OutOfRange(e) => ApiError::invalid_request(e),
-                    })?;
+                let decoded = tsrs_api_transport::strictjson::decode_with_names(
+                    params,
+                    crate::predecode::known_member_name,
+                )
+                .map_err(|e| match e {
+                    DecodeError::Invalid(e) => ApiError::invalid_request(format!(
+                        "failed to unmarshal *api.{go_type}: {e}"
+                    )),
+                    DecodeError::OutOfRange(e) => ApiError::invalid_request(e),
+                })?;
                 let value = decoded.value;
                 // encoding/json/v2 into a struct: `null` leaves the zero value; any other non-object is an error.
                 let kind = match &value {

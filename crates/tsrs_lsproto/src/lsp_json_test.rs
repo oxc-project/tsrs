@@ -369,7 +369,7 @@ impl Json for OptionalDiscriminatorArm {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => s.kind = opt_non_null(k, v, Self::GO_TYPE)?,
                 "title" => {
                     seen |= 1;

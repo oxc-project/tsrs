@@ -5,8 +5,13 @@
 // searches it linearly while small, and builds a hash index of the entries once it outgrows
 // `LINEAR_MAX`, so large objects (tsconfig files, file system maps) keep constant-time lookups.
 //
-// The API mirrors the `IndexMap` methods JSON code uses. Equality, like `IndexMap`'s, ignores order.
+// A key is a `Cow`: objects built in code (API responses) and the protocol's known member names in parsed
+// requests borrow their names instead of allocating each one.
+//
+// The API mirrors the `IndexMap` methods JSON code uses, with `&str` keys. Equality, like `IndexMap`'s,
+// ignores order.
 
+use std::borrow::Cow;
 use std::hash::{BuildHasher, Hash};
 
 use hashbrown::HashTable;
@@ -17,9 +22,12 @@ use super::Value;
 /// Maps up to this many members are searched linearly.
 const LINEAR_MAX: usize = 8;
 
+/// A member name.
+pub type Key = Cow<'static, str>;
+
 #[derive(Clone, Default)]
 pub struct JsonMap {
-    entries: Vec<(String, Value)>,
+    entries: Vec<(Key, Value)>,
     /// Positions in `entries`, by key hash, once the map has more than `LINEAR_MAX` members.
     /// Boxed, so a small map (and a `Value`) stays small.
     index: Option<Box<HashTable<usize>>>,
@@ -92,37 +100,38 @@ impl JsonMap {
         self.get_index_of(key).map(|i| &mut self.entries[i].1)
     }
 
-    pub fn get_key_value(&self, key: &str) -> Option<(&String, &Value)> {
-        self.get_index_of(key).map(|i| (&self.entries[i].0, &self.entries[i].1))
+    pub fn get_key_value(&self, key: &str) -> Option<(&str, &Value)> {
+        self.get_index_of(key).map(|i| (&*self.entries[i].0, &self.entries[i].1))
     }
 
     pub fn contains_key(&self, key: &str) -> bool {
         self.get_index_of(key).is_some()
     }
 
-    pub fn get_index(&self, i: usize) -> Option<(&String, &Value)> {
-        self.entries.get(i).map(|(k, v)| (k, v))
+    pub fn get_index(&self, i: usize) -> Option<(&str, &Value)> {
+        self.entries.get(i).map(|(k, v)| (&**k, v))
     }
 
-    pub fn get_index_mut(&mut self, i: usize) -> Option<(&String, &mut Value)> {
-        self.entries.get_mut(i).map(|(k, v)| (&*k, v))
+    pub fn get_index_mut(&mut self, i: usize) -> Option<(&str, &mut Value)> {
+        self.entries.get_mut(i).map(|(k, v)| (&**k, v))
     }
 
-    pub fn first(&self) -> Option<(&String, &Value)> {
+    pub fn first(&self) -> Option<(&str, &Value)> {
         self.get_index(0)
     }
 
-    pub fn last(&self) -> Option<(&String, &Value)> {
-        self.entries.last().map(|(k, v)| (k, v))
+    pub fn last(&self) -> Option<(&str, &Value)> {
+        self.entries.last().map(|(k, v)| (&**k, v))
     }
 
     /// Sets `key`'s value: a new key goes last, an existing one keeps its position. Returns the old value.
-    pub fn insert(&mut self, key: String, value: Value) -> Option<Value> {
+    pub fn insert(&mut self, key: impl Into<Key>, value: Value) -> Option<Value> {
         self.insert_full(key, value).1
     }
 
     /// `insert`, also returning the member's position.
-    pub fn insert_full(&mut self, key: String, value: Value) -> (usize, Option<Value>) {
+    pub fn insert_full(&mut self, key: impl Into<Key>, value: Value) -> (usize, Option<Value>) {
+        let key = key.into();
         if let Some(i) = self.get_index_of(&key) {
             return (i, Some(std::mem::replace(&mut self.entries[i].1, value)));
         }
@@ -130,15 +139,13 @@ impl JsonMap {
     }
 
     /// Appends a member known to be new.
-    fn push(&mut self, key: String, value: Value) -> usize {
+    fn push(&mut self, key: Key, value: Value) -> usize {
         let i = self.entries.len();
         self.entries.push((key, value));
         match &mut self.index {
             Some(index) => {
                 let entries = &self.entries;
-                index.insert_unique(hash(entries[i].0.as_str()), i, |&j| {
-                    hash(entries[j].0.as_str())
-                });
+                index.insert_unique(hash(&*entries[i].0), i, |&j| hash(&*entries[j].0));
             }
             None if self.entries.len() > LINEAR_MAX => self.reindex(),
             None => {}
@@ -147,7 +154,7 @@ impl JsonMap {
     }
 
     /// A map of `entries` in order, or `None` when two have the same key.
-    pub fn from_distinct(entries: Vec<(String, Value)>) -> Option<JsonMap> {
+    pub fn from_distinct(entries: Vec<(Key, Value)>) -> Option<JsonMap> {
         let mut map = JsonMap { entries, index: None };
         if map.entries.len() <= LINEAR_MAX {
             for (i, (k, _)) in map.entries.iter().enumerate() {
@@ -161,7 +168,7 @@ impl JsonMap {
         let index = map.index.as_ref()?;
         // `reindex` indexes every position: a duplicate shows as a key that finds an earlier position.
         for (i, (k, _)) in map.entries.iter().enumerate() {
-            if index.find(hash(k.as_str()), |&j| map.entries[j].0 == *k) != Some(&i) {
+            if index.find(hash(&**k), |&j| map.entries[j].0 == *k) != Some(&i) {
                 return None;
             }
         }
@@ -177,7 +184,7 @@ impl JsonMap {
         let mut index = HashTable::with_capacity(self.entries.len());
         for (i, (k, _)) in self.entries.iter().enumerate() {
             let entries = &self.entries;
-            index.insert_unique(hash(k.as_str()), i, |&j| hash(entries[j].0.as_str()));
+            index.insert_unique(hash(&**k), i, |&j| hash(&*entries[j].0));
         }
         self.index = Some(Box::new(index));
     }
@@ -192,11 +199,16 @@ impl JsonMap {
         if i >= self.entries.len() {
             return None;
         }
+        let (key, value) = self.remove_at(i);
+        Some((key.into_owned(), value))
+    }
+
+    fn remove_at(&mut self, i: usize) -> (Key, Value) {
         let entry = self.entries.remove(i);
         if self.index.is_some() {
             self.reindex();
         }
-        Some(entry)
+        entry
     }
 
     /// Removes `key`'s member, moving the last member into its place.
@@ -209,7 +221,7 @@ impl JsonMap {
         Some(value)
     }
 
-    pub fn retain(&mut self, mut keep: impl FnMut(&String, &mut Value) -> bool) {
+    pub fn retain(&mut self, mut keep: impl FnMut(&str, &mut Value) -> bool) {
         let len = self.entries.len();
         self.entries.retain_mut(|(k, v)| keep(k, v));
         if self.entries.len() != len && self.index.is_some() {
@@ -217,7 +229,8 @@ impl JsonMap {
         }
     }
 
-    pub fn entry(&mut self, key: String) -> Entry<'_> {
+    pub fn entry(&mut self, key: impl Into<Key>) -> Entry<'_> {
+        let key = key.into();
         match self.get_index_of(&key) {
             Some(index) => Entry::Occupied(OccupiedEntry { map: self, index }),
             None => Entry::Vacant(VacantEntry { map: self, key }),
@@ -232,8 +245,8 @@ impl JsonMap {
         IterMut(self.entries.iter_mut())
     }
 
-    pub fn keys(&self) -> impl DoubleEndedIterator<Item = &String> + ExactSizeIterator + Clone {
-        self.entries.iter().map(|(k, _)| k)
+    pub fn keys(&self) -> impl DoubleEndedIterator<Item = &str> + ExactSizeIterator + Clone {
+        self.entries.iter().map(|(k, _)| &**k)
     }
 
     pub fn values(&self) -> impl DoubleEndedIterator<Item = &Value> + ExactSizeIterator + Clone {
@@ -247,7 +260,7 @@ impl JsonMap {
     }
 
     pub fn into_keys(self) -> impl DoubleEndedIterator<Item = String> + ExactSizeIterator {
-        self.entries.into_iter().map(|(k, _)| k)
+        self.entries.into_iter().map(|(k, _)| k.into_owned())
     }
 
     pub fn into_values(self) -> impl DoubleEndedIterator<Item = Value> + ExactSizeIterator {
@@ -255,7 +268,7 @@ impl JsonMap {
     }
 
     /// Stable sort by a key computed once per member.
-    pub fn sort_by_cached_key<T: Ord>(&mut self, mut sort_key: impl FnMut(&String, &Value) -> T) {
+    pub fn sort_by_cached_key<T: Ord>(&mut self, mut sort_key: impl FnMut(&str, &Value) -> T) {
         self.entries.sort_by_cached_key(|(k, v)| sort_key(k, v));
         if self.index.is_some() {
             self.reindex();
@@ -273,11 +286,18 @@ impl JsonMap {
     /// Stable sort.
     pub fn sort_by(
         &mut self,
-        mut compare: impl FnMut(&String, &Value, &String, &Value) -> std::cmp::Ordering,
+        mut compare: impl FnMut(&str, &Value, &str, &Value) -> std::cmp::Ordering,
     ) {
         self.entries.sort_by(|(ka, va), (kb, vb)| compare(ka, va, kb, vb));
         if self.index.is_some() {
             self.reindex();
+        }
+    }
+
+    /// Moves `other`'s members in, as `extend` would, keeping their names' storage.
+    pub fn append(&mut self, other: JsonMap) {
+        for (k, v) in other.entries {
+            self.insert(k, v);
         }
     }
 
@@ -292,7 +312,7 @@ impl JsonMap {
 impl PartialEq for JsonMap {
     /// The same members with equal values, in any order (as `IndexMap`'s equality).
     fn eq(&self, other: &JsonMap) -> bool {
-        self.len() == other.len() && self.iter().all(|(k, v)| other.get(k.as_str()) == Some(v))
+        self.len() == other.len() && self.iter().all(|(k, v)| other.get(k) == Some(v))
     }
 }
 
@@ -333,13 +353,13 @@ impl<const N: usize> From<[(String, Value); N]> for JsonMap {
     }
 }
 
-pub struct Iter<'a>(std::slice::Iter<'a, (String, Value)>);
+pub struct Iter<'a>(std::slice::Iter<'a, (Key, Value)>);
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (&'a String, &'a Value);
+    type Item = (&'a str, &'a Value);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(k, v)| (k, v))
+        self.0.next().map(|(k, v)| (&**k, v))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -349,7 +369,7 @@ impl<'a> Iterator for Iter<'a> {
 
 impl DoubleEndedIterator for Iter<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|(k, v)| (k, v))
+        self.0.next_back().map(|(k, v)| (&**k, v))
     }
 }
 
@@ -361,13 +381,13 @@ impl Clone for Iter<'_> {
     }
 }
 
-pub struct IterMut<'a>(std::slice::IterMut<'a, (String, Value)>);
+pub struct IterMut<'a>(std::slice::IterMut<'a, (Key, Value)>);
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = (&'a String, &'a mut Value);
+    type Item = (&'a str, &'a mut Value);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(k, v)| (&*k, v))
+        self.0.next().map(|(k, v)| (&**k, v))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -377,19 +397,19 @@ impl<'a> Iterator for IterMut<'a> {
 
 impl DoubleEndedIterator for IterMut<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|(k, v)| (&*k, v))
+        self.0.next_back().map(|(k, v)| (&**k, v))
     }
 }
 
 impl ExactSizeIterator for IterMut<'_> {}
 
-pub struct IntoIter(std::vec::IntoIter<(String, Value)>);
+pub struct IntoIter(std::vec::IntoIter<(Key, Value)>);
 
 impl Iterator for IntoIter {
     type Item = (String, Value);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
+        self.0.next().map(|(k, v)| (k.into_owned(), v))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -399,7 +419,7 @@ impl Iterator for IntoIter {
 
 impl DoubleEndedIterator for IntoIter {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back()
+        self.0.next_back().map(|(k, v)| (k.into_owned(), v))
     }
 }
 
@@ -415,7 +435,7 @@ impl IntoIterator for JsonMap {
 }
 
 impl<'a> IntoIterator for &'a JsonMap {
-    type Item = (&'a String, &'a Value);
+    type Item = (&'a str, &'a Value);
     type IntoIter = Iter<'a>;
 
     fn into_iter(self) -> Iter<'a> {
@@ -424,7 +444,7 @@ impl<'a> IntoIterator for &'a JsonMap {
 }
 
 impl<'a> IntoIterator for &'a mut JsonMap {
-    type Item = (&'a String, &'a mut Value);
+    type Item = (&'a str, &'a mut Value);
     type IntoIter = IterMut<'a>;
 
     fn into_iter(self) -> IterMut<'a> {
@@ -507,13 +527,13 @@ impl<'a> OccupiedEntry<'a> {
     }
 
     pub fn shift_remove(self) -> Value {
-        self.map.shift_remove_index(self.index).map(|(_, v)| v).unwrap_or_default()
+        self.map.remove_at(self.index).1
     }
 }
 
 pub struct VacantEntry<'a> {
     map: &'a mut JsonMap,
-    key: String,
+    key: Key,
 }
 
 impl<'a> VacantEntry<'a> {
@@ -522,7 +542,7 @@ impl<'a> VacantEntry<'a> {
     }
 
     pub fn into_key(self) -> String {
-        self.key
+        self.key.into_owned()
     }
 
     pub fn insert(self, value: Value) -> &'a mut Value {
@@ -533,7 +553,7 @@ impl<'a> VacantEntry<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{JsonMap, LINEAR_MAX};
+    use super::{JsonMap, Key, LINEAR_MAX};
     use crate::json::Value;
 
     fn n(i: usize) -> Value {
@@ -559,7 +579,7 @@ mod tests {
                 let key = format!("k{i}");
                 assert_eq!(ours.shift_remove(key.as_str()), theirs.shift_remove(key.as_str()));
             }
-            let order: Vec<_> = ours.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+            let order: Vec<_> = ours.iter().map(|(k, v)| (k.to_string(), v.clone())).collect();
             let want: Vec<_> = theirs.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
             assert_eq!(order, want, "{size}");
             for (k, v) in &theirs {
@@ -569,7 +589,7 @@ mod tests {
             theirs.reverse();
             ours.sort_keys();
             theirs.sort_keys();
-            assert!(ours.iter().eq(theirs.iter()), "{size}");
+            assert!(ours.iter().eq(theirs.iter().map(|(k, v)| (k.as_str(), v))), "{size}");
             for (k, v) in &theirs {
                 assert_eq!(ours.get(k.as_str()), Some(v), "{size} {k}");
             }
@@ -580,16 +600,20 @@ mod tests {
     #[test]
     fn from_distinct_rejects_duplicates() {
         for size in [1, 2, LINEAR_MAX, LINEAR_MAX + 1, 3 * LINEAR_MAX] {
-            let entries: Vec<_> = (0..size).map(|i| (format!("k{i}"), n(i))).collect();
+            let entries: Vec<(Key, Value)> =
+                (0..size).map(|i| (format!("k{i}").into(), n(i))).collect();
             let map = JsonMap::from_distinct(entries.clone()).expect("distinct keys");
-            assert_eq!(map, entries.iter().cloned().collect::<JsonMap>());
+            assert_eq!(
+                map,
+                entries.iter().map(|(k, v)| (k.to_string(), v.clone())).collect::<JsonMap>()
+            );
             for (k, v) in &entries {
-                assert_eq!(map.get(k.as_str()), Some(v));
+                assert_eq!(map.get(k), Some(v));
             }
             for from in 0..size {
                 for to in 0..=size {
                     let mut dup = entries.clone();
-                    dup.insert(to, (format!("k{from}"), n(99)));
+                    dup.insert(to, (format!("k{from}").into(), n(99)));
                     assert!(JsonMap::from_distinct(dup).is_none(), "{size} {from} {to}");
                 }
             }

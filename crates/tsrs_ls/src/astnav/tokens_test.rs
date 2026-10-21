@@ -131,11 +131,11 @@ fn baseline_go_tokens_json(
             .iter()
             .map(|r| {
                 let mut m: JsonMap = JsonMap::new();
-                m.insert("startPos".into(), Value::Number(r.start_pos as f64));
-                m.insert("endPos".into(), Value::Number(r.end_pos as f64));
-                m.insert("kind".into(), Value::String(r.kind.clone()));
-                m.insert("nodePos".into(), Value::Number(r.node_pos as f64));
-                m.insert("nodeEnd".into(), Value::Number(r.node_end as f64));
+                m.insert("startPos", Value::Number(r.start_pos as f64));
+                m.insert("endPos", Value::Number(r.end_pos as f64));
+                m.insert("kind", Value::String(r.kind.clone()));
+                m.insert("nodePos", Value::Number(r.node_pos as f64));
+                m.insert("nodeEnd", Value::Number(r.node_end as f64));
                 Value::Object(m)
             })
             .collect();

@@ -271,7 +271,7 @@ fn run(d: &dataset) {
         params.insert("textDocument".to_string(), Value::Object(text_document));
         params.insert("position".to_string(), position_of(text, at, off));
         if let Some(Value::Object(extra)) = get(r, "params") {
-            params.extend(extra.into_iter().map(|(k, v)| (k.clone(), v.clone())));
+            params.extend(extra.into_iter().map(|(k, v)| (k.to_string(), v.clone())));
         }
         let params = Value::Object(params);
         let started = std::time::Instant::now();

@@ -60,7 +60,7 @@ impl Json for ImplementationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -115,7 +115,7 @@ impl Json for Location {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -164,7 +164,7 @@ impl Json for ImplementationRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -231,7 +231,7 @@ impl Json for TypeDefinitionParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -286,7 +286,7 @@ impl Json for TypeDefinitionRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -334,7 +334,7 @@ impl Json for WorkspaceFolder {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -375,7 +375,7 @@ impl Json for DidChangeWorkspaceFoldersParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "event" {
+            if k == "event" {
                 seen |= 1 << 0;
                 s.event = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -408,7 +408,7 @@ impl Json for ConfigurationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "items" {
+            if k == "items" {
                 seen |= 1 << 0;
                 s.items = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -457,7 +457,7 @@ impl Json for DocumentColorParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -504,7 +504,7 @@ impl Json for ColorInformation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -553,7 +553,7 @@ impl Json for DocumentColorRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -619,7 +619,7 @@ impl Json for ColorPresentationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -682,7 +682,7 @@ impl Json for ColorPresentation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "label" => {
                     seen |= 1 << 0;
                     s.label = field(k, v)?;
@@ -740,7 +740,7 @@ impl Json for FoldingRangeParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -812,7 +812,7 @@ impl Json for FoldingRange {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "startLine" => {
                     seen |= 1 << 0;
                     s.start_line = field(k, v)?;
@@ -873,7 +873,7 @@ impl Json for FoldingRangeRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -940,7 +940,7 @@ impl Json for DeclarationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -995,7 +995,7 @@ impl Json for DeclarationRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1057,7 +1057,7 @@ impl Json for SelectionRangeParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1109,7 +1109,7 @@ impl Json for SelectionRange {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -1157,7 +1157,7 @@ impl Json for SelectionRangeRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1199,7 +1199,7 @@ impl Json for WorkDoneProgressCreateParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "token" {
+            if k == "token" {
                 seen |= 1 << 0;
                 s.token = field(k, v)?;
             }
@@ -1232,7 +1232,7 @@ impl Json for WorkDoneProgressCancelParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "token" {
+            if k == "token" {
                 seen |= 1 << 0;
                 s.token = field(k, v)?;
             }
@@ -1288,7 +1288,7 @@ impl Json for CallHierarchyPrepareParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -1371,7 +1371,7 @@ impl Json for CallHierarchyItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -1444,7 +1444,7 @@ impl Json for CallHierarchyRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -1497,7 +1497,7 @@ impl Json for CallHierarchyIncomingCallsParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1547,7 +1547,7 @@ impl Json for CallHierarchyIncomingCall {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "from" => {
                     seen |= 1 << 0;
                     s.from = field_non_null(k, v, Self::GO_TYPE)?;
@@ -1598,7 +1598,7 @@ impl Json for CallHierarchyOutgoingCallsParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1649,7 +1649,7 @@ impl Json for CallHierarchyOutgoingCall {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "to" => {
                     seen |= 1 << 0;
                     s.to = field_non_null(k, v, Self::GO_TYPE)?;
@@ -1705,7 +1705,7 @@ impl Json for SemanticTokensParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1755,7 +1755,7 @@ impl Json for SemanticTokens {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "resultId" => {
                     s.result_id = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1794,7 +1794,7 @@ impl Json for SemanticTokensPartialResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "data" {
+            if k == "data" {
                 seen |= 1 << 0;
                 s.data = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -1850,7 +1850,7 @@ impl Json for SemanticTokensRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -1923,7 +1923,7 @@ impl Json for SemanticTokensDeltaParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -1973,7 +1973,7 @@ impl Json for SemanticTokensDelta {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "resultId" => {
                     s.result_id = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -2012,7 +2012,7 @@ impl Json for SemanticTokensDeltaPartialResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "edits" {
+            if k == "edits" {
                 seen |= 1 << 0;
                 s.edits = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -2065,7 +2065,7 @@ impl Json for SemanticTokensRangeParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -2134,7 +2134,7 @@ impl Json for ShowDocumentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -2182,7 +2182,7 @@ impl Json for ShowDocumentResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "success" {
+            if k == "success" {
                 seen |= 1 << 0;
                 s.success = field(k, v)?;
             }
@@ -2235,7 +2235,7 @@ impl Json for LinkedEditingRangeParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -2288,7 +2288,7 @@ impl Json for LinkedEditingRanges {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "ranges" => {
                     seen |= 1 << 0;
                     s.ranges = field_non_null(k, v, Self::GO_TYPE)?;
@@ -2336,7 +2336,7 @@ impl Json for LinkedEditingRangeRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -2382,7 +2382,7 @@ impl Json for CreateFilesParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "files" {
+            if k == "files" {
                 seen |= 1 << 0;
                 s.files = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -2448,7 +2448,7 @@ impl Json for WorkspaceEdit {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "changes" => {
                     s.changes = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -2491,7 +2491,7 @@ impl Json for FileOperationRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "filters" {
+            if k == "filters" {
                 seen |= 1 << 0;
                 s.filters = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -2529,7 +2529,7 @@ impl Json for RenameFilesParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "files" {
+            if k == "files" {
                 seen |= 1 << 0;
                 s.files = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -2566,7 +2566,7 @@ impl Json for DeleteFilesParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "files" {
+            if k == "files" {
                 seen |= 1 << 0;
                 s.files = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -2624,7 +2624,7 @@ impl Json for MonikerParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -2686,7 +2686,7 @@ impl Json for Moniker {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "scheme" => {
                     seen |= 1 << 0;
                     s.scheme = field(k, v)?;
@@ -2737,7 +2737,7 @@ impl Json for MonikerRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -2799,7 +2799,7 @@ impl Json for TypeHierarchyPrepareParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -2883,7 +2883,7 @@ impl Json for TypeHierarchyItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -2956,7 +2956,7 @@ impl Json for TypeHierarchyRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -3009,7 +3009,7 @@ impl Json for TypeHierarchySupertypesParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3062,7 +3062,7 @@ impl Json for TypeHierarchySubtypesParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3126,7 +3126,7 @@ impl Json for InlineValueParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3185,7 +3185,7 @@ impl Json for InlineValueRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3244,7 +3244,7 @@ impl Json for InlayHintParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3338,7 +3338,7 @@ impl Json for InlayHint {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "position" => {
                     seen |= 1 << 0;
                     s.position = field(k, v)?;
@@ -3413,7 +3413,7 @@ impl Json for InlayHintRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3484,7 +3484,7 @@ impl Json for DocumentDiagnosticParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3534,7 +3534,7 @@ impl Json for DiagnosticServerCancellationData {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "retriggerRequest" {
+            if k == "retriggerRequest" {
                 seen |= 1 << 0;
                 s.retrigger_request = field(k, v)?;
             }
@@ -3595,7 +3595,7 @@ impl Json for DiagnosticRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -3669,7 +3669,7 @@ impl Json for WorkspaceDiagnosticParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -3716,7 +3716,7 @@ impl Json for WorkspaceDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "items" {
+            if k == "items" {
                 seen |= 1 << 0;
                 s.items = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -3751,7 +3751,7 @@ impl Json for WorkspaceDiagnosticReportPartialResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "items" {
+            if k == "items" {
                 seen |= 1 << 0;
                 s.items = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -3812,7 +3812,7 @@ impl Json for InlineCompletionParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -3862,7 +3862,7 @@ impl Json for InlineCompletionList {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "items" {
+            if k == "items" {
                 seen |= 1 << 0;
                 s.items = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -3910,7 +3910,7 @@ impl Json for InlineCompletionItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "insertText" => {
                     seen |= 1 << 0;
                     s.insert_text = field(k, v)?;
@@ -3967,7 +3967,7 @@ impl Json for InlineCompletionRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -4012,7 +4012,7 @@ impl Json for TextDocumentContentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "uri" {
+            if k == "uri" {
                 seen |= 1 << 0;
                 s.uri = field(k, v)?;
             }
@@ -4051,7 +4051,7 @@ impl Json for TextDocumentContentResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "text" {
+            if k == "text" {
                 seen |= 1 << 0;
                 s.text = field(k, v)?;
             }
@@ -4092,7 +4092,7 @@ impl Json for TextDocumentContentRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "schemes" => {
                     seen |= 1 << 0;
                     s.schemes = field_non_null(k, v, Self::GO_TYPE)?;
@@ -4134,7 +4134,7 @@ impl Json for TextDocumentContentRefreshParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "uri" {
+            if k == "uri" {
                 seen |= 1 << 0;
                 s.uri = field(k, v)?;
             }
@@ -4166,7 +4166,7 @@ impl Json for RegistrationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "registrations" {
+            if k == "registrations" {
                 seen |= 1 << 0;
                 s.registrations = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -4198,7 +4198,7 @@ impl Json for UnregistrationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "unregisterations" {
+            if k == "unregisterations" {
                 seen |= 1 << 0;
                 s.unregisterations = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -4293,7 +4293,7 @@ impl Json for InitializeParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -4365,7 +4365,7 @@ impl Json for InitializeResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "capabilities" => {
                     seen |= 1 << 0;
                     s.capabilities = field_non_null(k, v, Self::GO_TYPE)?;
@@ -4409,7 +4409,7 @@ impl Json for InitializeError {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "retry" {
+            if k == "retry" {
                 seen |= 1 << 0;
                 s.retry = field(k, v)?;
             }
@@ -4461,7 +4461,7 @@ impl Json for DidChangeConfigurationParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "settings" {
+            if k == "settings" {
                 seen |= 1 << 0;
                 s.settings = field(k, v)?;
             }
@@ -4492,7 +4492,7 @@ impl Json for DidChangeConfigurationRegistrationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "section" {
+            if k == "section" {
                 s.section = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -4528,7 +4528,7 @@ impl Json for ShowMessageParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "type" => {
                     seen |= 1 << 0;
                     s.type_ = field(k, v)?;
@@ -4576,7 +4576,7 @@ impl Json for ShowMessageRequestParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "type" => {
                     seen |= 1 << 0;
                     s.type_ = field(k, v)?;
@@ -4619,7 +4619,7 @@ impl Json for MessageActionItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "title" {
+            if k == "title" {
                 seen |= 1 << 0;
                 s.title = field(k, v)?;
             }
@@ -4657,7 +4657,7 @@ impl Json for LogMessageParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "type" => {
                     seen |= 1 << 0;
                     s.type_ = field(k, v)?;
@@ -4698,7 +4698,7 @@ impl Json for DidOpenTextDocumentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "textDocument" {
+            if k == "textDocument" {
                 seen |= 1 << 0;
                 s.text_document = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -4733,7 +4733,7 @@ impl Json for TextDocumentRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "documentSelector" {
+            if k == "documentSelector" {
                 seen |= 1 << 0;
                 s.document_selector = field(k, v)?;
             }
@@ -4783,7 +4783,7 @@ impl Json for DidChangeTextDocumentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -4829,7 +4829,7 @@ impl Json for TextDocumentChangeRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -4876,7 +4876,7 @@ impl Json for DidCloseTextDocumentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "textDocument" {
+            if k == "textDocument" {
                 seen |= 1 << 0;
                 s.text_document = field(k, v)?;
             }
@@ -4921,7 +4921,7 @@ impl Json for DidSaveTextDocumentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -4966,7 +4966,7 @@ impl Json for TextDocumentSaveRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -5016,7 +5016,7 @@ impl Json for WillSaveTextDocumentParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -5063,7 +5063,7 @@ impl Json for TextEdit {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -5114,7 +5114,7 @@ impl Json for DidChangeWatchedFilesParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "changes" {
+            if k == "changes" {
                 seen |= 1 << 0;
                 s.changes = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -5148,7 +5148,7 @@ impl Json for DidChangeWatchedFilesRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "watchers" {
+            if k == "watchers" {
                 seen |= 1 << 0;
                 s.watchers = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -5192,7 +5192,7 @@ impl Json for PublishDiagnosticsParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -5266,7 +5266,7 @@ impl Json for CompletionParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -5469,7 +5469,7 @@ impl Json for CompletionItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "label" => {
                     seen |= 1 << 0;
                     s.label = field(k, v)?;
@@ -5606,7 +5606,7 @@ impl Json for CompletionList {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "isIncomplete" => {
                     seen |= 1 << 0;
                     s.is_incomplete = field(k, v)?;
@@ -5691,7 +5691,7 @@ impl Json for CompletionRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -5767,7 +5767,7 @@ impl Json for HoverParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -5827,7 +5827,7 @@ impl Json for Hover {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "contents" => {
                     seen |= 1 << 0;
                     s.contents = field(k, v)?;
@@ -5877,7 +5877,7 @@ impl Json for HoverRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -5944,7 +5944,7 @@ impl Json for SignatureHelpParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -6027,7 +6027,7 @@ impl Json for SignatureHelp {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "signatures" => {
                     seen |= 1 << 0;
                     s.signatures = field_non_null(k, v, Self::GO_TYPE)?;
@@ -6087,7 +6087,7 @@ impl Json for SignatureHelpRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -6158,7 +6158,7 @@ impl Json for DefinitionParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -6209,7 +6209,7 @@ impl Json for DefinitionRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -6277,7 +6277,7 @@ impl Json for ReferenceParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -6332,7 +6332,7 @@ impl Json for ReferenceRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -6397,7 +6397,7 @@ impl Json for DocumentHighlightParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -6450,7 +6450,7 @@ impl Json for DocumentHighlight {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -6494,7 +6494,7 @@ impl Json for DocumentHighlightRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -6549,7 +6549,7 @@ impl Json for DocumentSymbolParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -6628,7 +6628,7 @@ impl Json for SymbolInformation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -6721,7 +6721,7 @@ impl Json for DocumentSymbol {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -6793,7 +6793,7 @@ impl Json for DocumentSymbolRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -6859,7 +6859,7 @@ impl Json for CodeActionParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -6928,7 +6928,7 @@ impl Json for Command {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "title" => {
                     seen |= 1 << 0;
                     s.title = field(k, v)?;
@@ -7039,7 +7039,7 @@ impl Json for CodeAction {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "title" => {
                     seen |= 1 << 0;
                     s.title = field(k, v)?;
@@ -7135,7 +7135,7 @@ impl Json for CodeActionRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -7204,7 +7204,7 @@ impl Json for WorkspaceSymbolParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -7284,7 +7284,7 @@ impl Json for WorkspaceSymbol {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -7343,7 +7343,7 @@ impl Json for WorkspaceSymbolRegistrationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -7396,7 +7396,7 @@ impl Json for CodeLensParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -7452,7 +7452,7 @@ impl Json for CodeLens {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -7503,7 +7503,7 @@ impl Json for CodeLensRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -7561,7 +7561,7 @@ impl Json for DocumentLinkParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -7624,7 +7624,7 @@ impl Json for DocumentLink {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -7678,7 +7678,7 @@ impl Json for DocumentLinkRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -7735,7 +7735,7 @@ impl Json for DocumentFormattingParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -7783,7 +7783,7 @@ impl Json for DocumentFormattingRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -7841,7 +7841,7 @@ impl Json for DocumentRangeFormattingParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -7899,7 +7899,7 @@ impl Json for DocumentRangeFormattingRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -7962,7 +7962,7 @@ impl Json for DocumentRangesFormattingParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -8039,7 +8039,7 @@ impl Json for DocumentOnTypeFormattingParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -8097,7 +8097,7 @@ impl Json for DocumentOnTypeFormattingRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -8167,7 +8167,7 @@ impl Json for RenameParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -8225,7 +8225,7 @@ impl Json for RenameRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentSelector" => {
                     seen |= 1 << 0;
                     s.document_selector = field(k, v)?;
@@ -8287,7 +8287,7 @@ impl Json for PrepareRenameParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -8339,7 +8339,7 @@ impl Json for ExecuteCommandParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneToken" => {
                     s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -8385,7 +8385,7 @@ impl Json for ExecuteCommandRegistrationOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -8437,7 +8437,7 @@ impl Json for ApplyWorkspaceEditParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "label" => {
                     s.label = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -8494,7 +8494,7 @@ impl Json for ApplyWorkspaceEditResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "applied" => {
                     seen |= 1 << 0;
                     s.applied = field(k, v)?;
@@ -8565,7 +8565,7 @@ impl Json for WorkDoneProgressBegin {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -8637,7 +8637,7 @@ impl Json for WorkDoneProgressReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -8686,7 +8686,7 @@ impl Json for WorkDoneProgressEnd {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -8724,7 +8724,7 @@ impl Json for SetTraceParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "value" {
+            if k == "value" {
                 seen |= 1 << 0;
                 s.value = field(k, v)?;
             }
@@ -8759,7 +8759,7 @@ impl Json for LogTraceParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "message" => {
                     seen |= 1 << 0;
                     s.message = field(k, v)?;
@@ -8798,7 +8798,7 @@ impl Json for CancelParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "id" {
+            if k == "id" {
                 seen |= 1 << 0;
                 s.id = field(k, v)?;
             }
@@ -8835,7 +8835,7 @@ impl Json for ProgressParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "token" => {
                     seen |= 1 << 0;
                     s.token = field(k, v)?;
@@ -8893,7 +8893,7 @@ impl Json for TextDocumentPositionParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -8932,7 +8932,7 @@ impl Json for WorkDoneProgressParams {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneToken" {
+            if k == "workDoneToken" {
                 s.work_done_token = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -8963,7 +8963,7 @@ impl Json for PartialResultParams {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "partialResultToken" {
+            if k == "partialResultToken" {
                 s.partial_result_token = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9020,7 +9020,7 @@ impl Json for LocationLink {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "originSelectionRange" => {
                     s.origin_selection_range = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -9081,7 +9081,7 @@ impl Json for Range {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "start" => {
                     seen |= 1 << 0;
                     s.start = field(k, v)?;
@@ -9129,7 +9129,7 @@ impl Json for ImplementationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9162,7 +9162,7 @@ impl Json for StaticRegistrationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "id" {
+            if k == "id" {
                 s.id = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9191,7 +9191,7 @@ impl Json for TypeDefinitionOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9227,7 +9227,7 @@ impl Json for WorkspaceFoldersChangeEvent {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "added" => {
                     seen |= 1 << 0;
                     s.added = field_non_null(k, v, Self::GO_TYPE)?;
@@ -9270,7 +9270,7 @@ impl Json for ConfigurationItem {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "scopeUri" => {
                     s.scope_uri = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -9307,7 +9307,7 @@ impl Json for TextDocumentIdentifier {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "uri" {
+            if k == "uri" {
                 seen |= 1 << 0;
                 s.uri = field(k, v)?;
             }
@@ -9352,7 +9352,7 @@ impl Json for Color {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "red" => {
                     seen |= 1 << 0;
                     s.red = field(k, v)?;
@@ -9398,7 +9398,7 @@ impl Json for DocumentColorOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9427,7 +9427,7 @@ impl Json for FoldingRangeOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9456,7 +9456,7 @@ impl Json for DeclarationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9520,7 +9520,7 @@ impl Json for Position {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "line" => {
                     seen |= 1 << 0;
                     s.line = field(k, v)?;
@@ -9568,7 +9568,7 @@ impl Json for SelectionRangeOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9600,7 +9600,7 @@ impl Json for CallHierarchyOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9644,7 +9644,7 @@ impl Json for SemanticTokensOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -9698,7 +9698,7 @@ impl Json for SemanticTokensEdit {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "start" => {
                     seen |= 1 << 0;
                     s.start = field(k, v)?;
@@ -9739,7 +9739,7 @@ impl Json for LinkedEditingRangeOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -9773,7 +9773,7 @@ impl Json for FileCreate {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "uri" {
+            if k == "uri" {
                 seen |= 1 << 0;
                 s.uri = field(k, v)?;
             }
@@ -9820,7 +9820,7 @@ impl Json for TextDocumentEdit {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -9875,7 +9875,7 @@ impl Json for CreateFile {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -9940,7 +9940,7 @@ impl Json for RenameFile {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -10005,7 +10005,7 @@ impl Json for DeleteFile {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -10065,7 +10065,7 @@ impl Json for ChangeAnnotation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "label" => {
                     seen |= 1 << 0;
                     s.label = field(k, v)?;
@@ -10115,7 +10115,7 @@ impl Json for FileOperationFilter {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "scheme" => {
                     s.scheme = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -10161,7 +10161,7 @@ impl Json for FileRename {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "oldUri" => {
                     seen |= 1 << 0;
                     s.old_uri = field(k, v)?;
@@ -10204,7 +10204,7 @@ impl Json for FileDelete {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "uri" {
+            if k == "uri" {
                 seen |= 1 << 0;
                 s.uri = field(k, v)?;
             }
@@ -10235,7 +10235,7 @@ impl Json for MonikerOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -10267,7 +10267,7 @@ impl Json for TypeHierarchyOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -10304,7 +10304,7 @@ impl Json for InlineValueContext {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "frameId" => {
                     seen |= 1 << 0;
                     s.frame_id = field(k, v)?;
@@ -10351,7 +10351,7 @@ impl Json for InlineValueText {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -10411,7 +10411,7 @@ impl Json for InlineValueVariableLookup {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -10470,7 +10470,7 @@ impl Json for InlineValueEvaluatableExpression {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -10510,7 +10510,7 @@ impl Json for InlineValueOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -10572,7 +10572,7 @@ impl Json for InlayHintLabelPart {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "value" => {
                     seen |= 1 << 0;
                     s.value = field(k, v)?;
@@ -10643,7 +10643,7 @@ impl Json for MarkupContent {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -10689,7 +10689,7 @@ impl Json for InlayHintOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -10751,7 +10751,7 @@ impl Json for RelatedFullDocumentDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -10820,7 +10820,7 @@ impl Json for RelatedUnchangedDocumentDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -10866,7 +10866,7 @@ impl Json for DocumentDiagnosticReportPartialResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "relatedDocuments" {
+            if k == "relatedDocuments" {
                 seen |= 1 << 0;
                 s.related_documents = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -10917,7 +10917,7 @@ impl Json for DiagnosticOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -10970,7 +10970,7 @@ impl Json for PreviousResultId {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -11025,7 +11025,7 @@ impl Json for TextDocumentItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -11080,7 +11080,7 @@ impl Json for InlineCompletionContext {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "triggerKind" => {
                     seen |= 1 << 0;
                     s.trigger_kind = field(k, v)?;
@@ -11132,7 +11132,7 @@ impl Json for StringValue {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -11173,7 +11173,7 @@ impl Json for InlineCompletionOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -11207,7 +11207,7 @@ impl Json for TextDocumentContentOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "schemes" {
+            if k == "schemes" {
                 seen |= 1 << 0;
                 s.schemes = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -11470,7 +11470,7 @@ impl Json for Registration {
         let mut raw_register_options: Option<&Value> = None;
 
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "id" => {
                     missing &= !MISSING_ID;
                     s.id = field(k, v)?;
@@ -11722,7 +11722,7 @@ impl Json for Unregistration {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "id" => {
                     seen |= 1 << 0;
                     s.id = field(k, v)?;
@@ -11767,7 +11767,7 @@ impl Json for WorkspaceFoldersInitializeParams {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workspaceFolders" {
+            if k == "workspaceFolders" {
                 s.workspace_folders = opt(k, v)?;
             }
         }
@@ -11985,7 +11985,7 @@ impl Json for ServerCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "positionEncoding" => {
                     s.position_encoding = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -12136,7 +12136,7 @@ impl Json for ServerInfo {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -12179,7 +12179,7 @@ impl Json for VersionedTextDocumentIdentifier {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -12219,7 +12219,7 @@ impl Json for SaveOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "includeText" {
+            if k == "includeText" {
                 s.include_text = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -12255,7 +12255,7 @@ impl Json for FileEvent {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -12303,7 +12303,7 @@ impl Json for FileSystemWatcher {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "globPattern" => {
                     seen |= 1 << 0;
                     s.glob_pattern = field(k, v)?;
@@ -12392,7 +12392,7 @@ impl Json for Diagnostic {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -12459,7 +12459,7 @@ impl Json for CompletionContext {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "triggerKind" => {
                     seen |= 1 << 0;
                     s.trigger_kind = field(k, v)?;
@@ -12506,7 +12506,7 @@ impl Json for CompletionItemLabelDetails {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "detail" => {
                     s.detail = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -12554,7 +12554,7 @@ impl Json for InsertReplaceEdit {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "newText" => {
                     seen |= 1 << 0;
                     s.new_text = field(k, v)?;
@@ -12638,7 +12638,7 @@ impl Json for CompletionItemDefaults {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "commitCharacters" => {
                     s.commit_characters = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -12739,7 +12739,7 @@ impl Json for CompletionItemApplyKinds {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "commitCharacters" => {
                     s.commit_characters = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -12809,7 +12809,7 @@ impl Json for CompletionOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -12854,7 +12854,7 @@ impl Json for HoverOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -12908,7 +12908,7 @@ impl Json for SignatureHelpContext {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "triggerKind" => {
                     seen |= 1 << 0;
                     s.trigger_kind = field(k, v)?;
@@ -12985,7 +12985,7 @@ impl Json for SignatureInformation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "label" => {
                     seen |= 1 << 0;
                     s.label = field(k, v)?;
@@ -13045,7 +13045,7 @@ impl Json for SignatureHelpOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13084,7 +13084,7 @@ impl Json for DefinitionOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -13117,7 +13117,7 @@ impl Json for ReferenceContext {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "includeDeclaration" {
+            if k == "includeDeclaration" {
                 seen |= 1 << 0;
                 s.include_declaration = field(k, v)?;
             }
@@ -13149,7 +13149,7 @@ impl Json for ReferenceOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -13179,7 +13179,7 @@ impl Json for DocumentHighlightOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -13228,7 +13228,7 @@ impl Json for BaseSymbolInformation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -13280,7 +13280,7 @@ impl Json for DocumentSymbolOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13336,7 +13336,7 @@ impl Json for CodeActionContext {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "diagnostics" => {
                     seen |= 1 << 0;
                     s.diagnostics = field_non_null(k, v, Self::GO_TYPE)?;
@@ -13383,7 +13383,7 @@ impl Json for CodeActionDisabled {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "reason" {
+            if k == "reason" {
                 seen |= 1 << 0;
                 s.reason = field(k, v)?;
             }
@@ -13446,7 +13446,7 @@ impl Json for CodeActionOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13491,7 +13491,7 @@ impl Json for LocationUriOnly {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "uri" {
+            if k == "uri" {
                 seen |= 1 << 0;
                 s.uri = field(k, v)?;
             }
@@ -13530,7 +13530,7 @@ impl Json for WorkspaceSymbolOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13570,7 +13570,7 @@ impl Json for CodeLensOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13610,7 +13610,7 @@ impl Json for DocumentLinkOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13670,7 +13670,7 @@ impl Json for FormattingOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "tabSize" => {
                     seen |= 1 << 0;
                     s.tab_size = field(k, v)?;
@@ -13718,7 +13718,7 @@ impl Json for DocumentFormattingOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -13754,7 +13754,7 @@ impl Json for DocumentRangeFormattingOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13796,7 +13796,7 @@ impl Json for DocumentOnTypeFormattingOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "firstTriggerCharacter" => {
                     seen |= 1 << 0;
                     s.first_trigger_character = field(k, v)?;
@@ -13840,7 +13840,7 @@ impl Json for RenameOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13880,7 +13880,7 @@ impl Json for PrepareRenamePlaceholder {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -13920,7 +13920,7 @@ impl Json for PrepareRenameDefaultBehavior {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "defaultBehavior" {
+            if k == "defaultBehavior" {
                 seen |= 1 << 0;
                 s.default_behavior = field(k, v)?;
             }
@@ -13957,7 +13957,7 @@ impl Json for ExecuteCommandOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -13998,7 +13998,7 @@ impl Json for WorkspaceEditMetadata {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "isRefactoring" {
+            if k == "isRefactoring" {
                 s.is_refactoring = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -14027,7 +14027,7 @@ impl Json for WorkDoneProgressOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "workDoneProgress" {
+            if k == "workDoneProgress" {
                 s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -14063,7 +14063,7 @@ impl Json for SemanticTokensLegend {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "tokenTypes" => {
                     seen |= 1 << 0;
                     s.token_types = field_non_null(k, v, Self::GO_TYPE)?;
@@ -14105,7 +14105,7 @@ impl Json for SemanticTokensFullDelta {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "delta" {
+            if k == "delta" {
                 s.delta = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -14144,7 +14144,7 @@ impl Json for OptionalVersionedTextDocumentIdentifier {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -14197,7 +14197,7 @@ impl Json for AnnotatedTextEdit {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -14252,7 +14252,7 @@ impl Json for SnippetTextEdit {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -14302,7 +14302,7 @@ impl Json for ResourceOperation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -14345,7 +14345,7 @@ impl Json for CreateFileOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "overwrite" => {
                     s.overwrite = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -14386,7 +14386,7 @@ impl Json for RenameFileOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "overwrite" => {
                     s.overwrite = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -14427,7 +14427,7 @@ impl Json for DeleteFileOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "recursive" => {
                     s.recursive = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -14484,7 +14484,7 @@ impl Json for FileOperationPattern {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "glob" => {
                     seen |= 1 << 0;
                     s.glob = field(k, v)?;
@@ -14539,7 +14539,7 @@ impl Json for FullDocumentDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -14594,7 +14594,7 @@ impl Json for UnchangedDocumentDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -14656,7 +14656,7 @@ impl Json for WorkspaceFullDocumentDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -14727,7 +14727,7 @@ impl Json for WorkspaceUnchangedDocumentDiagnosticReport {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -14782,7 +14782,7 @@ impl Json for SelectedCompletionInfo {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -14831,7 +14831,7 @@ impl Json for ClientInfo {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -14914,7 +14914,7 @@ impl Json for ClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workspace" => {
                     s.workspace = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -14996,7 +14996,7 @@ impl Json for TextDocumentSyncOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "openClose" => {
                     s.open_close = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -15058,7 +15058,7 @@ impl Json for WorkspaceOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workspaceFolders" => {
                     s.workspace_folders = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -15109,7 +15109,7 @@ impl Json for TextDocumentContentChangePartial {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     seen |= 1 << 0;
                     s.range = field(k, v)?;
@@ -15153,7 +15153,7 @@ impl Json for TextDocumentContentChangeWholeDocument {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "text" {
+            if k == "text" {
                 seen |= 1 << 0;
                 s.text = field(k, v)?;
             }
@@ -15189,7 +15189,7 @@ impl Json for CodeDescription {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "href" {
+            if k == "href" {
                 seen |= 1 << 0;
                 s.href = field(k, v)?;
             }
@@ -15229,7 +15229,7 @@ impl Json for DiagnosticRelatedInformation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "location" => {
                     seen |= 1 << 0;
                     s.location = field(k, v)?;
@@ -15274,7 +15274,7 @@ impl Json for EditRangeWithInsertReplace {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "insert" => {
                     seen |= 1 << 0;
                     s.insert = field(k, v)?;
@@ -15318,7 +15318,7 @@ impl Json for ServerCompletionItemOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "labelDetailsSupport" {
+            if k == "labelDetailsSupport" {
                 s.label_details_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -15354,7 +15354,7 @@ impl Json for MarkedStringWithLanguage {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "language" => {
                     seen |= 1 << 0;
                     s.language = field(k, v)?;
@@ -15412,7 +15412,7 @@ impl Json for ParameterInformation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "label" => {
                     seen |= 1 << 0;
                     s.label = field(k, v)?;
@@ -15464,7 +15464,7 @@ impl Json for CodeActionKindDocumentation {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -15506,7 +15506,7 @@ impl Json for FileOperationPatternOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "ignoreCase" {
+            if k == "ignoreCase" {
                 s.ignore_case = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -15624,7 +15624,7 @@ impl Json for WorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "applyEdit" => {
                     s.apply_edit = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -15860,7 +15860,7 @@ impl Json for TextDocumentClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "synchronization" => {
                     s.synchronization = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16006,7 +16006,7 @@ impl Json for WindowClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "workDoneProgress" => {
                     s.work_done_progress = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16086,7 +16086,7 @@ impl Json for GeneralClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "staleRequestSupport" => {
                     s.stale_request_support = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16138,7 +16138,7 @@ impl Json for WorkspaceFoldersServerCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "supported" => {
                     s.supported = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16197,7 +16197,7 @@ impl Json for FileOperationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "didCreate" => {
                     s.did_create = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16256,7 +16256,7 @@ impl Json for RelativePattern {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "baseUri" => {
                     seen |= 1 << 0;
                     s.base_uri = field(k, v)?;
@@ -16338,7 +16338,7 @@ impl Json for WorkspaceEditClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentChanges" => {
                     s.document_changes = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16389,7 +16389,7 @@ impl Json for DidChangeConfigurationClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16428,7 +16428,7 @@ impl Json for DidChangeWatchedFilesClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16484,7 +16484,7 @@ impl Json for WorkspaceSymbolClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16527,7 +16527,7 @@ impl Json for ExecuteCommandClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16564,7 +16564,7 @@ impl Json for SemanticTokensWorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "refreshSupport" {
+            if k == "refreshSupport" {
                 s.refresh_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16601,7 +16601,7 @@ impl Json for CodeLensWorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "refreshSupport" {
+            if k == "refreshSupport" {
                 s.refresh_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16661,7 +16661,7 @@ impl Json for FileOperationClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16721,7 +16721,7 @@ impl Json for InlineValueWorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "refreshSupport" {
+            if k == "refreshSupport" {
                 s.refresh_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16760,7 +16760,7 @@ impl Json for InlayHintWorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "refreshSupport" {
+            if k == "refreshSupport" {
                 s.refresh_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16799,7 +16799,7 @@ impl Json for DiagnosticWorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "refreshSupport" {
+            if k == "refreshSupport" {
                 s.refresh_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16840,7 +16840,7 @@ impl Json for FoldingRangeWorkspaceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "refreshSupport" {
+            if k == "refreshSupport" {
                 s.refresh_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16873,7 +16873,7 @@ impl Json for TextDocumentContentClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -16917,7 +16917,7 @@ impl Json for TextDocumentSyncClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -16961,7 +16961,7 @@ impl Json for TextDocumentFilterClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "relativePatternSupport" {
+            if k == "relativePatternSupport" {
                 s.relative_pattern_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -17021,7 +17021,7 @@ impl Json for CompletionClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17074,7 +17074,7 @@ impl Json for HoverClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17125,7 +17125,7 @@ impl Json for SignatureHelpClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17171,7 +17171,7 @@ impl Json for DeclarationClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17214,7 +17214,7 @@ impl Json for DefinitionClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17259,7 +17259,7 @@ impl Json for TypeDefinitionClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17304,7 +17304,7 @@ impl Json for ImplementationClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17341,7 +17341,7 @@ impl Json for ReferenceClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -17372,7 +17372,7 @@ impl Json for DocumentHighlightClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -17430,7 +17430,7 @@ impl Json for DocumentSymbolClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17535,7 +17535,7 @@ impl Json for CodeActionClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17600,7 +17600,7 @@ impl Json for CodeLensClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17643,7 +17643,7 @@ impl Json for DocumentLinkClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17681,7 +17681,7 @@ impl Json for DocumentColorClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -17712,7 +17712,7 @@ impl Json for DocumentFormattingClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -17749,7 +17749,7 @@ impl Json for DocumentRangeFormattingClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17786,7 +17786,7 @@ impl Json for DocumentOnTypeFormattingClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -17842,7 +17842,7 @@ impl Json for RenameClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17911,7 +17911,7 @@ impl Json for FoldingRangeClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -17958,7 +17958,7 @@ impl Json for SelectionRangeClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18017,7 +18017,7 @@ impl Json for PublishDiagnosticsClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "relatedInformation" => {
                     s.related_information = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -18065,7 +18065,7 @@ impl Json for CallHierarchyClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18152,7 +18152,7 @@ impl Json for SemanticTokensClientCapabilities {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -18223,7 +18223,7 @@ impl Json for LinkedEditingRangeClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18258,7 +18258,7 @@ impl Json for MonikerClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18291,7 +18291,7 @@ impl Json for TypeHierarchyClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18324,7 +18324,7 @@ impl Json for InlineValueClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18362,7 +18362,7 @@ impl Json for InlayHintClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "dynamicRegistration" => {
                     s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -18438,7 +18438,7 @@ impl Json for DiagnosticClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "relatedInformation" => {
                     s.related_information = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -18492,7 +18492,7 @@ impl Json for InlineCompletionClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "dynamicRegistration" {
+            if k == "dynamicRegistration" {
                 s.dynamic_registration = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18523,7 +18523,7 @@ impl Json for ShowMessageRequestClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "messageActionItem" {
+            if k == "messageActionItem" {
                 s.message_action_item = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18558,7 +18558,7 @@ impl Json for ShowDocumentClientCapabilities {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "support" {
+            if k == "support" {
                 seen |= 1 << 0;
                 s.support = field(k, v)?;
             }
@@ -18598,7 +18598,7 @@ impl Json for StaleRequestSupportOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "cancel" => {
                     seen |= 1 << 0;
                     s.cancel = field(k, v)?;
@@ -18645,7 +18645,7 @@ impl Json for RegularExpressionsClientCapabilities {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "engine" => {
                     seen |= 1 << 0;
                     s.engine = field(k, v)?;
@@ -18698,7 +18698,7 @@ impl Json for MarkdownClientCapabilities {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "parser" => {
                     seen |= 1 << 0;
                     s.parser = field(k, v)?;
@@ -18755,7 +18755,7 @@ impl Json for TextDocumentFilterLanguage {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "language" => {
                     seen |= 1 << 0;
                     s.language = field(k, v)?;
@@ -18812,7 +18812,7 @@ impl Json for TextDocumentFilterScheme {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "language" => {
                     s.language = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -18869,7 +18869,7 @@ impl Json for TextDocumentFilterPattern {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "language" => {
                     s.language = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -18913,7 +18913,7 @@ impl Json for ChangeAnnotationsSupportOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "groupsOnLabel" {
+            if k == "groupsOnLabel" {
                 s.groups_on_label = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18951,7 +18951,7 @@ impl Json for ClientSymbolKindOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 s.value_set = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -18983,7 +18983,7 @@ impl Json for ClientSymbolTagOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 seen |= 1 << 0;
                 s.value_set = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19018,7 +19018,7 @@ impl Json for ClientSymbolResolveOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "properties" {
+            if k == "properties" {
                 seen |= 1 << 0;
                 s.properties = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19112,7 +19112,7 @@ impl Json for ClientCompletionItemOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "snippetSupport" => {
                     s.snippet_support = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -19180,7 +19180,7 @@ impl Json for ClientCompletionItemOptionsKind {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 s.value_set = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -19235,7 +19235,7 @@ impl Json for CompletionListCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "itemDefaults" => {
                     s.item_defaults = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -19292,7 +19292,7 @@ impl Json for ClientSignatureInformationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "documentationFormat" => {
                     s.documentation_format = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -19337,7 +19337,7 @@ impl Json for ClientCodeActionLiteralOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "codeActionKind" {
+            if k == "codeActionKind" {
                 seen |= 1 << 0;
                 s.code_action_kind = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19371,7 +19371,7 @@ impl Json for ClientCodeActionResolveOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "properties" {
+            if k == "properties" {
                 seen |= 1 << 0;
                 s.properties = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19405,7 +19405,7 @@ impl Json for CodeActionTagOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 seen |= 1 << 0;
                 s.value_set = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19439,7 +19439,7 @@ impl Json for ClientCodeLensResolveOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "properties" {
+            if k == "properties" {
                 seen |= 1 << 0;
                 s.properties = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19475,7 +19475,7 @@ impl Json for ClientFoldingRangeKindOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 s.value_set = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -19509,7 +19509,7 @@ impl Json for ClientFoldingRangeOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "collapsedText" {
+            if k == "collapsedText" {
                 s.collapsed_text = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -19561,7 +19561,7 @@ impl Json for DiagnosticsCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "relatedInformation" => {
                     s.related_information = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -19610,7 +19610,7 @@ impl Json for ClientSemanticTokensRequestOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "range" => {
                     s.range = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -19648,7 +19648,7 @@ impl Json for ClientInlayHintResolveOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "properties" {
+            if k == "properties" {
                 seen |= 1 << 0;
                 s.properties = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19683,7 +19683,7 @@ impl Json for ClientShowMessageActionItemOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "additionalPropertiesSupport" {
+            if k == "additionalPropertiesSupport" {
                 s.additional_properties_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -19715,7 +19715,7 @@ impl Json for CompletionItemTagOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 seen |= 1 << 0;
                 s.value_set = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19749,7 +19749,7 @@ impl Json for ClientCompletionItemResolveOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "properties" {
+            if k == "properties" {
                 seen |= 1 << 0;
                 s.properties = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19782,7 +19782,7 @@ impl Json for ClientCompletionItemInsertTextModeOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 seen |= 1 << 0;
                 s.value_set = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19818,7 +19818,7 @@ impl Json for ClientSignatureParameterInformationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "labelOffsetSupport" {
+            if k == "labelOffsetSupport" {
                 s.label_offset_support = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -19853,7 +19853,7 @@ impl Json for ClientCodeActionKindOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 seen |= 1 << 0;
                 s.value_set = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19887,7 +19887,7 @@ impl Json for ClientDiagnosticsTagOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "valueSet" {
+            if k == "valueSet" {
                 seen |= 1 << 0;
                 s.value_set = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -19921,7 +19921,7 @@ impl Json for ClientSemanticTokensRequestFullDelta {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "delta" {
+            if k == "delta" {
                 s.delta = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -19979,7 +19979,7 @@ impl Json for InitializationOptions {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "disablePushDiagnostics" => {
                     s.disable_push_diagnostics = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -20057,7 +20057,7 @@ impl Json for AutoImportFix {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     s.kind = field(k, v)?;
                 }
@@ -20142,7 +20142,7 @@ impl Json for CompletionItemData {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "fileName" => {
                     s.file_name = field(k, v)?;
                 }
@@ -20206,7 +20206,7 @@ impl Json for CodeLensData {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "kind" => {
                     seen |= 1 << 0;
                     s.kind = field(k, v)?;
@@ -20260,7 +20260,7 @@ impl Json for ExperimentalServerCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "customSourceDefinitionProvider" => {
                     s.custom_source_definition_provider = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -20297,7 +20297,7 @@ impl Json for ExperimentalClientCapabilities {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "hoverVerbosityLevel" {
+            if k == "hoverVerbosityLevel" {
                 s.hover_verbosity_level = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -20329,7 +20329,7 @@ impl Json for VSOnAutoInsertOptions {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "_vs_triggerCharacters" {
+            if k == "_vs_triggerCharacters" {
                 seen |= 1 << 0;
                 s.vs_trigger_characters = field_non_null(k, v, Self::GO_TYPE)?;
             }
@@ -20387,7 +20387,7 @@ impl Json for VSReferenceItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "_vs_id" => {
                     seen |= 1 << 0;
                     s.vs_id = field(k, v)?;
@@ -20463,7 +20463,7 @@ impl Json for VSOnAutoInsertParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "_vs_textDocument" => {
                     seen |= 1 << 0;
                     s.vs_text_document = field(k, v)?;
@@ -20512,7 +20512,7 @@ impl Json for VSOnAutoInsertResponseItem {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "_vs_textEditFormat" => {
                     seen |= 1 << 0;
                     s.vs_text_edit_format = field(k, v)?;
@@ -20561,7 +20561,7 @@ impl Json for RequestFailureTelemetryEvent {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "eventName" => {
                     seen |= 1 << 0;
                     s.event_name = field(k, v)?;
@@ -20614,7 +20614,7 @@ impl Json for RequestFailureTelemetryProperties {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "errorCode" => {
                     seen |= 1 << 0;
                     s.error_code = field(k, v)?;
@@ -20659,7 +20659,7 @@ impl Json for ProfileParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "dir" {
+            if k == "dir" {
                 seen |= 1 << 0;
                 s.dir = field(k, v)?;
             }
@@ -20693,7 +20693,7 @@ impl Json for ProfileResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "file" {
+            if k == "file" {
                 seen |= 1 << 0;
                 s.file = field(k, v)?;
             }
@@ -20726,7 +20726,7 @@ impl Json for InitializeAPISessionParams {
             return Ok(s);
         };
         for (k, v) in members {
-            if k.as_str() == "pipe" {
+            if k == "pipe" {
                 s.pipe = opt_non_null(k, v, Self::GO_TYPE)?;
             }
         }
@@ -20762,7 +20762,7 @@ impl Json for InitializeAPISessionResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "sessionId" => {
                     seen |= 1 << 0;
                     s.session_id = field(k, v)?;
@@ -20809,7 +20809,7 @@ impl Json for ProjectInfoParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "textDocument" {
+            if k == "textDocument" {
                 seen |= 1 << 0;
                 s.text_document = field(k, v)?;
             }
@@ -20843,7 +20843,7 @@ impl Json for ProjectInfoResult {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "configFilePath" {
+            if k == "configFilePath" {
                 seen |= 1 << 0;
                 s.config_file_path = field(k, v)?;
             }
@@ -20901,7 +20901,7 @@ impl Json for ContentMapperManifest {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "name" => {
                     seen |= 1 << 0;
                     s.name = field(k, v)?;
@@ -20961,7 +20961,7 @@ impl Json for InferredProjectContentMapperContribution {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "options" => {
                     s.options = opt_non_null(k, v, Self::GO_TYPE)?;
                 }
@@ -21009,7 +21009,7 @@ impl Json for ContentMapperContribution {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "contributorId" => {
                     seen |= 1 << 0;
                     s.contributor_id = field(k, v)?;
@@ -21057,7 +21057,7 @@ impl Json for SetContentMapperContributionsParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "contributions" => {
                     seen |= 1 << 0;
                     s.contributions = field_non_null(k, v, Self::GO_TYPE)?;
@@ -21098,7 +21098,7 @@ impl Json for SetLogVerbosityParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            if k.as_str() == "verbosity" {
+            if k == "verbosity" {
                 seen |= 1 << 0;
                 s.verbosity = field(k, v)?;
             }
@@ -21140,7 +21140,7 @@ impl Json for PerformanceStatsTelemetryEvent {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "eventName" => {
                     seen |= 1 << 0;
                     s.event_name = field(k, v)?;
@@ -21303,7 +21303,7 @@ impl Json for PerformanceStatsTelemetryMeasurements {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "openFileCount" => {
                     s.open_file_count = field(k, v)?;
                 }
@@ -21437,7 +21437,7 @@ impl Json for ProjectInfoTelemetryEvent {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "eventName" => {
                     seen |= 1 << 0;
                     s.event_name = field(k, v)?;
@@ -21515,7 +21515,7 @@ impl Json for ProjectInfoTelemetryMeasurements {
             return Ok(s);
         };
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "jsFileCount" => {
                     s.js_file_count = field(k, v)?;
                 }
@@ -21581,7 +21581,7 @@ impl Json for MultiDocumentHighlight {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "uri" => {
                     seen |= 1 << 0;
                     s.uri = field(k, v)?;
@@ -21642,7 +21642,7 @@ impl Json for MultiDocumentHighlightParams {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "textDocument" => {
                     seen |= 1 << 0;
                     s.text_document = field(k, v)?;
@@ -21703,7 +21703,7 @@ impl Json for VSClassifiedTextRun {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "ClassificationTypeName" => {
                     seen |= 1 << 0;
                     s.classification_type_name = field(k, v)?;
@@ -21758,7 +21758,7 @@ impl Json for VSClassifiedTextElement {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "Runs" => {
                     seen |= 1 << 0;
                     s.runs = field_non_null(k, v, Self::GO_TYPE)?;
@@ -21807,7 +21807,7 @@ impl Json for VSImageId {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "Guid" => {
                     seen |= 1 << 0;
                     s.guid = field(k, v)?;
@@ -21856,7 +21856,7 @@ impl Json for VSImageElement {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "ImageId" => {
                     seen |= 1 << 0;
                     s.image_id = field_non_null(k, v, Self::GO_TYPE)?;
@@ -21905,7 +21905,7 @@ impl Json for VSContainerElement {
         };
         let mut seen = 0u64;
         for (k, v) in members {
-            match k.as_str() {
+            match k {
                 "Style" => {
                     seen |= 1 << 0;
                     s.style = field(k, v)?;

@@ -12,7 +12,7 @@
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt::Write as _;
-use tsrs_core::json::{JsonMap, Value, exact_integer_value};
+use tsrs_core::json::{JsonMap, Key, Value, exact_integer_value};
 
 pub const MAX_DEPTH: usize = 10000;
 
@@ -647,7 +647,16 @@ pub fn validate(input: &[u8]) -> Result<(), String> {
 
 /// `validate`, then `json::unmarshal`, in one scan: the same errors, in the same order.
 pub fn decode(input: &[u8]) -> Result<Decoded, DecodeError> {
-    if let Some(value) = fast_decode(input) {
+    decode_with_names(input, |_| None)
+}
+
+/// `decode`, taking member names from `names` where it has them (a request's protocol field names), so
+/// those members borrow their names instead of allocating them.
+pub fn decode_with_names(
+    input: &[u8],
+    names: fn(&str) -> Option<&'static str>,
+) -> Result<Decoded, DecodeError> {
+    if let Some(value) = fast_decode(input, names) {
         return Ok(Decoded { value, lexemes: FxHashMap::default() });
     }
     decode_scan(input)
@@ -674,9 +683,17 @@ const FAST_MAX_DEPTH: usize = 64;
 /// printable ASCII without escapes, every number is an integer of at most 15 digits (exact in an f64, so it
 /// needs no literal), and containers nest at most `FAST_MAX_DEPTH` deep. Whatever it accepts the full scan
 /// accepts with the same value; it never reports an error itself, so error texts all come from the scan.
-fn fast_decode(input: &[u8]) -> Option<Value> {
+fn fast_decode(input: &[u8], names: fn(&str) -> Option<&'static str>) -> Option<Value> {
     let text = std::str::from_utf8(input).ok()?;
-    let mut parser = FastParser { s: text, b: input, i: 0, members: Vec::new(), items: Vec::new() };
+    let mut parser = FastParser {
+        s: text,
+        b: input,
+        i: 0,
+        names,
+        // Room for a request's members, so the stack does not grow on every request.
+        members: Vec::with_capacity(16),
+        items: Vec::new(),
+    };
     parser.ws();
     let value = parser.value(0)?;
     parser.ws();
@@ -687,9 +704,10 @@ struct FastParser<'a> {
     s: &'a str,
     b: &'a [u8],
     i: usize,
+    names: fn(&str) -> Option<&'static str>,
     /// The members of the objects being read, innermost last: each container is collected here and moved out
     /// at its exact size when it closes.
-    members: Vec<(String, Value)>,
+    members: Vec<(Key, Value)>,
     /// The same for arrays.
     items: Vec<Value>,
 }
@@ -730,7 +748,7 @@ impl FastParser<'_> {
         let base = self.members.len();
         loop {
             self.ws();
-            let key = self.string()?;
+            let key = self.member_name()?;
             self.ws();
             self.eat(b':')?;
             self.ws();
@@ -777,6 +795,17 @@ impl FastParser<'_> {
 
     /// A string of printable ASCII without escapes.
     fn string(&mut self) -> Option<String> {
+        self.text().map(str::to_string)
+    }
+
+    fn member_name(&mut self) -> Option<Key> {
+        let names = self.names;
+        let name = self.text()?;
+        Some(names(name).map_or_else(|| Key::Owned(name.to_string()), Key::Borrowed))
+    }
+
+    /// The contents of a string of printable ASCII without escapes.
+    fn text(&mut self) -> Option<&str> {
         if self.b.get(self.i) != Some(&b'"') {
             return None;
         }
@@ -786,7 +815,7 @@ impl FastParser<'_> {
             return None;
         }
         self.i = start + len + 1;
-        self.s.get(start..start + len).map(str::to_string)
+        self.s.get(start..start + len)
     }
 
     fn literal(&mut self, word: &str, value: Value) -> Option<Value> {
@@ -832,8 +861,8 @@ mod tests {
     fn fast_path_accepts_only_what_the_scan_accepts_identically() {
         let marshal = |v: &tsrs_core::json::Value| tsrs_core::json::marshal(v).unwrap();
         for seed in SEEDS {
-            let fast =
-                fast_decode(seed.as_bytes()).unwrap_or_else(|| panic!("fast path declined {seed}"));
+            let fast = fast_decode(seed.as_bytes(), |_| None)
+                .unwrap_or_else(|| panic!("fast path declined {seed}"));
             assert_eq!(marshal(&fast), marshal(&decode_scan(seed.as_bytes()).ok().unwrap().value));
         }
         let alphabet = br#"{}[]":,-0123456789.eE+tfnrulsa \/u"#;
@@ -865,7 +894,10 @@ mod tests {
                 }
             }
             cases += 1;
-            let Some(fast) = fast_decode(&doc) else { continue };
+            // Some member names are borrowed and some allocated, as with a request's field names.
+            let names =
+                |name: &str| ["snapshot", "project", "file", "a"].into_iter().find(|n| *n == name);
+            let Some(fast) = fast_decode(&doc, names) else { continue };
             accepted += 1;
             let shown = String::from_utf8_lossy(&doc);
             let full = decode_scan(&doc).unwrap_or_else(|_| panic!("fast path accepted {shown}"));
@@ -890,11 +922,11 @@ mod tests {
             "[1,]",
             r#"{"a":1}x"#,
         ] {
-            assert!(fast_decode(doc.as_bytes()).is_none(), "{doc}");
+            assert!(fast_decode(doc.as_bytes(), |_| None).is_none(), "{doc}");
         }
         let deep = format!("{}{}", "[".repeat(65), "]".repeat(65));
-        assert!(fast_decode(deep.as_bytes()).is_none());
+        assert!(fast_decode(deep.as_bytes(), |_| None).is_none());
         let ok = format!("{}{}", "[".repeat(64), "]".repeat(64));
-        assert!(fast_decode(ok.as_bytes()).is_some());
+        assert!(fast_decode(ok.as_bytes(), |_| None).is_some());
     }
 }

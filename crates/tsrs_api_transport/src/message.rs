@@ -96,12 +96,14 @@ impl Message {
 
 /// A handler result.
 ///
-/// `Json` must hold one complete JSON value (validated before it is written); `Binary` is api.RawBinary:
-/// written verbatim as the `MessagePack` tuple payload, and (like Go's json.Marshal of a byte slice) as a
-/// base64 JSON string under JSON-RPC.
+/// `Json` must hold one complete JSON value (validated before it is written, as Go's json.Marshal of a
+/// json.Value does). `ValidJson` is JSON its producer guarantees valid (a JSON encoder's output), written
+/// without that check. `Binary` is api.RawBinary: written verbatim as the `MessagePack` tuple payload, and
+/// (like Go's json.Marshal of a byte slice) as a base64 JSON string under JSON-RPC.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Response {
     Json(Vec<u8>),
+    ValidJson(Vec<u8>),
     Binary(Vec<u8>),
 }
 

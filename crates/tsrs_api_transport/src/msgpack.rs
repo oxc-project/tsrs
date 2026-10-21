@@ -241,7 +241,7 @@ impl<W: Write + Send> ProtocolWriter for MessagePackWriter<W> {
             Response::Json(json) => {
                 crate::jsonrpc::validate_json(json).map_err(TransportError::Protocol)?.as_bytes()
             }
-            Response::Binary(raw) => raw,
+            Response::ValidJson(json) | Response::Binary(json) => json,
         };
         self.write_tuple(MessageType::Response, method.as_bytes(), payload)
     }

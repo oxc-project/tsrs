@@ -230,6 +230,9 @@ pub fn encode_response(id: &Id, result: &Response) -> Result<Vec<u8>, TransportE
         Response::Json(json) => {
             out.push_str(validate_json(json).map_err(TransportError::Protocol)?);
         }
+        Response::ValidJson(json) => out.push_str(
+            std::str::from_utf8(json).map_err(|e| TransportError::Protocol(e.to_string()))?,
+        ),
         // json.Marshal([]byte) is a base64 string; a nil RawBinary marshals as null.
         Response::Binary(raw) => {
             out.push('"');

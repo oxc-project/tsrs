@@ -118,7 +118,7 @@ impl Handler for TestHandler {
                     let p = item.params.as_ref().map_or(b"".as_slice(), |r| r.get().as_bytes());
                     let method_json = serde_json::to_string(&item.method).unwrap();
                     match self.handle_request(cx, &item.method, p) {
-                        Ok(Response::Json(json)) => {
+                        Ok(Response::Json(json) | Response::ValidJson(json)) => {
                             write!(
                                 out,
                                 "{{\"method\":{method_json},\"result\":{}}}",

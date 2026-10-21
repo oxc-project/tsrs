@@ -110,8 +110,9 @@ pub(crate) const SIGNATURE_JOB_CHUNK: usize = 256;
 
 pub struct Watcher {
     sys: &'static dyn System,
-    // tsrs-only: what the programs since the last full build share (`install_program`).
-    shared_program_data: Option<tsrs_compiler::SharedProgramData>,
+    // tsrs-only: owns the current compiler program (`install_program` frees the one it replaces); what the programs
+    // since the last full build share goes with the last of them.
+    compiler_program: Option<tsrs_compiler::ProgramBox>,
     // Frees what the last `install_program` replaced, once the cycle has reported (`free_replaced_program`).
     free_replaced: Option<Box<dyn FnOnce() + Send>>,
     // The background computation of the program's placeholder signatures (`start_signature_job`).
@@ -200,7 +201,7 @@ pub(crate) fn run_watcher(
     tsrs_compiler::bind_in_file_regions();
     let mut w = Box::new(Watcher {
         sys,
-        shared_program_data: None,
+        compiler_program: None,
         free_replaced: None,
         signature_job: None,
         config_file_name: config
@@ -925,10 +926,11 @@ impl Watcher {
     // `full_build_regions`: the file loader's regions of a full build (`None` for a program updated from the current one).
     fn install_program(
         &mut self,
-        program: &'static Program,
+        owned: tsrs_compiler::ProgramBox,
         host: Arc<dyn CompilerHost>,
         full_build_regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
     ) {
+        let program = owned.get();
         let full_build = full_build_regions.is_some();
         // Bind before any checker exists: single-threaded, the first checker would bind the files in its region, and
         // later programs reuse the cached files.
@@ -953,7 +955,7 @@ impl Watcher {
         let old_snapshot_diagnostics =
             std::mem::replace(&mut self.snapshot_diagnostics, snapshot_diagnostics);
         let old_incremental = self.program.replace(new);
-        let old = old_incremental.and_then(|old| old.compiler_program());
+        let old = self.compiler_program.replace(owned);
         if self.testing.is_none()
             && let Some(old_incremental) = old_incremental
         {
@@ -962,31 +964,22 @@ impl Watcher {
             // incremental programs are made on this thread (`install_program`).
             unsafe { tsrs_incremental::Program::free_replaced(old_incremental) };
         }
-        let (shared, old_regions) = if full_build {
+        let old_regions = if full_build {
             self.full_build_files = program.get_source_files().to_vec();
-            (
-                self.shared_program_data.replace(tsrs_compiler::shared_program_data(program)),
-                std::mem::replace(&mut self.full_build_regions, full_build_regions),
-            )
+            std::mem::replace(&mut self.full_build_regions, full_build_regions)
         } else {
-            (None, None)
+            None
         };
         let dead_files = self.file_regions.take_unreachable(&self.live_files(new));
         let free = move || {
-            if let Some(old) = old {
-                // SAFETY: nothing refers to the old compiler program any more: the watcher's only reference was
-                // `self.program`, its checkers are not held (the cycle that used them is over), and the new
-                // incremental program read the old snapshot without keeping the program.
-                unsafe { tsrs_compiler::free_program(old) };
-            }
+            // Nothing refers to the old compiler program any more: the watcher's only reference was `self.program`,
+            // its checkers are not held (the cycle that used them is over), and the new incremental program read the
+            // old snapshot without keeping the program. After a full build it was the last program sharing the
+            // previous full build's processed-file data (each earlier one was freed when the next replaced it: the
+            // frees run in order), which goes with it; the new full build has its own.
+            drop(old);
             // The snapshot that kept them is gone, and the new one keeps copies.
             drop(old_snapshot_diagnostics);
-            if let Some(shared) = shared {
-                // SAFETY: every program since the previous full build shared this data, and each was freed when the
-                // next one replaced it (above, for the last one, after the earlier ones: the frees run in order);
-                // the new full build has its own.
-                unsafe { shared.free() };
-            }
             // The programs that referred to these files are freed (above, or by earlier jobs), and nothing that is
             // read again does (`live_files`).
             drop(dead_files);

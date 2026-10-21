@@ -205,7 +205,8 @@ fn transpile_in_current_region(
     // Single-threaded: parsing, binding and checking must allocate on this thread so everything lands in the
     // scratch region (worker threads would allocate into their own never-freed arenas).
     program_options.single_threaded = Tristate::True;
-    let program = tsrs_compiler::new_program(program_options);
+    let owned_program = tsrs_compiler::new_program(program_options);
+    let program = owned_program.get();
 
     let ctx = Context::background();
     let mut all = Vec::new();
@@ -243,8 +244,8 @@ fn transpile_in_current_region(
     let diagnostics: Vec<Value> =
         all.iter().map(|d| crate::diagnostics::diagnostic_response(d)).collect();
     drop(all);
-    // SAFETY: nothing derived from the program (diagnostics are serialized above) is used after this.
-    unsafe { tsrs_compiler::free_unshared_program(program) };
+    // Nothing derived from the program (diagnostics are serialized above) is used after this.
+    drop(owned_program);
     let unexpected = fs.unexpected.lock().unwrap().take();
     if let Some(err) = unexpected {
         return Err(ApiError::internal(format!("transpile: {err}")));

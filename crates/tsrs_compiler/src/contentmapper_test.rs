@@ -155,7 +155,7 @@ fn new_content_mapper_program_with_output_extensions(
     );
     // Load files on the calling goroutine for deterministic diagnostics ordering.
     opts.single_threaded = Tristate::True;
-    Some(new_program(opts))
+    Some(new_program(opts).leak())
 }
 
 fn result(

@@ -11,19 +11,20 @@
 //
 // `programOwner` is held by every `Project` value that refers to the program (projects are cloned per snapshot and
 // live as long as a snapshot or a language service refers to them), so it is dropped exactly when nothing can reach
-// the program any more. Dropping it frees the checkers and their regions, the `Program` itself, then the regions.
+// the program any more. Dropping it frees the checkers and their regions, the `Program` itself (`ProgramBox`, and
+// with the last version of a full build the processed-file data its versions share), then the regions.
 
 use std::sync::Arc;
 
-use tsrs_compiler::Program;
+use tsrs_compiler::{Program, ProgramBox};
 use tsrs_core::arena::Region;
 
 use crate::checkerpool::checkerPool;
 
 pub(crate) struct programOwner {
-    program: &'static Program,
+    // Fields drop in this order, after `drop` freed the checkers: the program, then the regions it points into.
+    program: ProgramBox,
     checker_pool: Option<Arc<checkerPool>>,
-    // Dropped in this order after `drop` freed the checkers and the program.
     region: Region,
     pub(crate) base: Region,
     files: Vec<Region>,
@@ -33,21 +34,16 @@ impl programOwner {
     // `full_build`: the program does not share data with an older version; `base` is then its own region, which
     // also becomes the owner of the shared processed-file data (`Program::get_symlink_cache` routes there).
     pub(crate) fn new(
-        program: &'static Program,
+        program: ProgramBox,
         checker_pool: Option<Arc<checkerPool>>,
         region: Region,
         base: Region,
         full_build: bool,
     ) -> programOwner {
         if full_build {
-            base.adopt_owner(processed_files_addr(program));
-            // The data shared by every version cloned from this build lives exactly as long as `base` (each
-            // version's owner holds `base`), so it is freed with it. Before this it was leaked per full build.
-            let shared = tsrs_compiler::shared_program_data(program);
-            base.on_free(Box::new(move || {
-                // SAFETY: `base` is freed after the last program owner holding it freed its program.
-                unsafe { shared.free() }
-            }));
+            // The data shared by every version cloned from this build (its processed files) goes with the last
+            // version's `ProgramBox`; each version's owner holds `base`, which it points into, so `base` outlives it.
+            base.adopt_owner(processed_files_addr(program.get()));
         }
         let files = Region::containing_all(program.source_files().iter().map(|f| f.addr()))
             .into_iter()
@@ -56,7 +52,7 @@ impl programOwner {
         log_region(|| {
             format!(
                 "program {:p}: created (region {} KiB, base {} KiB)",
-                program,
+                program.get(),
                 region.allocated_bytes() >> 10,
                 base.allocated_bytes() >> 10
             )
@@ -75,7 +71,7 @@ impl Drop for programOwner {
         log_region(|| {
             format!(
                 "program {:p}: freed ({} files, region {} KiB)",
-                self.program,
+                self.program.get(),
                 self.files.len(),
                 self.region.allocated_bytes() >> 10
             )
@@ -83,9 +79,8 @@ impl Drop for programOwner {
         if let Some(pool) = &self.checker_pool {
             pool.free_checkers();
         }
-        // SAFETY: the last project value referring to the program is being dropped: no snapshot, language service or
-        // held checker can reach it (see the file comment).
-        unsafe { tsrs_compiler::free_program(self.program) };
+        // Then the fields: the last project value referring to the program is being dropped, so no snapshot, language
+        // service or held checker can reach it (see the file comment), and `program` is freed before the regions.
     }
 }
 

@@ -124,7 +124,7 @@ fn test_implementations_worklist_does_not_blow_up() {
             None,
         );
         let program: &'static Program =
-            new_program(ProgramOptions::new(P::new(parsed.unwrap()), host));
+            new_program(ProgramOptions::new(P::new(parsed.unwrap()), host)).leak();
         program.bind_source_files();
         let ctx = Context::background();
         program.get_semantic_diagnostics(&ctx, program.get_source_file("/repro.ts"));

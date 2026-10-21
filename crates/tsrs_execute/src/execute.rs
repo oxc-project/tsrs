@@ -449,7 +449,8 @@ fn perform_compilation(
     start_tracing_if_needed(sys, &config);
     let parse_start =
         tsc::DiagnosticTimer::new(sys, config.compiler_options().unwrap().diagnostics_enabled());
-    let program = new_program(program_options);
+    // The CLI's one program lives to process exit: freeing it would only cost time.
+    let program = new_program(program_options).leak();
     compile_times.parse_time = parse_start.elapsed();
     if let Some(content_mapper_host) = &content_mapper_host {
         compile_times.content_mapper_times = content_mapper_host.timings();
@@ -519,7 +520,8 @@ fn perform_incremental_compilation(
             sys,
             config.compiler_options().unwrap().diagnostics_enabled(),
         );
-        let program = new_program(ProgramOptions::new(config, Arc::clone(&host)));
+        // The CLI's one program lives to process exit: freeing it would only cost time.
+        let program = new_program(ProgramOptions::new(config, Arc::clone(&host))).leak();
         (program, start.elapsed())
     };
     // Go starts tracing between the build info read and the program; nothing in between writes output.

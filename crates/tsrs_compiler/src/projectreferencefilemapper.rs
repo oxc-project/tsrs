@@ -29,7 +29,7 @@ pub(crate) struct projectReferenceFileMapper {
     pub(crate) dts_faking_host: OnceLock<&'static dyn ResolutionHost>,
     // The leaked `resolution_host_for` host the file loader created for this mapper's program build
     // (it keeps the compiler host, and with it the build's file system, alive). Freed with the mapper
-    // (`SharedProgramData::free`).
+    // (`sharedProgramData::drop`).
     pub(crate) loader_host: Option<&'static dyn ResolutionHost>,
 }
 

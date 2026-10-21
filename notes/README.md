@@ -48,6 +48,7 @@ starting another experiment.
 - [Incremental diagnostic history](fix-history-dependent-diagnostics.md): cache reuse and diagnostic stability.
 - [Arena recycling and protected borrows](fix-arena-recycle-uaf.md): the lifetime bug and its regression guards.
 - [Protocol quoting styles](shared-go-compat.md): shared helpers retain each caller's escaping behavior.
+- [The program owner](mem-program-owner.md): `ProgramBox` replaces the unsafe program free calls (#646 stage one).
 - [Language-server memory ownership](lsp-mem.md) and [lifetime corrections](lsp-memfix.md): regions, snapshots
   and checker disposal.
 

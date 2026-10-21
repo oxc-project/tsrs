@@ -63,7 +63,7 @@ pub fn run(args: &DumpArgs) {
         new_cached_fs_compiler_host(&cwd, fs, &bundled::lib_path(), None, None, None);
     let mut opts = ProgramOptions::new(P::new(config.unwrap()), compiler_host);
     opts.single_threaded = Tristate::True;
-    let program = new_program(opts);
+    let program = new_program(opts).leak();
     let diags = get_diagnostics_of_any_program(
         &Context::default(),
         program,

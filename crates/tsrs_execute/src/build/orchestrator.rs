@@ -811,22 +811,28 @@ impl Orchestrator {
         if self.opts.testing.is_none() {
             // The program is only needed by Testing.OnProgram at report time; drop it now so a task
             // that has finished but is not yet reported does not keep its program alive.
-            let (program, regions) = {
+            let (program, compiler_program, regions) = {
                 let mut result = task.result.lock().unwrap();
                 let result = result.as_mut().unwrap();
-                (result.program.take(), result.program_regions.take())
+                (
+                    result.program.take(),
+                    result.compiler_program.take(),
+                    result.program_regions.take(),
+                )
             };
             if let (true, Some(program)) = (self.frees_built_programs(), program) {
                 // On the free thread, so that the builder goes on to its next project: freeing inline took 4% of the
                 // wall time of a 3,000-project build at 64 builders on 8 cores.
-                self.freer.run(move || task.free_built_program(program, regions));
-            } else if let (true, Some(program)) = (self.api_mode.load(Ordering::SeqCst), program) {
+                self.freer.run(move || task.free_built_program(program, compiler_program, regions));
+            } else if self.api_mode.load(Ordering::SeqCst) {
                 // API builds free each project's program once it is built (its arenas go with the task region when
                 // the orchestrator is freed; this frees the heap side: program, checkers, processed data). It is a
                 // full build that shares nothing, and nothing reads it after its task (statistics and diagnostics are
-                // already taken).
-                // SAFETY: see above; no checker handle of it is held.
-                unsafe { tsrs_compiler::free_unshared_program(program.get_program()) };
+                // already taken); no checker handle of it is held.
+                drop(compiler_program);
+            } else if let Some(compiler_program) = compiler_program {
+                // CLI builds keep finished programs to process exit (docs/EMIT.md).
+                compiler_program.leak();
             }
             // In watch mode the task keeps the program as the old state of its next build, which drops it
             // (`BuildTask::compile_and_emit`).

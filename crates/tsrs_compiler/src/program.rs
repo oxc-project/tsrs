@@ -69,12 +69,12 @@ pub struct ProgramOptions {
     /// tsrs-only: use virtual four-checker reporting sites and their incremental cache proof. API builds
     /// disable this to retain per-file diagnostics and Go-shaped build info; external pools opt out too.
     pub canonical_diagnostics: bool,
-    /// tsrs-only: each checker of the built-in pool allocates in a region of its own, which `free_program` gives
+    /// tsrs-only: each checker of the built-in pool allocates in a region of its own, which `ProgramBox::drop` gives
     /// back (watch mode, which replaces its program every cycle, and `tsc -b`, which frees each project's program once
     /// it is built; the CLI's single build leaks its checkers).
     pub checker_regions: bool,
     /// tsrs-only, with `checker_regions`: the diagnostics each checker makes go to a region of its own, which
-    /// `free_program` gives back too (checkerpool.rs `SlotChecker`): the caller copies those it keeps (watch
+    /// `ProgramBox::drop` gives back too (checkerpool.rs `SlotChecker`): the caller copies those it keeps (watch
     /// mode's snapshot, `tsrs_incremental` `Program::copy_diagnostics`).
     pub checker_diagnostic_regions: bool,
     /// tsrs-only: what the file loader allocates goes to these regions (programregions.rs), which the caller frees
@@ -264,6 +264,9 @@ pub struct Program {
     // the file list and the resolution data with its copy of the package.json cache table, about 40 KB per edit on a
     // 4k-file project. Last: the fields above point into it.
     own_region: Option<tsrs_core::arena::Region>,
+    // tsrs-only: the heap data this program shares with the programs `reuse_program` derives from it (`processed`, the
+    // project reference file mapper and their resolution hosts); freed when the last program sharing it is dropped.
+    shared: Arc<sharedProgramData>,
 }
 
 impl std::ops::Deref for Program {
@@ -519,7 +522,7 @@ pub fn worker_pool() -> &'static rayon::ThreadPool {
 }
 
 // program.go:305
-pub fn new_program(opts: ProgramOptions) -> &'static Program {
+pub fn new_program(opts: ProgramOptions) -> ProgramBox {
     let single_threaded = tsrs_core::NO_THREADS
         || opts
             .single_threaded
@@ -534,6 +537,12 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
     let files = std::mem::take(&mut processed.files);
     let files_by_path = std::mem::take(&mut processed.files_by_path);
     let host = Arc::clone(&opts.host);
+    let processed: &'static processedFiles = Box::leak(Box::new(processed));
+    let shared = Arc::new(sharedProgramData {
+        processed: std::ptr::from_ref::<processedFiles>(processed) as usize,
+        mapper: std::ptr::from_ref::<projectReferenceFileMapper>(project_reference_file_mapper)
+            as usize,
+    });
     let mut p = Program {
         opts: opts.program_config(),
         // Go's NewProgram never sets `comparePathsOptions`: it is the zero value (no current directory,
@@ -547,7 +556,7 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
         module_resolution_error,
         files,
         files_by_path,
-        processed: Box::leak(Box::new(processed)),
+        processed,
         project_reference_file_mapper,
         processing_diagnostics: Mutex::new(processing_diagnostics),
         uses_uri_style_node_core_modules: Tristate::Unknown,
@@ -574,6 +583,7 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
         reuse_synthetic_imports: opts.reuse_synthetic_imports,
         reused_from: 0,
         own_region: None,
+        shared,
     };
     // Go initializes the checker pool before verifying options; the pool factory takes the program by
     // `&'static`, so here it runs after verification, once the program is leaked. Neither pool reads anything
@@ -582,75 +592,81 @@ pub fn new_program(opts: ProgramOptions) -> &'static Program {
         p.verify_compiler_options();
     });
     p.collect_content_mapper_option_diagnostics();
-    let p: &'static Program = Box::leak(Box::new(p));
-    p.init_checker_pool(opts.create_checker_pool, None);
+    let p = ProgramBox::new(p);
+    p.get().init_checker_pool(opts.create_checker_pool, None);
     p
 }
 
-/// Releases a program after every external reference to it has ended.
+/// Owns a program made by `new_program`, `update_program` or `reuse_program`.
 ///
-/// Frees a program made by `new_program` or `update_program` (language server; Go's GC). The caller
-/// guarantees that nothing uses it any more: no checker of its pool is held, and no snapshot or language
-/// service refers to it. What it shares with other versions (`processed`, the project reference file mapper)
-/// stays.
+/// Go's GC frees a program once nothing refers to it; here the owner does, when it is dropped: the program's checker
+/// pool (`poolState::drop` frees its checkers; the owner's holder must not hold a checker any more), the `Program`,
+/// its resolution host, and, when this was the last program sharing them, the processed-file data and project
+/// reference file mapper of the full build it comes from (`sharedProgramData`). The arena data of the program's
+/// regions is the holder's business (`tsrs_project` memregions.rs, `tsrs_execute` watcher.rs): regions must outlive
+/// the owner.
 ///
-/// # Safety
-/// `program` came from `new_program` / `update_program` and is not used afterwards.
-pub unsafe fn free_program(program: &'static Program) {
-    let resolution_host: *const dyn ResolutionHost = program.resolution_host;
-    // SAFETY: both functions leak the program from a `Box`, and nothing uses it afterwards (this function's contract).
-    drop(unsafe { Box::from_raw(std::ptr::from_ref::<Program>(program).cast_mut()) });
-    // Per program (`resolution_host_for`); it keeps the compiler host alive.
-    // SAFETY: `resolution_host_for` leaked it from a `Box` for this program alone, which is gone.
-    drop(unsafe { Box::from_raw(resolution_host as *mut dyn ResolutionHost) });
+/// Stage one of oxc-project/tsrs#646: the owner is the only way to free a program; the `&'static Program` view
+/// (`get`) is still handed around freely, so safe code can keep one past the drop. Holders of a view must be owned by,
+/// or outlived by, the holder of the `ProgramBox` (notes/mem-program-owner.md).
+pub struct ProgramBox(&'static Program);
+
+impl ProgramBox {
+    fn new(program: Program) -> ProgramBox {
+        // Reclaimed by `drop`.
+        ProgramBox(Box::leak(Box::new(program)))
+    }
+
+    /// The program, as the `'static` view the rest of the compiler uses. Valid until the `ProgramBox` is dropped.
+    #[inline]
+    pub fn get(&self) -> &'static Program {
+        self.0
+    }
+
+    /// Gives the program up to the process: it is never freed (the CLI's one-shot programs, whose teardown at exit
+    /// would only cost time).
+    pub fn leak(self) -> &'static Program {
+        std::mem::ManuallyDrop::new(self).0
+    }
 }
 
-/// Releases a program that never shared data with another version.
-///
-/// Frees a program from `new_program` that never shared data with another version (it was not the source or
-/// the result of `update_program`), including its processed-file data and project reference file mapper,
-/// which `free_program` keeps because language-server program versions share them. Used for one-shot programs
-/// (the native API's transpileModule / transpileDeclaration).
-///
-/// # Safety
-/// As `free_program`, and additionally: no other program refers to `program`'s processed files or mapper.
-pub unsafe fn free_unshared_program(program: &'static Program) {
-    let shared = shared_program_data(program);
-    // SAFETY: this function's contract includes `free_program`'s.
-    unsafe { free_program(program) };
-    // SAFETY: the only program that shared this data was just freed (this function's contract).
-    unsafe { shared.free() };
+impl std::ops::Deref for ProgramBox {
+    type Target = Program;
+    #[inline]
+    fn deref(&self) -> &Program {
+        self.0
+    }
 }
 
-/// Keeps data shared between program versions alive together.
-///
-/// The data program versions share (`processed`, the project reference file mapper, the file loader's
-/// resolution host and the mapper's dts-faking host), as an address pair that can be moved into a region's
-/// `on_free` hook.
-pub struct SharedProgramData {
+impl Drop for ProgramBox {
+    fn drop(&mut self) {
+        let program = self.0;
+        let resolution_host: *const dyn ResolutionHost = program.resolution_host;
+        // SAFETY: `new` leaked the program from a `Box`; this is its only owner, and the holder's contract is that
+        // no checker handle or other borrow of it outlives the owner.
+        drop(unsafe { Box::from_raw(std::ptr::from_ref::<Program>(program).cast_mut()) });
+        // Per program (`resolution_host_for`); it keeps the compiler host alive.
+        // SAFETY: `resolution_host_for` leaked it from a `Box` for this program alone, which is gone.
+        drop(unsafe { Box::from_raw(resolution_host as *mut dyn ResolutionHost) });
+    }
+}
+
+/// The heap data program versions share: `processed` and the project reference file mapper (with the file loader's
+/// resolution host and the mapper's dts-faking host). Every program made from one full build holds an `Arc` to the
+/// build's (`Program::shared`), so it is freed with the last of them, after each program's own data.
+struct sharedProgramData {
     processed: usize,
     mapper: usize,
 }
 
-/// See `SharedProgramData`.
-pub fn shared_program_data(program: &'static Program) -> SharedProgramData {
-    SharedProgramData {
-        processed: std::ptr::from_ref::<processedFiles>(program.processed) as usize,
-        mapper: std::ptr::from_ref::<projectReferenceFileMapper>(
-            program.project_reference_file_mapper,
-        ) as usize,
-    }
-}
-
-impl SharedProgramData {
-    /// # Safety
-    /// Every program that shares this data has been freed, and nothing else refers to it.
-    pub unsafe fn free(self) {
-        // SAFETY: the file loader leaked the mapper from a `Box`, and nothing refers to it (this function's contract).
+impl Drop for sharedProgramData {
+    fn drop(&mut self) {
+        // SAFETY: the file loader leaked the mapper from a `Box`, and the last program referring to it is being
+        // dropped (the `Arc` count reached zero).
         unsafe {
             free_project_reference_file_mapper(self.mapper as *mut projectReferenceFileMapper);
         };
-        // SAFETY: `new_program` leaked `processed` from a `Box`, and nothing refers to it (this function's contract).
+        // SAFETY: `new_program` leaked `processed` from a `Box`, and nothing refers to it any more (as above).
         drop(unsafe { Box::from_raw(self.processed as *mut processedFiles) });
     }
 }
@@ -693,7 +709,7 @@ impl Program {
         new_host: Arc<dyn CompilerHost>,
         create_checker_pool: Option<CreateCheckerPool>,
         create_module_resolver: Option<CreateModuleResolver>,
-    ) -> (&'static Program, Option<P<SourceFile>>, bool) {
+    ) -> (ProgramBox, Option<P<SourceFile>>, bool) {
         let (result, new_file, reused) = self.reuse_program(
             changed_file_path,
             Arc::clone(&new_host),
@@ -727,7 +743,7 @@ impl Program {
         new_host: Arc<dyn CompilerHost>,
         create_checker_pool: Option<CreateCheckerPool>,
         _create_module_resolver: Option<CreateModuleResolver>,
-    ) -> (Option<&'static Program>, Option<P<SourceFile>>, bool) {
+    ) -> (Option<ProgramBox>, Option<P<SourceFile>>, bool) {
         let old_file = self.files_by_path[changed_file_path];
         let new_file;
         let mut old_supplemental_files: &[P<SourceFile>] = &[];
@@ -841,6 +857,7 @@ impl Program {
             reuse_synthetic_imports: self.reuse_synthetic_imports,
             reused_from: std::ptr::from_ref(self) as usize,
             own_region,
+            shared: Arc::clone(&self.shared),
         };
         try_reuse(&result.unresolved_imports, &self.unresolved_imports);
         try_reuse(&result.tsgo_import_adjacency, &self.tsgo_import_adjacency);
@@ -863,8 +880,8 @@ impl Program {
             let _scope = result.own_region.as_ref().map(tsrs_core::arena::Region::enter);
             tsrs_core::alloc_vec(files)
         };
-        let result: &'static Program = Box::leak(Box::new(result));
-        result.init_checker_pool(create_checker_pool, self.compiler_checker_pool());
+        let result = ProgramBox::new(result);
+        result.get().init_checker_pool(create_checker_pool, self.compiler_checker_pool());
         (Some(result), new_file, true)
     }
 

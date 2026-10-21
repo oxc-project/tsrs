@@ -196,7 +196,7 @@ fn program_hosts_and_factories() {
             Box::new(tsrs_module::new_resolver(options))
         },
     ));
-    let p = new_program(opts);
+    let p = new_program(opts).leak();
     assert_eq!(pools.load(Ordering::Relaxed), 1);
     assert_eq!(resolvers.load(Ordering::Relaxed), 1);
     let old_file = p.get_source_file("/src/index.ts").unwrap();
@@ -237,7 +237,7 @@ fn program_hosts_and_factories() {
         })),
     );
     assert!(reused);
-    let cloned = cloned.unwrap();
+    let cloned = cloned.unwrap().leak();
     let changed = changed.unwrap();
     assert_eq!(Some(changed), cloned.get_source_file("/src/index.ts"));
     assert_eq!(Some(old_file), p.get_source_file("/src/index.ts"));
@@ -309,7 +309,7 @@ fn external_checker_pool_diagnostics() {
         ),
     ];
     let config = config_for(&files);
-    let builtin = new_program(ProgramOptions::new(config, host_for(&files)));
+    let builtin = new_program(ProgramOptions::new(config, host_for(&files))).leak();
     let idle = Arc::new(Mutex::new(Vec::new()));
     let acquired = Arc::new(AtomicUsize::new(0));
     let mut opts = ProgramOptions::new(config, host_for(&files));
@@ -322,7 +322,7 @@ fn external_checker_pool_diagnostics() {
                 acquired: std::sync::Arc::clone(&acquired_c),
             })
         }));
-    let external = new_program(opts);
+    let external = new_program(opts).leak();
     assert!(external.compiler_checker_pool().is_none());
 
     let ctx = Context::default();
@@ -375,7 +375,7 @@ fn single_file_diagnostics_of_a_freed_leaf_panic() {
     );
     let mut opts = ProgramOptions::new(config_for(&files), host_for(&files));
     opts.leaf_files = crate::LeafMode::Free;
-    let program = new_program(opts);
+    let program = new_program(opts).leak();
     let ctx = Context::default();
     let _ = program.get_semantic_diagnostics(&ctx, None);
     let file = program.get_source_file("/src/a.test.ts").unwrap();
@@ -398,7 +398,7 @@ fn a_reused_program_keeps_the_checker_assignment() {
         [files[0], ("/src/a.ts", "// edited\nexport const a = 1;"), files[2], files[3], files[4]];
     let a = Path::from("/src/a.ts");
 
-    let p = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
+    let p = new_program(ProgramOptions::new(config_for(&files), host_for(&files))).leak();
     let (unassigned, _, reused) = p.reuse_program(&a, host_for(&edited), None, None);
     assert!(reused);
     assert!(
@@ -441,17 +441,18 @@ fn a_reused_program_computes_the_tsgo_slots_of_a_fresh_one() {
         slots
     };
 
-    let p = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
+    let p = new_program(ProgramOptions::new(config_for(&files), host_for(&files))).leak();
     let before = by_path(p);
     let (reused_program, _, reused) =
         p.reuse_program(&Path::from("/src/a.ts"), host_for(&edited), None, None);
     assert!(reused);
-    let reused_program = reused_program.unwrap();
+    let reused_program = reused_program.unwrap().leak();
     assert!(Arc::ptr_eq(
         reused_program.tsgo_import_adjacency.get().unwrap(),
         p.tsgo_import_adjacency.get().unwrap()
     ));
-    let fresh = by_path(new_program(ProgramOptions::new(config_for(&edited), host_for(&edited))));
+    let fresh =
+        by_path(new_program(ProgramOptions::new(config_for(&edited), host_for(&edited))).leak());
     assert_ne!(before, fresh, "the edit must move a slot");
     assert_eq!(by_path(reused_program), fresh);
 }
@@ -468,7 +469,7 @@ fn emit_of_a_synthesized_return_expression() {
         ),
         ("/src/a.ts", "export function f(p: object) {\n    return { a: 1, ...p } as object;\n}\n"),
     ];
-    let program = new_program(ProgramOptions::new(config_for(&files), host_for(&files)));
+    let program = new_program(ProgramOptions::new(config_for(&files), host_for(&files))).leak();
     let written = Mutex::new(Vec::new());
     let write_file = |name: &str, text: &str, _: &mut crate::WriteFileData| -> Result<(), String> {
         written.lock().unwrap().push((name.to_string(), text.to_string()));

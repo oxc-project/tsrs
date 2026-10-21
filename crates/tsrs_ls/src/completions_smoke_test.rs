@@ -130,7 +130,8 @@ fn setup(spec: &Value) -> (LanguageService, Context, Vec<(String, String)>) {
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
     let host: Arc<dyn CompilerHost> =
         new_compiler_host("/", std::sync::Arc::clone(&fs), &bundled::lib_path(), None, None, None);
-    let program: &'static Program = new_program(ProgramOptions::new(P::new(config.unwrap()), host));
+    let program: &'static Program =
+        new_program(ProgramOptions::new(P::new(config.unwrap()), host)).leak();
     let fs_for_lines = std::sync::Arc::clone(&fs);
     let converters =
         lsconv::new_converters(lsproto::PositionEncodingKind::UTF16, move |file_name| {

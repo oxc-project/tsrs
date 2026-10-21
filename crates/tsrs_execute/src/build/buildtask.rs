@@ -60,6 +60,9 @@ pub(crate) struct taskResult {
     pub(crate) exit_status: ExitStatus,
     pub(crate) statistics: Option<Statistics>,
     pub(crate) program: Option<P<tsrs_incremental::Program>>,
+    // tsrs-only: owns `program`'s compiler program outside watch mode (`Orchestrator::frees_built_programs`, API
+    // builds); watch mode's is the task's `watch_program`.
+    pub(crate) compiler_program: Option<tsrs_compiler::ProgramBox>,
     // tsrs-only: what the program's file loader allocated, freed with the program
     // (`Orchestrator::frees_built_programs`).
     pub(crate) program_regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
@@ -76,6 +79,7 @@ impl taskResult {
             exit_status: ExitStatus::Success,
             statistics: None,
             program: None,
+            compiler_program: None,
             program_regions: None,
             build_kind: buildKind::None,
             files_to_delete: Vec::new(),
@@ -143,7 +147,7 @@ pub struct BuildTask {
     content_mapper_project_err: Mutex<Option<tsrs_contentmapper::Error>>,
 
     // tsrs-only, watch mode: the program of the task's last build, freed when the task builds again (Go's GC).
-    watch_program: Mutex<Option<&'static tsrs_compiler::Program>>,
+    watch_program: Mutex<Option<tsrs_compiler::ProgramBox>>,
     // tsrs-only, watch mode: what the task's last full build allocated beside its program, which the programs
     // `reuse_program` made since share (`replace_watch_program`).
     watch_full_build: Mutex<Option<watchFullBuild>>,
@@ -165,7 +169,6 @@ pub struct BuildTask {
 // allocated (resolutions, include reasons, the processed-file data), and its files, which the processed-file data refers
 // to (`BuildTask::add_live_watch_files`).
 struct watchFullBuild {
-    shared: tsrs_compiler::SharedProgramData,
     regions: Arc<tsrs_compiler::ProgramRegions>,
     files: Vec<P<tsrs_ast::SourceFile>>,
 }
@@ -485,7 +488,7 @@ impl BuildTask {
 
     // tsrs-only: the program of the task's last build in watch mode.
     pub(crate) fn watch_program(&self) -> Option<&'static tsrs_compiler::Program> {
-        *self.watch_program.lock().unwrap()
+        self.watch_program.lock().unwrap().as_ref().map(tsrs_compiler::ProgramBox::get)
     }
 
     // The incremental program the task's next build starts from (`Orchestrator::start_signature_job`).
@@ -503,7 +506,7 @@ impl BuildTask {
     fn replace_watch_program(
         &self,
         orchestrator: &Orchestrator,
-        program: &'static tsrs_compiler::Program,
+        program: tsrs_compiler::ProgramBox,
         incremental: P<tsrs_incremental::Program>,
         snapshot_diagnostics: Option<Region>,
         old_snapshot_diagnostics: Option<Region>,
@@ -511,24 +514,16 @@ impl BuildTask {
     ) {
         *self.watch_incremental.lock().unwrap() = Some((incremental, snapshot_diagnostics));
         let old_full_build = full_build_regions.and_then(|regions| {
-            let full_build = watchFullBuild {
-                shared: tsrs_compiler::shared_program_data(program),
-                regions,
-                files: program.get_source_files().to_vec(),
-            };
+            let full_build = watchFullBuild { regions, files: program.get_source_files().to_vec() };
             self.watch_full_build.lock().unwrap().replace(full_build)
         });
         let previous = self.watch_program.lock().unwrap().replace(program);
         orchestrator.freer.run(move || {
-            if let Some(previous) = previous {
-                // SAFETY: see above.
-                unsafe { tsrs_compiler::free_program(previous) };
-            }
+            // See above. After a full build, `previous` was the last program sharing the old full build's
+            // processed-file data (each earlier one was freed when the next one replaced it), which goes with it.
+            drop(previous);
             drop(old_snapshot_diagnostics);
             if let Some(old_full_build) = old_full_build {
-                // SAFETY: every program since that full build shared this data, and each was freed when the next one
-                // replaced it (above, for the last one, after the earlier ones); the new full build has its own.
-                unsafe { old_full_build.shared.free() };
                 // Last: the programs and the shared data above point into them.
                 drop(old_full_build.regions);
             }
@@ -547,15 +542,15 @@ impl BuildTask {
     pub(crate) fn free_built_program(
         &self,
         program: P<tsrs_incremental::Program>,
+        compiler_program: Option<tsrs_compiler::ProgramBox>,
         regions: Option<Arc<tsrs_compiler::ProgramRegions>>,
     ) {
-        let compiler_program = program.get_program();
         // SAFETY: nothing reads the incremental program or its snapshot again (see above; it was not made for the test
         // harness, `frees_built_programs`).
         unsafe { tsrs_incremental::Program::drop_replaced(program) };
-        // SAFETY: a full build (`new_program`; batch builds never reuse a program), so it shares nothing with another
-        // version, and no checker handle of it is held once its task is built.
-        unsafe { tsrs_compiler::free_unshared_program(compiler_program) };
+        // A full build (`new_program`; batch builds never reuse a program), so its processed-file data goes with it,
+        // and no checker handle of it is held once its task is built.
+        drop(compiler_program);
         if !self.errors.lock().unwrap().is_empty() {
             *self.diagnostic_file_regions.lock().unwrap() = regions;
         }
@@ -564,7 +559,7 @@ impl BuildTask {
     // tsrs-only (watch mode): adds the files the task's program, its last full build's processed-file data and the
     // diagnostics its snapshot keeps refer to (`Orchestrator::free_unreachable_watch_files`).
     pub(crate) fn add_live_watch_files(&self, live: &mut rustc_hash::FxHashSet<usize>) {
-        if let Some(program) = *self.watch_program.lock().unwrap() {
+        if let Some(program) = &*self.watch_program.lock().unwrap() {
             live.extend(program.get_source_files().iter().map(|f| f.addr()));
         }
         if let Some(full_build) = &*self.watch_full_build.lock().unwrap() {
@@ -605,7 +600,7 @@ impl BuildTask {
         orchestrator: &Orchestrator,
         previous: &'static tsrs_compiler::Program,
         compiler_host: &Arc<dyn tsrs_compiler::CompilerHost>,
-    ) -> Option<&'static tsrs_compiler::Program> {
+    ) -> Option<tsrs_compiler::ProgramBox> {
         let changed = self.single_changed_file(orchestrator, previous, compiler_host.fs())?;
         match previous.reuse_program(&changed, Arc::clone(compiler_host), None, None) {
             (Some(program), _, true) => Some(program),
@@ -781,6 +776,8 @@ impl BuildTask {
             program_options.regions.clone_from(&regions);
             new_program(program_options)
         });
+        let mut owned_program = Some(program);
+        let program = owned_program.as_ref().unwrap().get();
         self.built_program.store(true, Ordering::SeqCst);
         if watch {
             // Bind before any checker exists: single-threaded, the first checker would bind the files in its region,
@@ -827,6 +824,7 @@ impl BuildTask {
             let result = result.as_mut().unwrap();
             result.program = Some(incremental_program);
             if !watch {
+                result.compiler_program = owned_program.take();
                 result.program_regions.clone_from(&regions);
             }
         }
@@ -835,7 +833,7 @@ impl BuildTask {
             // After the incremental program is made: its snapshot reads the program it replaces.
             self.replace_watch_program(
                 orchestrator,
-                program,
+                owned_program.take().unwrap(),
                 incremental_program,
                 snapshot_diagnostics,
                 kept_diagnostics,

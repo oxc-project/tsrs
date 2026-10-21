@@ -611,6 +611,7 @@ impl Project {
         let host = self.host.clone().unwrap();
         let mut update_kind = ProgramUpdateKind::NewFiles;
         let mut program_cloned = false;
+        let owned_program: tsrs_compiler::ProgramBox;
         let new_program_result: &'static Program;
 
         let pool_slot: Arc<Mutex<Option<Arc<checkerPool>>>> = Arc::new(Mutex::new(None));
@@ -655,7 +656,8 @@ impl Project {
                 Some(create_checker_pool),
                 Some(create_module_resolver),
             );
-            new_program_result = program;
+            new_program_result = program.get();
+            owned_program = program;
             program_cloned = cloned;
             let (parse_cache, journal) = host.builder_parse_cache_journal();
             if program_cloned {
@@ -688,7 +690,8 @@ impl Project {
             opts.typings_location = typings_location;
             opts.create_checker_pool = Some(create_checker_pool);
             opts.create_module_resolver = Some(create_module_resolver);
-            new_program_result = new_program(opts);
+            owned_program = new_program(opts);
+            new_program_result = owned_program.get();
         }
         let cleanup = cleanup_module_resolver.lock().unwrap().take();
         if let Some(cleanup) = cleanup {
@@ -710,7 +713,7 @@ impl Project {
             _ => region.clone(),
         };
         let owner = Arc::new(programOwner::new(
-            new_program_result,
+            owned_program,
             checker_pool.clone(),
             region,
             base,

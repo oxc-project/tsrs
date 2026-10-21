@@ -87,7 +87,7 @@ fn compiler_program_with(
         None,
     );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
-    new_program(ProgramOptions::new(P::new(config.unwrap()), host))
+    new_program(ProgramOptions::new(P::new(config.unwrap()), host)).leak()
 }
 
 // A host that hands out the file it parsed first for each path, like the watch's source file cache.
@@ -184,7 +184,7 @@ fn a_reused_program_has_the_snapshot_of_a_fresh_one() {
     let (reused, _, ok) =
         old_program.reuse_program(&Path::from("/src/a.ts"), compiler_host(&edited), None, None);
     assert!(ok);
-    let reused = incremental(reused.unwrap(), Some(old));
+    let reused = incremental(reused.unwrap().leak(), Some(old));
 
     // The same files, parsed again: nothing is shared with the old state's program.
     let fresh_program = compiler_program(&edited);
@@ -220,7 +220,7 @@ fn a_reused_program_keeps_the_references_of_the_other_files() {
         let (reused, _, ok) =
             old_program.reuse_program(&Path::from(name), compiler_host(&edited), None, None);
         assert!(ok, "{name}");
-        let reused = incremental(reused.unwrap(), Some(old));
+        let reused = incremental(reused.unwrap().leak(), Some(old));
         assert_eq!(
             file_states(&reused),
             file_states(&incremental(compiler_program(&edited), None)),

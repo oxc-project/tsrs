@@ -90,7 +90,7 @@ fn run(s: &Value) -> Value {
     };
     let mut opts = ProgramOptions::new(P::new(config), host);
     opts.single_threaded = Tristate::True;
-    let program = new_program(opts);
+    let program = new_program(opts).leak();
 
     let mut symlinks = Vec::new();
     program.get_symlink_cache().directories_by_realpath().range(|realpath, set| {

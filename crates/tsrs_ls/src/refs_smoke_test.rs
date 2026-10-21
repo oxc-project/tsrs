@@ -165,7 +165,7 @@ fn setup(d: &dataset) -> (LanguageService, Context) {
             Box::leak(Box::new(testPoolState { program, slots: Mutex::new(Vec::new()) }));
         Box::new(testPool(state)) as Box<dyn CheckerPool>
     }));
-    let program: &'static Program = new_program(options);
+    let program: &'static Program = new_program(options).leak();
     program.bind_source_files();
     let fs_for_lines = std::sync::Arc::clone(&fs);
     // Cached like the project system's snapshot line maps (keyword references land thousands of times in the libs).

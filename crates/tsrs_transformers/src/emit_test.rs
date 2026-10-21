@@ -37,7 +37,8 @@ fn emit(files: &[(&str, &str)], file: &str, transforms: &[TransformerFactory]) -
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
     let config = P::new(config.unwrap());
     let program =
-        new_program(ProgramOptions::new(config, new_compiler_host("/", fs, "", None, None, None)));
+        new_program(ProgramOptions::new(config, new_compiler_host("/", fs, "", None, None, None)))
+            .leak();
     let ctx = Context::default();
     let source_file = program.get_source_file(file).unwrap();
     let mut checker = program.get_type_checker_for_file(&ctx, source_file);

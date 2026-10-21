@@ -86,7 +86,7 @@ fn in_memory_interface_diagnostics_preserve_first_declaration_across_cache_polic
             };
             let mut opts = ProgramOptions::new(config, Arc::clone(&host));
             opts.canonical_diagnostics = canonical_diagnostics;
-            let compiler = tsrs_compiler::new_program(opts);
+            let compiler = tsrs_compiler::new_program(opts).leak();
             new_program(compiler, old, create_host(host), None, true)
         };
     let create = |old, loaded| create_with_policy(old, loaded, true);

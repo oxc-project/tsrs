@@ -48,9 +48,8 @@ pub use host::{
     new_compiler_host,
 };
 pub use program::{
-    CreateCheckerPool, CreateModuleResolver, Program, ProgramConfig, ProgramOptions,
-    SharedProgramData, filter_no_emit_semantic_diagnostics, free_program, free_unshared_program,
-    get_diagnostics_of_any_program, new_program, shared_program_data,
+    CreateCheckerPool, CreateModuleResolver, Program, ProgramBox, ProgramConfig, ProgramOptions,
+    filter_no_emit_semantic_diagnostics, get_diagnostics_of_any_program, new_program,
     sort_and_deduplicate_diagnostics, worker_pool,
 };
 pub use program_emit::{

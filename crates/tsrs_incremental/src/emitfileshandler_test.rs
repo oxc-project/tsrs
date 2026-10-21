@@ -83,7 +83,7 @@ fn codes_and_files(diagnostics: &[P<tsrs_ast::Diagnostic>]) -> Vec<(i32, String)
 #[test]
 fn incremental_emit_matches_a_plain_emit_file_by_file() {
     let ctx = Context::default();
-    let plain = new_program(ProgramOptions::new(config(), compiler_host()));
+    let plain = new_program(ProgramOptions::new(config(), compiler_host())).leak();
     let (plain_files, plain_diagnostics) = written_files(|write_file| {
         let result =
             plain.emit(&ctx, &EmitOptions { write_file: Some(write_file), ..Default::default() });
@@ -92,7 +92,7 @@ fn incremental_emit_matches_a_plain_emit_file_by_file() {
 
     let host = compiler_host();
     let program = crate::new_program(
-        new_program(ProgramOptions::new(config(), Arc::clone(&host))),
+        new_program(ProgramOptions::new(config(), Arc::clone(&host))).leak(),
         None,
         crate::create_host(host),
         None,

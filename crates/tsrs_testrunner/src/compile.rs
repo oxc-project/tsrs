@@ -384,7 +384,8 @@ fn create_program(
     if test_program_is_single_threaded() {
         opts.single_threaded = Tristate::True;
     }
-    compiler::new_program(opts)
+    // The harness keeps every program to process exit (it may compare them after the run).
+    compiler::new_program(opts).leak()
 }
 
 fn compile_files_with_host(

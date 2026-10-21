@@ -117,7 +117,7 @@ fn compiler_program(files: &[(&'static str, String)]) -> &'static CompilerProgra
         None,
     );
     assert_eq!(diagnostics, [] as [tsrs_core::P<tsrs_ast::Diagnostic>; 0]);
-    new_program(ProgramOptions::new(P::new(config.unwrap()), compiler_host(files)))
+    new_program(ProgramOptions::new(P::new(config.unwrap()), compiler_host(files))).leak()
 }
 
 fn describe(diagnostics: &[P<Diagnostic>]) -> Vec<String> {
@@ -220,7 +220,7 @@ fn run(config: &str, seed: u64, steps: usize) -> (usize, usize) {
         // Like the watch: reuse the program when the edit allows it, else build it in full.
         let host = compiler_host(&files);
         compiler = match compiler.reuse_program(&Path::from(name), Arc::clone(&host), None, None) {
-            (Some(reused), _, true) => reused,
+            (Some(reused), _, true) => reused.leak(),
             _ => compiler_program(&files),
         };
         program = Box::leak(Box::new(crate::new_program(

@@ -194,8 +194,9 @@ Concurrent programs share the host's cached declaration and JSON source files, b
 builder counts 1, 4 and 8, dependency errors, cycles, `--stopBuildOnErrors`, `--dry`, `--clean` and `--force`;
 [the measurement note](../notes/emit-incremental.md) records the results.
 
-CLI builds retain finished programs, so peak memory grows with the project graph. API builds free finished
-programs' heap data with `free_unshared_program`, then release their arenas with the orchestrator's task regions.
+CLI builds retain finished programs, so peak memory grows with the project graph. API builds drop finished
+programs' owners (`tsrs_compiler::ProgramBox`: program, checkers, processed data), then release their arenas with the
+orchestrator's task regions.
 
 ### Shape signatures
 

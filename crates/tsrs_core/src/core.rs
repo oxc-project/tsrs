@@ -583,10 +583,11 @@ fn levenshtein_with_max<T: Copy + Eq>(
     max_value: f64,
     to_lowercase: impl Fn(T) -> T,
 ) -> Option<f64> {
+    if s1.len().abs_diff(s2.len()) as f64 > max_value {
+        return None;
+    }
     let buffer_size = s2.len() + 1;
-    buffers.previous.clear();
     buffers.previous.resize(buffer_size, 0.0);
-    buffers.current.clear();
     buffers.current.resize(buffer_size, 0.0);
 
     let mut previous = std::mem::take(&mut buffers.previous);
@@ -598,13 +599,18 @@ fn levenshtein_with_max<T: Copy + Eq>(
     }
     for i in 1..=s1.len() {
         let c1 = s1[i - 1];
+        let c1_lower = to_lowercase(c1);
         let min_j = ((i as f64 - max_value).ceil() as i64).max(1) as usize;
         let max_j = ((max_value + i as f64).floor() as i64).min(s2.len() as i64).max(0) as usize;
         let mut col_min = i as f64;
         current[0] = col_min;
-        current.iter_mut().take(min_j.min(buffer_size)).skip(1).for_each(|value| *value = big);
+        // Adjacent bands shift by one cell, so later rows can only observe the
+        // sentinel immediately outside either edge of this row's band.
+        if min_j > 1 && min_j <= s2.len() {
+            current[min_j - 1] = big;
+        }
         for j in min_j..=max_j {
-            let substitution_distance = if to_lowercase(s1[i - 1]) == to_lowercase(s2[j - 1]) {
+            let substitution_distance = if c1_lower == to_lowercase(s2[j - 1]) {
                 previous[j - 1] + 0.1
             } else {
                 previous[j - 1] + 2.0
@@ -617,7 +623,9 @@ fn levenshtein_with_max<T: Copy + Eq>(
             current[j] = dist;
             col_min = col_min.min(dist);
         }
-        current.iter_mut().take(s2.len() + 1).skip(max_j + 1).for_each(|value| *value = big);
+        if max_j < s2.len() {
+            current[max_j + 1] = big;
+        }
         if col_min > max_value {
             // Give up -- everything in this column is > max and it can't get better in future columns.
             buffers.previous = previous;
@@ -914,5 +922,59 @@ mod tests {
         assert_eq!(get_spelling_suggestion_for_strings("Foo", names.iter().copied()), Some("foo"));
         assert_eq!(get_spelling_suggestion_for_strings("École", ["école"]), Some("école"));
         assert_eq!(get_spelling_suggestion_for_strings("Ecole", ["école"]), Some("école"));
+    }
+
+    #[test]
+    fn levenshtein_reuses_banded_buffers() {
+        fn unbounded_distance(s1: &[u8], s2: &[u8]) -> f64 {
+            let mut previous = (0..=s2.len()).map(|i| i as f64).collect::<Vec<_>>();
+            let mut current = vec![0.0; s2.len() + 1];
+            for (i, &c1) in s1.iter().enumerate() {
+                current[0] = (i + 1) as f64;
+                for (j, &c2) in s2.iter().enumerate() {
+                    let substitution_distance =
+                        previous[j] + if c1.eq_ignore_ascii_case(&c2) { 0.1 } else { 2.0 };
+                    current[j + 1] = if c1 == c2 {
+                        previous[j]
+                    } else {
+                        (previous[j + 1] + 1.0).min((current[j] + 1.0).min(substitution_distance))
+                    };
+                }
+                std::mem::swap(&mut previous, &mut current);
+            }
+            previous[s2.len()]
+        }
+
+        let mut strings = vec![Vec::new()];
+        let mut previous_length = vec![Vec::new()];
+        for _ in 0..3 {
+            let mut next_length = Vec::new();
+            for prefix in &previous_length {
+                for &byte in b"aAb" {
+                    let mut value = prefix.clone();
+                    value.push(byte);
+                    next_length.push(value);
+                }
+            }
+            strings.extend(next_length.iter().cloned());
+            previous_length = next_length;
+        }
+
+        let mut buffers = LevenshteinBuffers::default();
+        for s1 in &strings {
+            for s2 in strings.iter().rev() {
+                let distance = unbounded_distance(s1, s2);
+                for max_value in [0.0, 0.1, 0.9, 1.0, 1.1, 1.9, 2.0, 2.9, 4.0] {
+                    let expected = (distance <= max_value).then_some(distance);
+                    assert_eq!(
+                        levenshtein_with_max(&mut buffers, s1, s2, max_value, |c| {
+                            c.to_ascii_lowercase()
+                        }),
+                        expected,
+                        "s1={s1:?}, s2={s2:?}, max={max_value}"
+                    );
+                }
+            }
+        }
     }
 }

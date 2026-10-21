@@ -761,8 +761,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     plan = commands.add_parser("plan")
-    plan.add_argument("--count", type=positive, default=400)
-    plan.add_argument("--shards", type=positive, default=20)
+    plan.add_argument("--count", type=positive, default=1000)
+    plan.add_argument("--shards", type=positive, default=10)
     plan.add_argument("--out", type=Path, required=True)
     run = commands.add_parser("run")
     run.add_argument("--manifest", type=Path, required=True)
@@ -790,8 +790,8 @@ def main() -> int:
     commands.add_parser("_repo", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.command == "plan":
-        if args.count > 400 or args.shards > MAX_SHARDS:
-            parser.error("At most 400 repositories and 20 shards")
+        if args.count > 1000 or args.shards > MAX_SHARDS:
+            parser.error("At most 1000 repositories and 20 shards")
         manifest = discover(args.count, args.shards, args.out)
         write_matrix(list(range(manifest["shards"])))
     elif args.command == "dispatch":

@@ -20,9 +20,9 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: Number of popular repositories (1-400)
+        description: Number of popular repositories (1-1000)
         type: number
-        default: 400
+        default: 1000
       rerun_run_id:
         description: Rerun shards of this earlier run with its manifest, compilers and repository commits (requires rerun_shards)
         type: string
@@ -140,7 +140,7 @@ jobs:
         if: ${{ !inputs.rerun_run_id }}
         env:
           GH_TOKEN: ${{ github.token }}
-          REPO_COUNT: ${{ github.event_name == 'pull_request' && '20' || inputs.count || '400' }}
+          REPO_COUNT: ${{ github.event_name == 'pull_request' && '20' || inputs.count || '1000' }}
         run: python3 tools/repo-conformance/run.py plan --count "$REPO_COUNT" --out repo-conformance/manifest.json
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -153,7 +153,7 @@ jobs:
   compare:
     needs: build
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       max-parallel: 8

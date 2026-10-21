@@ -17,7 +17,7 @@ use std::sync::{Arc, Mutex, RwLock};
 use tsrs_api_transport::strictjson::DecodeError;
 use tsrs_compiler::{CheckerHandle, Program};
 use tsrs_core::context::{CheckerLifetime, Context, with_checker_lifetime};
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_project::{ID as ProjectID, Snapshot, SnapshotHost};
 use tsrs_vfs::FS;
 
@@ -361,7 +361,7 @@ impl Session {
                 }
                 // `null` decodes to the zero-value struct: handlers see `{}`.
                 let value = if matches!(value, Value::Null) {
-                    Value::Object(tsrs_core::collections::OrderedMap::default())
+                    Value::Object(JsonMap::new())
                 } else {
                     value
                 };

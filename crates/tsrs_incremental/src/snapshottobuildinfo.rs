@@ -4,8 +4,7 @@ use rustc_hash::FxHashMap;
 use tsrs_ast::{self as ast, Diagnostic, RepopulateDiagnosticInfo, SourceFile};
 use tsrs_compiler::Program as CompilerProgram;
 use tsrs_core::P;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
 use tsrs_tsoptions::{
     self as tsoptions, CommandLineOption, CommandLineOptionKind, CompilerOptionsValue,
@@ -485,7 +484,7 @@ impl toBuildInfo<'_> {
             let value = self.to_relative_to_build_info_compiler_option_value(option, value);
             self.build_info
                 .options
-                .get_or_insert_with(OrderedMap::default)
+                .get_or_insert_with(JsonMap::new)
                 .insert(name.to_string(), option_value_to_json(&value));
         }
     }

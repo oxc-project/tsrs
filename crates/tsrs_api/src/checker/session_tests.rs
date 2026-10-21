@@ -14,7 +14,7 @@
 use rustc_hash::FxHashMap;
 use std::sync::Arc;
 
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_vfs::{FS, bundled, vfstest};
 
 use crate::handler::{Handler, Response};
@@ -87,7 +87,7 @@ impl Ids {
 fn normalize(v: &Value, ids: &mut Ids, in_symbol: bool) -> Value {
     match v {
         Value::Object(o) => {
-            let mut out = tsrs_core::collections::OrderedMap::default();
+            let mut out = JsonMap::new();
             // Visit keys sorted so first-appearance numbering does not depend on field order.
             let mut keys: Vec<&String> = o.keys().collect();
             keys.sort();
@@ -161,7 +161,7 @@ impl S {
     }
 
     pub(super) fn sp(&self, extra: &[(&str, Value)]) -> Value {
-        let mut o = tsrs_core::collections::OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("snapshot".to_string(), Value::Number(self.snapshot));
         o.insert("project".to_string(), Value::String(self.project.clone()));
         o.extend(extra.iter().map(|(k, v)| (k.to_string(), v.clone())));
@@ -210,7 +210,7 @@ impl S {
 }
 
 pub(super) fn obj(pairs: &[(&str, Value)]) -> Value {
-    let mut o = tsrs_core::collections::OrderedMap::default();
+    let mut o = JsonMap::new();
     o.extend(pairs.iter().map(|(k, v)| (k.to_string(), v.clone())));
     Value::Object(o)
 }

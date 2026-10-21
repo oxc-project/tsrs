@@ -9,6 +9,7 @@ use std::fmt;
 use std::hash::Hash;
 
 use tsrs_core::collections::OrderedMap;
+use tsrs_core::json::JsonMap;
 pub use tsrs_core::json::Value;
 
 use crate::ErrorCode;
@@ -560,7 +561,7 @@ impl<K: JsonKey, V: Json> Json for OrderedMap<K, V> {
     }
 
     fn to_json(&self) -> Value {
-        let mut m = OrderedMap::default();
+        let mut m = JsonMap::new();
         m.reserve(self.len());
         m.extend(self.into_iter().map(|(k, v)| (k.key_string().to_string(), v.to_json())));
         Value::Object(m)
@@ -585,14 +586,12 @@ impl<K: JsonKey, V: Json> Json for OrderedMap<K, V> {
 
 // Builds a JSON object in Go struct field order.
 pub struct ObjectWriter {
-    m: OrderedMap<String, Value>,
+    m: JsonMap,
 }
 
 impl ObjectWriter {
     pub fn new(capacity: usize) -> ObjectWriter {
-        let mut m = OrderedMap::default();
-        m.reserve(capacity);
-        ObjectWriter { m }
+        ObjectWriter { m: JsonMap::with_capacity(capacity) }
     }
 
     // A field without omitzero.

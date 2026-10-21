@@ -12,8 +12,7 @@
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt::Write as _;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::{Value, exact_integer_value};
+use tsrs_core::json::{JsonMap, Value, exact_integer_value};
 
 pub const MAX_DEPTH: usize = 10000;
 
@@ -80,7 +79,7 @@ struct Build {
 }
 
 enum Partial {
-    Object(OrderedMap<String, Value>),
+    Object(JsonMap),
     Array(Vec<Value>),
 }
 
@@ -165,7 +164,7 @@ impl Scanner<'_> {
     fn open(&mut self, frame: Frame) {
         if let Some(build) = &mut self.build {
             build.open.push(match frame {
-                Frame::Object { .. } => Partial::Object(OrderedMap::default()),
+                Frame::Object { .. } => Partial::Object(JsonMap::new()),
                 Frame::Array { .. } => Partial::Array(Vec::new()),
             });
         }
@@ -677,7 +676,7 @@ const FAST_MAX_DEPTH: usize = 64;
 /// accepts with the same value; it never reports an error itself, so error texts all come from the scan.
 fn fast_decode(input: &[u8]) -> Option<Value> {
     let text = std::str::from_utf8(input).ok()?;
-    let mut parser = FastParser { s: text, b: input, i: 0 };
+    let mut parser = FastParser { s: text, b: input, i: 0, members: Vec::new(), items: Vec::new() };
     parser.ws();
     let value = parser.value(0)?;
     parser.ws();
@@ -688,6 +687,11 @@ struct FastParser<'a> {
     s: &'a str,
     b: &'a [u8],
     i: usize,
+    /// The members of the objects being read, innermost last: each container is collected here and moved out
+    /// at its exact size when it closes.
+    members: Vec<(String, Value)>,
+    /// The same for arrays.
+    items: Vec<Value>,
 }
 
 impl FastParser<'_> {
@@ -719,11 +723,11 @@ impl FastParser<'_> {
             return None;
         }
         self.i += 1;
-        let mut members = OrderedMap::default();
         self.ws();
         if self.eat(b'}').is_some() {
-            return Some(Value::Object(members));
+            return Some(Value::Object(JsonMap::new()));
         }
+        let base = self.members.len();
         loop {
             self.ws();
             let key = self.string()?;
@@ -731,16 +735,14 @@ impl FastParser<'_> {
             self.eat(b':')?;
             self.ws();
             let value = self.value(depth + 1)?;
-            // A duplicate member name is an error: the full scan reports it.
-            if members.insert(key, value).is_some() {
-                return None;
-            }
+            self.members.push((key, value));
             self.ws();
             match *self.b.get(self.i)? {
                 b',' => self.i += 1,
                 b'}' => {
                     self.i += 1;
-                    return Some(Value::Object(members));
+                    // A duplicate member name is an error: the full scan reports it.
+                    return JsonMap::from_distinct(self.members.split_off(base)).map(Value::Object);
                 }
                 _ => return None,
             }
@@ -752,20 +754,21 @@ impl FastParser<'_> {
             return None;
         }
         self.i += 1;
-        let mut items = Vec::new();
         self.ws();
         if self.eat(b']').is_some() {
-            return Some(Value::Array(items));
+            return Some(Value::Array(Vec::new()));
         }
+        let base = self.items.len();
         loop {
             self.ws();
-            items.push(self.value(depth + 1)?);
+            let item = self.value(depth + 1)?;
+            self.items.push(item);
             self.ws();
             match *self.b.get(self.i)? {
                 b',' => self.i += 1,
                 b']' => {
                     self.i += 1;
-                    return Some(Value::Array(items));
+                    return Some(Value::Array(self.items.split_off(base)));
                 }
                 _ => return None,
             }

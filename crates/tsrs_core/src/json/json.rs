@@ -4,9 +4,7 @@
 
 use std::fmt::Write;
 
-use indexmap::map::Entry;
-
-use crate::collections::OrderedMap;
+use super::{Entry, JsonMap};
 
 #[derive(Clone, Debug, PartialEq, Default)]
 pub enum Value {
@@ -19,7 +17,7 @@ pub enum Value {
     Integer(i64),
     String(String),
     Array(Vec<Value>),
-    Object(OrderedMap<String, Value>),
+    Object(JsonMap),
 }
 
 pub fn marshal(v: &Value) -> Result<String, String> {
@@ -324,7 +322,7 @@ impl JsonParser<'_> {
             }
             Some(b'{') => {
                 self.pos += 1;
-                let mut members = OrderedMap::default();
+                let mut members = JsonMap::default();
                 self.skip_ws();
                 if self.s.get(self.pos) == Some(&b'}') {
                     self.pos += 1;

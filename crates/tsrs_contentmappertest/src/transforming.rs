@@ -8,8 +8,7 @@ use tsrs_contentmapper::{
     UnusedExpectDirectiveDiagnostic,
 };
 use tsrs_core::TextRange;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_ipc as ipc;
 use tsrs_spanmap::{Feature, Kind, Segment, SpanMap};
 
@@ -32,7 +31,7 @@ const UNCLOSED_INTERPOLATION_CODE: i32 = 1000;
 // transforming.go:27 (A project's options are None when its compilerOptions were JSON null, Go's nil map.)
 #[derive(Default)]
 pub struct Handler {
-    mu: Mutex<FxHashMap<String, Option<Arc<OrderedMap<String, Value>>>>>,
+    mu: Mutex<FxHashMap<String, Option<Arc<JsonMap>>>>,
 }
 
 impl projectLifecycleHandler for Handler {
@@ -119,10 +118,7 @@ type transformOutput = (String, Value, Vec<Diagnostic>, Option<DiagnosticDirecti
 
 // transforming.go:91 (Go's writeVerbatim and writeAtom closures share the builder and the segments, which
 // `virtualWriter` holds.)
-fn transform(
-    content: &str,
-    options: Option<&OrderedMap<String, Value>>,
-) -> Result<transformOutput, ipc::Error> {
+fn transform(content: &str, options: Option<&JsonMap>) -> Result<transformOutput, ipc::Error> {
     let mut w = virtualWriter { virtual_: String::new(), segments: Vec::new() };
     let mut diagnostics = Vec::new();
 
@@ -344,7 +340,7 @@ fn diagnostic_directives(content: &str, mappings: &SpanMap) -> Option<Diagnostic
 }
 
 // transforming.go:267 (A member's raw json.Value is never empty; its text is the value's compact JSON.)
-fn render_option(options: Option<&OrderedMap<String, Value>>, name: &str) -> String {
+fn render_option(options: Option<&JsonMap>, name: &str) -> String {
     if let Some(value) = options.and_then(|options| options.get(name)) {
         return json::marshal(value).unwrap_or_default();
     }

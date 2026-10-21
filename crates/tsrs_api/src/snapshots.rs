@@ -7,8 +7,8 @@ use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
 use tsrs_core::P;
-use tsrs_core::collections::{OrderedMap, Set};
-use tsrs_core::json::Value;
+use tsrs_core::collections::Set;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_core::tspath::Path;
 use tsrs_ls::autoimport::ProjectID as AutoImportProjectID;
 use tsrs_ls::lsutil;
@@ -72,7 +72,7 @@ fn compute_snapshot_changes(prev: &Snapshot, next: &Snapshot) -> Value {
     let prev_projects = prev.project_collection.projects_by_id();
     let next_projects = next.project_collection.projects_by_id();
     let mut removed = Vec::new();
-    let mut changed = OrderedMap::default();
+    let mut changed = JsonMap::new();
     for (id, old) in &prev_projects {
         match next_projects.get(id) {
             None => removed.push(s(old.id().0)),

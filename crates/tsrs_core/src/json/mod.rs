@@ -3,5 +3,7 @@
     reason = "The module path preserves the upstream Go package and file layout."
 )]
 mod json;
+mod map;
 
 pub use json::*;
+pub use map::{Entry, JsonMap, OccupiedEntry, VacantEntry};

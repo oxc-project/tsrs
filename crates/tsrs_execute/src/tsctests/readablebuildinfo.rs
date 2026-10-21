@@ -1,14 +1,13 @@
 // Port of execute/tsctests/readablebuildinfo.go (only the marshaling direction is used by the harness).
 
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_incremental::{
     BuildInfo, BuildInfoDiagnostic, BuildInfoDiagnosticsOfFile, BuildInfoFileId, FileEmitKind,
     get_file_emit_kind,
 };
 
 #[derive(Default)]
-struct obj(OrderedMap<String, Value>);
+struct obj(JsonMap);
 
 impl obj {
     fn set(&mut self, k: &str, v: Value) {
@@ -216,7 +215,7 @@ pub(crate) fn to_readable_build_info(build_info: &BuildInfo, build_info_text: &s
         o.set("options", Value::Object(options.clone()));
     }
     if !build_info.referenced_map.is_empty() {
-        let mut m = OrderedMap::default();
+        let mut m = JsonMap::new();
         m.extend(build_info.referenced_map.iter().map(|entry| {
             (
                 r.to_file_path(entry.file_id),

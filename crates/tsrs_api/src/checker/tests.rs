@@ -13,7 +13,7 @@ use tsrs_compiler::Program;
 use tsrs_core::P;
 use tsrs_core::collections::Set;
 use tsrs_core::context::Context;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_core::tspath::Path;
 use tsrs_project::{
     APISnapshotRequest, FileChangeSummary, SessionInit, SessionOptions, Snapshot, SnapshotHost,
@@ -1906,7 +1906,7 @@ fn source_file_descriptor_matches_agrees_with_comparison() {
     let Value::Object(members) = crate::sourcefiles::source_file_descriptor(main) else {
         panic!("descriptor is an object")
     };
-    let with = |f: &dyn Fn(&mut tsrs_core::collections::OrderedMap<String, Value>)| {
+    let with = |f: &dyn Fn(&mut JsonMap)| {
         let mut m = members.clone();
         f(&mut m);
         Value::Object(m)

@@ -8,7 +8,7 @@
 use rustc_hash::FxHashMap;
 use tsrs_ast::RepopulateDiagnosticKind;
 use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
 use tsrs_core::{CompilerOptions, ModuleKind, ResolutionMode};
 use tsrs_diagnostics::Category;
@@ -652,7 +652,7 @@ pub struct BuildInfo {
     // Go marshals a non-nil empty `FileInfos` (a program without files) as `[]`; omitzero drops only nil.
     pub file_infos_non_nil: bool,
     pub file_ids_list: Vec<Vec<BuildInfoFileId>>,
-    pub options: Option<OrderedMap<String, Value>>,
+    pub options: Option<JsonMap>,
     pub referenced_map: Vec<BuildInfoReferenceMapEntry>,
     pub semantic_diagnostics_per_file: Vec<BuildInfoSemanticDiagnostic>,
     pub emit_diagnostics_per_file: Vec<BuildInfoDiagnosticsOfFile>,
@@ -1162,7 +1162,7 @@ impl ObjWriter<'_> {
 }
 
 #[derive(Default)]
-struct Obj(OrderedMap<String, Value>);
+struct Obj(JsonMap);
 
 impl Obj {
     fn set(&mut self, key: &str, v: Value) {
@@ -1255,14 +1255,14 @@ fn as_uint_tuple<const N: usize>(v: &Value) -> Option<[u32; N]> {
     Some(out)
 }
 
-fn as_object(v: &Value) -> Result<&OrderedMap<String, Value>, String> {
+fn as_object(v: &Value) -> Result<&JsonMap, String> {
     match v {
         Value::Object(o) => Ok(o),
         _ => Err(format!("expected object, got {}", show(v))),
     }
 }
 
-fn get_string(o: &OrderedMap<String, Value>, key: &str) -> Result<String, String> {
+fn get_string(o: &JsonMap, key: &str) -> Result<String, String> {
     match o.get(key) {
         None | Some(Value::Null) => Ok(String::new()),
         Some(Value::String(s)) => Ok(s.clone()),
@@ -1270,7 +1270,7 @@ fn get_string(o: &OrderedMap<String, Value>, key: &str) -> Result<String, String
     }
 }
 
-fn get_bool(o: &OrderedMap<String, Value>, key: &str) -> Result<bool, String> {
+fn get_bool(o: &JsonMap, key: &str) -> Result<bool, String> {
     match o.get(key) {
         None | Some(Value::Null) => Ok(false),
         Some(Value::Bool(b)) => Ok(*b),
@@ -1278,14 +1278,14 @@ fn get_bool(o: &OrderedMap<String, Value>, key: &str) -> Result<bool, String> {
     }
 }
 
-fn get_int(o: &OrderedMap<String, Value>, key: &str) -> Result<i32, String> {
+fn get_int(o: &JsonMap, key: &str) -> Result<i32, String> {
     match o.get(key) {
         None | Some(Value::Null) => Ok(0),
         Some(v) => as_int(v).ok_or_else(|| format!("invalid {key}: {}", show(v))),
     }
 }
 
-fn get_uint(o: &OrderedMap<String, Value>, key: &str) -> Result<u32, String> {
+fn get_uint(o: &JsonMap, key: &str) -> Result<u32, String> {
     match o.get(key) {
         None | Some(Value::Null) => Ok(0),
         Some(Value::Number(n)) if n.fract() == 0.0 && *n >= 0.0 && *n <= u32::MAX as f64 => {
@@ -1296,7 +1296,7 @@ fn get_uint(o: &OrderedMap<String, Value>, key: &str) -> Result<u32, String> {
 }
 
 fn get_array<T>(
-    o: &OrderedMap<String, Value>,
+    o: &JsonMap,
     key: &str,
     f: impl Fn(&Value) -> Result<T, String>,
 ) -> Result<Vec<T>, String> {
@@ -1307,14 +1307,11 @@ fn get_array<T>(
     }
 }
 
-fn get_string_array(o: &OrderedMap<String, Value>, key: &str) -> Result<Vec<String>, String> {
+fn get_string_array(o: &JsonMap, key: &str) -> Result<Vec<String>, String> {
     Ok(get_opt_string_array(o, key)?.unwrap_or_default())
 }
 
-fn get_opt_string_array(
-    o: &OrderedMap<String, Value>,
-    key: &str,
-) -> Result<Option<Vec<String>>, String> {
+fn get_opt_string_array(o: &JsonMap, key: &str) -> Result<Option<Vec<String>>, String> {
     match o.get(key) {
         None | Some(Value::Null) => Ok(None),
         Some(Value::Array(items)) => items
@@ -1418,7 +1415,7 @@ mod tests {
             reports_unnecessary: true,
             ..Default::default()
         };
-        let mut options = OrderedMap::default();
+        let mut options = JsonMap::new();
         options.insert("strict".to_string(), Value::Bool(true));
         options.insert("target".to_string(), Value::Number(99.0));
         options

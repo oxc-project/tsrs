@@ -13,7 +13,7 @@ use tsrs_compiler::{
 };
 use tsrs_core::P;
 use tsrs_core::context::Context;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_lsproto::{self as lsproto, Json};
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
 use tsrs_vfs::{FS, bundled, vfstest};
@@ -200,7 +200,7 @@ fn position_of(text: &str, marker: &str, off: usize) -> Value {
     let before = &text[..offset];
     let line = before.matches('\n').count();
     let character = offset - before.rfind('\n').map_or(0, |i| i + 1);
-    let mut pos = tsrs_core::collections::OrderedMap::default();
+    let mut pos = JsonMap::new();
     pos.insert("line".to_string(), Value::Number(line as f64));
     pos.insert("character".to_string(), Value::Number(character as f64));
     Value::Object(pos)
@@ -265,8 +265,8 @@ fn run(d: &dataset) {
         let off =
             get(r, "off").map_or(0, |v| if let Value::Number(n) = v { *n as usize } else { 0 });
         let text = if file == d.a_name { d.a } else { d.b };
-        let mut params = tsrs_core::collections::OrderedMap::default();
-        let mut text_document = tsrs_core::collections::OrderedMap::default();
+        let mut params = JsonMap::new();
+        let mut text_document = JsonMap::new();
         text_document.insert("uri".to_string(), Value::String(format!("file:///{file}")));
         params.insert("textDocument".to_string(), Value::Object(text_document));
         params.insert("position".to_string(), position_of(text, at, off));

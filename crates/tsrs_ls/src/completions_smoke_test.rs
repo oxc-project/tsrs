@@ -11,9 +11,8 @@ use std::sync::Arc;
 
 use tsrs_compiler::{CompilerHost, Program, ProgramOptions, new_compiler_host, new_program};
 use tsrs_core::P;
-use tsrs_core::collections::OrderedMap;
 use tsrs_core::context::Context;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_lsproto::{self as lsproto, Json};
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
 use tsrs_vfs::{FS, bundled, vfsmatch, vfstest};
@@ -137,7 +136,7 @@ fn setup(spec: &Value) -> (LanguageService, Context, Vec<(String, String)>) {
             fs_for_lines.read_file(file_name).map(|text| compute_lsp_line_starts(&text))
         });
     // Go: lsutil.ParseUserPreferences(map[string]any{"js/ts": initializationOptions.userPreferences})
-    let mut items: OrderedMap<String, Value> = OrderedMap::default();
+    let mut items: JsonMap = JsonMap::new();
     items.insert("js/ts".to_string(), field(spec, "preferences").clone());
     let preferences = parse_user_preferences(&items);
     let host = Arc::new(TestHost { fs, converters, preferences });
@@ -197,8 +196,8 @@ fn position_in(case: &Value, files: &[(String, String)]) -> lsproto::Position {
     position_of(text, str_field(case, "caret"))
 }
 
-fn read_expected(name: &str) -> OrderedMap<String, Value> {
-    let mut expected: OrderedMap<String, Value> = OrderedMap::default();
+fn read_expected(name: &str) -> JsonMap {
+    let mut expected: JsonMap = JsonMap::new();
     let Ok(text) = std::fs::read_to_string(format!("{DIR}/{name}.out")) else {
         return expected;
     };
@@ -209,7 +208,7 @@ fn read_expected(name: &str) -> OrderedMap<String, Value> {
     expected
 }
 
-fn rich_expected() -> OrderedMap<String, Value> {
+fn rich_expected() -> JsonMap {
     read_expected("rich")
 }
 

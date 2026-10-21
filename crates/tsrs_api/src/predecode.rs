@@ -12,7 +12,7 @@ use std::fmt::Write as _;
 
 use rustc_hash::FxHashMap;
 
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 
 use crate::handler::{ApiError, ApiResult};
 use crate::paramfields::{Elem, FieldKind, FieldSpec, params_fields, struct_fields};
@@ -226,7 +226,7 @@ fn base_type(go_type: &str) -> &str {
 /// The fields of an api-package struct value at `pointer`, recursively (Go decodes the whole params struct).
 fn check_struct(
     go_type: &str,
-    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    o: &JsonMap,
     pointer: &mut Pointer,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
@@ -246,7 +246,7 @@ fn check_struct(
 /// above int64). Wrong JSON kinds and int32 ranges are reported by `gojson`.
 fn check_external_integers(
     go_type: &str,
-    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    o: &JsonMap,
     pointer: &str,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
@@ -297,11 +297,7 @@ pub(crate) fn exact_build_options_ints(value: &Value, options: &mut tsrs_core::B
 /// requestfilesystem.RequestFileSystem (decoded by `requestfs.rs` from the parsed value): Go decodes the whole
 /// struct first, so a wrong JSON kind anywhere in it is an invalid request. `null` is the zero value (a null
 /// file content is "", a null path element is ""), as in Go.
-fn check_request_file_system(
-    go_type: &str,
-    o: &tsrs_core::collections::OrderedMap<String, Value>,
-    pointer: &str,
-) -> Result<(), String> {
+fn check_request_file_system(go_type: &str, o: &JsonMap, pointer: &str) -> Result<(), String> {
     if base_type(go_type) != "requestfilesystem.RequestFileSystem" {
         return Ok(());
     }
@@ -642,7 +638,7 @@ pub(crate) fn predecode(
 
 fn check_params(
     method: &str,
-    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    o: &JsonMap,
     pointer: &mut Pointer,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {

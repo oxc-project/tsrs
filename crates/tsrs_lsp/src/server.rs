@@ -11,8 +11,9 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_core::CompilerOptions;
 use tsrs_core::P;
-use tsrs_core::collections::{OrderedMap, Set};
+use tsrs_core::collections::Set;
 use tsrs_core::context::{self, CancelCauseFunc, CancelFunc, Context, ContextError, Locale};
+use tsrs_core::json::JsonMap;
 use tsrs_core::tspath::{self, Path};
 use tsrs_ls::{LanguageService, lsutil};
 use tsrs_lsproto as lsproto;
@@ -1189,7 +1190,7 @@ impl Server {
                     go_sprint_value(user_prefs)
                 ));
                 if let lsproto::Value::Object(config) = user_prefs {
-                    let mut items = OrderedMap::default();
+                    let mut items = JsonMap::new();
                     items.insert("js/ts".to_string(), lsproto::Value::Object(config.clone()));
                     return Ok(lsutil::parse_user_preferences(&items));
                 }
@@ -1223,7 +1224,7 @@ impl Server {
             Ok(configs) => configs,
             Err(err) => return Err(Error::wrap("configure request failed: ", err)),
         };
-        let mut config_map: OrderedMap<String, lsproto::Value> = OrderedMap::default();
+        let mut config_map = JsonMap::new();
         config_map.extend(configs.into_iter().enumerate().filter_map(|(i, config)| match i {
             0 => Some(("js/ts".to_string(), config)),
             1 => Some(("typescript".to_string(), config)),

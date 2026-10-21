@@ -1,17 +1,16 @@
 // Small helpers for building/reading the Go wire JSON shapes with `tsrs_core::json::Value`.
 
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 
 use crate::handler::{ApiError, ApiResult};
 
 /// Ordered JSON object builder (Go struct field order matters for byte-identical output).
 #[derive(Default)]
-pub struct Obj(OrderedMap<String, Value>);
+pub struct Obj(JsonMap);
 
 impl Obj {
     pub fn new() -> Obj {
-        Obj(OrderedMap::default())
+        Obj(JsonMap::new())
     }
     #[must_use]
     pub fn set(mut self, key: &str, value: Value) -> Obj {
@@ -64,7 +63,7 @@ pub struct Params<'a>(pub &'a Value);
 static NULL: Value = Value::Null;
 
 impl<'a> Params<'a> {
-    pub fn object(self) -> ApiResult<&'a OrderedMap<String, Value>> {
+    pub fn object(self) -> ApiResult<&'a JsonMap> {
         match self.0 {
             Value::Object(o) => Ok(o),
             _ => Err(ApiError::invalid_request("params must be an object")),

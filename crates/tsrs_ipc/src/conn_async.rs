@@ -7,8 +7,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 
 use crate::jsonrpc::{self, CODE_INTERNAL_ERROR, ID, ResponseError};
 use crate::{
@@ -413,10 +412,10 @@ fn panic_value(payload: &(dyn Any + Send)) -> &str {
 // timing.go:119 serverTimingSnapshot(c.timing), with the nil collector the port always has: timing.go:128
 // disabledServerTimingInfo, serverTimingInfo{Enabled: false, RecentRequests: []serverRequestTiming{}}.
 fn disabled_server_timing_info() -> Value {
-    let mut totals = OrderedMap::default();
+    let mut totals = JsonMap::new();
     totals.insert("requestCount".to_string(), Value::Number(0.0));
     totals.insert("totalProcessingTimeMs".to_string(), Value::Number(0.0));
-    let mut info = OrderedMap::default();
+    let mut info = JsonMap::new();
     info.insert("enabled".to_string(), Value::Bool(false));
     info.insert("totals".to_string(), Value::Object(totals));
     info.insert("recentRequests".to_string(), Value::Array(Vec::new()));

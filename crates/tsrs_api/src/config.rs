@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_core::tspath;
 use tsrs_tsoptions::gojson;
 use tsrs_tsoptions::{CompilerOptionsValue, ParseConfigHost, ParsedCommandLine};
@@ -43,11 +43,11 @@ pub fn options_value_to_json(v: &CompilerOptionsValue) -> Value {
         }
         CompilerOptionsValue::StringArray(a) => strings(a.iter().cloned()),
         CompilerOptionsValue::Object(m) => {
-            let mut o = OrderedMap::default();
+            let mut o = JsonMap::new();
             o.extend(m.iter().map(|(k, v)| (k.clone(), options_value_to_json(v))));
             Value::Object(o)
         }
-        CompilerOptionsValue::EmptyStruct => Value::Object(OrderedMap::default()),
+        CompilerOptionsValue::EmptyStruct => Value::Object(JsonMap::new()),
         CompilerOptionsValue::Tristate(t) => match t {
             tsrs_core::Tristate::Unknown => Value::Null,
             tsrs_core::Tristate::False => Value::Bool(false),
@@ -133,7 +133,7 @@ impl Session {
                 &[&config_file_name],
             );
             return Ok(Obj::new()
-                .set("config", Value::Object(OrderedMap::default()))
+                .set("config", Value::Object(JsonMap::new()))
                 .set("error", diagnostic_response(&diag))
                 .build());
         };

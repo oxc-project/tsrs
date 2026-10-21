@@ -4,18 +4,14 @@
 // zero value, a field of the wrong JSON type is an `ErrInvalidRequest`. The helpers below follow the
 // same rules and keep every number bounded (no silent truncation of ids or positions).
 
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_lsproto::DocumentUri;
 
 use super::host::{CheckerError, CheckerResult};
 
-static EMPTY_OBJECT: std::sync::LazyLock<tsrs_core::collections::OrderedMap<String, Value>> =
-    std::sync::LazyLock::new(Default::default);
+static EMPTY_OBJECT: std::sync::LazyLock<JsonMap> = std::sync::LazyLock::new(Default::default);
 
-pub(crate) fn object<'a>(
-    params: &'a Value,
-    method: &str,
-) -> CheckerResult<&'a tsrs_core::collections::OrderedMap<String, Value>> {
+pub(crate) fn object<'a>(params: &'a Value, method: &str) -> CheckerResult<&'a JsonMap> {
     match params {
         Value::Object(map) => Ok(map),
         // encoding/json v2 decodes `null` into a struct as its zero value.
@@ -24,10 +20,7 @@ pub(crate) fn object<'a>(
     }
 }
 
-fn get<'a>(
-    obj: &'a tsrs_core::collections::OrderedMap<String, Value>,
-    name: &str,
-) -> Option<&'a Value> {
+fn get<'a>(obj: &'a JsonMap, name: &str) -> Option<&'a Value> {
     match obj.get(name) {
         None | Some(Value::Null) => None,
         Some(v) => Some(v),
@@ -98,7 +91,7 @@ fn signed32(v: &Value, name: &str) -> CheckerResult<i32> {
 
 /// A typed view over one request's params object.
 pub(crate) struct Params<'a> {
-    obj: &'a tsrs_core::collections::OrderedMap<String, Value>,
+    obj: &'a JsonMap,
     /// JSON pointer of this object within the request params ("" at the top level).
     pointer: String,
     /// This object's value within the params tree dispatched by core (its identity selects exact literals).

@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_ast as ast;
 use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_core::stringutil::equal_fold;
 use tsrs_core::{CompilerOptions, Locale, P, TextRange, alloc_str, goslices, tspath};
 use tsrs_diagnostics::Category;
@@ -77,7 +77,7 @@ pub struct InitializeParams {
 
 impl ProtocolJson for InitializeParams {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         if !self.locale.is_empty() {
             o.insert("locale".to_string(), Value::String(self.locale.clone()));
         }
@@ -128,7 +128,7 @@ pub struct InitializeResult {
 
 impl ProtocolJson for InitializeResult {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert(
             "positionEncoding".to_string(),
             Value::String(self.position_encoding.0.to_string()),
@@ -173,7 +173,7 @@ pub struct OpenProjectParams {
 
 impl ProtocolJson for OpenProjectParams {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("configFileName".to_string(), Value::String(self.config_file_name.clone()));
         o.insert("projectHandle".to_string(), Value::String(self.project_handle.clone()));
         if let Some(options) = self.options.as_ref().filter(|options| !is_empty_json(options)) {
@@ -217,7 +217,7 @@ pub struct OpenProjectResult {
 
 impl ProtocolJson for OpenProjectResult {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("configIdentity".to_string(), Value::String(self.config_identity.clone()));
         if !self.watched_files.is_empty() {
             let files = self.watched_files.iter().map(|file| Value::String(file.clone())).collect();
@@ -269,7 +269,7 @@ pub struct OptionDiagnosticResult {
 
 impl ProtocolJson for OptionDiagnosticResult {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("path".to_string(), Value::Array(self.path.clone()));
         o.insert("messageText".to_string(), Value::String(self.message_text.clone()));
         o.insert("code".to_string(), Value::Number(f64::from(self.code)));
@@ -308,7 +308,7 @@ pub struct CloseProjectParams {
 
 impl ProtocolJson for CloseProjectParams {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("projectHandle".to_string(), Value::String(self.project_handle.clone()));
         Value::Object(o)
     }
@@ -358,7 +358,7 @@ pub struct TransformParams {
 
 impl ProtocolJson for TransformParams {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("fileName".to_string(), Value::String(self.file_name.clone()));
         o.insert("content".to_string(), Value::String(self.content.clone()));
         o.insert("projectHandle".to_string(), Value::String(self.project_handle.clone()));
@@ -401,7 +401,7 @@ pub struct MappedOutput {
 impl MappedOutput {
     // The members of a MappedOutput, which TransformResult and SupplementalOutput embed (Go inlines an embedded
     // struct's fields into the parent object).
-    fn marshal_members(&self, o: &mut OrderedMap<String, Value>) {
+    fn marshal_members(&self, o: &mut JsonMap) {
         o.insert("text".to_string(), Value::String(self.text.clone()));
         o.insert("extension".to_string(), Value::String(self.extension.clone()));
         if let Some(mappings) = self.mappings.as_ref().filter(|mappings| !is_empty_json(mappings)) {
@@ -437,7 +437,7 @@ impl MappedOutput {
 
 impl ProtocolJson for MappedOutput {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         self.marshal_members(&mut o);
         Value::Object(o)
     }
@@ -482,7 +482,7 @@ pub struct UnusedExpectDirectiveDiagnostic {
 
 impl ProtocolJson for UnusedExpectDirectiveDiagnostic {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("code".to_string(), Value::Number(f64::from(self.code)));
         o.insert("messageText".to_string(), Value::String(self.message_text.clone()));
         Value::Object(o)
@@ -516,7 +516,7 @@ pub struct DiagnosticDirectives {
 
 impl ProtocolJson for DiagnosticDirectives {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         let unused = self
             .unused_expect_directive_diagnostics
             .iter()
@@ -679,7 +679,7 @@ pub struct TransformResult {
 
 impl ProtocolJson for TransformResult {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         self.mapped_output.marshal_members(&mut o);
         if !self.diagnostics.is_empty() {
             o.insert(
@@ -743,7 +743,7 @@ pub struct Diagnostic {
 
 impl ProtocolJson for Diagnostic {
     fn marshal_json(&self) -> Value {
-        let mut o = OrderedMap::default();
+        let mut o = JsonMap::new();
         o.insert("messageText".to_string(), Value::String(self.message_text.clone()));
         o.insert("start".to_string(), int_json(self.start));
         o.insert("length".to_string(), int_json(self.length));
@@ -2533,11 +2533,7 @@ fn type_error(kind: &str, go_type: &str, pointer: &str) -> String {
 }
 
 // The members of an object to decode into a Go struct; None for null (the zero value).
-fn unmarshal_struct(
-    value: Value,
-    go_type: &str,
-    pointer: &str,
-) -> Result<Option<OrderedMap<String, Value>>, String> {
+fn unmarshal_struct(value: Value, go_type: &str, pointer: &str) -> Result<Option<JsonMap>, String> {
     match value {
         Value::Object(members) => Ok(Some(members)),
         Value::Null => Ok(None),

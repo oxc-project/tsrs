@@ -5,8 +5,7 @@
 
 use std::sync::Arc;
 
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_core::{CompilerOptions, ModuleKind, P, Tristate};
 use tsrs_modulespecifiers as modulespecifiers;
 use tsrs_tsoptions::{self as tsoptions, ParseConfigHost};
@@ -43,7 +42,7 @@ fn str_field(v: &Value, name: &str) -> String {
 }
 
 fn object(entries: Vec<(&str, Value)>) -> Value {
-    let mut m = OrderedMap::default();
+    let mut m = JsonMap::new();
     m.extend(entries.into_iter().map(|(k, v)| (k.to_string(), v)));
     Value::Object(m)
 }

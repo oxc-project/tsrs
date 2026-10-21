@@ -4,8 +4,7 @@
 
 use tsrs_ast::{Diagnostic, SourceFile};
 use tsrs_core::P;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_diagnostics::Category;
 
 fn category_number(c: Category) -> f64 {
@@ -17,11 +16,11 @@ fn category_number(c: Category) -> f64 {
     }
 }
 
-struct Obj(OrderedMap<String, Value>);
+struct Obj(JsonMap);
 
 impl Obj {
     fn new() -> Obj {
-        Obj(OrderedMap::default())
+        Obj(JsonMap::new())
     }
 
     fn set(mut self, key: &str, value: Value) -> Obj {

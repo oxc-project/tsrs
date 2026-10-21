@@ -1,13 +1,12 @@
 use tsrs_core::Tristate;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::{self, Value};
+use tsrs_core::json::{self, JsonMap, Value};
 use tsrs_modulespecifiers::{
     ImportModuleSpecifierEndingPreference, ImportModuleSpecifierPreference,
 };
 
 use super::*;
 
-fn config(text: &str) -> OrderedMap<String, Value> {
+fn config(text: &str) -> JsonMap {
     match json::unmarshal(text).unwrap() {
         Value::Object(m) => m,
         v => panic!("not an object: {v:?}"),
@@ -18,7 +17,7 @@ fn marshal_prefs(p: &UserPreferences) -> String {
     json::marshal(&p.marshal_json_to()).unwrap()
 }
 
-fn object<'a>(v: &'a OrderedMap<String, Value>, key: &str) -> &'a OrderedMap<String, Value> {
+fn object<'a>(v: &'a JsonMap, key: &str) -> &'a JsonMap {
     match v.get(key) {
         Some(Value::Object(m)) => m,
         other => panic!("{key} is not an object: {other:?}"),

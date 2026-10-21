@@ -3,8 +3,7 @@ use std::sync::OnceLock;
 
 use rustc_hash::FxHashMap;
 use tsrs_core::Tristate;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 use tsrs_modulespecifiers::{
     ImportModuleSpecifierEndingPreference, ImportModuleSpecifierPreference,
 };
@@ -1213,10 +1212,7 @@ pub(crate) fn parse_config_path_tag(tag: &'static str) -> ConfigPathInfo {
 }
 
 // userpreferences.go:639
-pub(crate) fn get_nested_value<'a>(
-    config: &'a OrderedMap<String, Value>,
-    path: &str,
-) -> Option<&'a Value> {
+pub(crate) fn get_nested_value<'a>(config: &'a JsonMap, path: &str) -> Option<&'a Value> {
     let mut parts = path.split('.');
     let mut current = config.get(parts.next().unwrap())?;
     current = parts.try_fold(current, |current, part| {
@@ -1229,12 +1225,12 @@ pub(crate) fn get_nested_value<'a>(
 }
 
 // userpreferences.go:655
-pub(crate) fn set_nested_value(config: &mut OrderedMap<String, Value>, path: &str, value: Value) {
+pub(crate) fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
     let parts: Vec<&str> = path.split('.').collect();
     let mut current = config;
     current = parts[..parts.len() - 1].iter().fold(current, |mut current, part| {
         if !matches!(current.get(*part), Some(Value::Object(_))) {
-            current.insert(part.to_string(), Value::Object(OrderedMap::default()));
+            current.insert(part.to_string(), Value::Object(JsonMap::new()));
         }
         let Some(Value::Object(next)) = current.get_mut(*part) else { unreachable!() };
         current = next;
@@ -1248,7 +1244,7 @@ pub(crate) fn set_nested_value(config: &mut OrderedMap<String, Value>, path: &st
 pub(crate) fn set_raw_fields_from_config(
     p: &mut UserPreferences,
     infos: &[FieldInfo],
-    settings: &OrderedMap<String, Value>,
+    settings: &JsonMap,
 ) {
     let index = unstable_name_index();
     for (name, value) in settings {
@@ -1270,7 +1266,7 @@ pub(crate) fn set_raw_fields_from_config(
 
 impl UserPreferences {
     // userpreferences.go:685
-    pub(crate) fn with_config(mut self, config: &OrderedMap<String, Value>) -> UserPreferences {
+    pub(crate) fn with_config(mut self, config: &JsonMap) -> UserPreferences {
         let p = &mut self;
         let infos = field_info_cache();
 
@@ -1403,7 +1399,7 @@ impl UserPreferences {
     // userpreferences.go:793
     // Returns the JSON value Go's encoder writes (json.Deterministic(true): object keys sorted).
     pub fn marshal_json_to(&self) -> Value {
-        let mut config = OrderedMap::default();
+        let mut config = JsonMap::new();
 
         for info in field_info_cache() {
             let field = (info.field.get)(self);
@@ -1491,7 +1487,7 @@ fn serialize_string(s: &str) -> Option<Value> {
 impl UserPreferences {
     // userpreferences.go:865
     pub fn unmarshal_json_from(&mut self, value: &Value) -> Result<(), String> {
-        let empty = OrderedMap::default();
+        let empty = JsonMap::new();
         let config = match value {
             Value::Object(m) => m,
             // A JSON null leaves Go's map nil.
@@ -1544,7 +1540,7 @@ impl UserPreferences {
 }
 
 // userpreferences.go:893
-pub fn parse_user_preferences(items: &OrderedMap<String, Value>) -> UserPreferences {
+pub fn parse_user_preferences(items: &JsonMap) -> UserPreferences {
     let mut prefs = new_default_user_preferences();
     // Apply editor settings first (tabSize, indentSize, etc.) as raw-name defaults,
     // then overlay language-specific settings with increasing precedence:
@@ -1561,7 +1557,7 @@ pub fn parse_user_preferences(items: &OrderedMap<String, Value>) -> UserPreferen
                 normalized_settings.insert("convertTabsToSpaces".to_string(), insert_spaces);
             }
         }
-        let mut unstable = OrderedMap::default();
+        let mut unstable = JsonMap::new();
         unstable.insert("unstable".to_string(), Value::Object(normalized_settings));
         prefs = prefs.with_config(&unstable);
     }

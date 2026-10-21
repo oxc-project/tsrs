@@ -1,18 +1,16 @@
 // Small JSON object builder mirroring Go encoding/json tags (`omitempty`, `omitzero`).
 
-use rustc_hash::FxBuildHasher;
 use tsrs_checker::LiteralValue;
-use tsrs_core::collections::OrderedMap;
-use tsrs_core::json::Value;
+use tsrs_core::json::{JsonMap, Value};
 
 pub(crate) struct Obj {
-    map: OrderedMap<String, Value>,
+    map: JsonMap,
 }
 
 impl Default for Obj {
     fn default() -> Obj {
         // Most response objects have a handful of fields: start with room for them instead of growing.
-        Obj { map: OrderedMap::with_capacity_and_hasher(8, FxBuildHasher) }
+        Obj { map: JsonMap::with_capacity(8) }
     }
 }
 

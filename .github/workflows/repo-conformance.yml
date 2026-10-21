@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: Number of popular repositories (1-1000)
+        description: Number of popular repositories (1-1000), plus type suites and known solutions
         type: number
         default: 1000
       rerun_run_id:
@@ -134,7 +134,19 @@ jobs:
           TSRS_CONFORMANCE_TSRS: ${{ github.workspace }}/repo-conformance/bin/tsrs
           TSRS_CONFORMANCE_TSGO: ${{ github.workspace }}/repo-conformance/bin/tsgo
         run: python3 -m unittest discover -s tools/repo-conformance -p 'test_*.py' -v
-
+      - name: Check type assertion evaluation
+        if: ${{ !inputs.rerun_run_id }}
+        run: |
+          docker run --rm --pull=never --read-only --network=none --init \
+            --user "$(id -u):$(id -g)" --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 \
+            --tmpfs /tmp:rw,nosuid,nodev,mode=1777,size=256m \
+            --mount "type=bind,source=$PWD/tools/repo-conformance/test_type_assertions.mjs,target=/tests/test_type_assertions.mjs,readonly" \
+            --mount "type=bind,source=$PWD/tools/repo-conformance/type-assertions.mjs,target=/tests/type-assertions.mjs,readonly" \
+            --mount "type=bind,source=$PWD/repo-conformance/bin/tsgo,target=/inputs/tsgo,readonly" \
+            --mount "type=bind,source=$PWD/repo-conformance/bin/tsrs,target=/inputs/tsrs,readonly" \
+            --env TSRS_CONFORMANCE_TYPESCRIPT=/usr/local/lib/node_modules/typescript \
+            --env TSRS_CONFORMANCE_TSGO=/inputs/tsgo --env TSRS_CONFORMANCE_TSRS=/inputs/tsrs \
+            tsrs-repo-conformance node --test /tests/test_type_assertions.mjs
       - name: Select popular TypeScript repositories
         id: plan
         if: ${{ !inputs.rerun_run_id }}
@@ -142,7 +154,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO_COUNT: ${{ github.event_name == 'pull_request' && '20' || inputs.count || '1000' }}
         run: python3 tools/repo-conformance/run.py plan --count "$REPO_COUNT" --out repo-conformance/manifest.json
-
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: repo-conformance-inputs
@@ -156,7 +167,7 @@ jobs:
     timeout-minutes: 180
     strategy:
       fail-fast: false
-      max-parallel: 8
+      max-parallel: 12
       matrix: ${{ fromJSON(needs.build.outputs.matrix) }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0

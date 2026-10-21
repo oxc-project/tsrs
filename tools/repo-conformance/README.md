@@ -4,9 +4,10 @@ The [GitHub Actions workflow](../../.github/workflows/repo-conformance.yml) comp
 TypeScript commit pinned in `Cargo.toml`, following TypeScript's
 [`test top400`](https://github.com/microsoft/TypeScript/wiki/Triggering-TypeScript-Bot).
 It selects 1,000 TypeScript repos by stars after compiler changes merge into `main`, and 20 for harness PRs, excluding
-forks and archived repos. Manual dispatch accepts 1-1,000. Both compilers are built once; the default 10 shards run at
-most eight at a time. Pushes share one concurrency group: a run already in progress finishes, and only the newest
-pending push waits.
+forks and archived repos. It always adds `type-fest`, `ts-toolbelt`, and the checked-in type-challenges solutions fixture,
+deduplicating the two repositories when they are already ranked. Manual dispatch accepts 1-1,000 popular repositories.
+Both compilers are built once; the default 10 shards run at most twelve at a time. Pushes share one concurrency group:
+a run already in progress finishes, and only the newest pending push waits.
 
 The plan pins each repo's default-branch commit, and shards check out exactly that commit. Root dependencies are
 installed with the declared package manager (`packageManager`, or an exact `devEngines.packageManager`) unless only
@@ -28,6 +29,13 @@ removed before its outputs are read or the next repository starts, including on 
 Actions, so they cannot become inputs to release builds. Other package managers, out-of-date lockfiles and custom setup
 requirements are reported as setup failures. CI requires a synthetic hook/timeout isolation smoke before comparisons;
 the image uses Ubuntu 24.04 to match the compilers' build environment and Node 24.
+
+The type-challenges fixture contains known solutions and `Expect<Equal<...>>` checks, rather than upstream's unsolved
+templates. `type-fest`'s `test-d` files and `ts-toolbelt`'s `tests` are included in their root projects. For type-fest,
+the disposable checkout rewrites `tsd` assertions to compiler-enforced checks, including negative `expectError`
+checks; it refuses assertion forms it cannot evaluate. For ts-toolbelt, the disposable checkout removes its obsolete
+`suppressImplicitAnyIndexErrors` option so the `Test.check` / `checks` calls are type-checked. These changes are applied
+equally to both compilers; the source repositories remain pinned and untouched.
 
 The harness compares the full ordered output (diagnostics and other lines, such as `traceResolution` traces), exit
 codes, and loaded-file counts with `--noEmit` and fresh build info. It normalizes checkout/compiler paths and CRLF, and
@@ -79,7 +87,8 @@ A recovery run cannot itself be used as the source for another recovery. Always 
 all lost or partial shards that need rerunning; this keeps an earlier difference from disappearing across a chain of
 recovery runs.
 
-Version 4 adds the container boundary; runs from before it cannot be rerun by this workflow. Changes to
+Version 5 adds the type suites and assertion adapter; earlier runs cannot be rerun by this
+workflow. Version 4 added the container boundary. Changes to
 workflow arguments or the isolation contract must bump `HARNESS` because the workflow comes from the dispatch commit
 while the harness and compilers come from the earlier run.
 
@@ -104,3 +113,8 @@ Run the harness tests with real compilers:
 TSRS_CONFORMANCE_TSRS="$PWD/target/debug/tsrs" TSRS_CONFORMANCE_TSGO=/path/to/pinned/tsgo \
   python3 -m unittest discover -s tools/repo-conformance -p 'test_*.py' -v
 ```
+
+The assertion adapter controls also need a JavaScript TypeScript parser. In the workflow they run inside the
+conformance image, which pins TypeScript 6.0.3. Locally, set `TSRS_CONFORMANCE_TYPESCRIPT` to an installed JavaScript
+`typescript` package directory, then run `node --test tools/repo-conformance/test_type_assertions.mjs` with the two
+compiler paths above.

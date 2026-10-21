@@ -18,7 +18,9 @@ def launch(image: str, worker: Path, tsgo: Path, tsrs: Path, work: Path, request
     if os.getuid() == 0:
         raise ValueError("Run repository conformance as a non-root host user")
     name = "tsrs-conformance-" + uuid.uuid4().hex
-    mounts = [(worker, "/harness/tools/repo-conformance/run.py", True), (tsgo, "/inputs/tsgo", True),
+    mounts = [(worker, "/harness/tools/repo-conformance/run.py", True),
+              (worker.with_name("type-assertions.mjs"), "/harness/tools/repo-conformance/type-assertions.mjs", True),
+              (tsgo, "/inputs/tsgo", True),
               (tsrs, "/inputs/tsrs", True), (request, "/request.json", True), (work, "/work", False)]
     if source:
         mounts.append((source, "/source", True))

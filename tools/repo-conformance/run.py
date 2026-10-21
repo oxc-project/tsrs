@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import platform
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -41,9 +42,12 @@ NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 WORKFLOW = ".github/workflows/repo-conformance.yml"
 MAX_SHARDS = 20
+MAX_REPOSITORIES = 1000
+TYPE_SUITES = ("sindresorhus/type-fest", "millsp/ts-toolbelt")
+CHALLENGES = "fixtures/type-challenges"
 # Recorded in manifests. A rerun's workflow comes from the dispatch commit but runs the manifest's harness, so bump
 # this when the workflow's arguments, isolation contract or report merging rules change; other versions are refused.
-HARNESS = 4
+HARNESS = 5
 
 
 def write_json(path: Path, data: object) -> None:
@@ -134,15 +138,24 @@ def discover(count: int, shards: int, out: Path) -> dict:
     if len(repos) < count:
         raise RuntimeError(f"Expected {count} repositories, found only {len(repos)}")
     selected = list(repos.values())[:count]
+    # Keep the type suites in small PR samples and in a full top-1000 run even if their rank changes.
+    for name in TYPE_SUITES:
+        if name not in {repo["repository"] for repo in selected}:
+            with urlopen(Request("https://api.github.com/repos/" + name, headers=headers), timeout=60) as response:
+                repo = json.load(response)
+            selected.append({"repository": name, "branch": repo["default_branch"],
+                             "stars": repo["stargazers_count"]})
+    tsrs_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     with tempfile.TemporaryDirectory(prefix="tsrs-plan-") as temp, ThreadPoolExecutor(16) as pool:
         env = child_env(Path(temp) / "home", Path(temp) / "cache")
         for repo, commit in zip(selected, pool.map(lambda r: head_commit(r, env), selected)):
             repo["commit"] = commit
+    selected.append({"repository": CHALLENGES, "commit": tsrs_commit, "fixture": True})
     manifest = {
         "created_at": dt.datetime.now(dt.timezone.utc).isoformat(), "query": QUERY,
-        "tsrs_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+        "tsrs_commit": tsrs_commit,
         "typescript_commit": subprocess.check_output(["node", "npm/build.mjs", "--print-typescript-commit"], cwd=ROOT, text=True).strip(),
-        "harness": HARNESS, "shards": min(shards, count), "repositories": selected,
+        "harness": HARNESS, "shards": min(shards, len(selected)), "repositories": selected,
     }
     write_json(out, manifest)
     return manifest
@@ -431,19 +444,26 @@ def check_repo(repo: dict, tsgo: Path, tsrs: Path, out: Path, cache: Path, setup
         ctx = Context(tsgo, tsrs, child_env(Path(temp) / "home", cache))
         try:
             deadline = time.monotonic() + setup_timeout
-            url = str(source) if source else "https://github.com/" + repo["repository"] + ".git"
-            if repo.get("commit"):
-                clone = ["sh", "-c", 'git init -q "$1" && git -C "$1" fetch -q --depth 1 "$2" "$3" && '
-                         'git -C "$1" checkout -q FETCH_HEAD', "clone", str(root), url, repo["commit"]]
+            if repo.get("fixture"):
+                if repo["repository"] != CHALLENGES or not source:
+                    raise ValueError("Unknown fixture")
+                shutil.copytree(source, root)
+                result["commit"] = repo["commit"]
+                tracked = [p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()]
             else:
-                clone = ["git", "clone", "--depth", "1", "--single-branch", "--branch", repo["branch"], url, str(root)]
-            cloned = execute(clone, Path(temp), out / "clone.log", min(60, setup_timeout), ctx.env)
-            if cloned["exit"] or cloned["timeout"]:
-                result["reason"] = f"Clone {'timed out' if cloned['timeout'] else 'failed'}; see clone.log"
-                return result
-            result["commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, env=ctx.env,
-                                                       text=True).strip()
-            tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root, env=ctx.env).decode().split("\0")
+                url = str(source) if source else "https://github.com/" + repo["repository"] + ".git"
+                if repo.get("commit"):
+                    clone = ["sh", "-c", 'git init -q "$1" && git -C "$1" fetch -q --depth 1 "$2" "$3" && '
+                             'git -C "$1" checkout -q FETCH_HEAD', "clone", str(root), url, repo["commit"]]
+                else:
+                    clone = ["git", "clone", "--depth", "1", "--single-branch", "--branch", repo["branch"], url, str(root)]
+                cloned = execute(clone, Path(temp), out / "clone.log", min(60, setup_timeout), ctx.env)
+                if cloned["exit"] or cloned["timeout"]:
+                    result["reason"] = f"Clone {'timed out' if cloned['timeout'] else 'failed'}; see clone.log"
+                    return result
+                result["commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, env=ctx.env,
+                                                           text=True).strip()
+                tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root, env=ctx.env).decode().split("\0")
             configs = sorted((p for p in tracked if Path(p).name == "tsconfig.json" and "node_modules" not in Path(p).parts),
                              key=lambda p: (len(Path(p).parts), p))
             result["available_configs"] = len(configs)
@@ -468,6 +488,13 @@ def check_repo(repo: dict, tsgo: Path, tsrs: Path, out: Path, cache: Path, setup
                     result["reason"] = (f"Dependency installation {'timed out' if install['timeout'] else 'failed'}"
                                         f" ({plan['manager']}); see install.log")
                     return result
+            if repo["repository"] in TYPE_SUITES:
+                adapter = ROOT / "tools/repo-conformance/type-assertions.mjs"
+                assertions = execute(["node", str(adapter), str(root), repo["repository"]], root,
+                                     out / "assertions.log", max(0.01, deadline - time.monotonic()), ctx.env)
+                if assertions["exit"] or assertions["timeout"]:
+                    result["reason"] = "Type assertion setup failed; see assertions.log"
+                    return result
             result.update(check_projects(root, configs, ctx, out, check_timeout, max_configs))
             return result
         except (OSError, ValueError, subprocess.CalledProcessError) as error:
@@ -491,9 +518,10 @@ def run_shard(args: argparse.Namespace, manifest: dict) -> None:
     write_json(path, report)
     for repo in manifest["repositories"][args.shard::manifest["shards"]]:
         name = repo["repository"]
+        source = ROOT / "tools/repo-conformance/fixtures/type-challenges" if repo.get("fixture") else None
         result = check_in_container(repo, args.tsgo.resolve(), args.tsrs.resolve(), args.out / name.replace("/", "--"),
                                     args.cache.resolve(), args.setup_timeout, args.check_timeout, args.max_configs,
-                                    args.sandbox_image)
+                                    args.sandbox_image, source)
         results.append(result)
         write_json(path, report)
         print(f"{name}: {result['status']}", flush=True)
@@ -626,6 +654,15 @@ def summarize(manifest: dict, directory: Path, out: Path, previous: Path | None 
             else:
                 results[name] = result
     errors.extend(f"Missing repository result: {name}" for name in sorted(pinned.keys() - results.keys()))
+    for name in (*TYPE_SUITES, CHALLENGES):
+        if name not in pinned or name not in results:
+            continue
+        result = results[name]
+        if not any(c["status"] in COMPARED for c in result["configs"]):
+            errors.append(f"{name}: its type suite did not complete a comparison")
+        if name == CHALLENGES and not any(c["status"] == "match" and c["tsgo"]["exit"] == 0 and
+                                          c["tsrs"]["exit"] == 0 for c in result["configs"]):
+            errors.append(f"{name}: known solutions did not pass both compilers")
     if set(reports) != set(range(manifest["shards"])):
         errors.append("Some shard reports are missing")
     counts = Counter(r["status"] for r in results.values())
@@ -682,7 +719,9 @@ def summarize(manifest: dict, directory: Path, out: Path, previous: Path | None 
         matching = sum(c["status"] == "match" for c in r["configs"])
         done = sum(c["status"] in ("match", "mismatch") for c in r["configs"])
         text = detail(r).replace("|", "\\|").replace("\n", " ")[:500]
-        lines.append(f"| [{name}](https://github.com/{name}) | `{r.get('commit') or pinned[name] or ''}` | {r['status']} | "
+        url = (f"https://github.com/oxc-project/tsrs/tree/{pinned[name]}/tools/repo-conformance/fixtures/type-challenges"
+               if name == CHALLENGES else f"https://github.com/{name}")
+        lines.append(f"| [{name}]({url}) | `{r.get('commit') or pinned[name] or ''}` | {r['status']} | "
                      f"{r.get('strict_status', '')} | {matching} / {done} | {r.get('available_configs', 0)} | {text} |")
     if errors:
         lines.extend(["", "## Incomplete run", "", *("- " + e for e in errors)])
@@ -761,7 +800,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     plan = commands.add_parser("plan")
-    plan.add_argument("--count", type=positive, default=1000)
+    plan.add_argument("--count", type=positive, default=MAX_REPOSITORIES)
     plan.add_argument("--shards", type=positive, default=10)
     plan.add_argument("--out", type=Path, required=True)
     run = commands.add_parser("run")
@@ -790,8 +829,8 @@ def main() -> int:
     commands.add_parser("_repo", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.command == "plan":
-        if args.count > 1000 or args.shards > MAX_SHARDS:
-            parser.error("At most 1000 repositories and 20 shards")
+        if args.count > MAX_REPOSITORIES or args.shards > MAX_SHARDS:
+            parser.error(f"At most {MAX_REPOSITORIES} repositories and {MAX_SHARDS} shards")
         manifest = discover(args.count, args.shards, args.out)
         write_matrix(list(range(manifest["shards"])))
     elif args.command == "dispatch":

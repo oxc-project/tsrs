@@ -1,12 +1,19 @@
 // Small JSON object builder mirroring Go encoding/json tags (`omitempty`, `omitzero`).
 
+use rustc_hash::FxBuildHasher;
 use tsrs_checker::LiteralValue;
 use tsrs_core::collections::OrderedMap;
 use tsrs_core::json::Value;
 
-#[derive(Default)]
 pub(crate) struct Obj {
     map: OrderedMap<String, Value>,
+}
+
+impl Default for Obj {
+    fn default() -> Obj {
+        // Most response objects have a handful of fields: start with room for them instead of growing.
+        Obj { map: OrderedMap::with_capacity_and_hasher(8, FxBuildHasher) }
+    }
 }
 
 impl Obj {
@@ -54,14 +61,11 @@ impl Obj {
 
     /// Emits the fields in `order` (unknown fields keep their relative order at the end).
     pub(crate) fn build_ordered(mut self, order: &[&str]) -> Value {
-        let mut out = OrderedMap::default();
-        out.extend(
-            order
-                .iter()
-                .filter_map(|key| self.map.shift_remove(*key).map(|v| (key.to_string(), v))),
-        );
-        out.extend(self.map);
-        Value::Object(out)
+        // A stable sort: listed fields by their position in `order`, then the others as they were.
+        self.map.sort_by_cached_key(|key, _| {
+            order.iter().position(|o| *o == key.as_str()).unwrap_or(order.len())
+        });
+        Value::Object(self.map)
     }
 }
 

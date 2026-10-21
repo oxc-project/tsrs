@@ -134,6 +134,14 @@ impl CheckerHost for SessionHost<'_> {
         Ok(crate::sourcefiles::source_file_descriptor(file))
     }
 
+    fn source_file_descriptor_matches(
+        &self,
+        file: P<SourceFile>,
+        descriptor: &Value,
+    ) -> CheckerResult<bool> {
+        Ok(crate::sourcefiles::source_file_descriptor_matches(file, descriptor))
+    }
+
     fn source_file_node_id(&self, file: P<SourceFile>) -> CheckerResult<u64> {
         Ok(crate::sourcefiles::source_file_node_id(file))
     }

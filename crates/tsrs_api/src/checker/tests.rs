@@ -1894,3 +1894,62 @@ fn completions_at_a_client_offset_inside_a_character() {
         &h.sp(&format!(r#""file":"/p/main.ts","position":{at},"includeSymbol":false"#)),
     );
 }
+
+/// The allocation-free matcher agrees with building the descriptor and comparing, for the descriptor itself
+/// and for every member changed, retyped, removed, added or reordered.
+#[test]
+fn source_file_descriptor_matches_agrees_with_comparison() {
+    let host = fixture();
+    let program = host.program();
+    let main = program.get_source_file_by_path(&Path::new(MAIN_FILE)).unwrap();
+    let other = program.get_source_file_by_path(&Path::new("/p/other.ts")).unwrap();
+    let Value::Object(members) = crate::sourcefiles::source_file_descriptor(main) else {
+        panic!("descriptor is an object")
+    };
+    let with = |f: &dyn Fn(&mut tsrs_core::collections::OrderedMap<String, Value>)| {
+        let mut m = members.clone();
+        f(&mut m);
+        Value::Object(m)
+    };
+    let mut variants = vec![Value::Object(members.clone()), Value::Null, Value::String("x".into())];
+    variants.push(with(&|m| m.reverse()));
+    variants.push(with(&|m| {
+        m.insert("extra".into(), Value::Null);
+    }));
+    for (key, value) in &members {
+        variants.push(with(&|m| {
+            m.shift_remove(key);
+        }));
+        variants.push(with(&|m| {
+            m.insert(key.clone(), Value::Bool(true));
+        }));
+        let changed: Vec<Value> = match value {
+            Value::String(s) => vec![
+                Value::String(format!("{s}0")),
+                Value::String(format!("0{s}")),
+                Value::String(format!("+{s}")),
+                Value::String(String::new()),
+                Value::Number(s.parse().unwrap_or(1.0)),
+            ],
+            Value::Number(n) => vec![Value::Number(n + 1.0), Value::String(n.to_string())],
+            other => vec![other.clone(), Value::Null],
+        };
+        for c in changed {
+            variants.push(with(&|m| {
+                m.insert(key.clone(), c.clone());
+            }));
+        }
+    }
+    for file in [main, other] {
+        let built = crate::sourcefiles::source_file_descriptor(file);
+        for v in &variants {
+            assert_eq!(
+                crate::sourcefiles::source_file_descriptor_matches(file, v),
+                built == *v,
+                "{}",
+                json::marshal(v).unwrap()
+            );
+        }
+    }
+    assert!(crate::sourcefiles::source_file_descriptor_matches(main, &variants[0]));
+}

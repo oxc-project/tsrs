@@ -16,7 +16,7 @@ pub mod stringtable;
 pub use decoder::{DecodeError, DecodedNode, decode_nodes, decode_source_file};
 pub use encoder::{
     EncodeError, NodeIndexTable, build_node_index_table, encode_node, encode_source_file,
-    set_source_file_id, set_source_file_lease, source_file_hash,
+    set_source_file_id, set_source_file_lease, source_file_hash, source_file_hash_into,
 };
 pub use format::PROTOCOL_VERSION;
 pub use handle::{ParsedNodeHandle, node_handle, parse_node_handle, resolve_node_index};

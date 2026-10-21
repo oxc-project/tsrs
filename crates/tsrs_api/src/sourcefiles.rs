@@ -80,6 +80,44 @@ pub fn source_file_descriptor(file: P<SourceFile>) -> Value {
         .build()
 }
 
+/// `source_file_descriptor(file) == *descriptor` without building the descriptor: the same six members,
+/// with equal values.
+pub fn source_file_descriptor_matches(file: P<SourceFile>, descriptor: &Value) -> bool {
+    // Six distinct member names, each one of the descriptor's six, are exactly its members.
+    let Value::Object(members) = descriptor else { return false };
+    if members.len() != 6 {
+        return false;
+    }
+    let o = file.parse_options();
+    let key = u32::from(o.external_module_indicator_options.jsx)
+        | (u32::from(o.external_module_indicator_options.force) << 1);
+    let mut digits = [0u8; 32];
+    members.iter().all(|(name, value)| {
+        let text = match value {
+            Value::String(s) => Some(s.as_str()),
+            _ => None,
+        };
+        match name.as_str() {
+            "fileName" => text == Some(o.file_name.as_str()),
+            "path" => text == Some(o.path.as_str()),
+            "contentHash" => text == Some(codec::source_file_hash_into(&file, &mut digits)),
+            "parseOptionsKey" => {
+                text.and_then(|k| k.parse::<u32>().ok().filter(|_| k.len() == 1)) == Some(key)
+            }
+            "scriptKind" => *value == Value::Number(file.script_kind() as i32 as f64),
+            "nodeId" => text.is_some_and(|id| decimal_equals(id, source_file_node_id(file))),
+            _ => false,
+        }
+    })
+}
+
+/// Whether `text` is the decimal form of `n` (no sign or leading zeros), as `n.to_string()` would be.
+fn decimal_equals(text: &str, n: u64) -> bool {
+    !(text.len() > 1 && text.starts_with('0'))
+        && text.bytes().all(|b| b.is_ascii_digit())
+        && text.parse::<u64>() == Ok(n)
+}
+
 /// Go `SourceFileDescriptor.parseCacheKey`.
 fn parse_cache_key(d: &Value) -> Result<tsrs_project::ParseCacheKey, String> {
     let p = Params(d);

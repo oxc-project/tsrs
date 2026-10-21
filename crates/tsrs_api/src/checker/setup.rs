@@ -529,7 +529,10 @@ pub(crate) fn resolve_symbol_for_program(
             let path = r.file_path().unwrap_or_default();
             let source_file = program.get_source_file_by_path(&Path::new(path));
             let matches = match source_file {
-                Some(f) => Some(&sd.host.source_file_descriptor(f)?) == r.file.as_ref(),
+                Some(f) => match &r.file {
+                    Some(descriptor) => sd.host.source_file_descriptor_matches(f, descriptor)?,
+                    None => false,
+                },
                 None => false,
             };
             if !matches {

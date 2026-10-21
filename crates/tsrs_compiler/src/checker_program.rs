@@ -5,7 +5,7 @@ use tsrs_ast::{Node, SourceFile, SourceFileMetaData};
 use tsrs_core::tspath::Path;
 use tsrs_core::{CompilerOptions, ModuleKind, P, ResolutionMode};
 use tsrs_module::symlinks::KnownSymlinks;
-use tsrs_module::{ModeAwareCacheKey, ResolvedModule, packagejson};
+use tsrs_module::{ModeAwareCache, ResolvedModule, packagejson};
 use tsrs_tsoptions::{ParsedCommandLine, SourceOutputAndProjectReference};
 
 use crate::program::Program;
@@ -60,9 +60,7 @@ impl tsrs_checker::Program for Program {
         Program::get_resolved_module(self, current_source_file, module_reference, mode)
     }
 
-    fn get_resolved_modules(
-        &self,
-    ) -> &FxHashMap<Path, FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>> {
+    fn get_resolved_modules(&self) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>> {
         Program::get_resolved_modules(self)
     }
 

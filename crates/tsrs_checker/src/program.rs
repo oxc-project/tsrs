@@ -1,6 +1,6 @@
 use tsrs_core::tspath::Path;
 use tsrs_core::{CompilerOptions, ModuleKind, ResolutionMode};
-use tsrs_module::{ModeAwareCacheKey, ResolvedModule};
+use tsrs_module::{ModeAwareCache, ResolvedModule};
 
 use crate::*;
 
@@ -28,9 +28,7 @@ pub trait Program: Send + Sync {
         module_reference: &str,
         mode: ResolutionMode,
     ) -> Option<P<ResolvedModule>>;
-    fn get_resolved_modules(
-        &self,
-    ) -> &FxHashMap<Path, FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>>;
+    fn get_resolved_modules(&self) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>>;
     fn get_packages_map(&self) -> &FxHashMap<String, bool>;
     fn get_source_file_meta_data(&self, path: &Path) -> ast::SourceFileMetaData;
     /// Go `(moduleReference string, specifier *ast.Node)`.

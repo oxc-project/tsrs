@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
-use rustc_hash::FxHashMap;
+use hashbrown::{Equivalent, HashMap};
+use rustc_hash::FxBuildHasher;
 use tsrs_core::collections::{OrderedMap, SyncMap};
 use tsrs_core::tspath::Path;
 use tsrs_core::{CompilerOptions, P, ResolutionMode};
@@ -12,7 +13,46 @@ use crate::types::{
     ResolvedTypeReferenceDirective,
 };
 
-pub type ModeAwareCache<T> = FxHashMap<ModeAwareCacheKey, T>;
+pub type ModeAwareCache<T> = HashMap<ModeAwareCacheKey, T, FxBuildHasher>;
+
+#[derive(Hash)]
+struct ModeAwareCacheLookup<'a> {
+    name: &'a str,
+    mode: ResolutionMode,
+}
+
+impl Equivalent<ModeAwareCacheKey> for ModeAwareCacheLookup<'_> {
+    fn equivalent(&self, key: &ModeAwareCacheKey) -> bool {
+        self.name == key.name && self.mode == key.mode
+    }
+}
+
+/// Looks up a mode-aware cache without allocating or requiring a static name.
+pub fn mode_aware_cache_get<'a, T>(
+    cache: &'a ModeAwareCache<T>,
+    name: &str,
+    mode: ResolutionMode,
+) -> Option<&'a T> {
+    cache.get(&ModeAwareCacheLookup { name, mode })
+}
+
+#[cfg(test)]
+mod tests {
+    use tsrs_core::ModuleKind;
+
+    use super::*;
+
+    #[test]
+    fn mode_aware_cache_get_borrows_name_and_checks_mode() {
+        let mut cache = ModeAwareCache::default();
+        cache.insert(ModeAwareCacheKey { name: "pkg", mode: ModuleKind::ESNext }, 1);
+        cache.insert(ModeAwareCacheKey { name: "pkg", mode: ModuleKind::CommonJS }, 2);
+
+        assert_eq!(mode_aware_cache_get(&cache, "pkg", ModuleKind::ESNext), Some(&1));
+        assert_eq!(mode_aware_cache_get(&cache, "pkg", ModuleKind::CommonJS), Some(&2));
+        assert_eq!(mode_aware_cache_get(&cache, "other", ModuleKind::ESNext), None);
+    }
+}
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub(crate) struct ModuleResolutionCacheKey {

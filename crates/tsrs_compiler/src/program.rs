@@ -1247,11 +1247,7 @@ impl Program {
         mode: ResolutionMode,
     ) -> Option<P<ResolvedModule>> {
         let resolutions = self.resolved_modules.get(path)?;
-        // Keys hold `&'static str`; a borrowed name cannot build a lookup key, and per-file caches are small.
-        resolutions
-            .iter()
-            .find(|(k, _)| k.name == module_reference && k.mode == mode)
-            .map(|(_, v)| *v)
+        tsrs_module::mode_aware_cache_get(resolutions, module_reference, mode).copied()
     }
 
     pub fn get_resolved_module_from_module_specifier(

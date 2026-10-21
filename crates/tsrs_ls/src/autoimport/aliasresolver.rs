@@ -7,7 +7,7 @@ use tsrs_core::tspath::{self, Path};
 use tsrs_core::{CompilerOptions, ModuleKind, P, ResolutionMode, Tristate, alloc_str};
 use tsrs_module::packagejson::InfoCacheEntry;
 use tsrs_module::symlinks::KnownSymlinks;
-use tsrs_module::{DefaultResolver, ModeAwareCacheKey, ResolvedModule};
+use tsrs_module::{DefaultResolver, ModeAwareCache, ModeAwareCacheKey, ResolvedModule};
 use tsrs_modulespecifiers::ModuleSpecifierGenerationHost;
 use tsrs_tsoptions::outputpaths::OutputPathsHost;
 use tsrs_tsoptions::{ParsedCommandLine, SourceOutputAndProjectReference};
@@ -34,12 +34,11 @@ pub(crate) struct aliasResolver {
     // symlinks maps from realpath to symlinked path and file name
     pub(crate) symlinks: FxHashMap<Path, pathAndFileName>,
     on_failed_ambient_module_lookup: OnFailedAmbientModuleLookup,
-    resolved_modules:
-        Mutex<FxHashMap<Path, Arc<Mutex<FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>>>>>,
+    resolved_modules: Mutex<FxHashMap<Path, Arc<Mutex<ModeAwareCache<P<ResolvedModule>>>>>>,
 
     options: P<CompilerOptions>,
     root_files_static: &'static [P<SourceFile>],
-    empty_resolved_modules: FxHashMap<Path, FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>>,
+    empty_resolved_modules: FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>>,
     empty_packages_map: FxHashMap<String, bool>,
 }
 
@@ -148,10 +147,12 @@ impl checker::Program for aliasResolver {
                 .entry(current_source_file.path().clone())
                 .or_default(),
         );
-        let key = ModeAwareCacheKey { name: alloc_str(module_reference), mode };
-        if let Some(&resolved) = cache.lock().unwrap().get(&key) {
+        if let Some(&resolved) =
+            tsrs_module::mode_aware_cache_get(&cache.lock().unwrap(), module_reference, mode)
+        {
             return Some(resolved);
         }
+        let key = ModeAwareCacheKey { name: alloc_str(module_reference), mode };
         let (resolved, _) = self
             .module_resolver
             .resolve_module_name(module_reference, current_source_file.file_name(), mode, None)
@@ -164,9 +165,7 @@ impl checker::Program for aliasResolver {
     }
 
     // aliasresolver.go:136
-    fn get_resolved_modules(
-        &self,
-    ) -> &FxHashMap<Path, FxHashMap<ModeAwareCacheKey, P<ResolvedModule>>> {
+    fn get_resolved_modules(&self) -> &FxHashMap<Path, ModeAwareCache<P<ResolvedModule>>> {
         // only used when producing diagnostics, which hopefully the checker won't do
         &self.empty_resolved_modules
     }

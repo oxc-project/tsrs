@@ -14,7 +14,6 @@ import os
 from pathlib import Path
 import platform
 import re
-import shutil
 import signal
 import subprocess
 import sys
@@ -43,8 +42,8 @@ SHA = re.compile(r"[0-9a-f]{40}\Z")
 WORKFLOW = ".github/workflows/repo-conformance.yml"
 MAX_SHARDS = 20
 MAX_REPOSITORIES = 1000
-TYPE_SUITES = ("sindresorhus/type-fest", "millsp/ts-toolbelt")
-CHALLENGES = "fixtures/type-challenges"
+CHALLENGES = "type-challenges/type-challenges"
+TYPE_SUITES = ("sindresorhus/type-fest", "millsp/ts-toolbelt", CHALLENGES)
 # Recorded in manifests. A rerun's workflow comes from the dispatch commit but runs the manifest's harness, so bump
 # this when the workflow's arguments, isolation contract or report merging rules change; other versions are refused.
 HARNESS = 5
@@ -150,7 +149,6 @@ def discover(count: int, shards: int, out: Path) -> dict:
         env = child_env(Path(temp) / "home", Path(temp) / "cache")
         for repo, commit in zip(selected, pool.map(lambda r: head_commit(r, env), selected)):
             repo["commit"] = commit
-    selected.append({"repository": CHALLENGES, "commit": tsrs_commit, "fixture": True})
     manifest = {
         "created_at": dt.datetime.now(dt.timezone.utc).isoformat(), "query": QUERY,
         "tsrs_commit": tsrs_commit,
@@ -444,33 +442,34 @@ def check_repo(repo: dict, tsgo: Path, tsrs: Path, out: Path, cache: Path, setup
         ctx = Context(tsgo, tsrs, child_env(Path(temp) / "home", cache))
         try:
             deadline = time.monotonic() + setup_timeout
-            if repo.get("fixture"):
-                if repo["repository"] != CHALLENGES or not source:
-                    raise ValueError("Unknown fixture")
-                shutil.copytree(source, root)
-                result["commit"] = repo["commit"]
-                tracked = [p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()]
+            url = str(source) if source else "https://github.com/" + repo["repository"] + ".git"
+            if repo.get("commit"):
+                clone = ["sh", "-c", 'git init -q "$1" && git -C "$1" fetch -q --depth 1 "$2" "$3" && '
+                         'git -C "$1" checkout -q FETCH_HEAD', "clone", str(root), url, repo["commit"]]
             else:
-                url = str(source) if source else "https://github.com/" + repo["repository"] + ".git"
-                if repo.get("commit"):
-                    clone = ["sh", "-c", 'git init -q "$1" && git -C "$1" fetch -q --depth 1 "$2" "$3" && '
-                             'git -C "$1" checkout -q FETCH_HEAD', "clone", str(root), url, repo["commit"]]
-                else:
-                    clone = ["git", "clone", "--depth", "1", "--single-branch", "--branch", repo["branch"], url, str(root)]
-                cloned = execute(clone, Path(temp), out / "clone.log", min(60, setup_timeout), ctx.env)
-                if cloned["exit"] or cloned["timeout"]:
-                    result["reason"] = f"Clone {'timed out' if cloned['timeout'] else 'failed'}; see clone.log"
-                    return result
-                result["commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, env=ctx.env,
-                                                           text=True).strip()
-                tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root, env=ctx.env).decode().split("\0")
+                clone = ["git", "clone", "--depth", "1", "--single-branch", "--branch", repo["branch"], url, str(root)]
+            cloned = execute(clone, Path(temp), out / "clone.log", min(60, setup_timeout), ctx.env)
+            if cloned["exit"] or cloned["timeout"]:
+                result["reason"] = f"Clone {'timed out' if cloned['timeout'] else 'failed'}; see clone.log"
+                return result
+            result["commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, env=ctx.env,
+                                                       text=True).strip()
+            tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root, env=ctx.env).decode().split("\0")
             configs = sorted((p for p in tracked if Path(p).name == "tsconfig.json" and "node_modules" not in Path(p).parts),
                              key=lambda p: (len(Path(p).parts), p))
             result["available_configs"] = len(configs)
             if not configs:
                 result.update(status="no_config", reason="No tracked tsconfig.json")
                 return result
-            plan = install_plan(root)
+            if repo["repository"] == CHALLENGES:
+                adapter = ROOT / "tools/repo-conformance/type-challenges.mjs"
+                prepared = execute(["node", str(adapter), str(root)], root, out / "assertions.log",
+                                   max(0.01, deadline - time.monotonic()), ctx.env)
+                if prepared["exit"] or prepared["timeout"]:
+                    result["reason"] = "Type challenge setup failed; see assertions.log"
+                    return result
+                configs = ["tsconfig.json"]
+            plan = None if repo["repository"] == CHALLENGES else install_plan(root)
             if plan:
                 result["dependencies"] = plan["dependencies"]
                 command = plan["command"]
@@ -488,7 +487,7 @@ def check_repo(repo: dict, tsgo: Path, tsrs: Path, out: Path, cache: Path, setup
                     result["reason"] = (f"Dependency installation {'timed out' if install['timeout'] else 'failed'}"
                                         f" ({plan['manager']}); see install.log")
                     return result
-            if repo["repository"] in TYPE_SUITES:
+            if repo["repository"] in TYPE_SUITES and repo["repository"] != CHALLENGES:
                 adapter = ROOT / "tools/repo-conformance/type-assertions.mjs"
                 assertions = execute(["node", str(adapter), str(root), repo["repository"]], root,
                                      out / "assertions.log", max(0.01, deadline - time.monotonic()), ctx.env)
@@ -518,10 +517,9 @@ def run_shard(args: argparse.Namespace, manifest: dict) -> None:
     write_json(path, report)
     for repo in manifest["repositories"][args.shard::manifest["shards"]]:
         name = repo["repository"]
-        source = ROOT / "tools/repo-conformance/fixtures/type-challenges" if repo.get("fixture") else None
         result = check_in_container(repo, args.tsgo.resolve(), args.tsrs.resolve(), args.out / name.replace("/", "--"),
                                     args.cache.resolve(), args.setup_timeout, args.check_timeout, args.max_configs,
-                                    args.sandbox_image, source)
+                                    args.sandbox_image)
         results.append(result)
         write_json(path, report)
         print(f"{name}: {result['status']}", flush=True)
@@ -654,7 +652,7 @@ def summarize(manifest: dict, directory: Path, out: Path, previous: Path | None 
             else:
                 results[name] = result
     errors.extend(f"Missing repository result: {name}" for name in sorted(pinned.keys() - results.keys()))
-    for name in (*TYPE_SUITES, CHALLENGES):
+    for name in TYPE_SUITES:
         if name not in pinned or name not in results:
             continue
         result = results[name]
@@ -719,8 +717,7 @@ def summarize(manifest: dict, directory: Path, out: Path, previous: Path | None 
         matching = sum(c["status"] == "match" for c in r["configs"])
         done = sum(c["status"] in ("match", "mismatch") for c in r["configs"])
         text = detail(r).replace("|", "\\|").replace("\n", " ")[:500]
-        url = (f"https://github.com/oxc-project/tsrs/tree/{pinned[name]}/tools/repo-conformance/fixtures/type-challenges"
-               if name == CHALLENGES else f"https://github.com/{name}")
+        url = f"https://github.com/{name}"
         lines.append(f"| [{name}]({url}) | `{r.get('commit') or pinned[name] or ''}` | {r['status']} | "
                      f"{r.get('strict_status', '')} | {matching} / {done} | {r.get('available_configs', 0)} | {text} |")
     if errors:

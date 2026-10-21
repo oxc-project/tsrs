@@ -20,6 +20,9 @@ def launch(image: str, worker: Path, tsgo: Path, tsrs: Path, work: Path, request
     name = "tsrs-conformance-" + uuid.uuid4().hex
     mounts = [(worker, "/harness/tools/repo-conformance/run.py", True),
               (worker.with_name("type-assertions.mjs"), "/harness/tools/repo-conformance/type-assertions.mjs", True),
+              (worker.with_name("type-challenges.mjs"), "/harness/tools/repo-conformance/type-challenges.mjs", True),
+              (worker.with_name("fixtures") / "type-challenges",
+               "/harness/tools/repo-conformance/fixtures/type-challenges", True),
               (tsgo, "/inputs/tsgo", True),
               (tsrs, "/inputs/tsrs", True), (request, "/request.json", True), (work, "/work", False)]
     if source:

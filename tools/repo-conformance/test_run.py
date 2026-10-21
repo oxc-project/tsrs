@@ -2,7 +2,6 @@ import io
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -10,7 +9,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from run import (CHALLENGES, HARNESS, MODES, ROOT, TYPE_SUITES, Context, check_config, check_projects, check_repo,
+from run import (CHALLENGES, HARNESS, MODES, TYPE_SUITES, Context, check_config, check_projects,
                  child_env, compare, difference, discover, execute, install_plan, read_compilation, summarize,
                  write_json)
 
@@ -129,7 +128,7 @@ class SelectionTests(unittest.TestCase):
         names = [repo["repository"] for repo in manifest["repositories"]]
         self.assertEqual((len(names), manifest["shards"]), (1003, 20))
         self.assertEqual(names[:2], ["popular/repo0", "popular/repo1"])
-        self.assertEqual(names[-3:], [*TYPE_SUITES, CHALLENGES])
+        self.assertEqual(names[-3:], list(TYPE_SUITES))
         self.assertTrue(all(len(repo["commit"]) == 40 for repo in manifest["repositories"]))
 
 
@@ -270,7 +269,7 @@ class ReportTests(unittest.TestCase):
             self.assertIn("Missing repository result: a/two", out.read_text())
 
     def test_type_suites_must_complete_and_known_solutions_must_pass(self):
-        names = [*TYPE_SUITES, CHALLENGES]
+        names = list(TYPE_SUITES)
         manifest = {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 1,
                     "repositories": [{"repository": name} for name in names]}
         def result(name, code=0):
@@ -447,25 +446,6 @@ class ReportTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get("TSRS_CONFORMANCE_TSRS") and os.environ.get("TSRS_CONFORMANCE_TSGO"),
                      "Set TSRS_CONFORMANCE_TSRS and TSRS_CONFORMANCE_TSGO to run real compiler controls")
 class CompilerControls(unittest.TestCase):
-    def test_known_type_challenge_solutions_are_checked_as_a_fixture(self):
-        tsrs = Path(os.environ["TSRS_CONFORMANCE_TSRS"]).resolve()
-        tsgo = Path(os.environ["TSRS_CONFORMANCE_TSGO"]).resolve()
-        source = ROOT / "tools/repo-conformance/fixtures/type-challenges"
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            repo = {"repository": CHALLENGES, "commit": "a" * 40, "fixture": True}
-            result = check_repo(repo, tsgo, tsrs, root / "logs", root / "cache", 30, 30, 5, source)
-            self.assertEqual((result["status"], result["strict_status"]), ("match", "match"), result)
-            self.assertEqual(result["configs"][0]["tsgo"]["exit"], 0)
-            self.assertEqual(result["configs"][0]["tsrs"]["exit"], 0)
-            broken = root / "broken"
-            shutil.copytree(source, broken)
-            file = broken / "easy.ts"
-            file.write_text(file.read_text().replace("type MyPick<T, K extends keyof T> = { [P in K]: T[P] };",
-                                                     "type MyPick<T, K extends keyof T> = any;"))
-            changed = check_config(broken, "tsconfig.json", context(tsgo, tsrs, root), root / "changed", 10)
-            self.assertEqual(changed["tsgo"]["exit"], 2)
-
     def test_repeated_composite_checks_do_not_reuse_diagnostics(self):
         tsrs = Path(os.environ["TSRS_CONFORMANCE_TSRS"]).resolve()
         tsgo = Path(os.environ["TSRS_CONFORMANCE_TSGO"]).resolve()

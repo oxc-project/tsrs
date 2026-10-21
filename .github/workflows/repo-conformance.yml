@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: Number of popular repositories (1-1000), plus type suites and known solutions
+        description: Number of popular repositories (1-1000), plus type-challenges, type-fest and ts-toolbelt
         type: number
         default: 1000
       rerun_run_id:
@@ -142,6 +142,8 @@ jobs:
             --tmpfs /tmp:rw,nosuid,nodev,mode=1777,size=256m \
             --mount "type=bind,source=$PWD/tools/repo-conformance/test_type_assertions.mjs,target=/tests/test_type_assertions.mjs,readonly" \
             --mount "type=bind,source=$PWD/tools/repo-conformance/type-assertions.mjs,target=/tests/type-assertions.mjs,readonly" \
+            --mount "type=bind,source=$PWD/tools/repo-conformance/type-challenges.mjs,target=/tests/type-challenges.mjs,readonly" \
+            --mount "type=bind,source=$PWD/tools/repo-conformance/fixtures/type-challenges,target=/tests/fixtures/type-challenges,readonly" \
             --mount "type=bind,source=$PWD/repo-conformance/bin/tsgo,target=/inputs/tsgo,readonly" \
             --mount "type=bind,source=$PWD/repo-conformance/bin/tsrs,target=/inputs/tsrs,readonly" \
             --env TSRS_CONFORMANCE_TYPESCRIPT=/usr/local/lib/node_modules/typescript \

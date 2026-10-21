@@ -7,6 +7,8 @@ import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 
 const adapter = fileURLToPath(new URL('./type-assertions.mjs', import.meta.url));
+const challengeAdapter = fileURLToPath(new URL('./type-challenges.mjs', import.meta.url));
+const challengeSolutions = fileURLToPath(new URL('./fixtures/type-challenges/solutions/', import.meta.url));
 const parser = process.env.TSRS_CONFORMANCE_TYPESCRIPT;
 const tsgo = process.env.TSRS_CONFORMANCE_TSGO;
 const tsrs = process.env.TSRS_CONFORMANCE_TSRS;
@@ -126,6 +128,54 @@ test('unsupported tsd assertions stop setup', {skip: !enabled}, () => {
     const transformed = run(root, process.execPath, [adapter, root, 'sindresorhus/type-fest']);
     assert.notEqual(transformed.status, 0);
     assert.match(transformed.stderr, /unsupported tsd assertion expectDeprecated/);
+  } finally {
+    fs.rmSync(root, {recursive: true, force: true});
+  }
+});
+
+test('type-challenges solutions compile upstream-style assertions and reject a wrong answer', {skip: !enabled}, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'tsrs-type-challenges-'));
+  try {
+    fs.mkdirSync(path.join(root, 'utils'));
+    fs.writeFileSync(path.join(root, 'utils', 'index.d.ts'), `
+export type Expect<T extends true> = T;
+export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends
+  (<T>() => T extends Y ? 1 : 2) ? true : false;
+`);
+    const names = fs.readdirSync(challengeSolutions).filter(name => name.endsWith('.ts'));
+    for (const name of names) {
+      const directory = path.join(root, 'questions', name.slice(0, -3));
+      fs.mkdirSync(directory, {recursive: true});
+      fs.writeFileSync(path.join(directory, 'template.ts'), 'type Unsolved = any;\n');
+      fs.writeFileSync(path.join(directory, 'test-cases.ts'), name.startsWith('00004-') ? `
+import type {Equal, Expect} from '@type-challenges/utils';
+interface Todo { title: string; completed: boolean }
+type cases = [
+  Expect<Equal<MyPick<Todo, 'title'>, {title: string}>>,
+  // @ts-expect-error
+  MyPick<Todo, 'missing'>,
+];
+` : `
+import type {Equal, Expect} from '@type-challenges/utils';
+type cases = [Expect<Equal<1, 1>>];
+`);
+    }
+    const prepared = run(root, process.execPath, [challengeAdapter, root]);
+    assert.equal(prepared.status, 0, prepared.stderr);
+    assert.match(prepared.stdout, new RegExp(`${names.length} upstream challenge cases`));
+    const config = JSON.parse(fs.readFileSync(path.join(root, 'tsconfig.json'), 'utf8'));
+    assert.equal(config.files.length, names.length * 2);
+    for (const compiler of [tsgo, tsrs]) {
+      const good = run(root, compiler, ['-p', 'tsconfig.json', '--pretty', 'false']);
+      assert.equal(good.status, 0, good.stdout);
+    }
+    fs.writeFileSync(path.join(root, 'questions', '00004-easy-pick', 'template.ts'),
+      'type MyPick<T, K extends keyof T> = any;\n');
+    for (const compiler of [tsgo, tsrs]) {
+      const bad = run(root, compiler, ['-p', 'tsconfig.json', '--pretty', 'false']);
+      assert.equal(bad.status, 2, bad.stdout);
+      assert.match(bad.stdout, /TS2344/);
+    }
   } finally {
     fs.rmSync(root, {recursive: true, force: true});
   }

@@ -36,6 +36,17 @@ impl Id {
     }
 }
 
+impl Id {
+    /// The `Display` text, borrowed when the id is a non-empty string (the msgpack protocol's ids are method
+    /// names, written on every response).
+    pub fn text(&self) -> std::borrow::Cow<'_, str> {
+        match self {
+            Id::Str(s) if !s.is_empty() => std::borrow::Cow::Borrowed(s),
+            _ => std::borrow::Cow::Owned(self.to_string()),
+        }
+    }
+}
+
 impl fmt::Display for Id {
     // jsonrpc.go ID.String.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

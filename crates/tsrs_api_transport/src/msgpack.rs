@@ -140,7 +140,9 @@ impl<R: Read + Send> ProtocolReader for MessagePackReader<R> {
     /// `protocol_msgpack.go` `ReadMessage`. The protocol has no request IDs: the method name is the ID.
     fn read_message(&mut self) -> Result<Message, TransportError> {
         let tuple = self.read_tuple()?;
-        let method = tsrs_core::utf8::from_utf8_lossy(&tuple.method).into_owned();
+        // Method names are UTF-8, so the bin's buffer usually becomes the string as it is.
+        let method = String::from_utf8(tuple.method)
+            .unwrap_or_else(|e| tsrs_core::utf8::from_utf8_lossy(e.as_bytes()).into_owned());
         let mut msg = Message::default();
         match tuple.msg_type {
             MessageType::Request => {
@@ -235,7 +237,7 @@ impl<W: Write + Send> ProtocolWriter for MessagePackWriter<W> {
     }
 
     fn write_response(&mut self, id: &Id, result: &Response) -> Result<(), TransportError> {
-        let method = id.to_string();
+        let method = id.text();
         let payload: &[u8] = match result {
             // json.Marshal of a json.Value validates it.
             Response::Json(json) => {
@@ -247,7 +249,7 @@ impl<W: Write + Send> ProtocolWriter for MessagePackWriter<W> {
     }
 
     fn write_error(&mut self, id: &Id, err: &ResponseError) -> Result<(), TransportError> {
-        let method = id.to_string();
+        let method = id.text();
         self.write_tuple(MessageType::Error, method.as_bytes(), err.message.as_bytes())
     }
 }

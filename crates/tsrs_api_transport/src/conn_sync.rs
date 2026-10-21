@@ -230,7 +230,7 @@ impl SyncConn {
                     }
                     Err(e) => return Err(e),
                 };
-                if msg.is_response() && msg.id.as_ref().is_some_and(|id| id.to_string() == method) {
+                if msg.is_response() && msg.id.as_ref().is_some_and(|id| id.text() == method) {
                     if let Some(err) = msg.error {
                         return Err(TransportError::Remote(err));
                     }

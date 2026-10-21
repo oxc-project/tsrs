@@ -85,7 +85,11 @@ fn main() {
     // native API server (docs/NODE_API.md).
     if args.first().map(String::as_str) == Some("--lsp") {
         signals::notify_interrupts();
-        std::process::exit(lsp::run_lsp(&args[1..]));
+        let status = lsp::run_lsp(&args[1..]);
+        // TSRS_MEM_SPLIT=1: the server's split at exit, as for a compile (tools/lsp-mem/lifecycle_leaks.py).
+        tsrs_core::memsplit::report("exit");
+        let _ = std::io::Write::flush(&mut std::io::stderr());
+        std::process::exit(status);
     }
     if args.first().map(String::as_str) == Some("--api") {
         // Checking recurses deeply; serve requests on a large stack like the command line below.
@@ -97,6 +101,9 @@ fn main() {
             .unwrap()
             .join()
             .unwrap_or(1);
+        // TSRS_MEM_SPLIT=1: the server's split at exit, as for a compile (tools/lsp-mem/lifecycle_leaks.py).
+        tsrs_core::memsplit::report("exit");
+        let _ = std::io::Write::flush(&mut std::io::stderr());
         std::process::exit(status);
     }
     // Type checking recurses deeply; run on a thread with a large stack

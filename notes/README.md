@@ -50,6 +50,8 @@ starting another experiment.
 - [Protocol quoting styles](shared-go-compat.md): shared helpers retain each caller's escaping behavior.
 - [Language-server memory ownership](lsp-mem.md) and [lifetime corrections](lsp-memfix.md): regions, snapshots
   and checker disposal.
+- [Memory across repeated program lifecycles](lifecycle-leaks.md): watch, language-server and API cycles measured
+  for growth per cycle; the config-file load that each snapshot keeps.
 
 ## Subsystems and earlier work
 

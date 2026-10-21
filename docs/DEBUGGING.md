@@ -218,7 +218,9 @@ heap live + heap retained (in pages, outside pages) | stacks | file` (`crates/ts
 notes/mem-linux-residency-32.md). `TSRS_MEM_SPLIT=purge` also has mimalloc purge its freed memory after `check end`
 (`mi_collect(true)`) and prints the split again. `tools/perf/slackprobe.sh` runs it on the selected GitHub-hosted runner
 with interleaved timed reps when the disabled `.github/workflows/perf-probe.yml.bak` is restored to `perf-probe.yml`
-(`ubuntu-24.04` by default).
+(`ubuntu-24.04` by default). The `--lsp` and `--api` servers print the `exit` split too;
+`tools/lsp-mem/lifecycle_leaks.py --split` drives a server through repeated program lifecycles and reports, per cycle,
+what stays used in the thread arenas and live in the heap (notes/lifecycle-leaks.md).
 
 ## Optional build features
 

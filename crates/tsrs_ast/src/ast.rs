@@ -2000,6 +2000,9 @@ pub struct SourceFile {
 
     // Go `declarationMapMu`, `declarationMap` (workspace symbols), see get_declaration_map
     declaration_map: OnceLock<FxHashMap<String, Vec<P<Node>>>>,
+
+    // Go `sourceFileSymbolIndexKey` data (api/session.go getSourceFileSymbolIndex), see get_or_compute_api_symbol_index
+    api_symbol_index: OnceLock<FxHashMap<u64, P<Symbol>>>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -2077,6 +2080,7 @@ impl NodeFactory {
                 position_map: OnceLock::new(),
                 token_cache: std::sync::Mutex::new(FxHashMap::default()),
                 declaration_map: OnceLock::new(),
+                api_symbol_index: OnceLock::new(),
             },
         );
         node.as_source_file().node.set(Some(node));
@@ -2700,6 +2704,18 @@ impl SourceFile {
         }
         let _region = self.owner_region();
         self.declaration_map.get_or_init(|| self.compute_declaration_map())
+    }
+
+    // Go `GetOrComputeData(sourceFileSymbolIndexKey, ...)`: the API's file-owned symbols by id, computed once.
+    pub fn get_or_compute_api_symbol_index(
+        &self,
+        compute: impl FnOnce() -> FxHashMap<u64, P<Symbol>>,
+    ) -> &FxHashMap<u64, P<Symbol>> {
+        if let Some(m) = self.api_symbol_index.get() {
+            return m;
+        }
+        let _region = self.owner_region();
+        self.api_symbol_index.get_or_init(compute)
     }
 
     // ast.go:2982

@@ -133,6 +133,41 @@ test('unsupported tsd assertions stop setup', {skip: !enabled}, () => {
   }
 });
 
+test('nz assertions are included and checked by both compilers', {skip: !enabled}, () => {
+  const root = checkout(`
+import {expectTypeOf as check} from 'nz';
+declare const value: string;
+check(value).toBe<string>();
+`, 'sindresorhus/type-fest');
+  try {
+    const module = path.join(root, 'node_modules', 'nz');
+    fs.mkdirSync(module, {recursive: true});
+    fs.writeFileSync(path.join(module, 'package.json'), '{"types":"index.d.ts"}\n');
+    fs.writeFileSync(path.join(module, 'index.d.ts'), `
+type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends
+  (<T>() => T extends B ? 1 : 2) ? true : false;
+type ToBe<A, E> = Equal<A, E> extends true ? unknown : {actual: A};
+export declare function expectTypeOf<A>(value: A): {toBe<E extends ToBe<A, E>>(): void};
+`);
+    const prepared = run(root, process.execPath, [adapter, root, 'sindresorhus/type-fest']);
+    assert.equal(prepared.status, 0, prepared.stderr);
+    assert.match(prepared.stdout, /1 nz assertions checked/);
+    for (const compiler of [tsgo, tsrs]) {
+      const good = run(root, compiler, ['-p', 'tsconfig.json', '--pretty', 'false']);
+      assert.equal(good.status, 0, good.stdout);
+    }
+    const testFile = path.join(root, 'test-d', 'assert.ts');
+    fs.writeFileSync(testFile, fs.readFileSync(testFile, 'utf8').replace('toBe<string>()', 'toBe<number>()'));
+    for (const compiler of [tsgo, tsrs]) {
+      const bad = run(root, compiler, ['-p', 'tsconfig.json', '--pretty', 'false']);
+      assert.equal(bad.status, 2, bad.stdout);
+      assert.match(bad.stdout, /TS2344/);
+    }
+  } finally {
+    fs.rmSync(root, {recursive: true, force: true});
+  }
+});
+
 test('type-challenges solutions compile upstream-style assertions and reject a wrong answer', {skip: !enabled}, () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'tsrs-type-challenges-'));
   try {

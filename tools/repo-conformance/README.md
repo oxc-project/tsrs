@@ -35,9 +35,10 @@ covering easy, medium and hard challenges. Its root config then compiles those c
 files against the upstream `@type-challenges/utils` assertions, including `Expect`, `Equal`, `Alike` and
 `@ts-expect-error`. The other unsolved templates are excluded, and no package install is needed. The report requires
 these known solutions to pass with both compilers. `type-fest`'s `test-d` files and `ts-toolbelt`'s `tests` are included
-in their root projects. For type-fest,
-the disposable checkout rewrites `tsd` assertions to compiler-enforced checks, including negative `expectError`
-checks; it refuses assertion forms it cannot evaluate. For ts-toolbelt, the disposable checkout removes its obsolete
+in their root projects. Type-fest's current `nz` assertions are compiler-enforced already; the harness verifies that
+they are present and included. For versions using `tsd`, the disposable checkout rewrites its assertions to
+compiler-enforced checks, including negative `expectError` checks. Unknown assertion forms fail setup. For ts-toolbelt,
+the disposable checkout removes its obsolete
 `suppressImplicitAnyIndexErrors` option so the `Test.check` / `checks` calls are type-checked. These changes are applied
 equally to both compilers; the source repositories remain pinned and untouched.
 

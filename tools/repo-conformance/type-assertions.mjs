@@ -130,6 +130,44 @@ function transform(file) {
   return count;
 }
 
+function countNz(file) {
+  const input = fs.readFileSync(file, 'utf8');
+  if (!/from\s*['"]nz['"]/.test(input)) return 0;
+  const source = ts.createSourceFile(file, input, ts.ScriptTarget.Latest, true,
+    file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  if (source.parseDiagnostics.length) throw new Error(`${file}: TypeScript could not parse nz assertions`);
+  const imports = new Set();
+  for (const statement of source.statements) {
+    if (!ts.isImportDeclaration(statement) || statement.moduleSpecifier.text !== 'nz') continue;
+    const bindings = statement.importClause?.namedBindings;
+    if (!bindings || !ts.isNamedImports(bindings) || statement.importClause.isTypeOnly) {
+      throw new Error(`${file}: unsupported nz import`);
+    }
+    for (const element of bindings.elements) {
+      const name = element.propertyName?.text ?? element.name.text;
+      if (name !== 'expectTypeOf') throw new Error(`${file}: unsupported nz assertion ${name}`);
+      imports.add(element.name.text);
+    }
+  }
+  if (!imports.size) throw new Error(`${file}: no supported nz assertions imported`);
+  function startsWithExpectTypeOf(node) {
+    if (ts.isPropertyAccessExpression(node)) return startsWithExpectTypeOf(node.expression);
+    return ts.isCallExpression(node) && ts.isIdentifier(node.expression) && imports.has(node.expression.text);
+  }
+  let count = 0;
+  function visit(node) {
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+        ['toBe', 'toBeAssignableTo'].includes(node.expression.name.text) &&
+        startsWithExpectTypeOf(node.expression.expression)) {
+      count++;
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  if (!count) throw new Error(`${file}: no compiler-enforced nz assertions`);
+  return count;
+}
+
 if (suite === 'millsp/ts-toolbelt') {
   const configFile = path.join(root, 'tsconfig.json');
   const config = ts.parseConfigFileTextToJson(configFile, fs.readFileSync(configFile, 'utf8'));
@@ -147,7 +185,12 @@ if (suite === 'millsp/ts-toolbelt') {
   const tests = filesUnder(path.join(root, 'test-d'));
   if (!tests.length) throw new Error('type-fest has no test-d type suite');
   requireIncluded(tests);
-  const assertions = tests.reduce((count, file) => count + transform(file), 0);
-  if (!assertions) throw new Error('type-fest has no tsd assertions to evaluate');
-  console.log(`type-fest: ${tests.length} type test files, ${assertions} tsd assertions compiled`);
+  let tsd = 0;
+  let nz = 0;
+  for (const file of tests) {
+    tsd += transform(file);
+    nz += countNz(file);
+  }
+  if (!tsd && !nz) throw new Error('type-fest has no tsd or nz assertions to evaluate');
+  console.log(`type-fest: ${tests.length} type test files, ${tsd} tsd assertions compiled, ${nz} nz assertions checked`);
 }

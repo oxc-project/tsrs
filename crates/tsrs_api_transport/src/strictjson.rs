@@ -33,6 +33,13 @@ enum Expect {
     AfterValue,
 }
 
+/// Which JSON pointer an error inside a string reports.
+#[derive(Clone, Copy)]
+enum At {
+    Value,
+    Container,
+}
+
 struct Scanner<'a> {
     b: &'a [u8],
     i: usize,
@@ -99,6 +106,13 @@ impl Scanner<'_> {
         self.pointer_upto(self.stack.len(), false)
     }
 
+    fn pointer(&self, at: At) -> String {
+        match at {
+            At::Value => self.value_ptr(),
+            At::Container => self.container_ptr(),
+        }
+    }
+
     /// Pointer of the innermost container's parent container.
     fn parent_ptr(&self) -> String {
         self.pointer_upto(self.stack.len().saturating_sub(1), false)
@@ -149,13 +163,13 @@ impl Scanner<'_> {
         u32::from_str_radix(std::str::from_utf8(s).ok()?, 16).ok()
     }
 
-    /// Reads a string starting at the opening quote; returns its decoded value. `pointer` locates it.
-    fn string(&mut self, pointer: &str) -> Result<String, String> {
+    /// Reads a string starting at the opening quote; returns its decoded value. `at` locates it in errors.
+    fn string(&mut self, at: At) -> Result<String, String> {
         self.i += 1;
         let mut out = String::new();
         loop {
             let Some(&c) = self.b.get(self.i) else {
-                return Err(Self::eof(pointer, self.b.len()));
+                return Err(Self::eof(&self.pointer(at), self.b.len()));
             };
             match c {
                 b'"' => {
@@ -169,7 +183,7 @@ impl Scanner<'_> {
                             .into_owned()
                     };
                     let Some(&e) = self.b.get(self.i + 1) else {
-                        return Err(Self::eof(pointer, start));
+                        return Err(Self::eof(&self.pointer(at), start));
                     };
                     let simple = match e {
                         b'"' => Some('"'),
@@ -190,26 +204,26 @@ impl Scanner<'_> {
                     if e != b'u' {
                         return Err(Self::err(
                             &format!("invalid escape sequence `{}` in string", window(self, 2)),
-                            pointer,
+                            &self.pointer(at),
                             start,
                         ));
                     }
                     if self.b.len() < start + 6
                         && self.b[start + 2..].iter().all(u8::is_ascii_hexdigit)
                     {
-                        return Err(Self::eof(pointer, start));
+                        return Err(Self::eof(&self.pointer(at), start));
                     }
                     let Some(u) = self.hex4(start + 2) else {
                         return Err(Self::err(
                             &format!("invalid escape sequence `{}` in string", window(self, 6)),
-                            pointer,
+                            &self.pointer(at),
                             start,
                         ));
                     };
                     let surrogate = |s: &Self| {
                         Scanner::<'_>::err(
                             &format!("invalid surrogate pair `{}` in string", window(s, 12)),
-                            pointer,
+                            &s.pointer(at),
                             start,
                         )
                     };
@@ -238,7 +252,7 @@ impl Scanner<'_> {
                     return Err(self.invalid_char(
                         self.i,
                         "in string (expecting non-control character)",
-                        pointer,
+                        &self.pointer(at),
                     ));
                 }
                 c if c < 0x80 => {
@@ -262,7 +276,7 @@ impl Scanner<'_> {
                             out.push_str(s);
                             self.i += len;
                         }
-                        None => return Err(Self::err("invalid UTF-8", pointer, self.i)),
+                        None => return Err(Self::err("invalid UTF-8", &self.pointer(at), self.i)),
                     }
                 }
             }
@@ -270,15 +284,14 @@ impl Scanner<'_> {
     }
 
     fn literal(&mut self, lit: &'static [u8], name: &str) -> Result<(), String> {
-        let ptr = self.value_ptr();
         if let Some(result) = lit.iter().enumerate().find_map(|(k, &want)| {
             match self.b.get(self.i + k) {
-                None => return Some(Err(Self::eof(&ptr, self.b.len()))),
+                None => return Some(Err(Self::eof(&self.value_ptr(), self.b.len()))),
                 Some(&got) if got != want => {
                     return Some(Err(self.invalid_char(
                         self.i + k,
                         &format!("in literal {name} (expecting {})", quote_char(want as char)),
-                        &ptr,
+                        &self.value_ptr(),
                     )));
                 }
                 _ => {}
@@ -294,14 +307,13 @@ impl Scanner<'_> {
 
     /// -?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?
     fn number(&mut self) -> Result<(), String> {
-        let ptr = self.value_ptr();
         let start = self.i;
         let b = self.b;
         let mut j = self.i;
         let digit_expected = |s: &Self, j: usize| -> String {
             match b.get(j) {
-                None => Scanner::<'_>::eof(&ptr, start),
-                Some(_) => s.invalid_char(j, "in number (expecting digit)", &ptr),
+                None => Scanner::<'_>::eof(&s.value_ptr(), start),
+                Some(_) => s.invalid_char(j, "in number (expecting digit)", &s.value_ptr()),
             }
         };
         if b.get(j) == Some(&b'-') {
@@ -359,8 +371,7 @@ impl Scanner<'_> {
                 }
             }
             b'"' => {
-                let ptr = self.value_ptr();
-                self.string(&ptr)?;
+                self.string(At::Value)?;
                 Ok(Expect::AfterValue)
             }
             b't' => self.literal(b"true", "true").map(|()| Expect::AfterValue),
@@ -431,8 +442,7 @@ impl Scanner<'_> {
                         }
                         return Err(self.invalid_char(self.i, "at start of value", &ptr));
                     }
-                    let ptr = self.container_ptr();
-                    let name = self.string(&ptr)?;
+                    let name = self.string(At::Container)?;
                     let Some(Frame::Object { keys, current }) = self.stack.last_mut() else {
                         unreachable!()
                     };
@@ -442,7 +452,7 @@ impl Scanner<'_> {
                                 "duplicate object member name {}",
                                 serde_json::to_string(&name).unwrap()
                             ),
-                            &ptr,
+                            &self.container_ptr(),
                             0,
                         ));
                     }
@@ -450,15 +460,14 @@ impl Scanner<'_> {
                     expect = Expect::Colon;
                 }
                 Expect::Colon => {
-                    let ptr = self.value_ptr();
                     if at_end {
-                        return Err(Self::eof(&ptr, self.i));
+                        return Err(Self::eof(&self.value_ptr(), self.i));
                     }
                     if self.b[self.i] != b':' {
                         return Err(self.invalid_char(
                             self.i,
                             "after object name (expecting ':')",
-                            &ptr,
+                            &self.value_ptr(),
                         ));
                     }
                     self.i += 1;

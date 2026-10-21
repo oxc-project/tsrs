@@ -251,6 +251,24 @@ pub fn unmarshal(input: &str) -> Result<Value, String> {
     Ok(v)
 }
 
+/// The f64 of a JSON number literal `text` (valid JSON number syntax), or `None` when it is out of range.
+pub fn number_value(text: &str) -> Option<f64> {
+    if let Some(n) = exact_integer_value(text) {
+        return Some(n);
+    }
+    text.parse::<f64>().ok().filter(|f| f.is_finite())
+}
+
+/// Up to 15 digits without fraction or exponent is an integer that f64 holds exactly: its value, else `None`.
+pub fn exact_integer_value(text: &str) -> Option<f64> {
+    let digits = text.strip_prefix('-').unwrap_or(text);
+    if digits.len() > 15 || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    let n = digits.bytes().fold(0u64, |n, b| n * 10 + (b - b'0') as u64) as f64;
+    Some(if text.starts_with('-') { -n } else { n })
+}
+
 // jsontext's maxNestingDepth: opening a container deeper than this is an error (state.go `errMaxDepth`). The
 // limit also bounds the parser's recursion, so a deeply nested input cannot overflow the stack.
 const MAX_NESTING_DEPTH: usize = 10000;
@@ -393,15 +411,9 @@ impl JsonParser<'_> {
             }
         }
         let text = std::str::from_utf8(&self.s[start..self.pos]).unwrap();
-        // Up to 15 digits without fraction or exponent is an integer that f64 holds exactly.
-        let digits = text.strip_prefix('-').unwrap_or(text);
-        if digits.len() <= 15 && digits.bytes().all(|b| b.is_ascii_digit()) {
-            let n = digits.bytes().fold(0u64, |n, b| n * 10 + (b - b'0') as u64) as f64;
-            return Ok(Value::Number(if text.starts_with('-') { -n } else { n }));
-        }
-        match text.parse::<f64>() {
-            Ok(f) if f.is_finite() => Ok(Value::Number(f)),
-            _ => self.err("number out of range"),
+        match number_value(text) {
+            Some(f) => Ok(Value::Number(f)),
+            None => self.err("number out of range"),
         }
     }
 

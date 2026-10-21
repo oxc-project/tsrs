@@ -122,8 +122,8 @@ The pinned decoder rejects duplicate member names anywhere in a document (even i
 ignores), unpaired surrogate escapes and invalid UTF-8 — nothing is replaced with U+FFFD.
 `decode_message` (JSON-RPC: a violation is a fatal read error, as in Go, so a lone surrogate in an async
 callback result ends the connection) and the callback filesystem (the triggering request fails with
-`panic: jsontext: ...`) apply it. Session params decoding is core's: apply `strictjson::validate` to
-request params before serde so duplicates are rejected like Go's `unmarshalPayload`.
+`panic: jsontext: ...`) apply it. Session params decoding is core's: it reads request params with `strictjson::decode`, which validates
+and builds the value in one scan, so duplicates are rejected like Go's `unmarshalPayload`.
 
 ## Tests
 

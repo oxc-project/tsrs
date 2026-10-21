@@ -431,9 +431,8 @@ impl Scanner<'_> {
         }
         self.i += 1;
     }
-    /// Scans one value. `path` is its JSON pointer; with `numbers`, number literals are recorded by pointer.
-    fn value(&mut self, path: &mut String, numbers: Option<&mut FxHashMap<String, String>>) {
-        let mut numbers = numbers;
+    /// Skips one value.
+    fn value(&mut self) {
         self.ws();
         if self.i >= self.b.len() {
             return;
@@ -452,19 +451,14 @@ impl Scanner<'_> {
                         self.i += 1;
                         continue;
                     }
-                    let key = self.string();
+                    self.skip_string();
                     self.ws();
                     self.i += 1; // ':'
-                    let len = path.len();
-                    path.push('/');
-                    path.push_str(&token(&key));
-                    self.value(path, numbers.as_deref_mut());
-                    path.truncate(len);
+                    self.value();
                 }
             }
             b'[' => {
                 self.i += 1;
-                let mut index = 0;
                 loop {
                     self.ws();
                     if self.i >= self.b.len() || self.b[self.i] == b']' {
@@ -475,37 +469,18 @@ impl Scanner<'_> {
                         self.i += 1;
                         continue;
                     }
-                    let len = path.len();
-                    path.push('/');
-                    path.push_str(&index.to_string());
-                    self.value(path, numbers.as_deref_mut());
-                    path.truncate(len);
-                    index += 1;
+                    self.value();
                 }
             }
             _ => {
-                let start = self.i;
                 self.i += (self.i..self.b.len())
                     .take_while(|&index| {
                         !matches!(self.b[index], b',' | b'}' | b']' | b' ' | b'\t' | b'\n' | b'\r')
                     })
                     .count();
-                if let Some(numbers) = numbers {
-                    let lexeme = &self.b[start..self.i];
-                    if lexeme.first().is_some_and(|c| *c == b'-' || c.is_ascii_digit()) {
-                        numbers.insert(path.clone(), String::from_utf8_lossy(lexeme).into_owned());
-                    }
-                }
             }
         }
     }
-}
-
-/// Number literals anywhere in `raw`, keyed by JSON pointer (`/key`, `/key/<i>/inner`).
-fn number_lexemes(raw: &[u8]) -> FxHashMap<String, String> {
-    let mut out = FxHashMap::default();
-    Scanner { b: raw, i: 0 }.value(&mut String::new(), Some(&mut out));
-    out
 }
 
 /// The raw bytes of the value at JSON pointer `pointer` in `raw` (strict JSON), if present.
@@ -516,7 +491,7 @@ pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]>
         s.ws();
         let Some(want) = tokens.next() else {
             let start = s.i;
-            s.value(&mut String::new(), None);
+            s.value();
             return Some(&raw[start..s.i.min(raw.len())]);
         };
         match raw.get(s.i)? {
@@ -538,7 +513,7 @@ pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]>
                     if token(&key) == want {
                         break;
                     }
-                    s.value(&mut String::new(), None);
+                    s.value();
                 }
             }
             b'[' => {
@@ -558,7 +533,7 @@ pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]>
                     if index == want {
                         break;
                     }
-                    s.value(&mut String::new(), None);
+                    s.value();
                     index += 1;
                 }
             }
@@ -569,16 +544,16 @@ pub(crate) fn raw_value_at<'a>(raw: &'a [u8], pointer: &str) -> Option<&'a [u8]>
 
 /// Checks `params` (an object, or `{}` for `null`) against the method's pinned params struct, nested api structs
 /// included. `raw` is the request payload the value was parsed from. Returns the number literals by pointer.
+/// `lexemes` are the request's inexact number literals (`strictjson::Decoded::lexemes`); it returns them.
 pub(crate) fn predecode(
     method: &str,
     go_type: &str,
     params: &Value,
-    raw: &[u8],
+    lexemes: FxHashMap<String, String>,
 ) -> ApiResult<FxHashMap<String, String>> {
     let Value::Object(o) = params else {
-        return Ok(FxHashMap::default());
+        return Ok(lexemes);
     };
-    let lexemes = number_lexemes(raw);
     for spec in params_fields(method) {
         if let Some(v) = o.get(spec.name) {
             check_field(spec, v, &format!("/{}", token(spec.name)), &lexemes).map_err(|e| {
@@ -721,7 +696,7 @@ fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {
                     s.i += 1; // ':'
                     s.ws();
                     let start = s.i;
-                    s.value(&mut String::new(), None);
+                    s.value();
                     if key == "params" {
                         params = Some(requests[start..s.i.min(requests.len())].to_vec());
                     }
@@ -729,7 +704,7 @@ fn batch_params(raw: &[u8]) -> Vec<Option<Vec<u8>>> {
                 out.push(params);
             }
             Some(_) => {
-                s.value(&mut String::new(), None);
+                s.value();
                 out.push(None);
             }
         }
@@ -741,22 +716,11 @@ mod tests {
     use tsrs_core::json::Value;
 
     #[test]
-    fn number_lexemes() {
-        let m = super::number_lexemes(br#"{"a":1e3,"b":[1,2.5,{"c":3}],"d":{"e":4},"f":"9"}"#);
-        assert_eq!(m.get("/a").map(String::as_str), Some("1e3"));
-        assert_eq!(m.get("/b/1").map(String::as_str), Some("2.5"));
-        assert_eq!(m.get("/b/2/c").map(String::as_str), Some("3"));
-        assert_eq!(m.get("/d/e").map(String::as_str), Some("4"));
-        assert!(!m.contains_key("/f"));
-        let m = super::number_lexemes(br#"{"snap\u0073hot":1e3}"#);
-        assert_eq!(m.get("/snapshot").map(String::as_str), Some("1e3"));
-    }
-
-    #[test]
     fn exact_literals_by_object_identity() {
         let raw = br#"{"snapshot":9007199254740993,"inner":{"snapshot":9007199254740992},"list":[{"snapshot":9007199254740995}]}"#;
-        let root = tsrs_core::json::unmarshal(std::str::from_utf8(raw).unwrap()).unwrap();
-        let _g = super::enter_request(raw, super::number_lexemes(raw), &root);
+        let Ok(decoded) = tsrs_api_transport::strictjson::decode(raw) else { panic!("valid") };
+        let root = decoded.value;
+        let _g = super::enter_request(raw, decoded.lexemes, &root);
         assert_eq!(super::exact_u64(&root, "snapshot"), Some(9_007_199_254_740_993));
         let Value::Object(o) = &root else { unreachable!() };
         assert_eq!(

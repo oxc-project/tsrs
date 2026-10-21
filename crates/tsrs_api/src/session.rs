@@ -14,6 +14,7 @@ use std::sync::Weak;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 
+use tsrs_api_transport::strictjson::DecodeError;
 use tsrs_compiler::{CheckerHandle, Program};
 use tsrs_core::context::{CheckerLifetime, Context, with_checker_lifetime};
 use tsrs_core::json::{self, Value};
@@ -334,13 +335,17 @@ impl Session {
         // Go `unmarshalPayload`: `noParams` methods ignore the payload; the others decode with Go's strict
         // JSON (unpaired surrogates and duplicate members are errors), reported as
         // `failed to unmarshal *api.<Type>: <jsontext error>`.
-        let params = match crate::methods::params_type(method) {
-            None => Value::Null,
+        let (params, lexemes) = match crate::methods::params_type(method) {
+            None => (Value::Null, rustc_hash::FxHashMap::default()),
             Some(go_type) => {
-                tsrs_api_transport::strictjson::validate(params).map_err(|e| {
-                    ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: {e}"))
-                })?;
-                let value = parse_params(params)?;
+                let decoded =
+                    tsrs_api_transport::strictjson::decode(params).map_err(|e| match e {
+                        DecodeError::Invalid(e) => ApiError::invalid_request(format!(
+                            "failed to unmarshal *api.{go_type}: {e}"
+                        )),
+                        DecodeError::OutOfRange(e) => ApiError::invalid_request(e),
+                    })?;
+                let value = decoded.value;
                 // encoding/json/v2 into a struct: `null` leaves the zero value; any other non-object is an error.
                 let kind = match &value {
                     Value::Null | Value::Object(_) => None,
@@ -355,17 +360,16 @@ impl Session {
                     )));
                 }
                 // `null` decodes to the zero-value struct: handlers see `{}`.
-                if matches!(value, Value::Null) {
+                let value = if matches!(value, Value::Null) {
                     Value::Object(tsrs_core::collections::OrderedMap::default())
                 } else {
                     value
-                }
+                };
+                // Go decodes the whole params struct before any lookup (see predecode.rs).
+                let lexemes =
+                    crate::predecode::predecode(method, go_type, &value, decoded.lexemes)?;
+                (value, lexemes)
             }
-        };
-        // Go decodes the whole params struct before any lookup (see predecode.rs).
-        let lexemes = match crate::methods::params_type(method) {
-            Some(t) => crate::predecode::predecode(method, t, &params, raw_params)?,
-            None => rustc_hash::FxHashMap::default(),
         };
         let go_type = crate::methods::params_type(method);
         let typed = |e: ApiError| match (e.kind.clone(), go_type) {
@@ -392,17 +396,16 @@ impl Session {
         raw: &[u8],
         lexemes: rustc_hash::FxHashMap<String, String>,
     ) -> ApiResult<Response> {
-        let params = params.clone();
         // Raw payload and exact number literals of this request, for the objects of this params tree (by address).
-        let _request = crate::predecode::enter_request(raw, lexemes, &params);
+        let _request = crate::predecode::enter_request(raw, lexemes, params);
         if *self.closed.lock().unwrap() {
             return Err(ApiError::client("session is closed"));
         }
         if owner == Owner::Checker {
-            return checker::handle(self, method, &params)
+            return checker::handle(self, method, params)
                 .unwrap_or_else(|| Err(ApiError::unsupported(method)));
         }
-        let p = Params(&params);
+        let p = Params(params);
         if method == "batchRequests" {
             if !matches!(params, Value::Null) {
                 p.object()?;
@@ -549,15 +552,6 @@ pub(crate) fn scratch<T>(f: impl FnOnce() -> T) -> T {
 }
 
 /// Parses request params (raw JSON bytes; empty means absent, Go `UnmarshalParams` returns nil).
-pub fn parse_params(params: &[u8]) -> ApiResult<Value> {
-    if params.is_empty() {
-        return Ok(Value::Null);
-    }
-    let text = tsrs_core::utf8::compat::from_utf8(params)
-        .map_err(|e| ApiError::invalid_request(format!("params are not UTF-8: {e}")))?;
-    json::unmarshal(text).map_err(ApiError::invalid_request)
-}
-
 pub fn json_response(value: &Value) -> ApiResult<Response> {
     json::marshal(value).map(Response::Json).map_err(ApiError::internal)
 }

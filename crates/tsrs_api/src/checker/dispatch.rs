@@ -1,6 +1,9 @@
 // Method → handler table for the checker lane (Go `Session.HandleRequest` cases for these methods).
 // The param field names follow each method's pinned params struct (`unmarshalers` in proto.go).
 
+use std::sync::LazyLock;
+
+use rustc_hash::FxHashSet;
 use tsrs_core::json::Value;
 
 use super::handlers_ls as ls;
@@ -328,5 +331,8 @@ pub const CHECKER_METHODS: &[&str] = &[
 ];
 
 pub fn is_checker_method(method: &str) -> bool {
-    CHECKER_METHODS.contains(&method)
+    // Every request asks: hash the method instead of comparing it with each name in turn.
+    static METHODS: LazyLock<FxHashSet<&'static str>> =
+        LazyLock::new(|| CHECKER_METHODS.iter().copied().collect());
+    METHODS.contains(method)
 }

@@ -3,6 +3,10 @@
 // `status` is the honest implementation state in tsrs; it must only become `Supported` when a real
 // compiler-backed test exercises the method (docs/NODE_API.md keeps the matrix in sync).
 
+use std::sync::LazyLock;
+
+use rustc_hash::FxHashMap;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Owner {
     Core,
@@ -346,7 +350,15 @@ pub const METHODS: [MethodInfo; 177] = [
 ];
 
 pub fn method_info(name: &str) -> Option<&'static MethodInfo> {
-    METHODS.iter().find(|m| m.name == name)
+    // Every request looks its method up: hash it instead of comparing it with each name in turn.
+    static BY_NAME: LazyLock<FxHashMap<&'static str, &'static MethodInfo>> = LazyLock::new(|| {
+        let mut by_name = FxHashMap::default();
+        for m in &METHODS {
+            by_name.entry(m.name).or_insert(m);
+        }
+        by_name
+    });
+    BY_NAME.get(name).copied()
 }
 // Go `unmarshalers` (proto.go): the params type each method decodes into, for Go's error text
 // `failed to unmarshal *api.<Type>`. `None` = `noParams`.
@@ -534,5 +546,14 @@ pub const PARAMS_TYPES: &[(&str, Option<&str>)] = &[
 ];
 
 pub fn params_type(method: &str) -> Option<&'static str> {
-    PARAMS_TYPES.iter().find(|(m, _)| *m == method).and_then(|(_, t)| *t)
+    // As `method_info`, the first entry for a method wins.
+    static BY_METHOD: LazyLock<FxHashMap<&'static str, Option<&'static str>>> =
+        LazyLock::new(|| {
+            let mut by_method = FxHashMap::default();
+            for &(m, t) in PARAMS_TYPES {
+                by_method.entry(m).or_insert(t);
+            }
+            by_method
+        });
+    BY_METHOD.get(method).copied().flatten()
 }

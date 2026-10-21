@@ -257,9 +257,9 @@ pub(crate) fn get_import_adder_edits(host: &dyn CheckerHost, p: &Params) -> Chec
     // error consumes no snapshot): wrong JSON kinds are invalid requests; `null` elements and absent fields
     // are zero values. Semantic validation (unknown kind, missing symbol, unresolvable symbol) is a client
     // error raised later, after the auto-import snapshot clone, in Go's order (it consumes a snapshot ID).
-    struct Action {
+    struct Action<'a> {
         kind: String,
-        symbol: Option<SymbolReference>,
+        symbol: Option<SymbolReference<'a>>,
         valid: bool,
     }
     let mut actions: Vec<Action> = Vec::new();

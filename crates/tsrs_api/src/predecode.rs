@@ -134,9 +134,58 @@ fn token(key: &str) -> String {
     key.replace('~', "~0").replace('/', "~1")
 }
 
+/// The JSON pointer of the value being checked, for error texts and inexact-literal lookups. A pointer that
+/// is off (`Pointer::off`) stays empty: `predecode` checks with it off first and, only if that fails,
+/// checks again with it on for the error text (the outcome does not depend on the pointer when there are no
+/// literals to look up).
+struct Pointer {
+    text: String,
+    on: bool,
+}
+
+impl Pointer {
+    fn new(on: bool) -> Pointer {
+        Pointer { text: if on { String::with_capacity(64) } else { String::new() }, on }
+    }
+
+    fn len(&self) -> usize {
+        self.text.len()
+    }
+
+    fn truncate(&mut self, len: usize) {
+        self.text.truncate(len);
+    }
+
+    fn push_key(&mut self, key: &str) {
+        if self.on {
+            push_token(&mut self.text, key);
+        }
+    }
+
+    fn push_index(&mut self, i: usize) {
+        if self.on {
+            let _ = write!(self.text, "/{i}");
+        }
+    }
+
+    fn as_str(&self) -> &str {
+        &self.text
+    }
+}
+
+impl std::fmt::Display for Pointer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.text)
+    }
+}
+
 /// Appends `/` and the pointer token of `key` to `pointer`.
 fn push_token(pointer: &mut String, key: &str) {
     pointer.push('/');
+    if !key.contains(['~', '/']) {
+        pointer.push_str(key);
+        return;
+    }
     for c in key.chars() {
         match c {
             '~' => pointer.push_str("~0"),
@@ -168,6 +217,9 @@ fn check_synthetic_id(v: &Value, pointer: &str) -> Result<(), String> {
 }
 
 fn base_type(go_type: &str) -> &str {
+    if !go_type.starts_with(['*', '[']) {
+        return go_type;
+    }
     go_type.trim_start_matches('*').trim_start_matches("[]").trim_start_matches('*')
 }
 
@@ -175,13 +227,13 @@ fn base_type(go_type: &str) -> &str {
 fn check_struct(
     go_type: &str,
     o: &tsrs_core::collections::OrderedMap<String, Value>,
-    pointer: &mut String,
+    pointer: &mut Pointer,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
     for spec in struct_fields(base_type(go_type)) {
         if let Some(v) = o.get(spec.name) {
             let len = pointer.len();
-            push_token(pointer, spec.name);
+            pointer.push_key(spec.name);
             check_field(spec, v, pointer, lexemes)?;
             pointer.truncate(len);
         }
@@ -329,7 +381,7 @@ fn check_request_file_system(
 fn check_field(
     spec: &FieldSpec,
     v: &Value,
-    pointer: &mut String,
+    pointer: &mut Pointer,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
     let mismatch = |v: &Value, pointer: &str, go_type: &str| {
@@ -349,8 +401,8 @@ fn check_field(
                 Ok(())
             }
             Value::Null if spec.go_type.starts_with("[]") => Ok(()),
-            _ if spec.go_type.starts_with("[]") => Err(mismatch(v, pointer, spec.go_type)),
-            _ => check_synthetic_id(v, pointer),
+            _ if spec.go_type.starts_with("[]") => Err(mismatch(v, pointer.as_str(), spec.go_type)),
+            _ => check_synthetic_id(v, pointer.as_str()),
         };
     }
     if matches!(v, Value::Null) && spec.kind != FieldKind::Doc && spec.kind != FieldKind::DocList {
@@ -359,11 +411,11 @@ fn check_field(
     }
     if let Some(elem) = field_elem(spec.kind) {
         check_scalar(elem, v, lexemes.get(pointer.as_str()).map(String::as_str))
-            .ok_or_else(|| mismatch(v, pointer, spec.go_type))?;
+            .ok_or_else(|| mismatch(v, pointer.as_str(), spec.go_type))?;
         if let Value::Object(o) = v {
             check_struct(spec.go_type, o, pointer, lexemes)?;
-            check_external_integers(spec.go_type, o, pointer, lexemes)?;
-            check_request_file_system(spec.go_type, o, pointer)?;
+            check_external_integers(spec.go_type, o, pointer.as_str(), lexemes)?;
+            check_request_file_system(spec.go_type, o, pointer.as_str())?;
         }
         return Ok(());
     }
@@ -372,7 +424,7 @@ fn check_field(
             if matches!(v, Value::Null) && spec.nullable {
                 return Ok(());
             }
-            check_document(v, pointer)
+            check_document(v, pointer.as_str())
         }
         FieldKind::DocList => match v {
             Value::Null => Ok(()),
@@ -382,7 +434,7 @@ fn check_field(
                 }
                 Ok(())
             }
-            _ => Err(mismatch(v, pointer, spec.go_type)),
+            _ => Err(mismatch(v, pointer.as_str(), spec.go_type)),
         },
         FieldKind::Array => match v {
             Value::Array(items) => {
@@ -391,7 +443,7 @@ fn check_field(
                 let len = pointer.len();
                 for (i, item) in items.iter().enumerate() {
                     pointer.truncate(len);
-                    let _ = write!(pointer, "/{i}");
+                    pointer.push_index(i);
                     // A null element is the element type's zero value (or nil), as for fields.
                     if !matches!(item, Value::Null)
                         && !check_scalar(
@@ -400,7 +452,7 @@ fn check_field(
                             lexemes.get(pointer.as_str()).map(String::as_str),
                         )
                     {
-                        return Err(mismatch(item, pointer, elem_type));
+                        return Err(mismatch(item, pointer.as_str(), elem_type));
                     }
                     if let Value::Object(o) = item {
                         check_struct(elem_type, o, pointer, lexemes)?;
@@ -409,7 +461,7 @@ fn check_field(
                 pointer.truncate(len);
                 Ok(())
             }
-            _ => Err(mismatch(v, pointer, spec.go_type)),
+            _ => Err(mismatch(v, pointer.as_str(), spec.go_type)),
         },
         _ => Ok(()),
     }
@@ -578,17 +630,30 @@ pub(crate) fn predecode(
     let Value::Object(o) = params else {
         return Ok(lexemes);
     };
-    let mut pointer = String::new();
+    // Inexact literals are looked up by pointer, so with any the pointer must be on from the start.
+    if lexemes.is_empty() && check_params(method, o, &mut Pointer::new(false), &lexemes).is_ok() {
+        return Ok(lexemes);
+    }
+    check_params(method, o, &mut Pointer::new(true), &lexemes).map_err(|e| {
+        ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: json: {e}"))
+    })?;
+    Ok(lexemes)
+}
+
+fn check_params(
+    method: &str,
+    o: &tsrs_core::collections::OrderedMap<String, Value>,
+    pointer: &mut Pointer,
+    lexemes: &FxHashMap<String, String>,
+) -> Result<(), String> {
     for spec in params_fields(method) {
         if let Some(v) = o.get(spec.name) {
-            pointer.clear();
-            push_token(&mut pointer, spec.name);
-            check_field(spec, v, &mut pointer, &lexemes).map_err(|e| {
-                ApiError::invalid_request(format!("failed to unmarshal *api.{go_type}: json: {e}"))
-            })?;
+            pointer.truncate(0);
+            pointer.push_key(spec.name);
+            check_field(spec, v, pointer, lexemes)?;
         }
     }
-    Ok(lexemes)
+    Ok(())
 }
 
 /// The current request on this thread: its raw payload, number literals by pointer, and the JSON pointer of each

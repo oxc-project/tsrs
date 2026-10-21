@@ -348,7 +348,7 @@ fn resolve_symbol_reference<'h>(
             if r.file.is_some() || r.snapshot == 0 || r.project.is_empty() {
                 return Err(CheckerError::client("invalid snapshot symbol reference"));
             }
-            let sd = SnapshotCtx::new(host, r.snapshot, &r.project)?;
+            let sd = SnapshotCtx::new(host, r.snapshot, r.project)?;
             let symbol = sd.scope.registry.resolve_symbol(r.id)?;
             Ok((symbol, Owner::Snapshot(sd)))
         }
@@ -419,7 +419,7 @@ pub(crate) fn symbol_table_property(
         Owner::Snapshot(sd) => {
             drop(sd);
             // Tables of snapshot-owned symbols may contain symbols from several files: checker ordering.
-            let mut s = Setup::new(host, r.snapshot, &r.project)?;
+            let mut s = Setup::new(host, r.snapshot, r.project)?;
             sort_by_checker(&mut s, &mut symbols);
             s.symbols_response(&symbols)
         }

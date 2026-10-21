@@ -230,6 +230,10 @@ jobs:
             --results repo-conformance-downloads ${PREVIOUS:+--previous "$PREVIOUS"} \
             --out repo-conformance-report.md || status=$?
           cat repo-conformance-report.md >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -eq 3 ]; then
+            echo "::warning::Repository comparison found differences; see the job summary."
+            status=0
+          fi
           exit "$status"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -213,6 +213,36 @@ class RerunTests(unittest.TestCase):
 
 
 class ReportTests(unittest.TestCase):
+    def test_report_exit_codes_distinguish_parity_from_incomplete_results(self):
+        manifest = {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 1,
+                    "repositories": [{"repository": "a/one"}, {"repository": "a/two"}]}
+        def result(name, status):
+            return {"repository": name, "status": status, "available_configs": 1, "configs": [
+                {"config": "tsconfig.json", "status": status, "tsgo": {"exit": 0}}]}
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            manifest_path = root / "manifest.json"
+            results = root / "results"
+            out = root / "report.md"
+            write_json(manifest_path, manifest)
+            def run(*entries):
+                write_json(results / "shard-0.json", {
+                    "tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shard": 0,
+                    "results": list(entries)})
+                return subprocess.run([sys.executable, str(Path(__file__).with_name("run.py")), "report",
+                                       "--manifest", str(manifest_path), "--results", str(results), "--out", str(out)],
+                                      capture_output=True, text=True)
+            matched = result("a/one", "match")
+            self.assertEqual(run(matched, result("a/two", "match")).returncode, 0)
+            for status in ("mismatch", "tsrs_failed"):
+                with self.subTest(status=status):
+                    response = run(matched, result("a/two", status))
+                    self.assertEqual(response.returncode, 3, response.stderr)
+                    self.assertIn(status, out.read_text())
+            response = run(matched)
+            self.assertEqual(response.returncode, 2, response.stderr)
+            self.assertIn("Missing repository result: a/two", out.read_text())
+
     def test_missing_duplicate_or_wrong_revision_results_fail_the_report(self):
         manifest = {"tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shards": 2,
                     "repositories": [{"repository": "a/one"}, {"repository": "a/two"}]}
@@ -225,19 +255,19 @@ class ReportTests(unittest.TestCase):
                         "results": [{"repository": name, "status": "match", "available_configs": 1, "configs": [
                             {"config": "tsconfig.json", "status": "match", "tsgo": {"exit": 2}}]}]}
             write_json(results / "shard-0.json", shard(0, "a/one"))
-            self.assertFalse(summarize(manifest, results, out))
+            self.assertEqual(summarize(manifest, results, out), 2)
             self.assertIn("Missing repository result: a/two", out.read_text())
             write_json(results / "shard-1.json", shard(1, "a/two"))
-            self.assertTrue(summarize(manifest, results, out))
+            self.assertEqual(summarize(manifest, results, out), 0)
             self.assertIn("These shard reports predate strict mode", out.read_text())
             write_json(results / "duplicate" / "shard-0.json", shard(0, "a/one"))
-            self.assertFalse(summarize(manifest, results, out))
+            self.assertEqual(summarize(manifest, results, out), 2)
             (results / "duplicate" / "shard-0.json").unlink()
             # A shard from other compilers is left out entirely: its repository is missing, not counted.
             for key in ("tsrs_commit", "typescript_commit"):
                 with self.subTest(key=key):
                     write_json(results / "shard-1.json", dict(shard(1, "a/two"), **{key: "other-compiler"}))
-                    self.assertFalse(summarize(manifest, results, out))
+                    self.assertEqual(summarize(manifest, results, out), 2)
                     text = out.read_text()
                     self.assertIn(f"{key} do not match the manifest; its results are left out", text)
                     self.assertIn("1 of 2 repositories have a result; 1 had at least one project", text)
@@ -258,8 +288,8 @@ class ReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             def report(previous=True):
-                ok = summarize(manifest, root / "rerun", root / "report.md", root / "previous" if previous else None)
-                return ok, (root / "report.md").read_text()
+                status = summarize(manifest, root / "rerun", root / "report.md", root / "previous" if previous else None)
+                return status == 0, (root / "report.md").read_text()
             # Shard 1 of the earlier run was lost: it left no report.
             write_json(root / "previous" / "shard-0.json", shard(0, ("a/one", "c1", "match"), ("a/three", "c3", "match")))
             write_json(root / "rerun" / "shard-1.json", shard(1, ("a/two", "c2", "match")))
@@ -342,9 +372,9 @@ class ReportTests(unittest.TestCase):
                     write_json(root / "previous" / f"copy-{n}" / "shard-1.json", report)
                 write_json(root / "rerun" / "repo-conformance-shard-1" / "shard-1.json",
                            shard(1, result("a/2"), result("a/4")))
-                ok = summarize(manifest, root / "rerun", root / "report.md", root / "previous")
+                status = summarize(manifest, root / "rerun", root / "report.md", root / "previous")
                 text = (root / "report.md").read_text()
-                self.assertEqual(ok, error is None, text)
+                self.assertEqual(status, 0 if error is None else 2, text)
                 if error:
                     self.assertIn(error, text)
                     self.assertIn(evidence, text)
@@ -359,7 +389,7 @@ class ReportTests(unittest.TestCase):
                       "results": [{"repository": "a/one", "status": "not_checked", "configs": [
                           {"config": "tsconfig.json", "status": "no_inputs"}]}]}
             write_json(root / "shard-0.json", report)
-            self.assertFalse(summarize(manifest, root, root / "report.md"))
+            self.assertEqual(summarize(manifest, root, root / "report.md"), 2)
             self.assertIn("No project completed", (root / "report.md").read_text())
 
 
@@ -439,7 +469,7 @@ class CompilerControls(unittest.TestCase):
             write_json(root / "results" / "shard-0.json", {
                 "tsrs_commit": "rust-pin", "typescript_commit": "go-pin", "shard": 0, "modes": MODES,
                 "results": [dict(result, repository="a/one", available_configs=1)]})
-            self.assertFalse(summarize(manifest, root / "results", root / "report.md"))
+            self.assertEqual(summarize(manifest, root / "results", root / "report.md"), 3)
             report = (root / "report.md").read_text()
             self.assertIn("0 identical (0 without errors, 0 with the same errors) and 1 different", report)
             self.assertIn("tsrs `--checkerAssignment go --checkers 4 --noLazyMembers`", report)

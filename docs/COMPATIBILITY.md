@@ -13,8 +13,8 @@ test-harness artifacts) and on all 12,779 `.types` and `.symbols` baselines. It 
 monorepo. See the [status log](STATUS.md) for conformance details.
 
 [Top repository conformance](../tools/repo-conformance/README.md) compares diagnostics against pinned tsgo on 400
-popular TypeScript repositories after qualifying changes merge into `main`. Actions reports include diffs and coverage;
-the runner is also available locally.
+popular TypeScript repositories after qualifying changes merge into `main`. Actions reports include diffs and coverage,
+and warn about parity differences; incomplete runs fail. The runner is also available locally.
 
 ## What it does and doesn't do
 
@@ -34,7 +34,7 @@ TypeScript](DEFAULTS.md) details changed defaults, unsupported features and know
 
 | feature | status | evidence and notes |
 | --- | --- | --- |
-| Type checking (`--noEmit`) | yes | 13,458 of 13,462 error baselines and all 12,779 `.types` / `.symbols` baselines match |
+| Type checking (`--noEmit`) | yes | 13,458 of 13,462 error baselines and all 12,779 `.types` / `.symbols` baselines match; top-repository comparisons still report known parity gaps and tsrs failures |
 | Multithreaded checking, `--singleThreaded`, `--pretty`, `--listFiles`, `--listFilesOnly` | yes | every core up to 16, then at least 16 or half the cores, at most 32 checkers, capped for small programs; build mode uses four; 0.13.0 enables module affinity from 8 checkers on programs with at least 24,000 checked files ([experiment note](../notes/perf-icount-hillclimb.md)) |
 | Compiler statistics (`--diagnostics`, `--extendedDiagnostics`) | yes | Since 0.17.0, timings are collected only when requested; config-read timing requires the flag on the command line. Internal flow-memo, lazy-list, filesystem-call and reclaimed-page counters have been removed ([debugging](DEBUGGING.md)) |
 | Memory target (`--maxMemory <size>`) | `--noEmit` checks, opt-in | Replaces the largest checker after crossing the target, trading CPU for memory; testdata/regressions identical with a checker retired after nearly every file, also in poison mode ([experiment note](../notes/mem-recycle-checkers.md)) |

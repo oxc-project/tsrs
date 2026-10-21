@@ -49,9 +49,11 @@ as a failure. Each mode keeps its own logs (`tsgo.log`/`tsrs.log`, `tsgo-strict.
 (`diagnostics.diff`, `diagnostics-strict.diff`), and shard reports record each mode's flags.
 
 Actions reports coverage and retains logs, commits, and diagnostic diffs for 14 days. Differences and tsrs failures
-after tsgo completes fail the report in either mode (a strict-mode match does not excuse a default-mode difference),
-as do missing results, results at another commit, or no completed comparisons. The report says whether diagnostics or
-only other output, such as `traceResolution` traces, differ; either is a difference. Skipped, empty, and untested
+after tsgo completes are reported in either mode (a strict-mode match does not excuse a default-mode difference).
+The report command exits 3 for these parity findings; Actions shows a warning and keeps the workflow green. Missing
+results, results at another commit, inconsistent shards, or no completed comparisons exit 2 and fail the workflow.
+Unexpected report errors also fail it. The report says whether diagnostics or only other output, such as
+`traceResolution` traces, differ; either is a difference. Skipped, empty, and untested
 projects are excluded from pass counts; the repository table counts identical projects against those where both
 compilers completed, and lists tracked `tsconfig.json` files separately, since projects reached through references
 need not be tracked configs. Identical output is not the same as a project without type errors; the report counts

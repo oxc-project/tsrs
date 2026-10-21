@@ -1417,12 +1417,22 @@ impl Checker {
         {
             return true;
         }
-        match t.symbol() {
-            Some(symbol) if symbol.flags().intersects(SymbolFlags::TypeLiteral) => {
-                self.get_members_of_symbol(symbol).map_or(0, |m| m.len()) == 0
-            }
-            _ => false,
+        let Some(symbol) = t.symbol() else {
+            return false;
+        };
+        if symbol.flags().intersects(SymbolFlags::TypeLiteral) {
+            return self.get_members_of_symbol(symbol).map_or(0, |m| m.len()) == 0;
         }
+        // An empty CommonJS module instance (e.g., the type of `exports` in a file with no
+        // `module.exports` assignments) is structurally an empty anonymous object, but its
+        // symbol is a ValueModule rather than a TypeLiteral. Recognize it here so that
+        // `typeof x == "object"` narrowing can collapse it to `object` instead of preserving
+        // the import-type wrapper, matching the pinned Go compiler.
+        if symbol.flags().intersects(SymbolFlags::ValueModule) {
+            let exports = self.get_exports_of_symbol(symbol);
+            return exports.is_some_and(|e| e.is_empty());
+        }
+        false
     }
 
     // isEmptyResolvedType(resolveStructuredTypeMembers(t)); notes/mem-lazy.md L11: a type with a lazy member table

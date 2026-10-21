@@ -201,7 +201,8 @@ cargo test -p tsrs_cli --test recycle_checkers --test free_leaf_files --test lsp
 ```
 
 The CLI regressions exercise normal and poison modes. These checks exercise stale accesses; they do not scan the
-object graph for all references to freed memory.
+object graph for all references to freed memory. The smallest form is `crates/tsrs_core/tests/region_poison.rs`: a
+`P` kept past its region's owner reads poison here, and is a use after free under Miri (`notes/miri-coverage.md`).
 
 The `alloc-profile` feature, heap sampler and reachability census have been removed. Older measurements in the
 [engineering notes](../notes/README.md) describe the instrumentation available at the recorded revision.

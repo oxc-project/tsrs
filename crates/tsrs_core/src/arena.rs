@@ -1604,6 +1604,8 @@ pub fn flush_retired() {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
+
     use crate::{
         P, alloc_slice_recycled, arena_checkpoint, arena_pin, arena_rewind, free, free_slice,
     };
@@ -1725,8 +1727,17 @@ mod tests {
     #[test]
     fn region_free_lists_and_rewinds_stay_in_the_region() {
         use super::Region;
-        use std::rc::Rc;
-        let counter = Rc::new(());
+        thread_local! {
+            static DROPS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+        }
+        /// A value with a drop entry, a block of its own and no heap behind it: a rewound value is never dropped,
+        /// and an `Rc` in that slot would be a leak that the leak-checking Miri run reports (notes/miri-coverage.md).
+        struct Counted(usize);
+        impl Drop for Counted {
+            fn drop(&mut self) {
+                DROPS.with(|d| d.set(d.get() + self.0));
+            }
+        }
         let region = Region::new(4096);
         {
             let _scope = region.enter();
@@ -1737,20 +1748,20 @@ mod tests {
             let b = P::new_recycled([3u64, 4]);
             assert_eq!(b.addr(), a_addr);
             // A value that needs drop is not recycled in a region: its drop entry stays.
-            let c = P::new(Rc::clone(&counter));
+            let c = P::new(Counted(1));
             let c_addr = c.addr();
-            // SAFETY: c is no longer accessed; its region retains the drop entry for the Rc payload.
+            // SAFETY: c is no longer accessed; its region retains the drop entry for the payload.
             unsafe { free!(c) };
-            let d = P::new_recycled(Rc::clone(&counter));
+            let d = P::new_recycled(Counted(1));
             assert_ne!(d.addr(), c_addr);
             let cp = arena_checkpoint();
-            let _spec = P::new(Rc::clone(&counter));
+            let _spec = P::new(Counted(1));
             arena_rewind(cp);
-            assert_eq!(Rc::strong_count(&counter), 4);
+            assert_eq!(DROPS.with(std::cell::Cell::get), 0);
         }
         drop(region);
         // The rewound value lost its entry (not dropped, like a thread arena); `c` and `d` were dropped.
-        assert_eq!(Rc::strong_count(&counter), 2);
+        assert_eq!(DROPS.with(std::cell::Cell::get), 2);
     }
 
     #[test]
@@ -1873,5 +1884,211 @@ mod tests {
         drop(a);
         assert!(Region::containing(y.addr()).unwrap().ptr_eq(&b));
         assert_eq!(*y, [8; 4]);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------
+    // Region ownership (notes/miri-coverage.md): the owner-and-handle cases the language server relies on, written
+    // so that they also run under Miri (`--features plain-ptrs`, where a slab is a system allocation and a freed
+    // region's memory is really gone).
+    // -----------------------------------------------------------------------------------------------------------
+
+    /// A value that records its drop, for checking a region's drop list.
+    struct Noted(Arc<Mutex<Vec<&'static str>>>, &'static str);
+
+    impl Drop for Noted {
+        fn drop(&mut self) {
+            self.0.lock().unwrap().push(self.1);
+        }
+    }
+
+    /// Rebuild: a new program version allocates in its own region while the old version's region is freed. Freeing
+    /// the old one runs its drop list and leaves the new one's values and allocation target alone.
+    #[test]
+    fn freeing_one_region_leaves_another_intact_and_runs_its_drops() {
+        use super::Region;
+        let log = Arc::new(Mutex::new(Vec::new()));
+        let old = Region::new(4096);
+        let new = Region::new(4096);
+        let old_value = {
+            let _s = old.enter();
+            P::new(Noted(Arc::clone(&log), "old"));
+            P::new(1u64)
+        };
+        let new_scope = new.enter();
+        let new_value = P::new(Noted(Arc::clone(&log), "new"));
+        let old_addr = old_value.addr();
+        drop(old);
+        assert_eq!(*log.lock().unwrap(), ["old"]);
+        assert!(Region::containing(old_addr).is_none());
+        // The new version's values and its target are untouched by the free.
+        assert_eq!(new_value.1, "new");
+        assert!(Region::containing(P::new(2u64).addr()).unwrap().ptr_eq(&new));
+        drop(new_scope);
+        drop(new);
+        assert_eq!(*log.lock().unwrap(), ["old", "new"]);
+    }
+
+    /// `on_free` hooks (tables outside the region that must forget pointers into it) run when the region is freed,
+    /// in registration order, before the region's values are dropped.
+    #[test]
+    fn on_free_hooks_run_in_order_before_the_drop_list() {
+        use super::Region;
+        let log = Arc::new(Mutex::new(Vec::new()));
+        let region = Region::new(4096);
+        {
+            let _s = region.enter();
+            P::new(Noted(Arc::clone(&log), "value"));
+        }
+        let (l1, l2) = (Arc::clone(&log), Arc::clone(&log));
+        region.on_free(Box::new(move || l1.lock().unwrap().push("hook 1")));
+        region.on_free(Box::new(move || l2.lock().unwrap().push("hook 2")));
+        // A second handle keeps the region alive; the last one frees it.
+        let second = region.clone();
+        drop(region);
+        assert!(log.lock().unwrap().is_empty());
+        drop(second);
+        assert_eq!(*log.lock().unwrap(), ["hook 1", "hook 2", "value"]);
+    }
+
+    /// `adopt_owner`: a heap object shared by several region owners (a program's processed files) is routed to the
+    /// adopting region by `enter_owner` while the region lives, and to the thread arena afterwards.
+    #[test]
+    fn adopt_owner_routes_the_objects_lazy_data_while_the_region_lives() {
+        use super::{Region, enter_owner};
+        let shared = Box::new(0u64);
+        let addr = std::ptr::from_ref::<u64>(&shared) as usize;
+        let region = Region::new(4096);
+        let other = Region::new(4096);
+        region.adopt_owner(addr);
+        assert!(Region::containing(addr).unwrap().ptr_eq(&region));
+        {
+            let _o = other.enter();
+            let _owner = enter_owner(addr).expect("a registered region exists");
+            assert!(Region::containing(P::new(1u64).addr()).unwrap().ptr_eq(&region));
+        }
+        drop(region);
+        assert!(Region::containing(addr).is_none());
+        {
+            let _o = other.enter();
+            let _owner = enter_owner(addr).expect("a registered region exists");
+            // The owner is gone: the data goes to the thread arena, not to the region that happens to be current.
+            assert!(Region::containing(P::new(2u64).addr()).is_none());
+        }
+        drop(shared);
+    }
+
+    /// `enter_table_owner`: a shared table's entries stay in the current target only when the table lives in it.
+    #[test]
+    fn enter_table_owner_keeps_the_target_only_for_a_table_inside_it() {
+        use super::{Region, enter_table_owner};
+        let region = Region::new(4096);
+        let other = Region::new(4096);
+        let outside = P::new(0u64);
+        let table = {
+            let _s = region.enter();
+            P::new(0u64)
+        };
+        {
+            let _s = region.enter();
+            // The table lives in the current target: no scope, entries go to the region.
+            assert!(enter_table_owner(table.addr()).is_none());
+            assert!(Region::containing(P::new(1u64).addr()).unwrap().ptr_eq(&region));
+            // A table outside every region: the thread arena, even while a region is current.
+            let scope = enter_table_owner(outside.addr());
+            assert!(scope.is_some());
+            assert!(Region::containing(P::new(2u64).addr()).is_none());
+        }
+        {
+            let _s = other.enter();
+            // The table lives in another region (which this thread has not entered): the thread arena, without
+            // waiting for that region.
+            let scope = enter_table_owner(table.addr());
+            assert!(scope.is_some());
+            assert!(Region::containing(P::new(3u64).addr()).is_none());
+            drop(scope);
+            assert!(Region::containing(P::new(4u64).addr()).unwrap().ptr_eq(&other));
+        }
+    }
+
+    /// `route_diagnostics`: diagnostics made under the routed target go to the route's region; under any other
+    /// target `escape_for_diagnostic` behaves like `escape_scratch`.
+    #[test]
+    fn diagnostic_routes_apply_to_one_target() {
+        use super::{Region, escape_for_diagnostic};
+        let outer = Region::new(4096);
+        let diagnostics = Region::new(4096);
+        let other = Region::new(4096);
+        let scratch = Region::new(4096);
+        let _o = outer.enter();
+        assert!(escape_for_diagnostic().is_none());
+        let route = diagnostics.route_diagnostics();
+        {
+            let _d = escape_for_diagnostic().expect("the route applies to the current target");
+            assert!(Region::containing(P::new(1u64).addr()).unwrap().ptr_eq(&diagnostics));
+        }
+        {
+            let _x = other.enter();
+            assert!(escape_for_diagnostic().is_none());
+            assert!(Region::containing(P::new(2u64).addr()).unwrap().ptr_eq(&other));
+        }
+        {
+            // Inside a scratch region the target is the scratch arena, not the routed one: the diagnostic escapes the
+            // scratch region to the target that was current when it was entered.
+            let _s = scratch.enter_scratch();
+            let _e = escape_for_diagnostic().expect("escapes the scratch region");
+            assert!(Region::containing(P::new(3u64).addr()).unwrap().ptr_eq(&outer));
+        }
+        drop(route);
+        assert!(escape_for_diagnostic().is_none());
+        assert!(Region::containing(P::new(4u64).addr()).unwrap().ptr_eq(&outer));
+    }
+
+    /// Cross-thread handoff: a region made on one thread is entered and filled on another (a parse worker fills a
+    /// file region), read on the first, and freed by whichever handle is the last.
+    #[test]
+    fn a_region_is_filled_on_another_thread_and_freed_by_the_last_handle() {
+        use super::Region;
+        let log = Arc::new(Mutex::new(Vec::new()));
+        let region = Region::new(4096);
+        let worker = {
+            let region = region.clone();
+            let log = Arc::clone(&log);
+            std::thread::spawn(move || {
+                let _s = region.enter();
+                P::new(Noted(log, "worker value"));
+                let p = P::new(41u64);
+                assert!(Region::containing(p.addr()).unwrap().ptr_eq(&region));
+                (p, region)
+            })
+        };
+        let (p, worker_handle) = worker.join().unwrap();
+        assert_eq!(*p, 41);
+        {
+            // The creating thread allocates in it too, after the worker is done.
+            let _s = region.enter();
+            assert!(Region::containing(P::new(42u64).addr()).unwrap().ptr_eq(&region));
+        }
+        drop(region);
+        assert!(log.lock().unwrap().is_empty(), "the worker's handle still holds the region");
+        drop(worker_handle);
+        assert_eq!(*log.lock().unwrap(), ["worker value"]);
+    }
+
+    /// Early owner drop: nothing in the types stops safe code from keeping a `P` into a region after the region is
+    /// freed (the gap tsrs issue #646 is about). Under Miri with `plain-ptrs` the slab of a region this large is a
+    /// system allocation of its own that the free returns, so the read is a use after free that Miri reports. (In
+    /// the shipped build the pages are decommitted or reused, which is why `TSRS_ARENA_POISON=1` exists: see
+    /// `tests/region_poison.rs`.)
+    #[test]
+    #[ignore = "a negative control for Miri: it must report a use after free (a read through a handle of a freed region)"]
+    fn miri_rejects_reading_a_handle_of_a_freed_region() {
+        use super::{PAGE, Region, SLAB_SIZE};
+        let region = Region::new(SLAB_SIZE / 2 + PAGE);
+        let p = {
+            let _s = region.enter();
+            P::new(7u64)
+        };
+        drop(region);
+        assert_eq!(*p, 7);
     }
 }

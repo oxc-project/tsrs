@@ -6,12 +6,25 @@ on:
   push:
     branches:
       - main
+  # The handle and region code meets Miri before it merges, not on main afterwards.
+  pull_request:
+    branches: [main]
+    paths:
+      - "crates/tsrs_core/**"
+      - ".github/workflows/miri.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 jobs:
   miri:
     name: Miri
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # The interpretation takes under three minutes on an M-series Mac (notes/miri-coverage.md); CI runners are two to
+    # three times slower, and the sysroot and the test build come first.
+    timeout-minutes: 45
     env:
       RUSTUP_TOOLCHAIN: nightly-2026-10-04
     steps:
@@ -24,22 +37,41 @@ jobs:
           cache-key: warm-miri
           target-dir: ${{ runner.temp }}/miri
 
-      - name: Arena safety
+      - name: Handle and region safety
         env:
           # Keep the sysroot outside target/, which rust-cache prunes before saving.
           MIRI_SYSROOT: ${{ runner.temp }}/miri/sysroot
-          # Thread arenas intentionally retain their chunks until process exit.
-          MIRIFLAGS: -Zmiri-ignore-leaks
+          # ptr's tests `Box::leak` their 'static fixtures (the leak-checking run in notes/miri-coverage.md reports
+          # nothing else). jsnum's Go-compatible float routines expect exact results, which Miri's deliberate float
+          # imprecision breaks.
+          MIRIFLAGS: -Zmiri-ignore-leaks -Zmiri-deterministic-floats
         run: |
+          set -o pipefail
           cargo miri setup
-          # Miri cannot model the compressed pointers' PROT_NONE reservation.
-          cargo miri test --locked -p tsrs_core --features plain-ptrs --lib arena::tests
-          # Require the known protected-borrow violation, not just any command failure.
-          if cargo miri test --locked -p tsrs_core --features plain-ptrs --lib \
-              arena::tests::miri_rejects_freeing_a_reference_parameter -- --exact --ignored > "$RUNNER_TEMP/miri-negative.log" 2>&1; then
+          # Miri cannot model the compressed pointers' PROT_NONE reservation. Every lib test of tsrs_core runs except
+          # four pieces of safe code with no arena use that take minutes each to interpret, and the one test that pins
+          # the stable toolchain's Unicode version, which this nightly's core is ahead of (notes/miri-coverage.md).
+          cargo miri test --locked -p tsrs_core --features plain-ptrs --lib -- \
+            --skip collections:: \
+            --skip json::json::tests::max_nesting_depth \
+            --skip stringutil::norm:: \
+            --skip tspath::path::path_test::test_has_relative_path_segment_matches_segment_split \
+            --skip stringutil::rangetable::tests::test_unicode_version_of_case_mappings \
+            | tee "$RUNNER_TEMP/miri.log"
+          # A filter that quietly matched fewer tests after a rename would drop the coverage without failing.
+          passed=$(sed -n 's/^test result: ok\. \([0-9]*\) passed.*/\1/p' "$RUNNER_TEMP/miri.log")
+          test "${passed:-0}" -ge 114
+          # Require the known undefined behaviour from each negative control, not just any command failure.
+          negative() { # <test> <error text>
+            if cargo miri test --locked -p tsrs_core --features plain-ptrs --lib "$1" -- --exact --ignored > "$RUNNER_TEMP/miri-negative.log" 2>&1; then
+              cat "$RUNNER_TEMP/miri-negative.log"
+              echo "::error::Miri accepted $1"
+              exit 1
+            fi
             cat "$RUNNER_TEMP/miri-negative.log"
-            echo "::error::Miri accepted a free of a protected reference parameter"
-            exit 1
-          fi
-          cat "$RUNNER_TEMP/miri-negative.log"
-          grep -q 'error: Undefined Behavior:.*strongly protected' "$RUNNER_TEMP/miri-negative.log"
+            grep -q "error: Undefined Behavior:.*$2" "$RUNNER_TEMP/miri-negative.log"
+          }
+          # A free of a protected reference parameter (notes/fix-arena-recycle-uaf.md).
+          negative arena::tests::miri_rejects_freeing_a_reference_parameter 'strongly protected'
+          # A read through a handle of a freed region (notes/miri-coverage.md).
+          negative arena::tests::miri_rejects_reading_a_handle_of_a_freed_region 'dangling reference (use-after-free)'

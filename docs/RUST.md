@@ -75,7 +75,8 @@ clippy cannot express:
   a protected borrow for the whole call (`noalias readonly`), so writing the free-list link into it is undefined
   behaviour; LLVM deleted that write in `panic = "abort"` builds and every such build crashed
   (`notes/fix-arena-recycle-uaf.md`). Take the block as a `P<T>`, an address or a raw slice (`*const [T]`). No
-  baseline. The arena tests in `.github/workflows/miri.yml` use Miri for the forms a source check cannot see.
+  baseline. The arena, region and handle tests in `.github/workflows/miri.yml` use Miri for the forms a source check
+  cannot see (`notes/miri-coverage.md`).
 
 Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
 
@@ -182,12 +183,16 @@ THP off for the whole process (`MIMALLOC_ALLOW_THP=0`, which also drops the aren
 `opt-level = "s"` for the language-server, API and emit crates (`.text` -6%, speed unchanged); adding vscode at eight
 checkers to the PGO training (-3% instructions, cycles unchanged).
 
+Miri runs every lib test of `tsrs_core` on each pull request that touches the crate (`.github/workflows/miri.yml`;
+`notes/miri-coverage.md` has the per-module times, the two negative controls and what Miri cannot see): Stacked
+Borrows with `--features plain-ptrs`, because Miri does not support the compressed handles' `PROT_NONE` reservation.
+The crates above `tsrs_core` never meet Miri.
+
 Not tried. Each needs a measurement before it is adopted; none is applied yet:
 
 | Candidate | Who does it | What it would give | What it needs |
 | --- | --- | --- | --- |
 | Allocation-count snapshot gate | oxc `tasks/track_memory_allocations` (`cargo allocs`, then `git diff --exit-code` in CI), Rolldown | A stray heap allocation on a hot path becomes a diff in a checked-in snapshot. Counts are exact on one thread. | A fixed corpus, one checker, and a new allocation-counting tool. |
-| Miri on all of `tsrs_core` | oxc (strict provenance, allocator and AST crates), rust-analyzer (`intern`), Bun (tree borrows, 17 crates) | Soundness of the handle and region code, where a third of the `unsafe` is. The focused arena free-list checks run in `.github/workflows/miri.yml` (`notes/fix-arena-recycle-uaf.md`). | Nightly and `--features plain-ptrs` (Miri does not support the compressed handles' `PROT_NONE` reservation). |
 | Conformance with `debug-assertions` and `overflow-checks` in an optimized profile | oxc `[profile.coverage]` | Overflow and failed debug assertions that release builds skip. | A profile and a second conformance run. |
 | A symbol order file at link time | Bun (order file from a function-entry trace) | Part of BOLT's gain without a post-link step, on every platform. | A function-entry trace and `-Wl,--symbol-ordering-file` / `-order_file`. |
 | Arena-backed temporaries | oxc (arena `Vec` and `HashMap`), Bun (hashbrown on its arenas through `allocator-api2`, the stable stand-in for the nightly `Allocator` API) | Scratch vectors and maps skip malloc and free. | A scratch allocator whose reset point is provable; scope regions were rejected (above), so per-call scratch is the experiment. |

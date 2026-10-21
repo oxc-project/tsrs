@@ -47,6 +47,8 @@ starting another experiment.
   history affects diagnostics.
 - [Incremental diagnostic history](fix-history-dependent-diagnostics.md): cache reuse and diagnostic stability.
 - [Arena recycling and protected borrows](fix-arena-recycle-uaf.md): the lifetime bug and its regression guards.
+- [Unsafe audit](unsafe-audit.md): every unsafe site and lifetime escape classified, with the sites where safe code
+  can break an invariant (issue #646).
 - [Protocol quoting styles](shared-go-compat.md): shared helpers retain each caller's escaping behavior.
 - [Language-server memory ownership](lsp-mem.md) and [lifetime corrections](lsp-memfix.md): regions, snapshots
   and checker disposal.

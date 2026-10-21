@@ -59,7 +59,7 @@ An upgrade is a pull request of its own:
 
 ## Source checks
 
-`tools/lint/source.py` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks three things
+`tools/lint/source.py` (CI: the `lint` job; after Bun's `test/internal/source-lints/`) checks four things
 clippy cannot express:
 
 - **`unsafe impl Send` / `Sync`.** `tools/lint/send_sync.tsv` lists all of them (31 on 2026-10-10). Adding or removing
@@ -76,6 +76,13 @@ clippy cannot express:
   behaviour; LLVM deleted that write in `panic = "abort"` builds and every such build crashed
   (`notes/fix-arena-recycle-uaf.md`). Take the block as a `P<T>`, an address or a raw slice (`*const [T]`). No
   baseline. The arena tests in `.github/workflows/miri.yml` use Miri for the forms a source check cannot see.
+- **Every `unsafe` site and lifetime escape.** `tools/lint/unsafe_sites.tsv` lists each `unsafe` block, `unsafe fn`,
+  `unsafe impl`, `unsafe extern`, `Box::leak`, `Box::from_raw`, `mem::forget`, `transmute` and `assume_static`
+  (498 on 2026-10-21), keyed by file, enclosing item, kind and the first line of its `SAFETY` comment (not by line
+  number), with a class (`boundary`, `core-allocator`, `ownership`, `logic`, `test`), a verdict (`keep`,
+  `safe-api-possible`, `defect-risk`, `unknown`) and a note that `--update` preserves. A site that appears or
+  disappears fails until `--update` records it; a new row starts with the verdict `unknown` and the check names it
+  until someone classifies it. The classification and its findings are in `notes/unsafe-audit.md` (issue #646).
 
 Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated files are not scanned.
 
@@ -92,7 +99,7 @@ Source checks cover `crates/*/src` and `tasks/*/src`. Test files and generated f
 | Branches | `single_match`, `single_match_else`, `redundant_else`, `collapsible_match`, `if_same_then_else`, `return_and_then` | Simplify branches while preserving the Go source's evaluation order and side effects; propagate absent optional results with `?` at return sites. |
 | Hashing | `disallowed_types` (`std::collections::HashMap` / `HashSet`), `set_contains_or_insert`, `zero_sized_map_values`, `iter_over_hash_type` | PORTING.md already requires `FxHashMap`; std's maps use SipHash. `iter_over_hash_type` flags iterating a hash map or set: the order must never reach a diagnostic or emitted text (sort, or use `OrderedMap`). oxc, Rolldown, rust-analyzer, Bun ban the std maps; Ruff uses `iter_over_hash_type`. |
 | Locks and threads | `mutex_atomic`, `mutex_integer`, `rc_mutex`, `significant_drop_in_scrutinee`, `non_send_fields_in_send_ty` | A mutex around a flag or counter, a lock guard held across a whole `match`, and every new `unsafe impl Send` over non-`Send` fields (the "by decree" impls in PORTING.md "Threading") becomes a reviewed line. |
-| `unsafe` | `undocumented_unsafe_blocks`, `missing_safety_doc`, `unsafe_op_in_unsafe_fn`, `ptr_as_ptr`, `ptr_cast_constness`, `ref_as_ptr`, `borrow_as_ptr`, `cast_ptr_alignment`, `as_ptr_cast_mut`, `transmute_ptr_to_ptr`, `mem_forget`, `disallowed_methods` | Every `unsafe` block states its invariant in a `// SAFETY:` comment. Pointer casts use the forms that cannot change mutability or type by accident. `clippy.toml` lists the unchecked operations (`get_unchecked`, `unwrap_unchecked`, `unreachable_unchecked`, `from_utf8_unchecked`): each needs a reason that cites a measurement. Bun, oxc, rust-analyzer. |
+| `unsafe` | `undocumented_unsafe_blocks`, `missing_safety_doc`, `unsafe_op_in_unsafe_fn`, `ptr_as_ptr`, `ptr_cast_constness`, `ref_as_ptr`, `borrow_as_ptr`, `cast_ptr_alignment`, `as_ptr_cast_mut`, `transmute_ptr_to_ptr`, `mem_forget`, `disallowed_methods` | Every `unsafe` block states its invariant in a `// SAFETY:` comment. Pointer casts use the forms that cannot change mutability or type by accident. `clippy.toml` lists the unchecked operations (`get_unchecked`, `unwrap_unchecked`, `unreachable_unchecked`, `from_utf8_unchecked`): each needs a reason that cites a measurement. `tools/lint/unsafe_sites.tsv` lists every site with a class and a verdict ("Source checks"). Bun, oxc, rust-analyzer. |
 | Leftovers | `dbg_macro`, `todo`, `unimplemented`, `disallowed_macros`, `allow_attributes`, `allow_attributes_without_reason` | Debugging output and placeholders do not land; suppressions are `#[expect]` with a reason. Bun, oxc and Rolldown have all of the first three; rust-analyzer, Ruff and Biome have `dbg_macro`. |
 | Unused code | `dead_code`, `unused_imports`, `unused_variables`, `unused_mut` (rustc) | Clippy denies unused code in its scope; ordinary compiler warnings are denied in every CI build. Unused variables were not prefixed with `_` in bulk: in a port an unused parameter can mean the Rust code dropped something the Go code uses, so each was checked against Go. Bun denies `dead_code`. |
 

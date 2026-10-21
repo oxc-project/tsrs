@@ -31,6 +31,23 @@ cycles.
 Nothing crashed and no answer changed: 0 wrong answers in 2,520 normal and 1,260 poison cycles, with the per-cycle
 response contents compared.
 
+## Correction after #677
+
+#677 put each config file load in a region of its own and measured again with this tool. The command line's heap
+members are freed (heap live per cycle 6.8 KiB -> 0 for `api-snapshot`, 16.7 -> 4.4 KiB for `lsp-reload`) and the
+config text no longer stays in the thread arenas (100 KiB of padding prepended to tsconfig.json: 147.5 -> 41.0 KiB
+retained per cycle), but the arena figure only moved from 47 to 45 KiB per cycle. So the "52 KiB in the arena"
+below is two things, and the sections below fold them together:
+
+- the config load: for this 10-line tsconfig a few KiB of arena plus the heap members, scaling 1:1 with the
+  tsconfig text and the include match (the padding experiment); fixed by #677;
+- about 41 KiB per *full program build* (`api-snapshot`, `lsp-reload`; not `api-update` or `lsp-edit`, which reuse
+  a program) that stays in a thread arena and is not the config load. Not attributed yet. Candidates: the
+  `enter_table_owner` routes (the resolver's package.json cache, the project-reference symlink tables) and the
+  `enter_thread_arena` sites on the build path.
+
+The measurements below are left as taken; read "the config file's text" and "52 KiB" there as the sum of both.
+
 ## Method
 
 `tools/lsp-mem/lifecycle_leaks.py` (docstring: scenarios, options). Per cycle it samples `ps -o rss` of the server

@@ -253,8 +253,9 @@ fn check_struct(
     pointer: &mut Pointer,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
+    let mut next = 0;
     for spec in struct_fields(base_type(go_type)) {
-        if let Some(v) = o.get(spec.name) {
+        if let Some(v) = o.get_from(spec.name, &mut next) {
             let len = pointer.len();
             pointer.push_key(spec.name);
             check_field(spec, v, pointer, lexemes)?;
@@ -665,8 +666,9 @@ fn check_params(
     pointer: &mut Pointer,
     lexemes: &FxHashMap<String, String>,
 ) -> Result<(), String> {
+    let mut next = 0;
     for spec in params_fields(method) {
-        if let Some(v) = o.get(spec.name) {
+        if let Some(v) = o.get_from(spec.name, &mut next) {
             pointer.truncate(0);
             pointer.push_key(spec.name);
             check_field(spec, v, pointer, lexemes)?;

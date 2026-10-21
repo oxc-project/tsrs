@@ -96,6 +96,20 @@ impl JsonMap {
         self.get_index_of(key).map(|i| &self.entries[i].1)
     }
 
+    /// `get` for a caller looking up names in the order the members usually come in (a struct's fields in
+    /// declaration order): it tries the member at `next` first, and leaves `next` after the one it finds.
+    pub fn get_from(&self, key: &str, next: &mut usize) -> Option<&Value> {
+        if let Some((k, v)) = self.entries.get(*next)
+            && key_eq(k, key)
+        {
+            *next += 1;
+            return Some(v);
+        }
+        let i = self.get_index_of(key)?;
+        *next = i + 1;
+        Some(&self.entries[i].1)
+    }
+
     pub fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
         self.get_index_of(key).map(|i| &mut self.entries[i].1)
     }
@@ -634,6 +648,27 @@ mod tests {
             }
             let longer = format!("{a}a");
             assert!(!super::key_eq(&a, &longer) && !super::key_eq(&longer, &a));
+        }
+    }
+
+    /// `get_from` finds what `get` finds, whatever the hint, and moves the hint past the member found.
+    #[test]
+    fn get_from_agrees_with_get() {
+        for size in [0, 3, LINEAR_MAX + 2] {
+            let map: JsonMap = (0..size).map(|i| (format!("k{i}"), n(i))).collect();
+            for start in 0..=size + 1 {
+                for i in 0..size + 2 {
+                    let key = format!("k{i}");
+                    let mut next = start;
+                    assert_eq!(
+                        map.get_from(&key, &mut next),
+                        map.get(&key),
+                        "{size} {start} {key}"
+                    );
+                    let want = map.get_index_of(&key).map_or(start, |i| i + 1);
+                    assert_eq!(next, want, "{size} {start} {key}");
+                }
+            }
         }
     }
 

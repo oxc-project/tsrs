@@ -7,6 +7,8 @@
 // - the base region: the full build's region, shared by every version cloned from it (`UpdateProgram` hands the
 //   shared processed-file data and the symlink cache to the next version);
 // - the regions of its source files (each parsed file version has one, see parsecache.rs);
+// - the region of its config file's load (the registry entry's, configfileregistry.rs `load`): the program holds
+//   its command line, which may be replaced in the registry while the program lives;
 // - through its checker pool, the checkers' regions.
 //
 // `programOwner` is held by every `Project` value that refers to the program (projects are cloned per snapshot and
@@ -27,6 +29,7 @@ pub(crate) struct programOwner {
     region: Region,
     pub(crate) base: Region,
     files: Vec<Region>,
+    config: Option<Region>,
 }
 
 impl programOwner {
@@ -38,6 +41,7 @@ impl programOwner {
         region: Region,
         base: Region,
         full_build: bool,
+        config: Option<Region>,
     ) -> programOwner {
         if full_build {
             base.adopt_owner(processed_files_addr(program));
@@ -61,7 +65,7 @@ impl programOwner {
                 base.allocated_bytes() >> 10
             )
         });
-        programOwner { program, checker_pool, region, base, files }
+        programOwner { program, checker_pool, region, base, files, config }
     }
 }
 
@@ -74,10 +78,11 @@ impl Drop for programOwner {
     fn drop(&mut self) {
         log_region(|| {
             format!(
-                "program {:p}: freed ({} files, region {} KiB)",
+                "program {:p}: freed ({} files, region {} KiB, config load {} KiB)",
                 self.program,
                 self.files.len(),
-                self.region.allocated_bytes() >> 10
+                self.region.allocated_bytes() >> 10,
+                self.config.as_ref().map_or(0, Region::allocated_bytes) >> 10
             )
         });
         if let Some(pool) = &self.checker_pool {

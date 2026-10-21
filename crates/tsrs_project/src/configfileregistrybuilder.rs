@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use rustc_hash::{FxHashMap, FxHashSet};
+use tsrs_core::arena::Region;
 use tsrs_core::collections::Set;
 use tsrs_core::tspath::{self, ComparePathsOptions, Path};
 use tsrs_core::{CompilerOptions, P, Tristate};
@@ -26,6 +27,10 @@ use crate::watch::{
     PatternsAndIgnored, get_path_components_for_watching, get_recursive_glob_pattern,
     minWatchLocationDepth,
 };
+
+// Memory regions: the first chunk of the region a config file's load is made in (configfileregistry.rs `load`). A
+// 40-module project's tsconfig.json loads about 50 KiB; the region grows by chunks as needed.
+const CONFIG_LOAD_REGION_CHUNK: usize = 64 << 10;
 
 // configFileRegistryBuilder tracks changes made on top of a previous
 // configFileRegistry, producing a new clone with `finalize()` after
@@ -187,6 +192,9 @@ impl configFileRegistryBuilder {
         match entry.pending_reload {
             PendingReload::FileNames => {
                 logger.log(&format!("Reloading file names for config: {file_name}"));
+                // The reloaded command line shares the old one's config file and diagnostics, so it goes into the
+                // same region (configfileregistry.rs `load`).
+                let _load = entry.load.as_ref().map(Region::enter);
                 entry.command_line = Some(P::new(
                     entry.command_line.unwrap().reload_file_names_of_parsed_command_line(&*self.fs),
                 ));
@@ -203,15 +211,27 @@ impl configFileRegistryBuilder {
                 } else {
                     None
                 };
-                let (command_line, _) = tsoptions::get_parsed_command_line_of_config_file_path(
-                    file_name,
-                    path.clone(),
-                    existing_options.as_ref(),
-                    None, /*optionsRaw*/
-                    assume_static::<dyn ParseConfigHost>(self),
-                    Some(self as &dyn ExtendedConfigCacheTrait),
-                );
-                entry.command_line = command_line.map(P::new);
+                // Memory regions: the load (the file's text and syntax tree, the options, the file list, the
+                // parsing diagnostics) lives in a region of its own, freed with the entry (configfileregistry.rs
+                // `load`); before, every load stayed in the thread's arena for the life of the process. What
+                // outlives the entry is kept out of the region: the extended config cache's entries
+                // (`get_extended_config` below), and the lazily filled maps of the command line route to its
+                // owner, which is now this region (`arena::enter_owner`).
+                let load = Region::new(CONFIG_LOAD_REGION_CHUNK);
+                let command_line = {
+                    let _scope = load.enter();
+                    let (command_line, _) = tsoptions::get_parsed_command_line_of_config_file_path(
+                        file_name,
+                        path.clone(),
+                        existing_options.as_ref(),
+                        None, /*optionsRaw*/
+                        assume_static::<dyn ParseConfigHost>(self),
+                        Some(self as &dyn ExtendedConfigCacheTrait),
+                    );
+                    command_line.map(P::new)
+                };
+                entry.command_line = command_line;
+                entry.load = command_line.is_some().then_some(load);
                 self.update_extending_configs(path, entry.command_line, old_command_line);
                 self.update_root_files_watch(file_name, entry);
                 logger.log("Finished loading config file");
@@ -1075,6 +1095,10 @@ impl ExtendedConfigCacheTrait for configFileRegistryBuilder {
             content = fh.content().to_string();
         }
 
+        // The cache is the session's, shared by every snapshot and by every config that extends the file: its entry
+        // must not live in the region of the load that asked for it (`reload_if_needed`). It stays in the thread
+        // arena, as every load did before.
+        let _arena = tsrs_core::arena::enter_thread_arena();
         self.extended_config_cache
             .load_and_acquire(
                 path,

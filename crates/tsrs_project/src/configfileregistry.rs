@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsrs_core::P;
+use tsrs_core::arena::Region;
 use tsrs_core::collections::Set;
 use tsrs_core::tspath::Path;
 use tsrs_tsoptions::ParsedCommandLine;
@@ -64,6 +65,13 @@ pub(crate) struct configFileEntry {
     pub(crate) file_name: String,
     pub(crate) pending_reload: PendingReload,
     pub(crate) command_line: Option<P<ParsedCommandLine>>,
+    // Memory regions (not in Go, where the GC frees a command line once nothing refers to it): the region the
+    // load of `command_line` was made in (the file's text and syntax tree, the options, the file list, the parsing
+    // diagnostics). Every registry clone that keeps the entry shares the handle, and so does the owner of every
+    // program made from the command line (memregions.rs), so the load is freed with the last of them. A file-names
+    // reload goes into the same region (it shares the old command line's config file and diagnostics); a full
+    // reload gets a new one (configfileregistrybuilder.rs `reload_if_needed`; docs/LSP.md "Memory plan").
+    pub(crate) load: Option<Region>,
     // retainingProjects is the set of projects that have called acquireConfig
     // without releasing it. A config file entry may be acquired by a project
     // either because it is the config for that project or because it is the
@@ -96,6 +104,7 @@ pub(crate) fn new_config_file_entry(
         file_name: file_name.to_string(),
         pending_reload: PendingReload::Full,
         command_line: None,
+        load: None,
         retaining_projects: None,
         retaining_open_files: None,
         retaining_configs: None,
@@ -119,6 +128,7 @@ pub(crate) fn new_extended_config_file_entry(
         file_name: file_name.to_string(),
         pending_reload: PendingReload::Full,
         command_line: None,
+        load: None,
         retaining_projects: None,
         retaining_open_files: None,
         retaining_configs: Some(retaining_configs),
@@ -133,6 +143,7 @@ impl Cloneable for configFileEntry {
             file_name: self.file_name.clone(),
             pending_reload: self.pending_reload,
             command_line: self.command_line,
+            load: self.load.clone(),
             // !!! eagerly cloning these maps makes everything more convenient,
             // but it could be avoided if needed.
             retaining_projects: self.retaining_projects.clone(),

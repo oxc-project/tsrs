@@ -642,7 +642,8 @@ impl Project {
         // Create the command line, potentially augmented with typing files
         let command_line = self.get_command_line_with_typings_files();
         // Memory regions: what the new program version allocates lives in its own region (memregions.rs). The
-        // command line above is memoized in the project and outlives the program, so it is made before.
+        // command line above is memoized in the project and outlives the program, so it is made before; the region
+        // of its load (the config file registry entry's) is held by the owner below, so it outlives the program.
         let region = Region::new(1 << 20);
         let region_scope = region.enter();
         let reuse = !self.dirty_file_path.0.is_empty()
@@ -709,12 +710,15 @@ impl Project {
             (Some(old), true) => old.base.clone(),
             _ => region.clone(),
         };
+        let config =
+            self.command_line.and_then(|command_line| Region::containing(command_line.addr()));
         let owner = Arc::new(programOwner::new(
             new_program_result,
             checker_pool.clone(),
             region,
             base,
             !program_cloned,
+            config,
         ));
         if let Some(pool) = &checker_pool {
             pool.set_owner(Arc::downgrade(&owner));

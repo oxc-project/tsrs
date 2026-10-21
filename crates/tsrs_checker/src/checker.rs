@@ -1310,6 +1310,9 @@ pub struct Checker {
     /// `tsrs_core::lazymembers::enabled()` (default on; `--noLazyMembers` / `TSRS_LAZY_MEMBERS=0`): no lazy
     /// table is created when false.
     pub lazy_members: bool,
+    /// Counter for mapped types whose members are being resolved (see `resolve_mapped_type_members`).
+    /// Used to avoid shortcuts that would bypass the empty-members guard on recursive resolution.
+    pub(crate) mapped_types_resolving: u32,
     /// `TSRS_DEEP_NESTED=shadow`: every deeply-nested test on a relater stack is also made without the
     /// stack's kept recursion identities, and the kept identities are recomputed; any difference panics
     /// (`relater_1.rs`).
@@ -1812,6 +1815,7 @@ pub fn new_checker(program: &'static dyn Program) -> Box<Checker> {
         object_type_instantiations: crate::basedmap::Based::default(),
         lazy_mapped_tables: crate::basedmap::Based::default(),
         lazy_members: tsrs_core::lazymembers::enabled(),
+        mapped_types_resolving: 0,
         deep_nested_shadow: std::env::var("TSRS_DEEP_NESTED").is_ok_and(|v| v == "shadow"),
         lazy_tuples: tsrs_core::lazymembers::lazy_tuples(),
         #[cfg(feature = "site-counts")]
@@ -2356,6 +2360,7 @@ impl Checker {
             ),
             lazy_mapped_tables: crate::basedmap::Based::over(&base.lazy_mapped_tables),
             lazy_members: base.lazy_members,
+            mapped_types_resolving: base.mapped_types_resolving,
             deep_nested_shadow: base.deep_nested_shadow,
             lazy_tuples: base.lazy_tuples,
             #[cfg(feature = "site-counts")]

@@ -774,9 +774,16 @@ impl Checker {
         let types = t.types();
         let skipped = if self.lazy_members {
             types.iter().position(|&t| {
-                t.object_flags_lazy() & (ObjectFlags::Mapped | ObjectFlags::MembersResolved)
+                if t.object_flags_lazy() & (ObjectFlags::Mapped | ObjectFlags::MembersResolved)
                     == ObjectFlags::Mapped
-                    || may_have_lazy_members(t) && t.flags().intersects(TypeFlags::Object)
+                {
+                    // Mapped types with an `as` clause are not given lazy tables and are resolved
+                    // in full on lookup; skipping them only reorders resolution (issue #649).
+                    let mapped_type = t.as_mapped_type().target.get().unwrap_or(t);
+                    self.get_name_type_from_mapped_type(mapped_type).is_none()
+                } else {
+                    may_have_lazy_members(t) && t.flags().intersects(TypeFlags::Object)
+                }
             })
         } else {
             None

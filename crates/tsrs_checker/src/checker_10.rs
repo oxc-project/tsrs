@@ -2530,6 +2530,9 @@ impl Checker {
         let members = SymbolTable::new();
         // Resolve upfront such that recursive references see an empty object type.
         self.set_structured_type_members(t, None, &[], &[], &[]);
+        // While the empty-members guard is in place, avoid lazy shortcuts that would resolve
+        // mapped types after it has been filled (issue #649).
+        self.mapped_types_resolving += 1;
         // In { [P in K]: T }, we refer to P as the type parameter type, K as the constraint type,
         // and T as the template type.
         let type_parameter = self.get_type_parameter_from_mapped_type(t);
@@ -2582,6 +2585,7 @@ impl Checker {
         if let Some(lazy) = state.lazy.as_ref().filter(|lazy| lazy.index_infos_ready.get()) {
             index_infos = lazy.index_infos.get().to_vec();
         }
+        self.mapped_types_resolving -= 1;
         self.set_structured_type_members(t, Some(members), &[], &[], &index_infos);
         if let Some(timing) = self.census_end(census_span) {
             let n = members.len();

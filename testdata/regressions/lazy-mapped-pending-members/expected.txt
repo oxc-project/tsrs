@@ -1,0 +1,1 @@
+a.ts(38,14): error TS2322: Type 'number' is not assignable to type '[{}]'.

@@ -3104,7 +3104,10 @@ impl Checker {
             }
             return ready.construct_signatures.get();
         }
-        if self.lazy_members && t.object_flags().intersects(ObjectFlags::Mapped) {
+        if self.lazy_members
+            && self.mapped_types_resolving == 0
+            && t.object_flags().intersects(ObjectFlags::Mapped)
+        {
             if !t.object_flags_lazy().intersects(ObjectFlags::MembersResolved) {
                 self.lazy_member_stats.mapped_signature_early_returns += 1;
             }

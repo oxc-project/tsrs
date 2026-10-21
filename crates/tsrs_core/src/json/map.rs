@@ -7,7 +7,6 @@
 //
 // The API mirrors the `IndexMap` methods JSON code uses. Equality, like `IndexMap`'s, ignores order.
 
-use std::borrow::Borrow;
 use std::hash::{BuildHasher, Hash};
 
 use hashbrown::HashTable;
@@ -28,6 +27,27 @@ pub struct JsonMap {
 
 fn hash<Q: Hash + ?Sized>(key: &Q) -> u64 {
     FxBuildHasher.hash_one(key)
+}
+
+/// `a == b`, comparing `str` keys of up to 16 bytes inline: most member names are that short, and a
+/// lookup's comparisons are mostly the one that matches, where `==` would call `memcmp`.
+#[inline]
+fn key_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    let n = a.len();
+    if n != b.len() {
+        return false;
+    }
+    // Two overlapping loads cover every length in each band.
+    let word = |s: &[u8], at: usize| u64::from_le_bytes(s[at..at + 8].try_into().unwrap());
+    let half = |s: &[u8], at: usize| u32::from_le_bytes(s[at..at + 4].try_into().unwrap());
+    match n {
+        0 => true,
+        1..=3 => a[0] == b[0] && a[n / 2] == b[n / 2] && a[n - 1] == b[n - 1],
+        4..=7 => half(a, 0) == half(b, 0) && half(a, n - 4) == half(b, n - 4),
+        8..=16 => word(a, 0) == word(b, 0) && word(a, n - 8) == word(b, n - 8),
+        _ => a == b,
+    }
 }
 
 impl JsonMap {
@@ -57,46 +77,26 @@ impl JsonMap {
     }
 
     /// The position of `key`'s member.
-    pub fn get_index_of<Q>(&self, key: &Q) -> Option<usize>
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn get_index_of(&self, key: &str) -> Option<usize> {
         match &self.index {
-            None => self.entries.iter().position(|(k, _)| k.borrow() == key),
-            Some(index) => index.find(hash(key), |&i| self.entries[i].0.borrow() == key).copied(),
+            None => self.entries.iter().position(|(k, _)| key_eq(k, key)),
+            Some(index) => index.find(hash(key), |&i| key_eq(&self.entries[i].0, key)).copied(),
         }
     }
 
-    pub fn get<Q>(&self, key: &Q) -> Option<&Value>
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn get(&self, key: &str) -> Option<&Value> {
         self.get_index_of(key).map(|i| &self.entries[i].1)
     }
 
-    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut Value>
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
         self.get_index_of(key).map(|i| &mut self.entries[i].1)
     }
 
-    pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&String, &Value)>
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn get_key_value(&self, key: &str) -> Option<(&String, &Value)> {
         self.get_index_of(key).map(|i| (&self.entries[i].0, &self.entries[i].1))
     }
 
-    pub fn contains_key<Q>(&self, key: &Q) -> bool
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn contains_key(&self, key: &str) -> bool {
         self.get_index_of(key).is_some()
     }
 
@@ -123,7 +123,7 @@ impl JsonMap {
 
     /// `insert`, also returning the member's position.
     pub fn insert_full(&mut self, key: String, value: Value) -> (usize, Option<Value>) {
-        if let Some(i) = self.get_index_of(key.as_str()) {
+        if let Some(i) = self.get_index_of(&key) {
             return (i, Some(std::mem::replace(&mut self.entries[i].1, value)));
         }
         (self.push(key, value), None)
@@ -183,11 +183,7 @@ impl JsonMap {
     }
 
     /// Removes `key`'s member, moving the later members up by one.
-    pub fn shift_remove<Q>(&mut self, key: &Q) -> Option<Value>
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn shift_remove(&mut self, key: &str) -> Option<Value> {
         let i = self.get_index_of(key)?;
         Some(self.shift_remove_index(i)?.1)
     }
@@ -204,11 +200,7 @@ impl JsonMap {
     }
 
     /// Removes `key`'s member, moving the last member into its place.
-    pub fn swap_remove<Q>(&mut self, key: &Q) -> Option<Value>
-    where
-        String: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
+    pub fn swap_remove(&mut self, key: &str) -> Option<Value> {
         let i = self.get_index_of(key)?;
         let (_, value) = self.entries.swap_remove(i);
         if self.index.is_some() {
@@ -226,7 +218,7 @@ impl JsonMap {
     }
 
     pub fn entry(&mut self, key: String) -> Entry<'_> {
-        match self.get_index_of(key.as_str()) {
+        match self.get_index_of(&key) {
             Some(index) => Entry::Occupied(OccupiedEntry { map: self, index }),
             None => Entry::Vacant(VacantEntry { map: self, key }),
         }
@@ -310,15 +302,11 @@ impl std::fmt::Debug for JsonMap {
     }
 }
 
-impl<Q> std::ops::Index<&Q> for JsonMap
-where
-    String: Borrow<Q>,
-    Q: Hash + Eq + ?Sized,
-{
+impl std::ops::Index<&str> for JsonMap {
     type Output = Value;
 
     /// Panics when `key` is not a member.
-    fn index(&self, key: &Q) -> &Value {
+    fn index(&self, key: &str) -> &Value {
         self.get(key).expect("JsonMap: key not found")
     }
 }
@@ -605,6 +593,23 @@ mod tests {
                     assert!(JsonMap::from_distinct(dup).is_none(), "{size} {from} {to}");
                 }
             }
+        }
+    }
+
+    /// `key_eq` is `==` for every pair of keys up to 20 bytes that differ in at most one byte.
+    #[test]
+    fn key_eq_matches_equality() {
+        for len in 0..=20 {
+            let a: String = (0..len).map(|i| char::from(b'a' + i as u8)).collect();
+            assert!(super::key_eq(&a, &a));
+            for at in 0..len {
+                let mut b = a.clone().into_bytes();
+                b[at] = b'Z';
+                let b = String::from_utf8(b).unwrap();
+                assert!(!super::key_eq(&a, &b), "{a} {b}");
+            }
+            let longer = format!("{a}a");
+            assert!(!super::key_eq(&a, &longer) && !super::key_eq(&longer, &a));
         }
     }
 

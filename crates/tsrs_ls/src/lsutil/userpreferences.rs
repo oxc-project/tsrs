@@ -1229,10 +1229,10 @@ pub(crate) fn set_nested_value(config: &mut JsonMap, path: &str, value: Value) {
     let parts: Vec<&str> = path.split('.').collect();
     let mut current = config;
     current = parts[..parts.len() - 1].iter().fold(current, |mut current, part| {
-        if !matches!(current.get(*part), Some(Value::Object(_))) {
+        if !matches!(current.get(part), Some(Value::Object(_))) {
             current.insert(part.to_string(), Value::Object(JsonMap::new()));
         }
-        let Some(Value::Object(next)) = current.get_mut(*part) else { unreachable!() };
+        let Some(Value::Object(next)) = current.get_mut(part) else { unreachable!() };
         current = next;
 
         current

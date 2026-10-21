@@ -23,10 +23,10 @@
 //! (`ScanError::args`); pass them on as `&[&dyn Display]`.
 //!
 //! Speculation (Go `Mark` / `Rewind`). `mark()` returns a `Copy` `ScannerState` snapshot
-//! (positions, token, token value, flags, `JSDoc` asterisk depth and the slice of comment directives
-//! collected so far); `rewind(state)` restores it. Adding a directive copies the slice into a new
-//! arena slice, so a saved snapshot is never modified, which is what Go's shared-backing-array
-//! slice restore amounts to. Buffered
+//! (positions, token, token value, flags, `JSDoc` asterisk depth and the count of comment directives
+//! collected so far); `rewind(state)` restores it. The scanner keeps a single growable vector for
+//! directives; snapshots store only the length, and `rewind` truncates to that length, so a saved
+//! snapshot is never modified. Buffered
 //! errors are *not* part of the state (in Go they are the callback's business): an owner that
 //! drains after every call has nothing pending at `mark()` time and truncates its own diagnostics
 //! on rewind, as the Go parser does.
@@ -314,7 +314,7 @@ pub struct ScannerState {
     pub(crate) token: Kind,         // Kind of current token
     pub(crate) token_value: &'static str, // Parsed value of current token
     pub(crate) token_flags: TokenFlags, // Flags for current token
-    pub(crate) comment_directives: &'static [CommentDirective], // a snapshot, like Go's slice header: Rewind restores it
+    pub(crate) comment_directives_len: u32, // Snapshot of the number of comment directives collected so far
     pub(crate) skip_jsdoc_leading_asterisks: u32, // Leading asterisks to skip when scanning types inside JSDoc. Should be 0 outside JSDoc
 }
 
@@ -328,6 +328,7 @@ pub struct Scanner {
     errors: Vec<ScanError>,
     skip_trivia: bool,
     pub(crate) state: ScannerState,
+    comment_directives: Vec<CommentDirective>,
 
     number_cache: FxHashMap<&'static str, &'static str>,
     hex_number_cache: FxHashMap<&'static str, &'static str>,
@@ -589,8 +590,8 @@ impl Scanner {
         TextRange::new(self.state.token_start, self.state.pos)
     }
 
-    pub fn comment_directives(&self) -> &'static [CommentDirective] {
-        self.state.comment_directives
+    pub fn comment_directives(&self) -> &[CommentDirective] {
+        &self.comment_directives[..self.state.comment_directives_len as usize]
     }
 
     pub fn mark(&self) -> ScannerState {
@@ -599,6 +600,7 @@ impl Scanner {
 
     pub fn rewind(&mut self, state: ScannerState) {
         self.state = state;
+        self.comment_directives.truncate(self.state.comment_directives_len as usize);
     }
 
     /// Go: `onError != nil`. Enables buffering of scanner diagnostics (see the module docs).
@@ -700,6 +702,7 @@ impl Scanner {
         self.text = text;
         self.end = text.len() as u32;
         self.state = ScannerState::default();
+        self.comment_directives.clear();
     }
 
     pub fn set_language_variant(&mut self, language_variant: LanguageVariant) {
@@ -1665,11 +1668,8 @@ impl Scanner {
         } else {
             return;
         };
-        // Directives are rare; copying keeps every saved state's snapshot intact (Go shares the backing array,
-        // but never rewrites elements below a saved length).
-        let mut directives = self.state.comment_directives.to_vec();
-        directives.push(CommentDirective { loc: TextRange::new(start, end), kind });
-        self.state.comment_directives = tsrs_core::alloc_vec(directives);
+        self.comment_directives.push(CommentDirective { loc: TextRange::new(start, end), kind });
+        self.state.comment_directives_len += 1;
     }
 
     pub fn re_scan_less_than_token(&mut self) -> Kind {

@@ -1,0 +1,58 @@
+Files:              91
+Lines:          138774
+Identifiers:    129870
+Symbols:         75112
+Types:          131118
+Instantiations:  61398
+Memory used:    80612K
+Memory allocs:       0
+Parse time:     0.033s
+Bind time:      0.000s
+Check time:     0.124s
+Emit time:      0.000s
+Total time:     0.159s
+Program: root file lookups:            0.000s
+Program:   loader rounds:                  13
+Program:   parallel parse + resolve:   0.031s
+Program:   parsed ahead:                    0
+Program:   sequential load:            0.000s
+Program: file graph (parse + resolve): 0.032s
+Program: collect files:                0.000s
+Program: verify options:               0.000s
+Diagnostics: syntactic:                0.000s
+Diagnostics: program:                  0.000s
+Checkers: create:                      0.001s
+Checkers: assign files:                0.000s
+Diagnostics: global (first):           0.002s
+Checkers: leaf files:                  0.000s
+Diagnostics: global (after):           0.000s
+Emit:                                  0.000s
+Diagnostics: sort:                     0.000s
+Diagnostics: report:                   0.000s
+List files:                            0.000s
+Error summary:                         0.000s
+Statistics:                            0.002s
+Lazy member tables:                                 550
+Lazy member tables resolved in full:                445
+Lazy table declared members:                      13189
+Lazy table members instantiated:                   4606
+Lazy member lookups:                             120878
+Lazy signature queries:                           81270
+Lazy index info queries:                          40624
+Lazy every-property queries:                      40604
+Lazy mapped tables:                                   0
+Lazy mapped tables resolved in full:                  0
+Lazy mapped members created:                          0
+Lazy mapped member lookups:                           0
+Lazy mapped index info queries:                       0
+Mapped signature early returns:                       0
+somePropertyReducesToNever skips:                     1
+Lazy tuple tables:                                   20
+Lazy tuple tables resolved in full:                   4
+Conditional composite mappers avoided:                3
+Augmented property cache copies avoided:             29
+Augmented lookups served by the other cache:          0
+Existence-only property queries:                  32525
+Existence answers from an uninstantiated member:    189
+Lazy property-order lists requested:                433
+Empty-object queries answered by lazy tables:         0

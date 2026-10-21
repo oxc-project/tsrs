@@ -1,5 +1,5 @@
 use tsrs_ast::Kind;
-use tsrs_core::stringutil;
+use tsrs_core::{alloc_str, stringutil};
 
 use crate::Scanner;
 use crate::utilities::normalize_jsdoc_type_source_text;
@@ -64,6 +64,23 @@ fn test_mark_rewind_restores_token_and_comment_directives() {
     assert_eq!(s.scan(), Kind::Identifier);
     assert_eq!(s.token_value(), "b");
     assert_eq!(s.comment_directives().len(), 1);
+}
+
+#[test]
+fn test_comment_directives_scale_linearly() {
+    // Before the fix, each directive copied the whole collected slice, giving
+    // quadratic time and memory. With enough directives that would OOM the runner
+    // (about 75,000 directives retain ~6 * n * (n + 1) bytes of arena copies);
+    // after the fix only the final list is retained, so the same input stays small.
+    let mut source = String::from("export const values: number[] = [];\n");
+    for _ in 0..75000 {
+        source.push_str("// @ts-ignore -- note\n");
+        source.push_str("values.push(0);\n");
+    }
+    let mut s = Scanner::new();
+    s.set_text(alloc_str(&source));
+    while s.scan() != Kind::EndOfFile {}
+    assert_eq!(s.comment_directives().len(), 75000);
 }
 
 #[test]

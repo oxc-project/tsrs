@@ -230,9 +230,6 @@ fn repeated_resolve_module_name_reclaims_scratch_memory() {
     let grown = rss_kib().saturating_sub(before);
     eprintln!("resolveModuleName x{n}: rss grew {grown} KiB");
     // Before the scratch region each call retained ~3.4 KiB; after the fix only allocator noise remains.
-    assert!(
-        grown < (n as u64) * 24,
-        "rss grew {grown} KiB over {n} resolveModuleName calls"
-    );
+    assert!(grown < (n as u64) * 24, "rss grew {grown} KiB over {n} resolveModuleName calls");
     call(&s, "releaseModuleResolver", &format!("{{\"resolver\":{resolver_id}}}"));
 }
